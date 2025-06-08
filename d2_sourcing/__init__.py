@@ -8,6 +8,7 @@ data normalization, and quality scoring.
 from database.models import Business
 from .models import YelpMetadata, SourcedLocation
 from .yelp_scraper import YelpScraper, ScrapingResult, ScrapingStatus, scrape_businesses_by_location, scrape_businesses_by_term
+from .deduplicator import BusinessDeduplicator, DuplicateMatch, MergeResult, MatchConfidence, MergeStrategy, find_and_merge_duplicates, detect_duplicates_only
 from .exceptions import (
     SourcingException,
     YelpAPIException, 
@@ -15,7 +16,8 @@ from .exceptions import (
     YelpQuotaExceededException,
     BatchQuotaException,
     PaginationException,
-    ErrorRecoveryException
+    ErrorRecoveryException,
+    DeduplicationException
 )
 
 __all__ = [
@@ -29,6 +31,14 @@ __all__ = [
     'ScrapingStatus',
     'scrape_businesses_by_location',
     'scrape_businesses_by_term',
+    # Deduplicator
+    'BusinessDeduplicator',
+    'DuplicateMatch',
+    'MergeResult',
+    'MatchConfidence',
+    'MergeStrategy',
+    'find_and_merge_duplicates',
+    'detect_duplicates_only',
     # Exceptions
     'SourcingException',
     'YelpAPIException',
@@ -36,5 +46,6 @@ __all__ = [
     'YelpQuotaExceededException',
     'BatchQuotaException',
     'PaginationException',
-    'ErrorRecoveryException'
+    'ErrorRecoveryException',
+    'DeduplicationException'
 ]
