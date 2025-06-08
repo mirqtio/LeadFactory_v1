@@ -45,7 +45,7 @@ class YelpMetadata(Base):
     last_changed = Column(DateTime, nullable=True)
     
     # Relationships
-    business = relationship("Business", back_populates="yelp_metadata")
+    business = relationship("Business")
     
     __table_args__ = (
         Index('idx_yelp_metadata_processed', 'processed', 'enriched'),
@@ -92,7 +92,7 @@ class SourcedLocation(Base):
     needs_review = Column(Boolean, nullable=False, default=False)
     
     # Relationships
-    business = relationship("Business", back_populates="sourced_locations")
+    business = relationship("Business")
     
     __table_args__ = (
         UniqueConstraint('source_provider', 'source_id', name='uq_sourced_locations_provider_id'),

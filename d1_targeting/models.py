@@ -127,7 +127,7 @@ class CampaignTarget(Base):
     
     # Relationships
     campaign = relationship("Campaign", back_populates="campaign_targets")
-    target = relationship("Target", back_populates="campaign_targets")
+    target = relationship("Target")
     
     __table_args__ = (
         UniqueConstraint('campaign_id', 'target_id', name='uq_campaign_targets'),
