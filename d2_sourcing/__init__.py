@@ -5,7 +5,8 @@ Handles business data sourcing from Yelp API with intelligent deduplication,
 data normalization, and quality scoring.
 """
 
-from .models import Business, YelpMetadata, SourcedLocation
+from database.models import Business
+from .models import YelpMetadata, SourcedLocation
 
 __all__ = [
     'Business',
