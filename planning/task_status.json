@@ -164,9 +164,9 @@
       "actual_hours": null
     },
     "028": {
-      "status": "pending",
+      "status": "completed",
       "started_at": null,
-      "completed_at": null,
+      "completed_at": "2025-06-08T22:56:30.000000",
       "actual_hours": null
     },
     "029": {
