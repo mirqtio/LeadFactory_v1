@@ -20,6 +20,15 @@ def run_command(cmd: str) -> tuple[int, str, str]:
     return result.returncode, result.stdout, result.stderr
 
 
+def docker_compose_available() -> bool:
+    """Check if docker-compose is available"""
+    try:
+        result = subprocess.run(["docker-compose", "--version"], capture_output=True)
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+
 class TestDockerCompose:
     """Test Docker Compose setup for local development"""
     
@@ -41,11 +50,13 @@ class TestDockerCompose:
         # Cleanup
         run_command("docker-compose down -v")
     
+    @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
     def test_docker_compose_file_valid(self):
         """Test that docker-compose.yml is valid"""
         code, stdout, stderr = run_command("docker-compose config")
         assert code == 0, f"Invalid docker-compose.yml: {stderr}"
         
+    @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
     def test_docker_compose_test_file_valid(self):
         """Test that docker-compose.test.yml is valid"""
         code, stdout, stderr = run_command("docker-compose -f docker-compose.test.yml config")
