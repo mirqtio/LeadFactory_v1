@@ -110,6 +110,7 @@ class Target(Base):
     
     # Relationships
     batches = relationship("Batch", back_populates="target")
+    campaign_targets = relationship("CampaignTarget", back_populates="target")
     
     __table_args__ = (
         UniqueConstraint("geo_type", "geo_value", "vertical"),
@@ -181,6 +182,8 @@ class Business(Base):
     scores = relationship("ScoringResult", back_populates="business")
     emails = relationship("Email", back_populates="business")
     purchases = relationship("Purchase", back_populates="business")
+    yelp_metadata = relationship("YelpMetadata", back_populates="business")
+    sourced_locations = relationship("SourcedLocation", back_populates="business")
     
     __table_args__ = (
         Index("idx_business_vertical_city", "vertical", "city"),
