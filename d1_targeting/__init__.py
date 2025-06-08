@@ -5,7 +5,8 @@ Manages geographic and vertical market segmentation for lead generation campaign
 Provides target universe definition and batch scheduling capabilities.
 """
 
-from .models import Target, TargetUniverse, Campaign, GeographicBoundary
+from database.models import Target, Batch
+from .models import TargetUniverse, Campaign, GeographicBoundary
 from .types import (
     VerticalMarket,
     GeographyLevel,

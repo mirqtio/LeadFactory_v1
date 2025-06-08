@@ -8,67 +8,8 @@ from datetime import datetime
 import uuid
 
 from database.base import Base
+from database.models import Target
 from .types import VerticalMarket, GeographyLevel, CampaignStatus, TargetQualificationStatus
-
-
-class Target(Base):
-    """Individual business target for campaigns"""
-    __tablename__ = "targets"
-    
-    # Primary identification
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    external_id = Column(String(255), nullable=True, index=True)  # Provider's ID
-    
-    # Basic business information
-    business_name = Column(String(255), nullable=False, index=True)
-    vertical = Column(String(50), nullable=False, index=True)  # VerticalMarket enum
-    website = Column(String(500), nullable=True)
-    phone = Column(String(50), nullable=True)
-    email = Column(String(255), nullable=True)
-    
-    # Geographic information
-    address = Column(Text, nullable=True)
-    city = Column(String(100), nullable=True, index=True)
-    state = Column(String(10), nullable=True, index=True)
-    zip_code = Column(String(20), nullable=True, index=True)
-    country = Column(String(10), nullable=False, default="US", index=True)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
-    
-    # Business metadata
-    rating = Column(Float, nullable=True)
-    review_count = Column(Integer, nullable=True, default=0)
-    price_level = Column(Integer, nullable=True)  # 1-4 scale
-    categories = Column(JSON, nullable=True)  # List of category strings
-    business_hours = Column(JSON, nullable=True)  # Structured hours data
-    
-    # Targeting status
-    qualification_status = Column(String(20), nullable=False, default="unqualified", index=True)
-    first_discovered = Column(DateTime, nullable=False, default=datetime.utcnow)
-    last_updated = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-    last_contacted = Column(DateTime, nullable=True)
-    contact_attempts = Column(Integer, nullable=False, default=0)
-    
-    # Data source tracking
-    source_provider = Column(String(50), nullable=False, index=True)
-    source_query = Column(Text, nullable=True)
-    data_quality_score = Column(Float, nullable=True)
-    verification_status = Column(String(20), nullable=False, default="unverified")
-    
-    # Relationships
-    campaign_targets = relationship("CampaignTarget", back_populates="target")
-    
-    # Indexes for performance
-    __table_args__ = (
-        Index('idx_targets_geo', 'city', 'state', 'zip_code'),
-        Index('idx_targets_vertical_geo', 'vertical', 'state', 'city'),
-        Index('idx_targets_qualification', 'qualification_status', 'vertical'),
-        Index('idx_targets_source', 'source_provider', 'external_id'),
-        UniqueConstraint('source_provider', 'external_id', name='uq_targets_source_external'),
-    )
-    
-    def __repr__(self):
-        return f"<Target(id={self.id}, name='{self.business_name}', vertical='{self.vertical}')>"
 
 
 class TargetUniverse(Base):
