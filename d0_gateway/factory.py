@@ -112,11 +112,17 @@ class GatewayClientFactory:
         try:
             client_class = self._providers[provider]
             
-            # Inject configuration
+            # Get provider-specific configuration
             config = self._get_provider_config(provider)
             config.update(kwargs)  # Allow override with kwargs
             
-            client = client_class(**config)
+            # Only pass api_key to client constructor
+            # Other config is handled by BaseAPIClient
+            client_kwargs = {
+                'api_key': config.get('api_key')
+            }
+            
+            client = client_class(**client_kwargs)
             
             # Cache the instance if caching is enabled
             if use_cache:

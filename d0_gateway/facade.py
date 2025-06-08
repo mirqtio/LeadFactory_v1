@@ -62,15 +62,15 @@ class GatewayFacade:
         try:
             client = self.factory.create_client('yelp')
             result = await client.search_businesses(
-                term=term,
                 location=location,
                 categories=categories,
+                term=term,
                 limit=limit,
                 offset=offset,
                 sort_by=sort_by,
                 price=price,
-                open_now=open_now,
-                attributes=attributes
+                open_now=open_now
+                # Note: 'attributes' is not supported by YelpClient
             )
             
             self.logger.info(f"Yelp search completed: {term} in {location}")

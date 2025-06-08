@@ -10,7 +10,18 @@ from core.logging import get_logger
 class GatewayMetrics:
     """Prometheus metrics collector for D0 Gateway"""
     
+    _instance = None
+    _initialized = False
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
     def __init__(self):
+        if self._initialized:
+            return
+            
         self.logger = get_logger("gateway.metrics", domain="d0")
         
         # API call metrics
@@ -77,6 +88,9 @@ class GatewayMetrics:
             'version': '1.0.0',
             'domain': 'd0_gateway'
         })
+        
+        # Mark as initialized
+        self.__class__._initialized = True
         
     def record_api_call(
         self,

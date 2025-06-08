@@ -63,6 +63,7 @@ class TestDockerCompose:
         assert code == 0, f"Invalid docker-compose.test.yml: {stderr}"
         
     @pytest.mark.integration
+    @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
     def test_all_services_start(self, docker_compose_up):
         """Test that all services start properly"""
         code, stdout, stderr = run_command("docker-compose ps")
