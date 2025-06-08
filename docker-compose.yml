@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Stub server for mocking external APIs
+  stub-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.stub
+    ports:
+      - "5010:5010"
+    environment:
+      - USE_STUBS=true
+      - STUB_DELAY_MS=50
+    volumes:
+      - ./stubs:/app/stubs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+  # Test runner
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      - stub-server
+    environment:
+      - USE_STUBS=true
+      - STUB_BASE_URL=http://stub-server:5010
+      - DATABASE_URL=sqlite:///tmp/test.db
+      - PYTHONPATH=/app
+    volumes:
+      - ./:/app
+      - test-data:/app/tmp
+    command: pytest -xvs --tb=short --cov=. --cov-report=term-missing
+
+  # Development database (for local development)
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=leadfactory
+      - POSTGRES_PASSWORD=leadfactory_dev
+      - POSTGRES_DB=leadfactory_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leadfactory"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  test-data:
+  postgres-data:
+  redis-data:
