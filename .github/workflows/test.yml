@@ -59,14 +59,19 @@ jobs:
     - name: Build Docker test image
       run: docker build -f Dockerfile.test -t leadfactory-test .
     
-    - name: Run tests in Docker
+    - name: Run tests in Docker (excluding docker-compose tests)
       run: |
         docker run --rm \
           -e DATABASE_URL=$DATABASE_URL \
           -e USE_STUBS=$USE_STUBS \
           -e ENVIRONMENT=$ENVIRONMENT \
           -v ${{ github.workspace }}:/app \
-          leadfactory-test
+          leadfactory-test \
+          pytest -xvs --tb=short --cov=. --cov-report=xml --cov-report=term-missing --ignore=tests/test_docker_compose.py
+    
+    - name: Run docker-compose tests on host
+      run: |
+        pytest -xvs --tb=short tests/test_docker_compose.py
     
     - name: Run local tests as fallback
       if: failure()
