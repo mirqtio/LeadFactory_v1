@@ -3,7 +3,6 @@ Database models for targeting domain
 """
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, JSON, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 import uuid
 
@@ -16,7 +15,7 @@ class TargetUniverse(Base):
     """Definition of a target universe for campaigns"""
     __tablename__ = "target_universes"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     
@@ -48,12 +47,12 @@ class Campaign(Base):
     """Marketing campaign targeting specific universe"""
     __tablename__ = "campaigns"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     
     # Campaign configuration
-    target_universe_id = Column(UUID(as_uuid=True), ForeignKey("target_universes.id"), nullable=False)
+    target_universe_id = Column(String(36), ForeignKey("target_universes.id"), nullable=False)
     status = Column(String(20), nullable=False, default="draft", index=True)
     campaign_type = Column(String(50), nullable=False, default="lead_generation")
     
@@ -101,9 +100,9 @@ class CampaignTarget(Base):
     """Association between campaigns and targets with specific status"""
     __tablename__ = "campaign_targets"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaigns.id"), nullable=False)
-    target_id = Column(UUID(as_uuid=True), ForeignKey("targets.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    campaign_id = Column(String(36), ForeignKey("campaigns.id"), nullable=False)
+    target_id = Column(String(36), ForeignKey("targets.id"), nullable=False)
     
     # Target-specific campaign status
     status = Column(String(20), nullable=False, default="pending", index=True)
@@ -144,8 +143,8 @@ class CampaignBatch(Base):
     """Batch processing records for campaigns"""
     __tablename__ = "campaign_batches"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("campaigns.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    campaign_id = Column(String(36), ForeignKey("campaigns.id"), nullable=False)
     
     # Batch details
     batch_number = Column(Integer, nullable=False)
@@ -186,10 +185,10 @@ class GeographicBoundary(Base):
     """Predefined geographic boundaries for targeting"""
     __tablename__ = "geographic_boundaries"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False, index=True)
     level = Column(String(20), nullable=False, index=True)  # GeographyLevel enum
-    parent_id = Column(UUID(as_uuid=True), ForeignKey("geographic_boundaries.id"), nullable=True)
+    parent_id = Column(String(36), ForeignKey("geographic_boundaries.id"), nullable=True)
     
     # Geographic identifiers
     code = Column(String(20), nullable=True, index=True)  # State code, ZIP, etc.

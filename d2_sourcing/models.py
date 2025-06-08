@@ -3,7 +3,7 @@ Database models for lead sourcing domain
 """
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, JSON, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
 import uuid
 
@@ -15,17 +15,17 @@ class YelpMetadata(Base):
     """Yelp-specific metadata for businesses"""
     __tablename__ = "yelp_metadata"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False, unique=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False, unique=True)
     
     # Yelp-specific fields
     yelp_url = Column(String(500), nullable=True)
     photos = Column(JSON, nullable=True)  # Array of photo URLs
-    special_hours = Column(JSONB, nullable=True)  # Special/holiday hours
-    messaging = Column(JSONB, nullable=True)  # Messaging info
+    special_hours = Column(JSON, nullable=True)  # Special/holiday hours
+    messaging = Column(JSON, nullable=True)  # Messaging info
     
     # API response metadata
-    raw_response = Column(JSONB, nullable=True)  # Full Yelp API response
+    raw_response = Column(JSON, nullable=True)  # Full Yelp API response
     api_version = Column(String(20), nullable=True)
     response_timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
     
@@ -60,8 +60,8 @@ class SourcedLocation(Base):
     """Track different data sources for the same business location"""
     __tablename__ = "sourced_locations"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
     
     # Source identification
     source_provider = Column(String(50), nullable=False, index=True)  # yelp, google, manual, etc.
@@ -81,7 +81,7 @@ class SourcedLocation(Base):
     name_similarity = Column(Float, nullable=True)   # Name similarity score
     
     # Source metadata
-    source_data = Column(JSONB, nullable=True)  # Full source response
+    source_data = Column(JSON, nullable=True)  # Full source response
     discovered_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     last_updated = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     
