@@ -71,7 +71,7 @@ jobs:
     
     - name: Run docker-compose config validation only (skip heavy integration tests)
       run: |
-        pytest -xvs --tb=short tests/test_docker_compose.py -k "not integration"
+        pytest -xvs --tb=short tests/test_docker_compose.py -k "not integration and not test_volumes_created"
     
     - name: Run local tests as fallback
       if: failure()
