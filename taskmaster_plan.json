@@ -1,0 +1,2421 @@
+{
+  "project": "leadfactory-mvp",
+  "version": "1.0",
+  "created_at": "2025-01-06",
+  "total_tasks": 100,
+  "development_approach": "CI-first with Docker testing",
+  "timeline": "48-72 hours",
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Foundation",
+      "description": "Setup project structure, dependencies, and CI-first test environment",
+      "tasks": [
+        {
+          "id": "001",
+          "title": "Setup project structure and dependencies",
+          "domain": "core",
+          "complexity": 2,
+          "dependencies": [],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/test_setup.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/test_setup.py"]
+          },
+          "files_to_create": [
+            "requirements.txt",
+            "requirements-dev.txt", 
+            "Dockerfile.test",
+            ".gitignore",
+            "setup.py"
+          ],
+          "acceptance_criteria": [
+            "All dependencies installable",
+            "Docker test container builds",
+            "Basic pytest runs successfully",
+            "Python 3.11.0 exactly"
+          ]
+        },
+        {
+          "id": "002",
+          "title": "Create database models and migrations",
+          "domain": "database",
+          "complexity": 3,
+          "dependencies": ["001"],
+          "estimated_hours": 2,
+          "context_technologies": ["sqlalchemy", "alembic"],
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/test_models.py"],
+            "commands": [
+              "docker run --rm leadfactory-test pytest tests/unit/test_models.py",
+              "docker run --rm leadfactory-test alembic upgrade head"
+            ]
+          },
+          "files_to_create": [
+            "database/__init__.py",
+            "database/models.py",
+            "database/session.py",
+            "alembic.ini",
+            "alembic/env.py",
+            "alembic/versions/001_initial_schema.py"
+          ],
+          "acceptance_criteria": [
+            "All models from PRD created",
+            "Migrations run successfully",
+            "Foreign key relationships work",
+            "SQLite for tests, PostgreSQL ready"
+          ]
+        },
+        {
+          "id": "003",
+          "title": "Create stub server for external APIs",
+          "domain": "stubs",
+          "complexity": 3,
+          "dependencies": ["001"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/test_stubs.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/test_stubs.py"]
+          },
+          "files_to_create": [
+            "stubs/__init__.py",
+            "stubs/server.py",
+            "stubs/yelp.py",
+            "stubs/pagespeed.py",
+            "stubs/stripe.py",
+            "stubs/sendgrid.py"
+          ],
+          "acceptance_criteria": [
+            "FastAPI stub server runs",
+            "All external API endpoints mocked",
+            "Returns realistic test data",
+            "Configurable response delays"
+          ]
+        },
+        {
+          "id": "004",
+          "title": "Setup core utilities and configuration",
+          "domain": "core",
+          "complexity": 2,
+          "dependencies": ["001"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/test_config.py", "tests/unit/test_utils.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/test_config.py tests/unit/test_utils.py"]
+          },
+          "files_to_create": [
+            "core/__init__.py",
+            "core/config.py",
+            "core/errors.py",
+            "core/utils.py",
+            "core/logging.py"
+          ],
+          "acceptance_criteria": [
+            "Environment-based configuration",
+            "Structured error handling",
+            "Proper logging setup",
+            "All utilities tested"
+          ]
+        },
+        {
+          "id": "005",
+          "title": "Create GitHub Actions CI workflow",
+          "domain": "ci",
+          "complexity": 2,
+          "dependencies": ["001", "002", "003"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": [".github/workflows/test.yml"],
+            "commands": ["act -j test"]
+          },
+          "files_to_create": [
+            ".github/workflows/test.yml",
+            ".github/workflows/lint.yml",
+            "scripts/ci_check.py"
+          ],
+          "acceptance_criteria": [
+            "Tests run on every push",
+            "Linting checks pass",
+            "Docker builds successfully",
+            "Coverage reports generated"
+          ]
+        },
+        {
+          "id": "006",
+          "title": "Setup test fixtures and factories",
+          "domain": "testing",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/test_factories.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/test_factories.py"]
+          },
+          "files_to_create": [
+            "tests/__init__.py",
+            "tests/conftest.py",
+            "tests/factories.py",
+            "tests/fixtures/sample_business.json",
+            "tests/fixtures/sample_assessment.json"
+          ],
+          "acceptance_criteria": [
+            "Factory for each model",
+            "Realistic test data",
+            "Fixtures load properly",
+            "Async test support"
+          ]
+        },
+        {
+          "id": "007",
+          "title": "Create Docker compose for local development",
+          "domain": "infrastructure",
+          "complexity": 2,
+          "dependencies": ["001", "002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["docker-compose.yml"],
+            "commands": ["docker-compose up -d", "docker-compose down"]
+          },
+          "files_to_create": [
+            "docker-compose.yml",
+            "docker-compose.test.yml",
+            "Dockerfile",
+            ".dockerignore"
+          ],
+          "acceptance_criteria": [
+            "Services start properly",
+            "Database persists data",
+            "Test environment isolated",
+            "Redis for caching ready"
+          ]
+        },
+        {
+          "id": "008",
+          "title": "Setup monitoring with Prometheus",
+          "domain": "monitoring",
+          "complexity": 2,
+          "dependencies": ["004"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/test_metrics.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/test_metrics.py"]
+          },
+          "files_to_create": [
+            "core/metrics.py",
+            "prometheus.yml",
+            "grafana/dashboards/funnel.json"
+          ],
+          "acceptance_criteria": [
+            "Metrics exported properly",
+            "Prometheus scrapes metrics",
+            "Basic dashboard created",
+            "No performance impact"
+          ]
+        },
+        {
+          "id": "009",
+          "title": "Create planning directory and TaskMaster integration",
+          "domain": "planning",
+          "complexity": 1,
+          "dependencies": ["001"],
+          "estimated_hours": 0.5,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["planning/README.md"],
+            "commands": []
+          },
+          "files_to_create": [
+            "planning/README.md",
+            "planning/get_next_task.py",
+            "planning/task_status.json"
+          ],
+          "acceptance_criteria": [
+            "TaskMaster can track progress",
+            "Easy to get next task",
+            "Status tracking works",
+            "Integration documented"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "D0: External Data Gateway",
+      "description": "Implement unified facade for all external APIs with rate limiting and circuit breakers",
+      "tasks": [
+        {
+          "id": "010",
+          "title": "Create base gateway architecture",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["004", "006"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_base.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_base.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/__init__.py",
+            "d0_gateway/base.py",
+            "d0_gateway/exceptions.py",
+            "d0_gateway/types.py"
+          ],
+          "acceptance_criteria": [
+            "Abstract base client defined",
+            "Rate limit interface works",
+            "Cost calculation implemented",
+            "Proper error handling"
+          ]
+        },
+        {
+          "id": "011",
+          "title": "Implement token bucket rate limiter",
+          "domain": "d0_gateway",
+          "complexity": 4,
+          "dependencies": ["010", "007"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_rate_limiter.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_rate_limiter.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/rate_limiter.py",
+            "d0_gateway/lua_scripts/rate_limit.lua"
+          ],
+          "acceptance_criteria": [
+            "Token bucket algorithm works",
+            "Redis-based implementation",
+            "Atomic operations via Lua",
+            "Configurable limits per provider"
+          ]
+        },
+        {
+          "id": "012",
+          "title": "Build circuit breaker pattern",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["010"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_circuit_breaker.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_circuit_breaker.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/circuit_breaker.py"
+          ],
+          "acceptance_criteria": [
+            "Three states: closed/open/half-open",
+            "Configurable thresholds",
+            "Auto-recovery testing",
+            "Thread-safe implementation"
+          ]
+        },
+        {
+          "id": "013",
+          "title": "Create response cache system",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["010", "007"],
+          "estimated_hours": 1.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_cache.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_cache.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/cache.py"
+          ],
+          "acceptance_criteria": [
+            "Redis-based caching",
+            "TTL configuration per provider",
+            "Cache key generation",
+            "Hit/miss tracking"
+          ]
+        },
+        {
+          "id": "014",
+          "title": "Implement Yelp API client",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["010", "011", "012", "013"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_yelp_client.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_yelp_client.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/providers/__init__.py",
+            "d0_gateway/providers/yelp.py"
+          ],
+          "acceptance_criteria": [
+            "Business search works",
+            "Pagination handled",
+            "5k/day limit enforced",
+            "Error handling complete"
+          ]
+        },
+        {
+          "id": "015",
+          "title": "Implement PageSpeed API client",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["010", "011", "012", "013"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_pagespeed_client.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_pagespeed_client.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/providers/pagespeed.py"
+          ],
+          "acceptance_criteria": [
+            "URL analysis works",
+            "Mobile/desktop strategies",
+            "25k/day limit enforced",
+            "Lighthouse data parsed"
+          ]
+        },
+        {
+          "id": "016",
+          "title": "Implement OpenAI API client",
+          "domain": "d0_gateway",
+          "complexity": 2,
+          "dependencies": ["010", "011", "012"],
+          "estimated_hours": 1.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_openai_client.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_openai_client.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/providers/openai.py"
+          ],
+          "acceptance_criteria": [
+            "GPT-4o-mini integration",
+            "Cost tracking per request",
+            "Token counting accurate",
+            "Retry logic implemented"
+          ]
+        },
+        {
+          "id": "017",
+          "title": "Add gateway metrics and monitoring",
+          "domain": "d0_gateway",
+          "complexity": 2,
+          "dependencies": ["014", "015", "016", "008"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_metrics.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_metrics.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/metrics.py"
+          ],
+          "acceptance_criteria": [
+            "API call counts tracked",
+            "Latency histograms work",
+            "Cost counters accurate",
+            "Circuit breaker state exposed"
+          ]
+        },
+        {
+          "id": "018",
+          "title": "Create gateway facade and factory",
+          "domain": "d0_gateway",
+          "complexity": 2,
+          "dependencies": ["014", "015", "016"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_facade.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_facade.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/facade.py",
+            "d0_gateway/factory.py"
+          ],
+          "acceptance_criteria": [
+            "Single entry point for all APIs",
+            "Provider registration works",
+            "Configuration injection",
+            "Thread-safe singleton"
+          ]
+        },
+        {
+          "id": "019",
+          "title": "Integration tests for gateway",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["018", "003"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_gateway_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_gateway_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_gateway_integration.py"
+          ],
+          "acceptance_criteria": [
+            "All providers work with stubs",
+            "Rate limiting verified",
+            "Circuit breaker tested",
+            "Cache hit/miss validated"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "D1: Targeting",
+      "description": "Build geo × vertical campaign management with batch scheduling",
+      "tasks": [
+        {
+          "id": "020",
+          "title": "Create target universe models",
+          "domain": "d1_targeting",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d1_targeting/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d1_targeting/test_models.py"]
+          },
+          "files_to_create": [
+            "d1_targeting/__init__.py",
+            "d1_targeting/models.py",
+            "d1_targeting/types.py"
+          ],
+          "acceptance_criteria": [
+            "Target model complete",
+            "Geo hierarchy validated",
+            "Vertical enum defined",
+            "Unique constraints work"
+          ]
+        },
+        {
+          "id": "021",
+          "title": "Build target universe manager",
+          "domain": "d1_targeting",
+          "complexity": 3,
+          "dependencies": ["020"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d1_targeting/test_universe_manager.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d1_targeting/test_universe_manager.py"]
+          },
+          "files_to_create": [
+            "d1_targeting/target_universe.py",
+            "d1_targeting/geo_validator.py"
+          ],
+          "acceptance_criteria": [
+            "CRUD operations work",
+            "Geo conflict detection",
+            "Priority scoring implemented",
+            "Freshness tracking works"
+          ]
+        },
+        {
+          "id": "022",
+          "title": "Create batch scheduler",
+          "domain": "d1_targeting",
+          "complexity": 4,
+          "dependencies": ["021"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d1_targeting/test_batch_scheduler.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d1_targeting/test_batch_scheduler.py"]
+          },
+          "files_to_create": [
+            "d1_targeting/batch_scheduler.py",
+            "d1_targeting/quota_tracker.py"
+          ],
+          "acceptance_criteria": [
+            "Daily batch creation works",
+            "Quota allocation fair",
+            "Priority-based scheduling",
+            "No duplicate batches"
+          ]
+        },
+        {
+          "id": "023",
+          "title": "Add targeting API endpoints",
+          "domain": "d1_targeting",
+          "complexity": 2,
+          "dependencies": ["022"],
+          "estimated_hours": 1.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d1_targeting/test_api.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d1_targeting/test_api.py"]
+          },
+          "files_to_create": [
+            "d1_targeting/api.py",
+            "d1_targeting/schemas.py"
+          ],
+          "acceptance_criteria": [
+            "FastAPI routes work",
+            "Validation complete",
+            "Error handling proper",
+            "Documentation generated"
+          ]
+        },
+        {
+          "id": "024",
+          "title": "Integration tests for targeting",
+          "domain": "d1_targeting",
+          "complexity": 2,
+          "dependencies": ["023"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_targeting_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_targeting_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_targeting_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Full flow tested",
+            "Batch creation verified",
+            "API endpoints work",
+            "Database state correct"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "D2: Lead Sourcing",
+      "description": "Implement Yelp data acquisition with deduplication",
+      "tasks": [
+        {
+          "id": "025",
+          "title": "Create business models and schema",
+          "domain": "d2_sourcing",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d2_sourcing/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d2_sourcing/test_models.py"]
+          },
+          "files_to_create": [
+            "d2_sourcing/__init__.py",
+            "d2_sourcing/models.py"
+          ],
+          "acceptance_criteria": [
+            "Business model complete",
+            "Yelp ID unique constraint",
+            "JSONB fields work",
+            "Indexes created"
+          ]
+        },
+        {
+          "id": "026",
+          "title": "Build Yelp scraper with pagination",
+          "domain": "d2_sourcing",
+          "complexity": 3,
+          "dependencies": ["025", "014"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d2_sourcing/test_scraper.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d2_sourcing/test_scraper.py"]
+          },
+          "files_to_create": [
+            "d2_sourcing/yelp_scraper.py",
+            "d2_sourcing/exceptions.py"
+          ],
+          "acceptance_criteria": [
+            "Pagination handled correctly",
+            "1000 result limit respected",
+            "Batch quota enforcement",
+            "Error recovery works"
+          ]
+        },
+        {
+          "id": "027",
+          "title": "Implement business deduplicator",
+          "domain": "d2_sourcing",
+          "complexity": 3,
+          "dependencies": ["026"],
+          "estimated_hours": 1.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d2_sourcing/test_deduplicator.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d2_sourcing/test_deduplicator.py"]
+          },
+          "files_to_create": [
+            "d2_sourcing/deduplicator.py"
+          ],
+          "acceptance_criteria": [
+            "Duplicate detection works",
+            "Merge logic correct",
+            "Update timestamps properly",
+            "Performance optimized"
+          ]
+        },
+        {
+          "id": "028",
+          "title": "Create sourcing coordinator",
+          "domain": "d2_sourcing",
+          "complexity": 2,
+          "dependencies": ["027"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d2_sourcing/test_coordinator.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d2_sourcing/test_coordinator.py"]
+          },
+          "files_to_create": [
+            "d2_sourcing/coordinator.py"
+          ],
+          "acceptance_criteria": [
+            "Batch processing works",
+            "Status updates correct",
+            "Error handling complete",
+            "Metrics tracked"
+          ]
+        },
+        {
+          "id": "029",
+          "title": "Integration tests for sourcing",
+          "domain": "d2_sourcing",
+          "complexity": 2,
+          "dependencies": ["028"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_sourcing_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_sourcing_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_sourcing_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Full scrape flow works",
+            "Deduplication verified",
+            "Quota limits respected",
+            "Database state correct"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "D3: Assessment",
+      "description": "Analyze websites with PageSpeed, tech detection, and AI insights",
+      "tasks": [
+        {
+          "id": "030",
+          "title": "Create assessment models",
+          "domain": "d3_assessment",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_models.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/__init__.py",
+            "d3_assessment/models.py",
+            "d3_assessment/types.py"
+          ],
+          "acceptance_criteria": [
+            "Assessment result model",
+            "JSONB for flexible data",
+            "Proper indexing",
+            "Cost tracking fields"
+          ]
+        },
+        {
+          "id": "031",
+          "title": "Build PageSpeed assessor",
+          "domain": "d3_assessment",
+          "complexity": 3,
+          "dependencies": ["030", "015"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_pagespeed.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_pagespeed.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/pagespeed.py"
+          ],
+          "acceptance_criteria": [
+            "Core Web Vitals extracted",
+            "All scores captured",
+            "Issue extraction works",
+            "Mobile-first approach"
+          ]
+        },
+        {
+          "id": "032",
+          "title": "Create tech stack detector",
+          "domain": "d3_assessment",
+          "complexity": 3,
+          "dependencies": ["030"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_techstack.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_techstack.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/techstack.py",
+            "d3_assessment/patterns.json"
+          ],
+          "acceptance_criteria": [
+            "Common frameworks detected",
+            "CMS identification works",
+            "Analytics tools found",
+            "Pattern matching efficient"
+          ]
+        },
+        {
+          "id": "033",
+          "title": "Implement LLM insight generator",
+          "domain": "d3_assessment",
+          "complexity": 4,
+          "dependencies": ["030", "016"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_llm_insights.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_llm_insights.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/llm_insights.py",
+            "d3_assessment/prompts.py"
+          ],
+          "acceptance_criteria": [
+            "3 recommendations generated",
+            "Industry-specific insights",
+            "Cost tracking works",
+            "Structured output parsing"
+          ]
+        },
+        {
+          "id": "034",
+          "title": "Build assessment coordinator",
+          "domain": "d3_assessment",
+          "complexity": 3,
+          "dependencies": ["031", "032", "033"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_coordinator.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_coordinator.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/coordinator.py"
+          ],
+          "acceptance_criteria": [
+            "Parallel assessment execution",
+            "Timeout handling works",
+            "Partial results saved",
+            "Error recovery implemented"
+          ]
+        },
+        {
+          "id": "035",
+          "title": "Create assessment API endpoints",
+          "domain": "d3_assessment",
+          "complexity": 2,
+          "dependencies": ["034"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_api.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_api.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/api.py",
+            "d3_assessment/schemas.py"
+          ],
+          "acceptance_criteria": [
+            "Trigger assessment endpoint",
+            "Status checking works",
+            "Results retrieval API",
+            "Proper error responses"
+          ]
+        },
+        {
+          "id": "036",
+          "title": "Add assessment caching layer",
+          "domain": "d3_assessment",
+          "complexity": 2,
+          "dependencies": ["034"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_cache.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_cache.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/cache.py"
+          ],
+          "acceptance_criteria": [
+            "Recent assessments cached",
+            "TTL configuration works",
+            "Cache invalidation logic",
+            "Hit rate tracking"
+          ]
+        },
+        {
+          "id": "037",
+          "title": "Implement assessment metrics",
+          "domain": "d3_assessment",
+          "complexity": 2,
+          "dependencies": ["034", "008"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_metrics.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_metrics.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/metrics.py"
+          ],
+          "acceptance_criteria": [
+            "Assessment counts tracked",
+            "Duration histograms",
+            "Cost tracking accurate",
+            "Success/failure rates"
+          ]
+        },
+        {
+          "id": "038",
+          "title": "Create assessment reports formatter",
+          "domain": "d3_assessment",
+          "complexity": 2,
+          "dependencies": ["034"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d3_assessment/test_formatter.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d3_assessment/test_formatter.py"]
+          },
+          "files_to_create": [
+            "d3_assessment/formatter.py"
+          ],
+          "acceptance_criteria": [
+            "Human-readable summaries",
+            "JSON export works",
+            "Issue prioritization",
+            "Markdown formatting"
+          ]
+        },
+        {
+          "id": "039",
+          "title": "Integration tests for assessment",
+          "domain": "d3_assessment",
+          "complexity": 3,
+          "dependencies": ["038"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_assessment_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_assessment_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_assessment_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Full assessment flow works",
+            "All assessors integrate",
+            "Timeouts handled properly",
+            "Results stored correctly"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "D4: Enrichment",
+      "description": "Enhance data with Google Business Profile information",
+      "tasks": [
+        {
+          "id": "040",
+          "title": "Create enrichment models",
+          "domain": "d4_enrichment",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d4_enrichment/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d4_enrichment/test_models.py"]
+          },
+          "files_to_create": [
+            "d4_enrichment/__init__.py",
+            "d4_enrichment/models.py"
+          ],
+          "acceptance_criteria": [
+            "Enrichment result model",
+            "Match confidence tracking",
+            "Source attribution",
+            "Data versioning"
+          ]
+        },
+        {
+          "id": "041",
+          "title": "Build fuzzy matching system",
+          "domain": "d4_enrichment",
+          "complexity": 4,
+          "dependencies": ["040"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d4_enrichment/test_matchers.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d4_enrichment/test_matchers.py"]
+          },
+          "files_to_create": [
+            "d4_enrichment/matchers.py",
+            "d4_enrichment/similarity.py"
+          ],
+          "acceptance_criteria": [
+            "Phone matching works",
+            "Name/ZIP matching accurate",
+            "Address similarity scoring",
+            "Weighted combination logic"
+          ]
+        },
+        {
+          "id": "042",
+          "title": "Implement GBP enricher",
+          "domain": "d4_enrichment",
+          "complexity": 3,
+          "dependencies": ["041"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d4_enrichment/test_gbp_enricher.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d4_enrichment/test_gbp_enricher.py"]
+          },
+          "files_to_create": [
+            "d4_enrichment/gbp_enricher.py"
+          ],
+          "acceptance_criteria": [
+            "GBP data extraction",
+            "Best match selection",
+            "Business data merge",
+            "Confidence scoring"
+          ]
+        },
+        {
+          "id": "043",
+          "title": "Create enrichment coordinator",
+          "domain": "d4_enrichment",
+          "complexity": 2,
+          "dependencies": ["042"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d4_enrichment/test_coordinator.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d4_enrichment/test_coordinator.py"]
+          },
+          "files_to_create": [
+            "d4_enrichment/coordinator.py"
+          ],
+          "acceptance_criteria": [
+            "Batch enrichment works",
+            "Skip already enriched",
+            "Error handling proper",
+            "Progress tracking"
+          ]
+        },
+        {
+          "id": "044",
+          "title": "Integration tests for enrichment",
+          "domain": "d4_enrichment",
+          "complexity": 2,
+          "dependencies": ["043"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_enrichment_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_enrichment_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_enrichment_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Full enrichment flow",
+            "Matching accuracy verified",
+            "Data merge correct",
+            "Performance acceptable"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 7,
+      "name": "D5: Scoring & Filtering",
+      "description": "Calculate lead quality scores and assign tiers",
+      "tasks": [
+        {
+          "id": "045",
+          "title": "Create scoring models and schema",
+          "domain": "d5_scoring",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d5_scoring/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d5_scoring/test_models.py"]
+          },
+          "files_to_create": [
+            "d5_scoring/__init__.py",
+            "d5_scoring/models.py",
+            "d5_scoring/types.py"
+          ],
+          "acceptance_criteria": [
+            "Scoring result model",
+            "Tier enumeration",
+            "Score breakdown stored",
+            "Version tracking"
+          ]
+        },
+        {
+          "id": "046",
+          "title": "Build scoring rules engine",
+          "domain": "d5_scoring",
+          "complexity": 4,
+          "dependencies": ["045"],
+          "estimated_hours": 3,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d5_scoring/test_engine.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d5_scoring/test_engine.py"]
+          },
+          "files_to_create": [
+            "d5_scoring/engine.py",
+            "d5_scoring/rules_parser.py",
+            "scoring_rules.yaml"
+          ],
+          "acceptance_criteria": [
+            "YAML rules loading",
+            "Rule evaluation works",
+            "Weighted scoring accurate",
+            "Fallback values used"
+          ]
+        },
+        {
+          "id": "047",
+          "title": "Implement vertical-specific scoring",
+          "domain": "d5_scoring",
+          "complexity": 3,
+          "dependencies": ["046"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d5_scoring/test_vertical_scoring.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d5_scoring/test_vertical_scoring.py"]
+          },
+          "files_to_create": [
+            "d5_scoring/vertical_overrides.py",
+            "scoring_rules_restaurant.yaml",
+            "scoring_rules_medical.yaml"
+          ],
+          "acceptance_criteria": [
+            "Restaurant rules work",
+            "Medical rules work",
+            "Override logic correct",
+            "Base rules inherited"
+          ]
+        },
+        {
+          "id": "048",
+          "title": "Create tier assignment system",
+          "domain": "d5_scoring",
+          "complexity": 2,
+          "dependencies": ["046"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d5_scoring/test_tiers.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d5_scoring/test_tiers.py"]
+          },
+          "files_to_create": [
+            "d5_scoring/tiers.py"
+          ],
+          "acceptance_criteria": [
+            "A/B/C/D tiers assigned",
+            "Configurable boundaries",
+            "Gate pass/fail logic",
+            "Distribution tracking"
+          ]
+        },
+        {
+          "id": "049",
+          "title": "Integration tests for scoring",
+          "domain": "d5_scoring",
+          "complexity": 3,
+          "dependencies": ["048"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_scoring_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_scoring_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_scoring_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Full scoring flow works",
+            "Rules applied correctly",
+            "Tiers distributed properly",
+            "Performance acceptable"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 8,
+      "name": "D6: Audit Report Builder",
+      "description": "Generate conversion-optimized PDF reports",
+      "tasks": [
+        {
+          "id": "050",
+          "title": "Create report models and templates",
+          "domain": "d6_reports",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d6_reports/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d6_reports/test_models.py"]
+          },
+          "files_to_create": [
+            "d6_reports/__init__.py",
+            "d6_reports/models.py",
+            "templates/audit_report.html",
+            "templates/email/report_preview.html"
+          ],
+          "acceptance_criteria": [
+            "Report generation tracked",
+            "Template structure defined",
+            "Mobile-responsive HTML",
+            "Print-optimized CSS"
+          ]
+        },
+        {
+          "id": "051",
+          "title": "Build finding prioritizer",
+          "domain": "d6_reports",
+          "complexity": 3,
+          "dependencies": ["050"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d6_reports/test_prioritizer.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d6_reports/test_prioritizer.py"]
+          },
+          "files_to_create": [
+            "d6_reports/prioritizer.py",
+            "d6_reports/finding_scorer.py"
+          ],
+          "acceptance_criteria": [
+            "Impact scoring works",
+            "Top 3 issues selected",
+            "Quick wins identified",
+            "Conversion focus"
+          ]
+        },
+        {
+          "id": "052",
+          "title": "Implement PDF converter",
+          "domain": "d6_reports",
+          "complexity": 3,
+          "dependencies": ["050"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d6_reports/test_pdf_converter.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d6_reports/test_pdf_converter.py"]
+          },
+          "files_to_create": [
+            "d6_reports/pdf_converter.py"
+          ],
+          "acceptance_criteria": [
+            "Playwright integration",
+            "PDF generation works",
+            "Size optimization",
+            "Concurrent limits"
+          ]
+        },
+        {
+          "id": "053",
+          "title": "Create report generator",
+          "domain": "d6_reports",
+          "complexity": 3,
+          "dependencies": ["051", "052"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d6_reports/test_generator.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d6_reports/test_generator.py"]
+          },
+          "files_to_create": [
+            "d6_reports/generator.py",
+            "d6_reports/template_engine.py"
+          ],
+          "acceptance_criteria": [
+            "Data loading complete",
+            "Template rendering works",
+            "HTML and PDF generated",
+            "30-second timeout"
+          ]
+        },
+        {
+          "id": "054",
+          "title": "Integration tests for reports",
+          "domain": "d6_reports",
+          "complexity": 2,
+          "dependencies": ["053"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_reports_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_reports_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_reports_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Full generation flow",
+            "PDF quality verified",
+            "Performance acceptable",
+            "Error handling works"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 9,
+      "name": "D7: Storefront & Purchase Flow",
+      "description": "Handle Stripe payments and report delivery",
+      "tasks": [
+        {
+          "id": "055",
+          "title": "Create purchase models",
+          "domain": "d7_storefront",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d7_storefront/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d7_storefront/test_models.py"]
+          },
+          "files_to_create": [
+            "d7_storefront/__init__.py",
+            "d7_storefront/models.py"
+          ],
+          "acceptance_criteria": [
+            "Purchase tracking model",
+            "Stripe ID fields",
+            "Attribution tracking",
+            "Status management"
+          ]
+        },
+        {
+          "id": "056",
+          "title": "Implement Stripe checkout",
+          "domain": "d7_storefront",
+          "complexity": 3,
+          "dependencies": ["055"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d7_storefront/test_checkout.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d7_storefront/test_checkout.py"]
+          },
+          "files_to_create": [
+            "d7_storefront/checkout.py",
+            "d7_storefront/stripe_client.py"
+          ],
+          "acceptance_criteria": [
+            "Checkout session creation",
+            "Test mode works",
+            "Metadata included",
+            "Success/cancel URLs"
+          ]
+        },
+        {
+          "id": "057",
+          "title": "Build webhook processor",
+          "domain": "d7_storefront",
+          "complexity": 4,
+          "dependencies": ["056"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d7_storefront/test_webhooks.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d7_storefront/test_webhooks.py"]
+          },
+          "files_to_create": [
+            "d7_storefront/webhooks.py",
+            "d7_storefront/webhook_handlers.py"
+          ],
+          "acceptance_criteria": [
+            "Signature verification",
+            "Event processing works",
+            "Idempotency handled",
+            "Report generation triggered"
+          ]
+        },
+        {
+          "id": "058",
+          "title": "Create checkout API endpoints",
+          "domain": "d7_storefront",
+          "complexity": 2,
+          "dependencies": ["056", "057"],
+          "estimated_hours": 1.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d7_storefront/test_api.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d7_storefront/test_api.py"]
+          },
+          "files_to_create": [
+            "d7_storefront/api.py",
+            "d7_storefront/schemas.py"
+          ],
+          "acceptance_criteria": [
+            "Checkout initiation API",
+            "Webhook endpoint secure",
+            "Success page works",
+            "Error handling proper"
+          ]
+        },
+        {
+          "id": "059",
+          "title": "Integration tests for payments",
+          "domain": "d7_storefront",
+          "complexity": 3,
+          "dependencies": ["058"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_payment_flow.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_payment_flow.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_payment_flow.py"
+          ],
+          "acceptance_criteria": [
+            "Full payment flow works",
+            "Webhook processing verified",
+            "Report generation triggered",
+            "Stripe test mode used"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 10,
+      "name": "D8: Personalization",
+      "description": "Generate high-converting personalized emails",
+      "tasks": [
+        {
+          "id": "060",
+          "title": "Create personalization models",
+          "domain": "d8_personalization",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d8_personalization/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d8_personalization/test_models.py"]
+          },
+          "files_to_create": [
+            "d8_personalization/__init__.py",
+            "d8_personalization/models.py"
+          ],
+          "acceptance_criteria": [
+            "Email content model",
+            "Subject line variants",
+            "Personalization tokens",
+            "Spam score tracking"
+          ]
+        },
+        {
+          "id": "061",
+          "title": "Build subject line generator",
+          "domain": "d8_personalization",
+          "complexity": 3,
+          "dependencies": ["060"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d8_personalization/test_subject_lines.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d8_personalization/test_subject_lines.py"]
+          },
+          "files_to_create": [
+            "d8_personalization/subject_lines.py",
+            "d8_personalization/templates.yaml"
+          ],
+          "acceptance_criteria": [
+            "Pattern-based generation",
+            "Token replacement works",
+            "Length limits enforced",
+            "A/B variants created"
+          ]
+        },
+        {
+          "id": "062",
+          "title": "Implement email personalizer",
+          "domain": "d8_personalization",
+          "complexity": 4,
+          "dependencies": ["061", "016"],
+          "estimated_hours": 3,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d8_personalization/test_personalizer.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d8_personalization/test_personalizer.py"]
+          },
+          "files_to_create": [
+            "d8_personalization/personalizer.py",
+            "d8_personalization/content_generator.py"
+          ],
+          "acceptance_criteria": [
+            "Issue extraction works",
+            "LLM integration complete",
+            "HTML/text formatting",
+            "Spam check integrated"
+          ]
+        },
+        {
+          "id": "063",
+          "title": "Create spam score checker",
+          "domain": "d8_personalization",
+          "complexity": 2,
+          "dependencies": ["062"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d8_personalization/test_spam_checker.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d8_personalization/test_spam_checker.py"]
+          },
+          "files_to_create": [
+            "d8_personalization/spam_checker.py",
+            "d8_personalization/spam_rules.json"
+          ],
+          "acceptance_criteria": [
+            "Basic spam scoring",
+            "Rule-based checks",
+            "Score reduction logic",
+            "Common patterns caught"
+          ]
+        },
+        {
+          "id": "064",
+          "title": "Integration tests for personalization",
+          "domain": "d8_personalization",
+          "complexity": 2,
+          "dependencies": ["063"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_personalization_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_personalization_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_personalization_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Full generation flow",
+            "Quality checks pass",
+            "Performance acceptable",
+            "Variety in output"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 11,
+      "name": "D9: Delivery & Compliance",
+      "description": "Send emails via SendGrid with compliance",
+      "tasks": [
+        {
+          "id": "065",
+          "title": "Create email delivery models",
+          "domain": "d9_delivery",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d9_delivery/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d9_delivery/test_models.py"]
+          },
+          "files_to_create": [
+            "d9_delivery/__init__.py",
+            "d9_delivery/models.py"
+          ],
+          "acceptance_criteria": [
+            "Email send tracking",
+            "Bounce tracking model",
+            "Suppression list",
+            "Event timestamps"
+          ]
+        },
+        {
+          "id": "066",
+          "title": "Build SendGrid integration",
+          "domain": "d9_delivery",
+          "complexity": 3,
+          "dependencies": ["065"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d9_delivery/test_sendgrid.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d9_delivery/test_sendgrid.py"]
+          },
+          "files_to_create": [
+            "d9_delivery/sendgrid_client.py",
+            "d9_delivery/email_builder.py"
+          ],
+          "acceptance_criteria": [
+            "SendGrid API integration",
+            "Email building works",
+            "Categories added",
+            "Custom args included"
+          ]
+        },
+        {
+          "id": "067",
+          "title": "Implement delivery manager",
+          "domain": "d9_delivery",
+          "complexity": 3,
+          "dependencies": ["066"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d9_delivery/test_delivery_manager.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d9_delivery/test_delivery_manager.py"]
+          },
+          "files_to_create": [
+            "d9_delivery/delivery_manager.py",
+            "d9_delivery/compliance.py"
+          ],
+          "acceptance_criteria": [
+            "Suppression check works",
+            "Compliance headers added",
+            "Unsubscribe tokens",
+            "Send recording"
+          ]
+        },
+        {
+          "id": "068",
+          "title": "Create webhook handler",
+          "domain": "d9_delivery",
+          "complexity": 3,
+          "dependencies": ["067"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d9_delivery/test_webhook_handler.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d9_delivery/test_webhook_handler.py"]
+          },
+          "files_to_create": [
+            "d9_delivery/webhook_handler.py"
+          ],
+          "acceptance_criteria": [
+            "Event processing works",
+            "Bounce handling proper",
+            "Spam reports handled",
+            "Click tracking works"
+          ]
+        },
+        {
+          "id": "069",
+          "title": "Integration tests for delivery",
+          "domain": "d9_delivery",
+          "complexity": 2,
+          "dependencies": ["068"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_delivery_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_delivery_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_delivery_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Full send flow works",
+            "Compliance verified",
+            "Webhook processing",
+            "Suppression respected"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 12,
+      "name": "D10: Analytics & Reporting",
+      "description": "Track metrics and build dashboards",
+      "tasks": [
+        {
+          "id": "070",
+          "title": "Create analytics models",
+          "domain": "d10_analytics",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d10_analytics/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d10_analytics/test_models.py"]
+          },
+          "files_to_create": [
+            "d10_analytics/__init__.py",
+            "d10_analytics/models.py"
+          ],
+          "acceptance_criteria": [
+            "Funnel event model",
+            "Metrics aggregation",
+            "Time series support",
+            "Efficient indexing"
+          ]
+        },
+        {
+          "id": "071",
+          "title": "Build metrics warehouse",
+          "domain": "d10_analytics",
+          "complexity": 3,
+          "dependencies": ["070"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d10_analytics/test_warehouse.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d10_analytics/test_warehouse.py"]
+          },
+          "files_to_create": [
+            "d10_analytics/warehouse.py",
+            "d10_analytics/aggregators.py"
+          ],
+          "acceptance_criteria": [
+            "Daily metrics built",
+            "Funnel calculations",
+            "Cost analysis works",
+            "Segment breakdowns"
+          ]
+        },
+        {
+          "id": "072",
+          "title": "Create materialized views",
+          "domain": "d10_analytics",
+          "complexity": 3,
+          "dependencies": ["071"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d10_analytics/test_views.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d10_analytics/test_views.py"]
+          },
+          "files_to_create": [
+            "alembic/versions/002_analytics_views.py",
+            "d10_analytics/views.sql"
+          ],
+          "acceptance_criteria": [
+            "Funnel view created",
+            "Cohort retention view",
+            "Performance optimized",
+            "Refresh scheduled"
+          ]
+        },
+        {
+          "id": "073",
+          "title": "Build analytics API",
+          "domain": "d10_analytics",
+          "complexity": 2,
+          "dependencies": ["071"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d10_analytics/test_api.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d10_analytics/test_api.py"]
+          },
+          "files_to_create": [
+            "d10_analytics/api.py",
+            "d10_analytics/schemas.py"
+          ],
+          "acceptance_criteria": [
+            "Metrics endpoints work",
+            "Date range filtering",
+            "Segment filtering",
+            "CSV export option"
+          ]
+        },
+        {
+          "id": "074",
+          "title": "Integration tests for analytics",
+          "domain": "d10_analytics",
+          "complexity": 2,
+          "dependencies": ["073"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_analytics_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_analytics_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_analytics_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Metrics calculation verified",
+            "API responses correct",
+            "Performance acceptable",
+            "Data consistency"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 13,
+      "name": "D11: Orchestration & Experimentation",
+      "description": "Coordinate pipeline with Prefect and A/B testing",
+      "tasks": [
+        {
+          "id": "075",
+          "title": "Create orchestration models",
+          "domain": "d11_orchestration",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d11_orchestration/test_models.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d11_orchestration/test_models.py"]
+          },
+          "files_to_create": [
+            "d11_orchestration/__init__.py",
+            "d11_orchestration/models.py"
+          ],
+          "acceptance_criteria": [
+            "Pipeline run tracking",
+            "Experiment models",
+            "Assignment tracking",
+            "Status management"
+          ]
+        },
+        {
+          "id": "076",
+          "title": "Build Prefect pipeline",
+          "domain": "d11_orchestration",
+          "complexity": 4,
+          "dependencies": ["075", "028", "034", "048", "062", "067"],
+          "estimated_hours": 3,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d11_orchestration/test_pipeline.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d11_orchestration/test_pipeline.py"]
+          },
+          "files_to_create": [
+            "d11_orchestration/pipeline.py",
+            "d11_orchestration/tasks.py"
+          ],
+          "acceptance_criteria": [
+            "Daily flow defined",
+            "Task dependencies correct",
+            "Error handling works",
+            "Retries configured"
+          ]
+        },
+        {
+          "id": "077",
+          "title": "Implement experiment manager",
+          "domain": "d11_orchestration",
+          "complexity": 3,
+          "dependencies": ["075"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d11_orchestration/test_experiments.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d11_orchestration/test_experiments.py"]
+          },
+          "files_to_create": [
+            "d11_orchestration/experiments.py",
+            "d11_orchestration/variant_assigner.py"
+          ],
+          "acceptance_criteria": [
+            "Variant assignment works",
+            "Deterministic hashing",
+            "Weight distribution",
+            "Control group handled"
+          ]
+        },
+        {
+          "id": "078",
+          "title": "Create orchestration API",
+          "domain": "d11_orchestration",
+          "complexity": 2,
+          "dependencies": ["076", "077"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d11_orchestration/test_api.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d11_orchestration/test_api.py"]
+          },
+          "files_to_create": [
+            "d11_orchestration/api.py",
+            "d11_orchestration/schemas.py"
+          ],
+          "acceptance_criteria": [
+            "Pipeline trigger API",
+            "Status checking works",
+            "Experiment management",
+            "Run history API"
+          ]
+        },
+        {
+          "id": "079",
+          "title": "Integration tests for orchestration",
+          "domain": "d11_orchestration",
+          "complexity": 3,
+          "dependencies": ["078"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_orchestration_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_orchestration_integration.py"]
+          },
+          "files_to_create": [
+            "tests/integration/test_orchestration_integration.py"
+          ],
+          "acceptance_criteria": [
+            "Pipeline runs end-to-end",
+            "Tasks execute in order",
+            "Experiments applied",
+            "Metrics recorded"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 14,
+      "name": "Integration Testing",
+      "description": "End-to-end tests for complete pipeline",
+      "tasks": [
+        {
+          "id": "080",
+          "title": "Create e2e test framework",
+          "domain": "testing",
+          "complexity": 3,
+          "dependencies": ["079"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/e2e/conftest.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/e2e/conftest.py"]
+          },
+          "files_to_create": [
+            "tests/e2e/__init__.py",
+            "tests/e2e/conftest.py",
+            "tests/e2e/fixtures.py"
+          ],
+          "acceptance_criteria": [
+            "Test environment setup",
+            "Data seeding works",
+            "Cleanup automated",
+            "Parallel test support"
+          ]
+        },
+        {
+          "id": "081",
+          "title": "Test complete sourcing to scoring flow",
+          "domain": "testing",
+          "complexity": 3,
+          "dependencies": ["080"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/e2e/test_sourcing_to_scoring.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/e2e/test_sourcing_to_scoring.py"]
+          },
+          "files_to_create": [
+            "tests/e2e/test_sourcing_to_scoring.py"
+          ],
+          "acceptance_criteria": [
+            "Yelp → Assessment flow",
+            "Scoring applied correctly",
+            "Data consistency verified",
+            "Performance benchmarked"
+          ]
+        },
+        {
+          "id": "082",
+          "title": "Test email generation and delivery",
+          "domain": "testing",
+          "complexity": 3,
+          "dependencies": ["080"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/e2e/test_email_flow.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/e2e/test_email_flow.py"]
+          },
+          "files_to_create": [
+            "tests/e2e/test_email_flow.py"
+          ],
+          "acceptance_criteria": [
+            "Personalization works",
+            "SendGrid integration",
+            "Compliance verified",
+            "Tracking confirmed"
+          ]
+        },
+        {
+          "id": "083",
+          "title": "Test purchase and report flow",
+          "domain": "testing",
+          "complexity": 3,
+          "dependencies": ["080"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/e2e/test_purchase_flow.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/e2e/test_purchase_flow.py"]
+          },
+          "files_to_create": [
+            "tests/e2e/test_purchase_flow.py"
+          ],
+          "acceptance_criteria": [
+            "Stripe checkout works",
+            "Webhook processing",
+            "Report generation",
+            "Delivery confirmed"
+          ]
+        },
+        {
+          "id": "084",
+          "title": "Test full pipeline orchestration",
+          "domain": "testing",
+          "complexity": 4,
+          "dependencies": ["081", "082", "083"],
+          "estimated_hours": 3,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/e2e/test_full_pipeline.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/e2e/test_full_pipeline.py"]
+          },
+          "files_to_create": [
+            "tests/e2e/test_full_pipeline.py"
+          ],
+          "acceptance_criteria": [
+            "Complete flow works",
+            "All domains integrate",
+            "Metrics recorded",
+            "No data leaks"
+          ]
+        },
+        {
+          "id": "085",
+          "title": "Performance and load tests",
+          "domain": "testing",
+          "complexity": 3,
+          "dependencies": ["084"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/performance/test_load.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/performance/test_load.py"]
+          },
+          "files_to_create": [
+            "tests/performance/__init__.py",
+            "tests/performance/test_load.py",
+            "tests/performance/locustfile.py"
+          ],
+          "acceptance_criteria": [
+            "5k businesses processed",
+            "Response times measured",
+            "Bottlenecks identified",
+            "Resource usage tracked"
+          ]
+        },
+        {
+          "id": "086",
+          "title": "Security and compliance tests",
+          "domain": "testing",
+          "complexity": 2,
+          "dependencies": ["084"],
+          "estimated_hours": 1.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/security/test_compliance.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/security/test_compliance.py"]
+          },
+          "files_to_create": [
+            "tests/security/__init__.py",
+            "tests/security/test_compliance.py"
+          ],
+          "acceptance_criteria": [
+            "API auth verified",
+            "Data privacy checked",
+            "Email compliance",
+            "Payment security"
+          ]
+        },
+        {
+          "id": "087",
+          "title": "Error handling and recovery tests",
+          "domain": "testing",
+          "complexity": 3,
+          "dependencies": ["084"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/e2e/test_error_handling.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/e2e/test_error_handling.py"]
+          },
+          "files_to_create": [
+            "tests/e2e/test_error_handling.py"
+          ],
+          "acceptance_criteria": [
+            "API failures handled",
+            "Partial results saved",
+            "Retries work properly",
+            "No data corruption"
+          ]
+        },
+        {
+          "id": "088",
+          "title": "Create test data generators",
+          "domain": "testing",
+          "complexity": 2,
+          "dependencies": ["006"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/generators/test_data.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/generators/test_data.py"]
+          },
+          "files_to_create": [
+            "tests/generators/__init__.py",
+            "tests/generators/business_generator.py",
+            "tests/generators/assessment_generator.py"
+          ],
+          "acceptance_criteria": [
+            "Realistic test data",
+            "Various scenarios covered",
+            "Deterministic generation",
+            "Performance data sets"
+          ]
+        },
+        {
+          "id": "089",
+          "title": "Documentation and test coverage report",
+          "domain": "testing",
+          "complexity": 2,
+          "dependencies": ["088"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["scripts/coverage_report.py"],
+            "commands": ["docker run --rm leadfactory-test coverage report"]
+          },
+          "files_to_create": [
+            "scripts/coverage_report.py",
+            "docs/testing_guide.md"
+          ],
+          "acceptance_criteria": [
+            "Coverage > 80%",
+            "Critical paths 100%",
+            "Report generation",
+            "CI integration"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 15,
+      "name": "Deployment & Launch",
+      "description": "Production setup and initial campaign",
+      "tasks": [
+        {
+          "id": "090",
+          "title": "Create production configuration",
+          "domain": "deployment",
+          "complexity": 2,
+          "dependencies": ["089"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": false,
+            "files": [".env.production"],
+            "commands": ["python scripts/validate_config.py"]
+          },
+          "files_to_create": [
+            ".env.production",
+            "config/production.yaml",
+            "scripts/validate_config.py"
+          ],
+          "acceptance_criteria": [
+            "All secrets configured",
+            "API keys validated",
+            "Database URL set",
+            "Monitoring configured"
+          ]
+        },
+        {
+          "id": "091",
+          "title": "Setup database and migrations",
+          "domain": "deployment",
+          "complexity": 2,
+          "dependencies": ["090"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["scripts/db_setup.py"],
+            "commands": ["python scripts/db_setup.py --check"]
+          },
+          "files_to_create": [
+            "scripts/db_setup.py",
+            "scripts/db_backup.sh"
+          ],
+          "acceptance_criteria": [
+            "PostgreSQL connected",
+            "Migrations applied",
+            "Indexes created",
+            "Backup scheduled"
+          ]
+        },
+        {
+          "id": "092",
+          "title": "Configure monitoring and alerts",
+          "domain": "deployment",
+          "complexity": 3,
+          "dependencies": ["090"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["monitoring/alerts.yaml"],
+            "commands": ["python scripts/test_monitoring.py"]
+          },
+          "files_to_create": [
+            "monitoring/alerts.yaml",
+            "monitoring/dashboards/production.json",
+            "scripts/test_monitoring.py"
+          ],
+          "acceptance_criteria": [
+            "Prometheus connected",
+            "Key metrics tracked",
+            "Alerts configured",
+            "Dashboard created"
+          ]
+        },
+        {
+          "id": "093",
+          "title": "Deploy application containers",
+          "domain": "deployment",
+          "complexity": 3,
+          "dependencies": ["091", "092"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["docker-compose.production.yml"],
+            "commands": ["docker-compose -f docker-compose.production.yml ps"]
+          },
+          "files_to_create": [
+            "docker-compose.production.yml",
+            "scripts/deploy.sh",
+            "scripts/health_check.py"
+          ],
+          "acceptance_criteria": [
+            "All services running",
+            "Health checks pass",
+            "Logs accessible",
+            "Restart policy set"
+          ]
+        },
+        {
+          "id": "094",
+          "title": "Verify external integrations",
+          "domain": "deployment",
+          "complexity": 2,
+          "dependencies": ["093"],
+          "estimated_hours": 1.5,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["scripts/verify_integrations.py"],
+            "commands": ["python scripts/verify_integrations.py"]
+          },
+          "files_to_create": [
+            "scripts/verify_integrations.py"
+          ],
+          "acceptance_criteria": [
+            "Yelp API connected",
+            "SendGrid verified",
+            "Stripe test mode",
+            "All APIs responsive"
+          ]
+        },
+        {
+          "id": "095",
+          "title": "Create initial target campaigns",
+          "domain": "deployment",
+          "complexity": 2,
+          "dependencies": ["094"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["scripts/seed_campaigns.py"],
+            "commands": ["python scripts/seed_campaigns.py --dry-run"]
+          },
+          "files_to_create": [
+            "scripts/seed_campaigns.py",
+            "data/initial_targets.csv"
+          ],
+          "acceptance_criteria": [
+            "10 targets created",
+            "Mix of verticals",
+            "High-value ZIPs",
+            "Quotas allocated"
+          ]
+        },
+        {
+          "id": "096",
+          "title": "Run test pipeline execution",
+          "domain": "deployment",
+          "complexity": 3,
+          "dependencies": ["095"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["scripts/test_pipeline.py"],
+            "commands": ["python scripts/test_pipeline.py --limit 10"]
+          },
+          "files_to_create": [
+            "scripts/test_pipeline.py"
+          ],
+          "acceptance_criteria": [
+            "10 businesses processed",
+            "Emails generated",
+            "No errors logged",
+            "Metrics recorded"
+          ]
+        },
+        {
+          "id": "097",
+          "title": "Setup daily cron jobs",
+          "domain": "deployment",
+          "complexity": 2,
+          "dependencies": ["096"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["cron/daily_pipeline.sh"],
+            "commands": ["crontab -l"]
+          },
+          "files_to_create": [
+            "cron/daily_pipeline.sh",
+            "cron/cleanup.sh",
+            "cron/backup.sh"
+          ],
+          "acceptance_criteria": [
+            "Pipeline scheduled",
+            "Cleanup configured",
+            "Backups automated",
+            "Logs rotated"
+          ]
+        },
+        {
+          "id": "098",
+          "title": "Configure A/B experiments",
+          "domain": "deployment",
+          "complexity": 2,
+          "dependencies": ["097"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["experiments/initial.yaml"],
+            "commands": ["python scripts/load_experiments.py"]
+          },
+          "files_to_create": [
+            "experiments/initial.yaml",
+            "scripts/load_experiments.py"
+          ],
+          "acceptance_criteria": [
+            "Subject line test",
+            "Price point test",
+            "50/50 split configured",
+            "Tracking enabled"
+          ]
+        },
+        {
+          "id": "099",
+          "title": "Launch first campaign batch",
+          "domain": "deployment",
+          "complexity": 2,
+          "dependencies": ["098"],
+          "estimated_hours": 1,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["scripts/launch_campaign.py"],
+            "commands": ["python scripts/launch_campaign.py --batch 1"]
+          },
+          "files_to_create": [
+            "scripts/launch_campaign.py"
+          ],
+          "acceptance_criteria": [
+            "100 emails sent",
+            "Tracking confirmed",
+            "No bounces",
+            "Monitoring active"
+          ]
+        },
+        {
+          "id": "100",
+          "title": "Post-launch verification and documentation",
+          "domain": "deployment",
+          "complexity": 2,
+          "dependencies": ["099"],
+          "estimated_hours": 2,
+          "test_requirements": {
+            "docker_test": false,
+            "files": ["docs/runbook.md"],
+            "commands": ["python scripts/system_check.py"]
+          },
+          "files_to_create": [
+            "docs/runbook.md",
+            "docs/troubleshooting.md",
+            "scripts/system_check.py"
+          ],
+          "acceptance_criteria": [
+            "All systems verified",
+            "Documentation complete",
+            "Team access granted",
+            "First revenue tracked"
+          ]
+        }
+      ]
+    }
+  ]
+}

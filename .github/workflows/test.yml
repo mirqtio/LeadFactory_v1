@@ -1,0 +1,57 @@
+name: Test Suite
+
+on: [push, pull_request]
+
+env:
+  PYTHON_VERSION: "3.11"
+  DATABASE_URL: "sqlite:///tmp/test.db"
+  USE_STUBS: "true"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run linting
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --max-complexity=10 --max-line-length=100 --statistics
+    
+    - name: Run type checking
+      run: |
+        mypy --ignore-missing-imports .
+    
+    - name: Run tests in Docker
+      run: |
+        docker build -f Dockerfile.test -t leadfactory-test .
+        docker run --rm \
+          -e DATABASE_URL=$DATABASE_URL \
+          -e USE_STUBS=$USE_STUBS \
+          leadfactory-test
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true

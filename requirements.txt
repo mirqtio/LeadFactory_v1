@@ -1,0 +1,53 @@
+# Core dependencies - exact versions for reproducibility
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# HTTP clients
+httpx==0.25.2
+tenacity==8.2.3
+
+# Redis for caching
+redis==5.0.1
+
+# API integrations
+stripe==7.8.0
+sendgrid==6.11.0
+openai==1.6.1
+
+# Data processing
+pandas==2.1.4
+numpy==1.26.2
+
+# Monitoring
+prometheus-client==0.19.0
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+pyyaml==6.0.1
+python-dotenv==1.0.0
+python-json-logger==2.0.7
+click==8.1.7
+
+# PDF generation
+playwright==1.40.0
+jinja2==3.1.2
+
+# Workflow orchestration
+prefect==2.14.9
+
+# Security
+cryptography==41.0.7
+pyjwt==2.8.0
+passlib[bcrypt]==1.7.4
+
+# Email validation
+email-validator==2.1.0
