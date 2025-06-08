@@ -27,6 +27,12 @@ jobs:
     - name: Create tmp directory
       run: mkdir -p tmp
     
+    - name: Install docker-compose
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose --version
+    
     - name: Cache dependencies
       uses: actions/cache@v3
       with:
