@@ -86,7 +86,7 @@ class ExternalAPIError(LeadFactoryError):
                 "response_body": response_body,
                 **details
             },
-            status_code=502  # Bad Gateway
+            status_code=status_code or 502  # Use provided status_code or default to Bad Gateway
         )
 
 

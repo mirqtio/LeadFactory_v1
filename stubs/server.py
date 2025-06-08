@@ -19,6 +19,7 @@ app = FastAPI(title="LeadFactory Stub Server", version="1.0.0")
 # Configuration
 USE_STUBS = os.getenv("USE_STUBS", "true").lower() == "true"
 STUB_DELAY_MS = int(os.getenv("STUB_DELAY_MS", "50"))
+IS_TEST_MODE = os.getenv("ENVIRONMENT") == "test"
 
 
 # Stub data generators
@@ -219,8 +220,8 @@ async def pagespeed_analyze(
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
         
-    # Simulate some URLs failing
-    if random.random() < 0.05:  # 5% failure rate
+    # Simulate some URLs failing (disabled in test mode)
+    if not IS_TEST_MODE and random.random() < 0.05:  # 5% failure rate
         return JSONResponse(
             status_code=400,
             content={"error": {"message": "Invalid URL"}}

@@ -26,7 +26,9 @@ class TestConfig:
         """Test default settings values"""
         settings = Settings()
         
-        assert settings.environment == "development"
+        # Environment may be overridden by env vars
+        expected_env = os.getenv("ENVIRONMENT", "development")
+        assert settings.environment == expected_env
         assert settings.use_stubs is True
         # Database URL may be overridden by system env vars
         assert settings.max_daily_emails == 100
@@ -146,10 +148,17 @@ class TestExceptions:
             response_body="Error response"
         )
         
-        assert error.status_code == 502  # Bad Gateway
+        assert error.status_code == 503  # Uses provided status_code
         assert "yelp API error" in str(error)
         assert error.details["provider"] == "yelp"
         assert error.details["api_status_code"] == 503
+        
+        # Test default status code when none provided
+        error_default = ExternalAPIError(
+            provider="stripe",
+            message="API down"
+        )
+        assert error_default.status_code == 502  # Default Bad Gateway
         
     def test_rate_limit_error(self):
         """Test rate limit error"""

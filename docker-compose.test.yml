@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # Test database (isolated from development)
+  test-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: leadfactory_test
+      POSTGRES_PASSWORD: leadfactory_test
+      POSTGRES_DB: leadfactory_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leadfactory_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Test Redis (isolated from development)
+  test-redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Stub server for test environment
+  test-stub-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.stub
+    environment:
+      - USE_STUBS=true
+      - STUB_DELAY_MS=0  # No delay in tests
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5010/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Test runner
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      test-db:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+      test-stub-server:
+        condition: service_healthy
+    environment:
+      - ENVIRONMENT=test
+      - DATABASE_URL=postgresql://leadfactory_test:leadfactory_test@test-db:5432/leadfactory_test
+      - REDIS_URL=redis://test-redis:6379/0
+      - USE_STUBS=true
+      - STUB_BASE_URL=http://test-stub-server:5010
+      - SECRET_KEY=test-secret-key
+      - PYTHONPATH=/app
+      - LOG_LEVEL=WARNING  # Less verbose in tests
+    volumes:
+      - ./:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+      - /app/leadfactory.egg-info
+      - test-tmp:/app/tmp
+    command: pytest -xvs --tb=short --cov=. --cov-report=term-missing --cov-report=html --cov-report=xml
+
+  # Integration test runner (runs after unit tests)
+  integration-test:
+    extends: test
+    command: pytest tests/integration -xvs --tb=short
+    profiles:
+      - integration
+
+  # End-to-end test runner
+  e2e-test:
+    extends: test
+    command: pytest tests/e2e -xvs --tb=short
+    profiles:
+      - e2e
+
+  # Performance test runner
+  performance-test:
+    extends: test
+    command: pytest tests/performance -xvs --tb=short
+    environment:
+      - ENVIRONMENT=test
+      - DATABASE_URL=postgresql://leadfactory_test:leadfactory_test@test-db:5432/leadfactory_test
+      - REDIS_URL=redis://test-redis:6379/0
+      - USE_STUBS=true
+      - STUB_BASE_URL=http://test-stub-server:5010
+      - SECRET_KEY=test-secret-key
+      - PYTHONPATH=/app
+      - LOG_LEVEL=WARNING
+      - PERFORMANCE_TEST=true
+    profiles:
+      - performance
+
+volumes:
+  test-tmp:

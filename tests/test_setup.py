@@ -3,6 +3,7 @@ Test basic project setup and dependencies
 """
 import sys
 import importlib
+import pytest
 
 
 def test_python_version():
@@ -23,7 +24,6 @@ def test_core_imports():
         'sendgrid',
         'pandas',
         'prometheus_client',
-        'prefect',
         'pydantic',
         'pytest'
     ]

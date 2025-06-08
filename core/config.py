@@ -70,7 +70,6 @@ class Settings(BaseSettings):
     
     # Monitoring
     prometheus_enabled: bool = Field(default=True)
-    prometheus_port: int = Field(default=9090)
     
     # Feature flags
     enable_enrichment: bool = Field(default=True)

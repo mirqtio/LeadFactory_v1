@@ -1,11 +1,44 @@
 version: '3.8'
 
 services:
+  # PostgreSQL database for development
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: leadfactory
+      POSTGRES_PASSWORD: leadfactory_dev
+      POSTGRES_DB: leadfactory_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leadfactory"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Stub server for mocking external APIs
   stub-server:
     build:
       context: .
       dockerfile: Dockerfile.stub
+    restart: unless-stopped
     ports:
       - "5010:5010"
     environment:
@@ -19,55 +52,74 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    
-  # Test runner
-  test:
+
+  # Main application server
+  app:
     build:
       context: .
-      dockerfile: Dockerfile.test
-    depends_on:
-      - stub-server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
     environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://leadfactory:leadfactory_dev@db:5432/leadfactory_dev
+      - REDIS_URL=redis://redis:6379/0
       - USE_STUBS=true
       - STUB_BASE_URL=http://stub-server:5010
-      - DATABASE_URL=sqlite:///tmp/test.db
-      - PYTHONPATH=/app
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - LOG_LEVEL=INFO
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      stub-server:
+        condition: service_healthy
     volumes:
       - ./:/app
-      - test-data:/app/tmp
-    command: pytest -xvs --tb=short --cov=. --cov-report=term-missing
+      - /app/__pycache__
+      - /app/.pytest_cache
+      - /app/leadfactory.egg-info
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-  # Development database (for local development)
-  db:
-    image: postgres:15-alpine
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
     environment:
-      - POSTGRES_USER=leadfactory
-      - POSTGRES_PASSWORD=leadfactory_dev
-      - POSTGRES_DB=leadfactory_dev
-    ports:
-      - "5432:5432"
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U leadfactory"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
 
-  # Redis for caching
-  redis:
-    image: redis:7-alpine
+  # Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
     ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
 
 volumes:
-  test-data:
   postgres-data:
   redis-data:
+  prometheus-data:
+  grafana-data:

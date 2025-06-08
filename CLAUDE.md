@@ -1,0 +1,1 @@
+- Review @planning/README.md after every auto-compact.

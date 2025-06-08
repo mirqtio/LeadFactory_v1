@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+    
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy notification
+      run: |
+        echo "Deployment would happen here"
+        echo "Branch: ${{ github.ref }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "This is a placeholder for actual deployment steps"
+        
+    # Actual deployment steps would include:
+    # - Building and pushing Docker images
+    # - Updating Kubernetes manifests or cloud services
+    # - Running database migrations
+    # - Health checks
+    # - Rollback on failure
