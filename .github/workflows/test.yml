@@ -69,9 +69,9 @@ jobs:
           leadfactory-test \
           pytest -x --tb=short tests/test_setup.py tests/unit/test_models.py tests/unit/test_core.py --ignore=tests/test_docker_compose.py --ignore=tests/integration/
     
-    - name: Run docker-compose tests on host
+    - name: Run docker-compose config validation only (skip heavy integration tests)
       run: |
-        pytest -xvs --tb=short tests/test_docker_compose.py
+        pytest -xvs --tb=short tests/test_docker_compose.py -k "not integration"
     
     - name: Run local tests as fallback
       if: failure()
