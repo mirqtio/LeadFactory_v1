@@ -9,6 +9,7 @@ from database.models import Business
 from .models import YelpMetadata, SourcedLocation
 from .yelp_scraper import YelpScraper, ScrapingResult, ScrapingStatus, scrape_businesses_by_location, scrape_businesses_by_term
 from .deduplicator import BusinessDeduplicator, DuplicateMatch, MergeResult, MatchConfidence, MergeStrategy, find_and_merge_duplicates, detect_duplicates_only
+from .coordinator import SourcingCoordinator, SourcingBatch, CoordinatorStatus, BatchStatus, CoordinatorMetrics, process_location_batch, process_multiple_locations
 from .exceptions import (
     SourcingException,
     YelpAPIException, 
@@ -39,6 +40,14 @@ __all__ = [
     'MergeStrategy',
     'find_and_merge_duplicates',
     'detect_duplicates_only',
+    # Coordinator
+    'SourcingCoordinator',
+    'SourcingBatch',
+    'CoordinatorStatus',
+    'BatchStatus',
+    'CoordinatorMetrics',
+    'process_location_batch',
+    'process_multiple_locations',
     # Exceptions
     'SourcingException',
     'YelpAPIException',
