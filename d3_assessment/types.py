@@ -84,6 +84,16 @@ class InsightCategory(Enum):
     CONTENT_QUALITY = "content_quality"
 
 
+class InsightType(Enum):
+    """Types of LLM insights to generate"""
+    RECOMMENDATIONS = "recommendations"
+    TECHNICAL_ANALYSIS = "technical_analysis"
+    INDUSTRY_BENCHMARK = "industry_benchmark"
+    QUICK_WINS = "quick_wins"
+    COMPETITIVE_ANALYSIS = "competitive_analysis"
+    SECURITY_AUDIT = "security_audit"
+
+
 class CostType(Enum):
     """Types of costs associated with assessments"""
     API_CALL = "api_call"
