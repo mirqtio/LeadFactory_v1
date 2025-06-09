@@ -6,7 +6,7 @@ that provide business intelligence insights to customers.
 
 Acceptance Criteria:
 - Report generation tracked
-- Template structure defined  
+- Template structure defined
 - Mobile-responsive HTML
 - Print-optimized CSS
 """
@@ -23,7 +23,7 @@ __version__ = "1.0.0"
 __all__ = [
     # Models
     "ReportGeneration",
-    "ReportTemplate", 
+    "ReportTemplate",
     "ReportSection",
     "ReportDelivery"
 ]

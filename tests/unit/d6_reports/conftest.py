@@ -12,11 +12,11 @@ def db_session():
     """Create a database session for testing"""
     engine = create_engine("sqlite:///:memory:", echo=False)
     Base.metadata.create_all(engine)
-    
+
     Session = scoped_session(sessionmaker(bind=engine))
     session = Session()
-    
+
     yield session
-    
+
     session.close()
     Session.remove()
