@@ -2,7 +2,8 @@
 Tech Stack Detector - Task 032
 
 Comprehensive technology stack detection for websites using pattern matching.
-Identifies CMS, frameworks, analytics tools, and other technologies efficiently.
+Identifies CMS, frameworks, analytics tools, and other technologies
+efficiently.
 
 Acceptance Criteria:
 - Common frameworks detected
@@ -12,10 +13,8 @@ Acceptance Criteria:
 """
 import re
 import json
-import uuid
-from typing import Dict, Any, List, Set, Optional
+from typing import Dict, Any, List, Optional
 from decimal import Decimal
-from datetime import datetime
 from pathlib import Path
 import asyncio
 import aiohttp
@@ -27,20 +26,20 @@ from .types import TechCategory, CostType
 class TechStackDetector:
     """
     Technology stack detection service using pattern matching
-    
+
     Efficiently identifies technologies used on websites through
     pattern matching in HTML, CSS, JavaScript, and HTTP headers.
     """
-    
+
     def __init__(self):
         """Initialize tech stack detector with patterns"""
         self.patterns = self._load_patterns()
         self.timeout = aiohttp.ClientTimeout(total=30)
-        
+
     def _load_patterns(self) -> Dict[str, Any]:
         """
         Load technology detection patterns from patterns.json
-        
+
         Acceptance Criteria: Pattern matching efficient
         """
         patterns_file = Path(__file__).parent / "patterns.json"
@@ -80,7 +79,8 @@ class TechStackDetector:
             
             for tech_name, tech_data in technologies.items():
                 detection = await self._analyze_technology(
-                    assessment_id, url, category, tech_name, tech_data, html_content
+                    assessment_id, url, category, tech_name, tech_data,
+                    html_content
                 )
                 if detection:
                     detected_techs.append(detection)
@@ -169,10 +169,10 @@ class TechStackDetector:
     def _extract_version(self, content: str, tech_name: str) -> Optional[str]:
         """Extract version number if possible"""
         version_patterns = [
-            rf"{tech_name}[\s\-_/]?v?(\d+\.\d+\.\d+)",
-            rf"{tech_name}[\s\-_/]?v?(\d+\.\d+)",
-            rf"version[\s\-_:=]?(\d+\.\d+\.\d+)",
-            rf"ver[\s\-_:=]?(\d+\.\d+)"
+            r"{0}[\s\-_/]?v?(\d+\.\d+\.\d+)".format(tech_name),
+            r"{0}[\s\-_/]?v?(\d+\.\d+)".format(tech_name),
+            r"version[\s\-_:=]?(\d+\.\d+\.\d+)",
+            r"ver[\s\-_:=]?(\d+\.\d+)"
         ]
         
         for pattern in version_patterns:
@@ -218,7 +218,8 @@ class TechStackDetector:
                     if response.status == 200:
                         # Limit content size for efficiency
                         content = await response.text()
-                        return content[:500000]  # Limit to 500KB for efficiency
+                        # Limit to 500KB for efficiency
+                        return content[:500000]
                     return None
         except Exception:
             return None
