@@ -1,0 +1,320 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-06-09",
+  "description": "Spam detection rules for email deliverability optimization",
+  "rules": [
+    {
+      "rule_id": "keyword_free",
+      "rule_type": "keyword",
+      "description": "Detect FREE keyword",
+      "pattern": "\\bfree\\b",
+      "weight": 15.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_urgent",
+      "rule_type": "keyword", 
+      "description": "Detect URGENT keyword",
+      "pattern": "\\burgent\\b",
+      "weight": 12.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_act_now",
+      "rule_type": "keyword",
+      "description": "Detect ACT NOW phrase",
+      "pattern": "\\bact\\s+now\\b",
+      "weight": 14.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_limited_time",
+      "rule_type": "keyword",
+      "description": "Detect LIMITED TIME phrase",
+      "pattern": "\\blimited\\s+time\\b",
+      "weight": 10.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_guaranteed",
+      "rule_type": "keyword",
+      "description": "Detect GUARANTEED keyword",
+      "pattern": "\\bguaranteed\\b",
+      "weight": 11.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_winner",
+      "rule_type": "keyword",
+      "description": "Detect WINNER/CONGRATULATIONS",
+      "pattern": "\\b(winner|congratulations)\\b",
+      "weight": 13.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_click_here",
+      "rule_type": "keyword",
+      "description": "Detect CLICK HERE phrase",
+      "pattern": "\\bclick\\s+here\\b",
+      "weight": 8.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_buy_now",
+      "rule_type": "keyword",
+      "description": "Detect BUY NOW phrase",
+      "pattern": "\\bbuy\\s+now\\b",
+      "weight": 9.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_money_terms",
+      "rule_type": "keyword",
+      "description": "Detect money-making terms",
+      "pattern": "\\b(earn\\s+money|make\\s+money|cash|\\$\\$\\$)\\b",
+      "weight": 12.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "pattern_all_caps",
+      "rule_type": "pattern",
+      "description": "Detect excessive capital letters",
+      "pattern": "\\b[A-Z]{4,}\\b",
+      "weight": 8.0,
+      "enabled": true,
+      "category": "formatting"
+    },
+    {
+      "rule_id": "pattern_multiple_exclamation",
+      "rule_type": "pattern",
+      "description": "Detect multiple exclamation marks",
+      "pattern": "!{2,}",
+      "weight": 10.0,
+      "enabled": true,
+      "category": "formatting"
+    },
+    {
+      "rule_id": "pattern_multiple_question",
+      "rule_type": "pattern",
+      "description": "Detect multiple question marks", 
+      "pattern": "\\?{2,}",
+      "weight": 7.0,
+      "enabled": true,
+      "category": "formatting"
+    },
+    {
+      "rule_id": "pattern_dollar_amounts",
+      "rule_type": "pattern",
+      "description": "Detect dollar amounts",
+      "pattern": "\\$\\d+",
+      "weight": 5.0,
+      "enabled": true,
+      "category": "content"
+    },
+    {
+      "rule_id": "pattern_percentage_discount",
+      "rule_type": "pattern", 
+      "description": "Detect percentage discounts",
+      "pattern": "\\d+%\\s+(off|discount)",
+      "weight": 6.0,
+      "enabled": true,
+      "category": "content"
+    },
+    {
+      "rule_id": "pattern_excessive_punctuation",
+      "rule_type": "pattern",
+      "description": "Detect excessive punctuation clusters",
+      "pattern": "[!@#$%^&*()]{3,}",
+      "weight": 12.0,
+      "enabled": true,
+      "category": "formatting"
+    },
+    {
+      "rule_id": "length_subject_too_long",
+      "rule_type": "length",
+      "description": "Subject line exceeds recommended length",
+      "pattern": "",
+      "weight": 5.0,
+      "threshold": 60.0,
+      "enabled": true,
+      "category": "structure"
+    },
+    {
+      "rule_id": "length_content_too_short",
+      "rule_type": "length",
+      "description": "Email content is too short",
+      "pattern": "",
+      "weight": 8.0,
+      "threshold": 50.0,
+      "enabled": true,
+      "category": "structure"
+    },
+    {
+      "rule_id": "frequency_exclamation_marks",
+      "rule_type": "frequency",
+      "description": "Too many exclamation marks",
+      "pattern": "!",
+      "weight": 3.0,
+      "threshold": 2.0,
+      "enabled": true,
+      "category": "formatting"
+    },
+    {
+      "rule_id": "frequency_question_marks",
+      "rule_type": "frequency",
+      "description": "Too many question marks",
+      "pattern": "\\?",
+      "weight": 2.0,
+      "threshold": 3.0,
+      "enabled": true,
+      "category": "formatting"
+    },
+    {
+      "rule_id": "frequency_caps_words",
+      "rule_type": "frequency",
+      "description": "Too many capitalized words",
+      "pattern": "\\b[A-Z]{3,}\\b",
+      "weight": 4.0,
+      "threshold": 3.0,
+      "enabled": true,
+      "category": "formatting"
+    },
+    {
+      "rule_id": "structure_empty_content",
+      "rule_type": "structure",
+      "description": "Email content is empty or minimal",
+      "pattern": "",
+      "weight": 20.0,
+      "enabled": true,
+      "category": "structure"
+    },
+    {
+      "rule_id": "structure_html_ratio",
+      "rule_type": "structure",
+      "description": "High HTML to text ratio",
+      "pattern": "",
+      "weight": 8.0,
+      "threshold": 3.0,
+      "enabled": true,
+      "category": "structure"
+    },
+    {
+      "rule_id": "keyword_no_obligation",
+      "rule_type": "keyword",
+      "description": "Detect NO OBLIGATION phrase",
+      "pattern": "\\bno\\s+obligation\\b",
+      "weight": 9.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_risk_free",
+      "rule_type": "keyword",
+      "description": "Detect RISK FREE phrase",
+      "pattern": "\\brisk\\s+free\\b",
+      "weight": 10.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_instant",
+      "rule_type": "keyword",
+      "description": "Detect INSTANT/IMMEDIATELY",
+      "pattern": "\\b(instant|immediately)\\b",
+      "weight": 7.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_special_promotion",
+      "rule_type": "keyword",
+      "description": "Detect SPECIAL PROMOTION phrase",
+      "pattern": "\\bspecial\\s+promotion\\b",
+      "weight": 8.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_expires_today",
+      "rule_type": "keyword",
+      "description": "Detect EXPIRES TODAY phrase",
+      "pattern": "\\bexpires\\s+today\\b",
+      "weight": 11.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_dont_miss",
+      "rule_type": "keyword",
+      "description": "Detect DON'T MISS phrase",
+      "pattern": "\\bdon'?t\\s+miss\\b",
+      "weight": 6.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_amazing_deal",
+      "rule_type": "keyword",
+      "description": "Detect AMAZING/INCREDIBLE DEAL",
+      "pattern": "\\b(amazing|incredible)\\s+deal\\b",
+      "weight": 9.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_miracle",
+      "rule_type": "keyword",
+      "description": "Detect MIRACLE/BREAKTHROUGH",
+      "pattern": "\\b(miracle|breakthrough)\\b",
+      "weight": 13.0,
+      "enabled": true,
+      "category": "keywords"
+    },
+    {
+      "rule_id": "keyword_secret",
+      "rule_type": "keyword",
+      "description": "Detect SECRET/HIDDEN",
+      "pattern": "\\b(secret|hidden)\\b",
+      "weight": 8.0,
+      "enabled": true,
+      "category": "keywords"
+    }
+  ],
+  "thresholds": {
+    "low_risk": 25.0,
+    "medium_risk": 50.0,
+    "high_risk": 75.0,
+    "critical_risk": 100.0
+  },
+  "suggestions": {
+    "keywords": [
+      "Replace spam trigger words with neutral alternatives",
+      "Use professional language instead of marketing hype",
+      "Avoid money-related terms and urgency phrases"
+    ],
+    "formatting": [
+      "Limit use of ALL CAPS to emphasize only key points",
+      "Use one exclamation mark maximum per email",
+      "Maintain professional punctuation standards"
+    ],
+    "structure": [
+      "Ensure adequate content length (100-500 words)",
+      "Balance HTML markup with readable text",
+      "Include clear but subtle call-to-action"
+    ],
+    "content": [
+      "Focus on value proposition rather than discounts",
+      "Use specific benefits instead of generic claims",
+      "Personalize content to recipient's needs"
+    ]
+  }
+}
