@@ -31,11 +31,16 @@ class DeliveryStatus(str, Enum):
     """Email delivery status enumeration"""
     PENDING = "pending"
     PROCESSING = "processing"
+    SENT = "sent"
     DELIVERED = "delivered"
     BOUNCED = "bounced"
     FAILED = "failed"
     DEFERRED = "deferred"
     SUPPRESSED = "suppressed"
+    SPAM = "spam"
+    DROPPED = "dropped"
+    PROCESSED = "processed"
+    BLOCKED = "blocked"
 
 
 class BounceType(str, Enum):
@@ -56,9 +61,13 @@ class EventType(str, Enum):
     BOUNCED = "bounced"
     DROPPED = "dropped"
     SPAMREPORT = "spamreport"
+    SPAM = "spam"
     UNSUBSCRIBE = "unsubscribe"
+    UNSUBSCRIBED = "unsubscribed"
     PROCESSED = "processed"
     DEFERRED = "deferred"
+    BLOCKED = "blocked"
+    FAILED = "failed"
 
 
 class SuppressionReason(str, Enum):
