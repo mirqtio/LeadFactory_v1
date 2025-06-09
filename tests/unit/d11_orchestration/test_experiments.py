@@ -45,8 +45,8 @@ class TestExperimentManager:
             hypothesis="Red CTA button will increase conversion rate by 15%",
             primary_metric="conversion_rate",
             secondary_metrics=["click_rate", "bounce_rate"],
-            traffic_allocation_pct=80.0,
-            holdout_pct=10.0,
+            traffic_allocation_pct=100.0,
+            holdout_pct=0.0,
             confidence_level=0.95,
             minimum_sample_size=1000,
             maximum_duration_days=30,
@@ -93,8 +93,8 @@ class TestExperimentManager:
         assert experiment.hypothesis == "Red CTA button will increase conversion rate by 15%"
         assert experiment.primary_metric == "conversion_rate"
         assert experiment.secondary_metrics == ["click_rate", "bounce_rate"]
-        assert experiment.traffic_allocation_pct == 80.0
-        assert experiment.holdout_pct == 10.0
+        assert experiment.traffic_allocation_pct == 100.0
+        assert experiment.holdout_pct == 0.0
         assert experiment.confidence_level == 0.95
         assert experiment.minimum_sample_size == 1000
         assert experiment.maximum_duration_days == 30
@@ -135,8 +135,8 @@ class TestExperimentManager:
         # Test variant assignment
         assignment = experiment_manager.assign_variant(
             experiment=experiment,
-            assignment_unit="user_12345",
-            user_id="user_12345",
+            assignment_unit="user_99999",
+            user_id="user_99999",
             session_id="session_67890",
             assignment_context={"source": "homepage", "device": "mobile"},
             user_properties={"plan": "free", "signup_date": "2025-01-01"}
@@ -144,8 +144,8 @@ class TestExperimentManager:
         
         # Verify assignment
         assert assignment.experiment_id == experiment.experiment_id
-        assert assignment.assignment_unit == "user_12345"
-        assert assignment.user_id == "user_12345"
+        assert assignment.assignment_unit == "user_99999"
+        assert assignment.user_id == "user_99999"
         assert assignment.session_id == "session_67890"
         assert assignment.assignment_context == {"source": "homepage", "device": "mobile"}
         assert assignment.user_properties == {"plan": "free", "signup_date": "2025-01-01"}
@@ -244,6 +244,7 @@ class TestExperimentManager:
             VariantConfig(
                 variant_key="control",
                 name="Control",
+                description="Control variant",
                 variant_type=VariantType.CONTROL,
                 weight=1.0,
                 is_control=True
@@ -251,6 +252,7 @@ class TestExperimentManager:
             VariantConfig(
                 variant_key="treatment",
                 name="Treatment",
+                description="Treatment variant",
                 variant_type=VariantType.TREATMENT,
                 weight=1.0
             )

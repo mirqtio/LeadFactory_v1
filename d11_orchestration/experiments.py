@@ -97,13 +97,15 @@ class ExperimentManager:
             confidence_level=config.confidence_level,
             minimum_sample_size=config.minimum_sample_size,
             maximum_duration_days=config.maximum_duration_days,
-            randomization_unit=config.randomization_unit
+            randomization_unit=config.randomization_unit,
+            status=ExperimentStatus.DRAFT
         )
         
         # Create variants
         experiment_variants = []
         for variant_config in variants:
             variant = ExperimentVariant(
+                variant_id=generate_uuid(),
                 experiment_id=experiment.experiment_id,
                 variant_key=variant_config.variant_key,
                 name=variant_config.name,
@@ -120,9 +122,9 @@ class ExperimentManager:
         experiment.variants = experiment_variants
         
         # Record experiment creation metric
-        self.metrics.increment_counter(
-            "experiments_created_total",
-            {"experiment_name": experiment.name}
+        self.metrics.track_business_processed(
+            source=f"experiment_{experiment.name}",
+            status="created"
         )
         
         return experiment
@@ -179,13 +181,9 @@ class ExperimentManager:
         )
         
         # Record assignment metric
-        self.metrics.increment_counter(
-            "experiment_assignments_total",
-            {
-                "experiment_name": experiment.name,
-                "variant_key": variant.variant_key,
-                "variant_type": variant.variant_type.value
-            }
+        self.metrics.track_business_processed(
+            source=f"experiment_{experiment.name}_{variant.variant_key}",
+            status="assignment_created"
         )
         
         return assignment
@@ -230,9 +228,9 @@ class ExperimentManager:
             experiment.end_date = experiment.start_date + timedelta(days=experiment.maximum_duration_days)
         
         # Record experiment start metric
-        self.metrics.increment_counter(
-            "experiments_started_total",
-            {"experiment_name": experiment.name}
+        self.metrics.track_business_processed(
+            source=f"experiment_{experiment.name}",
+            status="started"
         )
     
     def stop_experiment(self, experiment: Experiment, reason: str = "Manual stop") -> None:
@@ -245,12 +243,9 @@ class ExperimentManager:
         experiment.end_date = date.today()
         
         # Record experiment stop metric
-        self.metrics.increment_counter(
-            "experiments_stopped_total",
-            {
-                "experiment_name": experiment.name,
-                "reason": reason
-            }
+        self.metrics.track_business_processed(
+            source=f"experiment_{experiment.name}",
+            status="stopped"
         )
     
     def pause_experiment(self, experiment: Experiment) -> None:
@@ -262,9 +257,9 @@ class ExperimentManager:
         experiment.status = ExperimentStatus.PAUSED
         
         # Record experiment pause metric
-        self.metrics.increment_counter(
-            "experiments_paused_total",
-            {"experiment_name": experiment.name}
+        self.metrics.track_business_processed(
+            source=f"experiment_{experiment.name}",
+            status="paused"
         )
     
     def resume_experiment(self, experiment: Experiment) -> None:
@@ -276,9 +271,9 @@ class ExperimentManager:
         experiment.status = ExperimentStatus.RUNNING
         
         # Record experiment resume metric
-        self.metrics.increment_counter(
-            "experiments_resumed_total",
-            {"experiment_name": experiment.name}
+        self.metrics.track_business_processed(
+            source=f"experiment_{experiment.name}",
+            status="resumed"
         )
     
     def complete_experiment(self, experiment: Experiment, results: Optional[Dict[str, Any]] = None) -> None:
@@ -294,9 +289,9 @@ class ExperimentManager:
             experiment.results = results
         
         # Record experiment completion metric
-        self.metrics.increment_counter(
-            "experiments_completed_total",
-            {"experiment_name": experiment.name}
+        self.metrics.track_business_processed(
+            source=f"experiment_{experiment.name}",
+            status="completed"
         )
     
     def get_experiment_summary(self, experiment: Experiment) -> Dict[str, Any]:
@@ -432,9 +427,9 @@ class ExperimentManager:
         )
         
         # Record holdout assignment metric
-        self.metrics.increment_counter(
-            "experiment_holdout_assignments_total",
-            {"experiment_name": experiment.name}
+        self.metrics.track_business_processed(
+            source=f"experiment_{experiment.name}_holdout",
+            status="holdout_assignment"
         )
         
         return assignment
