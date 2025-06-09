@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-06-09T13:40:00.000000",
+  "last_updated": "2025-06-09T14:05:00.000000",
   "tasks": {
     "001": {
       "status": "completed",
@@ -332,16 +332,16 @@
       "actual_hours": 0.05
     },
     "056": {
-      "status": "completed",
+      "status": "in_progress",
       "started_at": "2025-06-09T12:49:30.000000",
-      "completed_at": "2025-06-09T13:15:00.000000",
-      "actual_hours": 0.5
+      "completed_at": null,
+      "actual_hours": null
     },
     "057": {
-      "status": "completed",
+      "status": "in_progress", 
       "started_at": "2025-06-09T13:16:00.000000",
-      "completed_at": "2025-06-09T13:40:00.000000",
-      "actual_hours": 0.4
+      "completed_at": null,
+      "actual_hours": null
     },
     "058": {
       "status": "in_progress",
