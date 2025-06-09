@@ -9,10 +9,12 @@ from sqlalchemy.orm import sessionmaker
 
 from database.base import Base
 from database.models import (
-    Business, Target, Batch, AssessmentResult, ScoringResult,
-    Purchase, Email, EmailClick, GatewayUsage, Experiment,
-    GeoType, BatchStatus, EmailStatus, PurchaseStatus, ExperimentStatus
+    Business, Target, Batch, ScoringResult,
+    Purchase, Email, EmailClick, GatewayUsage,
+    GeoType, BatchStatus, EmailStatus, PurchaseStatus
 )
+from d3_assessment.models import AssessmentResult
+from d11_orchestration.models import Experiment, ExperimentStatus
 
 
 @pytest.fixture
