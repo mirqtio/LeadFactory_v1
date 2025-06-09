@@ -15,11 +15,16 @@ import uuid
 from sqlalchemy import (
     Column, String, Integer, Float, Boolean, Text,
     ForeignKey, UniqueConstraint, CheckConstraint, Index,
-    DECIMAL, TIMESTAMP, Enum as SQLEnum
+    DECIMAL, TIMESTAMP, Enum as SQLEnum, JSON
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+# Database compatibility: Use JSON for better SQLite compatibility
+from sqlalchemy.dialects.postgresql import JSONB
+
+# Use JSON type for better cross-database compatibility in tests
+JsonColumn = JSON
 
 from database.base import Base
 from .types import (
@@ -58,11 +63,11 @@ class AssessmentResult(Base):
     is_mobile = Column(Boolean, default=False)
     user_agent = Column(Text)
 
-    # Flexible data storage using JSONB
-    pagespeed_data = Column(JSONB)  # PageSpeed Insights raw data
-    tech_stack_data = Column(JSONB)  # Technology detection results
-    ai_insights_data = Column(JSONB)  # AI-generated insights
-    assessment_metadata = Column(JSONB)  # Additional metadata
+    # Flexible data storage using JSON (compatible with both PostgreSQL and SQLite)
+    pagespeed_data = Column(JsonColumn)  # PageSpeed Insights raw data
+    tech_stack_data = Column(JsonColumn)  # Technology detection results
+    ai_insights_data = Column(JsonColumn)  # AI-generated insights
+    assessment_metadata = Column(JsonColumn)  # Additional metadata
 
     # Extracted key metrics for quick querying
     performance_score = Column(Integer)
@@ -130,11 +135,7 @@ class AssessmentResult(Base):
         Index("idx_d3_assessment_vitals",
               "largest_contentful_paint", "first_input_delay"),
 
-        # JSONB indexes for flexible queries
-        Index("idx_d3_assessment_pagespeed_gin", "pagespeed_data", postgresql_using="gin"),
-        Index("idx_d3_assessment_tech_gin", "tech_stack_data", postgresql_using="gin"),
-        Index("idx_d3_assessment_insights_gin", "ai_insights_data", postgresql_using="gin"),
-        Index("idx_d3_assessment_metadata_gin", "assessment_metadata", postgresql_using="gin"),
+        # JSON indexes for flexible queries (removed postgresql-specific GIN for SQLite compatibility)
 
         # Composite indexes for common queries
         Index("idx_d3_assessment_business_status_type", "business_id", "status", "assessment_type"),
@@ -163,7 +164,7 @@ class PageSpeedAssessment(Base):
     is_mobile = Column(Boolean, default=False)
 
     # Lighthouse scores
-    lighthouse_data = Column(JSONB, nullable=False)
+    lighthouse_data = Column(JsonColumn, nullable=False)
 
     # Core metrics (extracted for quick access)
     performance_score = Column(Integer)
@@ -173,15 +174,15 @@ class PageSpeedAssessment(Base):
     pwa_score = Column(Integer)
 
     # Core Web Vitals details
-    core_web_vitals = Column(JSONB)
+    core_web_vitals = Column(JsonColumn)
 
     # Field data vs lab data
-    field_data = Column(JSONB)
-    lab_data = Column(JSONB)
+    field_data = Column(JsonColumn)
+    lab_data = Column(JsonColumn)
 
     # Opportunities and diagnostics
-    opportunities = Column(JSONB)
-    diagnostics = Column(JSONB)
+    opportunities = Column(JsonColumn)
+    diagnostics = Column(JsonColumn)
 
     # Processing metadata
     lighthouse_version = Column(String(50))
@@ -198,9 +199,6 @@ class PageSpeedAssessment(Base):
         Index("idx_d3_pagespeed_assessment", "assessment_id"),
         Index("idx_d3_pagespeed_mobile", "is_mobile"),
         Index("idx_d3_pagespeed_scores", "performance_score", "accessibility_score"),
-        Index("idx_d3_pagespeed_lighthouse_gin", "lighthouse_data", postgresql_using="gin"),
-        Index("idx_d3_pagespeed_vitals_gin", "core_web_vitals", postgresql_using="gin"),
-        Index("idx_d3_pagespeed_opportunities_gin", "opportunities", postgresql_using="gin"),
 
         UniqueConstraint("assessment_id", "is_mobile", name="uq_pagespeed_assessment_device"),
     )
@@ -224,7 +222,7 @@ class TechStackDetection(Base):
     confidence = Column(Float, default=1.0)
 
     # Flexible technology data
-    technology_data = Column(JSONB)
+    technology_data = Column(JsonColumn)
 
     # Detection metadata
     detection_method = Column(String(100))
@@ -244,7 +242,6 @@ class TechStackDetection(Base):
         Index("idx_d3_tech_category", "category"),
         Index("idx_d3_tech_name", "technology_name"),
         Index("idx_d3_tech_confidence", "confidence"),
-        Index("idx_d3_tech_data_gin", "technology_data", postgresql_using="gin"),
         Index("idx_d3_tech_category_confidence", "category", "confidence"),
 
         CheckConstraint("confidence >= 0 AND confidence <= 1", name="check_tech_confidence"),
@@ -274,11 +271,11 @@ class AIInsight(Base):
     confidence = Column(Float, default=1.0)
 
     # Actionable recommendations
-    actionable_steps = Column(JSONB)
+    actionable_steps = Column(JsonColumn)
     estimated_improvement = Column(String(200))
 
     # AI-generated data
-    ai_data = Column(JSONB)
+    ai_data = Column(JsonColumn)
 
     # Source information
     ai_model = Column(String(100))
@@ -297,8 +294,6 @@ class AIInsight(Base):
         Index("idx_d3_insights_priority", "priority"),
         Index("idx_d3_insights_impact", "impact"),
         Index("idx_d3_insights_confidence", "confidence"),
-        Index("idx_d3_insights_steps_gin", "actionable_steps", postgresql_using="gin"),
-        Index("idx_d3_insights_data_gin", "ai_data", postgresql_using="gin"),
         Index("idx_d3_insights_category_priority", "category", "priority"),
 
         CheckConstraint("priority >= 1 AND priority <= 10", name="check_insight_priority"),
@@ -324,7 +319,7 @@ class AssessmentSession(Base):
     user_id = Column(String(100))  # For future user management
 
     # Session configuration
-    config_data = Column(JSONB)
+    config_data = Column(JsonColumn)
 
     # Progress tracking
     total_assessments = Column(Integer, default=0)
@@ -358,7 +353,6 @@ class AssessmentSession(Base):
         Index("idx_d3_session_user", "user_id"),
         Index("idx_d3_session_created", "created_at"),
         Index("idx_d3_session_cost", "total_cost_usd"),
-        Index("idx_d3_session_config_gin", "config_data", postgresql_using="gin"),
 
         CheckConstraint("total_cost_usd >= 0", name="check_session_cost_positive"),
         CheckConstraint("completed_assessments <= total_assessments", name="check_session_progress"),
@@ -393,7 +387,7 @@ class AssessmentCost(Base):
     rate_per_unit = Column(DECIMAL(10, 6))
 
     # Metadata
-    cost_data = Column(JSONB)
+    cost_data = Column(JsonColumn)
 
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
@@ -409,7 +403,6 @@ class AssessmentCost(Base):
         Index("idx_d3_costs_provider", "provider"),
         Index("idx_d3_costs_amount", "amount"),
         Index("idx_d3_costs_created", "created_at"),
-        Index("idx_d3_costs_data_gin", "cost_data", postgresql_using="gin"),
         Index("idx_d3_costs_type_amount", "cost_type", "amount"),
 
         CheckConstraint("amount >= 0", name="check_cost_amount_positive"),
@@ -435,10 +428,10 @@ class LLMInsightResult(Base):
 
     # Industry and context
     industry = Column(String(100))
-    insight_types = Column(JSONB)  # List of InsightType values
+    insight_types = Column(JsonColumn)  # List of InsightType values
 
     # Generated insights (structured JSON)
-    insights = Column(JSONB, nullable=False)  # Main insights data
+    insights = Column(JsonColumn, nullable=False)  # Main insights data
 
     # Cost tracking
     total_cost_usd = Column(DECIMAL(10, 6), default=0)
@@ -465,8 +458,6 @@ class LLMInsightResult(Base):
         Index("idx_d3_llm_insights_generated", "generated_at"),
         Index("idx_d3_llm_insights_cost", "total_cost_usd"),
         Index("idx_d3_llm_insights_model", "model_version"),
-        Index("idx_d3_llm_insights_types_gin", "insight_types", postgresql_using="gin"),
-        Index("idx_d3_llm_insights_data_gin", "insights", postgresql_using="gin"),
         Index("idx_d3_llm_insights_industry_cost", "industry", "total_cost_usd"),
 
         CheckConstraint("total_cost_usd >= 0", name="check_llm_cost_positive"),

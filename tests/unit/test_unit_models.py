@@ -14,7 +14,8 @@ from database.models import (
     GeoType, BatchStatus, EmailStatus, PurchaseStatus
 )
 from d3_assessment.models import AssessmentResult
-from d11_orchestration.models import Experiment, ExperimentStatus
+from d3_assessment.types import AssessmentType
+from d11_orchestration.models import Experiment, ExperimentStatus, ExperimentVariant
 
 
 @pytest.fixture
@@ -68,7 +69,9 @@ class TestBusinessModel:
         # Add assessment
         assessment = AssessmentResult(
             business_id=business.id,
-            assessment_type="pagespeed",
+            assessment_type=AssessmentType.PAGESPEED,
+            url="https://test-business.com",
+            domain="test-business.com",
             performance_score=75,
             seo_score=85
         )
@@ -230,16 +233,42 @@ class TestExperimentModels:
         experiment = Experiment(
             name="email_subject_test",
             description="Test urgency vs question subject lines",
-            variants=[
-                {"name": "control", "weight": 50},
-                {"name": "urgency", "weight": 25},
-                {"name": "question", "weight": 25}
-            ]
+            created_by="test_user",
+            primary_metric="conversion_rate"
         )
 
         test_session.add(experiment)
+        test_session.flush()  # Get the experiment ID
+
+        # Create variants
+        control_variant = ExperimentVariant(
+            experiment_id=experiment.experiment_id,
+            variant_key="control",
+            name="control",
+            description="Control variant",
+            weight=50.0,
+            is_control=True
+        )
+        
+        urgency_variant = ExperimentVariant(
+            experiment_id=experiment.experiment_id,
+            variant_key="urgency", 
+            name="urgency",
+            description="Urgency variant",
+            weight=25.0
+        )
+        
+        question_variant = ExperimentVariant(
+            experiment_id=experiment.experiment_id,
+            variant_key="question",
+            name="question",
+            description="Question variant", 
+            weight=25.0
+        )
+
+        test_session.add_all([control_variant, urgency_variant, question_variant])
         test_session.commit()
 
         assert experiment.status == ExperimentStatus.DRAFT
         assert len(experiment.variants) == 3
-        assert experiment.variants[0]["weight"] == 50
+        assert experiment.variants[0].weight == 50.0
