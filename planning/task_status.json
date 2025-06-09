@@ -380,14 +380,14 @@
       "actual_hours": 0.25
     },
     "064": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2025-06-09T17:35:30.000000",
-      "completed_at": null,
-      "actual_hours": null
+      "completed_at": "2025-06-09T18:00:00.000000",
+      "actual_hours": 0.42
     },
     "065": {
-      "status": "pending",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2025-06-09T18:00:30.000000",
       "completed_at": null,
       "actual_hours": null
     },
