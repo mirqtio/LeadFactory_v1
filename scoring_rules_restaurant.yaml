@@ -1,0 +1,342 @@
+# Restaurant Vertical Scoring Rules - Task 047
+#
+# Restaurant-specific scoring rules that override base rules for better
+# relevance to restaurant business characteristics and success indicators.
+#
+# Acceptance Criteria: Restaurant rules work
+
+version: "restaurant_v1.0.0"
+vertical: "restaurant"
+base_rules: "scoring_rules.yaml"  # Inherit from base rules
+
+# Restaurant-specific engine configuration
+engine_config:
+  max_score: 100.0
+  default_weight: 1.0
+  fallback_enabled: true
+  logging_enabled: true
+  vertical_multiplier: 1.1  # Slight boost for restaurant-specific criteria
+
+# Restaurant-specific fallback values
+fallbacks:
+  restaurant_info:
+    cuisine_type: "american"
+    service_type: "dine_in"
+    price_range: "moderate"
+    seating_capacity: 50
+    
+  location_info:
+    foot_traffic_score: 0.5
+    parking_available: true
+    delivery_available: false
+    takeout_available: true
+    
+  operational_info:
+    hours_per_week: 70
+    days_open_per_week: 6
+    avg_ticket_size: 25.0
+    daily_covers: 100
+
+# Restaurant-specific scoring components
+scoring_components:
+  
+  # Override: Company Information for Restaurants (10 points - increased weight)
+  company_info:
+    weight: 10.0
+    description: "Restaurant business information and branding"
+    rules:
+      - condition: "company_name != ''"
+        points: 2.5
+        description: "Restaurant name provided"
+      
+      - condition: "len(company_name) >= 3"
+        points: 1.0
+        description: "Restaurant name is substantial"
+      
+      - condition: "cuisine_type != 'unknown' and cuisine_type != ''"
+        points: 2.5
+        description: "Cuisine type specified"
+      
+      - condition: "description != '' and len(description) >= 30"
+        points: 2.0
+        description: "Detailed restaurant description"
+      
+      - condition: "website != '' and ('http' in website or 'www.' in website)"
+        points: 2.0
+        description: "Restaurant website available"
+
+  # Override: Location Data - Critical for Restaurants (12 points - much higher)
+  location_data:
+    weight: 12.0
+    description: "Location quality and accessibility for restaurants"
+    rules:
+      - condition: "address != '' and len(address) >= 15"
+        points: 3.0
+        description: "Complete restaurant address"
+      
+      - condition: "city != '' and state != ''"
+        points: 2.0
+        description: "City and state provided"
+      
+      - condition: "foot_traffic_score >= 0.7"
+        points: 3.0
+        description: "High foot traffic location"
+      
+      - condition: "foot_traffic_score >= 0.5"
+        points: 1.5
+        description: "Moderate foot traffic"
+      
+      - condition: "parking_available == true"
+        points: 1.5
+        description: "Parking available"
+      
+      - condition: "zip_code != '' and len(zip_code) >= 5"
+        points: 1.0
+        description: "Complete postal code"
+
+  # Override: Online Presence for Restaurants (10 points)
+  online_presence:
+    weight: 10.0
+    description: "Digital presence and online ordering capabilities"
+    rules:
+      - condition: "website != '' and 'https://' in website"
+        points: 2.0
+        description: "Secure restaurant website"
+      
+      - condition: "online_ordering == true"
+        points: 3.0
+        description: "Online ordering available"
+      
+      - condition: "mobile_app == true"
+        points: 2.0
+        description: "Restaurant mobile app"
+      
+      - condition: "delivery_available == true"
+        points: 1.5
+        description: "Delivery service offered"
+      
+      - condition: "social_media_profiles >= 2"
+        points: 1.5
+        description: "Active social media presence"
+
+  # New: Restaurant Operations (15 points - restaurant-specific)
+  restaurant_operations:
+    weight: 15.0
+    description: "Restaurant operational efficiency and capacity"
+    rules:
+      - condition: "seating_capacity >= 30"
+        points: 2.0
+        description: "Adequate seating capacity (30+)"
+      
+      - condition: "seating_capacity >= 75"
+        points: 1.5
+        description: "Large seating capacity (75+)"
+      
+      - condition: "days_open_per_week >= 6"
+        points: 2.5
+        description: "Open most days of week"
+      
+      - condition: "hours_per_week >= 60"
+        points: 2.0
+        description: "Substantial operating hours"
+      
+      - condition: "avg_ticket_size >= 20.0"
+        points: 2.0
+        description: "Good average ticket size ($20+)"
+      
+      - condition: "avg_ticket_size >= 35.0"
+        points: 1.5
+        description: "High average ticket size ($35+)"
+      
+      - condition: "daily_covers >= 75"
+        points: 2.0
+        description: "High daily customer volume"
+      
+      - condition: "kitchen_efficiency_score >= 0.8"
+        points: 1.5
+        description: "Efficient kitchen operations"
+
+  # Override: Social Signals - Crucial for Restaurants (12 points)
+  social_signals:
+    weight: 12.0
+    description: "Customer reviews and social proof for restaurants"
+    rules:
+      - condition: "rating >= 4.5"
+        points: 4.0
+        description: "Excellent customer rating (4.5+ stars)"
+      
+      - condition: "rating >= 4.0"
+        points: 2.5
+        description: "Very good rating (4+ stars)"
+      
+      - condition: "rating >= 3.5"
+        points: 1.0
+        description: "Good rating (3.5+ stars)"
+      
+      - condition: "reviews_count >= 50"
+        points: 2.5
+        description: "Substantial review volume (50+)"
+      
+      - condition: "reviews_count >= 100"
+        points: 1.5
+        description: "High review volume (100+)"
+      
+      - condition: "yelp_rating >= 4.0 or google_rating >= 4.0"
+        points: 1.5
+        description: "High rating on major platforms"
+
+  # New: Food Quality & Service (12 points - restaurant-specific)
+  food_and_service:
+    weight: 12.0
+    description: "Food quality and service indicators"
+    rules:
+      - condition: "food_quality_score >= 4.0"
+        points: 3.5
+        description: "High food quality ratings"
+      
+      - condition: "service_quality_score >= 4.0"
+        points: 3.0
+        description: "Excellent service quality"
+      
+      - condition: "cleanliness_score >= 4.0"
+        points: 2.5
+        description: "High cleanliness standards"
+      
+      - condition: "speed_of_service >= 4.0"
+        points: 2.0
+        description: "Fast, efficient service"
+      
+      - condition: "menu_variety_score >= 0.7"
+        points: 1.0
+        description: "Good menu variety"
+
+  # Override: Revenue Indicators for Restaurants (10 points)
+  revenue_indicators:
+    weight: 10.0
+    description: "Restaurant financial performance"
+    rules:
+      - condition: "annual_revenue >= 250000"
+        points: 2.0
+        description: "Restaurant revenue above $250K"
+      
+      - condition: "annual_revenue >= 500000"
+        points: 2.0
+        description: "Restaurant revenue above $500K"
+      
+      - condition: "annual_revenue >= 1000000"
+        points: 2.0
+        description: "Restaurant revenue above $1M"
+      
+      - condition: "profit_margin >= 0.15"
+        points: 2.0
+        description: "Healthy profit margins (15%+)"
+      
+      - condition: "revenue_per_seat >= 5000"
+        points: 1.5
+        description: "High revenue per seat efficiency"
+      
+      - condition: "food_cost_percentage <= 0.35"
+        points: 0.5
+        description: "Good food cost control"
+
+  # New: Market Position for Restaurants (8 points)
+  restaurant_market_position:
+    weight: 8.0
+    description: "Restaurant's position in local market"
+    rules:
+      - condition: "local_market_rank <= 10"
+        points: 3.0
+        description: "Top 10 restaurant in local market"
+      
+      - condition: "local_market_rank <= 25"
+        points: 2.0
+        description: "Top 25 restaurant in local market"
+      
+      - condition: "repeat_customer_rate >= 0.4"
+        points: 2.0
+        description: "High customer loyalty (40%+ repeat)"
+      
+      - condition: "awards_or_recognition > 0"
+        points: 1.0
+        description: "Industry awards or recognition"
+
+  # Override: Employee Count for Restaurants (6 points - adjusted)
+  employee_count:
+    weight: 6.0
+    description: "Restaurant staffing levels"
+    rules:
+      - condition: "employee_count >= 8"
+        points: 2.0
+        description: "Adequate staffing (8+ employees)"
+      
+      - condition: "employee_count >= 15"
+        points: 2.0
+        description: "Well-staffed restaurant (15+)"
+      
+      - condition: "employee_count >= 25"
+        points: 1.5
+        description: "Large restaurant staff (25+)"
+      
+      - condition: "employee_turnover_rate <= 0.75"
+        points: 0.5
+        description: "Low employee turnover"
+
+# Restaurant-specific tier rules (adjusted thresholds)
+tier_rules:
+  platinum:
+    min_score: 85.0  # Lower threshold for restaurants
+    max_score: 100.0
+    description: "Exceptional restaurant with outstanding operations"
+    priority: "highest"
+  
+  gold:
+    min_score: 75.0
+    max_score: 84.9
+    description: "High-performing restaurant with strong market position"
+    priority: "high"
+  
+  silver:
+    min_score: 65.0
+    max_score: 74.9
+    description: "Well-established restaurant with good potential"
+    priority: "medium"
+  
+  bronze:
+    min_score: 55.0
+    max_score: 64.9
+    description: "Solid restaurant operation with room for growth"
+    priority: "low"
+  
+  basic:
+    min_score: 45.0
+    max_score: 54.9
+    description: "Basic restaurant operation needing improvement"
+    priority: "very_low"
+  
+  unqualified:
+    min_score: 0.0
+    max_score: 44.9
+    description: "Restaurant not meeting minimum standards"
+    priority: "none"
+
+# Restaurant-specific quality control
+quality_control:
+  min_data_completeness: 0.4  # Higher requirement for restaurants
+  confidence_threshold: 0.65
+  manual_review_triggers:
+    - "rating < 3.0"
+    - "health_violations > 0"
+    - "data_completeness < 0.5"
+    - "conflicting_reviews == true"
+    - "revenue_per_seat < 2000"
+
+# Restaurant monitoring
+monitoring:
+  log_level: "INFO"
+  track_rule_performance: true
+  alert_on_rule_failures: true
+  restaurant_specific_metrics:
+    - "avg_ticket_size_distribution"
+    - "cuisine_type_performance"
+    - "location_score_correlation"
+    - "seasonal_adjustment_needed"

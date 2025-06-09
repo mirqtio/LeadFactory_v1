@@ -1,0 +1,389 @@
+# Medical/Healthcare Vertical Scoring Rules - Task 047
+#
+# Medical practice and healthcare-specific scoring rules that override base rules
+# for better relevance to healthcare business characteristics and compliance.
+#
+# Acceptance Criteria: Medical rules work
+
+version: "medical_v1.0.0"
+vertical: "medical"
+base_rules: "scoring_rules.yaml"  # Inherit from base rules
+
+# Medical-specific engine configuration
+engine_config:
+  max_score: 100.0
+  default_weight: 1.0
+  fallback_enabled: true
+  logging_enabled: true
+  vertical_multiplier: 1.15  # Higher boost for medical compliance factors
+
+# Medical-specific fallback values
+fallbacks:
+  medical_info:
+    specialty: "general_practice"
+    practice_type: "private"
+    provider_count: 2
+    board_certified: true
+    
+  compliance_info:
+    hipaa_compliant: true
+    license_status: "active"
+    malpractice_insurance: true
+    medicare_provider: true
+    
+  operational_info:
+    patient_capacity: 2000
+    avg_appointment_duration: 30
+    emergency_services: false
+    telemedicine_available: false
+
+# Medical-specific scoring components
+scoring_components:
+  
+  # Override: Company Information for Medical Practices (8 points)
+  company_info:
+    weight: 8.0
+    description: "Medical practice information and credentials"
+    rules:
+      - condition: "company_name != ''"
+        points: 2.0
+        description: "Practice name provided"
+      
+      - condition: "specialty != 'unknown' and specialty != ''"
+        points: 2.5
+        description: "Medical specialty specified"
+      
+      - condition: "practice_type in ['private', 'group', 'hospital_affiliated']"
+        points: 1.5
+        description: "Valid practice type"
+      
+      - condition: "description != '' and len(description) >= 50"
+        points: 1.5
+        description: "Comprehensive practice description"
+      
+      - condition: "website != '' and ('http' in website or 'www.' in website)"
+        points: 0.5
+        description: "Practice website available"
+
+  # New: Medical Credentials & Compliance (18 points - highest weight)
+  medical_credentials:
+    weight: 18.0
+    description: "Medical licensing, certification, and compliance"
+    rules:
+      - condition: "license_status == 'active'"
+        points: 4.0
+        description: "Active medical license"
+      
+      - condition: "board_certified == true"
+        points: 4.0
+        description: "Board certified physicians"
+      
+      - condition: "malpractice_insurance == true"
+        points: 3.0
+        description: "Malpractice insurance coverage"
+      
+      - condition: "hipaa_compliant == true"
+        points: 3.0
+        description: "HIPAA compliance verified"
+      
+      - condition: "medicare_provider == true"
+        points: 2.0
+        description: "Medicare provider status"
+      
+      - condition: "medicaid_provider == true"
+        points: 1.0
+        description: "Medicaid provider status"
+      
+      - condition: "accreditation_count >= 1"
+        points: 1.0
+        description: "Professional accreditations"
+
+  # Override: Business Validation for Medical (12 points)
+  business_validation:
+    weight: 12.0
+    description: "Medical practice legitimacy and operational status"
+    rules:
+      - condition: "business_status == 'active' or business_status == 'operating'"
+        points: 3.0
+        description: "Practice actively operating"
+      
+      - condition: "years_in_practice >= 3"
+        points: 3.0
+        description: "Established practice (3+ years)"
+      
+      - condition: "years_in_practice >= 10"
+        points: 2.0
+        description: "Well-established practice (10+ years)"
+      
+      - condition: "provider_count >= 1"
+        points: 2.0
+        description: "Licensed providers on staff"
+      
+      - condition: "npi_number != ''"
+        points: 2.0
+        description: "Valid NPI number"
+
+  # New: Patient Care Quality (15 points - medical-specific)
+  patient_care_quality:
+    weight: 15.0
+    description: "Quality of patient care and outcomes"
+    rules:
+      - condition: "patient_satisfaction_score >= 4.5"
+        points: 4.0
+        description: "Excellent patient satisfaction (4.5+)"
+      
+      - condition: "patient_satisfaction_score >= 4.0"
+        points: 2.5
+        description: "High patient satisfaction (4.0+)"
+      
+      - condition: "patient_satisfaction_score >= 3.5"
+        points: 1.0
+        description: "Good patient satisfaction (3.5+)"
+      
+      - condition: "quality_measures_score >= 0.8"
+        points: 3.0
+        description: "High quality measures performance"
+      
+      - condition: "readmission_rate <= 0.1"
+        points: 2.0
+        description: "Low readmission rate"
+      
+      - condition: "appointment_availability <= 14"
+        points: 1.5
+        description: "Good appointment availability (≤14 days)"
+      
+      - condition: "emergency_response_time <= 15"
+        points: 1.0
+        description: "Fast emergency response"
+
+  # Override: Technology Stack for Medical (8 points)
+  technology_stack:
+    weight: 8.0
+    description: "Medical technology and EMR systems"
+    rules:
+      - condition: "emr_system != ''"
+        points: 3.0
+        description: "Electronic medical records system"
+      
+      - condition: "emr_system in ['epic', 'cerner', 'allscripts', 'athenahealth']"
+        points: 1.5
+        description: "Major EMR system in use"
+      
+      - condition: "telemedicine_available == true"
+        points: 2.0
+        description: "Telemedicine capabilities"
+      
+      - condition: "patient_portal == true"
+        points: 1.0
+        description: "Patient portal available"
+      
+      - condition: "mobile_app == true"
+        points: 0.5
+        description: "Practice mobile app"
+
+  # New: Medical Specialization (10 points)
+  medical_specialization:
+    weight: 10.0
+    description: "Medical specialty focus and expertise"
+    rules:
+      - condition: "specialty in ['cardiology', 'oncology', 'neurology', 'orthopedics']"
+        points: 3.0
+        description: "High-value medical specialty"
+      
+      - condition: "specialty in ['internal_medicine', 'family_medicine', 'pediatrics']"
+        points: 2.5
+        description: "Primary care specialty"
+      
+      - condition: "subspecialty_count >= 1"
+        points: 2.0
+        description: "Additional subspecialties"
+      
+      - condition: "fellowship_trained == true"
+        points: 1.5
+        description: "Fellowship-trained physicians"
+      
+      - condition: "research_publications >= 5"
+        points: 1.0
+        description: "Active in medical research"
+
+  # Override: Revenue Indicators for Medical (10 points)
+  revenue_indicators:
+    weight: 10.0
+    description: "Medical practice financial performance"
+    rules:
+      - condition: "annual_revenue >= 500000"
+        points: 2.0
+        description: "Practice revenue above $500K"
+      
+      - condition: "annual_revenue >= 1000000"
+        points: 2.0
+        description: "Practice revenue above $1M"
+      
+      - condition: "annual_revenue >= 2000000"
+        points: 2.0
+        description: "Practice revenue above $2M"
+      
+      - condition: "revenue_per_provider >= 300000"
+        points: 2.0
+        description: "High revenue per provider"
+      
+      - condition: "insurance_mix_diversity >= 0.7"
+        points: 1.5
+        description: "Diverse insurance payer mix"
+      
+      - condition: "accounts_receivable_days <= 45"
+        points: 0.5
+        description: "Good accounts receivable management"
+
+  # New: Patient Volume & Operations (8 points)
+  patient_operations:
+    weight: 8.0
+    description: "Patient volume and operational efficiency"
+    rules:
+      - condition: "patient_capacity >= 1000"
+        points: 2.0
+        description: "Large patient capacity (1000+)"
+      
+      - condition: "patient_capacity >= 2500"
+        points: 1.5
+        description: "Very large patient capacity (2500+)"
+      
+      - condition: "daily_patient_volume >= 30"
+        points: 2.0
+        description: "High daily patient volume"
+      
+      - condition: "no_show_rate <= 0.15"
+        points: 1.5
+        description: "Low no-show rate (≤15%)"
+      
+      - condition: "appointment_efficiency >= 0.85"
+        points: 1.0
+        description: "High appointment efficiency"
+
+  # Override: Social Signals for Medical (6 points - adjusted)
+  social_signals:
+    weight: 6.0
+    description: "Patient reviews and online reputation"
+    rules:
+      - condition: "rating >= 4.5"
+        points: 2.5
+        description: "Excellent patient rating (4.5+ stars)"
+      
+      - condition: "rating >= 4.0"
+        points: 1.5
+        description: "High patient rating (4+ stars)"
+      
+      - condition: "reviews_count >= 25"
+        points: 1.5
+        description: "Substantial review volume (25+)"
+      
+      - condition: "reviews_count >= 50"
+        points: 0.5
+        description: "High review volume (50+)"
+
+  # Override: Location Data for Medical (6 points)
+  location_data:
+    weight: 6.0
+    description: "Medical practice location and accessibility"
+    rules:
+      - condition: "address != '' and len(address) >= 15"
+        points: 2.0
+        description: "Complete practice address"
+      
+      - condition: "hospital_affiliation != ''"
+        points: 2.0
+        description: "Hospital affiliation"
+      
+      - condition: "parking_available == true"
+        points: 1.0
+        description: "Patient parking available"
+      
+      - condition: "public_transportation_access == true"
+        points: 0.5
+        description: "Public transportation accessible"
+      
+      - condition: "ada_compliant == true"
+        points: 0.5
+        description: "ADA compliant facilities"
+
+  # Override: Employee Count for Medical (5 points)
+  employee_count:
+    weight: 5.0
+    description: "Medical practice staffing"
+    rules:
+      - condition: "provider_count >= 2"
+        points: 2.0
+        description: "Multiple providers (2+)"
+      
+      - condition: "provider_count >= 5"
+        points: 1.5
+        description: "Large provider group (5+)"
+      
+      - condition: "support_staff_count >= 5"
+        points: 1.0
+        description: "Adequate support staff"
+      
+      - condition: "nurse_practitioner_count >= 1"
+        points: 0.5
+        description: "Nurse practitioners on staff"
+
+# Medical-specific tier rules (adjusted for healthcare)
+tier_rules:
+  platinum:
+    min_score: 88.0  # Higher standards for medical
+    max_score: 100.0
+    description: "Exceptional medical practice with outstanding care quality"
+    priority: "highest"
+  
+  gold:
+    min_score: 78.0
+    max_score: 87.9
+    description: "High-quality medical practice with strong credentials"
+    priority: "high"
+  
+  silver:
+    min_score: 68.0
+    max_score: 77.9
+    description: "Well-established practice with good patient care"
+    priority: "medium"
+  
+  bronze:
+    min_score: 58.0
+    max_score: 67.9
+    description: "Solid medical practice meeting basic standards"
+    priority: "low"
+  
+  basic:
+    min_score: 48.0
+    max_score: 57.9
+    description: "Basic medical practice needing improvement"
+    priority: "very_low"
+  
+  unqualified:
+    min_score: 0.0
+    max_score: 47.9
+    description: "Medical practice not meeting minimum standards"
+    priority: "none"
+
+# Medical-specific quality control
+quality_control:
+  min_data_completeness: 0.5  # Higher requirement for medical
+  confidence_threshold: 0.7   # Higher confidence needed
+  manual_review_triggers:
+    - "license_status != 'active'"
+    - "malpractice_claims > 0"
+    - "hipaa_violations > 0"
+    - "patient_satisfaction_score < 3.0"
+    - "board_certified == false"
+    - "data_completeness < 0.6"
+
+# Medical monitoring
+monitoring:
+  log_level: "INFO"
+  track_rule_performance: true
+  alert_on_rule_failures: true
+  medical_specific_metrics:
+    - "specialty_performance_distribution"
+    - "compliance_score_trends"
+    - "patient_satisfaction_correlation"
+    - "revenue_per_provider_benchmarks"
