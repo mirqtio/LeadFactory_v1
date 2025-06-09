@@ -1,9 +1,9 @@
 """
-D11 Orchestration Domain - Tasks 075, 076
+D11 Orchestration Domain - Tasks 075, 076, 077
 
 Orchestration and experimentation module for managing pipeline runs,
-experiment configurations, variant assignments, status tracking, and
-Prefect pipeline orchestration.
+experiment configurations, variant assignments, status tracking,
+Prefect pipeline orchestration, and A/B testing functionality.
 
 This domain handles:
 - Pipeline run tracking and status management
@@ -11,6 +11,8 @@ This domain handles:
 - Assignment tracking for A/B testing and experiments
 - Status management across orchestration workflows
 - Prefect pipeline orchestration and task execution
+- Experiment management and variant assignment
+- Deterministic hashing and weight distribution
 """
 
 from .models import (
@@ -39,6 +41,17 @@ from .tasks import (
     DeliveryTask
 )
 
+from .experiments import (
+    ExperimentManager,
+    ExperimentConfig,
+    VariantConfig
+)
+
+from .variant_assigner import (
+    VariantAssigner,
+    VariantWeight
+)
+
 __all__ = [
     "PipelineRun",
     "PipelineRunStatus", 
@@ -56,5 +69,10 @@ __all__ = [
     "AssessmentTask",
     "ScoringTask",
     "PersonalizationTask",
-    "DeliveryTask"
+    "DeliveryTask",
+    "ExperimentManager",
+    "ExperimentConfig",
+    "VariantConfig",
+    "VariantAssigner",
+    "VariantWeight"
 ]
