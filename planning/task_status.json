@@ -223,12 +223,6 @@
       "completed_at": "2025-06-09T03:25:00.000000",
       "actual_hours": 0.25
     },
-    "038": {
-      "status": "completed",
-      "started_at": "2025-06-09T03:25:30.000000",
-      "completed_at": "2025-06-09T03:45:00.000000",
-      "actual_hours": 0.33
-    },
     "039": {
       "status": "completed",
       "started_at": "2025-06-09T03:45:30.000000",
@@ -404,14 +398,14 @@
       "actual_hours": 1.0
     },
     "068": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2025-06-09T20:30:30.000000",
-      "completed_at": null,
-      "actual_hours": null
+      "completed_at": "2025-06-09T16:33:00.000000",
+      "actual_hours": 2.0
     },
     "069": {
-      "status": "pending",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2025-06-09T16:34:00.000000",
       "completed_at": null,
       "actual_hours": null
     },
