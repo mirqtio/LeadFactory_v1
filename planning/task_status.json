@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-06-09T17:10:15.000000",
+  "last_updated": "2025-06-09T21:35:00.000000",
   "tasks": {
     "001": {
       "status": "completed",
@@ -452,16 +452,16 @@
       "actual_hours": 0.48
     },
     "076": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2025-06-09T19:46:00.000000",
-      "completed_at": null,
-      "actual_hours": null
+      "completed_at": "2025-06-09T21:35:00.000000",
+      "actual_hours": 1.8
     },
     "077": {
-      "status": "in_progress", 
+      "status": "completed", 
       "started_at": "2025-06-09T20:16:00.000000",
-      "completed_at": null,
-      "actual_hours": null
+      "completed_at": "2025-06-09T21:35:00.000000",
+      "actual_hours": 1.3
     },
     "078": {
       "status": "completed",
@@ -470,10 +470,10 @@
       "actual_hours": 3.5
     },
     "079": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2025-06-09T21:20:00.000000",
-      "completed_at": null,
-      "actual_hours": null
+      "completed_at": "2025-06-09T21:35:00.000000",
+      "actual_hours": 0.25
     },
     "080": {
       "status": "pending",
