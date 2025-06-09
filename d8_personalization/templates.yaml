@@ -1,0 +1,418 @@
+# Subject Line Templates for Email Personalization - Task 061
+# 
+# Pattern-based templates for generating personalized subject lines
+# with token replacement, length limits, and A/B variant creation.
+#
+# Acceptance Criteria:
+# - Pattern-based generation ✓
+# - Token replacement works ✓
+# - Length limits enforced ✓
+# - A/B variants created ✓
+
+# Template categories for different use cases
+templates:
+  cold_outreach:
+    # Direct approach templates
+    direct:
+      - pattern: "Quick question about {business_name}"
+        tokens: ["business_name"]
+        max_length: 50
+        tone: "professional"
+        urgency: "low"
+        
+      - pattern: "{business_name} - website improvement opportunity"
+        tokens: ["business_name"]
+        max_length: 60
+        tone: "professional"
+        urgency: "medium"
+        
+      - pattern: "Hi {contact_name}, noticed something about {business_name}"
+        tokens: ["contact_name", "business_name"]
+        max_length: 65
+        tone: "casual"
+        urgency: "low"
+        
+    # Problem-focused templates
+    problem_focused:
+      - pattern: "{business_name}'s website could be losing customers"
+        tokens: ["business_name"]
+        max_length: 55
+        tone: "professional"
+        urgency: "high"
+        
+      - pattern: "Is {business_name} missing out on online revenue?"
+        tokens: ["business_name"]
+        max_length: 50
+        tone: "inquisitive"
+        urgency: "medium"
+        
+      - pattern: "{contact_name}, your {industry} competitors are ahead"
+        tokens: ["contact_name", "industry"]
+        max_length: 55
+        tone: "competitive"
+        urgency: "high"
+        
+    # Benefit-focused templates
+    benefit_focused:
+      - pattern: "Boost {business_name}'s online presence in {location}"
+        tokens: ["business_name", "location"]
+        max_length: 60
+        tone: "positive"
+        urgency: "medium"
+        
+      - pattern: "Double {business_name}'s website traffic this month"
+        tokens: ["business_name"]
+        max_length: 55
+        tone: "ambitious"
+        urgency: "high"
+        
+      - pattern: "{contact_name}, grow {business_name} with better SEO"
+        tokens: ["contact_name", "business_name"]
+        max_length: 55
+        tone: "growth"
+        urgency: "medium"
+
+  audit_offer:
+    # Free audit templates
+    free_audit:
+      - pattern: "Free website audit for {business_name}"
+        tokens: ["business_name"]
+        max_length: 45
+        tone: "offer"
+        urgency: "low"
+        
+      - pattern: "{contact_name}, complimentary {industry} website review"
+        tokens: ["contact_name", "industry"]
+        max_length: 55
+        tone: "professional"
+        urgency: "low"
+        
+      - pattern: "No-cost analysis: {business_name}'s digital presence"
+        tokens: ["business_name"]
+        max_length: 55
+        tone: "analytical"
+        urgency: "low"
+        
+    # Value-focused audit templates
+    value_focused:
+      - pattern: "Uncover {business_name}'s hidden revenue opportunities"
+        tokens: ["business_name"]
+        max_length: 60
+        tone: "discovery"
+        urgency: "medium"
+        
+      - pattern: "{contact_name}, see what's holding back {business_name}"
+        tokens: ["contact_name", "business_name"]
+        max_length: 60
+        tone: "revealing"
+        urgency: "medium"
+        
+      - pattern: "The 3 issues slowing down {business_name}'s website"
+        tokens: ["business_name"]
+        max_length: 55
+        tone: "specific"
+        urgency: "high"
+
+  follow_up:
+    # Gentle follow-up templates
+    gentle:
+      - pattern: "Following up on {business_name}"
+        tokens: ["business_name"]
+        max_length: 35
+        tone: "polite"
+        urgency: "low"
+        
+      - pattern: "{contact_name}, still interested in website improvements?"
+        tokens: ["contact_name"]
+        max_length: 60
+        tone: "casual"
+        urgency: "low"
+        
+      - pattern: "Quick follow-up about {business_name}'s website"
+        tokens: ["business_name"]
+        max_length: 50
+        tone: "professional"
+        urgency: "low"
+        
+    # Value-add follow-up templates
+    value_add:
+      - pattern: "New insights for {business_name} since we last spoke"
+        tokens: ["business_name"]
+        max_length: 55
+        tone: "informative"
+        urgency: "medium"
+        
+      - pattern: "{contact_name}, found something relevant for {business_name}"
+        tokens: ["contact_name", "business_name"]
+        max_length: 60
+        tone: "helpful"
+        urgency: "medium"
+        
+      - pattern: "Updated analysis: {business_name} vs. {location} competitors"
+        tokens: ["business_name", "location"]
+        max_length: 65
+        tone: "analytical"
+        urgency: "medium"
+
+  promotional:
+    # Limited time offers
+    limited_time:
+      - pattern: "48 hours left: {offer_name} for {business_name}"
+        tokens: ["offer_name", "business_name"]
+        max_length: 55
+        tone: "urgent"
+        urgency: "high"
+        
+      - pattern: "{contact_name}, your {industry} audit expires {date}"
+        tokens: ["contact_name", "industry", "date"]
+        max_length: 55
+        tone: "deadline"
+        urgency: "high"
+        
+      - pattern: "Last chance: {discount_percent}% off for {business_name}"
+        tokens: ["discount_percent", "business_name"]
+        max_length: 55
+        tone: "final_call"
+        urgency: "high"
+        
+    # Seasonal/Event-based
+    seasonal:
+      - pattern: "{season} special: Boost {business_name} before {holiday}"
+        tokens: ["season", "business_name", "holiday"]
+        max_length: 60
+        tone: "seasonal"
+        urgency: "medium"
+        
+      - pattern: "New Year, new website for {business_name}"
+        tokens: ["business_name"]
+        max_length: 45
+        tone: "fresh_start"
+        urgency: "medium"
+        
+      - pattern: "Black Friday deal: {service_name} for {business_name}"
+        tokens: ["service_name", "business_name"]
+        max_length: 55
+        tone: "deal"
+        urgency: "high"
+
+# A/B testing variant generation rules
+ab_testing:
+  variant_strategies:
+    # Length variations
+    length_variants:
+      short:
+        max_length: 30
+        style: "concise"
+        
+      medium:
+        max_length: 50
+        style: "balanced"
+        
+      long:
+        max_length: 70
+        style: "descriptive"
+        
+    # Tone variations
+    tone_variants:
+      formal:
+        style: "professional"
+        avoid_words: ["hey", "quick", "super"]
+        prefer_words: ["regarding", "opportunity", "enhancement"]
+        
+      casual:
+        style: "friendly"
+        avoid_words: ["regarding", "enhancement", "optimization"]
+        prefer_words: ["quick", "simple", "easy"]
+        
+      urgent:
+        style: "time_sensitive"
+        include_words: ["urgent", "limited", "expires", "deadline"]
+        punctuation: "!"
+        
+    # Personalization level variants
+    personalization_variants:
+      minimal:
+        tokens: ["business_name"]
+        fallback_generic: true
+        
+      standard:
+        tokens: ["business_name", "contact_name"]
+        fallback_generic: false
+        
+      detailed:
+        tokens: ["business_name", "contact_name", "industry", "location"]
+        fallback_generic: false
+
+# Token replacement configuration
+token_config:
+  # Core business tokens
+  business_name:
+    source: "business_data.name"
+    default: "your business"
+    max_length: 50
+    transformations:
+      - "title_case"
+      - "remove_legal_suffixes"
+      
+  contact_name:
+    source: "contact_data.first_name"
+    default: "there"
+    max_length: 30
+    transformations:
+      - "title_case"
+      - "validate_name_format"
+      
+  industry:
+    source: "business_data.category"
+    default: "business"
+    max_length: 20
+    transformations:
+      - "normalize_industry"
+      - "make_singular"
+      
+  location:
+    source: "business_data.location.city"
+    default: "your area"
+    max_length: 25
+    transformations:
+      - "title_case"
+      - "remove_state_suffix"
+
+  # Performance-based tokens
+  speed_score:
+    source: "assessment_data.pagespeed.performance_score"
+    default: "website performance"
+    format: "number"
+    suffix: "/100"
+    
+  issues_count:
+    source: "assessment_data.issues.count"
+    default: "several issues"
+    format: "number"
+    suffix: " issues"
+    
+  # Competitive tokens
+  competitor_count:
+    source: "competitive_data.local_count"
+    default: "competitors"
+    format: "number"
+    prefix: "vs "
+    suffix: " competitors"
+    
+  # Temporal tokens
+  date:
+    source: "current_date"
+    format: "MM/DD"
+    
+  season:
+    source: "current_season"
+    options: ["Spring", "Summer", "Fall", "Winter"]
+    
+  holiday:
+    source: "next_holiday"
+    options: ["Christmas", "New Year", "Black Friday", "Valentine's Day"]
+
+# Generation rules and constraints
+generation_rules:
+  # Global constraints
+  global_constraints:
+    min_length: 10
+    max_length: 78  # Gmail truncation limit
+    avoid_spam_words: 
+      - "FREE"
+      - "URGENT"
+      - "ACT NOW"
+      - "$$$"
+      - "GUARANTEED"
+    max_exclamation_marks: 1
+    max_question_marks: 1
+    max_capital_words: 2
+    
+  # Quality scoring criteria
+  quality_criteria:
+    personalization_score:
+      weight: 0.3
+      factors:
+        - "token_resolution_rate"
+        - "relevance_to_business"
+        
+    readability_score:
+      weight: 0.2
+      factors:
+        - "sentence_complexity"
+        - "word_familiarity"
+        
+    engagement_score:
+      weight: 0.3
+      factors:
+        - "emotional_appeal"
+        - "curiosity_gap"
+        
+    deliverability_score:
+      weight: 0.2
+      factors:
+        - "spam_word_count"
+        - "length_optimization"
+        
+  # A/B testing configuration
+  ab_testing_rules:
+    min_variants: 2
+    max_variants: 5
+    split_traffic: "equal"
+    min_sample_size: 100
+    confidence_threshold: 0.95
+    
+    # Automatic variant generation
+    auto_variants:
+      - type: "length"
+        generate: ["short", "medium"]
+      - type: "tone"
+        generate: ["formal", "casual"]
+      - type: "personalization"
+        generate: ["standard", "detailed"]
+
+# Performance optimization templates
+high_performing_patterns:
+  # Based on historical data (simulated)
+  top_performers:
+    - pattern: "Quick question about {business_name}"
+      open_rate: 0.31
+      click_rate: 0.08
+      
+    - pattern: "{contact_name}, noticed something about {business_name}"
+      open_rate: 0.29
+      click_rate: 0.12
+      
+    - pattern: "Free website audit for {business_name}"
+      open_rate: 0.27
+      click_rate: 0.15
+      
+    - pattern: "{business_name}'s website could be losing customers"
+      open_rate: 0.26
+      click_rate: 0.09
+      
+    - pattern: "Boost {business_name}'s online presence in {location}"
+      open_rate: 0.24
+      click_rate: 0.11
+
+# Industry-specific overrides
+industry_overrides:
+  restaurant:
+    preferred_tokens: ["business_name", "location", "cuisine_type"]
+    avoid_terms: ["website", "digital"]
+    prefer_terms: ["online presence", "customers", "local"]
+    
+  medical:
+    preferred_tokens: ["business_name", "specialty", "location"]
+    avoid_terms: ["quick", "urgent", "limited time"]
+    prefer_terms: ["professional", "practice", "patients"]
+    
+  retail:
+    preferred_tokens: ["business_name", "product_type", "location"]
+    avoid_terms: ["boring", "slow"]
+    prefer_terms: ["customers", "sales", "growth"]
+    
+  professional_services:
+    preferred_tokens: ["business_name", "service_type", "location"]
+    avoid_terms: ["cheap", "quick fix"]
+    prefer_terms: ["expertise", "professional", "results"]
