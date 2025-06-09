@@ -482,8 +482,8 @@
       "actual_hours": 0.33
     },
     "081": {
-      "status": "pending",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2025-06-09T22:00:30.000000",
       "completed_at": null,
       "actual_hours": null
     },
