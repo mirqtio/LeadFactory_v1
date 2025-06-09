@@ -19,9 +19,8 @@ from enum import Enum
 from sqlalchemy import (
     Column, String, Integer, Float, Boolean, DateTime, Text,
     UniqueConstraint, CheckConstraint, Index,
-    DECIMAL, Enum as SQLEnum
+    DECIMAL, Enum as SQLEnum, JSON
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 
 from database.base import Base
@@ -93,10 +92,10 @@ class ReportGeneration(Base):
     failed_at = Column(DateTime, nullable=True)
 
     # Report content and configuration
-    report_data = Column(JSONB, nullable=True)  # Source data used for report
-    configuration = Column(JSONB, nullable=True)  # Report generation settings
-    sections_included = Column(JSONB, nullable=True)  # List of included section IDs
-    customizations = Column(JSONB, nullable=True)  # Customer-specific customizations
+    report_data = Column(JSON, nullable=True)  # Source data used for report
+    configuration = Column(JSON, nullable=True)  # Report generation settings
+    sections_included = Column(JSON, nullable=True)  # List of included section IDs
+    customizations = Column(JSON, nullable=True)  # Customer-specific customizations
 
     # Output information
     output_format = Column(String, nullable=False, default="pdf")
@@ -111,7 +110,7 @@ class ReportGeneration(Base):
 
     # Error tracking
     error_message = Column(Text, nullable=True)
-    error_details = Column(JSONB, nullable=True)
+    error_details = Column(JSON, nullable=True)
     retry_count = Column(Integer, nullable=False, default=0)
 
     # Audit fields
@@ -185,10 +184,10 @@ class ReportTemplate(Base):
     print_css = Column(Text, nullable=True)  # Print-optimized CSS
 
     # Template configuration
-    default_sections = Column(JSONB, nullable=True)  # Default sections to include
-    required_data_fields = Column(JSONB, nullable=True)  # Required data fields
-    optional_data_fields = Column(JSONB, nullable=True)  # Optional data fields
-    customization_options = Column(JSONB, nullable=True)  # Available customizations
+    default_sections = Column(JSON, nullable=True)  # Default sections to include
+    required_data_fields = Column(JSON, nullable=True)  # Required data fields
+    optional_data_fields = Column(JSON, nullable=True)  # Optional data fields
+    customization_options = Column(JSON, nullable=True)  # Available customizations
 
     # Template settings
     is_active = Column(Boolean, nullable=False, default=True)
@@ -258,8 +257,8 @@ class ReportSection(Base):
     # Section configuration
     is_required = Column(Boolean, nullable=False, default=False)
     is_enabled = Column(Boolean, nullable=False, default=True)
-    data_requirements = Column(JSONB, nullable=True)  # Required data fields
-    conditional_logic = Column(JSONB, nullable=True)  # When to include section
+    data_requirements = Column(JSON, nullable=True)  # Required data fields
+    conditional_logic = Column(JSON, nullable=True)  # When to include section
 
     # Rendering settings
     page_break_before = Column(Boolean, nullable=False, default=False)
@@ -324,7 +323,7 @@ class ReportDelivery(Base):
 
     # Error handling
     error_message = Column(Text, nullable=True)
-    error_details = Column(JSONB, nullable=True)
+    error_details = Column(JSON, nullable=True)
     retry_count = Column(Integer, nullable=False, default=0)
 
     # Audit fields

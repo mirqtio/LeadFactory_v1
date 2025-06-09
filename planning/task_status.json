@@ -488,16 +488,16 @@
       "actual_hours": 0.2
     },
     "082": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "actual_hours": null
+      "status": "completed",
+      "started_at": "2025-06-09T22:15:00.000000",
+      "completed_at": "2025-06-09T22:45:00.000000",
+      "actual_hours": 0.5
     },
     "083": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "actual_hours": null
+      "status": "completed",
+      "started_at": "2025-06-09T22:45:30.000000",
+      "completed_at": "2025-06-09T23:25:00.000000",
+      "actual_hours": 0.67
     },
     "084": {
       "status": "pending",
