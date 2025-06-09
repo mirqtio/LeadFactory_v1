@@ -1,0 +1,428 @@
+# Scoring Rules Configuration - Task 046
+# 
+# YAML rules loading acceptance criteria:
+# Configurable business scoring rules that can be modified without code changes
+#
+# Rule evaluation and weighted scoring system for lead qualification
+
+# Scoring Rule Engine Configuration
+version: "1.0.0"
+engine_config:
+  max_score: 100.0
+  default_weight: 1.0
+  fallback_enabled: true
+  logging_enabled: true
+
+# Default fallback values for missing data
+fallbacks:
+  company_info:
+    company_name: ""
+    industry: "unknown"
+    description: ""
+    website: ""
+  
+  contact_info:
+    phone: ""
+    email: ""
+    address: ""
+  
+  financial_info:
+    annual_revenue: 0
+    employee_count: 1
+    funding_total: 0
+  
+  business_metrics:
+    rating: 0.0
+    reviews_count: 0
+    years_in_business: 0
+
+# Component Scoring Rules
+# Each component has conditions, weights, and scoring logic
+scoring_components:
+  
+  # Company Information Quality (8 points max)
+  company_info:
+    weight: 8.0
+    description: "Basic company information completeness and accuracy"
+    rules:
+      - condition: "company_name != ''"
+        points: 2.0
+        description: "Company name provided"
+      
+      - condition: "len(company_name) >= 3"
+        points: 1.0
+        description: "Company name is substantial"
+      
+      - condition: "industry != 'unknown' and industry != ''"
+        points: 2.0
+        description: "Industry classification available"
+      
+      - condition: "description != '' and len(description) >= 20"
+        points: 1.5
+        description: "Meaningful company description"
+      
+      - condition: "website != '' and ('http' in website or 'www.' in website)"
+        points: 1.5
+        description: "Valid website URL provided"
+
+  # Contact Information Quality (6 points max)  
+  contact_info:
+    weight: 6.0
+    description: "Quality and completeness of contact information"
+    rules:
+      - condition: "phone != '' and len(phone) >= 10"
+        points: 2.0
+        description: "Valid phone number provided"
+      
+      - condition: "email != '' and '@' in email and '.' in email"
+        points: 2.0
+        description: "Valid email address provided"
+      
+      - condition: "address != '' and len(address) >= 10"
+        points: 2.0
+        description: "Complete address provided"
+
+  # Location Data Quality (4 points max)
+  location_data:
+    weight: 4.0
+    description: "Address accuracy and location verification"
+    rules:
+      - condition: "city != '' and state != ''"
+        points: 2.0
+        description: "City and state provided"
+      
+      - condition: "country != '' or country == 'US'"
+        points: 1.0
+        description: "Country information available"
+      
+      - condition: "zip_code != '' and len(zip_code) >= 5"
+        points: 1.0
+        description: "Postal code provided"
+
+  # Business Validation (10 points max) 
+  business_validation:
+    weight: 10.0
+    description: "Legitimacy and operational status indicators"
+    rules:
+      - condition: "business_status == 'active' or business_status == 'operating'"
+        points: 3.0
+        description: "Business is actively operating"
+      
+      - condition: "legal_name != '' and legal_name != company_name"
+        points: 2.0
+        description: "Legal business name available"
+      
+      - condition: "years_in_business >= 1"
+        points: 2.0
+        description: "Established business (1+ years)"
+      
+      - condition: "years_in_business >= 3"
+        points: 1.5
+        description: "Mature business (3+ years)"
+      
+      - condition: "years_in_business >= 10"
+        points: 1.5
+        description: "Well-established business (10+ years)"
+
+  # Online Presence (8 points max)
+  online_presence:
+    weight: 8.0
+    description: "Website quality and digital footprint strength"
+    rules:
+      - condition: "website != '' and 'https://' in website"
+        points: 2.0
+        description: "Secure website (HTTPS)"
+      
+      - condition: "domain_age_days >= 365"
+        points: 1.5
+        description: "Established domain (1+ years)"
+      
+      - condition: "social_media_profiles > 0"
+        points: 1.5
+        description: "Social media presence"
+      
+      - condition: "website_content_quality == 'high'"
+        points: 1.5
+        description: "High-quality website content"
+      
+      - condition: "seo_score >= 70"
+        points: 1.5
+        description: "Good SEO optimization"
+
+  # Social Signals (6 points max)
+  social_signals:
+    weight: 6.0  
+    description: "Social media presence and customer reviews"
+    rules:
+      - condition: "rating >= 4.0"
+        points: 2.0
+        description: "Excellent customer rating (4+ stars)"
+      
+      - condition: "rating >= 3.5"
+        points: 1.0
+        description: "Good customer rating (3.5+ stars)"
+      
+      - condition: "reviews_count >= 10"
+        points: 1.5
+        description: "Substantial review volume (10+)"
+      
+      - condition: "reviews_count >= 50"
+        points: 1.0
+        description: "High review volume (50+)"
+      
+      - condition: "social_mentions >= 5"
+        points: 1.5
+        description: "Social media mentions"
+
+  # Revenue Indicators (12 points max - highest weight)
+  revenue_indicators:
+    weight: 12.0
+    description: "Revenue data and financial health signals"
+    rules:
+      - condition: "annual_revenue >= 100000"
+        points: 2.0
+        description: "Revenue above $100K"
+      
+      - condition: "annual_revenue >= 500000"
+        points: 2.0
+        description: "Revenue above $500K"
+      
+      - condition: "annual_revenue >= 1000000"
+        points: 2.0
+        description: "Revenue above $1M"
+      
+      - condition: "annual_revenue >= 5000000"
+        points: 2.0
+        description: "Revenue above $5M"
+      
+      - condition: "revenue_growth_rate >= 0.1"
+        points: 2.0
+        description: "Positive revenue growth (10%+)"
+      
+      - condition: "revenue_stability == 'stable'"
+        points: 2.0
+        description: "Stable revenue pattern"
+
+  # Employee Count (8 points max)
+  employee_count:
+    weight: 8.0
+    description: "Company size and headcount indicators"
+    rules:
+      - condition: "employee_count >= 5"
+        points: 2.0
+        description: "Small team (5+ employees)"
+      
+      - condition: "employee_count >= 25"
+        points: 2.0
+        description: "Medium team (25+ employees)"
+      
+      - condition: "employee_count >= 100"
+        points: 2.0
+        description: "Large team (100+ employees)"
+      
+      - condition: "employee_growth_rate >= 0.2"
+        points: 2.0
+        description: "Growing team (20%+ growth)"
+
+  # Funding Status (6 points max)
+  funding_status:
+    weight: 6.0
+    description: "Investment history and funding status"
+    rules:
+      - condition: "funding_total > 0"
+        points: 2.0
+        description: "Has received funding"
+      
+      - condition: "funding_total >= 100000"
+        points: 1.0
+        description: "Significant funding ($100K+)"
+      
+      - condition: "funding_total >= 1000000"
+        points: 1.0
+        description: "Major funding ($1M+)"
+      
+      - condition: "funding_stage in ['series_a', 'series_b', 'series_c']"
+        points: 2.0
+        description: "Professional funding stage"
+
+  # Industry Relevance (10 points max)
+  industry_relevance:
+    weight: 10.0
+    description: "Alignment with target industry and use cases"
+    rules:
+      - condition: "industry in ['technology', 'software', 'saas', 'tech']"
+        points: 3.0
+        description: "Technology industry (high relevance)"
+      
+      - condition: "industry in ['healthcare', 'finance', 'education', 'retail']"
+        points: 2.5
+        description: "Target industry (medium-high relevance)"
+      
+      - condition: "industry in ['manufacturing', 'construction', 'consulting']"
+        points: 2.0
+        description: "Secondary target (medium relevance)"
+      
+      - condition: "technology_stack_compatibility >= 0.7"
+        points: 2.5
+        description: "Compatible technology stack"
+
+  # Market Position (8 points max)
+  market_position:
+    weight: 8.0
+    description: "Competitive positioning and market presence"
+    rules:
+      - condition: "market_share >= 0.01"
+        points: 2.0
+        description: "Measurable market share (1%+)"
+      
+      - condition: "market_leader == true"
+        points: 3.0
+        description: "Market leader in niche"
+      
+      - condition: "competitive_advantage != ''"
+        points: 1.5
+        description: "Identifiable competitive advantage"
+      
+      - condition: "brand_recognition == 'high'"
+        points: 1.5
+        description: "Strong brand recognition"
+
+  # Growth Indicators (6 points max)
+  growth_indicators:
+    weight: 6.0
+    description: "Growth trajectory and expansion signals"
+    rules:
+      - condition: "growth_rate >= 0.15"
+        points: 2.0
+        description: "Strong growth (15%+ annually)"
+      
+      - condition: "expansion_signals > 0"
+        points: 1.5
+        description: "Expansion signals present"
+      
+      - condition: "market_expansion == true"
+        points: 1.5
+        description: "Expanding to new markets"
+      
+      - condition: "product_launches >= 1"
+        points: 1.0
+        description: "Recent product launches"
+
+  # Technology Stack (4 points max)
+  technology_stack:
+    weight: 4.0
+    description: "Technology compatibility and stack alignment"
+    rules:
+      - condition: "'cloud' in tech_stack or 'aws' in tech_stack or 'azure' in tech_stack"
+        points: 1.5
+        description: "Cloud infrastructure"
+      
+      - condition: "'api' in tech_stack or 'rest' in tech_stack"
+        points: 1.0
+        description: "API-friendly architecture"
+      
+      - condition: "modern_stack_score >= 0.7"
+        points: 1.5
+        description: "Modern technology stack"
+
+  # Decision Maker Access (8 points max)
+  decision_maker_access:
+    weight: 8.0
+    description: "Accessibility of key decision makers"
+    rules:
+      - condition: "decision_makers_count >= 1"
+        points: 2.0
+        description: "Decision maker contacts available"
+      
+      - condition: "c_level_contacts >= 1"
+        points: 3.0
+        description: "C-level executive contacts"
+      
+      - condition: "direct_contact_available == true"
+        points: 2.0
+        description: "Direct contact information"
+      
+      - condition: "contact_responsiveness == 'high'"
+        points: 1.0
+        description: "Responsive to outreach"
+
+  # Timing Indicators (6 points max)
+  timing_indicators:
+    weight: 6.0
+    description: "Buying readiness and timing signals"
+    rules:
+      - condition: "recent_funding == true"
+        points: 2.0
+        description: "Recently received funding"
+      
+      - condition: "hiring_activity >= 5"
+        points: 1.5
+        description: "Active hiring (5+ positions)"
+      
+      - condition: "technology_investment == 'increasing'"
+        points: 1.5
+        description: "Increasing technology investment"
+      
+      - condition: "pain_points_identified >= 2"
+        points: 1.0
+        description: "Multiple pain points identified"
+
+# Tier Assignment Rules
+# Based on final calculated scores
+tier_rules:
+  platinum:
+    min_score: 90.0
+    max_score: 100.0
+    description: "Premium prospects with highest potential"
+    priority: "highest"
+  
+  gold:
+    min_score: 80.0
+    max_score: 89.9
+    description: "High-quality prospects ready for engagement"
+    priority: "high"
+  
+  silver:
+    min_score: 70.0
+    max_score: 79.9
+    description: "Good prospects worth nurturing"
+    priority: "medium"
+  
+  bronze:
+    min_score: 60.0
+    max_score: 69.9
+    description: "Potential prospects needing qualification"
+    priority: "low"
+  
+  basic:
+    min_score: 50.0
+    max_score: 59.9
+    description: "Basic prospects for future consideration"
+    priority: "very_low"
+  
+  unqualified:
+    min_score: 0.0
+    max_score: 49.9
+    description: "Not qualified for current campaigns"
+    priority: "none"
+
+# Quality Control Rules
+quality_control:
+  min_data_completeness: 0.3  # Minimum 30% data completeness
+  confidence_threshold: 0.6   # Minimum 60% confidence for auto-tier
+  manual_review_triggers:
+    - "data_completeness < 0.5"
+    - "confidence < 0.7"
+    - "conflicting_data == true"
+    - "score_variance > 15"
+
+# Logging and Monitoring
+monitoring:
+  log_level: "INFO"
+  track_rule_performance: true
+  alert_on_rule_failures: true
+  performance_metrics:
+    - "rule_execution_time"
+    - "score_distribution"
+    - "tier_accuracy"
+    - "manual_review_rate"
