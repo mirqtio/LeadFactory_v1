@@ -61,12 +61,6 @@ class PurchaseStatus(str, enum.Enum):
     FAILED = "failed"
 
 
-class ExperimentStatus(str, enum.Enum):
-    DRAFT = "draft"
-    ACTIVE = "active"
-    PAUSED = "paused"
-    COMPLETED = "completed"
-
 
 # D0: Gateway Models
 class GatewayUsage(Base):
@@ -362,63 +356,4 @@ class EmailClick(Base):
     email = relationship("Email", back_populates="clicks")
 
 
-# D11: Pipeline/Experiment Models
-class PipelineRun(Base):
-    __tablename__ = "pipeline_runs"
-
-    id = Column(String, primary_key=True, default=generate_uuid)
-    flow_name = Column(String(100), nullable=False)
-    flow_run_id = Column(String(100), unique=True)
-
-    started_at = Column(TIMESTAMP, nullable=False)
-    completed_at = Column(TIMESTAMP)
-
-    status = Column(String(20), default="running")
-    error_message = Column(Text)
-
-    # Metrics
-    total_businesses = Column(Integer)
-    total_assessed = Column(Integer)
-    total_qualified = Column(Integer)
-    total_emails_sent = Column(Integer)
-    total_purchases = Column(Integer)
-
-    created_at = Column(TIMESTAMP, server_default=func.now())
-
-    __table_args__ = (
-        Index("idx_pipeline_run_created", "created_at"),
-    )
-
-
-class Experiment(Base):
-    __tablename__ = "experiments"
-
-    id = Column(String, primary_key=True, default=generate_uuid)
-    name = Column(String(100), unique=True, nullable=False)
-    description = Column(Text)
-
-    status = Column(SQLEnum(ExperimentStatus), default=ExperimentStatus.DRAFT)
-    hypothesis = Column(Text)
-    success_metrics = Column(JSON)
-
-    variants = Column(JSON, nullable=False)  # [{name, weight, config}]
-
-    started_at = Column(TIMESTAMP)
-    ended_at = Column(TIMESTAMP)
-
-    created_at = Column(TIMESTAMP, server_default=func.now())
-
-    # Relationships
-    assignments = relationship("ExperimentAssignment", back_populates="experiment")
-
-
-class ExperimentAssignment(Base):
-    __tablename__ = "experiment_assignments"
-
-    experiment_id = Column(String, ForeignKey("experiments.id"), primary_key=True)
-    business_id = Column(String, ForeignKey("businesses.id"), primary_key=True)
-    variant = Column(String(50), nullable=False)
-    assigned_at = Column(TIMESTAMP, server_default=func.now())
-
-    # Relationships
-    experiment = relationship("Experiment", back_populates="assignments")
+# D11: Pipeline/Experiment Models moved to d11_orchestration/models.py

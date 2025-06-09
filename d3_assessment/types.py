@@ -106,6 +106,29 @@ class CostType(Enum):
     CACHE_MISS = "cache_miss"
 
 
+class IssueType(Enum):
+    """Types of issues that can be identified in assessments"""
+    PERFORMANCE = "performance"
+    SEO = "seo"
+    USABILITY = "usability"
+    ACCESSIBILITY = "accessibility"
+    SECURITY = "security"
+    CONTENT = "content"
+    TECHNICAL = "technical"
+    MOBILE = "mobile"
+    COMPLIANCE = "compliance"
+    CONVERSION = "conversion"
+
+
+class IssueSeverity(Enum):
+    """Severity levels for assessment issues"""
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+    INFO = "info"
+
+
 @dataclass
 class AssessmentConfig:
     """Configuration for assessment operations"""
