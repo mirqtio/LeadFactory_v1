@@ -20,6 +20,8 @@ from .models import (
 from .prioritizer import FindingPrioritizer, PrioritizationResult
 from .finding_scorer import FindingScorer, FindingScore
 from .pdf_converter import PDFConverter, PDFOptions, PDFResult, html_to_pdf, save_html_as_pdf
+from .template_engine import TemplateEngine, TemplateData
+from .generator import ReportGenerator, GenerationOptions, GenerationResult, generate_audit_report
 
 __version__ = "1.0.0"
 
@@ -39,5 +41,13 @@ __all__ = [
     "PDFOptions", 
     "PDFResult",
     "html_to_pdf",
-    "save_html_as_pdf"
+    "save_html_as_pdf",
+    # Template Engine
+    "TemplateEngine",
+    "TemplateData",
+    # Report Generation
+    "ReportGenerator",
+    "GenerationOptions",
+    "GenerationResult",
+    "generate_audit_report"
 ]
