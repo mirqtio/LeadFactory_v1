@@ -1,0 +1,480 @@
+{
+  "cms": {
+    "wordpress": {
+      "patterns": [
+        "/wp-content/",
+        "/wp-includes/",
+        "/wp-admin/",
+        "wp-json",
+        "generator.*wordpress",
+        "wp_",
+        "wptouch",
+        "elementor"
+      ],
+      "confidence_weights": {
+        "/wp-content/": 0.95,
+        "/wp-includes/": 0.95,
+        "/wp-admin/": 0.90,
+        "wp-json": 0.85,
+        "generator.*wordpress": 0.80,
+        "wp_": 0.70,
+        "wptouch": 0.60,
+        "elementor": 0.50
+      },
+      "description": "WordPress content management system",
+      "website": "https://wordpress.org"
+    },
+    "drupal": {
+      "patterns": [
+        "/sites/default/files/",
+        "/misc/drupal.js",
+        "/sites/all/",
+        "drupal",
+        "generator.*drupal"
+      ],
+      "confidence_weights": {
+        "/sites/default/files/": 0.95,
+        "/misc/drupal.js": 0.90,
+        "/sites/all/": 0.85,
+        "drupal": 0.70,
+        "generator.*drupal": 0.80
+      },
+      "description": "Drupal content management system",
+      "website": "https://drupal.org"
+    },
+    "joomla": {
+      "patterns": [
+        "/media/system/js/",
+        "/administrator/",
+        "joomla",
+        "generator.*joomla"
+      ],
+      "confidence_weights": {
+        "/media/system/js/": 0.90,
+        "/administrator/": 0.85,
+        "joomla": 0.75,
+        "generator.*joomla": 0.80
+      },
+      "description": "Joomla content management system",
+      "website": "https://joomla.org"
+    },
+    "shopify": {
+      "patterns": [
+        "shopify",
+        "cdn.shopify.com",
+        "/assets/shopify_",
+        "liquid"
+      ],
+      "confidence_weights": {
+        "shopify": 0.90,
+        "cdn.shopify.com": 0.95,
+        "/assets/shopify_": 0.85,
+        "liquid": 0.60
+      },
+      "description": "Shopify e-commerce platform",
+      "website": "https://shopify.com"
+    },
+    "squarespace": {
+      "patterns": [
+        "squarespace",
+        "static1.squarespace.com",
+        "ss-styles"
+      ],
+      "confidence_weights": {
+        "squarespace": 0.90,
+        "static1.squarespace.com": 0.95,
+        "ss-styles": 0.80
+      },
+      "description": "Squarespace website builder",
+      "website": "https://squarespace.com"
+    },
+    "wix": {
+      "patterns": [
+        "wix.com",
+        "static.wixstatic.com",
+        "wix-",
+        "_wixCIDX"
+      ],
+      "confidence_weights": {
+        "wix.com": 0.95,
+        "static.wixstatic.com": 0.95,
+        "wix-": 0.80,
+        "_wixCIDX": 0.85
+      },
+      "description": "Wix website builder",
+      "website": "https://wix.com"
+    }
+  },
+  "frontend": {
+    "react": {
+      "patterns": [
+        "react",
+        "__REACT_DEVTOOLS_GLOBAL_HOOK__",
+        "react-dom",
+        "jsx",
+        "_react"
+      ],
+      "confidence_weights": {
+        "react": 0.80,
+        "__REACT_DEVTOOLS_GLOBAL_HOOK__": 0.95,
+        "react-dom": 0.90,
+        "jsx": 0.70,
+        "_react": 0.75
+      },
+      "description": "React JavaScript library",
+      "website": "https://react.dev"
+    },
+    "vue": {
+      "patterns": [
+        "vue.js",
+        "vuejs",
+        "__VUE__",
+        "v-",
+        "data-v-"
+      ],
+      "confidence_weights": {
+        "vue.js": 0.90,
+        "vuejs": 0.85,
+        "__VUE__": 0.95,
+        "v-": 0.70,
+        "data-v-": 0.80
+      },
+      "description": "Vue.js JavaScript framework",
+      "website": "https://vuejs.org"
+    },
+    "angular": {
+      "patterns": [
+        "angular",
+        "ng-",
+        "_angular",
+        "angularjs"
+      ],
+      "confidence_weights": {
+        "angular": 0.80,
+        "ng-": 0.85,
+        "_angular": 0.90,
+        "angularjs": 0.85
+      },
+      "description": "Angular JavaScript framework",
+      "website": "https://angular.io"
+    },
+    "jquery": {
+      "patterns": [
+        "jquery",
+        "\\$\\.fn\\.jquery"
+      ],
+      "confidence_weights": {
+        "jquery": 0.85,
+        "\\$\\.fn\\.jquery": 0.95
+      },
+      "description": "jQuery JavaScript library",
+      "website": "https://jquery.com"
+    },
+    "bootstrap": {
+      "patterns": [
+        "bootstrap",
+        "bs-",
+        "bootstrap.min.css",
+        "bootstrap.bundle"
+      ],
+      "confidence_weights": {
+        "bootstrap": 0.80,
+        "bs-": 0.75,
+        "bootstrap.min.css": 0.90,
+        "bootstrap.bundle": 0.85
+      },
+      "description": "Bootstrap CSS framework",
+      "website": "https://getbootstrap.com"
+    },
+    "tailwind": {
+      "patterns": [
+        "tailwindcss",
+        "tailwind",
+        "tw-"
+      ],
+      "confidence_weights": {
+        "tailwindcss": 0.90,
+        "tailwind": 0.80,
+        "tw-": 0.70
+      },
+      "description": "Tailwind CSS framework",
+      "website": "https://tailwindcss.com"
+    }
+  },
+  "analytics": {
+    "google_analytics": {
+      "patterns": [
+        "google-analytics.com",
+        "gtag\\(",
+        "ga\\(",
+        "googletagmanager.com",
+        "gtm.js",
+        "UA-",
+        "G-"
+      ],
+      "confidence_weights": {
+        "google-analytics.com": 0.95,
+        "gtag\\(": 0.90,
+        "ga\\(": 0.85,
+        "googletagmanager.com": 0.90,
+        "gtm.js": 0.85,
+        "UA-": 0.80,
+        "G-": 0.80
+      },
+      "description": "Google Analytics web analytics",
+      "website": "https://analytics.google.com"
+    },
+    "facebook_pixel": {
+      "patterns": [
+        "facebook.net/tr",
+        "fbq\\(",
+        "connect.facebook.net"
+      ],
+      "confidence_weights": {
+        "facebook.net/tr": 0.95,
+        "fbq\\(": 0.90,
+        "connect.facebook.net": 0.85
+      },
+      "description": "Facebook Pixel tracking",
+      "website": "https://facebook.com/business/tools/facebook-pixel"
+    },
+    "hotjar": {
+      "patterns": [
+        "hotjar.com",
+        "hj\\(",
+        "_hjSettings"
+      ],
+      "confidence_weights": {
+        "hotjar.com": 0.95,
+        "hj\\(": 0.90,
+        "_hjSettings": 0.85
+      },
+      "description": "Hotjar user behavior analytics",
+      "website": "https://hotjar.com"
+    },
+    "mixpanel": {
+      "patterns": [
+        "mixpanel.com",
+        "mixpanel.init",
+        "mp_"
+      ],
+      "confidence_weights": {
+        "mixpanel.com": 0.95,
+        "mixpanel.init": 0.90,
+        "mp_": 0.75
+      },
+      "description": "Mixpanel analytics platform",
+      "website": "https://mixpanel.com"
+    }
+  },
+  "ecommerce": {
+    "magento": {
+      "patterns": [
+        "/mage/",
+        "magento",
+        "/skin/frontend/",
+        "varien"
+      ],
+      "confidence_weights": {
+        "/mage/": 0.90,
+        "magento": 0.85,
+        "/skin/frontend/": 0.80,
+        "varien": 0.75
+      },
+      "description": "Magento e-commerce platform",
+      "website": "https://magento.com"
+    },
+    "woocommerce": {
+      "patterns": [
+        "woocommerce",
+        "wc-",
+        "/woocommerce/"
+      ],
+      "confidence_weights": {
+        "woocommerce": 0.90,
+        "wc-": 0.80,
+        "/woocommerce/": 0.85
+      },
+      "description": "WooCommerce WordPress plugin",
+      "website": "https://woocommerce.com"
+    },
+    "bigcommerce": {
+      "patterns": [
+        "bigcommerce",
+        "bc-",
+        "bigcommerce.com"
+      ],
+      "confidence_weights": {
+        "bigcommerce": 0.90,
+        "bc-": 0.75,
+        "bigcommerce.com": 0.95
+      },
+      "description": "BigCommerce e-commerce platform",
+      "website": "https://bigcommerce.com"
+    }
+  },
+  "hosting": {
+    "cloudflare": {
+      "patterns": [
+        "cloudflare",
+        "__cfduid",
+        "cf-ray"
+      ],
+      "confidence_weights": {
+        "cloudflare": 0.85,
+        "__cfduid": 0.90,
+        "cf-ray": 0.95
+      },
+      "description": "Cloudflare CDN and security",
+      "website": "https://cloudflare.com"
+    },
+    "amazon_web_services": {
+      "patterns": [
+        "amazonaws.com",
+        "aws-",
+        "cloudfront.net"
+      ],
+      "confidence_weights": {
+        "amazonaws.com": 0.95,
+        "aws-": 0.80,
+        "cloudfront.net": 0.90
+      },
+      "description": "Amazon Web Services cloud platform",
+      "website": "https://aws.amazon.com"
+    },
+    "vercel": {
+      "patterns": [
+        "vercel.app",
+        "_vercel",
+        "vercel.com"
+      ],
+      "confidence_weights": {
+        "vercel.app": 0.95,
+        "_vercel": 0.85,
+        "vercel.com": 0.90
+      },
+      "description": "Vercel hosting platform",
+      "website": "https://vercel.com"
+    },
+    "netlify": {
+      "patterns": [
+        "netlify.app",
+        "_netlify",
+        "netlify.com"
+      ],
+      "confidence_weights": {
+        "netlify.app": 0.95,
+        "_netlify": 0.85,
+        "netlify.com": 0.90
+      },
+      "description": "Netlify hosting platform",
+      "website": "https://netlify.com"
+    }
+  },
+  "marketing": {
+    "google_ads": {
+      "patterns": [
+        "googleadservices.com",
+        "googlesyndication.com",
+        "adnxs.com"
+      ],
+      "confidence_weights": {
+        "googleadservices.com": 0.95,
+        "googlesyndication.com": 0.90,
+        "adnxs.com": 0.85
+      },
+      "description": "Google Ads advertising platform",
+      "website": "https://ads.google.com"
+    },
+    "mailchimp": {
+      "patterns": [
+        "mailchimp",
+        "mc.us",
+        "list-manage.com"
+      ],
+      "confidence_weights": {
+        "mailchimp": 0.90,
+        "mc.us": 0.85,
+        "list-manage.com": 0.95
+      },
+      "description": "Mailchimp email marketing",
+      "website": "https://mailchimp.com"
+    },
+    "hubspot": {
+      "patterns": [
+        "hubspot",
+        "hs-analytics",
+        "hsforms"
+      ],
+      "confidence_weights": {
+        "hubspot": 0.90,
+        "hs-analytics": 0.95,
+        "hsforms": 0.85
+      },
+      "description": "HubSpot marketing platform",
+      "website": "https://hubspot.com"
+    }
+  },
+  "payment": {
+    "stripe": {
+      "patterns": [
+        "stripe.com",
+        "stripe.js",
+        "sk_",
+        "pk_"
+      ],
+      "confidence_weights": {
+        "stripe.com": 0.95,
+        "stripe.js": 0.90,
+        "sk_": 0.85,
+        "pk_": 0.80
+      },
+      "description": "Stripe payment processing",
+      "website": "https://stripe.com"
+    },
+    "paypal": {
+      "patterns": [
+        "paypal.com",
+        "paypalobjects.com",
+        "braintreegateway.com"
+      ],
+      "confidence_weights": {
+        "paypal.com": 0.95,
+        "paypalobjects.com": 0.90,
+        "braintreegateway.com": 0.85
+      },
+      "description": "PayPal payment processing",
+      "website": "https://paypal.com"
+    }
+  },
+  "chat": {
+    "intercom": {
+      "patterns": [
+        "intercom.io",
+        "widget.intercom.io",
+        "intercom-"
+      ],
+      "confidence_weights": {
+        "intercom.io": 0.95,
+        "widget.intercom.io": 0.90,
+        "intercom-": 0.80
+      },
+      "description": "Intercom customer messaging",
+      "website": "https://intercom.com"
+    },
+    "zendesk": {
+      "patterns": [
+        "zendesk.com",
+        "zdassets.com",
+        "zendesk-"
+      ],
+      "confidence_weights": {
+        "zendesk.com": 0.95,
+        "zdassets.com": 0.90,
+        "zendesk-": 0.80
+      },
+      "description": "Zendesk customer support",
+      "website": "https://zendesk.com"
+    }
+  }
+}
