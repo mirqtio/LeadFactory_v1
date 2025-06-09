@@ -1,6 +1,6 @@
 FROM python:3.11.0-slim
 
-# Install system dependencies exactly like production
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
@@ -8,30 +8,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install playwright dependencies
-RUN apt-get update && apt-get install -y \
-    libglib2.0-0 \
-    libnss3 \
-    libnspr4 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libdbus-1-3 \
-    libatspi2.0-0 \
-    libx11-6 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libxcb1 \
-    libxkbcommon0 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libasound2 \
-    && rm -rf /var/lib/apt/lists/*
+# Create non-root user
+RUN useradd -m -u 1000 leadfactory
 
 WORKDIR /app
 
@@ -39,32 +17,20 @@ WORKDIR /app
 COPY requirements.txt requirements-dev.txt ./
 RUN pip install --no-cache-dir -r requirements-dev.txt
 
-# Install stub server dependencies
-RUN pip install --no-cache-dir \
-    fastapi==0.104.1 \
-    uvicorn[standard]==0.24.0
+# Copy application code
+COPY --chown=leadfactory:leadfactory . .
 
-# Install playwright browsers
-RUN playwright install chromium
+# Create required directories
+RUN mkdir -p tmp logs && chown -R leadfactory:leadfactory tmp logs
 
-# Copy code
-COPY . .
-
-# Copy test script
-COPY scripts/test-with-stubs.sh /usr/local/bin/test-with-stubs.sh
-RUN chmod +x /usr/local/bin/test-with-stubs.sh
-
-# Create tmp directory for test database
-RUN mkdir -p tmp
+# Switch to non-root user
+USER leadfactory
 
 # Set test environment
-ENV ENVIRONMENT=test
-ENV DATABASE_URL=sqlite:///tmp/test.db
-ENV USE_STUBS=true
+ENV ENVIRONMENT=testing
 ENV PYTHONPATH=/app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Default test command with stub server
-ENTRYPOINT ["/usr/local/bin/test-with-stubs.sh"]
-CMD ["pytest", "-xvs", "--tb=short"]
+# Default command for running tests
+CMD ["python3", "-m", "pytest", "tests/", "-v"]
