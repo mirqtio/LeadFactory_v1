@@ -117,8 +117,8 @@ class AssessmentResult(Base):
     costs = relationship("AssessmentCost", back_populates="assessment")
     
     # Add business relationship for compatibility with other models
-    # Note: This creates a circular dependency, but it's needed for SQLAlchemy compatibility
-    business = relationship("Business", foreign_keys=[business_id])
+    # Note: This creates a circular dependency, temporarily disabled
+    # business = relationship("Business", foreign_keys=[business_id])
 
     # Proper indexing for performance
     __table_args__ = (

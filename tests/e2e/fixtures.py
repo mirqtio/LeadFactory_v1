@@ -36,14 +36,21 @@ fake = Faker()
 def sample_targeting_criteria(test_db_session):
     """Data seeding works - Create sample targeting criteria"""
     from database.models import GeoType
+    import uuid
+    import random
+    
+    # Generate unique values to avoid constraint violations
+    unique_id = str(uuid.uuid4())[:8]
+    cities = ["New York", "San Francisco", "Chicago", "Austin", "Boston", "Seattle"]
+    verticals = ["restaurants", "retail", "services", "healthcare", "technology"]
     
     criteria = Target(
-        id="test_criteria_001",
+        id=f"test_criteria_{unique_id}",
         geo_type=GeoType.CITY,
-        geo_value="New York", 
-        vertical="restaurants",
-        estimated_businesses=100,
-        priority_score=0.85,
+        geo_value=f"{random.choice(cities)}_{unique_id}", 
+        vertical=f"{random.choice(verticals)}_{unique_id}",
+        estimated_businesses=random.randint(50, 200),
+        priority_score=round(random.uniform(0.7, 0.95), 2),
         is_active=True
     )
     
@@ -56,15 +63,19 @@ def sample_targeting_criteria(test_db_session):
 @pytest.fixture
 def sample_yelp_businesses(test_db_session, sample_targeting_criteria):
     """Data seeding works - Create sample business data"""
+    import uuid
+    import random
+    
     businesses = []
+    base_id = str(uuid.uuid4())[:8]
     
     for i in range(5):
-        import random
+        unique_id = f"{base_id}_{i:03d}"
         
         business = Business(
-            id=f"test_business_{i:03d}",
-            yelp_id=f"test_yelp_{i:03d}",
-            name=fake.company(),
+            id=f"test_business_{unique_id}",
+            yelp_id=f"test_yelp_{unique_id}",
+            name=f"{fake.company()} {unique_id}",
             phone=fake.phone_number(),
             website=f"https://{fake.domain_name()}",
             address=fake.street_address(),
@@ -127,8 +138,9 @@ def sample_pipeline_run(test_db_session):
 @pytest.fixture
 def sample_experiment(test_db_session):
     """Data seeding works - Create sample experiment"""
+    from uuid import uuid4
     experiment = Experiment(
-        name="e2e_test_experiment",
+        name=f"e2e_test_experiment_{uuid4().hex[:8]}",
         description="Test experiment for e2e testing",
         hypothesis="E2E testing will improve system reliability",
         created_by="e2e_test_system",

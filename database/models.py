@@ -174,7 +174,7 @@ class Business(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    assessments = relationship("AssessmentResult", back_populates="business")
+    # assessments = relationship("AssessmentResult", back_populates="business")  # Temporarily disabled due to circular import
     scores = relationship("ScoringResult", back_populates="business")
     emails = relationship("Email", back_populates="business")
     purchases = relationship("Purchase", back_populates="business")

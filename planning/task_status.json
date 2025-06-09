@@ -500,10 +500,10 @@
       "actual_hours": 0.67
     },
     "084": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "actual_hours": null
+      "status": "completed",
+      "started_at": "2025-06-09T23:25:30.000000",
+      "completed_at": "2025-06-09T23:51:00.000000",
+      "actual_hours": 0.43
     },
     "085": {
       "status": "pending",
