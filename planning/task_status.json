@@ -350,8 +350,8 @@
       "actual_hours": 0.4
     },
     "059": {
-      "status": "pending",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2025-06-09T14:22:00.000000",
       "completed_at": null,
       "actual_hours": null
     },
