@@ -1,7 +1,8 @@
 """
 D3 Assessment - Website assessment and analysis
 
-Provides comprehensive website assessment capabilities including PageSpeed analysis,
+Provides comprehensive website assessment capabilities including PageSpeed
+analysis,
 technology stack detection, and AI-powered insights generation.
 """
 
@@ -25,7 +26,7 @@ from .types import (
 __all__ = [
     # Models
     'AssessmentResult',
-    'PageSpeedAssessment', 
+    'PageSpeedAssessment',
     'TechStackDetection',
     'AIInsight',
     'AssessmentSession',

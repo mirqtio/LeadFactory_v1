@@ -177,6 +177,6 @@ class AssessmentMetadata:
 
 # Type aliases for common data structures
 PageSpeedData = Dict[str, Any]
-TechStackData = Dict[str, Any] 
+TechStackData = Dict[str, Any]
 AIInsightData = Dict[str, Any]
 AssessmentData = Dict[str, Any]
