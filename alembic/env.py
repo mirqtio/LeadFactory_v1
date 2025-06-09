@@ -66,12 +66,12 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section, {})
-    
+
     # Add SQLite specific connection args
     url = configuration.get("sqlalchemy.url", "")
     if url.startswith("sqlite"):
         configuration["sqlalchemy.connect_args"] = {"check_same_thread": False}
-    
+
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

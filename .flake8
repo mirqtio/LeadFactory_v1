@@ -1,0 +1,20 @@
+[flake8]
+max-line-length = 100
+ignore = E203,W503,E501,E402,F401,W293,W292,E122,E128
+exclude = 
+    venv,
+    env,
+    .git,
+    __pycache__,
+    .pytest_cache,
+    node_modules,
+    build,
+    dist,
+    .tox,
+    alembic,
+    leadfactory.egg-info
+per-file-ignores =
+    tests/*:F401,E402
+    */conftest.py:F401
+    */test_*.py:F401,E402
+    alembic/*:E402,F401

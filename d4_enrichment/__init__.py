@@ -21,7 +21,7 @@ from .models import (
 
 __all__ = [
     "EnrichmentResult",
-    "EnrichmentRequest", 
+    "EnrichmentRequest",
     "EnrichmentSource",
     "MatchConfidence",
     "DataVersion"

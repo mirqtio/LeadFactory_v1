@@ -29,7 +29,7 @@ except ImportError:
                 content = '{"recommendations": [], "error": "LLM client not implemented"}'
                 usage = {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
             return MockResponse()
-        
+
         async def get_model_version(self):
             return "mock-model-v1"
 from .models import AssessmentResult, AssessmentCost
@@ -207,7 +207,7 @@ class LLMInsightGenerator:
         # Parse structured output
         try:
             parsed_response = json.loads(response.content)
-            
+
             # Validate 3 recommendations
             recommendations = parsed_response.get("recommendations", [])
             if len(recommendations) < 3:
@@ -331,7 +331,7 @@ class LLMInsightGenerator:
         if isinstance(pagespeed_data, dict):
             mobile_data = pagespeed_data.get('mobile', {})
             opportunities = mobile_data.get('lighthouseResult', {}).get('audits', {})
-            
+
             issues = []
             for audit_id, audit in opportunities.items():
                 if audit.get('score', 1) < 1 and audit.get('title'):
@@ -342,7 +342,7 @@ class LLMInsightGenerator:
                         'impact': self._categorize_audit_impact(audit),
                         'savings_ms': audit.get('details', {}).get('overallSavingsMs', 0)
                     })
-            
+
             return sorted(issues, key=lambda x: x['savings_ms'], reverse=True)
         return []
 
@@ -360,7 +360,7 @@ class LLMInsightGenerator:
         """Categorize audit impact level"""
         savings_ms = audit.get('details', {}).get('overallSavingsMs', 0) or 0
         score = audit.get('score', 1) or 1
-        
+
         if savings_ms >= 1000 or score < 0.5:
             return "high"
         elif savings_ms >= 500 or score < 0.75:
@@ -383,11 +383,11 @@ class LLMInsightGenerator:
         # Calculate cost based on token usage
         input_tokens = usage.get('prompt_tokens', 0)
         output_tokens = usage.get('completion_tokens', 0)
-        
+
         # OpenAI GPT-4 pricing (as of 2024)
         input_cost_per_token = Decimal("0.00003")  # $0.03 per 1K tokens
         output_cost_per_token = Decimal("0.00006")  # $0.06 per 1K tokens
-        
+
         total_cost = (
             (input_tokens * input_cost_per_token) +
             (output_tokens * output_cost_per_token)
@@ -421,7 +421,7 @@ class LLMInsightGenerator:
             recommendations = insights["recommendations"].get("recommendations", [])
             if len(recommendations) < 3:
                 raise ValueError(f"Expected 3 recommendations, got {len(recommendations)}")
-            
+
             # Validate recommendation structure
             for i, rec in enumerate(recommendations):
                 required_fields = ["title", "description", "priority", "effort"]
@@ -448,7 +448,7 @@ class LLMInsightGenerator:
         # Simple fallback to ensure we always return structured data
         lines = content.split('\n')
         recommendations = []
-        
+
         # Extract recommendation-like content
         for i, line in enumerate(lines):
             if any(keyword in line.lower() for keyword in ['recommend', 'improve', 'optimize']):
@@ -461,10 +461,10 @@ class LLMInsightGenerator:
                     "implementation_steps": ["Review and implement suggested changes"],
                     "industry_context": "General website optimization"
                 })
-                
+
                 if len(recommendations) >= 3:
                     break
-        
+
         # Ensure we have exactly 3 recommendations
         while len(recommendations) < 3:
             recommendations.append({
@@ -608,7 +608,7 @@ class LLMInsightBatchGenerator:
         """Calculate estimated cost for batch insight generation"""
         base_cost_per_assessment = Decimal("0.50")  # Estimated $0.50 per assessment
         num_insight_types = len(insight_types) if insight_types else 3
-        
+
         cost_multiplier = Decimal(str(num_insight_types / 3))  # Scale by insight types
-        
+
         return len(assessments) * base_cost_per_assessment * cost_multiplier

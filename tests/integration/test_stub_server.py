@@ -27,13 +27,13 @@ class TestYelpStubs:
             },
             headers={"Authorization": "Bearer test-key"}
         )
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "businesses" in data
         assert "total" in data
         assert len(data["businesses"]) == 10
-        
+
         # Check business structure
         business = data["businesses"][0]
         assert "id" in business
@@ -43,7 +43,7 @@ class TestYelpStubs:
         assert 3.0 <= business["rating"] <= 5.0
         assert "location" in business
         assert "phone" in business
-        
+
     def test_yelp_search_pagination(self, client):
         """Test Yelp search pagination"""
         # First page
@@ -53,7 +53,7 @@ class TestYelpStubs:
         )
         assert response1.status_code == 200
         data1 = response1.json()
-        
+
         # Second page
         response2 = client.get(
             "/v3/businesses/search",
@@ -61,7 +61,7 @@ class TestYelpStubs:
         )
         assert response2.status_code == 200
         data2 = response2.json()
-        
+
         # Should have different businesses
         ids1 = {b["id"] for b in data1["businesses"]}
         ids2 = {b["id"] for b in data2["businesses"]}
@@ -78,25 +78,25 @@ class TestPageSpeedStubs:
                 "strategy": "mobile"
             }
         )
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         # Check structure
         assert "lighthouseResult" in data
         assert "categories" in data["lighthouseResult"]
-        
+
         # Check scores
         categories = data["lighthouseResult"]["categories"]
         assert "performance" in categories
         assert "seo" in categories
         assert "accessibility" in categories
         assert "best-practices" in categories
-        
+
         # Scores should be between 0 and 1
         for category in categories.values():
             assert 0 <= category["score"] <= 1
-            
+
         # Check Core Web Vitals
         audits = data["lighthouseResult"]["audits"]
         assert "largest-contentful-paint" in audits
@@ -123,16 +123,16 @@ class TestStripeStubs:
                 "source": "email"
             }
         }
-        
+
         response = client.post(
             "/v1/checkout/sessions",
             json=session_data,
             headers={"Authorization": "Bearer sk_test_123"}
         )
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["id"].startswith("cs_test_stub_")
         assert data["payment_intent"].startswith("pi_test_stub_")
         assert data["status"] == "open"
@@ -155,13 +155,13 @@ class TestSendGridStubs:
                 "value": "<p>Test content</p>"
             }]
         }
-        
+
         response = client.post(
             "/v3/mail/send",
             json=mail_data,
             headers={"Authorization": "Bearer SG.test"}
         )
-        
+
         assert response.status_code == 202
         assert "X-Message-Id" in response.headers
         assert response.headers["X-Message-Id"].startswith("stub-msg-")
@@ -178,26 +178,26 @@ class TestOpenAIStubs:
             "temperature": 0.3,
             "max_tokens": 500
         }
-        
+
         response = client.post(
             "/v1/chat/completions",
             json=completion_data,
             headers={"Authorization": "Bearer sk-test"}
         )
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["model"] == "gpt-4o-mini"
         assert len(data["choices"]) == 1
         assert data["choices"][0]["message"]["role"] == "assistant"
-        
+
         # Check it returns valid JSON recommendations
         content = data["choices"][0]["message"]["content"]
         recommendations = json.loads(content)
         assert isinstance(recommendations, list)
         assert len(recommendations) == 3
-        
+
         # Check recommendation structure
         for rec in recommendations:
             assert "issue" in rec
@@ -216,14 +216,14 @@ class TestWebhooks:
                 "session_id": "cs_test_123"
             }
         )
-        
+
         assert response.status_code == 200
         event = response.json()
-        
+
         assert event["type"] == "checkout.session.completed"
         assert event["data"]["object"]["id"] == "cs_test_123"
         assert event["data"]["object"]["amount_total"] == 19900
-        
+
     def test_sendgrid_webhook_simulation(self, client):
         """Test SendGrid webhook event simulation"""
         events = [
@@ -231,9 +231,9 @@ class TestWebhooks:
             {"email": "test2@example.com", "event": "open"},
             {"email": "test3@example.com", "event": "click"}
         ]
-        
+
         response = client.post("/webhooks/sendgrid", json=events)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["events_processed"] == 3
@@ -242,7 +242,7 @@ class TestWebhooks:
 def test_health_check(client):
     """Test health check endpoint"""
     response = client.get("/health")
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"

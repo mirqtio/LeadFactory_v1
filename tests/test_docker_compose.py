@@ -31,49 +31,49 @@ def docker_compose_available() -> bool:
 
 class TestDockerCompose:
     """Test Docker Compose setup for local development"""
-    
+
     @pytest.fixture(scope="class")
     def docker_compose_up(self):
         """Start Docker Compose services"""
         # Stop any existing services
         run_command("docker-compose down -v")
-        
+
         # Start services
         code, stdout, stderr = run_command("docker-compose up -d")
         assert code == 0, f"Failed to start services: {stderr}"
-        
+
         # Wait for services to be ready
         time.sleep(10)
-        
+
         yield
-        
+
         # Cleanup
         run_command("docker-compose down -v")
-    
+
     @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
     def test_docker_compose_file_valid(self):
         """Test that docker-compose.yml is valid"""
         code, stdout, stderr = run_command("docker-compose config")
         assert code == 0, f"Invalid docker-compose.yml: {stderr}"
-        
+
     @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
     def test_docker_compose_test_file_valid(self):
         """Test that docker-compose.test.yml is valid"""
         code, stdout, stderr = run_command("docker-compose -f docker-compose.test.yml config")
         assert code == 0, f"Invalid docker-compose.test.yml: {stderr}"
-        
+
     @pytest.mark.integration
     @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
     def test_all_services_start(self, docker_compose_up):
         """Test that all services start properly"""
         code, stdout, stderr = run_command("docker-compose ps")
         assert code == 0
-        
+
         # Check that all services are running
         services = ["db", "redis", "stub-server", "app", "prometheus", "grafana", "mailhog"]
         for service in services:
             assert service in stdout, f"Service {service} not found in running services"
-            
+
     @pytest.mark.integration
     def test_database_connection(self, docker_compose_up):
         """Test PostgreSQL database connection"""
@@ -94,21 +94,21 @@ class TestDockerCompose:
             conn.close()
         except Exception as e:
             pytest.fail(f"Failed to connect to PostgreSQL: {e}")
-            
+
     @pytest.mark.integration
     def test_redis_connection(self, docker_compose_up):
         """Test Redis connection"""
         try:
             r = redis.Redis(host="localhost", port=6379, decode_responses=True)
             r.ping()
-            
+
             # Test basic operations
             r.set("test_key", "test_value")
             assert r.get("test_key") == "test_value"
             r.delete("test_key")
         except Exception as e:
             pytest.fail(f"Failed to connect to Redis: {e}")
-            
+
     @pytest.mark.integration
     def test_stub_server_health(self, docker_compose_up):
         """Test stub server health endpoint"""
@@ -120,13 +120,13 @@ class TestDockerCompose:
             assert data["use_stubs"] is True
         except Exception as e:
             pytest.fail(f"Failed to connect to stub server: {e}")
-            
+
     @pytest.mark.integration
     def test_app_health(self, docker_compose_up):
         """Test main application health endpoint"""
         # Wait a bit more for app to start
         time.sleep(5)
-        
+
         try:
             response = httpx.get("http://localhost:8000/health")
             assert response.status_code == 200
@@ -135,7 +135,7 @@ class TestDockerCompose:
             assert "version" in data
         except Exception as e:
             pytest.fail(f"Failed to connect to app: {e}")
-            
+
     @pytest.mark.integration
     def test_prometheus_health(self, docker_compose_up):
         """Test Prometheus is running"""
@@ -144,7 +144,7 @@ class TestDockerCompose:
             assert response.status_code == 200
         except Exception as e:
             pytest.fail(f"Failed to connect to Prometheus: {e}")
-            
+
     @pytest.mark.integration
     def test_grafana_health(self, docker_compose_up):
         """Test Grafana is running"""
@@ -155,7 +155,7 @@ class TestDockerCompose:
             assert data["database"] == "ok"
         except Exception as e:
             pytest.fail(f"Failed to connect to Grafana: {e}")
-            
+
     @pytest.mark.integration
     def test_mailhog_health(self, docker_compose_up):
         """Test Mailhog is running"""
@@ -166,25 +166,25 @@ class TestDockerCompose:
             result = sock.connect_ex(('localhost', 1025))
             sock.close()
             assert result == 0, "Mailhog SMTP port not accessible"
-            
+
             # Check Web UI
             response = httpx.get("http://localhost:8025/api/v2/messages")
             assert response.status_code == 200
         except Exception as e:
             pytest.fail(f"Failed to connect to Mailhog: {e}")
-            
+
     def test_volumes_created(self):
         """Test that Docker volumes are created"""
         code, stdout, stderr = run_command("docker volume ls --format '{{.Name}}'")
         assert code == 0
-        
+
         expected_volumes = [
             "postgres-data",
             "redis-data",
             "prometheus-data",
             "grafana-data"
         ]
-        
+
         for volume in expected_volumes:
             assert any(volume in line for line in stdout.splitlines()), \
                 f"Volume {volume} not found"

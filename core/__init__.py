@@ -7,6 +7,6 @@ __all__ = [
     "settings",
     "get_logger",
     "LeadFactoryError",
-    "ValidationError", 
+    "ValidationError",
     "ExternalAPIError"
 ]

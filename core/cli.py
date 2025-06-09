@@ -36,11 +36,11 @@ def init_db():
 def runserver(host: str, port: int, reload: bool):
     """Run the FastAPI development server"""
     import uvicorn
-    
+
     click.echo(f"Starting LeadFactory server on {host}:{port}")
     click.echo(f"Environment: {settings.environment}")
     click.echo(f"Use stubs: {settings.use_stubs}")
-    
+
     uvicorn.run(
         "main:app",
         host=host,
@@ -62,7 +62,7 @@ def test_pipeline(location: str, vertical: str, limit: int):
         click.echo(f"Processing {limit} businesses...")
         # Placeholder for actual implementation
         click.echo("Pipeline test completed!")
-    
+
     asyncio.run(run_test())
 
 
@@ -71,12 +71,12 @@ def test_pipeline(location: str, vertical: str, limit: int):
 def daily_report(date):
     """Generate daily metrics report"""
     report_date = date.date() if date else date.today()
-    
+
     async def generate_report():
         click.echo(f"Generating report for {report_date}")
         # Placeholder for actual implementation
         click.echo("Report generated successfully!")
-    
+
     asyncio.run(generate_report())
 
 
@@ -84,7 +84,7 @@ def daily_report(date):
 def run_stubs():
     """Run the stub server for testing"""
     import uvicorn
-    
+
     click.echo("Starting stub server on port 5010")
     uvicorn.run(
         "stubs.server:app",
@@ -99,7 +99,7 @@ def run_stubs():
 def check_api(provider: str):
     """Check API connectivity and configuration"""
     click.echo(f"Checking {provider} API configuration...")
-    
+
     if settings.use_stubs:
         click.echo(f"✓ Using stub server at {settings.stub_base_url}")
     else:
@@ -110,7 +110,7 @@ def check_api(provider: str):
         except ValueError as e:
             click.echo(f"✗ {e}", err=True)
             return
-    
+
     # Could add actual connectivity test here
     click.echo(f"✓ {provider} API ready")
 

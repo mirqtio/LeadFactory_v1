@@ -33,7 +33,7 @@ class TestTask033AcceptanceCriteria:
     def mock_llm_client(self):
         """Mock LLM client with realistic responses"""
         client = AsyncMock()
-        
+
         # Mock recommendation response
         client.generate_completion.return_value = MagicMock(
             content=json.dumps({
@@ -96,7 +96,7 @@ class TestTask033AcceptanceCriteria:
                 "total_tokens": 2300
             }
         )
-        
+
         client.get_model_version.return_value = "gpt-4-0125-preview"
         return client
 
@@ -198,7 +198,7 @@ class TestTask033AcceptanceCriteria:
         # Verify recommendation quality
         titles = [rec["title"] for rec in recommendations]
         assert len(set(titles)) == 3, "Recommendations should be unique"
-        
+
         # Check for actionable content
         for rec in recommendations:
             assert len(rec["title"]) > 5, "Title should be descriptive"
@@ -223,10 +223,10 @@ class TestTask033AcceptanceCriteria:
         # Verify industry context in recommendations
         recommendations = result.insights["recommendations"]["recommendations"]
         industry_contexts = [rec["industry_context"] for rec in recommendations]
-        
+
         # Should mention e-commerce or related terms
-        ecommerce_mentions = sum(1 for context in industry_contexts 
-                               if any(term in context.lower() for term in 
+        ecommerce_mentions = sum(1 for context in industry_contexts
+                               if any(term in context.lower() for term in
                                     ["ecommerce", "e-commerce", "conversion", "shopping", "commerce"]))
         assert ecommerce_mentions > 0, "Should have e-commerce specific context"
 
@@ -241,9 +241,9 @@ class TestTask033AcceptanceCriteria:
             assessment=sample_assessment,
             industry="healthcare"
         )
-        
+
         assert healthcare_result.industry == "healthcare"
-        
+
         # Verify industry-specific prompting works
         industry_context = InsightPrompts.get_industry_context("healthcare")
         assert "accessibility" in industry_context["key_metrics"]
@@ -279,7 +279,7 @@ class TestTask033AcceptanceCriteria:
             # Verify cost tracking call structure
             cost_calls = mock_cost.call_args_list
             assert len(cost_calls) > 0, "Should have cost tracking calls"
-            
+
             first_call = cost_calls[0][1]  # kwargs
             assert first_call["cost_type"].value == "api_call"
             assert first_call["provider"] == "OpenAI"

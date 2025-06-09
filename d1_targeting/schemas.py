@@ -10,9 +10,9 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
 from .types import (
-    VerticalMarket, 
-    GeographyLevel, 
-    CampaignStatus, 
+    VerticalMarket,
+    GeographyLevel,
+    CampaignStatus,
     BatchProcessingStatus,
     TargetQualificationStatus
 )
@@ -39,7 +39,7 @@ class PaginationSchema(BaseModel):
     """Pagination parameters"""
     page: int = Field(default=1, ge=1, description="Page number (1-based)")
     size: int = Field(default=20, ge=1, le=100, description="Items per page")
-    
+
     @property
     def offset(self) -> int:
         return (self.page - 1) * self.size
@@ -59,7 +59,7 @@ class GeographicConstraintSchema(BaseModel):
     radius_miles: Optional[float] = Field(None, gt=0, description="Radius in miles for location-based targeting")
     center_lat: Optional[float] = Field(None, ge=-90, le=90)
     center_lng: Optional[float] = Field(None, ge=-180, le=180)
-    
+
     @model_validator(mode='after')
     def validate_radius_constraints(self):
         if self.radius_miles is not None and (self.center_lat is None or self.center_lng is None):
@@ -110,7 +110,7 @@ class TargetUniverseResponseSchema(BaseModel):
     updated_at: datetime
     created_by: Optional[str]
     is_active: bool
-    
+
     class Config:
         from_attributes = True
 
@@ -136,7 +136,7 @@ class CreateCampaignSchema(BaseModel):
     batch_settings: Optional[BatchSettingsSchema] = None
     scheduled_start: Optional[datetime] = Field(None, description="Scheduled start time")
     scheduled_end: Optional[datetime] = Field(None, description="Scheduled end time")
-    
+
     @model_validator(mode='after')
     def validate_end_after_start(self):
         if self.scheduled_end and self.scheduled_start:
@@ -178,7 +178,7 @@ class CampaignResponseSchema(BaseModel):
     created_at: datetime
     updated_at: datetime
     created_by: Optional[str]
-    
+
     class Config:
         from_attributes = True
 
@@ -200,7 +200,7 @@ class BatchResponseSchema(BaseModel):
     error_message: Optional[str]
     retry_count: int
     batch_cost: float
-    
+
     class Config:
         from_attributes = True
 
@@ -314,7 +314,7 @@ class GeographicBoundaryResponseSchema(BaseModel):
     area_sq_miles: Optional[float]
     data_source: Optional[str]
     last_updated: datetime
-    
+
     class Config:
         from_attributes = True
 

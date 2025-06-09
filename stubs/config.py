@@ -7,11 +7,11 @@ from typing import Dict, Any
 
 class StubConfig:
     """Configuration for using stub servers in different environments"""
-    
+
     def __init__(self):
         self.use_stubs = os.getenv("USE_STUBS", "true").lower() == "true"
         self.stub_base_url = os.getenv("STUB_BASE_URL", "http://localhost:5010")
-        
+
     def get_api_urls(self) -> Dict[str, str]:
         """Get API URLs based on stub configuration"""
         if self.use_stubs:
@@ -30,7 +30,7 @@ class StubConfig:
                 "sendgrid": "https://api.sendgrid.com",
                 "openai": "https://api.openai.com"
             }
-    
+
     def get_headers(self, service: str) -> Dict[str, str]:
         """Get headers for API calls"""
         if self.use_stubs:
@@ -45,7 +45,7 @@ class StubConfig:
                 "sendgrid": os.getenv("SENDGRID_API_KEY", ""),
                 "openai": os.getenv("OPENAI_API_KEY", "")
             }
-            
+
             key = api_keys.get(service, "")
             if service == "sendgrid":
                 return {"Authorization": f"Bearer {key}"}
@@ -60,15 +60,15 @@ class StubConfig:
                 return {}
             else:
                 return {}
-    
+
     def should_verify_ssl(self) -> bool:
         """Whether to verify SSL certificates"""
         return not self.use_stubs
-    
+
     def get_timeout(self) -> int:
         """Get request timeout in seconds"""
         return 5 if self.use_stubs else 30
-    
+
     def get_retry_config(self) -> Dict[str, Any]:
         """Get retry configuration"""
         if self.use_stubs:

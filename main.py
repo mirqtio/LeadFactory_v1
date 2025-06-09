@@ -38,13 +38,13 @@ app.add_middleware(
 async def track_requests(request: Request, call_next):
     """Track all HTTP requests for metrics"""
     start_time = time.time()
-    
+
     # Skip metrics endpoint to avoid recursion
     if request.url.path == "/metrics":
         return await call_next(request)
-    
+
     response = await call_next(request)
-    
+
     # Track request metrics
     duration = time.time() - start_time
     metrics.track_request(
@@ -53,7 +53,7 @@ async def track_requests(request: Request, call_next):
         status=response.status_code,
         duration=duration
     )
-    
+
     return response
 
 
@@ -110,7 +110,7 @@ async def prometheus_metrics():
             status_code=404,
             content={"error": "Metrics not enabled"}
         )
-    
+
     metrics_data, content_type = get_metrics_response()
     return Response(content=metrics_data, media_type=content_type)
 

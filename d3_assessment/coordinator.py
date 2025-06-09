@@ -68,10 +68,10 @@ class CoordinatorResult:
 class AssessmentCoordinator:
     """
     Coordinates parallel execution of multiple assessment types
-    
+
     Manages PageSpeed, Tech Stack, and LLM Insights assessments with
     timeout handling, error recovery, and partial result preservation.
-    
+
     Acceptance Criteria: Parallel assessment execution, Timeout handling works,
     Partial results saved, Error recovery implemented
     """
@@ -79,7 +79,7 @@ class AssessmentCoordinator:
     def __init__(self, max_concurrent: int = 5):
         """
         Initialize assessment coordinator
-        
+
         Args:
             max_concurrent: Maximum concurrent assessments
         """
@@ -87,7 +87,7 @@ class AssessmentCoordinator:
         self.pagespeed_assessor = PageSpeedAssessor()
         self.techstack_detector = TechStackDetector()
         self.llm_generator = LLMInsightGenerator()
-        
+
     async def execute_comprehensive_assessment(
         self,
         business_id: str,
@@ -98,29 +98,29 @@ class AssessmentCoordinator:
     ) -> CoordinatorResult:
         """
         Execute comprehensive assessment with multiple types
-        
+
         Args:
             business_id: Business identifier
             url: Website URL to assess
             assessment_types: Types of assessments to run
             industry: Industry for specialized insights
             session_config: Configuration for the session
-            
+
         Returns:
             CoordinatorResult with all assessment results
-            
+
         Acceptance Criteria: Parallel assessment execution
         """
         session_id = str(uuid.uuid4())
         started_at = datetime.utcnow()
-        
+
         if assessment_types is None:
             assessment_types = [
                 AssessmentType.PAGESPEED,
                 AssessmentType.TECH_STACK,
                 AssessmentType.AI_INSIGHTS
             ]
-        
+
         # Create assessment session
         session = AssessmentSession(
             id=session_id,
@@ -131,7 +131,7 @@ class AssessmentCoordinator:
             completed_assessments=0,
             config_data=session_config or {}
         )
-        
+
         # Create assessment requests
         requests = []
         for assessment_type in assessment_types:
@@ -143,23 +143,23 @@ class AssessmentCoordinator:
                 retry_count=2
             )
             requests.append(request)
-        
+
         # Execute assessments in parallel
         results = await self._execute_parallel_assessments(
             business_id, session_id, requests, industry
         )
-        
+
         # Calculate totals
         completed_at = datetime.utcnow()
         execution_time = int((completed_at - started_at).total_seconds() * 1000)
-        
+
         completed_count = len([r for r in results.values() if r is not None])
         failed_count = len(assessment_types) - completed_count
         total_cost = sum(
-            r.total_cost_usd for r in results.values() 
+            r.total_cost_usd for r in results.values()
             if r is not None and hasattr(r, 'total_cost_usd')
         )
-        
+
         # Extract errors
         errors = {}
         for assessment_type in assessment_types:
@@ -167,13 +167,13 @@ class AssessmentCoordinator:
                 errors[assessment_type] = "Assessment failed or timed out"
             elif hasattr(results[assessment_type], 'error_message') and results[assessment_type].error_message:
                 errors[assessment_type] = results[assessment_type].error_message
-        
+
         # Update session
         session.status = AssessmentStatus.COMPLETED if failed_count == 0 else AssessmentStatus.PARTIAL
         session.completed_assessments = completed_count
         session.total_cost_usd = total_cost
         session.completed_at = completed_at
-        
+
         return CoordinatorResult(
             session_id=session_id,
             business_id=business_id,
@@ -197,18 +197,18 @@ class AssessmentCoordinator:
     ) -> Dict[AssessmentType, Optional[AssessmentResult]]:
         """
         Execute multiple assessments in parallel with timeout and error handling
-        
+
         Acceptance Criteria: Parallel assessment execution, Timeout handling works,
         Error recovery implemented
         """
         semaphore = asyncio.Semaphore(self.max_concurrent)
         results = {}
-        
+
         async def execute_single_assessment(request: AssessmentRequest) -> tuple:
             """Execute a single assessment with timeout and retry logic"""
             async with semaphore:
                 assessment_type = request.assessment_type
-                
+
                 for attempt in range(request.retry_count + 1):
                     try:
                         # Execute with timeout
@@ -218,12 +218,12 @@ class AssessmentCoordinator:
                             ),
                             timeout=request.timeout_seconds
                         )
-                        
+
                         # Save partial result immediately
                         await self._save_partial_result(result)
-                        
+
                         return assessment_type, result
-                        
+
                     except asyncio.TimeoutError:
                         if attempt < request.retry_count:
                             # Retry with exponential backoff
@@ -232,12 +232,12 @@ class AssessmentCoordinator:
                         else:
                             # Final timeout - create failed result
                             failed_result = self._create_failed_result(
-                                business_id, session_id, request, 
+                                business_id, session_id, request,
                                 f"Assessment timed out after {request.timeout_seconds}s"
                             )
                             await self._save_partial_result(failed_result)
                             return assessment_type, failed_result
-                            
+
                     except Exception as e:
                         if attempt < request.retry_count:
                             # Retry on error
@@ -250,14 +250,14 @@ class AssessmentCoordinator:
                             )
                             await self._save_partial_result(failed_result)
                             return assessment_type, failed_result
-                
+
                 # Should never reach here
                 return assessment_type, None
-        
+
         # Run all assessments concurrently
         tasks = [execute_single_assessment(request) for request in requests]
         completed_results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         # Process results
         for result in completed_results:
             if isinstance(result, tuple) and len(result) == 2:
@@ -266,7 +266,7 @@ class AssessmentCoordinator:
             elif isinstance(result, Exception):
                 # Handle gather exceptions
                 continue
-        
+
         return results
 
     async def _run_assessment(
@@ -279,21 +279,21 @@ class AssessmentCoordinator:
         """Run a specific assessment type"""
         assessment_type = request.assessment_type
         url = request.url
-        
+
         if assessment_type == AssessmentType.PAGESPEED:
             return await self.pagespeed_assessor.assess_website(
                 business_id=business_id,
                 url=url,
                 session_id=session_id
             )
-            
+
         elif assessment_type == AssessmentType.TECH_STACK:
             # For tech stack, we need to adapt the interface
             detections = await self.techstack_detector.detect_technologies(
                 assessment_id=str(uuid.uuid4()),
                 url=url
             )
-            
+
             # Create AssessmentResult from tech stack detections
             result = AssessmentResult(
                 id=str(uuid.uuid4()),
@@ -319,7 +319,7 @@ class AssessmentCoordinator:
                 }
             )
             return result
-            
+
         elif assessment_type == AssessmentType.AI_INSIGHTS:
             # For LLM insights, we need a base assessment
             base_assessment = AssessmentResult(
@@ -334,12 +334,12 @@ class AssessmentCoordinator:
                 accessibility_score=85,
                 seo_score=75
             )
-            
+
             insights = await self.llm_generator.generate_comprehensive_insights(
                 assessment=base_assessment,
                 industry=industry
             )
-            
+
             # Update base assessment with insights
             base_assessment.ai_insights_data = {
                 "insights": insights.insights,
@@ -349,16 +349,16 @@ class AssessmentCoordinator:
                 "processing_time_ms": insights.processing_time_ms
             }
             base_assessment.total_cost_usd = insights.total_cost_usd
-            
+
             return base_assessment
-            
+
         else:
             raise CoordinatorError(f"Unsupported assessment type: {assessment_type}")
 
     async def _save_partial_result(self, result: AssessmentResult):
         """
         Save partial result immediately for recovery
-        
+
         Acceptance Criteria: Partial results saved
         """
         # In a real implementation, this would save to database
@@ -377,7 +377,7 @@ class AssessmentCoordinator:
     ) -> AssessmentResult:
         """
         Create a failed assessment result
-        
+
         Acceptance Criteria: Error recovery implemented
         """
         return AssessmentResult(
@@ -425,16 +425,16 @@ class AssessmentCoordinator:
     ) -> List[CoordinatorResult]:
         """
         Execute assessments for multiple websites in batch
-        
+
         Args:
             assessment_configs: List of assessment configurations
             max_concurrent_sessions: Maximum concurrent assessment sessions
-            
+
         Returns:
             List of coordinator results
         """
         semaphore = asyncio.Semaphore(max_concurrent_sessions)
-        
+
         async def execute_single_config(config: Dict[str, Any]) -> CoordinatorResult:
             async with semaphore:
                 return await self.execute_comprehensive_assessment(
@@ -444,7 +444,7 @@ class AssessmentCoordinator:
                     industry=config.get("industry", "default"),
                     session_config=config.get("session_config")
                 )
-        
+
         tasks = [execute_single_config(config) for config in assessment_configs]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -455,14 +455,14 @@ class AssessmentCoordinator:
     ) -> CoordinatorResult:
         """
         Resume a failed or partial assessment session
-        
+
         Args:
             session_id: Session to resume
             retry_failed_only: Only retry failed assessments
-            
+
         Returns:
             Updated coordinator result
-            
+
         Acceptance Criteria: Error recovery implemented
         """
         # In a real implementation, this would:
@@ -470,13 +470,13 @@ class AssessmentCoordinator:
         # 2. Identify failed/incomplete assessments
         # 3. Re-run only the failed ones
         # 4. Merge with existing results
-        
+
         raise NotImplementedError("Session resumption requires database integration")
 
     def get_assessment_status(self, session_id: str) -> Dict[str, Any]:
         """
         Get current status of an assessment session
-        
+
         Returns:
             Session status information
         """
@@ -494,10 +494,10 @@ class AssessmentCoordinator:
     async def cancel_session(self, session_id: str) -> bool:
         """
         Cancel a running assessment session
-        
+
         Args:
             session_id: Session to cancel
-            
+
         Returns:
             True if cancelled successfully
         """
@@ -505,7 +505,7 @@ class AssessmentCoordinator:
         # 1. Mark session as cancelled in database
         # 2. Cancel running tasks
         # 3. Save partial results
-        
+
         return True
 
 
@@ -514,13 +514,13 @@ class AssessmentScheduler:
     Schedules and manages assessment execution with priority queues
     and resource management.
     """
-    
+
     def __init__(self, coordinator: AssessmentCoordinator):
         """Initialize scheduler with coordinator"""
         self.coordinator = coordinator
         self.priority_queue = asyncio.PriorityQueue()
         self.running_sessions: Set[str] = set()
-        
+
     async def schedule_assessment(
         self,
         business_id: str,
@@ -531,19 +531,19 @@ class AssessmentScheduler:
     ) -> str:
         """
         Schedule an assessment for execution
-        
+
         Args:
             business_id: Business identifier
             url: Website URL
             priority: Assessment priority
             scheduled_time: When to run (None for immediate)
             assessment_types: Types of assessments
-            
+
         Returns:
             Session ID for tracking
         """
         session_id = str(uuid.uuid4())
-        
+
         # Create assessment config
         config = {
             "session_id": session_id,
@@ -553,13 +553,13 @@ class AssessmentScheduler:
             "scheduled_time": scheduled_time or datetime.utcnow(),
             "priority": priority
         }
-        
+
         # Add to priority queue
         priority_value = self._get_priority_value(priority)
         await self.priority_queue.put((priority_value, config))
-        
+
         return session_id
-    
+
     def _get_priority_value(self, priority: AssessmentPriority) -> int:
         """Convert priority to numeric value for queue"""
         priority_values = {
@@ -569,18 +569,18 @@ class AssessmentScheduler:
             AssessmentPriority.LOW: 4
         }
         return priority_values.get(priority, 3)
-    
+
     async def process_queue(self):
         """
         Process the assessment queue continuously
-        
+
         This would run as a background task in production
         """
         while True:
             try:
                 # Get next assessment from queue
                 priority_value, config = await self.priority_queue.get()
-                
+
                 # Check if it's time to run
                 scheduled_time = config["scheduled_time"]
                 if scheduled_time > datetime.utcnow():
@@ -588,29 +588,29 @@ class AssessmentScheduler:
                     await self.priority_queue.put((priority_value, config))
                     await asyncio.sleep(60)  # Check every minute
                     continue
-                
+
                 # Execute assessment
                 session_id = config["session_id"]
                 self.running_sessions.add(session_id)
-                
+
                 try:
                     result = await self.coordinator.execute_comprehensive_assessment(
                         business_id=config["business_id"],
                         url=config["url"],
                         assessment_types=config["assessment_types"]
                     )
-                    
+
                     # Handle result (save to database, send notifications, etc.)
                     await self._handle_completion(result)
-                    
+
                 finally:
                     self.running_sessions.discard(session_id)
-                    
+
             except Exception as e:
                 # Log error and continue processing
                 print(f"Error processing assessment queue: {e}")
                 await asyncio.sleep(5)
-    
+
     async def _handle_completion(self, result: CoordinatorResult):
         """Handle assessment completion"""
         # In production, this would:

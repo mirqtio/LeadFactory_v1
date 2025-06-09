@@ -236,7 +236,7 @@ Provide only valid JSON output."""
                 "benchmarks": {"performance_score": 85, "accessibility_score": 85, "seo_score": 85}
             }
         }
-        
+
         return industry_contexts.get(industry.lower(), industry_contexts["default"])
 
     @staticmethod
@@ -244,19 +244,19 @@ Provide only valid JSON output."""
         """Format technology stack for prompt inclusion"""
         if not tech_stack:
             return "None detected"
-        
+
         tech_by_category = {}
         for tech in tech_stack:
             category = tech.get('category', 'Other')
             if category not in tech_by_category:
                 tech_by_category[category] = []
             tech_by_category[category].append(tech.get('technology_name', 'Unknown'))
-        
+
         formatted = []
         for category, technologies in tech_by_category.items():
             tech_list = ', '.join(technologies[:3])  # Limit to first 3 per category
             formatted.append(f"{category}: {tech_list}")
-        
+
         return '; '.join(formatted)
 
     @staticmethod
@@ -264,18 +264,18 @@ Provide only valid JSON output."""
         """Format performance issues for prompt inclusion"""
         if not issues:
             return "No significant issues detected"
-        
+
         formatted_issues = []
         for issue in issues[:limit]:
             impact = issue.get('impact', 'Unknown')
             title = issue.get('title', 'Unknown issue')
             savings = issue.get('savings_ms', 0)
-            
+
             if savings > 0:
                 formatted_issues.append(f"• {title} (Impact: {impact}, Saves: {savings}ms)")
             else:
                 formatted_issues.append(f"• {title} (Impact: {impact})")
-        
+
         return '\n'.join(formatted_issues)
 
     @staticmethod
@@ -283,7 +283,7 @@ Provide only valid JSON output."""
         """Extract and format variables for prompt templates"""
         tech_stack = assessment_data.get('tech_stack', [])
         performance_issues = assessment_data.get('performance_issues', [])
-        
+
         return {
             'url': assessment_data.get('url', 'Unknown'),
             'industry': industry,
@@ -342,33 +342,33 @@ Provide only valid JSON output."""
     def _identify_conversion_barriers(assessment_data: dict) -> str:
         """Identify potential conversion barriers"""
         barriers = []
-        
+
         if assessment_data.get('largest_contentful_paint', 0) > 4000:
             barriers.append("Slow page loading (4+ seconds)")
-        
+
         if assessment_data.get('accessibility_score', 100) < 85:
             barriers.append("Accessibility issues limiting user access")
-        
+
         if assessment_data.get('performance_score', 100) < 75:
             barriers.append("Poor performance impacting user experience")
-        
+
         return '; '.join(barriers) if barriers else "No major barriers identified"
 
     @staticmethod
     def _identify_ux_issues(assessment_data: dict) -> str:
         """Identify user experience issues"""
         ux_issues = []
-        
+
         if assessment_data.get('cumulative_layout_shift', 0) > 0.25:
             ux_issues.append("Layout instability (high CLS)")
-        
+
         if assessment_data.get('first_input_delay', 0) > 300:
             ux_issues.append("Slow interactivity (high FID)")
-        
+
         mobile_score = assessment_data.get('mobile_performance_score', 100)
         if mobile_score < 80:
             ux_issues.append("Poor mobile experience")
-        
+
         return '; '.join(ux_issues) if ux_issues else "No major UX issues identified"
 
     @staticmethod
@@ -376,11 +376,11 @@ Provide only valid JSON output."""
         """Format performance problems for prompts"""
         if not issues:
             return "No significant performance problems"
-        
+
         problems = []
         for issue in issues[:3]:  # Top 3 issues
             title = issue.get('title', 'Unknown')
             impact = issue.get('impact', 'unknown')
             problems.append(f"{title} ({impact} impact)")
-        
+
         return '; '.join(problems)

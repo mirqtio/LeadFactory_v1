@@ -1,7 +1,7 @@
 """
 FastAPI endpoints for D1 Targeting Domain
 
-Provides REST API for target universe management, campaign operations, 
+Provides REST API for target universe management, campaign operations,
 batch scheduling, and targeting analytics.
 """
 from typing import List, Optional, Dict, Any
@@ -35,7 +35,7 @@ from .schemas import (
     CampaignFilterSchema,
     BatchFilterSchema,
     PaginationSchema,
-    
+
     # Response schemas
     BaseResponseSchema,
     ErrorResponseSchema,
@@ -104,7 +104,7 @@ async def create_target_universe(
 ):
     """
     Create a new target universe with specified targeting criteria.
-    
+
     Acceptance Criteria:
     - FastAPI routes work
     - Validation complete
@@ -112,9 +112,9 @@ async def create_target_universe(
     - Documentation generated
     """
     logger.info(f"Creating target universe: {request.name}")
-    
+
     manager = TargetUniverseManager(session=db)
-    
+
     # Convert targeting criteria to the format expected by manager
     geography_config = {
         'constraints': [
@@ -128,7 +128,7 @@ async def create_target_universe(
             for constraint in request.targeting_criteria.geographic_constraints
         ]
     }
-    
+
     universe = manager.create_universe(
         name=request.name,
         description=request.description,
@@ -136,10 +136,10 @@ async def create_target_universe(
         geography_config=geography_config,
         estimated_size=request.estimated_size
     )
-    
+
     metrics.increment_counter("targeting_universes_created")
     logger.info(f"Successfully created target universe: {universe.id}")
-    
+
     return universe
 
 
@@ -154,9 +154,9 @@ async def list_target_universes(
     List target universes with optional filtering and pagination.
     """
     logger.info("Listing target universes")
-    
+
     query = db.query(TargetUniverse)
-    
+
     # Apply filters
     if filters.name_contains:
         query = query.filter(TargetUniverse.name.contains(filters.name_contains))
@@ -174,10 +174,10 @@ async def list_target_universes(
         query = query.filter(TargetUniverse.created_at >= filters.created_after)
     if filters.created_before:
         query = query.filter(TargetUniverse.created_at <= filters.created_before)
-    
+
     # Apply pagination
     universes = query.offset(pagination.offset).limit(pagination.size).all()
-    
+
     return universes
 
 
@@ -191,13 +191,13 @@ async def get_target_universe(
     Get a specific target universe by ID.
     """
     logger.info(f"Getting target universe: {universe_id}")
-    
+
     manager = TargetUniverseManager(session=db)
     universe = manager.get_universe(universe_id)
-    
+
     if not universe:
         raise HTTPException(status_code=404, detail="Target universe not found")
-    
+
     return universe
 
 
@@ -212,20 +212,20 @@ async def update_target_universe(
     Update a target universe.
     """
     logger.info(f"Updating target universe: {universe_id}")
-    
+
     manager = TargetUniverseManager(session=db)
-    
+
     # Get update fields
     update_data = request.dict(exclude_unset=True)
-    
+
     universe = manager.update_universe(universe_id, **update_data)
-    
+
     if not universe:
         raise HTTPException(status_code=404, detail="Target universe not found")
-    
+
     metrics.increment_counter("targeting_universes_updated")
     logger.info(f"Successfully updated target universe: {universe_id}")
-    
+
     return universe
 
 
@@ -239,16 +239,16 @@ async def delete_target_universe(
     Delete (soft delete) a target universe.
     """
     logger.info(f"Deleting target universe: {universe_id}")
-    
+
     manager = TargetUniverseManager(session=db)
     success = manager.delete_universe(universe_id)
-    
+
     if not success:
         raise HTTPException(status_code=404, detail="Target universe not found")
-    
+
     metrics.increment_counter("targeting_universes_deleted")
     logger.info(f"Successfully deleted target universe: {universe_id}")
-    
+
     return BaseResponseSchema(message="Target universe deleted successfully")
 
 
@@ -264,16 +264,16 @@ async def refresh_target_universe(
     Refresh target universe data (background task).
     """
     logger.info(f"Refreshing target universe: {universe_id}")
-    
+
     manager = TargetUniverseManager(session=db)
     universe = manager.get_universe(universe_id)
-    
+
     if not universe:
         raise HTTPException(status_code=404, detail="Target universe not found")
-    
+
     # Add background task for refresh
     background_tasks.add_task(manager.update_freshness_metrics, universe_id)
-    
+
     return BaseResponseSchema(message="Universe refresh started")
 
 
@@ -288,25 +288,25 @@ async def create_campaign(
     Create a new campaign.
     """
     logger.info(f"Creating campaign: {request.name}")
-    
+
     # Verify target universe exists
     universe = db.query(TargetUniverse).filter_by(id=request.target_universe_id).first()
     if not universe:
         raise HTTPException(status_code=404, detail="Target universe not found")
-    
+
     # Create campaign
     campaign_data = request.dict()
     if campaign_data.get('batch_settings'):
         campaign_data['batch_settings'] = campaign_data['batch_settings'].dict()
-    
+
     campaign = Campaign(**campaign_data)
     db.add(campaign)
     db.commit()
     db.refresh(campaign)
-    
+
     metrics.increment_counter("targeting_campaigns_created")
     logger.info(f"Successfully created campaign: {campaign.id}")
-    
+
     return campaign
 
 
@@ -321,9 +321,9 @@ async def list_campaigns(
     List campaigns with optional filtering and pagination.
     """
     logger.info("Listing campaigns")
-    
+
     query = db.query(Campaign)
-    
+
     # Apply filters
     if filters.name_contains:
         query = query.filter(Campaign.name.contains(filters.name_contains))
@@ -338,10 +338,10 @@ async def list_campaigns(
         query = query.filter(Campaign.created_at >= filters.created_after)
     if filters.created_before:
         query = query.filter(Campaign.created_at <= filters.created_before)
-    
+
     # Apply pagination
     campaigns = query.offset(pagination.offset).limit(pagination.size).all()
-    
+
     return campaigns
 
 
@@ -355,12 +355,12 @@ async def get_campaign(
     Get a specific campaign by ID.
     """
     logger.info(f"Getting campaign: {campaign_id}")
-    
+
     campaign = db.query(Campaign).filter_by(id=campaign_id).first()
-    
+
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    
+
     return campaign
 
 
@@ -375,27 +375,27 @@ async def update_campaign(
     Update a campaign.
     """
     logger.info(f"Updating campaign: {campaign_id}")
-    
+
     campaign = db.query(Campaign).filter_by(id=campaign_id).first()
-    
+
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    
+
     # Update fields
     update_data = request.dict(exclude_unset=True)
     if 'batch_settings' in update_data and update_data['batch_settings']:
         update_data['batch_settings'] = update_data['batch_settings'].dict()
-    
+
     for field, value in update_data.items():
         setattr(campaign, field, value)
-    
+
     campaign.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(campaign)
-    
+
     metrics.increment_counter("targeting_campaigns_updated")
     logger.info(f"Successfully updated campaign: {campaign_id}")
-    
+
     return campaign
 
 
@@ -408,21 +408,21 @@ async def create_batches(
 ):
     """
     Create daily batches for campaigns.
-    
+
     Acceptance Criteria:
     - Daily batch creation works
     - No duplicate batches
     """
     logger.info("Creating daily batches")
-    
+
     scheduler = BatchScheduler(session=db)
-    
+
     target_date = request.target_date or date.today()
     batch_ids = scheduler.create_daily_batches(datetime.combine(target_date, datetime.min.time()))
-    
+
     metrics.increment_counter("targeting_batches_created", len(batch_ids))
     logger.info(f"Successfully created {len(batch_ids)} batches")
-    
+
     return {
         "success": True,
         "message": f"Created {len(batch_ids)} batches",
@@ -442,9 +442,9 @@ async def list_batches(
     List campaign batches with optional filtering and pagination.
     """
     logger.info("Listing batches")
-    
+
     query = db.query(CampaignBatch)
-    
+
     # Apply filters
     if filters.campaign_id:
         query = query.filter(CampaignBatch.campaign_id == filters.campaign_id)
@@ -460,10 +460,10 @@ async def list_batches(
             query = query.filter(CampaignBatch.error_message.isnot(None))
         else:
             query = query.filter(CampaignBatch.error_message.is_(None))
-    
+
     # Apply pagination
     batches = query.offset(pagination.offset).limit(pagination.size).all()
-    
+
     return batches
 
 
@@ -477,10 +477,10 @@ async def get_pending_batches(
     Get batches ready for processing.
     """
     logger.info("Getting pending batches")
-    
+
     scheduler = BatchScheduler(session=db)
     batches = scheduler.get_pending_batches(limit=limit)
-    
+
     return batches
 
 
@@ -495,9 +495,9 @@ async def update_batch_status(
     Update batch processing status.
     """
     logger.info(f"Updating batch status: {batch_id}")
-    
+
     scheduler = BatchScheduler(session=db)
-    
+
     if request.status.value == "processing":
         success = scheduler.mark_batch_processing(batch_id)
     elif request.status.value == "completed":
@@ -511,13 +511,13 @@ async def update_batch_status(
         success = scheduler.mark_batch_failed(batch_id, request.error_message or "Unknown error")
     else:
         raise HTTPException(status_code=400, detail="Invalid status update")
-    
+
     if not success:
         raise HTTPException(status_code=404, detail="Batch not found")
-    
+
     metrics.increment_counter("targeting_batches_updated")
     logger.info(f"Successfully updated batch status: {batch_id}")
-    
+
     return BaseResponseSchema(message="Batch status updated successfully")
 
 
@@ -530,33 +530,33 @@ async def get_quota_allocation(
 ):
     """
     Get current quota allocation and usage.
-    
+
     Acceptance Criteria:
     - Quota allocation fair
     """
     logger.info("Getting quota allocation")
-    
+
     quota_tracker = QuotaTracker(session=db)
-    
+
     target_date = target_date or date.today()
-    
+
     total_quota = quota_tracker.get_daily_quota(target_date)
     used_quota = quota_tracker.get_used_quota(target_date)
     remaining_quota = quota_tracker.get_remaining_quota(target_date)
-    
+
     # Get campaign allocations
     active_campaigns = db.query(Campaign).filter(Campaign.status == "running").all()
     campaign_allocations = {}
-    
+
     for campaign in active_campaigns:
         allocation = quota_tracker.get_campaign_quota_allocation(campaign.id, target_date)
         campaign_allocations[campaign.id] = {
             "campaign_name": campaign.name,
             **allocation
         }
-    
+
     utilization_rate = (used_quota / total_quota * 100) if total_quota > 0 else 0
-    
+
     return QuotaAllocationResponseSchema(
         total_daily_quota=total_quota,
         used_quota=used_quota,
@@ -574,20 +574,20 @@ async def get_universe_priorities(
 ):
     """
     Get target universe priorities for scheduling.
-    
+
     Acceptance Criteria:
     - Priority-based scheduling
     """
     logger.info("Getting universe priorities")
-    
+
     manager = TargetUniverseManager(session=db)
     priorities = manager.rank_universes_by_priority(limit=limit)
-    
+
     result = []
     for universe, priority_score in priorities:
         freshness_score = manager.calculate_freshness_score(universe)
         total_score = (priority_score + freshness_score) / 2
-        
+
         result.append(UniversePriorityResponseSchema(
             universe_id=universe.id,
             universe_name=universe.name,
@@ -597,7 +597,7 @@ async def get_universe_priorities(
             last_refresh=universe.last_refresh,
             estimated_refresh_time=None  # Could be calculated based on priority
         ))
-    
+
     return result
 
 
@@ -612,15 +612,15 @@ async def create_geographic_boundary(
     Create a new geographic boundary.
     """
     logger.info(f"Creating geographic boundary: {request.name}")
-    
+
     boundary = GeographicBoundary(**request.dict())
     db.add(boundary)
     db.commit()
     db.refresh(boundary)
-    
+
     metrics.increment_counter("targeting_boundaries_created")
     logger.info(f"Successfully created geographic boundary: {boundary.id}")
-    
+
     return boundary
 
 
@@ -636,17 +636,17 @@ async def list_geographic_boundaries(
     List geographic boundaries with optional filtering.
     """
     logger.info("Listing geographic boundaries")
-    
+
     query = db.query(GeographicBoundary)
-    
+
     if level:
         query = query.filter(GeographicBoundary.level == level)
     if country:
         query = query.filter(GeographicBoundary.country == country)
-    
+
     # Apply pagination
     boundaries = query.offset(pagination.offset).limit(pagination.size).all()
-    
+
     return boundaries
 
 
@@ -660,11 +660,11 @@ async def targeting_health_check(db: Session = Depends(get_db)):
     try:
         # Test database connection
         db.execute("SELECT 1")
-        
+
         # Get basic stats
         universe_count = db.query(TargetUniverse).filter(TargetUniverse.is_active == True).count()
         campaign_count = db.query(Campaign).filter(Campaign.status == "running").count()
-        
+
         return {
             "status": "healthy",
             "database": "connected",

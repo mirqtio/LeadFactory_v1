@@ -24,10 +24,10 @@ __version__ = "1.0.0"
 __all__ = [
     # Models
     "ScoringResult",
-    "ScoreBreakdown", 
+    "ScoreBreakdown",
     "ScoreHistory",
     "ScoringEngine",
-    
+
     # Types
     "ScoringTier",
     "ScoreComponent",

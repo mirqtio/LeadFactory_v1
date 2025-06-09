@@ -28,7 +28,7 @@ def normalize_phone(phone: str) -> Optional[str]:
     """Normalize phone number to E.164 format"""
     # Remove all non-digits
     digits = re.sub(r'\D', '', phone)
-    
+
     # Handle US numbers
     if len(digits) == 10:
         return f"+1{digits}"
@@ -37,7 +37,7 @@ def normalize_phone(phone: str) -> Optional[str]:
     elif len(digits) > 0:
         # Assume it's already in correct format
         return f"+{digits}"
-    
+
     return None
 
 
@@ -45,17 +45,17 @@ def clean_url(url: str) -> str:
     """Clean and normalize URL"""
     if not url:
         return ""
-        
+
     # Add scheme if missing
     if not url.startswith(('http://', 'https://')):
         url = f"https://{url}"
-        
+
     # Parse and reconstruct
     parsed = urlparse(url)
-    
+
     # Remove trailing slashes from path
     path = parsed.path.rstrip('/')
-    
+
     # Reconstruct URL
     return f"{parsed.scheme}://{parsed.netloc}{path}"
 
@@ -104,13 +104,13 @@ def chunk_list(lst: List[T], chunk_size: int) -> List[List[T]]:
 def deep_merge(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
     """Deep merge two dictionaries"""
     result = dict1.copy()
-    
+
     for key, value in dict2.items():
         if key in result and isinstance(result[key], dict) and isinstance(value, dict):
             result[key] = deep_merge(result[key], value)
         else:
             result[key] = value
-            
+
     return result
 
 
@@ -126,11 +126,11 @@ def is_business_hours(dt: datetime, timezone: str = "America/New_York") -> bool:
     # Simple implementation - could be enhanced with pytz
     weekday = dt.weekday()
     hour = dt.hour
-    
+
     # Monday = 0, Sunday = 6
     is_weekday = weekday < 5
     is_business_hour = 9 <= hour < 18
-    
+
     return is_weekday and is_business_hour
 
 
@@ -145,7 +145,7 @@ def retry_async(
         @wraps(func)
         async def wrapper(*args, **kwargs):
             last_exception = None
-            
+
             for attempt in range(max_attempts):
                 try:
                     return await func(*args, **kwargs)
@@ -154,9 +154,9 @@ def retry_async(
                     if attempt < max_attempts - 1:
                         wait_time = delay * (backoff ** attempt)
                         await asyncio.sleep(wait_time)
-                    
+
             raise last_exception
-            
+
         return wrapper
     return decorator
 
@@ -189,11 +189,11 @@ def generate_slug(text: str, max_length: int = 50) -> str:
     slug = text.lower().strip()
     slug = re.sub(r'[^\w\s-]', '', slug)
     slug = re.sub(r'[-\s]+', '-', slug)
-    
+
     # Trim to max length
     if len(slug) > max_length:
         slug = slug[:max_length].rsplit('-', 1)[0]
-        
+
     return slug
 
 
@@ -201,7 +201,7 @@ def mask_sensitive_data(data: str, visible_chars: int = 4) -> str:
     """Mask sensitive data showing only last N characters"""
     if len(data) <= visible_chars:
         return "*" * len(data)
-    
+
     masked_length = len(data) - visible_chars
     return "*" * masked_length + data[-visible_chars:]
 
@@ -215,24 +215,24 @@ def calculate_rate_limit_wait(
     """Calculate wait time to avoid rate limits"""
     # Check if we're close to the limit
     threshold = limit * (1 - buffer_percent)
-    
+
     if used < threshold:
         return None  # No need to wait
-        
+
     # Calculate time until reset
     now = datetime.utcnow()
     time_until_reset = (reset_time - now).total_seconds()
-    
+
     if time_until_reset <= 0:
         return None  # Already reset
-        
+
     # Calculate wait time based on remaining capacity
     remaining = limit - used
     if remaining <= 0:
         return time_until_reset  # Wait full reset period
-        
+
     # Proportional wait
     wait_fraction = (used - threshold) / (limit - threshold)
     wait_time = time_until_reset * wait_fraction
-    
+
     return max(wait_time, 1.0)  # Minimum 1 second wait

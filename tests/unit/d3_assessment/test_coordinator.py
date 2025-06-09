@@ -108,7 +108,7 @@ class TestTask034AcceptanceCriteria:
         """
         # Track execution timing
         start_time = datetime.utcnow()
-        
+
         # Execute comprehensive assessment with all types
         result = await coordinator.execute_comprehensive_assessment(
             business_id="test-business-123",
@@ -120,37 +120,37 @@ class TestTask034AcceptanceCriteria:
             ],
             industry="ecommerce"
         )
-        
+
         end_time = datetime.utcnow()
         execution_duration = (end_time - start_time).total_seconds()
-        
+
         # Verify result structure
         assert isinstance(result, CoordinatorResult)
         assert result.business_id == "test-business-123"
         assert result.total_assessments == 3
         assert result.completed_assessments == 3
         assert result.failed_assessments == 0
-        
+
         # Verify all assessment types completed
         assert AssessmentType.PAGESPEED in result.partial_results
         assert AssessmentType.TECH_STACK in result.partial_results
         assert AssessmentType.AI_INSIGHTS in result.partial_results
-        
+
         # Verify all results are valid
         for assessment_type, assessment_result in result.partial_results.items():
             assert assessment_result is not None
             assert assessment_result.status == AssessmentStatus.COMPLETED
             assert assessment_result.business_id == "test-business-123"
-        
+
         # Verify timing suggests parallel execution (should be much faster than sequential)
         # If sequential, would take 3x as long, parallel should be close to single execution time
         assert execution_duration < 5.0, "Parallel execution should be fast"
-        
+
         # Verify concurrent calls were made
         assert coordinator.pagespeed_assessor.assess_website.called
         assert coordinator.techstack_detector.detect_technologies.called
         assert coordinator.llm_generator.generate_comprehensive_insights.called
-        
+
         print("✓ Parallel assessment execution works correctly")
 
     @pytest.mark.asyncio
@@ -164,7 +164,7 @@ class TestTask034AcceptanceCriteria:
         coordinator.pagespeed_assessor.assess_website = AsyncMock(
             side_effect=asyncio.sleep(10)  # 10 second delay, will timeout
         )
-        
+
         # Set short timeout for testing
         result = await coordinator.execute_comprehensive_assessment(
             business_id="test-business-timeout",
@@ -172,19 +172,19 @@ class TestTask034AcceptanceCriteria:
             assessment_types=[AssessmentType.PAGESPEED],
             session_config={"timeout_seconds": 1}  # 1 second timeout
         )
-        
+
         # Verify timeout was handled
         assert result.failed_assessments == 1
         assert result.completed_assessments == 0
         assert AssessmentType.PAGESPEED in result.errors
         assert "timed out" in result.errors[AssessmentType.PAGESPEED].lower()
-        
+
         # Verify partial result was created for timeout
         pagespeed_result = result.partial_results.get(AssessmentType.PAGESPEED)
         if pagespeed_result:
             assert pagespeed_result.status == AssessmentStatus.FAILED
             assert "timed out" in pagespeed_result.error_message.lower()
-        
+
         print("✓ Timeout handling works correctly")
 
     @pytest.mark.asyncio
@@ -199,7 +199,7 @@ class TestTask034AcceptanceCriteria:
             side_effect=Exception("PageSpeed API Error")
         )
         # Other assessments succeed (already mocked in fixtures)
-        
+
         result = await coordinator.execute_comprehensive_assessment(
             business_id="test-business-partial",
             url="https://partial-fail.com",
@@ -210,25 +210,25 @@ class TestTask034AcceptanceCriteria:
             ],
             industry="technology"
         )
-        
+
         # Verify partial success
         assert result.total_assessments == 3
         assert result.completed_assessments == 2  # 2 succeeded
         assert result.failed_assessments == 1     # 1 failed
-        
+
         # Verify successful assessments have results
         assert AssessmentType.TECH_STACK in result.partial_results
         assert AssessmentType.AI_INSIGHTS in result.partial_results
         assert result.partial_results[AssessmentType.TECH_STACK] is not None
         assert result.partial_results[AssessmentType.AI_INSIGHTS] is not None
-        
+
         # Verify failed assessment is tracked
         assert AssessmentType.PAGESPEED in result.errors
         assert "PageSpeed API Error" in result.errors[AssessmentType.PAGESPEED]
-        
+
         # Verify session status is PARTIAL (not COMPLETED or FAILED)
         # This would be tested with actual database integration
-        
+
         print("✓ Partial results saved correctly")
 
     @pytest.mark.asyncio
@@ -257,42 +257,42 @@ class TestTask034AcceptanceCriteria:
                     domain="example.com",
                     performance_score=85
                 )
-        
+
         coordinator.pagespeed_assessor.assess_website = AsyncMock(
             side_effect=failing_then_succeeding
         )
-        
+
         result = await coordinator.execute_comprehensive_assessment(
             business_id="test-business-retry",
             url="https://retry-test.com",
             assessment_types=[AssessmentType.PAGESPEED],
             industry="default"
         )
-        
+
         # Verify retry worked and assessment eventually succeeded
         assert result.completed_assessments == 1
         assert result.failed_assessments == 0
         assert AssessmentType.PAGESPEED in result.partial_results
         assert result.partial_results[AssessmentType.PAGESPEED].status == AssessmentStatus.COMPLETED
-        
+
         # Verify retry was attempted (call_count should be 2)
         assert call_count == 2, "Should have retried after initial failure"
-        
+
         # Test permanent failure after retries
         coordinator.pagespeed_assessor.assess_website = AsyncMock(
             side_effect=Exception("Permanent API failure")
         )
-        
+
         result2 = await coordinator.execute_comprehensive_assessment(
             business_id="test-business-permanent-fail",
             url="https://permanent-fail.com",
             assessment_types=[AssessmentType.PAGESPEED]
         )
-        
+
         # Verify permanent failure is handled
         assert result2.failed_assessments == 1
         assert AssessmentType.PAGESPEED in result2.errors
-        
+
         print("✓ Error recovery with retry logic works correctly")
 
     @pytest.mark.asyncio
@@ -306,7 +306,7 @@ class TestTask034AcceptanceCriteria:
                 "industry": "ecommerce"
             },
             {
-                "business_id": "business-2", 
+                "business_id": "business-2",
                 "url": "https://site2.com",
                 "assessment_types": [AssessmentType.TECH_STACK],
                 "industry": "healthcare"
@@ -318,12 +318,12 @@ class TestTask034AcceptanceCriteria:
                 "industry": "finance"
             }
         ]
-        
+
         results = await coordinator.execute_batch_assessments(
             assessment_configs=assessment_configs,
             max_concurrent_sessions=2
         )
-        
+
         # Verify batch results
         assert len(results) == 3
         for i, result in enumerate(results):
@@ -331,7 +331,7 @@ class TestTask034AcceptanceCriteria:
                 assert result.business_id == f"business-{i+1}"
                 assert result.total_assessments == 1
                 assert result.completed_assessments == 1
-        
+
         print("✓ Batch assessment execution works correctly")
 
     @pytest.mark.asyncio
@@ -345,23 +345,23 @@ class TestTask034AcceptanceCriteria:
             timeout_seconds=180,
             retry_count=3
         )
-        
+
         low_priority_request = AssessmentRequest(
             assessment_type=AssessmentType.TECH_STACK,
-            url="https://low-priority.com", 
+            url="https://low-priority.com",
             priority=AssessmentPriority.LOW,
             timeout_seconds=120,
             retry_count=1
         )
-        
+
         # Verify priority mapping
         assert coordinator._get_assessment_priority(AssessmentType.PAGESPEED) == AssessmentPriority.HIGH
         assert coordinator._get_assessment_priority(AssessmentType.TECH_STACK) == AssessmentPriority.MEDIUM
-        
+
         # Verify timeout mapping
         assert coordinator._get_assessment_timeout(AssessmentType.PAGESPEED) == 180
         assert coordinator._get_assessment_timeout(AssessmentType.AI_INSIGHTS) == 300
-        
+
         print("✓ Assessment prioritization works correctly")
 
     @pytest.mark.asyncio
@@ -374,23 +374,23 @@ class TestTask034AcceptanceCriteria:
             industry="retail",
             session_config={"custom_param": "test_value"}
         )
-        
+
         # Verify session data
         assert result.session_id is not None
         assert result.business_id == "test-session-mgmt"
         assert result.started_at <= result.completed_at
         assert result.execution_time_ms > 0
-        
+
         # Test session status tracking
         status = coordinator.get_assessment_status(result.session_id)
         assert status["session_id"] == result.session_id
         assert "status" in status
         assert "progress" in status
-        
+
         # Test session cancellation
         cancellation_result = await coordinator.cancel_session(result.session_id)
         assert cancellation_result is True
-        
+
         print("✓ Session management works correctly")
 
     @pytest.mark.asyncio
@@ -406,22 +406,22 @@ class TestTask034AcceptanceCriteria:
             ],
             industry="technology"
         )
-        
+
         # Verify cost aggregation
         assert result.total_cost_usd > Decimal("0")
-        
+
         # Should include costs from pagespeed and LLM insights
         # (tech stack has no direct cost in mock)
         expected_min_cost = Decimal("0.15") + Decimal("0.35")  # From mocks
         assert result.total_cost_usd >= expected_min_cost
-        
+
         print("✓ Cost aggregation works correctly")
 
-    @pytest.mark.asyncio 
+    @pytest.mark.asyncio
     async def test_scheduler_functionality(self, coordinator):
         """Test assessment scheduler with priority queue"""
         scheduler = AssessmentScheduler(coordinator)
-        
+
         # Schedule assessments with different priorities
         session_id_1 = await scheduler.schedule_assessment(
             business_id="sched-test-1",
@@ -429,27 +429,27 @@ class TestTask034AcceptanceCriteria:
             priority=AssessmentPriority.HIGH,
             assessment_types=[AssessmentType.PAGESPEED]
         )
-        
+
         session_id_2 = await scheduler.schedule_assessment(
-            business_id="sched-test-2", 
+            business_id="sched-test-2",
             url="https://low-priority.com",
             priority=AssessmentPriority.LOW,
             assessment_types=[AssessmentType.TECH_STACK]
         )
-        
+
         # Verify session IDs generated
         assert session_id_1 is not None
         assert session_id_2 is not None
         assert session_id_1 != session_id_2
-        
+
         # Verify priority queue has items
         assert not scheduler.priority_queue.empty()
-        
+
         # Test priority value mapping
         assert scheduler._get_priority_value(AssessmentPriority.CRITICAL) == 1
         assert scheduler._get_priority_value(AssessmentPriority.HIGH) == 2
         assert scheduler._get_priority_value(AssessmentPriority.LOW) == 4
-        
+
         print("✓ Scheduler functionality works correctly")
 
     def test_coordinator_error_handling(self):
@@ -457,10 +457,10 @@ class TestTask034AcceptanceCriteria:
         # Test CoordinatorError
         with pytest.raises(CoordinatorError):
             raise CoordinatorError("Test coordinator error")
-        
+
         # Test unsupported assessment type handling would be tested
         # in actual _run_assessment method with invalid type
-        
+
         print("✓ Coordinator error handling works correctly")
 
     def test_domain_extraction(self, coordinator):
@@ -468,7 +468,7 @@ class TestTask034AcceptanceCriteria:
         assert coordinator._extract_domain("https://www.example.com/path") == "example.com"
         assert coordinator._extract_domain("http://subdomain.test.org") == "subdomain.test.org"
         assert coordinator._extract_domain("https://shop.example.co.uk/products") == "shop.example.co.uk"
-        
+
         print("✓ Domain extraction works correctly")
 
     @pytest.mark.asyncio
@@ -480,7 +480,7 @@ class TestTask034AcceptanceCriteria:
             url="https://comprehensive-test.com",
             assessment_types=[
                 AssessmentType.PAGESPEED,
-                AssessmentType.TECH_STACK, 
+                AssessmentType.TECH_STACK,
                 AssessmentType.AI_INSIGHTS
             ],
             industry="ecommerce",
@@ -490,7 +490,7 @@ class TestTask034AcceptanceCriteria:
                 "custom_settings": {"detailed_analysis": True}
             }
         )
-        
+
         # Verify comprehensive result structure
         assert result.session_id is not None
         assert result.business_id == "comprehensive-test"
@@ -502,7 +502,7 @@ class TestTask034AcceptanceCriteria:
         assert result.total_cost_usd > Decimal("0")
         assert result.execution_time_ms > 0
         assert result.started_at <= result.completed_at
-        
+
         # Verify each assessment type completed successfully
         for assessment_type in [AssessmentType.PAGESPEED, AssessmentType.TECH_STACK, AssessmentType.AI_INSIGHTS]:
             assert assessment_type in result.partial_results
@@ -510,19 +510,19 @@ class TestTask034AcceptanceCriteria:
             assert assessment_result.business_id == "comprehensive-test"
             assert assessment_result.url == "https://comprehensive-test.com"
             assert assessment_result.domain == "comprehensive-test.com"
-        
+
         # Verify tech stack result structure
         tech_result = result.partial_results[AssessmentType.TECH_STACK]
         assert tech_result.tech_stack_data is not None
         assert "technologies" in tech_result.tech_stack_data
         assert len(tech_result.tech_stack_data["technologies"]) == 2
-        
+
         # Verify AI insights result structure
         ai_result = result.partial_results[AssessmentType.AI_INSIGHTS]
         assert ai_result.ai_insights_data is not None
         assert "insights" in ai_result.ai_insights_data
         assert ai_result.total_cost_usd == Decimal("0.35")
-        
+
         print("✓ Comprehensive coordinator flow works correctly")
 
 
@@ -539,7 +539,7 @@ if __name__ == "__main__":
         try:
             # Create fixtures manually for direct execution
             from unittest.mock import AsyncMock, MagicMock
-            
+
             # Mock assessors
             mock_pagespeed = test_instance.mock_pagespeed_assessor()
             mock_techstack = test_instance.mock_techstack_detector()
@@ -551,7 +551,7 @@ if __name__ == "__main__":
             await test_instance.test_timeout_handling_works(coordinator)
             await test_instance.test_partial_results_saved(coordinator)
             await test_instance.test_error_recovery_implemented(coordinator)
-            
+
             # Run additional functionality tests
             await test_instance.test_batch_assessment_execution(coordinator)
             await test_instance.test_assessment_prioritization(coordinator)

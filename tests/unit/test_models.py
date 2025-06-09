@@ -41,17 +41,17 @@ class TestBusinessModel:
             vertical="restaurant",
             rating=Decimal("4.5")
         )
-        
+
         test_session.add(business)
         test_session.commit()
-        
+
         # Query back
         saved = test_session.query(Business).filter_by(yelp_id="test-yelp-123").first()
         assert saved is not None
         assert saved.name == "Test Restaurant"
         assert saved.rating == Decimal("4.5")
         assert saved.id is not None  # UUID generated
-        
+
     def test_business_relationships(self, test_session):
         """Test business relationships with other models"""
         # Create business
@@ -62,7 +62,7 @@ class TestBusinessModel:
         )
         test_session.add(business)
         test_session.commit()
-        
+
         # Add assessment
         assessment = AssessmentResult(
             business_id=business.id,
@@ -71,7 +71,7 @@ class TestBusinessModel:
             seo_score=85
         )
         test_session.add(assessment)
-        
+
         # Add scoring
         score = ScoringResult(
             business_id=business.id,
@@ -83,7 +83,7 @@ class TestBusinessModel:
         )
         test_session.add(score)
         test_session.commit()
-        
+
         # Test relationships
         assert len(business.assessments) == 1
         assert business.assessments[0].performance_score == 75
@@ -101,13 +101,13 @@ class TestTargetingModels:
             estimated_businesses=5000,
             priority_score=Decimal("0.8")
         )
-        
+
         test_session.add(target)
         test_session.commit()
-        
+
         assert target.id is not None
         assert target.is_active is True
-        
+
     def test_batch_creation(self, test_session):
         """Test batch creation with target"""
         # Create target
@@ -118,7 +118,7 @@ class TestTargetingModels:
         )
         test_session.add(target)
         test_session.commit()
-        
+
         # Create batch
         batch = Batch(
             target_id=target.id,
@@ -128,7 +128,7 @@ class TestTargetingModels:
         )
         test_session.add(batch)
         test_session.commit()
-        
+
         assert batch.target.geo_value == "10001"
         assert len(target.batches) == 1
 
@@ -140,7 +140,7 @@ class TestEmailModels:
         business = Business(yelp_id="test-789", name="Test Biz")
         test_session.add(business)
         test_session.commit()
-        
+
         # Create email
         email = Email(
             business_id=business.id,
@@ -151,12 +151,12 @@ class TestEmailModels:
         )
         test_session.add(email)
         test_session.commit()
-        
+
         # Update status
         email.status = EmailStatus.SENT
         email.sent_at = datetime.utcnow()
         test_session.commit()
-        
+
         # Add click
         click = EmailClick(
             email_id=email.id,
@@ -166,7 +166,7 @@ class TestEmailModels:
         )
         test_session.add(click)
         test_session.commit()
-        
+
         assert len(email.clicks) == 1
         assert email.clicks[0].url == "https://leadfactory.com/report/123"
 
@@ -178,7 +178,7 @@ class TestPurchaseModel:
         business = Business(yelp_id="test-purchase", name="Purchase Test")
         test_session.add(business)
         test_session.commit()
-        
+
         # Create purchase
         purchase = Purchase(
             business_id=business.id,
@@ -191,13 +191,13 @@ class TestPurchaseModel:
         )
         test_session.add(purchase)
         test_session.commit()
-        
+
         # Complete purchase
         purchase.status = PurchaseStatus.COMPLETED
         purchase.completed_at = datetime.utcnow()
         purchase.stripe_payment_intent_id = "pi_test_456"
         test_session.commit()
-        
+
         assert purchase.amount_cents == 19900
         assert purchase.currency == "USD"
         assert purchase.status == PurchaseStatus.COMPLETED
@@ -214,10 +214,10 @@ class TestGatewayModels:
             response_time_ms=250,
             status_code=200
         )
-        
+
         test_session.add(usage)
         test_session.commit()
-        
+
         assert usage.id is not None
         assert usage.cost_usd == Decimal("0.001")
 
@@ -234,10 +234,10 @@ class TestExperimentModels:
                 {"name": "question", "weight": 25}
             ]
         )
-        
+
         test_session.add(experiment)
         test_session.commit()
-        
+
         assert experiment.status == ExperimentStatus.DRAFT
         assert len(experiment.variants) == 3
         assert experiment.variants[0]["weight"] == 50

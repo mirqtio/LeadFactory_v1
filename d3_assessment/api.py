@@ -85,13 +85,13 @@ async def trigger_assessment(
 ) -> TriggerAssessmentResponse:
     """
     Trigger a new website assessment
-    
+
     Acceptance Criteria: Trigger assessment endpoint
     """
     try:
         # Validate inputs
         validate_business_id(request.business_id)
-        
+
         # Set default assessment types if not provided
         assessment_types = request.assessment_types
         if not assessment_types:
@@ -100,15 +100,15 @@ async def trigger_assessment(
                 AssessmentType.TECH_STACK,
                 AssessmentType.AI_INSIGHTS
             ]
-        
+
         # Generate session ID
         session_id = f"sess_{uuid.uuid4().hex[:12]}"
-        
+
         # Calculate estimated completion time
         base_time_per_assessment = 60  # seconds
         total_estimated_seconds = len(assessment_types) * base_time_per_assessment
         estimated_completion = datetime.utcnow() + timedelta(seconds=total_estimated_seconds)
-        
+
         # Start assessment in background
         async def run_assessment():
             try:
@@ -121,12 +121,12 @@ async def trigger_assessment(
                 )
                 result.session_id = session_id  # Ensure session ID matches
                 await store_assessment_result(session_id, result)
-                
+
                 # Send callback if provided
                 if request.callback_url:
                     # In production, would make HTTP POST to callback URL
                     logger.info(f"Would send callback to {request.callback_url} for session {session_id}")
-                    
+
             except Exception as e:
                 logger.error(f"Assessment failed for session {session_id}: {str(e)}")
                 # Store failed result
@@ -144,10 +144,10 @@ async def trigger_assessment(
                     completed_at=datetime.utcnow()
                 )
                 await store_assessment_result(session_id, failed_result)
-        
+
         # Add to background tasks
         background_tasks.add_task(run_assessment)
-        
+
         return TriggerAssessmentResponse(
             session_id=session_id,
             business_id=request.business_id,
@@ -156,7 +156,7 @@ async def trigger_assessment(
             estimated_completion_time=estimated_completion,
             tracking_url=f"/api/v1/assessments/{session_id}/status"
         )
-        
+
     except ValueError as e:
         raise create_error_response("validation_error", str(e))
     except Exception as e:
@@ -176,19 +176,19 @@ async def get_assessment_status(
 ) -> AssessmentStatusResponse:
     """
     Check assessment status and progress
-    
+
     Acceptance Criteria: Status checking works
     """
     try:
         validate_session_id(session_id)
-        
+
         # Check if assessment is completed
         if session_id in assessment_sessions:
             result = assessment_sessions[session_id]
-            
+
             # Calculate progress
             progress = f"{result.completed_assessments}/{result.total_assessments} complete"
-            
+
             # Determine status
             if result.failed_assessments == result.total_assessments:
                 status = AssessmentStatus.FAILED
@@ -198,12 +198,12 @@ async def get_assessment_status(
                 status = AssessmentStatus.PARTIAL
             else:
                 status = AssessmentStatus.RUNNING
-            
+
             # Extract error messages
             errors = None
             if result.errors:
                 errors = [f"{k}: {v}" for k, v in result.errors.items()]
-            
+
             return AssessmentStatusResponse(
                 session_id=session_id,
                 business_id=result.business_id,
@@ -221,7 +221,7 @@ async def get_assessment_status(
         else:
             # Assessment still running or not found - use coordinator status
             status_info = coord.get_assessment_status(session_id)
-            
+
             return AssessmentStatusResponse(
                 session_id=session_id,
                 business_id="unknown",  # Would get from database in production
@@ -236,7 +236,7 @@ async def get_assessment_status(
                 current_step="Processing assessments...",
                 errors=None
             )
-            
+
     except ValueError as e:
         raise create_error_response("validation_error", str(e))
     except Exception as e:
@@ -256,12 +256,12 @@ async def get_assessment_results(
 ) -> AssessmentResults:
     """
     Get complete assessment results
-    
+
     Acceptance Criteria: Results retrieval API
     """
     try:
         validate_session_id(session_id)
-        
+
         # Check if results are available
         if session_id not in assessment_sessions:
             raise create_error_response(
@@ -269,9 +269,9 @@ async def get_assessment_results(
                 f"Assessment session {session_id} not found or still running",
                 status_code=404
             )
-        
+
         result = assessment_sessions[session_id]
-        
+
         # Check if assessment is complete
         if result.completed_assessments + result.failed_assessments < result.total_assessments:
             raise create_error_response(
@@ -280,12 +280,12 @@ async def get_assessment_results(
                 {"session_id": session_id, "status": "running"},
                 status_code=409
             )
-        
+
         # Extract results by type
         pagespeed_results = None
         tech_stack_results = None
         ai_insights_results = None
-        
+
         # Process PageSpeed results
         if AssessmentType.PAGESPEED in result.partial_results:
             ps_result = result.partial_results[AssessmentType.PAGESPEED]
@@ -301,7 +301,7 @@ async def get_assessment_results(
                     speed_index=ps_result.speed_index,
                     time_to_interactive=ps_result.time_to_interactive
                 )
-        
+
         # Process Tech Stack results
         if AssessmentType.TECH_STACK in result.partial_results:
             ts_result = result.partial_results[AssessmentType.TECH_STACK]
@@ -315,7 +315,7 @@ async def get_assessment_results(
                     )
                     for tech in ts_result.tech_stack_data.get("technologies", [])
                 ]
-        
+
         # Process AI Insights results
         if AssessmentType.AI_INSIGHTS in result.partial_results:
             ai_result = result.partial_results[AssessmentType.AI_INSIGHTS]
@@ -328,7 +328,7 @@ async def get_assessment_results(
                     ai_model_version=ai_result.ai_insights_data.get("model_version", "unknown"),
                     processing_cost_usd=Decimal(str(ai_result.ai_insights_data.get("total_cost_usd", 0)))
                 )
-        
+
         # Determine final status
         final_status = AssessmentStatus.COMPLETED
         if result.failed_assessments > 0:
@@ -336,7 +336,7 @@ async def get_assessment_results(
                 final_status = AssessmentStatus.FAILED
             else:
                 final_status = AssessmentStatus.PARTIAL
-        
+
         return AssessmentResults(
             session_id=session_id,
             business_id=result.business_id,
@@ -356,7 +356,7 @@ async def get_assessment_results(
             total_cost_usd=result.total_cost_usd,
             errors=result.errors if result.errors else None
         )
-        
+
     except HTTPException:
         raise
     except ValueError as e:
@@ -381,7 +381,7 @@ async def trigger_batch_assessment(
     try:
         batch_id = request.batch_id or f"batch_{uuid.uuid4().hex[:12]}"
         session_ids = []
-        
+
         # Validate all requests first
         for i, assessment in enumerate(request.assessments):
             try:
@@ -392,13 +392,13 @@ async def trigger_batch_assessment(
                     f"Invalid assessment {i+1}: {str(e)}",
                     {"assessment_index": i, "business_id": assessment.business_id}
                 )
-        
+
         # Convert requests to coordinator configs
         assessment_configs = []
         for assessment in request.assessments:
             session_id = f"sess_{uuid.uuid4().hex[:12]}"
             session_ids.append(session_id)
-            
+
             assessment_types = assessment.assessment_types
             if not assessment_types:
                 assessment_types = [
@@ -406,7 +406,7 @@ async def trigger_batch_assessment(
                     AssessmentType.TECH_STACK,
                     AssessmentType.AI_INSIGHTS
                 ]
-            
+
             config = {
                 "business_id": assessment.business_id,
                 "url": str(assessment.url),
@@ -415,10 +415,10 @@ async def trigger_batch_assessment(
                 "session_config": assessment.session_config
             }
             assessment_configs.append(config)
-        
+
         # Store batch info
         batch_sessions[batch_id] = session_ids
-        
+
         # Start batch processing in background
         async def run_batch_assessment():
             try:
@@ -426,7 +426,7 @@ async def trigger_batch_assessment(
                     assessment_configs=assessment_configs,
                     max_concurrent_sessions=request.max_concurrent
                 )
-                
+
                 # Store individual results
                 for i, result in enumerate(results):
                     if isinstance(result, CoordinatorResult):
@@ -435,18 +435,18 @@ async def trigger_batch_assessment(
                     else:
                         # Handle failed result
                         logger.error(f"Batch assessment failed for session {session_ids[i]}: {result}")
-                        
+
             except Exception as e:
                 logger.error(f"Batch assessment failed for batch {batch_id}: {str(e)}")
-        
+
         background_tasks.add_task(run_batch_assessment)
-        
+
         # Calculate estimated completion time
         avg_time_per_assessment = 90  # seconds
         estimated_completion = datetime.utcnow() + timedelta(
             seconds=avg_time_per_assessment * len(request.assessments) / request.max_concurrent
         )
-        
+
         return BatchAssessmentResponse(
             batch_id=batch_id,
             total_assessments=len(request.assessments),
@@ -454,7 +454,7 @@ async def trigger_batch_assessment(
             estimated_completion_time=estimated_completion,
             tracking_url=f"/api/v1/assessments/batch/{batch_id}/status"
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -474,7 +474,7 @@ async def cancel_assessment(
     """Cancel a running assessment"""
     try:
         validate_session_id(session_id)
-        
+
         # Check if assessment exists
         if session_id in assessment_sessions:
             result = assessment_sessions[session_id]
@@ -484,10 +484,10 @@ async def cancel_assessment(
                     "Cannot cancel completed assessment",
                     status_code=409
                 )
-        
+
         # Attempt to cancel
         cancelled = await coord.cancel_session(session_id)
-        
+
         if cancelled:
             return JSONResponse(
                 content={"message": f"Assessment {session_id} cancelled successfully"},
@@ -499,7 +499,7 @@ async def cancel_assessment(
                 "Failed to cancel assessment",
                 status_code=500
             )
-            
+
     except HTTPException:
         raise
     except ValueError as e:
@@ -518,7 +518,7 @@ async def cancel_assessment(
 async def health_check() -> HealthCheckResponse:
     """
     Health check endpoint
-    
+
     Acceptance Criteria: Proper error responses (includes health monitoring)
     """
     try:
@@ -529,17 +529,17 @@ async def health_check() -> HealthCheckResponse:
             "llm_service": "healthy",
             "assessment_coordinator": "healthy"
         }
-        
+
         # Calculate uptime (would use actual start time in production)
         uptime_seconds = 86400  # 24 hours for demo
-        
+
         return HealthCheckResponse(
             status="healthy",
             version="1.0.0",
             uptime_seconds=uptime_seconds,
             dependencies=dependencies
         )
-        
+
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         return HealthCheckResponse(
@@ -567,5 +567,5 @@ def _get_current_step(result: CoordinatorResult) -> Optional[str]:
 # Note: Exception handlers would be added at the app level, not router level
 # These would be implemented in the main FastAPI app:
 # @app.exception_handler(404)
-# @app.exception_handler(422) 
+# @app.exception_handler(422)
 # @app.exception_handler(500)

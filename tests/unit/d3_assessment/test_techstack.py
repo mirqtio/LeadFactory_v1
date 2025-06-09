@@ -141,16 +141,16 @@ class TestTask032AcceptanceCriteria:
 
             # Should detect multiple frameworks
             detected_names = [d.technology_name for d in detections]
-            
+
             # React should be detected (high confidence from __REACT_DEVTOOLS_GLOBAL_HOOK__)
             assert any("React" in name for name in detected_names)
-            
+
             # Vue should be detected (data-v- attribute and vue.js)
             assert any("Vue" in name for name in detected_names)
-            
+
             # jQuery should be detected
             assert any("Jquery" in name for name in detected_names)
-            
+
             # Bootstrap should be detected
             assert any("Bootstrap" in name for name in detected_names)
 
@@ -160,9 +160,9 @@ class TestTask032AcceptanceCriteria:
                 url="https://example.com",
                 content=mock_html_content
             )
-            
+
             assert len(frameworks) >= 3  # React, Vue, jQuery, Bootstrap
-            
+
             # Check confidence levels - at least one high confidence detection
             high_confidence_frameworks = [f for f in frameworks if f.confidence > 0.8]
             assert len(high_confidence_frameworks) >= 1
@@ -222,7 +222,7 @@ class TestTask032AcceptanceCriteria:
                 url="https://example.com",
                 content=mock_html_content
             )
-            
+
             assert len(cms_detections) >= 1
             assert cms_detections[0].confidence > 0.5  # Higher threshold for CMS
             assert cms_detections[0].category == TechCategory.CMS
@@ -294,9 +294,9 @@ class TestTask032AcceptanceCriteria:
                 url="https://example.com",
                 content=mock_html_content
             )
-            
+
             assert len(analytics_detections) >= 2  # Google Analytics + Facebook Pixel
-            
+
             # Verify all are analytics category
             for detection in analytics_detections:
                 assert detection.category == TechCategory.ANALYTICS
@@ -311,34 +311,34 @@ class TestTask032AcceptanceCriteria:
         """
         # Test efficient regex matching
         content = "This is a test with react and bootstrap content"
-        
+
         # Test valid patterns
         assert detector._pattern_matches("react", content) is True
         assert detector._pattern_matches("bootstrap", content) is True
         assert detector._pattern_matches("nonexistent", content) is False
-        
+
         # Test case insensitive matching
         assert detector._pattern_matches("REACT", content) is True
         assert detector._pattern_matches("Bootstrap", content) is True
-        
+
         # Test regex patterns
         assert detector._pattern_matches("react.*bootstrap", content) is True
         assert detector._pattern_matches("test\\s+with", content) is True
-        
+
         # Test invalid regex fallback to string matching
         assert detector._pattern_matches("[invalid regex", content) is False
-        
+
         # Test performance with large content
         large_content = content * 1000  # 1000x larger content
         import time
-        
+
         start_time = time.time()
         result = detector._pattern_matches("react", large_content)
         end_time = time.time()
-        
+
         assert result is True
         assert (end_time - start_time) < 0.1  # Should be very fast
-        
+
         # Test pattern loading efficiency
         assert detector.patterns is not None
         assert isinstance(detector.patterns, dict)
@@ -353,17 +353,17 @@ class TestTask032AcceptanceCriteria:
         <meta name="generator" content="WordPress 6.0.1" />
         <!-- React v18.2.0 -->
         """
-        
+
         # Test version extraction
         jquery_version = detector._extract_version(content_with_versions, "jquery")
         assert jquery_version == "3.6.0"
-        
+
         wordpress_version = detector._extract_version(content_with_versions, "WordPress")
         assert wordpress_version == "6.0.1"
-        
+
         react_version = detector._extract_version(content_with_versions, "React")
         assert react_version == "18.2.0"
-        
+
         # Test no version found
         no_version = detector._extract_version(content_with_versions, "nonexistent")
         assert no_version is None
@@ -386,13 +386,13 @@ class TestTask032AcceptanceCriteria:
         """Test efficient content fetching with size limits"""
         # Mock the fetch method directly to test content size limiting
         large_content = "a" * 600000  # 600KB content
-        
+
         with patch.object(detector, '_fetch_website_content') as mock_fetch:
             # Simulate the content size limiting behavior
             mock_fetch.return_value = large_content[:500000]  # Limit to 500KB
-            
+
             content = await detector._fetch_website_content("https://example.com")
-            
+
             # Should limit content to 500KB
             assert content is not None
             assert len(content) == 500000
@@ -404,12 +404,12 @@ class TestTask032AcceptanceCriteria:
     async def test_batch_detection(self):
         """Test batch technology detection"""
         batch_detector = TechStackBatchDetector(max_concurrent=2)
-        
+
         websites = [
             {"assessment_id": "test1", "url": "https://example1.com"},
             {"assessment_id": "test2", "url": "https://example2.com"}
         ]
-        
+
         # Mock single detector
         with patch.object(batch_detector.detector, 'detect_technologies', new_callable=AsyncMock) as mock_detect:
             mock_detect.return_value = [
@@ -421,13 +421,13 @@ class TestTask032AcceptanceCriteria:
                     detection_method="pattern_matching"
                 )
             ]
-            
+
             results = await batch_detector.detect_multiple_websites(websites)
-            
+
             assert len(results) == 2
             assert "https://example1.com" in results
             assert "https://example2.com" in results
-            
+
             # Should handle concurrent processing
             assert mock_detect.call_count == 2
 
@@ -459,18 +459,18 @@ class TestTask032AcceptanceCriteria:
                 detection_method="pattern_matching"
             )
         ]
-        
+
         summary = detector.get_technology_summary(detections)
-        
+
         assert summary["total_technologies"] == 3
         assert "cms" in summary["categories"]
         assert "frontend" in summary["categories"]
         assert "analytics" in summary["categories"]
-        
+
         assert summary["cms_detected"] == "WordPress"
         assert summary["primary_framework"] == "React"
         assert "Google Analytics" in summary["analytics_tools"]
-        
+
         # Check confidence distribution (all our test detections are high confidence)
         assert summary["confidence_distribution"]["high"] == 3  # WordPress (0.95), React (0.85), Google Analytics (0.90)
         assert summary["confidence_distribution"]["medium"] == 0
@@ -481,7 +481,7 @@ class TestTask032AcceptanceCriteria:
     def test_technology_analyzer(self):
         """Test advanced technology analysis"""
         analyzer = TechStackAnalyzer()
-        
+
         # Mock detections for multiple websites
         detections_list = [
             [  # Website 1
@@ -519,17 +519,17 @@ class TestTask032AcceptanceCriteria:
                 )
             ]
         ]
-        
+
         trends = analyzer.analyze_technology_trends(detections_list)
-        
+
         assert trends["total_websites_analyzed"] == 2
         assert ("WordPress", 2) in trends["popular_technologies"]
         assert ("React", 1) in trends["popular_technologies"]
-        
+
         # Test recommendations
         current_stack = detections_list[0]  # First website's stack
         recommendations = analyzer.generate_technology_recommendations(current_stack, trends)
-        
+
         assert len(recommendations) > 0
         # Should recommend missing categories or popular technologies
 

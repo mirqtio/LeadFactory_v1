@@ -146,71 +146,71 @@ cache_misses = Counter(
 
 class MetricsCollector:
     """Helper class for collecting metrics"""
-    
+
     def __init__(self):
         self.logger = get_logger("metrics")
-        
+
         # Set application info
         app_info.info({
             'version': '1.0.0',
             'environment': 'production'
         })
-    
+
     def track_request(self, method: str, endpoint: str, status: int, duration: float):
         """Track HTTP request metrics"""
         request_count.labels(method=method, endpoint=endpoint, status=str(status)).inc()
         request_duration.labels(method=method, endpoint=endpoint).observe(duration)
-        
+
     def track_business_processed(self, source: str, status: str = "success"):
         """Track business processing"""
         businesses_processed.labels(source=source, status=status).inc()
-        
+
     def track_assessment_created(self, assessment_type: str, duration: float, status: str = "success"):
         """Track assessment creation"""
         assessments_created.labels(assessment_type=assessment_type, status=status).inc()
         assessment_duration.labels(assessment_type=assessment_type).observe(duration)
-        
+
     def track_email_sent(self, campaign: str, status: str = "success"):
         """Track email sending"""
         emails_sent.labels(campaign=campaign, status=status).inc()
-        
+
     def track_purchase(self, product_type: str, amount: float, experiment: str = "default"):
         """Track purchase completion"""
         purchases_completed.labels(product_type=product_type, experiment=experiment).inc()
         revenue_total.labels(product_type=product_type).inc(amount)
-        
+
     def track_error(self, error_type: str, domain: str):
         """Track errors"""
         error_count.labels(error_type=error_type, domain=domain).inc()
-        
+
     def update_active_campaigns(self, count: int):
         """Update active campaigns gauge"""
         active_campaigns.set(count)
-        
+
     def update_quota_usage(self, provider: str, usage: int):
         """Update quota usage gauge"""
         daily_quota_usage.labels(provider=provider).set(usage)
-        
+
     def update_conversion_rate(self, rate: float, experiment: str = "default", variant: str = "control"):
         """Update conversion rate gauge"""
         conversion_rate.labels(experiment=experiment, variant=variant).set(rate)
-        
+
     def track_database_query(self, operation: str, table: str, duration: float):
         """Track database query performance"""
         db_query_duration.labels(operation=operation, table=table).observe(duration)
-        
+
     def update_db_connections(self, count: int):
         """Update active database connections"""
         db_connections_active.set(count)
-        
+
     def track_cache_hit(self, cache_type: str = "redis"):
         """Track cache hit"""
         cache_hits.labels(cache_type=cache_type).inc()
-        
+
     def track_cache_miss(self, cache_type: str = "redis"):
         """Track cache miss"""
         cache_misses.labels(cache_type=cache_type).inc()
-        
+
     def get_metrics(self) -> bytes:
         """Get current metrics in Prometheus format"""
         return generate_latest(REGISTRY)
@@ -234,7 +234,7 @@ def track_time(metric_name: str = None):
                 if metric_name:
                     # Custom metric tracking
                     assessment_duration.labels(assessment_type=metric_name).observe(duration)
-                    
+
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             start_time = time.time()
@@ -246,13 +246,13 @@ def track_time(metric_name: str = None):
                 if metric_name:
                     # Custom metric tracking
                     assessment_duration.labels(assessment_type=metric_name).observe(duration)
-                    
+
         # Return appropriate wrapper based on function type
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         else:
             return sync_wrapper
-            
+
     return decorator
 
 

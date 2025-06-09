@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 
 class LeadFactoryError(Exception):
     """Base exception for all LeadFactory errors"""
-    
+
     def __init__(
         self,
         message: str,
@@ -20,7 +20,7 @@ class LeadFactoryError(Exception):
         self.error_code = error_code or self.__class__.__name__
         self.details = details or {}
         self.status_code = status_code
-        
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert exception to dictionary for API responses"""
         return {
@@ -32,7 +32,7 @@ class LeadFactoryError(Exception):
 
 class ValidationError(LeadFactoryError):
     """Raised when input validation fails"""
-    
+
     def __init__(self, message: str, field: Optional[str] = None, **details):
         super().__init__(
             message=message,
@@ -44,7 +44,7 @@ class ValidationError(LeadFactoryError):
 
 class NotFoundError(LeadFactoryError):
     """Raised when a resource is not found"""
-    
+
     def __init__(self, resource: str, identifier: Any):
         super().__init__(
             message=f"{resource} not found: {identifier}",
@@ -56,7 +56,7 @@ class NotFoundError(LeadFactoryError):
 
 class DuplicateError(LeadFactoryError):
     """Raised when attempting to create a duplicate resource"""
-    
+
     def __init__(self, resource: str, identifier: Any):
         super().__init__(
             message=f"{resource} already exists: {identifier}",
@@ -68,7 +68,7 @@ class DuplicateError(LeadFactoryError):
 
 class ExternalAPIError(LeadFactoryError):
     """Raised when an external API call fails"""
-    
+
     def __init__(
         self,
         provider: str,
@@ -92,7 +92,7 @@ class ExternalAPIError(LeadFactoryError):
 
 class RateLimitError(ExternalAPIError):
     """Raised when hitting rate limits"""
-    
+
     def __init__(
         self,
         provider: str,
@@ -103,7 +103,7 @@ class RateLimitError(ExternalAPIError):
         message = f"Rate limit exceeded"
         if retry_after:
             message += f", retry after {retry_after} seconds"
-            
+
         super().__init__(
             provider=provider,
             message=message,
@@ -117,7 +117,7 @@ class RateLimitError(ExternalAPIError):
 
 class ConfigurationError(LeadFactoryError):
     """Raised when configuration is invalid or missing"""
-    
+
     def __init__(self, message: str, setting: Optional[str] = None):
         super().__init__(
             message=message,
@@ -129,7 +129,7 @@ class ConfigurationError(LeadFactoryError):
 
 class DatabaseError(LeadFactoryError):
     """Raised when database operations fail"""
-    
+
     def __init__(self, message: str, operation: Optional[str] = None, **details):
         super().__init__(
             message=message,
@@ -141,7 +141,7 @@ class DatabaseError(LeadFactoryError):
 
 class PaymentError(LeadFactoryError):
     """Raised when payment processing fails"""
-    
+
     def __init__(
         self,
         message: str,
@@ -163,7 +163,7 @@ class PaymentError(LeadFactoryError):
 
 class EmailDeliveryError(LeadFactoryError):
     """Raised when email delivery fails"""
-    
+
     def __init__(
         self,
         message: str,
@@ -185,7 +185,7 @@ class EmailDeliveryError(LeadFactoryError):
 
 class AssessmentError(LeadFactoryError):
     """Raised when website assessment fails"""
-    
+
     def __init__(
         self,
         message: str,

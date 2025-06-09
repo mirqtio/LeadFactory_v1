@@ -1,7 +1,7 @@
 """Initial schema for all domains
 
 Revision ID: e3ab105c6555
-Revises: 
+Revises:
 Create Date: 2025-06-07 22:44:22.476775
 
 """

@@ -19,16 +19,16 @@ import uuid
 class ScoringTier(Enum):
     """
     Business tier classification based on scoring
-    
+
     Acceptance Criteria: Tier enumeration
     """
     PLATINUM = "platinum"    # 90-100 points
-    GOLD = "gold"           # 80-89 points  
+    GOLD = "gold"           # 80-89 points
     SILVER = "silver"       # 70-79 points
     BRONZE = "bronze"       # 60-69 points
     BASIC = "basic"         # 50-59 points
     UNQUALIFIED = "unqualified"  # < 50 points
-    
+
     @classmethod
     def from_score(cls, score: float) -> 'ScoringTier':
         """Convert numeric score to tier"""
@@ -44,7 +44,7 @@ class ScoringTier(Enum):
             return cls.BASIC
         else:
             return cls.UNQUALIFIED
-    
+
     @property
     def min_score(self) -> float:
         """Minimum score for this tier"""
@@ -57,7 +57,7 @@ class ScoringTier(Enum):
             self.UNQUALIFIED: 0.0
         }
         return tier_ranges[self]
-    
+
     @property
     def max_score(self) -> float:
         """Maximum score for this tier"""
@@ -75,34 +75,34 @@ class ScoringTier(Enum):
 class ScoreComponent(Enum):
     """
     Individual components that contribute to overall business score
-    
+
     Used for score breakdown and analysis
     """
     # Company data quality
     COMPANY_INFO = "company_info"          # Basic company information completeness
     CONTACT_INFO = "contact_info"          # Contact information quality
     LOCATION_DATA = "location_data"        # Address and location accuracy
-    
+
     # Business validation
     BUSINESS_VALIDATION = "business_validation"  # Business legitimacy indicators
     ONLINE_PRESENCE = "online_presence"          # Website and digital footprint
     SOCIAL_SIGNALS = "social_signals"            # Social media and reviews
-    
-    # Financial indicators  
+
+    # Financial indicators
     REVENUE_INDICATORS = "revenue_indicators"    # Revenue and financial data
     EMPLOYEE_COUNT = "employee_count"            # Company size indicators
     FUNDING_STATUS = "funding_status"            # Investment and funding info
-    
+
     # Industry and market
     INDUSTRY_RELEVANCE = "industry_relevance"    # Target industry alignment
     MARKET_POSITION = "market_position"          # Competitive positioning
     GROWTH_INDICATORS = "growth_indicators"      # Growth signals and trends
-    
+
     # Engagement potential
     TECHNOLOGY_STACK = "technology_stack"        # Tech stack compatibility
     DECISION_MAKER_ACCESS = "decision_maker_access"  # Contact accessibility
     TIMING_INDICATORS = "timing_indicators"      # Buying timing signals
-    
+
     @property
     def max_points(self) -> float:
         """Maximum points this component can contribute"""
@@ -125,7 +125,7 @@ class ScoreComponent(Enum):
             self.TIMING_INDICATORS: 6.0
         }
         return weights.get(self, 5.0)
-    
+
     @property
     def description(self) -> str:
         """Human-readable description of the component"""
@@ -163,7 +163,7 @@ class ScoringStatus(Enum):
 class ScoringVersion:
     """
     Version tracking for scoring system
-    
+
     Acceptance Criteria: Version tracking
     """
     version: str
@@ -173,12 +173,12 @@ class ScoringVersion:
     data_schema_version: str
     changelog: Optional[str] = None
     deprecated: bool = False
-    
+
     def __post_init__(self):
         """Ensure consistent version format"""
         if not self.version:
             self.version = f"v{self.created_at.strftime('%Y%m%d_%H%M%S')}"
-    
+
     @classmethod
     def current(cls) -> 'ScoringVersion':
         """Get current scoring version"""
@@ -186,11 +186,11 @@ class ScoringVersion:
             version="v1.0.0",
             created_at=datetime.utcnow(),
             algorithm_version="baseline_v1",
-            weights_version="standard_v1", 
+            weights_version="standard_v1",
             data_schema_version="2025_v1",
             changelog="Initial scoring system implementation"
         )
-    
+
     def is_compatible_with(self, other: 'ScoringVersion') -> bool:
         """Check if this version is compatible with another"""
         # Simple compatibility check - same major version
@@ -200,7 +200,7 @@ class ScoringVersion:
             return self_major == other_major
         except (ValueError, IndexError):
             return False
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for storage"""
         return {
@@ -212,7 +212,7 @@ class ScoringVersion:
             'changelog': self.changelog,
             'deprecated': self.deprecated
         }
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ScoringVersion':
         """Create from dictionary"""

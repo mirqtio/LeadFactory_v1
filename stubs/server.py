@@ -30,10 +30,10 @@ def generate_yelp_business(index: int, location: str, categories: str) -> Dict[s
         "medical": ["Family Clinic", "Dental Office", "Urgent Care", "Medical Center", "Specialty Clinic"],
         "retail": ["Boutique", "Electronics Store", "Book Shop", "Hardware Store", "Gift Shop"]
     }
-    
+
     vertical = categories.split(",")[0] if categories else "restaurant"
     names = business_types.get(vertical, ["Business"])
-    
+
     return {
         "id": f"stub-yelp-{location}-{index}",
         "alias": f"stub-business-{index}",
@@ -74,10 +74,10 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
     """Generate realistic PageSpeed Insights data"""
     # Simulate some URLs being slower than others
     is_slow = random.random() < 0.3
-    
+
     performance_score = random.uniform(0.2, 0.5) if is_slow else random.uniform(0.6, 0.95)
     seo_score = random.uniform(0.5, 0.95)
-    
+
     return {
         "captchaResult": "CAPTCHA_NOT_NEEDED",
         "kind": "pagespeedonline#result",
@@ -182,21 +182,21 @@ async def yelp_search(
     """Mock Yelp Fusion API business search"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
-        
+
     # Simulate rate limiting
     if random.random() < 0.01:  # 1% chance
         return JSONResponse(
             status_code=429,
             content={"error": {"code": "TOO_MANY_REQUESTS_PER_SECOND"}}
         )
-    
+
     # Generate businesses
     total = 250  # Simulate 250 businesses per location
     businesses = []
-    
+
     for i in range(offset, min(offset + limit, total)):
         businesses.append(generate_yelp_business(i, location, categories or ""))
-    
+
     return {
         "businesses": businesses,
         "total": total,
@@ -219,14 +219,14 @@ async def pagespeed_analyze(
     """Mock Google PageSpeed Insights API"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
-        
+
     # Simulate some URLs failing (disabled in test mode)
     if not IS_TEST_MODE and random.random() < 0.05:  # 5% failure rate
         return JSONResponse(
             status_code=400,
             content={"error": {"message": "Invalid URL"}}
         )
-    
+
     return generate_pagespeed_data(url)
 
 
@@ -250,9 +250,9 @@ async def stripe_create_checkout(
     """Mock Stripe Checkout Session creation"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
-        
+
     session_id = f"cs_test_stub_{datetime.utcnow().timestamp()}"
-    
+
     return {
         "id": session_id,
         "object": "checkout.session",
@@ -290,14 +290,14 @@ async def sendgrid_send(
     """Mock SendGrid mail send"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
-        
+
     # Simulate some emails bouncing
     if random.random() < 0.02:  # 2% bounce rate
         return JSONResponse(
             status_code=400,
             content={"errors": [{"message": "Invalid email address"}]}
         )
-    
+
     return Response(
         status_code=202,
         headers={
@@ -322,7 +322,7 @@ async def openai_completion(
     """Mock OpenAI chat completion"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
-        
+
     # Generate stub recommendations
     recommendations = [
         {
@@ -344,7 +344,7 @@ async def openai_completion(
             "improvement": "Could increase mobile conversions by 35%"
         }
     ]
-    
+
     return {
         "id": f"chatcmpl-stub-{datetime.utcnow().timestamp()}",
         "object": "chat.completion",
@@ -401,11 +401,11 @@ async def simulate_stripe_webhook(event_type: str, session_id: str):
     return event
 
 
-@app.post("/webhooks/sendgrid")  
+@app.post("/webhooks/sendgrid")
 async def simulate_sendgrid_webhook(events: List[Dict[str, Any]]):
     """Simulate SendGrid webhook events"""
     processed_events = []
-    
+
     for event in events:
         processed_events.append({
             "email": event.get("email", "test@example.com"),
@@ -414,7 +414,7 @@ async def simulate_sendgrid_webhook(events: List[Dict[str, Any]]):
             "sg_message_id": f"stub-msg-{datetime.utcnow().timestamp()}",
             "business_id": event.get("business_id", "test-123")
         })
-    
+
     return {"events_processed": len(processed_events)}
 
 

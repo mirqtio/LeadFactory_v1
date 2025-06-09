@@ -179,7 +179,7 @@ class AIInsightsResult(BaseModel):
     summary: Dict[str, Any] = Field(..., description="Overall assessment summary")
     ai_model_version: str = Field(..., description="AI model version used")
     processing_cost_usd: Decimal = Field(..., description="Cost of AI processing")
-    
+
     class Config:
         protected_namespaces = ()
 
@@ -195,7 +195,7 @@ class AssessmentResults(BaseModel):
     total_assessments: int = Field(..., description="Total assessments requested")
     completed_assessments: int = Field(..., description="Successfully completed assessments")
     failed_assessments: int = Field(..., description="Failed assessments")
-    
+
     # Assessment results by type
     pagespeed_results: Optional[PageSpeedMetrics] = Field(
         default=None,
@@ -209,13 +209,13 @@ class AssessmentResults(BaseModel):
         default=None,
         description="AI-generated insights and recommendations"
     )
-    
+
     # Timing and cost information
     started_at: datetime = Field(..., description="Assessment start time")
     completed_at: datetime = Field(..., description="Assessment completion time")
     execution_time_ms: int = Field(..., description="Total execution time in milliseconds")
     total_cost_usd: Decimal = Field(..., description="Total cost of assessment")
-    
+
     # Error information
     errors: Optional[Dict[str, str]] = Field(
         default=None,

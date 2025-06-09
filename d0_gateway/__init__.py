@@ -45,7 +45,7 @@ from .types import (
 
 __all__ = [
     'BaseAPIClient',
-    'RateLimiter', 
+    'RateLimiter',
     'CircuitBreaker',
     'ResponseCache',
     'GatewayMetrics',

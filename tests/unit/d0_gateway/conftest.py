@@ -15,9 +15,9 @@ def cleanup_prometheus_registry():
             REGISTRY.unregister(collector)
         except KeyError:
             pass
-            
+
     yield
-    
+
     # Clear after test
     collectors = list(REGISTRY._collector_to_names.keys())
     for collector in collectors:

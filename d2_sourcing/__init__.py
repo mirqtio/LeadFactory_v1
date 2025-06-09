@@ -12,7 +12,7 @@ from .deduplicator import BusinessDeduplicator, DuplicateMatch, MergeResult, Mat
 from .coordinator import SourcingCoordinator, SourcingBatch, CoordinatorStatus, BatchStatus, CoordinatorMetrics, process_location_batch, process_multiple_locations
 from .exceptions import (
     SourcingException,
-    YelpAPIException, 
+    YelpAPIException,
     YelpRateLimitException,
     YelpQuotaExceededException,
     BatchQuotaException,
@@ -24,7 +24,7 @@ from .exceptions import (
 __all__ = [
     # Models
     'Business',
-    'YelpMetadata', 
+    'YelpMetadata',
     'SourcedLocation',
     # Scraper
     'YelpScraper',
@@ -51,7 +51,7 @@ __all__ = [
     # Exceptions
     'SourcingException',
     'YelpAPIException',
-    'YelpRateLimitException', 
+    'YelpRateLimitException',
     'YelpQuotaExceededException',
     'BatchQuotaException',
     'PaginationException',

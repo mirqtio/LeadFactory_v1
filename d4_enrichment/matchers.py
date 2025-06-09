@@ -7,7 +7,7 @@ business records across different data sources with confidence scoring.
 Acceptance Criteria:
 - Phone matching works
 - Name/ZIP matching accurate
-- Address similarity scoring 
+- Address similarity scoring
 - Weighted combination logic
 """
 import logging
@@ -70,21 +70,21 @@ class MatchConfig:
         'zip': 0.10,
         'domain': 0.05
     })
-    
+
     # Thresholds for confidence levels
     exact_threshold: float = 0.95
     high_threshold: float = 0.85
     medium_threshold: float = 0.70
     low_threshold: float = 0.50
-    
+
     # Minimum required components for a valid match
     min_components: int = 2
-    
+
     # Component-specific requirements
     require_name_similarity: bool = True
     require_location_match: bool = False  # Either address or ZIP
     phone_exact_match_bonus: float = 0.1  # Bonus for exact phone match
-    
+
     # Performance settings
     max_candidates: int = 1000
     early_exit_threshold: float = 0.99
@@ -93,14 +93,14 @@ class MatchConfig:
 class BusinessMatcher:
     """
     Main fuzzy matching system for business records
-    
+
     Implements all acceptance criteria:
     - Phone matching works
     - Name/ZIP matching accurate
     - Address similarity scoring
     - Weighted combination logic
     """
-    
+
     def __init__(self, config: Optional[MatchConfig] = None):
         """Initialize matcher with configuration"""
         self.config = config or MatchConfig()
@@ -113,7 +113,7 @@ class BusinessMatcher:
             'low_matches': 0,
             'no_matches': 0
         }
-    
+
     def match_records(
         self,
         record1: Dict[str, Any],
@@ -123,7 +123,7 @@ class BusinessMatcher:
     ) -> MatchResult:
         """
         Match two business records
-        
+
         Implements all acceptance criteria through weighted combination
         """
         # Generate IDs if not provided
@@ -131,41 +131,41 @@ class BusinessMatcher:
             record1_id = record1.get('id', str(uuid.uuid4()))
         if record2_id is None:
             record2_id = record2.get('id', str(uuid.uuid4()))
-        
+
         # Check cache first
         cache_key = f"{record1_id}:{record2_id}"
         if cache_key in self.match_cache:
             return self.match_cache[cache_key]
-        
+
         # Calculate weighted similarity
         similarity_result = WeightedSimilarity.calculate_combined_similarity(
             record1, record2, self.config.weights
         )
-        
+
         # Extract component scores from similarity details
         component_scores = {}
         similarity_details = {}
-        
+
         if 'component_details' in similarity_result.metadata:
             for component, result in similarity_result.metadata['component_details'].items():
                 component_scores[component] = result.score
                 similarity_details[component] = result
-        
+
         # Apply bonuses and adjustments
         adjusted_score = self._apply_scoring_adjustments(
             similarity_result.score, component_scores, record1, record2
         )
-        
+
         # Determine confidence and match type
         confidence = self._determine_confidence(adjusted_score)
         match_type = self._determine_match_type(adjusted_score, component_scores)
-        
+
         # Validate match requirements
         if not self._validate_match_requirements(component_scores):
             confidence = MatchConfidence.UNCERTAIN
             match_type = MatchType.NO_MATCH
             adjusted_score = min(adjusted_score, 0.49)
-        
+
         # Create match result
         result = MatchResult(
             record1_id=record1_id,
@@ -183,17 +183,17 @@ class BusinessMatcher:
                 'record2_snippet': self._create_record_snippet(record2)
             }
         )
-        
+
         # Cache result
         self.match_cache[cache_key] = result
-        
+
         # Update statistics
         self._update_stats(confidence)
-        
+
         logger.debug(f"Matched {record1_id} vs {record2_id}: {confidence.value} ({adjusted_score:.3f})")
-        
+
         return result
-    
+
     def find_best_matches(
         self,
         target_record: Dict[str, Any],
@@ -204,48 +204,48 @@ class BusinessMatcher:
     ) -> List[MatchResult]:
         """
         Find best matching records from a list of candidates
-        
+
         Acceptance Criteria: Implements efficient matching with scoring
         """
         if target_id is None:
             target_id = target_record.get('id', str(uuid.uuid4()))
-        
+
         matches = []
-        
+
         # Limit candidates for performance
         candidates_to_check = candidate_records[:self.config.max_candidates]
-        
+
         for i, candidate in enumerate(candidates_to_check):
             candidate_id = candidate.get('id', f"candidate_{i}")
-            
+
             match_result = self.match_records(
                 target_record, candidate, target_id, candidate_id
             )
-            
+
             if match_result.overall_score >= min_score:
                 matches.append(match_result)
-                
+
                 # Early exit for perfect matches
                 if match_result.overall_score >= self.config.early_exit_threshold:
                     logger.debug(f"Early exit on near-perfect match: {match_result.overall_score}")
                     break
-        
+
         # Sort by score descending
         matches.sort(key=lambda x: x.overall_score, reverse=True)
-        
+
         return matches[:max_results]
-    
+
     def match_phone_numbers(self, phone1: str, phone2: str) -> MatchResult:
         """
         Dedicated phone number matching
-        
+
         Acceptance Criteria: Phone matching works
         """
         result = PhoneSimilarity.calculate_similarity(phone1, phone2)
-        
+
         confidence = self._determine_confidence(result.score)
         match_type = MatchType.EXACT_MATCH if result.score == 1.0 else MatchType.FUZZY_MATCH
-        
+
         return MatchResult(
             record1_id="phone1",
             record2_id="phone2",
@@ -262,7 +262,7 @@ class BusinessMatcher:
                 'normalized2': result.normalized_target
             }
         )
-    
+
     def match_names_and_zips(
         self,
         name1: str, zip1: str,
@@ -270,21 +270,21 @@ class BusinessMatcher:
     ) -> MatchResult:
         """
         Dedicated name and ZIP matching
-        
+
         Acceptance Criteria: Name/ZIP matching accurate
         """
         name_result = NameSimilarity.calculate_similarity(name1, name2)
         zip_result = ZipSimilarity.calculate_similarity(zip1, zip2)
-        
+
         # Weighted combination (names more important than ZIP)
         weights = {'name': 0.7, 'zip': 0.3}
         combined_score = (
-            name_result.score * weights['name'] + 
+            name_result.score * weights['name'] +
             zip_result.score * weights['zip']
         )
-        
+
         confidence = self._determine_confidence(combined_score)
-        
+
         # Determine match type based on component scores
         if name_result.score >= 0.9 and zip_result.score >= 0.9:
             match_type = MatchType.EXACT_MATCH
@@ -294,7 +294,7 @@ class BusinessMatcher:
             match_type = MatchType.PARTIAL_MATCH
         else:
             match_type = MatchType.NO_MATCH
-        
+
         return MatchResult(
             record1_id="name_zip1",
             record2_id="name_zip2",
@@ -318,17 +318,17 @@ class BusinessMatcher:
                 'zip2': zip2
             }
         )
-    
+
     def match_addresses(self, address1: str, address2: str) -> MatchResult:
         """
         Dedicated address matching
-        
+
         Acceptance Criteria: Address similarity scoring
         """
         result = AddressSimilarity.calculate_similarity(address1, address2)
-        
+
         confidence = self._determine_confidence(result.score)
-        
+
         if result.score >= 0.9:
             match_type = MatchType.EXACT_MATCH
         elif result.score >= 0.7:
@@ -337,7 +337,7 @@ class BusinessMatcher:
             match_type = MatchType.PARTIAL_MATCH
         else:
             match_type = MatchType.NO_MATCH
-        
+
         return MatchResult(
             record1_id="address1",
             record2_id="address2",
@@ -352,7 +352,7 @@ class BusinessMatcher:
                 'address2': address2
             }
         )
-    
+
     def _apply_scoring_adjustments(
         self,
         base_score: float,
@@ -362,21 +362,21 @@ class BusinessMatcher:
     ) -> float:
         """Apply bonuses and penalties to base score"""
         adjusted_score = base_score
-        
+
         # Phone exact match bonus
         if 'phone' in component_scores and component_scores['phone'] == 1.0:
             adjusted_score += self.config.phone_exact_match_bonus
-        
+
         # Penalty for very different business types (if available)
         type1 = record1.get('business_type', '').lower()
         type2 = record2.get('business_type', '').lower()
         if type1 and type2 and type1 != type2:
             # Small penalty for different business types
             adjusted_score *= 0.95
-        
+
         # Ensure score stays within bounds
         return min(1.0, max(0.0, adjusted_score))
-    
+
     def _determine_confidence(self, score: float) -> MatchConfidence:
         """Determine confidence level from score"""
         if score >= self.config.exact_threshold:
@@ -389,7 +389,7 @@ class BusinessMatcher:
             return MatchConfidence.LOW
         else:
             return MatchConfidence.UNCERTAIN
-    
+
     def _determine_match_type(
         self,
         overall_score: float,
@@ -409,44 +409,44 @@ class BusinessMatcher:
             return MatchType.POTENTIAL_MATCH
         else:
             return MatchType.NO_MATCH
-    
+
     def _validate_match_requirements(self, component_scores: Dict[str, float]) -> bool:
         """Validate that match meets minimum requirements"""
         # Check minimum number of components
         valid_components = sum(1 for score in component_scores.values() if score > 0)
         if valid_components < self.config.min_components:
             return False
-        
+
         # Check name similarity requirement
         if self.config.require_name_similarity:
             name_score = component_scores.get('business_name', 0)
             if name_score < 0.3:  # Very low name similarity
                 return False
-        
+
         # Check location match requirement
         if self.config.require_location_match:
             address_score = component_scores.get('address', 0)
             zip_score = component_scores.get('zip', 0)
             if address_score < 0.5 and zip_score < 0.5:
                 return False
-        
+
         return True
-    
+
     def _create_record_snippet(self, record: Dict[str, Any]) -> Dict[str, str]:
         """Create a snippet of record for debugging"""
         snippet = {}
         fields_to_include = ['business_name', 'name', 'phone', 'address', 'zip', 'domain']
-        
+
         for field in fields_to_include:
             if field in record and record[field]:
                 snippet[field] = str(record[field])[:100]  # Truncate long values
-        
+
         return snippet
-    
+
     def _update_stats(self, confidence: MatchConfidence):
         """Update matching statistics"""
         self.stats['total_matches'] += 1
-        
+
         if confidence == MatchConfidence.EXACT:
             self.stats['exact_matches'] += 1
         elif confidence == MatchConfidence.HIGH:
@@ -457,13 +457,13 @@ class BusinessMatcher:
             self.stats['low_matches'] += 1
         else:
             self.stats['no_matches'] += 1
-    
+
     def get_statistics(self) -> Dict[str, Any]:
         """Get matching statistics"""
         total = self.stats['total_matches']
         if total == 0:
             return self.stats.copy()
-        
+
         return {
             **self.stats,
             'success_rate': (total - self.stats['no_matches']) / total,
@@ -472,15 +472,15 @@ class BusinessMatcher:
             ) / total,
             'cache_size': len(self.match_cache)
         }
-    
+
     def clear_cache(self):
         """Clear the match cache"""
         self.match_cache.clear()
-    
+
     def configure_weights(self, weights: Dict[str, float]):
         """Update component weights"""
         self.config.weights.update(weights)
-    
+
     def configure_thresholds(
         self,
         exact: Optional[float] = None,
@@ -501,10 +501,10 @@ class BusinessMatcher:
 
 class BatchMatcher:
     """Batch matching for processing multiple records efficiently"""
-    
+
     def __init__(self, matcher: BusinessMatcher):
         self.matcher = matcher
-    
+
     def match_datasets(
         self,
         dataset1: List[Dict[str, Any]],
@@ -513,18 +513,18 @@ class BatchMatcher:
     ) -> List[MatchResult]:
         """Match all records in dataset1 against dataset2"""
         all_matches = []
-        
+
         for i, record1 in enumerate(dataset1):
             record1_id = record1.get('id', f"dataset1_{i}")
-            
+
             matches = self.matcher.find_best_matches(
                 record1, dataset2, record1_id, min_score, max_results=5
             )
-            
+
             all_matches.extend(matches)
-        
+
         return all_matches
-    
+
     def deduplicate_dataset(
         self,
         dataset: List[Dict[str, Any]],
@@ -534,26 +534,26 @@ class BatchMatcher:
         unique_records = []
         duplicates = []
         processed_ids = set()
-        
+
         for i, record in enumerate(dataset):
             record_id = record.get('id', f"record_{i}")
-            
+
             if record_id in processed_ids:
                 continue
-            
+
             # Find matches for this record in remaining records
             remaining_records = dataset[i+1:]
             matches = self.matcher.find_best_matches(
                 record, remaining_records, record_id, min_score
             )
-            
+
             # Add record to unique list
             unique_records.append(record)
             processed_ids.add(record_id)
-            
+
             # Mark duplicates as processed
             for match in matches:
                 duplicates.append(match)
                 processed_ids.add(match.record2_id)
-        
+
         return unique_records, duplicates

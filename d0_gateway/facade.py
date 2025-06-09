@@ -15,20 +15,20 @@ class GatewayFacade:
     Unified facade for all external API operations.
     Provides a single entry point for Yelp, PageSpeed, and OpenAI APIs.
     """
-    
+
     def __init__(self, factory: Optional[GatewayClientFactory] = None):
         """
         Initialize the gateway facade
-        
+
         Args:
             factory: Optional factory instance (uses global if None)
         """
         self.logger = get_logger("gateway.facade", domain="d0")
         self.factory = factory or get_gateway_factory()
         self.metrics = GatewayMetrics()
-        
+
         self.logger.info("Gateway facade initialized")
-    
+
     # Yelp API Methods
     async def search_businesses(
         self,
@@ -44,7 +44,7 @@ class GatewayFacade:
     ) -> Dict[str, Any]:
         """
         Search for businesses using Yelp API
-        
+
         Args:
             term: Search term (e.g., "restaurants", "coffee")
             location: Location (e.g., "San Francisco, CA", "10001")
@@ -55,7 +55,7 @@ class GatewayFacade:
             price: Price filter (1, 2, 3, 4 representing $, $$, $$$, $$$$)
             open_now: Filter for businesses open now
             attributes: Additional attributes filter
-            
+
         Returns:
             Yelp search results
         """
@@ -72,35 +72,35 @@ class GatewayFacade:
                 open_now=open_now
                 # Note: 'attributes' is not supported by YelpClient
             )
-            
+
             self.logger.info(f"Yelp search completed: {term} in {location}")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Yelp search failed: {e}")
             raise
-    
+
     async def get_business_details(self, business_id: str) -> Dict[str, Any]:
         """
         Get detailed information about a specific business
-        
+
         Args:
             business_id: Yelp business ID
-            
+
         Returns:
             Business details
         """
         try:
             client = self.factory.create_client('yelp')
             result = await client.get_business_details(business_id)
-            
+
             self.logger.info(f"Yelp business details retrieved: {business_id}")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Failed to get business details: {e}")
             raise
-    
+
     # PageSpeed API Methods
     async def analyze_website(
         self,
@@ -110,12 +110,12 @@ class GatewayFacade:
     ) -> Dict[str, Any]:
         """
         Analyze website performance using PageSpeed Insights
-        
+
         Args:
             url: Website URL to analyze
             strategy: Analysis strategy ('mobile' or 'desktop')
             categories: Categories to analyze (performance, accessibility, etc.)
-            
+
         Returns:
             PageSpeed analysis results
         """
@@ -126,14 +126,14 @@ class GatewayFacade:
                 strategy=strategy,
                 categories=categories
             )
-            
+
             self.logger.info(f"PageSpeed analysis completed: {url} ({strategy})")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"PageSpeed analysis failed: {e}")
             raise
-    
+
     async def get_core_web_vitals(
         self,
         url: str,
@@ -141,25 +141,25 @@ class GatewayFacade:
     ) -> Dict[str, Any]:
         """
         Get Core Web Vitals for a website
-        
+
         Args:
             url: Website URL to analyze
             strategy: Analysis strategy ('mobile' or 'desktop')
-            
+
         Returns:
             Core Web Vitals data
         """
         try:
             client = self.factory.create_client('pagespeed')
             result = await client.get_core_web_vitals(url, strategy)
-            
+
             self.logger.info(f"Core Web Vitals retrieved: {url}")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Failed to get Core Web Vitals: {e}")
             raise
-    
+
     async def analyze_multiple_websites(
         self,
         urls: List[str],
@@ -167,25 +167,25 @@ class GatewayFacade:
     ) -> Dict[str, Any]:
         """
         Analyze multiple websites in parallel
-        
+
         Args:
             urls: List of URLs to analyze
             strategy: Analysis strategy
-            
+
         Returns:
             Results for all URLs
         """
         try:
             client = self.factory.create_client('pagespeed')
             result = await client.batch_analyze_urls(urls, strategy)
-            
+
             self.logger.info(f"Batch analysis completed: {len(urls)} URLs")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Batch analysis failed: {e}")
             raise
-    
+
     # OpenAI API Methods
     async def generate_website_insights(
         self,
@@ -194,11 +194,11 @@ class GatewayFacade:
     ) -> Dict[str, Any]:
         """
         Generate AI-powered website insights from PageSpeed data
-        
+
         Args:
             pagespeed_data: PageSpeed Insights results
             business_context: Additional business context
-            
+
         Returns:
             AI-generated insights and recommendations
         """
@@ -208,14 +208,14 @@ class GatewayFacade:
                 pagespeed_data=pagespeed_data,
                 business_context=business_context
             )
-            
+
             self.logger.info("Website insights generated")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Failed to generate website insights: {e}")
             raise
-    
+
     async def generate_personalized_email(
         self,
         business_name: str,
@@ -224,12 +224,12 @@ class GatewayFacade:
     ) -> Dict[str, Any]:
         """
         Generate personalized email content for outreach
-        
+
         Args:
             business_name: Name of the business
             website_issues: List of identified website issues
             recipient_name: Name of the recipient (if known)
-            
+
         Returns:
             Generated email content
         """
@@ -240,14 +240,14 @@ class GatewayFacade:
                 website_issues=website_issues,
                 recipient_name=recipient_name
             )
-            
+
             self.logger.info(f"Email content generated for {business_name}")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Failed to generate email content: {e}")
             raise
-    
+
     # Combined Workflow Methods
     async def complete_business_analysis(
         self,
@@ -257,12 +257,12 @@ class GatewayFacade:
     ) -> Dict[str, Any]:
         """
         Complete analysis workflow: Yelp → PageSpeed → AI insights
-        
+
         Args:
             business_id: Yelp business ID
             business_url: Business website URL (if not in Yelp data)
             include_email_generation: Whether to generate email content
-            
+
         Returns:
             Complete analysis results
         """
@@ -274,23 +274,23 @@ class GatewayFacade:
             'email_content': None,
             'errors': []
         }
-        
+
         try:
             # Step 1: Get business details from Yelp
             business_data = await self.get_business_details(business_id)
             analysis_results['business_data'] = business_data
-            
+
             # Extract website URL
             website_url = business_url or business_data.get('url')
             if not website_url:
                 analysis_results['errors'].append("No website URL found")
                 return analysis_results
-            
+
             # Step 2: Analyze website with PageSpeed
             try:
                 website_analysis = await self.analyze_website(website_url)
                 analysis_results['website_analysis'] = website_analysis
-                
+
                 # Step 3: Generate AI insights
                 try:
                     business_context = {
@@ -298,12 +298,12 @@ class GatewayFacade:
                         'categories': business_data.get('categories', []),
                         'location': business_data.get('location', {})
                     }
-                    
+
                     ai_insights = await self.generate_website_insights(
                         website_analysis, business_context
                     )
                     analysis_results['ai_insights'] = ai_insights
-                    
+
                     # Step 4: Generate email content if requested
                     if include_email_generation and ai_insights.get('ai_recommendations'):
                         try:
@@ -313,40 +313,40 @@ class GatewayFacade:
                                 recipient_name=None
                             )
                             analysis_results['email_content'] = email_content
-                            
+
                         except Exception as e:
                             analysis_results['errors'].append(f"Email generation failed: {e}")
-                    
+
                 except Exception as e:
                     analysis_results['errors'].append(f"AI insights failed: {e}")
-                
+
             except Exception as e:
                 analysis_results['errors'].append(f"Website analysis failed: {e}")
-            
+
         except Exception as e:
             analysis_results['errors'].append(f"Business lookup failed: {e}")
-        
+
         self.logger.info(f"Complete analysis finished for {business_id}")
         return analysis_results
-    
+
     # Gateway Management Methods
     def get_gateway_status(self) -> Dict[str, Any]:
         """
         Get comprehensive gateway status
-        
+
         Returns:
             Gateway status information
         """
         try:
             # Get factory status
             factory_status = self.factory.get_client_status()
-            
+
             # Get health check
             health_status = self.factory.health_check()
-            
+
             # Get metrics summary
             metrics_summary = self.metrics.get_metrics_summary()
-            
+
             return {
                 'status': 'operational',
                 'factory': factory_status,
@@ -354,41 +354,41 @@ class GatewayFacade:
                 'metrics': metrics_summary,
                 'facade_version': '1.0.0'
             }
-            
+
         except Exception as e:
             self.logger.error(f"Failed to get gateway status: {e}")
             return {
                 'status': 'error',
                 'error': str(e)
             }
-    
+
     async def get_all_rate_limits(self) -> Dict[str, Any]:
         """
         Get rate limit status for all providers
-        
+
         Returns:
             Rate limit information for all providers
         """
         rate_limits = {}
-        
+
         for provider in self.factory.get_provider_names():
             try:
                 client = self.factory.create_client(provider)
                 rate_limits[provider] = client.get_rate_limit()
             except Exception as e:
                 rate_limits[provider] = {'error': str(e)}
-        
+
         return rate_limits
-    
+
     async def calculate_total_costs(self) -> Dict[str, Decimal]:
         """
         Calculate total costs across all providers
-        
+
         Returns:
             Cost breakdown by provider
         """
         costs = {}
-        
+
         for provider in self.factory.get_provider_names():
             try:
                 client = self.factory.create_client(provider)
@@ -398,9 +398,9 @@ class GatewayFacade:
             except Exception as e:
                 self.logger.error(f"Failed to get costs for {provider}: {e}")
                 costs[provider] = Decimal('0.00')
-        
+
         return costs
-    
+
     def invalidate_all_caches(self) -> None:
         """Invalidate all cached clients and responses"""
         self.factory.invalidate_cache()
@@ -414,7 +414,7 @@ _facade_instance = None
 def get_gateway_facade() -> GatewayFacade:
     """
     Get the global gateway facade instance
-    
+
     Returns:
         GatewayFacade instance
     """

@@ -10,7 +10,7 @@ from .stripe import StripeClient
 
 __all__ = [
     'YelpClient',
-    'PageSpeedClient', 
+    'PageSpeedClient',
     'OpenAIClient',
     'SendGridClient',
     'StripeClient'

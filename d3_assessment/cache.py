@@ -76,13 +76,13 @@ class CacheStats:
     expired_removals: int = 0
     total_size_bytes: int = 0
     entry_count: int = 0
-    
+
     @property
     def hit_rate(self) -> float:
         """Calculate cache hit rate"""
         total = self.hits + self.misses
         return (self.hits / total) if total > 0 else 0.0
-    
+
     @property
     def miss_rate(self) -> float:
         """Calculate cache miss rate"""
@@ -92,7 +92,7 @@ class CacheStats:
 class AssessmentCache:
     """
     Assessment results caching layer with TTL, invalidation, and hit tracking
-    
+
     Acceptance Criteria: Recent assessments cached, TTL configuration works,
     Cache invalidation logic, Hit rate tracking
     """
@@ -107,7 +107,7 @@ class AssessmentCache:
     ):
         """
         Initialize assessment cache
-        
+
         Args:
             max_entries: Maximum number of cache entries
             default_ttl_seconds: Default TTL for cache entries
@@ -120,19 +120,19 @@ class AssessmentCache:
         self.max_size_bytes = max_size_mb * 1024 * 1024
         self.strategy = strategy
         self.cleanup_interval_seconds = cleanup_interval_seconds
-        
+
         # Cache storage
         self._cache: Dict[str, CacheEntry] = {}
         self._stats = CacheStats()
-        
+
         # Configuration per assessment type
         self._ttl_config: Dict[AssessmentType, int] = {
             AssessmentType.PAGESPEED: 1800,    # 30 minutes
-            AssessmentType.TECH_STACK: 7200,   # 2 hours  
+            AssessmentType.TECH_STACK: 7200,   # 2 hours
             AssessmentType.AI_INSIGHTS: 3600,  # 1 hour
             AssessmentType.FULL_AUDIT: 1800    # 30 minutes
         }
-        
+
         # Background cleanup task
         self._cleanup_task: Optional[asyncio.Task] = None
         try:
@@ -152,7 +152,7 @@ class AssessmentCache:
                     break
                 except Exception as e:
                     logger.error(f"Cache cleanup error: {e}")
-        
+
         self._cleanup_task = asyncio.create_task(cleanup_loop())
 
     async def _cleanup_expired(self):
@@ -161,11 +161,11 @@ class AssessmentCache:
             key for key, entry in self._cache.items()
             if entry.is_expired
         ]
-        
+
         for key in expired_keys:
             self._remove_entry(key, reason="expired")
             self._stats.expired_removals += 1
-        
+
         if expired_keys:
             logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
 
@@ -179,7 +179,7 @@ class AssessmentCache:
     ) -> str:
         """
         Generate cache key for assessment
-        
+
         Acceptance Criteria: Recent assessments cached
         """
         # Create deterministic key based on assessment parameters
@@ -190,22 +190,22 @@ class AssessmentCache:
             "industry": industry.lower(),
             "extra": kwargs
         }
-        
+
         # Generate hash of key data
         key_json = json.dumps(key_data, sort_keys=True, default=str)
         key_hash = hashlib.sha256(key_json.encode()).hexdigest()[:16]
-        
+
         return f"assessment:{key_hash}"
 
     def _get_ttl_for_assessment(self, assessment_types: List[AssessmentType]) -> int:
         """
         Get TTL for assessment based on types
-        
+
         Acceptance Criteria: TTL configuration works
         """
         if not assessment_types:
             return self.default_ttl_seconds
-        
+
         # Use minimum TTL of all assessment types
         ttls = [
             self._ttl_config.get(atype, self.default_ttl_seconds)
@@ -233,15 +233,15 @@ class AssessmentCache:
     def _evict_entries(self):
         """
         Evict cache entries based on strategy
-        
+
         Acceptance Criteria: Cache invalidation logic
         """
         if not self._cache:
             return
-        
+
         # Calculate how many entries to evict (25% of max or 1, whichever is larger)
         evict_count = max(1, self.max_entries // 4)
-        
+
         if self.strategy == CacheStrategy.LRU:
             # Evict least recently used
             entries_by_access = sorted(
@@ -266,7 +266,7 @@ class AssessmentCache:
                 self._cache.items(),
                 key=lambda x: (x[1].is_expired, x[1].created_at)
             )
-        
+
         # Evict entries
         for i in range(min(evict_count, len(entries_by_access))):
             key, _ = entries_by_access[i]
@@ -292,20 +292,20 @@ class AssessmentCache:
     ) -> Optional[CoordinatorResult]:
         """
         Get cached assessment result
-        
+
         Acceptance Criteria: Recent assessments cached, Hit rate tracking
         """
         key = self._generate_cache_key(
             business_id, url, assessment_types, industry, **kwargs
         )
-        
+
         if key not in self._cache:
             self._stats.misses += 1
             logger.debug(f"Cache miss for key {key}")
             return None
-        
+
         entry = self._cache[key]
-        
+
         # Check if expired
         if entry.is_expired:
             self._remove_entry(key, reason="expired")
@@ -313,11 +313,11 @@ class AssessmentCache:
             self._stats.misses += 1
             logger.debug(f"Cache entry {key} expired")
             return None
-        
+
         # Update access metadata
         entry.touch()
         self._stats.hits += 1
-        
+
         logger.debug(f"Cache hit for key {key} (age: {entry.age_seconds}s)")
         return entry.value
 
@@ -334,19 +334,19 @@ class AssessmentCache:
     ) -> str:
         """
         Store assessment result in cache
-        
+
         Acceptance Criteria: Recent assessments cached, TTL configuration works
         """
         key = self._generate_cache_key(
             business_id, url, assessment_types, industry, **kwargs
         )
-        
+
         # Determine TTL
         ttl_seconds = ttl_override or self._get_ttl_for_assessment(assessment_types)
-        
+
         # Calculate entry size
         size_bytes = self._calculate_entry_size(result)
-        
+
         # Create cache entry
         entry = CacheEntry(
             key=key,
@@ -358,11 +358,11 @@ class AssessmentCache:
             tags=tags or set(),
             size_bytes=size_bytes
         )
-        
+
         # Check if eviction is needed
         if self._should_evict():
             self._evict_entries()
-        
+
         # Store entry
         if key in self._cache:
             # Update existing entry stats
@@ -370,10 +370,10 @@ class AssessmentCache:
             self._stats.total_size_bytes -= old_entry.size_bytes
         else:
             self._stats.entry_count += 1
-        
+
         self._cache[key] = entry
         self._stats.total_size_bytes += size_bytes
-        
+
         logger.debug(f"Cached assessment result {key} (TTL: {ttl_seconds}s, Size: {size_bytes}b)")
         return key
 
@@ -387,20 +387,20 @@ class AssessmentCache:
     ) -> int:
         """
         Invalidate cache entries based on criteria
-        
+
         Acceptance Criteria: Cache invalidation logic
         """
         removed_count = 0
         keys_to_remove = []
-        
+
         for key, entry in self._cache.items():
             should_remove = False
-            
+
             # Check tag-based invalidation
             if tags and entry.tags:
                 if any(tag in entry.tags for tag in tags):
                     should_remove = True
-            
+
             # Check parameter-based invalidation
             if business_id or url or assessment_types:
                 # Generate key for comparison
@@ -410,27 +410,27 @@ class AssessmentCache:
                     )
                     if key == target_key:
                         should_remove = True
-            
+
             if should_remove:
                 keys_to_remove.append(key)
-        
+
         # Remove identified keys
         for key in keys_to_remove:
             self._remove_entry(key, reason="invalidated")
             removed_count += 1
-        
+
         if removed_count > 0:
             logger.info(f"Invalidated {removed_count} cache entries")
-        
+
         return removed_count
 
     async def invalidate_by_domain(self, domain: str) -> int:
         """Invalidate all cache entries for a specific domain"""
         removed_count = 0
         keys_to_remove = []
-        
+
         domain_lower = domain.lower()
-        
+
         for key, entry in self._cache.items():
             # Check if entry's result contains the domain
             if hasattr(entry.value, 'partial_results'):
@@ -439,27 +439,27 @@ class AssessmentCache:
                         if assessment_result.domain.lower() == domain_lower:
                             keys_to_remove.append(key)
                             break
-        
+
         # Remove identified keys
         for key in keys_to_remove:
             self._remove_entry(key, reason="domain_invalidated")
             removed_count += 1
-        
+
         if removed_count > 0:
             logger.info(f"Invalidated {removed_count} cache entries for domain {domain}")
-        
+
         return removed_count
 
     def get_stats(self) -> CacheStats:
         """
         Get cache statistics
-        
+
         Acceptance Criteria: Hit rate tracking
         """
         # Update current stats
         self._stats.entry_count = len(self._cache)
         self._stats.total_size_bytes = sum(entry.size_bytes for entry in self._cache.values())
-        
+
         return CacheStats(
             hits=self._stats.hits,
             misses=self._stats.misses,
@@ -472,15 +472,15 @@ class AssessmentCache:
     def get_cache_info(self) -> Dict[str, Any]:
         """Get detailed cache information"""
         stats = self.get_stats()
-        
+
         # Calculate additional metrics
         total_requests = stats.hits + stats.misses
         avg_entry_size = stats.total_size_bytes / stats.entry_count if stats.entry_count > 0 else 0
-        
+
         # Get entry age distribution
         ages = [entry.age_seconds for entry in self._cache.values()]
         avg_age = sum(ages) / len(ages) if ages else 0
-        
+
         return {
             "stats": asdict(stats),
             "configuration": {
@@ -512,14 +512,14 @@ class AssessmentCache:
         count = len(self._cache)
         self._cache.clear()
         self._stats = CacheStats()
-        
+
         logger.info(f"Cleared {count} cache entries")
         return count
 
     def configure_ttl(self, assessment_type: AssessmentType, ttl_seconds: int):
         """
         Configure TTL for specific assessment type
-        
+
         Acceptance Criteria: TTL configuration works
         """
         self._ttl_config[assessment_type] = ttl_seconds
@@ -528,7 +528,7 @@ class AssessmentCache:
     def list_entries(self, limit: int = 50) -> List[Dict[str, Any]]:
         """List cache entries for debugging"""
         entries = []
-        
+
         for key, entry in list(self._cache.items())[:limit]:
             entries.append({
                 "key": key,
@@ -542,7 +542,7 @@ class AssessmentCache:
                 "tags": list(entry.tags),
                 "business_id": getattr(entry.value, 'business_id', 'unknown') if entry.value else 'unknown'
             })
-        
+
         return entries
 
     async def close(self):
@@ -553,17 +553,17 @@ class AssessmentCache:
                 await self._cleanup_task
             except asyncio.CancelledError:
                 pass
-        
+
         logger.info("Assessment cache closed")
 
 
 class CacheManager:
     """
     Global cache manager for assessment caching
-    
+
     Provides singleton access to assessment cache with configuration management
     """
-    
+
     _instance: Optional[AssessmentCache] = None
     _lock = asyncio.Lock()
 
@@ -586,7 +586,7 @@ class CacheManager:
                         strategy=strategy
                     )
                     logger.info("Created assessment cache instance")
-        
+
         return cls._instance
 
     @classmethod
@@ -606,7 +606,7 @@ def cached_assessment(
 ):
     """
     Decorator for caching assessment results
-    
+
     Usage:
         @cached_assessment(ttl_seconds=1800, tags={"api", "v1"})
         async def perform_assessment(...):
@@ -616,22 +616,22 @@ def cached_assessment(
         async def wrapper(*args, **kwargs):
             # Extract cache key parameters
             cache = await CacheManager.get_cache()
-            
+
             # Try to get from cache first
             cached_result = await cache.get(*args, **kwargs)
             if cached_result is not None:
                 return cached_result
-            
+
             # Execute function
             result = await func(*args, **kwargs)
-            
+
             # Store in cache
             if result is not None:
                 await cache.put(
                     *args, result, ttl_override=ttl_seconds, tags=tags, **kwargs
                 )
-            
+
             return result
-        
+
         return wrapper
     return decorator

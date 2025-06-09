@@ -24,7 +24,7 @@ from .types import (
 __all__ = [
     # Models
     'Target',
-    'TargetUniverse', 
+    'TargetUniverse',
     'Campaign',
     'GeographicBoundary',
     # Managers and Validators
