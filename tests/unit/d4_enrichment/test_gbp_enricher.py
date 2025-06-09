@@ -1,669 +1,556 @@
 """
-Tests for GBP enricher - Task 042
+Test GBP Enricher - Task 042
 
-Tests all acceptance criteria:
+Tests for GBP enricher ensuring all acceptance criteria are met:
 - GBP data extraction
 - Best match selection
 - Business data merge
 - Confidence scoring
 """
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from datetime import datetime, timedelta
-import json
+import asyncio
+import sys
+from typing import Dict, Any
+from unittest.mock import Mock, patch, AsyncMock
+
+sys.path.insert(0, '/app')
 
 from d4_enrichment.gbp_enricher import (
-    GBPEnricher, GBPSearchResult, BatchGBPEnricher
+    GBPEnricher, GBPSearchResult, GBPDataQuality, GBPEnrichmentStatus,
+    BatchGBPEnricher
 )
-from d4_enrichment.models import EnrichmentResult, MatchConfidence
-from database.models import Business
+from d4_enrichment.matchers import BusinessMatcher, MatchConfidence
+from d4_enrichment.models import EnrichmentResult, EnrichmentSource
 
 
-@pytest.fixture
-def mock_gateway():
-    """Mock gateway client for testing"""
-    gateway = Mock()
-    gateway.search_places = AsyncMock()
-    return gateway
+class TestTask042AcceptanceCriteria:
+    """Test that Task 042 meets all acceptance criteria"""
 
+    @pytest.fixture
+    def sample_business_data(self):
+        """Sample business data for testing"""
+        return {
+            'id': 'biz_test_001',
+            'name': 'Acme Corporation',
+            'business_name': 'Acme Corporation',
+            'phone': '+1-555-123-4567',
+            'address': '123 Main Street, San Francisco, CA 94105',
+            'city': 'San Francisco',
+            'state': 'CA',
+            'zip': '94105',
+            'website': 'https://acme.com'
+        }
 
-@pytest.fixture
-def sample_business():
-    """Sample business for testing"""
-    business = Mock(spec=Business)
-    business.id = "business_123"
-    business.name = "Joe's Pizza"
-    business.phone = "+1-555-123-4567"
-    business.address = "123 Main St"
-    business.city = "San Francisco"
-    business.state = "CA"
-    business.zip_code = "94102"
-    business.latitude = 37.7749
-    business.longitude = -122.4194
-    business.website = "https://joespizza.com"
-    business.place_id = None
-    business.rating = None
-    business.user_ratings_total = None
-    business.price_level = None
-    business.opening_hours = None
-    business.business_status = None
-    return business
+    @pytest.fixture
+    def sample_gbp_result(self):
+        """Sample GBP search result"""
+        return GBPSearchResult(
+            place_id="ChIJN1t_tDeuEmsRUsoyG83frY4",
+            name="Acme Corporation",
+            formatted_address="123 Main St, San Francisco, CA 94105, USA",
+            phone_number="+1-555-123-4567",
+            website="https://acme.com",
+            rating=4.5,
+            user_ratings_total=120,
+            business_status="OPERATIONAL",
+            types=["establishment", "point_of_interest"],
+            search_confidence=0.9,
+            data_quality=GBPDataQuality.GOOD,
+            raw_data={"test": True}
+        )
 
+    @pytest.fixture
+    def gbp_enricher(self):
+        """Create GBP enricher instance"""
+        return GBPEnricher(api_key=None)  # Use mock data
 
-@pytest.fixture
-def sample_gbp_result():
-    """Sample GBP search result"""
-    return GBPSearchResult(
-        place_id="ChIJ123abc",
-        name="Joe's Pizza",
-        formatted_address="123 Main St, San Francisco, CA 94102, USA",
-        phone_number="+1 555-123-4567",
-        website="https://joespizza.com",
-        rating=4.5,
-        user_ratings_total=234,
-        price_level=2,
-        opening_hours={
-            "open_now": True,
-            "periods": [
-                {
-                    "close": {"day": 0, "time": "2200"},
-                    "open": {"day": 0, "time": "1100"}
-                }
+    def test_gbp_data_extraction(self, gbp_enricher, sample_business_data):
+        """
+        Test that GBP data extraction works properly
+        
+        Acceptance Criteria: GBP data extraction
+        """
+        async def run_test():
+            # Test mock data extraction
+            gbp_results = await gbp_enricher._search_gbp_data(sample_business_data)
+            
+            assert len(gbp_results) > 0
+            assert isinstance(gbp_results[0], GBPSearchResult)
+            assert gbp_results[0].place_id is not None
+            assert gbp_results[0].name == sample_business_data['name']
+            
+            # Test different search strategies
+            results_by_name = await gbp_enricher._search_by_name_and_location(sample_business_data)
+            assert len(results_by_name) > 0
+            assert results_by_name[0].search_confidence == 0.8
+            
+            results_by_phone = await gbp_enricher._search_by_phone(sample_business_data)
+            assert len(results_by_phone) > 0
+            assert results_by_phone[0].search_confidence == 0.9
+            
+            results_by_address = await gbp_enricher._search_by_address(sample_business_data)
+            assert len(results_by_address) > 0
+            assert results_by_address[0].search_confidence == 0.7
+            
+            # Test cache functionality
+            cache_key = gbp_enricher._generate_cache_key(sample_business_data)
+            assert isinstance(cache_key, str)
+            assert len(cache_key) == 32  # MD5 hash length
+            
+            print("✓ GBP data extraction works correctly")
+
+        asyncio.run(run_test())
+
+    def test_best_match_selection(self, gbp_enricher, sample_business_data, sample_gbp_result):
+        """
+        Test that best match selection works properly
+        
+        Acceptance Criteria: Best match selection
+        """
+        async def run_test():
+            # Create multiple GBP results with different confidence levels
+            gbp_results = [
+                GBPSearchResult(
+                    place_id="place_1",
+                    name="Similar Company",
+                    search_confidence=0.6,
+                    data_quality=GBPDataQuality.FAIR
+                ),
+                sample_gbp_result,  # Should be the best match
+                GBPSearchResult(
+                    place_id="place_3", 
+                    name="Different Business",
+                    search_confidence=0.4,
+                    data_quality=GBPDataQuality.POOR
+                )
             ]
-        },
-        business_status="OPERATIONAL",
-        place_types=["restaurant", "food", "point_of_interest"],
-        geometry={
-            "location": {"lat": 37.7749, "lng": -122.4194}
-        },
-        raw_data={"test": "data"}
-    )
+            
+            best_match = await gbp_enricher._select_best_match(sample_business_data, gbp_results)
+            
+            assert best_match is not None
+            assert best_match.place_id == sample_gbp_result.place_id
+            assert best_match.search_confidence >= 0.7  # Should have high confidence
+            
+            # Test with no suitable matches
+            low_quality_results = [
+                GBPSearchResult(
+                    place_id="place_low",
+                    name="Completely Different",
+                    search_confidence=0.3,
+                    data_quality=GBPDataQuality.POOR
+                )
+            ]
+            
+            no_match = await gbp_enricher._select_best_match(sample_business_data, low_quality_results)
+            assert no_match is None  # Should reject low-quality matches
+            
+            # Test with empty results
+            empty_match = await gbp_enricher._select_best_match(sample_business_data, [])
+            assert empty_match is None
+            
+            print("✓ Best match selection works correctly")
 
+        asyncio.run(run_test())
 
-@pytest.fixture
-def enricher(mock_gateway):
-    """GBP enricher with mock gateway"""
-    return GBPEnricher(gateway_client=mock_gateway, db_session=Mock())
-
-
-class TestGBPEnricher:
-    """Test GBP enricher functionality"""
-    
-    def test_init(self, enricher):
-        """Test enricher initialization"""
-        assert enricher.gateway is not None
-        assert enricher.matcher is not None
-        assert enricher.match_config is not None
-        assert enricher.stats['searches_performed'] == 0
-    
-    def test_business_to_dict(self, enricher, sample_business):
-        """Test business to dict conversion"""
-        result = enricher._business_to_dict(sample_business)
+    def test_business_data_merge(self, gbp_enricher, sample_business_data, sample_gbp_result):
+        """
+        Test that business data merge works properly
         
-        assert result['id'] == "business_123"
-        assert result['business_name'] == "Joe's Pizza"
-        assert result['phone'] == "+1-555-123-4567"
-        assert result['address'] == "123 Main St"
-        assert result['zip'] == "94102"
-        assert result['city'] == "San Francisco"
-        assert result['state'] == "CA"
-        assert result['domain'] == "joespizza.com"
-    
-    def test_gbp_result_to_dict(self, enricher, sample_gbp_result):
-        """Test GBP result to dict conversion"""
-        result = enricher._gbp_result_to_dict(sample_gbp_result)
+        Acceptance Criteria: Business data merge
+        """
+        # Test merging with complete original data
+        merged_data = gbp_enricher._merge_business_data(sample_business_data, sample_gbp_result)
         
-        assert result['id'] == "ChIJ123abc"
-        assert result['business_name'] == "Joe's Pizza"
-        assert result['phone'] == "+1 555-123-4567"
-        assert result['address'] == "123 Main St, San Francisco, CA 94102, USA"
-        assert result['zip'] == "94102"
-        assert result['domain'] == "joespizza.com"
-    
-    def test_extract_domain(self, enricher):
-        """Test domain extraction from URLs"""
-        assert enricher._extract_domain("https://example.com") == "example.com"
-        assert enricher._extract_domain("http://www.example.com/path") == "www.example.com"
-        assert enricher._extract_domain("invalid") is None
-        assert enricher._extract_domain(None) is None
-    
-    def test_extract_zip_from_address(self, enricher):
-        """Test ZIP extraction from formatted address"""
-        address1 = "123 Main St, San Francisco, CA 94102, USA"
-        assert enricher._extract_zip_from_address(address1) == "94102"
+        # Original data should be preserved where present
+        assert merged_data['name'] == sample_business_data['name']
+        assert merged_data['phone'] == sample_business_data['phone']
         
-        address2 = "456 Oak Ave, New York, NY 10001-1234, USA"
-        assert enricher._extract_zip_from_address(address2) == "10001-1234"
+        # GBP data should enhance missing fields
+        assert merged_data['rating'] == sample_gbp_result.rating
+        assert merged_data['user_ratings_total'] == sample_gbp_result.user_ratings_total
+        assert merged_data['business_status'] == sample_gbp_result.business_status
+        assert merged_data['types'] == sample_gbp_result.types
         
-        address3 = "No ZIP here"
-        assert enricher._extract_zip_from_address(address3) is None
-    
-    def test_extract_enrichment_data(self, enricher, sample_gbp_result):
-        """Test GBP data extraction - Acceptance Criteria: GBP data extraction"""
-        data = enricher._extract_enrichment_data(sample_gbp_result)
-        
-        assert data['place_id'] == "ChIJ123abc"
-        assert data['rating'] == 4.5
-        assert data['user_ratings_total'] == 234
-        assert data['price_level'] == 2
-        assert data['opening_hours'] is not None
-        assert data['business_status'] == "OPERATIONAL"
-        assert data['place_types'] == ["restaurant", "food", "point_of_interest"]
-        assert data['website'] == "https://joespizza.com"
-        assert data['formatted_phone_number'] == "+1 555-123-4567"
-        assert data['raw_gbp_data'] == {"test": "data"}
-    
-    def test_merge_business_data(self, enricher, sample_business):
-        """Test business data merge - Acceptance Criteria: Business data merge"""
-        enrichment_data = {
-            'place_id': 'ChIJ123abc',
-            'rating': 4.5,
-            'user_ratings_total': 234,
-            'price_level': 2,
-            'opening_hours': {'open_now': True},
-            'business_status': 'OPERATIONAL',
-            'website': 'https://newwebsite.com',
-            'formatted_phone_number': '+1 555-123-4567',
-            'geometry': {
-                'location': {'lat': 37.7749, 'lng': -122.4194}
-            },
-            'place_types': ['restaurant']
+        # Test merging with incomplete original data
+        incomplete_data = {
+            'id': 'biz_test_002',
+            'name': 'Partial Company'
+            # Missing phone, address, etc.
         }
         
-        merged = enricher._merge_business_data(sample_business, enrichment_data)
+        merged_incomplete = gbp_enricher._merge_business_data(incomplete_data, sample_gbp_result)
         
-        # Should always merge place_id
-        assert merged['place_id'] == 'ChIJ123abc'
+        # Should use GBP data for missing fields
+        assert merged_incomplete['phone'] == sample_gbp_result.phone_number
+        assert merged_incomplete['formatted_address'] == sample_gbp_result.formatted_address
+        assert merged_incomplete['website'] == sample_gbp_result.website
         
-        # Should merge rating since business doesn't have one
-        assert merged['rating'] == 4.5
-        assert merged['user_ratings_total'] == 234
+        # Test address component parsing
+        address_components = gbp_enricher._parse_address_components(
+            "123 Main St, San Francisco, CA 94105, USA"
+        )
+        assert 'street_address' in address_components
+        assert address_components['city'] == 'San Francisco'
         
-        # Should merge opening hours since business doesn't have them
-        assert merged['opening_hours'] == {'open_now': True}
+        # Test data quality assessment
+        assert gbp_enricher._is_gbp_data_better("", "new_value", "any_field") == True
+        assert gbp_enricher._is_gbp_data_better("http://old.com", "https://new.com", "website") == True
+        assert gbp_enricher._is_gbp_data_better("555-1234", "+1-555-123-4567", "phone") == True
         
-        # Should merge price level
-        assert merged['price_level'] == 2
+        print("✓ Business data merge works correctly")
+
+    def test_confidence_scoring(self, gbp_enricher, sample_business_data, sample_gbp_result):
+        """
+        Test that confidence scoring works properly
         
-        # Should merge business status
-        assert merged['business_status'] == 'OPERATIONAL'
+        Acceptance Criteria: Confidence scoring
+        """
+        # Test confidence score calculation
+        confidence_score = gbp_enricher._calculate_confidence_score(
+            sample_business_data, sample_gbp_result
+        )
         
-        # Should NOT merge website since business already has one
-        assert 'website' not in merged
+        assert 0.0 <= confidence_score <= 1.0
+        assert confidence_score >= 0.7  # Should be high for good match
         
-        # Should NOT merge phone since business already has one
-        assert 'phone' not in merged
+        # Test confidence level mapping
+        exact_confidence = gbp_enricher._map_confidence_to_level(0.95)
+        assert exact_confidence == MatchConfidence.EXACT
         
-        # Should merge coordinates since business doesn't have them
-        # (sample_business.latitude is set but in real scenario might be None)
-        assert 'gbp_place_types' in merged
-    
-    def test_merge_business_data_empty_business(self, enricher):
-        """Test merging when business has no existing data"""
-        empty_business = Mock(spec=Business)
-        empty_business.rating = None
-        empty_business.user_ratings_total = None
-        empty_business.opening_hours = None
-        empty_business.price_level = None
-        empty_business.website = None
-        empty_business.phone = None
-        empty_business.latitude = None
-        empty_business.longitude = None
+        high_confidence = gbp_enricher._map_confidence_to_level(0.80)
+        assert high_confidence == MatchConfidence.HIGH
         
-        enrichment_data = {
-            'place_id': 'ChIJ123abc',
-            'rating': 4.5,
-            'user_ratings_total': 234,
-            'website': 'https://website.com',
-            'formatted_phone_number': '+1 555-123-4567',
-            'geometry': {
-                'location': {'lat': 37.7749, 'lng': -122.4194}
+        medium_confidence = gbp_enricher._map_confidence_to_level(0.65)
+        assert medium_confidence == MatchConfidence.MEDIUM
+        
+        low_confidence = gbp_enricher._map_confidence_to_level(0.45)
+        assert low_confidence == MatchConfidence.LOW
+        
+        uncertain_confidence = gbp_enricher._map_confidence_to_level(0.25)
+        assert uncertain_confidence == MatchConfidence.UNCERTAIN
+        
+        # Test completeness factor calculation
+        completeness = gbp_enricher._calculate_completeness_factor(sample_gbp_result)
+        assert 0.0 <= completeness <= 1.0
+        assert completeness >= 0.8  # Should be high for complete result
+        
+        # Test with incomplete result
+        incomplete_result = GBPSearchResult(
+            place_id="incomplete",
+            name="Test Business"
+            # Missing most fields
+        )
+        
+        incomplete_completeness = gbp_enricher._calculate_completeness_factor(incomplete_result)
+        assert incomplete_completeness < completeness
+        
+        print("✓ Confidence scoring works correctly")
+
+    def test_end_to_end_enrichment(self, gbp_enricher, sample_business_data):
+        """Test complete end-to-end enrichment process"""
+        async def run_test():
+            # Test successful enrichment
+            result = await gbp_enricher.enrich_business(sample_business_data)
+            
+            assert isinstance(result, EnrichmentResult)
+            assert result.business_id == sample_business_data['id']
+            assert result.company_name == sample_business_data['name']
+            assert result.match_confidence in [conf.value for conf in MatchConfidence]
+            assert 0.0 <= result.match_score <= 1.0
+            assert result.source == EnrichmentSource.INTERNAL.value
+            assert result.data_version.startswith("gbp_")
+            assert result.enrichment_cost_usd > 0
+            assert result.api_calls_used >= 0
+            
+            # Verify processed data
+            assert 'status' not in result.processed_data or result.processed_data.get('status') != 'failed'
+            
+            # Test statistics tracking
+            stats = gbp_enricher.get_statistics()
+            assert stats['total_requests'] >= 1
+            assert stats['successful_enrichments'] >= 1
+            assert 'success_rate' in stats
+            assert 'cache_hit_rate' in stats
+            
+            print("✓ End-to-end enrichment works correctly")
+
+        asyncio.run(run_test())
+
+    def test_error_handling_and_edge_cases(self, gbp_enricher):
+        """Test error handling and edge cases"""
+        async def run_test():
+            # Test with empty business data
+            empty_result = await gbp_enricher.enrich_business({})
+            assert isinstance(empty_result, EnrichmentResult)
+            assert empty_result.match_confidence == MatchConfidence.UNCERTAIN.value
+            
+            # Test with None values
+            none_data = {
+                'name': None,
+                'phone': None,
+                'address': None
             }
+            none_result = await gbp_enricher.enrich_business(none_data)
+            assert isinstance(none_result, EnrichmentResult)
+            
+            # Test cache expiration
+            old_result = GBPSearchResult(place_id="old", name="Old Business")
+            gbp_enricher._add_to_cache("test_key", old_result)
+            
+            # Manually expire cache
+            import datetime
+            gbp_enricher._cache["test_key"] = (
+                datetime.datetime.utcnow() - datetime.timedelta(hours=25),
+                old_result
+            )
+            
+            expired_result = gbp_enricher._get_from_cache("test_key")
+            assert expired_result is None  # Should be expired
+            
+            # Test cache clearing
+            gbp_enricher.clear_cache()
+            assert len(gbp_enricher._cache) == 0
+            
+            print("✓ Error handling and edge cases work correctly")
+
+        asyncio.run(run_test())
+
+    def test_utility_functions(self, gbp_enricher):
+        """Test utility functions"""
+        # Test domain extraction
+        assert gbp_enricher._extract_domain("https://www.example.com/path") == "example.com"
+        assert gbp_enricher._extract_domain("http://subdomain.example.com") == "subdomain.example.com"
+        assert gbp_enricher._extract_domain("example.com") == "example.com"
+        assert gbp_enricher._extract_domain(None) is None
+        assert gbp_enricher._extract_domain("") is None
+        
+        # Test data quality calculation
+        high_quality_data = {
+            'business_name': 'Test Company',
+            'phone': '+1-555-123-4567',
+            'formatted_address': '123 Main St',
+            'website': 'https://test.com',
+            'rating': 4.5,
+            'user_ratings_total': 100,
+            'business_status': 'OPERATIONAL'
         }
         
-        merged = enricher._merge_business_data(empty_business, enrichment_data)
+        quality_score = gbp_enricher._calculate_data_quality(high_quality_data)
+        assert quality_score >= 0.8
         
-        # Should merge all fields since business has none
-        assert merged['place_id'] == 'ChIJ123abc'
-        assert merged['rating'] == 4.5
-        assert merged['user_ratings_total'] == 234
-        assert merged['website'] == 'https://website.com'
-        assert merged['phone'] == '+1 555-123-4567'
-        assert merged['latitude'] == 37.7749
-        assert merged['longitude'] == -122.4194
-    
-    def test_determine_enrichment_confidence(self, enricher):
-        """Test confidence scoring - Acceptance Criteria: Confidence scoring"""
-        from d4_enrichment.matchers import MatchConfidence as MatcherConfidence
+        low_quality_data = {
+            'business_name': 'Test'
+        }
         
-        # Mock match result with exact confidence
-        exact_match = Mock()
-        exact_match.confidence.value = 'exact'
-        confidence = enricher._determine_enrichment_confidence(exact_match)
-        assert confidence == MatchConfidence.EXACT.value
+        low_quality_score = gbp_enricher._calculate_data_quality(low_quality_data)
+        assert low_quality_score < quality_score
         
-        # Mock match result with high confidence
-        high_match = Mock()
-        high_match.confidence.value = 'high'
-        confidence = enricher._determine_enrichment_confidence(high_match)
-        assert confidence == MatchConfidence.HIGH.value
-        
-        # Mock match result with medium confidence
-        medium_match = Mock()
-        medium_match.confidence.value = 'medium'
-        confidence = enricher._determine_enrichment_confidence(medium_match)
-        assert confidence == MatchConfidence.MEDIUM.value
-        
-        # Mock match result with low confidence
-        low_match = Mock()
-        low_match.confidence.value = 'low'
-        confidence = enricher._determine_enrichment_confidence(low_match)
-        assert confidence == MatchConfidence.LOW.value
-        
-        # Mock match result with uncertain confidence
-        uncertain_match = Mock()
-        uncertain_match.confidence.value = 'uncertain'
-        confidence = enricher._determine_enrichment_confidence(uncertain_match)
-        assert confidence == MatchConfidence.UNCERTAIN.value
-    
-    def test_calculate_data_quality_score(self, enricher, sample_gbp_result):
-        """Test data quality score calculation"""
-        score = enricher._calculate_data_quality_score(sample_gbp_result)
-        assert 0.0 <= score <= 1.0
-        assert score > 0.8  # Should be high quality with all fields populated
-        
-        # Test with minimal data
-        minimal_result = GBPSearchResult(
-            place_id="test",
-            name="Test",
-            formatted_address=""
+        print("✓ Utility functions work correctly")
+
+    def test_gbp_search_result_dataclass(self):
+        """Test GBPSearchResult dataclass functionality"""
+        result = GBPSearchResult(
+            place_id="test_place",
+            name="Test Business",
+            formatted_address="123 Test St",
+            rating=4.2,
+            data_quality=GBPDataQuality.GOOD
         )
-        minimal_score = enricher._calculate_data_quality_score(minimal_result)
-        assert minimal_score < score  # Should be lower quality
-    
-    def test_calculate_completeness_score(self, enricher, sample_gbp_result):
-        """Test completeness score calculation"""
-        score = enricher._calculate_completeness_score(sample_gbp_result)
-        assert 0.0 <= score <= 1.0
-        assert score > 0.7  # Should be quite complete
         
-        # Test with minimal data
-        minimal_result = GBPSearchResult(
-            place_id="test",
-            name="Test",
-            formatted_address=""
-        )
-        minimal_score = enricher._calculate_completeness_score(minimal_result)
-        assert minimal_score < score  # Should be less complete
-    
-    def test_deduplicate_search_results(self, enricher):
-        """Test search result deduplication"""
-        results = [
-            GBPSearchResult(place_id="1", name="Test 1", formatted_address="Addr 1"),
-            GBPSearchResult(place_id="2", name="Test 2", formatted_address="Addr 2"),
-            GBPSearchResult(place_id="1", name="Test 1 Duplicate", formatted_address="Addr 1"),  # Duplicate
-            GBPSearchResult(place_id="3", name="Test 3", formatted_address="Addr 3"),
-        ]
+        # Test to_dict conversion
+        result_dict = result.to_dict()
+        assert result_dict['place_id'] == "test_place"
+        assert result_dict['name'] == "Test Business"
+        assert result_dict['rating'] == 4.2
+        assert result_dict['data_quality'] == "good"
         
-        unique_results = enricher._deduplicate_search_results(results)
+        # Test default values
+        assert result.search_confidence == 0.0
+        assert result.types == []
+        assert result.photos == []
+        assert result.reviews == []
+        assert result.raw_data == {}
         
-        assert len(unique_results) == 3
-        place_ids = [r.place_id for r in unique_results]
-        assert place_ids == ["1", "2", "3"]
-        
-        # Should keep the first occurrence
-        assert unique_results[0].name == "Test 1"
-    
-    def test_parse_places_response(self, enricher):
-        """Test parsing of Google Places API response"""
-        mock_response = {
-            'results': [
-                {
-                    'place_id': 'ChIJ123',
-                    'name': 'Test Place',
-                    'formatted_address': '123 Test St, Test City, TC 12345',
-                    'rating': 4.2,
-                    'user_ratings_total': 150,
-                    'price_level': 2,
-                    'website': 'https://test.com',
-                    'formatted_phone_number': '+1 555-123-4567',
-                    'business_status': 'OPERATIONAL',
-                    'types': ['restaurant'],
-                    'geometry': {'location': {'lat': 37.7749, 'lng': -122.4194}},
-                },
-                {
-                    'place_id': 'ChIJ456',
-                    'name': 'Another Place',
-                    'formatted_address': '456 Other St, Other City, OC 67890',
-                }
+        print("✓ GBPSearchResult dataclass works correctly")
+
+    def test_batch_gbp_enricher(self, gbp_enricher):
+        """Test batch GBP enrichment functionality"""
+        async def run_test():
+            batch_enricher = BatchGBPEnricher(
+                enricher=gbp_enricher,
+                max_concurrent=2,
+                batch_size=3
+            )
+            
+            # Test businesses data
+            businesses = [
+                {'id': 'biz_1', 'name': 'Business One'},
+                {'id': 'biz_2', 'name': 'Business Two'},
+                {'id': 'biz_3', 'name': 'Business Three'},
+                {'id': 'biz_4', 'name': 'Business Four'},
+                {'id': 'biz_5', 'name': 'Business Five'}
             ]
+            
+            # Test batch enrichment
+            results = await batch_enricher.enrich_businesses(businesses)
+            
+            assert len(results) == len(businesses)
+            assert all(isinstance(result, EnrichmentResult) for result in results)
+            
+            # Verify each business was processed
+            result_ids = [result.business_id for result in results]
+            expected_ids = [biz['id'] for biz in businesses]
+            assert set(result_ids) == set(expected_ids)
+            
+            print("✓ Batch GBP enricher works correctly")
+
+        asyncio.run(run_test())
+
+    def test_mock_data_generation(self, gbp_enricher):
+        """Test mock data generation for testing"""
+        business_data = {
+            'name': 'Mock Test Business',
+            'city': 'Test City'
         }
         
-        results = enricher._parse_places_response(mock_response)
+        mock_results = gbp_enricher._get_mock_gbp_data(business_data)
         
-        assert len(results) == 2
+        assert len(mock_results) == 1
+        mock_result = mock_results[0]
         
-        # Check first result
-        result1 = results[0]
-        assert result1.place_id == 'ChIJ123'
-        assert result1.name == 'Test Place'
-        assert result1.rating == 4.2
-        assert result1.user_ratings_total == 150
-        assert result1.website == 'https://test.com'
+        assert mock_result.name == business_data['name']
+        assert mock_result.place_id.startswith('mock_place_')
+        assert mock_result.search_confidence == 0.85
+        assert mock_result.data_quality == GBPDataQuality.GOOD
+        assert mock_result.raw_data['mock'] == True
         
-        # Check second result (minimal data)
-        result2 = results[1]
-        assert result2.place_id == 'ChIJ456'
-        assert result2.name == 'Another Place'
-        assert result2.rating is None
-        assert result2.website is None
-    
-    def test_parse_places_response_empty(self, enricher):
-        """Test parsing empty or invalid response"""
-        assert enricher._parse_places_response({}) == []
-        assert enricher._parse_places_response(None) == []
-        assert enricher._parse_places_response({'results': []}) == []
-    
-    def test_find_best_match_exact(self, enricher, sample_business):
-        """Test best match selection with exact match - Acceptance Criteria: Best match selection"""
-        # Create a perfect GBP match
-        perfect_match = GBPSearchResult(
-            place_id="perfect_match",
-            name="Joe's Pizza",  # Exact name match
-            formatted_address="123 Main St, San Francisco, CA 94102, USA",
-            phone_number="+1 555-123-4567",  # Exact phone match
-            website="https://joespizza.com"
+        # Test create_mock_result
+        custom_mock = gbp_enricher._create_mock_result(
+            "Custom Business", "Test Location", 0.95
         )
         
-        # Create a poor match
-        poor_match = GBPSearchResult(
-            place_id="poor_match",
-            name="Different Restaurant",
-            formatted_address="999 Other St, Other City, NY 10001, USA",
-            phone_number="+1 555-999-9999"
-        )
+        assert custom_mock.name == "Custom Business"
+        assert custom_mock.search_confidence == 0.95
+        assert "Custom Business" in custom_mock.website
         
-        search_results = [poor_match, perfect_match]  # Put poor match first to test sorting
+        print("✓ Mock data generation works correctly")
+
+    def test_integration_with_fuzzy_matcher(self, sample_business_data):
+        """Test integration with fuzzy matching system"""
+        # Create enricher with custom matcher
+        custom_matcher = BusinessMatcher()
+        enricher = GBPEnricher(matcher=custom_matcher)
         
-        best_match, match_result = enricher._find_best_match(sample_business, search_results)
-        
-        assert best_match is not None
-        assert best_match.place_id == "perfect_match"
-        assert match_result.overall_score > 0.8  # Should be high score
-        assert match_result.record1_id == sample_business.id
-        assert match_result.record2_id == "perfect_match"
-    
-    def test_find_best_match_no_good_matches(self, enricher, sample_business):
-        """Test best match selection when no good matches exist"""
-        # Create only poor matches
-        poor_matches = [
-            GBPSearchResult(
-                place_id="poor1",
-                name="Completely Different Business",
-                formatted_address="999 Other St, Other City, NY 10001, USA",
-                phone_number="+1 555-999-9999"
-            ),
-            GBPSearchResult(
-                place_id="poor2",
-                name="Another Different Business",
-                formatted_address="888 Another St, Another City, FL 33101, USA",
-                phone_number="+1 555-888-8888"
-            )
-        ]
-        
-        best_match, match_result = enricher._find_best_match(sample_business, poor_matches)
-        
-        # Should return None if no matches meet threshold
-        assert best_match is None
-        assert match_result is None
-    
-    def test_find_best_match_empty_results(self, enricher, sample_business):
-        """Test best match selection with empty results"""
-        best_match, match_result = enricher._find_best_match(sample_business, [])
-        
-        assert best_match is None
-        assert match_result is None
-    
-    @pytest.mark.asyncio
-    async def test_search_gbp_data_cache_hit(self, enricher, sample_business):
-        """Test GBP data search with cache hit"""
-        # Pre-populate cache
-        cache_key = f"gbp_search_{sample_business.name}_{sample_business.zip_code}"
-        cached_results = [
-            GBPSearchResult(
-                place_id="cached_result",
-                name="Cached Business",
-                formatted_address="Cached Address"
-            )
-        ]
-        enricher.cache[cache_key] = cached_results
-        
-        results = await enricher._search_gbp_data(sample_business)
-        
-        assert results == cached_results
-        assert enricher.stats['cache_hits'] == 1
-        assert enricher.stats['searches_performed'] == 1
-    
-    @pytest.mark.asyncio
-    async def test_search_gbp_data_no_gateway(self, sample_business):
-        """Test GBP data search without gateway (mock mode)"""
-        enricher = GBPEnricher(gateway_client=None, db_session=Mock())
-        
-        results = await enricher._search_gbp_data(sample_business)
-        
-        # Should return mock results
-        assert len(results) == 1
-        assert results[0].place_id == f"mock_place_{sample_business.id}"
-        assert results[0].name == sample_business.name
-    
-    @pytest.mark.asyncio
-    async def test_enrich_business_full_flow(self, enricher, sample_business, sample_gbp_result):
-        """Test complete enrichment flow - All Acceptance Criteria"""
-        # Mock the search to return our sample result AND update stats
-        async def mock_search(business):
-            enricher.stats['searches_performed'] += 1
-            return [sample_gbp_result]
-        
-        enricher._search_gbp_data = AsyncMock(side_effect=mock_search)
-        
-        # Mock recently enriched check
-        enricher._is_recently_enriched = Mock(return_value=False)
-        
-        result = await enricher.enrich_business(sample_business)
-        
-        # Verify result is created correctly
-        assert isinstance(result, EnrichmentResult)
-        assert result.business_id == sample_business.id
-        assert result.source_record_id == sample_gbp_result.place_id
-        assert result.match_score > 0.0
-        assert result.company_name == sample_gbp_result.name
-        assert result.is_active is True
-        
-        # Verify statistics updated
-        assert enricher.stats['searches_performed'] == 1
-        assert enricher.stats['matches_found'] == 1
-    
-    @pytest.mark.asyncio
-    async def test_enrich_business_no_results(self, enricher, sample_business):
-        """Test enrichment when no GBP results found"""
-        # Mock search to return empty results AND update stats
-        async def mock_search(business):
-            enricher.stats['searches_performed'] += 1
-            return []
-        
-        enricher._search_gbp_data = AsyncMock(side_effect=mock_search)
-        enricher._is_recently_enriched = Mock(return_value=False)
-        
-        result = await enricher.enrich_business(sample_business)
-        
-        # Should return no-match result
-        assert isinstance(result, EnrichmentResult)
-        assert result.business_id == sample_business.id
-        assert result.match_score == 0.0
-        assert result.is_active is False
-        assert "no_match" in result.data_version
-    
-    @pytest.mark.asyncio
-    async def test_enrich_business_recently_enriched(self, enricher, sample_business):
-        """Test enrichment when business was recently enriched"""
-        # Mock recently enriched check
-        enricher._is_recently_enriched = Mock(return_value=True)
-        
-        result = await enricher.enrich_business(sample_business)
-        
-        # Should return skipped result
-        assert isinstance(result, EnrichmentResult)
-        assert result.business_id == sample_business.id
-        assert result.match_score == 0.0
-        assert result.is_active is False
-        assert "skipped" in result.data_version
-        assert result.enrichment_cost_usd == 0.0
-    
-    @pytest.mark.asyncio
-    async def test_enrich_business_error(self, enricher, sample_business):
-        """Test enrichment error handling"""
-        # Mock search to raise an exception
-        enricher._search_gbp_data = AsyncMock(side_effect=Exception("API Error"))
-        enricher._is_recently_enriched = Mock(return_value=False)
-        
-        result = await enricher.enrich_business(sample_business)
-        
-        # Should return error result
-        assert isinstance(result, EnrichmentResult)
-        assert result.business_id == sample_business.id
-        assert result.match_score == 0.0
-        assert result.is_active is False
-        assert "error" in result.data_version
-        assert "API Error" in result.validation_errors
-    
-    def test_create_mock_search_results(self, enricher, sample_business):
-        """Test mock search results creation"""
-        results = enricher._create_mock_search_results(sample_business)
-        
-        assert len(results) == 1
-        result = results[0]
-        assert result.place_id == f"mock_place_{sample_business.id}"
-        assert result.name == sample_business.name
-        assert result.phone_number == sample_business.phone
-        assert result.rating == 4.2
-        assert result.raw_data == {"mock": True}
-    
-    def test_is_recently_enriched(self, enricher, sample_business):
-        """Test recently enriched check"""
-        # Business without place_id should not be considered recently enriched
-        sample_business.place_id = None
-        assert enricher._is_recently_enriched(sample_business) is False
-        
-        # Business with place_id should be considered recently enriched
-        sample_business.place_id = "ChIJ123"
-        assert enricher._is_recently_enriched(sample_business) is True
-    
-    def test_statistics(self, enricher):
-        """Test statistics collection and calculation"""
-        # Initial stats
-        stats = enricher.get_statistics()
-        assert stats['match_rate'] == 0.0
-        assert stats['high_confidence_rate'] == 0.0
-        assert stats['cache_hit_rate'] == 0.0
-        
-        # Update some stats
-        enricher.stats['searches_performed'] = 10
-        enricher.stats['matches_found'] = 8
-        enricher.stats['exact_matches'] = 3
-        enricher.stats['high_confidence_matches'] = 2
-        enricher.stats['cache_hits'] = 5
-        
-        stats = enricher.get_statistics()
-        assert stats['match_rate'] == 0.8
-        assert stats['high_confidence_rate'] == 0.625  # (3+2)/8
-        assert stats['cache_hit_rate'] == 0.5  # 5/10
-    
-    def test_clear_cache(self, enricher):
-        """Test cache clearing"""
-        enricher.cache['test'] = 'data'
-        assert len(enricher.cache) == 1
-        
-        enricher.clear_cache()
-        assert len(enricher.cache) == 0
+        async def run_test():
+            # Test that the enricher uses the provided matcher
+            assert enricher.matcher is custom_matcher
+            
+            # Test enrichment process uses fuzzy matching
+            result = await enricher.enrich_business(sample_business_data)
+            
+            # Should have used fuzzy matching for match selection
+            assert isinstance(result, EnrichmentResult)
+            assert result.match_score >= 0.0
+            
+            # Test matcher statistics were updated
+            matcher_stats = custom_matcher.get_statistics()
+            assert matcher_stats['total_matches'] > 0
+            
+            print("✓ Integration with fuzzy matcher works correctly")
+
+        asyncio.run(run_test())
+
+    def test_comprehensive_acceptance_criteria(self, gbp_enricher, sample_business_data):
+        """Comprehensive test covering all acceptance criteria"""
+        async def run_test():
+            # This test verifies all four acceptance criteria work together
+            
+            # 1. GBP data extraction - verify data is extracted from multiple sources
+            gbp_results = await gbp_enricher._search_gbp_data(sample_business_data)
+            assert len(gbp_results) > 0, "GBP data extraction failed"
+            
+            # 2. Best match selection - verify best match is selected using fuzzy matching
+            best_match = await gbp_enricher._select_best_match(sample_business_data, gbp_results)
+            assert best_match is not None, "Best match selection failed"
+            assert best_match.search_confidence >= 0.5, "Best match quality too low"
+            
+            # 3. Business data merge - verify original and GBP data are properly merged
+            merged_data = gbp_enricher._merge_business_data(sample_business_data, best_match)
+            assert 'business_name' in merged_data or 'name' in merged_data, "Name merge failed"
+            assert len(merged_data) >= len(sample_business_data), "Data merge lost information"
+            
+            # 4. Confidence scoring - verify confidence is calculated and mapped correctly
+            confidence_score = gbp_enricher._calculate_confidence_score(sample_business_data, best_match)
+            assert 0.0 <= confidence_score <= 1.0, "Confidence score out of range"
+            
+            confidence_level = gbp_enricher._map_confidence_to_level(confidence_score)
+            assert confidence_level in MatchConfidence, "Invalid confidence level"
+            
+            # End-to-end test - all criteria working together
+            final_result = await gbp_enricher.enrich_business(sample_business_data)
+            assert isinstance(final_result, EnrichmentResult), "End-to-end enrichment failed"
+            assert final_result.match_confidence in [conf.value for conf in MatchConfidence], "Invalid final confidence"
+            
+            print("✓ All acceptance criteria working together successfully")
+
+        asyncio.run(run_test())
 
 
-class TestBatchGBPEnricher:
-    """Test batch enrichment functionality"""
-    
-    @pytest.fixture
-    def batch_enricher(self, enricher):
-        """Batch enricher with mock underlying enricher"""
-        return BatchGBPEnricher(enricher, batch_size=2)
-    
-    @pytest.fixture
-    def sample_businesses(self):
-        """Sample businesses for batch testing"""
-        businesses = []
-        for i in range(3):
-            business = Mock(spec=Business)
-            business.id = f"business_{i}"
-            business.name = f"Business {i}"
-            business.phone = f"+1-555-{i:03d}-{i:04d}"
-            business.address = f"{i} Test St"
-            business.city = "Test City"
-            business.state = "TC"
-            business.zip_code = f"{i:05d}"
-            business.place_id = None
-            businesses.append(business)
-        return businesses
-    
-    @pytest.mark.asyncio
-    async def test_enrich_businesses_success(self, batch_enricher, sample_businesses):
-        """Test successful batch enrichment"""
-        # Mock the enricher to return successful results
-        mock_results = []
-        for business in sample_businesses:
-            result = Mock(spec=EnrichmentResult)
-            result.business_id = business.id
-            result.match_score = 0.8
-            mock_results.append(result)
-        
-        batch_enricher.enricher.enrich_business = AsyncMock(side_effect=mock_results)
-        
-        results = await batch_enricher.enrich_businesses(sample_businesses, max_concurrent=2)
-        
-        assert len(results) == 3
-        for i, result in enumerate(results):
-            assert result.business_id == f"business_{i}"
-            assert result.match_score == 0.8
-    
-    @pytest.mark.asyncio
-    async def test_enrich_businesses_with_errors(self, batch_enricher, sample_businesses):
-        """Test batch enrichment with some errors"""
-        # Mock the enricher to fail on second business
-        def mock_enrich(business):
-            if business.id == "business_1":
-                raise Exception("Test error")
-            else:
-                result = Mock(spec=EnrichmentResult)
-                result.business_id = business.id
-                result.match_score = 0.8
-                return result
-        
-        batch_enricher.enricher.enrich_business = AsyncMock(side_effect=mock_enrich)
-        
-        # Mock the error result creation
-        error_result = Mock(spec=EnrichmentResult)
-        error_result.business_id = "business_1"
-        error_result.match_score = 0.0
-        batch_enricher.enricher._create_error_result = Mock(return_value=error_result)
-        
-        results = await batch_enricher.enrich_businesses(sample_businesses, max_concurrent=2)
-        
-        assert len(results) == 3
-        
-        # First and third should be successful
-        assert results[0].business_id == "business_0"
-        assert results[0].match_score == 0.8
-        
-        assert results[2].business_id == "business_2"
-        assert results[2].match_score == 0.8
-        
-        # Second should be error result
-        assert results[1].business_id == "business_1"
-        assert results[1].match_score == 0.0
+# Allow running this test file directly
+if __name__ == "__main__":
+    import asyncio
+
+    async def run_tests():
+        test_instance = TestTask042AcceptanceCriteria()
+
+        print("🏢 Running Task 042 GBP Enricher Tests...")
+        print()
+
+        try:
+            # Sample data
+            sample_business = {
+                'id': 'test_biz_001',
+                'name': 'Test Corporation',
+                'phone': '555-123-4567',
+                'address': '123 Test St, Test City, TS 12345'
+            }
+            
+            sample_gbp = GBPSearchResult(
+                place_id="test_place_123",
+                name="Test Corporation",
+                formatted_address="123 Test St, Test City, TS 12345, USA",
+                phone_number="555-123-4567",
+                rating=4.0,
+                data_quality=GBPDataQuality.GOOD
+            )
+            
+            enricher = GBPEnricher(api_key=None)  # Use mock data
+
+            # Run all acceptance criteria tests
+            test_instance.test_gbp_data_extraction(enricher, sample_business)
+            test_instance.test_best_match_selection(enricher, sample_business, sample_gbp)
+            test_instance.test_business_data_merge(enricher, sample_business, sample_gbp)
+            test_instance.test_confidence_scoring(enricher, sample_business, sample_gbp)
+            test_instance.test_end_to_end_enrichment(enricher, sample_business)
+            test_instance.test_error_handling_and_edge_cases(enricher)
+            test_instance.test_utility_functions(enricher)
+            test_instance.test_gbp_search_result_dataclass()
+            test_instance.test_batch_gbp_enricher(enricher)
+            test_instance.test_mock_data_generation(enricher)
+            test_instance.test_integration_with_fuzzy_matcher(sample_business)
+            test_instance.test_comprehensive_acceptance_criteria(enricher, sample_business)
+
+            print()
+            print("🎉 All Task 042 acceptance criteria tests pass!")
+            print("   - GBP data extraction: ✓")
+            print("   - Best match selection: ✓")
+            print("   - Business data merge: ✓")
+            print("   - Confidence scoring: ✓")
+
+        except Exception as e:
+            print(f"❌ Test failed: {e}")
+            import traceback
+            traceback.print_exc()
+
+    # Run tests
+    asyncio.run(run_tests())
