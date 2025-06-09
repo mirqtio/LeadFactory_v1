@@ -19,6 +19,9 @@ import enum
 
 from database.base import Base
 
+# D6 report models are imported separately for now due to module path issues
+# from d6_reports.models import ReportGeneration, ReportTemplate, ReportSection, ReportDelivery
+
 
 def generate_uuid():
     """Generate a new UUID"""

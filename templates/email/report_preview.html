@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ business_name | default("Your Business") }} Audit Report Preview</title>
+    
+    <style>
+        /* Email-safe styles - inline and with fallbacks */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8fafc;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        /* Content area */
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #1e293b;
+        }
+        
+        /* Report preview card */
+        .report-preview {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            background: #ffffff;
+            text-align: center;
+        }
+        
+        .business-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        
+        .report-type {
+            font-size: 14px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 25px;
+        }
+        
+        /* Score display */
+        .score-display {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .overall-score {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .overall-score.excellent { color: #059669; }
+        .overall-score.good { color: #2563eb; }
+        .overall-score.fair { color: #d97706; }
+        .overall-score.poor { color: #dc2626; }
+        
+        .score-label {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+        
+        .tier-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tier-a { background: #dcfce7; color: #166534; }
+        .tier-b { background: #dbeafe; color: #1e40af; }
+        .tier-c { background: #fef3c7; color: #92400e; }
+        .tier-d { background: #fee2e2; color: #991b1b; }
+        
+        /* Key insights */
+        .insights {
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .insights h3 {
+            color: #1e293b;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+        }
+        
+        .insight-icon {
+            margin-right: 12px;
+            margin-top: 2px;
+            color: #2563eb;
+            font-weight: bold;
+        }
+        
+        .insight-text {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.5;
+        }
+        
+        /* CTA Button */
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cta-button:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        }
+        
+        .cta-description {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer-text {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+        
+        .unsubscribe {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        
+        .unsubscribe a {
+            color: #9ca3af;
+            text-decoration: underline;
+        }
+        
+        /* Mobile responsive */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100%;
+            }
+            
+            .header,
+            .content,
+            .footer {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .business-name {
+                font-size: 20px;
+            }
+            
+            .overall-score {
+                font-size: 36px;
+            }
+            
+            .cta-button {
+                padding: 14px 24px;
+                font-size: 14px;
+            }
+            
+            .insight-item {
+                flex-direction: column;
+                text-align: left;
+            }
+            
+            .insight-icon {
+                margin-bottom: 8px;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Your Business Audit Report is Ready!</h1>
+            <p>Comprehensive analysis and growth recommendations</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Hello {{ customer_name | default("there") }},
+            </div>
+            
+            <p>We've completed a comprehensive audit of your business and have some exciting insights to share. Your personalized report contains actionable recommendations that could significantly impact your growth.</p>
+            
+            <!-- Report Preview -->
+            <div class="report-preview">
+                <div class="business-name">{{ business_name | default("Your Business") }}</div>
+                <div class="report-type">Business Audit Report</div>
+                
+                <div class="score-display">
+                    <div class="overall-score {{ score_class | default('good') }}">{{ overall_score | default(78) }}</div>
+                    <div class="score-label">Overall Business Score</div>
+                    <span class="tier-badge {{ tier_class | default('tier-b') }}">{{ tier | default('Tier B') }}</span>
+                </div>
+                
+                <!-- Key Insights Preview -->
+                <div class="insights">
+                    <h3>Key Insights from Your Report:</h3>
+                    
+                    <div class="insight-item">
+                        <div class="insight-icon">✓</div>
+                        <div class="insight-text">
+                            <strong>Strong Performance:</strong> Your website shows {{ website_score | default(82) }}% performance score, above industry average
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item">
+                        <div class="insight-icon">📈</div>
+                        <div class="insight-text">
+                            <strong>Growth Opportunity:</strong> {{ growth_potential | default(85) }}% growth potential identified through strategic improvements
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item">
+                        <div class="insight-icon">🎯</div>
+                        <div class="insight-text">
+                            <strong>Priority Actions:</strong> 3 high-impact recommendations that could increase revenue by 18-25%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <a href="{{ report_download_url | default('#') }}" class="cta-button">
+                    View Your Complete Report
+                </a>
+                <div class="cta-description">
+                    Your detailed 15-page analysis includes competitive insights, specific action items, and projected ROI for each recommendation.
+                </div>
+            </div>
+            
+            <p>This comprehensive report covers:</p>
+            <ul style="text-align: left; color: #374151; line-height: 1.8;">
+                <li>Website performance and technical analysis</li>
+                <li>Business metrics vs. industry benchmarks</li>
+                <li>Competitive positioning assessment</li>
+                <li>Growth opportunity identification</li>
+                <li>Prioritized action plan with timelines</li>
+                <li>ROI projections for each recommendation</li>
+            </ul>
+            
+            <p>Questions about your report? Simply reply to this email and our team will be happy to provide additional insights.</p>
+            
+            <p style="margin-top: 30px;">
+                Best regards,<br>
+                <strong>The LeadFactory Team</strong>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-text">
+                This report was generated on {{ report_date | default("January 15, 2025") }} based on your business data and industry analysis.
+            </div>
+            
+            <div class="unsubscribe">
+                If you no longer wish to receive these reports, you can 
+                <a href="{{ unsubscribe_url | default('#') }}">unsubscribe here</a>.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

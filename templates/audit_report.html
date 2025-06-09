@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report_title | default("Business Audit Report") }}</title>
+    
+    <style>
+        /* Base styles for all media */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #ffffff;
+        }
+        
+        .report-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        
+        /* Header Section */
+        .report-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 3px solid #2563eb;
+        }
+        
+        .report-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        
+        .report-subtitle {
+            font-size: 1.2rem;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        
+        .business-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .business-detail {
+            text-align: center;
+        }
+        
+        .business-detail .label {
+            font-size: 0.9rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .business-detail .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        /* Executive Summary */
+        .executive-summary {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            border-left: 5px solid #2563eb;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            color: #2563eb;
+        }
+        
+        /* Score Cards */
+        .score-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .score-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .score-value {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .score-value.excellent { color: #059669; }
+        .score-value.good { color: #2563eb; }
+        .score-value.fair { color: #d97706; }
+        .score-value.poor { color: #dc2626; }
+        
+        .score-label {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+        
+        .score-tier {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tier-a { background: #dcfce7; color: #166534; }
+        .tier-b { background: #dbeafe; color: #1e40af; }
+        .tier-c { background: #fef3c7; color: #92400e; }
+        .tier-d { background: #fee2e2; color: #991b1b; }
+        
+        /* Content Sections */
+        .report-section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .section-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-table th {
+            background: #f8fafc;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .data-table tr:hover {
+            background: #f9fafb;
+        }
+        
+        /* Charts and Visualizations */
+        .chart-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .chart-placeholder {
+            width: 100%;
+            height: 300px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        
+        /* Recommendations */
+        .recommendations {
+            background: #fefce8;
+            border: 1px solid #eab308;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .recommendation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #eab308;
+        }
+        
+        .recommendation-priority {
+            background: #eab308;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+        
+        .recommendation-priority.high { background: #dc2626; }
+        .recommendation-priority.medium { background: #d97706; }
+        .recommendation-priority.low { background: #059669; }
+        
+        /* Footer */
+        .report-footer {
+            margin-top: 60px;
+            padding: 30px 0;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            color: #64748b;
+        }
+        
+        .generated-info {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .disclaimer {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            line-height: 1.4;
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .report-container {
+                padding: 15px;
+            }
+            
+            .report-title {
+                font-size: 2rem;
+            }
+            
+            .business-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .score-cards {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .section-content {
+                padding: 20px;
+            }
+            
+            .data-table {
+                font-size: 0.9rem;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 10px;
+            }
+            
+            .recommendation-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .report-title {
+                font-size: 1.6rem;
+            }
+            
+            .section-title {
+                font-size: 1.4rem;
+            }
+            
+            .score-value {
+                font-size: 2.5rem;
+            }
+            
+            .section-content {
+                padding: 15px;
+            }
+        }
+        
+        /* Print-Optimized Styles */
+        @media print {
+            body {
+                font-size: 12pt;
+                line-height: 1.4;
+                color: black;
+                background: white;
+            }
+            
+            .report-container {
+                max-width: none;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .report-header {
+                margin-bottom: 30px;
+                page-break-after: avoid;
+            }
+            
+            .report-section {
+                page-break-inside: avoid;
+                margin-bottom: 30px;
+            }
+            
+            .executive-summary {
+                page-break-after: avoid;
+            }
+            
+            .score-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .score-card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+            
+            .chart-placeholder {
+                border: 1px solid #ccc;
+                height: 250px;
+            }
+            
+            .section-content {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                padding: 20px;
+            }
+            
+            .data-table {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+            
+            .data-table th {
+                background: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            /* Ensure proper page breaks */
+            .page-break {
+                page-break-before: always;
+            }
+            
+            .no-page-break {
+                page-break-inside: avoid;
+            }
+            
+            /* Hide interactive elements in print */
+            .interactive-only {
+                display: none;
+            }
+            
+            /* Adjust colors for print */
+            .recommendations {
+                background: #f9f9f9 !important;
+                border: 1px solid #ccc !important;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .executive-summary {
+                background: #f9f9f9 !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <!-- Report Header -->
+        <header class="report-header">
+            <h1 class="report-title">{{ report_title | default("Business Audit Report") }}</h1>
+            <p class="report-subtitle">{{ report_subtitle | default("Comprehensive Business Analysis & Growth Recommendations") }}</p>
+            
+            <div class="business-info">
+                <div class="business-detail">
+                    <div class="label">Business Name</div>
+                    <div class="value">{{ business_name | default("Sample Business") }}</div>
+                </div>
+                <div class="business-detail">
+                    <div class="label">Industry</div>
+                    <div class="value">{{ industry | default("Professional Services") }}</div>
+                </div>
+                <div class="business-detail">
+                    <div class="label">Report Date</div>
+                    <div class="value">{{ report_date | default("January 2025") }}</div>
+                </div>
+                <div class="business-detail">
+                    <div class="label">Report ID</div>
+                    <div class="value">#{{ report_id | default("RPT-001") }}</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Executive Summary -->
+        <section class="report-section executive-summary">
+            <h2 class="section-title">
+                <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Executive Summary
+            </h2>
+            
+            <div class="score-cards">
+                <div class="score-card">
+                    <div class="score-value {{ overall_score_class | default('good') }}">{{ overall_score | default(78) }}</div>
+                    <div class="score-label">Overall Score</div>
+                    <span class="score-tier {{ tier_class | default('tier-b') }}">{{ tier | default('Tier B') }}</span>
+                </div>
+                <div class="score-card">
+                    <div class="score-value {{ website_score_class | default('good') }}">{{ website_score | default(82) }}</div>
+                    <div class="score-label">Website Performance</div>
+                    <span class="score-tier tier-b">Strong</span>
+                </div>
+                <div class="score-card">
+                    <div class="score-value {{ business_score_class | default('fair') }}">{{ business_score | default(74) }}</div>
+                    <div class="score-label">Business Metrics</div>
+                    <span class="score-tier tier-c">Good</span>
+                </div>
+                <div class="score-card">
+                    <div class="score-value {{ growth_score_class | default('excellent') }}">{{ growth_potential | default(85) }}</div>
+                    <div class="score-label">Growth Potential</div>
+                    <span class="score-tier tier-a">Excellent</span>
+                </div>
+            </div>
+            
+            <p>{{ executive_summary | default("This comprehensive audit reveals significant opportunities for growth and optimization. Your business demonstrates strong fundamentals with particular strengths in digital presence and customer engagement. Key areas for immediate improvement include operational efficiency and market positioning strategies.") }}</p>
+        </section>
+
+        <!-- Website Analysis Section -->
+        <section class="report-section">
+            <div class="section-content">
+                <h2 class="section-title">
+                    <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"/>
+                    </svg>
+                    Website & Digital Presence Analysis
+                </h2>
+                
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        [Performance Metrics Chart - Page Speed, SEO, Mobile Responsiveness]
+                    </div>
+                </div>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Current Score</th>
+                            <th>Industry Average</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Page Load Speed</td>
+                            <td>{{ page_speed | default("2.3s") }}</td>
+                            <td>3.1s</td>
+                            <td>Above Average</td>
+                        </tr>
+                        <tr>
+                            <td>Mobile Responsiveness</td>
+                            <td>{{ mobile_score | default("95/100") }}</td>
+                            <td>87/100</td>
+                            <td>Excellent</td>
+                        </tr>
+                        <tr>
+                            <td>SEO Score</td>
+                            <td>{{ seo_score | default("78/100") }}</td>
+                            <td>65/100</td>
+                            <td>Good</td>
+                        </tr>
+                        <tr>
+                            <td>Security Rating</td>
+                            <td>{{ security_score | default("A+") }}</td>
+                            <td>B+</td>
+                            <td>Excellent</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Business Metrics Section -->
+        <section class="report-section">
+            <div class="section-content">
+                <h2 class="section-title">
+                    <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Business Performance Metrics
+                </h2>
+                
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        [Revenue Trend Chart - Monthly Performance Over 12 Months]
+                    </div>
+                </div>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Key Performance Indicator</th>
+                            <th>Current Value</th>
+                            <th>Trend</th>
+                            <th>Industry Benchmark</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Annual Revenue</td>
+                            <td>${{ annual_revenue | default("450,000") }}</td>
+                            <td>↗ +12%</td>
+                            <td>${{ industry_revenue | default("380,000") }}</td>
+                        </tr>
+                        <tr>
+                            <td>Employee Count</td>
+                            <td>{{ employee_count | default(8) }}</td>
+                            <td>↗ +2</td>
+                            <td>{{ industry_employees | default(6) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Customer Rating</td>
+                            <td>{{ customer_rating | default("4.2/5") }}</td>
+                            <td>→ Stable</td>
+                            <td>{{ industry_rating | default("3.8/5") }}</td>
+                        </tr>
+                        <tr>
+                            <td>Market Position</td>
+                            <td>{{ market_position | default("Regional Leader") }}</td>
+                            <td>↗ Improving</td>
+                            <td>Competitor Analysis</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Recommendations Section -->
+        <section class="report-section">
+            <div class="section-content">
+                <h2 class="section-title">
+                    <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    Strategic Recommendations
+                </h2>
+                
+                <div class="recommendations">
+                    <div class="recommendation-item">
+                        <span class="recommendation-priority high">High</span>
+                        <div>
+                            <h4>Optimize Digital Marketing Strategy</h4>
+                            <p>Implement targeted SEO improvements and expand social media presence to capture 25% more qualified leads within 90 days.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <span class="recommendation-priority medium">Medium</span>
+                        <div>
+                            <h4>Enhance Customer Experience</h4>
+                            <p>Streamline customer onboarding process and implement feedback systems to improve satisfaction scores from 4.2 to 4.6+.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <span class="recommendation-priority medium">Medium</span>
+                        <div>
+                            <h4>Expand Service Offerings</h4>
+                            <p>Diversify revenue streams by introducing complementary services based on current customer needs analysis.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <span class="recommendation-priority low">Low</span>
+                        <div>
+                            <h4>Operational Efficiency</h4>
+                            <p>Implement automation tools for routine tasks to reduce operational costs by 15% while maintaining service quality.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Growth Opportunities -->
+        <section class="report-section">
+            <div class="section-content">
+                <h2 class="section-title">
+                    <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    Growth Opportunities & Market Analysis
+                </h2>
+                
+                <div class="chart-container">
+                    <div class="chart-placeholder">
+                        [Market Opportunity Chart - Growth Potential by Segment]
+                    </div>
+                </div>
+                
+                <p>Based on comprehensive market analysis, your business is positioned to capitalize on emerging trends in {{ industry | default("professional services") }}. Key growth vectors include digital transformation initiatives, expanded geographic reach, and strategic partnerships.</p>
+                
+                <h3>Projected Impact of Recommendations</h3>
+                <ul>
+                    <li><strong>Revenue Growth:</strong> 18-25% increase within 12 months</li>
+                    <li><strong>Market Share:</strong> Potential to capture additional 8% of local market</li>
+                    <li><strong>Operational Efficiency:</strong> 15-20% reduction in overhead costs</li>
+                    <li><strong>Customer Satisfaction:</strong> Target improvement to 4.6+ rating</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Report Footer -->
+        <footer class="report-footer">
+            <div class="generated-info">
+                <strong>Report Generated:</strong> {{ generation_date | default("January 15, 2025") }} | 
+                <strong>Data Analysis Period:</strong> {{ analysis_period | default("12 months") }} |
+                <strong>Next Review:</strong> {{ next_review | default("July 2025") }}
+            </div>
+            
+            <div class="disclaimer">
+                This report is generated based on publicly available data and proprietary analysis algorithms. 
+                Recommendations are provided for informational purposes and should be evaluated within the context 
+                of your specific business circumstances. Results may vary based on implementation and market conditions.
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
