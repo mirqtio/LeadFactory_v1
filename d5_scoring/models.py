@@ -46,7 +46,7 @@ class ScoringResult(Base):
 
     Acceptance Criteria: Scoring result model
     """
-    __tablename__ = "scoring_results"
+    __tablename__ = "d5_scoring_results"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     business_id = Column(String(50), nullable=False, index=True)

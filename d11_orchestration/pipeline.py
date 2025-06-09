@@ -134,8 +134,9 @@ class PipelineOrchestrator:
         # Track metrics
         await self.metrics.record_pipeline_event(
             pipeline_name=pipeline_run.pipeline_name,
-            status=status.value,
-            duration_seconds=pipeline_run.execution_time_seconds
+            event_type=status.value,
+            run_id=pipeline_run.run_id,
+            duration=pipeline_run.execution_time_seconds
         )
         
         self.logger.info(f"Updated pipeline {pipeline_run.run_id} status to {status}")

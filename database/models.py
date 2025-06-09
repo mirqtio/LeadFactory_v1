@@ -185,39 +185,7 @@ class Business(Base):
     )
 
 
-# D3: Assessment Models
-class AssessmentResult(Base):
-    __tablename__ = "assessment_results"
-
-    id = Column(String, primary_key=True, default=generate_uuid)
-    business_id = Column(String, ForeignKey("businesses.id"))
-    assessment_type = Column(String(50), nullable=False)
-
-    # PageSpeed metrics
-    performance_score = Column(Integer)
-    seo_score = Column(Integer)
-    accessibility_score = Column(Integer)
-    best_practices_score = Column(Integer)
-    lcp_ms = Column(Integer)
-    fid_ms = Column(Integer)
-    cls = Column(DECIMAL(5, 3))
-
-    # Analysis results
-    issues_json = Column(JSON)
-    recommendations_json = Column(JSON)
-
-    # Metadata
-    cost_usd = Column(DECIMAL(10, 6))
-    duration_ms = Column(Integer)
-    error_message = Column(Text)
-    created_at = Column(TIMESTAMP, server_default=func.now())
-
-    # Relationships
-    business = relationship("Business", back_populates="assessments")
-
-    __table_args__ = (
-        Index("idx_assessment_business_type", "business_id", "assessment_type"),
-    )
+# D3: Assessment Models moved to d3_assessment/models.py
 
 
 # D5: Scoring Models

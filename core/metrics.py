@@ -143,6 +143,22 @@ cache_misses = Counter(
     registry=REGISTRY
 )
 
+# Pipeline metrics
+pipeline_runs = Counter(
+    'leadfactory_pipeline_runs_total',
+    'Total pipeline runs',
+    ['pipeline_name', 'status'],
+    registry=REGISTRY
+)
+
+pipeline_duration = Histogram(
+    'leadfactory_pipeline_duration_seconds',
+    'Pipeline execution duration',
+    ['pipeline_name'],
+    buckets=(1.0, 5.0, 10.0, 30.0, 60.0, 180.0, 300.0, 600.0),
+    registry=REGISTRY
+)
+
 
 class MetricsCollector:
     """Helper class for collecting metrics"""
@@ -210,6 +226,39 @@ class MetricsCollector:
     def track_cache_miss(self, cache_type: str = "redis"):
         """Track cache miss"""
         cache_misses.labels(cache_type=cache_type).inc()
+
+    async def record_pipeline_event(self, pipeline_name: str, event_type: str, run_id: str = None, **kwargs):
+        """Record pipeline event for metrics"""
+        # Track pipeline run status changes
+        if event_type in ['started', 'completed', 'failed']:
+            pipeline_runs.labels(pipeline_name=pipeline_name, status=event_type).inc()
+        
+        # Track duration for completed runs
+        if event_type == 'completed' and 'duration' in kwargs:
+            pipeline_duration.labels(pipeline_name=pipeline_name).observe(kwargs['duration'])
+        
+        self.logger.info(f"Pipeline event recorded: {pipeline_name} - {event_type}", extra={
+            'pipeline_name': pipeline_name,
+            'event_type': event_type,
+            'run_id': run_id,
+            **kwargs
+        })
+
+    async def record_task_execution(self, task_name: str, status: str, duration: float = None, **kwargs):
+        """Record task execution metrics"""
+        # Track task execution
+        businesses_processed.labels(source=task_name, status=status).inc()
+        
+        # Track duration if provided
+        if duration:
+            assessment_duration.labels(assessment_type=task_name).observe(duration)
+        
+        self.logger.info(f"Task execution recorded: {task_name} - {status}", extra={
+            'task_name': task_name,
+            'status': status,
+            'duration': duration,
+            **kwargs
+        })
 
     def get_metrics(self) -> bytes:
         """Get current metrics in Prometheus format"""

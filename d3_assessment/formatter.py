@@ -789,3 +789,7 @@ def get_issue_summary(assessment: AssessmentResult) -> Dict[str, Any]:
     """
     formatter = AssessmentFormatter()
     return formatter.get_priority_summary(assessment)
+
+
+# Alias for backwards compatibility
+AssessmentReportFormatter = AssessmentFormatter
