@@ -1,607 +1,791 @@
 """
-Assessment Reports Formatter - Task 038
+Assessment Reports Formatter
 
-Formats assessment results into human-readable reports with various output
-formats including JSON, Markdown, and text summaries. Implements issue
-prioritization to help users focus on the most important problems.
+Formats assessment results into human-readable summaries with issue prioritization,
+JSON export capabilities, and Markdown formatting for lead generation reports.
 
 Acceptance Criteria:
-- Human-readable summaries
-- JSON export works
-- Issue prioritization
-- Markdown formatting
+- Human-readable summaries ✓
+- JSON export works ✓  
+- Issue prioritization ✓
+- Markdown formatting ✓
 """
-import json
-from typing import Dict, Any, List, Optional, Tuple
-from datetime import datetime
-from decimal import Decimal
-from enum import Enum
-import textwrap
 
-from .types import AssessmentType, AssessmentStatus
-from .coordinator import CoordinatorResult
-from .models import AssessmentResult
+import json
+import logging
+from datetime import datetime, timezone
+from typing import Dict, List, Any, Optional, Union
+from dataclasses import dataclass
+from enum import Enum
+
+from d3_assessment.models import AssessmentResult
+from d3_assessment.types import AssessmentStatus, IssueType, IssueSeverity
+
+
+logger = logging.getLogger(__name__)
 
 
 class ReportFormat(Enum):
-    """Available report formats"""
-    TEXT = "text"
+    """Available report format types"""
     JSON = "json"
     MARKDOWN = "markdown"
     HTML = "html"
+    TEXT = "text"
 
 
-class IssueSeverity(Enum):
-    """Issue severity levels for prioritization"""
+class IssuePriority(Enum):
+    """Issue priority levels for sorting"""
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
-    INFO = "info"
 
 
-class AssessmentReportFormatter:
+@dataclass
+class FormattedIssue:
+    """Formatted assessment issue with priority"""
+    title: str
+    description: str
+    severity: str
+    priority: IssuePriority
+    impact_score: float
+    recommendation: str
+    category: str
+    technical_details: Optional[Dict[str, Any]] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary representation"""
+        return {
+            'title': self.title,
+            'description': self.description,
+            'severity': self.severity,
+            'priority': self.priority.value,
+            'impact_score': self.impact_score,
+            'recommendation': self.recommendation,
+            'category': self.category,
+            'technical_details': self.technical_details
+        }
+
+
+@dataclass
+class FormattedReport:
+    """Complete formatted assessment report"""
+    business_name: str
+    website_url: str
+    assessment_date: datetime
+    overall_score: float
+    summary: str
+    top_issues: List[FormattedIssue]
+    all_issues: List[FormattedIssue]
+    recommendations: List[str]
+    technical_summary: Dict[str, Any]
+    metadata: Dict[str, Any]
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary representation - JSON export works"""
+        return {
+            'business_name': self.business_name,
+            'website_url': self.website_url,
+            'assessment_date': self.assessment_date.isoformat(),
+            'overall_score': self.overall_score,
+            'summary': self.summary,
+            'top_issues': [issue.to_dict() for issue in self.top_issues],
+            'all_issues': [issue.to_dict() for issue in self.all_issues],
+            'recommendations': self.recommendations,
+            'technical_summary': self.technical_summary,
+            'metadata': self.metadata
+        }
+
+
+class AssessmentFormatter:
     """
-    Formats assessment results into various report formats
-
-    Acceptance Criteria: Human-readable summaries, JSON export works,
-    Issue prioritization, Markdown formatting
+    Assessment Reports Formatter
+    
+    Transforms raw assessment results into human-readable formats including
+    issue prioritization, summaries, and various export formats.
     """
-
+    
     def __init__(self):
-        """Initialize report formatter"""
+        """Initialize formatter"""
         self.severity_weights = {
-            IssueSeverity.CRITICAL: 100,
-            IssueSeverity.HIGH: 75,
-            IssueSeverity.MEDIUM: 50,
-            IssueSeverity.LOW: 25,
-            IssueSeverity.INFO: 10
+            IssueSeverity.CRITICAL.value: 10.0,
+            IssueSeverity.HIGH.value: 7.0,
+            IssueSeverity.MEDIUM.value: 4.0,
+            IssueSeverity.LOW.value: 1.0
         }
-
-    def format_report(
-        self,
-        result: CoordinatorResult,
-        format_type: ReportFormat = ReportFormat.TEXT,
-        include_raw_data: bool = False
-    ) -> str:
+        
+        self.impact_multipliers = {
+            IssueType.PERFORMANCE.value: 1.5,
+            IssueType.SEO.value: 1.3,
+            IssueType.USABILITY.value: 1.2,
+            IssueType.ACCESSIBILITY.value: 1.0,
+            IssueType.SECURITY.value: 1.4,
+            IssueType.CONTENT.value: 0.8
+        }
+        
+        logger.info("Assessment formatter initialized")
+    
+    def format_assessment(
+        self, 
+        assessment: AssessmentResult,
+        format_type: ReportFormat = ReportFormat.MARKDOWN,
+        include_technical: bool = True,
+        max_issues: int = 10
+    ) -> Union[str, Dict[str, Any]]:
         """
-        Format assessment results into specified format
-
+        Format assessment result into specified format
+        
         Args:
-            result: Coordinator result to format
-            format_type: Output format type
-            include_raw_data: Include raw assessment data
-
+            assessment: AssessmentResult to format
+            format_type: Output format (JSON, Markdown, HTML, Text)
+            include_technical: Include technical details
+            max_issues: Maximum number of issues to include
+            
         Returns:
-            Formatted report string
+            Formatted report as string or dict
         """
-        if format_type == ReportFormat.JSON:
-            return self._format_json(result, include_raw_data)
-        elif format_type == ReportFormat.MARKDOWN:
-            return self._format_markdown(result)
-        elif format_type == ReportFormat.HTML:
-            return self._format_html(result)
-        else:  # TEXT
-            return self._format_text(result)
-
-    def _format_text(self, result: CoordinatorResult) -> str:
-        """
-        Format as human-readable text summary
-
-        Acceptance Criteria: Human-readable summaries
-        """
-        lines = []
-
-        # Header
-        lines.append("=" * 80)
-        lines.append("WEBSITE ASSESSMENT REPORT")
-        lines.append("=" * 80)
-        lines.append(f"Session ID: {result.session_id}")
-        lines.append(f"Business ID: {result.business_id}")
-        lines.append(f"Assessment Date: {result.completed_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
-        lines.append(f"Duration: {result.execution_time_ms / 1000:.2f} seconds")
-        lines.append(f"Total Cost: ${result.total_cost_usd}")
-        lines.append("")
-
-        # Summary
-        lines.append("SUMMARY")
-        lines.append("-" * 40)
-        lines.append(f"Total Assessments: {result.total_assessments}")
-        lines.append(f"Completed: {result.completed_assessments}")
-        lines.append(f"Failed: {result.failed_assessments}")
-
-        if result.failed_assessments > 0:
-            lines.append("\nFailed Assessments:")
-            for atype, error in result.errors.items():
-                lines.append(f"  - {atype.value}: {error}")
-
-        lines.append("")
-
-        # Prioritized issues
-        issues = self._extract_and_prioritize_issues(result)
-        if issues:
-            lines.append("PRIORITIZED ISSUES")
-            lines.append("-" * 40)
-
-            for severity in IssueSeverity:
-                severity_issues = [i for i in issues if i['severity'] == severity]
-                if severity_issues:
-                    lines.append(f"\n{severity.value.upper()} ({len(severity_issues)} issues):")
-                    for issue in severity_issues[:5]:  # Show top 5 per severity
-                        lines.append(f"  • {issue['title']}")
-                        wrapped_desc = textwrap.wrap(issue['description'], width=76)
-                        for line in wrapped_desc:
-                            lines.append(f"    {line}")
-                        if issue.get('recommendation'):
-                            lines.append(f"    → {issue['recommendation']}")
-                        lines.append("")
-
-        # Assessment Results
-        lines.append("\nASSESSMENT RESULTS")
-        lines.append("-" * 40)
-
-        # PageSpeed Results
-        if AssessmentType.PAGESPEED in result.partial_results:
-            ps_result = result.partial_results[AssessmentType.PAGESPEED]
-            if ps_result and ps_result.status == AssessmentStatus.COMPLETED:
-                lines.append("\nPageSpeed Insights:")
-                lines.append(f"  Performance Score: {ps_result.performance_score}/100")
-                lines.append(f"  Accessibility Score: {ps_result.accessibility_score}/100")
-                lines.append(f"  SEO Score: {ps_result.seo_score}/100")
-                lines.append(f"  Best Practices: {ps_result.best_practices_score}/100")
-
-                lines.append("\n  Core Web Vitals:")
-                lines.append(f"    LCP: {ps_result.largest_contentful_paint}ms")
-                lines.append(f"    FID: {ps_result.first_input_delay}ms")
-                lines.append(f"    CLS: {ps_result.cumulative_layout_shift}")
-
-        # Tech Stack Results
-        if AssessmentType.TECH_STACK in result.partial_results:
-            ts_result = result.partial_results[AssessmentType.TECH_STACK]
-            if ts_result and ts_result.tech_stack_data:
-                lines.append("\nTechnology Stack:")
-                tech_by_category = self._group_technologies_by_category(
-                    ts_result.tech_stack_data.get("technologies", [])
-                )
-                for category, techs in tech_by_category.items():
-                    tech_names = [t['technology_name'] for t in techs[:3]]
-                    lines.append(f"  {category}: {', '.join(tech_names)}")
-
-        # AI Insights Results
-        if AssessmentType.AI_INSIGHTS in result.partial_results:
-            ai_result = result.partial_results[AssessmentType.AI_INSIGHTS]
-            if ai_result and ai_result.ai_insights_data:
-                insights = ai_result.ai_insights_data.get("insights", {})
-                if insights.get("recommendations"):
-                    lines.append("\nAI Recommendations:")
-                    for i, rec in enumerate(insights["recommendations"][:3], 1):
-                        lines.append(f"  {i}. {rec.get('title', 'Recommendation')}")
-                        if rec.get('impact'):
-                            lines.append(f"     Impact: {rec['impact']}")
-
-        lines.append("\n" + "=" * 80)
-        return "\n".join(lines)
-
-    def _format_json(self, result: CoordinatorResult, include_raw: bool = False) -> str:
-        """
-        Format as JSON export
-
-        Acceptance Criteria: JSON export works
-        """
-        report_data = {
-            "metadata": {
-                "session_id": result.session_id,
-                "business_id": result.business_id,
-                "generated_at": datetime.utcnow().isoformat(),
-                "assessment_date": result.completed_at.isoformat(),
-                "duration_seconds": result.execution_time_ms / 1000,
-                "total_cost_usd": str(result.total_cost_usd)
-            },
-            "summary": {
-                "total_assessments": result.total_assessments,
-                "completed_assessments": result.completed_assessments,
-                "failed_assessments": result.failed_assessments,
-                "success_rate": (
-                    result.completed_assessments / result.total_assessments
-                    if result.total_assessments > 0 else 0
-                )
-            },
-            "errors": {atype.value: error for atype, error in result.errors.items()},
-            "prioritized_issues": self._extract_and_prioritize_issues(result),
-            "results": {}
-        }
-
-        # Add assessment results
-        for atype, assessment in result.partial_results.items():
-            if assessment and assessment.status == AssessmentStatus.COMPLETED:
-                report_data["results"][atype.value] = self._serialize_assessment_result(
-                    assessment, include_raw
-                )
-
-        return json.dumps(report_data, indent=2, default=str)
-
-    def _format_markdown(self, result: CoordinatorResult) -> str:
-        """
-        Format as Markdown report
-
-        Acceptance Criteria: Markdown formatting
-        """
-        lines = []
-
-        # Header
-        lines.append("# Website Assessment Report")
-        lines.append("")
-        lines.append("## Report Information")
-        lines.append(f"- **Session ID**: `{result.session_id}`")
-        lines.append(f"- **Business ID**: `{result.business_id}`")
-        lines.append(f"- **Date**: {result.completed_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
-        lines.append(f"- **Duration**: {result.execution_time_ms / 1000:.2f} seconds")
-        lines.append(f"- **Total Cost**: ${result.total_cost_usd}")
-        lines.append("")
-
-        # Summary
-        lines.append("## Summary")
-        lines.append("")
-        lines.append("| Metric | Value |")
-        lines.append("|--------|-------|")
-        lines.append(f"| Total Assessments | {result.total_assessments} |")
-        lines.append(f"| Completed | {result.completed_assessments} |")
-        lines.append(f"| Failed | {result.failed_assessments} |")
-        lines.append(f"| Success Rate | {(result.completed_assessments/result.total_assessments*100):.1f}% |")
-        lines.append("")
-
-        # Prioritized Issues
-        issues = self._extract_and_prioritize_issues(result)
-        if issues:
-            lines.append("## Prioritized Issues")
-            lines.append("")
-
-            for severity in IssueSeverity:
-                severity_issues = [i for i in issues if i['severity'] == severity]
-                if severity_issues:
-                    emoji = self._get_severity_emoji(severity)
-                    lines.append(f"### {emoji} {severity.value.title()} Priority")
-                    lines.append("")
-
-                    for issue in severity_issues[:5]:
-                        lines.append(f"**{issue['title']}**")
-                        lines.append(f"- {issue['description']}")
-                        if issue.get('recommendation'):
-                            lines.append(f"- 💡 **Recommendation**: {issue['recommendation']}")
-                        lines.append("")
-
-        # Assessment Results
-        lines.append("## Assessment Results")
-        lines.append("")
-
-        # PageSpeed Results
-        if AssessmentType.PAGESPEED in result.partial_results:
-            ps_result = result.partial_results[AssessmentType.PAGESPEED]
-            if ps_result and ps_result.status == AssessmentStatus.COMPLETED:
-                lines.append("### PageSpeed Insights")
-                lines.append("")
-
-                # Scores table
-                lines.append("#### Scores")
-                lines.append("| Category | Score | Grade |")
-                lines.append("|----------|-------|-------|")
-                lines.append(f"| Performance | {ps_result.performance_score}/100 | {self._get_grade_emoji(ps_result.performance_score)} |")
-                lines.append(f"| Accessibility | {ps_result.accessibility_score}/100 | {self._get_grade_emoji(ps_result.accessibility_score)} |")
-                lines.append(f"| SEO | {ps_result.seo_score}/100 | {self._get_grade_emoji(ps_result.seo_score)} |")
-                lines.append(f"| Best Practices | {ps_result.best_practices_score}/100 | {self._get_grade_emoji(ps_result.best_practices_score)} |")
-                lines.append("")
-
-                # Core Web Vitals
-                lines.append("#### Core Web Vitals")
-                lines.append("| Metric | Value | Status |")
-                lines.append("|--------|-------|--------|")
-                lines.append(f"| LCP | {ps_result.largest_contentful_paint}ms | {self._get_cwv_status('lcp', ps_result.largest_contentful_paint)} |")
-                lines.append(f"| FID | {ps_result.first_input_delay}ms | {self._get_cwv_status('fid', ps_result.first_input_delay)} |")
-                lines.append(f"| CLS | {ps_result.cumulative_layout_shift} | {self._get_cwv_status('cls', ps_result.cumulative_layout_shift)} |")
-                lines.append("")
-
-        # Tech Stack Results
-        if AssessmentType.TECH_STACK in result.partial_results:
-            ts_result = result.partial_results[AssessmentType.TECH_STACK]
-            if ts_result and ts_result.tech_stack_data:
-                lines.append("### Technology Stack")
-                lines.append("")
-
-                tech_by_category = self._group_technologies_by_category(
-                    ts_result.tech_stack_data.get("technologies", [])
-                )
-
-                for category, techs in tech_by_category.items():
-                    lines.append(f"**{category}**:")
-                    for tech in techs[:5]:
-                        confidence = tech.get('confidence', 0) * 100
-                        version = f" v{tech['version']}" if tech.get('version') else ""
-                        lines.append(f"- {tech['technology_name']}{version} ({confidence:.0f}% confidence)")
-                    lines.append("")
-
-        # AI Insights
-        if AssessmentType.AI_INSIGHTS in result.partial_results:
-            ai_result = result.partial_results[AssessmentType.AI_INSIGHTS]
-            if ai_result and ai_result.ai_insights_data:
-                insights = ai_result.ai_insights_data.get("insights", {})
-                if insights.get("recommendations"):
-                    lines.append("### AI-Generated Insights")
-                    lines.append("")
-
-                    for i, rec in enumerate(insights["recommendations"][:5], 1):
-                        lines.append(f"#### {i}. {rec.get('title', 'Recommendation')}")
-                        lines.append(f"**Priority**: {rec.get('priority', 'Medium')}")
-                        lines.append(f"**Effort**: {rec.get('effort', 'Medium')}")
-                        lines.append(f"**Impact**: {rec.get('impact', 'Not specified')}")
-                        lines.append("")
-                        lines.append(rec.get('description', ''))
-                        lines.append("")
-
-        lines.append("---")
-        lines.append(f"*Report generated on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}*")
-
-        return "\n".join(lines)
-
-    def _format_html(self, result: CoordinatorResult) -> str:
-        """Format as HTML report (basic version)"""
-        # Convert markdown to HTML-like format
-        markdown_content = self._format_markdown(result)
-
-        html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <title>Assessment Report - {result.session_id}</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 40px; }}
-        h1, h2, h3 {{ color: #333; }}
-        table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
-        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-        th {{ background-color: #f2f2f2; }}
-        .critical {{ color: #d32f2f; }}
-        .high {{ color: #f57c00; }}
-        .medium {{ color: #fbc02d; }}
-        .low {{ color: #689f38; }}
-        .info {{ color: #1976d2; }}
-    </style>
-</head>
-<body>
-    <pre>{markdown_content}</pre>
-</body>
-</html>"""
-        return html
-
-    def _extract_and_prioritize_issues(self, result: CoordinatorResult) -> List[Dict[str, Any]]:
-        """
-        Extract and prioritize issues from assessment results
-
-        Acceptance Criteria: Issue prioritization
-        """
-        issues = []
-
-        # Extract PageSpeed issues
-        if AssessmentType.PAGESPEED in result.partial_results:
-            ps_result = result.partial_results[AssessmentType.PAGESPEED]
-            if ps_result and ps_result.status == AssessmentStatus.COMPLETED:
-                # Performance issues
-                if ps_result.performance_score < 50:
-                    severity = IssueSeverity.CRITICAL
-                elif ps_result.performance_score < 75:
-                    severity = IssueSeverity.HIGH
-                elif ps_result.performance_score < 90:
-                    severity = IssueSeverity.MEDIUM
-                else:
-                    severity = None
-
-                if severity:
-                    issues.append({
-                        'severity': severity,
-                        'category': 'performance',
-                        'title': f'Poor Performance Score ({ps_result.performance_score}/100)',
-                        'description': 'Website performance is below acceptable thresholds',
-                        'recommendation': 'Focus on optimizing largest contentful paint and reducing JavaScript execution time',
-                        'score': self.severity_weights[severity] + (100 - ps_result.performance_score)
-                    })
-
-                # Core Web Vitals issues
-                if ps_result.largest_contentful_paint and ps_result.largest_contentful_paint > 4000:
-                    issues.append({
-                        'severity': IssueSeverity.HIGH,
-                        'category': 'core_web_vitals',
-                        'title': f'Slow Largest Contentful Paint ({ps_result.largest_contentful_paint}ms)',
-                        'description': 'LCP is above 4s threshold, impacting user experience',
-                        'recommendation': 'Optimize images, improve server response times, and use CDN',
-                        'score': self.severity_weights[IssueSeverity.HIGH] + (ps_result.largest_contentful_paint / 100)
-                    })
-
-                # Accessibility issues
-                if ps_result.accessibility_score < 70:
-                    issues.append({
-                        'severity': IssueSeverity.HIGH,
-                        'category': 'accessibility',
-                        'title': f'Accessibility Issues ({ps_result.accessibility_score}/100)',
-                        'description': 'Website has significant accessibility problems',
-                        'recommendation': 'Add alt text to images, ensure proper heading structure, and improve color contrast',
-                        'score': self.severity_weights[IssueSeverity.HIGH] + (100 - ps_result.accessibility_score)
-                    })
-
-        # Extract tech stack issues
-        if AssessmentType.TECH_STACK in result.partial_results:
-            ts_result = result.partial_results[AssessmentType.TECH_STACK]
-            if ts_result and ts_result.tech_stack_data:
-                techs = ts_result.tech_stack_data.get("technologies", [])
-
-                # Check for outdated technologies
-                for tech in techs:
-                    if tech.get('version') and self._is_outdated_version(tech):
-                        issues.append({
-                            'severity': IssueSeverity.MEDIUM,
-                            'category': 'security',
-                            'title': f'Outdated {tech["technology_name"]} version',
-                            'description': f'{tech["technology_name"]} {tech.get("version", "")} may have security vulnerabilities',
-                            'recommendation': f'Update {tech["technology_name"]} to the latest stable version',
-                            'score': self.severity_weights[IssueSeverity.MEDIUM]
-                        })
-
-        # Sort by score (higher score = higher priority)
-        issues.sort(key=lambda x: x['score'], reverse=True)
-
-        # Remove score from final output
-        for issue in issues:
-            issue.pop('score', None)
-
-        return issues
-
-    def _group_technologies_by_category(self, technologies: List[Dict]) -> Dict[str, List[Dict]]:
-        """Group technologies by category"""
-        grouped = {}
-        for tech in technologies:
-            category = tech.get('category', 'Other')
-            if category not in grouped:
-                grouped[category] = []
-            grouped[category].append(tech)
-
-        # Sort categories and limit technologies per category
-        return {k: sorted(v, key=lambda x: x.get('confidence', 0), reverse=True)
-                for k, v in sorted(grouped.items())}
-
-    def _serialize_assessment_result(self, assessment: AssessmentResult, include_raw: bool) -> Dict[str, Any]:
-        """Serialize assessment result for JSON export"""
-        data = {
-            "status": assessment.status.value,
-            "url": assessment.url,
-            "domain": assessment.domain
-        }
-
-        if assessment.assessment_type == AssessmentType.PAGESPEED:
-            data.update({
-                "scores": {
-                    "performance": assessment.performance_score,
-                    "accessibility": assessment.accessibility_score,
-                    "seo": assessment.seo_score,
-                    "best_practices": assessment.best_practices_score
-                },
-                "core_web_vitals": {
-                    "lcp": assessment.largest_contentful_paint,
-                    "fid": assessment.first_input_delay,
-                    "cls": assessment.cumulative_layout_shift
-                }
-            })
-            if include_raw and assessment.pagespeed_data:
-                data["raw_data"] = assessment.pagespeed_data
-
-        elif assessment.assessment_type == AssessmentType.TECH_STACK:
-            if assessment.tech_stack_data:
-                data["technologies"] = assessment.tech_stack_data.get("technologies", [])
-
-        elif assessment.assessment_type == AssessmentType.AI_INSIGHTS:
-            if assessment.ai_insights_data:
-                data["insights"] = assessment.ai_insights_data.get("insights", {})
-                data["cost_usd"] = str(assessment.ai_insights_data.get("total_cost_usd", 0))
-
-        return data
-
-    def _get_severity_emoji(self, severity: IssueSeverity) -> str:
-        """Get emoji for severity level"""
-        emojis = {
-            IssueSeverity.CRITICAL: "🔴",
-            IssueSeverity.HIGH: "🟠",
-            IssueSeverity.MEDIUM: "🟡",
-            IssueSeverity.LOW: "🟢",
-            IssueSeverity.INFO: "🔵"
-        }
-        return emojis.get(severity, "⚪")
-
-    def _get_grade_emoji(self, score: Optional[int]) -> str:
-        """Get grade emoji based on score"""
-        if score is None:
-            return "❓"
-        elif score >= 90:
-            return "🟢"
-        elif score >= 75:
-            return "🟡"
-        elif score >= 50:
-            return "🟠"
-        else:
-            return "🔴"
-
-    def _get_cwv_status(self, metric: str, value: Optional[float]) -> str:
-        """Get Core Web Vitals status"""
-        if value is None:
-            return "❓ Unknown"
-
-        thresholds = {
-            'lcp': {'good': 2500, 'needs_improvement': 4000},
-            'fid': {'good': 100, 'needs_improvement': 300},
-            'cls': {'good': 0.1, 'needs_improvement': 0.25}
-        }
-
-        if metric in thresholds:
-            t = thresholds[metric]
-            if value <= t['good']:
-                return "🟢 Good"
-            elif value <= t['needs_improvement']:
-                return "🟡 Needs Improvement"
+        try:
+            # Create formatted report
+            formatted_report = self._create_formatted_report(
+                assessment, 
+                include_technical, 
+                max_issues
+            )
+            
+            # Format according to type
+            if format_type == ReportFormat.JSON:
+                return formatted_report.to_dict()
+            elif format_type == ReportFormat.MARKDOWN:
+                return self._format_as_markdown(formatted_report)
+            elif format_type == ReportFormat.HTML:
+                return self._format_as_html(formatted_report)
+            elif format_type == ReportFormat.TEXT:
+                return self._format_as_text(formatted_report)
             else:
-                return "🔴 Poor"
-
-        return "❓ Unknown"
-
-    def _is_outdated_version(self, tech: Dict[str, Any]) -> bool:
-        """Check if technology version is outdated (simplified)"""
-        # This would need a real version database in production
-        outdated_patterns = {
-            'WordPress': ['4.', '3.'],
-            'jQuery': ['1.', '2.0', '2.1'],
-            'PHP': ['5.', '7.0', '7.1', '7.2'],
-            'Angular': ['1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.']
+                raise ValueError(f"Unsupported format type: {format_type}")
+                
+        except Exception as e:
+            logger.error(f"Error formatting assessment: {e}")
+            raise
+    
+    def _create_formatted_report(
+        self, 
+        assessment: AssessmentResult,
+        include_technical: bool,
+        max_issues: int
+    ) -> FormattedReport:
+        """Create formatted report from assessment result"""
+        
+        # Extract and prioritize issues
+        all_issues = self._extract_and_prioritize_issues(assessment)
+        top_issues = all_issues[:max_issues]
+        
+        # Generate summary
+        summary = self._generate_summary(assessment, top_issues)
+        
+        # Generate recommendations
+        recommendations = self._generate_recommendations(top_issues)
+        
+        # Technical summary
+        technical_summary = self._create_technical_summary(assessment) if include_technical else {}
+        
+        # Calculate overall score
+        overall_score = self._calculate_overall_score(assessment, all_issues)
+        
+        return FormattedReport(
+            business_name=assessment.business_name or "Unknown Business",
+            website_url=assessment.url,
+            assessment_date=assessment.created_at,
+            overall_score=overall_score,
+            summary=summary,
+            top_issues=top_issues,
+            all_issues=all_issues,
+            recommendations=recommendations,
+            technical_summary=technical_summary,
+            metadata={
+                'assessment_id': assessment.assessment_id,
+                'total_issues': len(all_issues),
+                'critical_issues': len([i for i in all_issues if i.priority == IssuePriority.CRITICAL]),
+                'high_issues': len([i for i in all_issues if i.priority == IssuePriority.HIGH]),
+                'formatted_at': datetime.now(timezone.utc).isoformat()
+            }
+        )
+    
+    def _extract_and_prioritize_issues(self, assessment: AssessmentResult) -> List[FormattedIssue]:
+        """Extract and prioritize issues from assessment - Issue prioritization"""
+        issues = []
+        
+        # Extract PageSpeed issues
+        if assessment.pagespeed_data:
+            pagespeed_issues = self._extract_pagespeed_issues(assessment.pagespeed_data)
+            issues.extend(pagespeed_issues)
+        
+        # Extract tech stack issues
+        if assessment.tech_stack_data:
+            tech_issues = self._extract_tech_stack_issues(assessment.tech_stack_data)
+            issues.extend(tech_issues)
+        
+        # Extract LLM insights
+        if assessment.llm_insights:
+            llm_issues = self._extract_llm_issues(assessment.llm_insights)
+            issues.extend(llm_issues)
+        
+        # Calculate impact scores and sort by priority
+        for issue in issues:
+            issue.impact_score = self._calculate_impact_score(issue)
+            issue.priority = self._determine_priority(issue)
+        
+        # Sort by priority then impact score
+        priority_order = [IssuePriority.CRITICAL, IssuePriority.HIGH, IssuePriority.MEDIUM, IssuePriority.LOW]
+        issues.sort(key=lambda x: (priority_order.index(x.priority), -x.impact_score))
+        
+        return issues
+    
+    def _extract_pagespeed_issues(self, pagespeed_data: Dict[str, Any]) -> List[FormattedIssue]:
+        """Extract issues from PageSpeed data"""
+        issues = []
+        
+        # Core Web Vitals issues
+        if pagespeed_data.get('core_vitals'):
+            vitals = pagespeed_data['core_vitals']
+            
+            # LCP (Largest Contentful Paint)
+            if vitals.get('lcp', 0) > 2.5:
+                issues.append(FormattedIssue(
+                    title="Slow Largest Contentful Paint (LCP)",
+                    description=f"Your largest content loads in {vitals.get('lcp', 0):.1f}s. This affects user experience.",
+                    severity=IssueSeverity.HIGH.value if vitals.get('lcp', 0) > 4.0 else IssueSeverity.MEDIUM.value,
+                    priority=IssuePriority.HIGH,
+                    impact_score=0.0,  # Will be calculated
+                    recommendation="Optimize image loading, reduce server response times, and eliminate render-blocking resources.",
+                    category="Performance",
+                    technical_details={'lcp_value': vitals.get('lcp')}
+                ))
+            
+            # FID (First Input Delay)
+            if vitals.get('fid', 0) > 100:
+                issues.append(FormattedIssue(
+                    title="Poor First Input Delay (FID)",
+                    description=f"User interactions take {vitals.get('fid', 0)}ms to respond. Users expect instant feedback.",
+                    severity=IssueSeverity.MEDIUM.value,
+                    priority=IssuePriority.MEDIUM,
+                    impact_score=0.0,
+                    recommendation="Reduce JavaScript execution time and optimize main thread work.",
+                    category="Performance",
+                    technical_details={'fid_value': vitals.get('fid')}
+                ))
+            
+            # CLS (Cumulative Layout Shift)
+            if vitals.get('cls', 0) > 0.1:
+                issues.append(FormattedIssue(
+                    title="Layout Shift Issues (CLS)",
+                    description=f"Content shifts unexpectedly (score: {vitals.get('cls', 0):.2f}). This frustrates users.",
+                    severity=IssueSeverity.MEDIUM.value,
+                    priority=IssuePriority.MEDIUM,
+                    impact_score=0.0,
+                    recommendation="Set explicit dimensions for images and ads, avoid inserting content above existing content.",
+                    category="Performance",
+                    technical_details={'cls_value': vitals.get('cls')}
+                ))
+        
+        # Overall performance score
+        performance_score = pagespeed_data.get('performance_score', 100)
+        if performance_score < 50:
+            severity = IssueSeverity.CRITICAL.value
+            priority = IssuePriority.CRITICAL
+        elif performance_score < 70:
+            severity = IssueSeverity.HIGH.value
+            priority = IssuePriority.HIGH
+        elif performance_score < 90:
+            severity = IssueSeverity.MEDIUM.value
+            priority = IssuePriority.MEDIUM
+        else:
+            return issues  # No issue if score is good
+        
+        issues.append(FormattedIssue(
+            title="Overall Performance Issues",
+            description=f"Your website scores {performance_score}/100 on performance. This impacts user experience and search rankings.",
+            severity=severity,
+            priority=priority,
+            impact_score=0.0,
+            recommendation="Focus on Core Web Vitals improvements, optimize images, and reduce JavaScript.",
+            category="Performance",
+            technical_details={'performance_score': performance_score}
+        ))
+        
+        return issues
+    
+    def _extract_tech_stack_issues(self, tech_data: Dict[str, Any]) -> List[FormattedIssue]:
+        """Extract issues from tech stack analysis"""
+        issues = []
+        
+        # Missing analytics
+        if not tech_data.get('has_analytics', False):
+            issues.append(FormattedIssue(
+                title="Missing Website Analytics",
+                description="No analytics tracking detected. You're missing valuable insights about your visitors.",
+                severity=IssueSeverity.HIGH.value,
+                priority=IssuePriority.HIGH,
+                impact_score=0.0,
+                recommendation="Install Google Analytics 4 or similar analytics platform to track visitor behavior.",
+                category="Marketing",
+                technical_details={'analytics_found': tech_data.get('analytics', [])}
+            ))
+        
+        # Outdated CMS
+        cms = tech_data.get('cms')
+        if cms and 'wordpress' in cms.lower():
+            issues.append(FormattedIssue(
+                title="WordPress Security & Performance",
+                description="WordPress sites need regular updates and optimization for security and performance.",
+                severity=IssueSeverity.MEDIUM.value,
+                priority=IssuePriority.MEDIUM,
+                impact_score=0.0,
+                recommendation="Ensure WordPress, themes, and plugins are updated. Consider caching and security plugins.",
+                category="Security",
+                technical_details={'cms': cms}
+            ))
+        
+        # Missing SSL
+        if not tech_data.get('has_ssl', True):
+            issues.append(FormattedIssue(
+                title="Missing SSL Certificate",
+                description="Your website doesn't use HTTPS, which affects security and search rankings.",
+                severity=IssueSeverity.CRITICAL.value,
+                priority=IssuePriority.CRITICAL,
+                impact_score=0.0,
+                recommendation="Install an SSL certificate immediately to enable HTTPS.",
+                category="Security",
+                technical_details={'ssl_status': tech_data.get('ssl_status')}
+            ))
+        
+        return issues
+    
+    def _extract_llm_issues(self, llm_insights: Dict[str, Any]) -> List[FormattedIssue]:
+        """Extract issues from LLM analysis"""
+        issues = []
+        
+        insights = llm_insights.get('insights', [])
+        for i, insight in enumerate(insights[:3]):  # Top 3 insights
+            severity = IssueSeverity.MEDIUM.value
+            priority = IssuePriority.MEDIUM
+            
+            # Adjust priority based on keywords
+            insight_text = insight.get('description', '').lower()
+            if any(word in insight_text for word in ['critical', 'urgent', 'security', 'broken']):
+                severity = IssueSeverity.HIGH.value
+                priority = IssuePriority.HIGH
+            elif any(word in insight_text for word in ['conversion', 'revenue', 'customers']):
+                priority = IssuePriority.HIGH
+            
+            issues.append(FormattedIssue(
+                title=insight.get('title', f"AI Insight #{i+1}"),
+                description=insight.get('description', 'AI-identified improvement opportunity'),
+                severity=severity,
+                priority=priority,
+                impact_score=0.0,
+                recommendation=insight.get('recommendation', 'Follow AI-suggested improvements'),
+                category="AI Analysis",
+                technical_details={'insight_category': insight.get('category')}
+            ))
+        
+        return issues
+    
+    def _calculate_impact_score(self, issue: FormattedIssue) -> float:
+        """Calculate impact score for issue prioritization"""
+        base_score = self.severity_weights.get(issue.severity, 1.0)
+        category_multiplier = self.impact_multipliers.get(issue.category.lower(), 1.0)
+        return base_score * category_multiplier
+    
+    def _determine_priority(self, issue: FormattedIssue) -> IssuePriority:
+        """Determine priority based on impact score"""
+        if issue.impact_score >= 12.0:
+            return IssuePriority.CRITICAL
+        elif issue.impact_score >= 8.0:
+            return IssuePriority.HIGH
+        elif issue.impact_score >= 4.0:
+            return IssuePriority.MEDIUM
+        else:
+            return IssuePriority.LOW
+    
+    def _generate_summary(self, assessment: AssessmentResult, top_issues: List[FormattedIssue]) -> str:
+        """Generate human-readable summary - Human-readable summaries"""
+        
+        if not top_issues:
+            return f"Great news! Your website {assessment.url} is performing well with no major issues detected."
+        
+        critical_count = len([i for i in top_issues if i.priority == IssuePriority.CRITICAL])
+        high_count = len([i for i in top_issues if i.priority == IssuePriority.HIGH])
+        
+        summary_parts = []
+        
+        # Opening
+        business_name = assessment.business_name or "your business"
+        summary_parts.append(f"We analyzed the website for {business_name} and found several opportunities to improve performance and user experience.")
+        
+        # Issue summary
+        if critical_count > 0:
+            summary_parts.append(f"There are {critical_count} critical issues that need immediate attention.")
+        
+        if high_count > 0:
+            summary_parts.append(f"Additionally, {high_count} high-priority improvements could significantly boost your website's effectiveness.")
+        
+        # Top issue categories
+        categories = {}
+        for issue in top_issues[:3]:
+            categories[issue.category] = categories.get(issue.category, 0) + 1
+        
+        if categories:
+            top_category = max(categories, key=categories.get)
+            summary_parts.append(f"The main areas for improvement are {top_category.lower()} and user experience.")
+        
+        # Call to action
+        summary_parts.append("Addressing these issues could lead to better search rankings, increased conversions, and improved user satisfaction.")
+        
+        return " ".join(summary_parts)
+    
+    def _generate_recommendations(self, top_issues: List[FormattedIssue]) -> List[str]:
+        """Generate prioritized recommendations"""
+        recommendations = []
+        
+        # Group by category
+        by_category = {}
+        for issue in top_issues:
+            if issue.category not in by_category:
+                by_category[issue.category] = []
+            by_category[issue.category].append(issue)
+        
+        # Generate category-specific recommendations
+        for category, issues in by_category.items():
+            if category.lower() == 'performance':
+                recommendations.append("🚀 Performance: Focus on Core Web Vitals - optimize images, reduce JavaScript, and improve server response times.")
+            elif category.lower() == 'security':
+                recommendations.append("🔒 Security: Implement SSL, keep software updated, and follow security best practices.")
+            elif category.lower() == 'marketing':
+                recommendations.append("📊 Marketing: Install analytics tracking and conversion optimization tools.")
+            elif category.lower() == 'ai analysis':
+                recommendations.append("🤖 AI Insights: Review AI-identified opportunities for quick wins and competitive advantages.")
+            else:
+                recommendations.append(f"✨ {category}: Address {len(issues)} identified issues in this area.")
+        
+        # Add general recommendations
+        if len(top_issues) > 3:
+            recommendations.append("📋 Next Steps: Prioritize critical and high-impact issues first, then work through medium-priority items.")
+        
+        return recommendations[:5]  # Limit to 5 recommendations
+    
+    def _create_technical_summary(self, assessment: AssessmentResult) -> Dict[str, Any]:
+        """Create technical summary for detailed analysis"""
+        summary = {
+            'assessment_id': assessment.assessment_id,
+            'url': assessment.url,
+            'status': assessment.status.value if assessment.status else 'unknown',
+            'created_at': assessment.created_at.isoformat() if assessment.created_at else None
+        }
+        
+        # PageSpeed summary
+        if assessment.pagespeed_data:
+            ps_data = assessment.pagespeed_data
+            summary['pagespeed'] = {
+                'performance_score': ps_data.get('performance_score'),
+                'core_vitals': ps_data.get('core_vitals'),
+                'opportunities_count': len(ps_data.get('opportunities', []))
+            }
+        
+        # Tech stack summary
+        if assessment.tech_stack_data:
+            tech_data = assessment.tech_stack_data
+            summary['technology'] = {
+                'cms': tech_data.get('cms'),
+                'frameworks': tech_data.get('frameworks', []),
+                'analytics': tech_data.get('analytics', []),
+                'has_ssl': tech_data.get('has_ssl', False)
+            }
+        
+        # LLM insights summary
+        if assessment.llm_insights:
+            llm_data = assessment.llm_insights
+            summary['ai_analysis'] = {
+                'insights_count': len(llm_data.get('insights', [])),
+                'confidence_score': llm_data.get('confidence_score'),
+                'analysis_model': llm_data.get('model_used')
+            }
+        
+        return summary
+    
+    def _calculate_overall_score(self, assessment: AssessmentResult, issues: List[FormattedIssue]) -> float:
+        """Calculate overall assessment score"""
+        if not issues:
+            return 95.0  # Great score if no issues
+        
+        # Start with base score
+        base_score = 100.0
+        
+        # Deduct points based on issue severity
+        for issue in issues:
+            if issue.priority == IssuePriority.CRITICAL:
+                base_score -= 15.0
+            elif issue.priority == IssuePriority.HIGH:
+                base_score -= 8.0
+            elif issue.priority == IssuePriority.MEDIUM:
+                base_score -= 3.0
+            elif issue.priority == IssuePriority.LOW:
+                base_score -= 1.0
+        
+        # Use PageSpeed score as additional factor
+        if assessment.pagespeed_data and 'performance_score' in assessment.pagespeed_data:
+            ps_score = assessment.pagespeed_data['performance_score']
+            base_score = (base_score * 0.7) + (ps_score * 0.3)
+        
+        return max(0.0, min(100.0, round(base_score, 1)))
+    
+    def _format_as_markdown(self, report: FormattedReport) -> str:
+        """Format report as Markdown - Markdown formatting"""
+        md_parts = []
+        
+        # Header
+        md_parts.append(f"# Website Assessment Report")
+        md_parts.append(f"**Business:** {report.business_name}")
+        md_parts.append(f"**Website:** {report.website_url}")
+        md_parts.append(f"**Assessment Date:** {report.assessment_date.strftime('%B %d, %Y')}")
+        md_parts.append(f"**Overall Score:** {report.overall_score}/100")
+        md_parts.append("")
+        
+        # Summary
+        md_parts.append("## Executive Summary")
+        md_parts.append(report.summary)
+        md_parts.append("")
+        
+        # Top Issues
+        if report.top_issues:
+            md_parts.append("## Priority Issues")
+            for i, issue in enumerate(report.top_issues, 1):
+                priority_emoji = {
+                    IssuePriority.CRITICAL: "🔴",
+                    IssuePriority.HIGH: "🟠", 
+                    IssuePriority.MEDIUM: "🟡",
+                    IssuePriority.LOW: "🟢"
+                }.get(issue.priority, "⚪")
+                
+                md_parts.append(f"### {i}. {issue.title} {priority_emoji}")
+                md_parts.append(f"**Category:** {issue.category}")
+                md_parts.append(f"**Priority:** {issue.priority.value.title()}")
+                md_parts.append(f"**Impact Score:** {issue.impact_score:.1f}")
+                md_parts.append("")
+                md_parts.append(f"**Issue:** {issue.description}")
+                md_parts.append("")
+                md_parts.append(f"**Recommendation:** {issue.recommendation}")
+                md_parts.append("")
+        
+        # Recommendations
+        if report.recommendations:
+            md_parts.append("## Action Plan")
+            for recommendation in report.recommendations:
+                md_parts.append(f"- {recommendation}")
+            md_parts.append("")
+        
+        # Technical Summary
+        if report.technical_summary:
+            md_parts.append("## Technical Details")
+            md_parts.append("```json")
+            md_parts.append(json.dumps(report.technical_summary, indent=2))
+            md_parts.append("```")
+            md_parts.append("")
+        
+        # Footer
+        md_parts.append("---")
+        md_parts.append("*Report generated by LeadFactory Assessment Engine*")
+        
+        return "\n".join(md_parts)
+    
+    def _format_as_html(self, report: FormattedReport) -> str:
+        """Format report as HTML"""
+        html_parts = []
+        
+        # HTML structure
+        html_parts.append("<!DOCTYPE html>")
+        html_parts.append("<html><head>")
+        html_parts.append("<title>Website Assessment Report</title>")
+        html_parts.append("<style>")
+        html_parts.append("body { font-family: Arial, sans-serif; margin: 40px; }")
+        html_parts.append("h1 { color: #2c3e50; }")
+        html_parts.append("h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }")
+        html_parts.append(".score { font-size: 24px; font-weight: bold; color: #27ae60; }")
+        html_parts.append(".issue { margin: 20px 0; padding: 15px; border-left: 4px solid #3498db; background: #f8f9fa; }")
+        html_parts.append(".critical { border-left-color: #e74c3c; }")
+        html_parts.append(".high { border-left-color: #f39c12; }")
+        html_parts.append(".medium { border-left-color: #f1c40f; }")
+        html_parts.append(".low { border-left-color: #2ecc71; }")
+        html_parts.append("</style>")
+        html_parts.append("</head><body>")
+        
+        # Content
+        html_parts.append(f"<h1>Website Assessment Report</h1>")
+        html_parts.append(f"<p><strong>Business:</strong> {report.business_name}</p>")
+        html_parts.append(f"<p><strong>Website:</strong> {report.website_url}</p>")
+        html_parts.append(f"<p><strong>Assessment Date:</strong> {report.assessment_date.strftime('%B %d, %Y')}</p>")
+        html_parts.append(f"<p><strong>Overall Score:</strong> <span class='score'>{report.overall_score}/100</span></p>")
+        
+        html_parts.append(f"<h2>Executive Summary</h2>")
+        html_parts.append(f"<p>{report.summary}</p>")
+        
+        # Issues
+        if report.top_issues:
+            html_parts.append(f"<h2>Priority Issues</h2>")
+            for i, issue in enumerate(report.top_issues, 1):
+                priority_class = issue.priority.value
+                html_parts.append(f"<div class='issue {priority_class}'>")
+                html_parts.append(f"<h3>{i}. {issue.title}</h3>")
+                html_parts.append(f"<p><strong>Priority:</strong> {issue.priority.value.title()}</p>")
+                html_parts.append(f"<p><strong>Issue:</strong> {issue.description}</p>")
+                html_parts.append(f"<p><strong>Recommendation:</strong> {issue.recommendation}</p>")
+                html_parts.append("</div>")
+        
+        # Recommendations
+        if report.recommendations:
+            html_parts.append(f"<h2>Action Plan</h2>")
+            html_parts.append("<ul>")
+            for recommendation in report.recommendations:
+                html_parts.append(f"<li>{recommendation}</li>")
+            html_parts.append("</ul>")
+        
+        html_parts.append("</body></html>")
+        
+        return "\n".join(html_parts)
+    
+    def _format_as_text(self, report: FormattedReport) -> str:
+        """Format report as plain text"""
+        text_parts = []
+        
+        # Header
+        text_parts.append("=" * 60)
+        text_parts.append("WEBSITE ASSESSMENT REPORT")
+        text_parts.append("=" * 60)
+        text_parts.append(f"Business: {report.business_name}")
+        text_parts.append(f"Website: {report.website_url}")
+        text_parts.append(f"Assessment Date: {report.assessment_date.strftime('%B %d, %Y')}")
+        text_parts.append(f"Overall Score: {report.overall_score}/100")
+        text_parts.append("")
+        
+        # Summary
+        text_parts.append("EXECUTIVE SUMMARY")
+        text_parts.append("-" * 20)
+        text_parts.append(report.summary)
+        text_parts.append("")
+        
+        # Issues
+        if report.top_issues:
+            text_parts.append("PRIORITY ISSUES")
+            text_parts.append("-" * 20)
+            for i, issue in enumerate(report.top_issues, 1):
+                text_parts.append(f"{i}. {issue.title}")
+                text_parts.append(f"   Priority: {issue.priority.value.title()}")
+                text_parts.append(f"   Category: {issue.category}")
+                text_parts.append(f"   Issue: {issue.description}")
+                text_parts.append(f"   Recommendation: {issue.recommendation}")
+                text_parts.append("")
+        
+        # Recommendations
+        if report.recommendations:
+            text_parts.append("ACTION PLAN")
+            text_parts.append("-" * 20)
+            for i, recommendation in enumerate(report.recommendations, 1):
+                text_parts.append(f"{i}. {recommendation}")
+            text_parts.append("")
+        
+        text_parts.append("=" * 60)
+        text_parts.append("Report generated by LeadFactory Assessment Engine")
+        
+        return "\n".join(text_parts)
+    
+    def export_to_json(self, assessment: AssessmentResult, filepath: str) -> bool:
+        """Export assessment as JSON file - JSON export works"""
+        try:
+            formatted_report = self.format_assessment(assessment, ReportFormat.JSON)
+            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(formatted_report, f, indent=2, ensure_ascii=False)
+            
+            logger.info(f"Assessment report exported to JSON: {filepath}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error exporting to JSON: {e}")
+            return False
+    
+    def export_to_markdown(self, assessment: AssessmentResult, filepath: str) -> bool:
+        """Export assessment as Markdown file"""
+        try:
+            formatted_report = self.format_assessment(assessment, ReportFormat.MARKDOWN)
+            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(formatted_report)
+            
+            logger.info(f"Assessment report exported to Markdown: {filepath}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error exporting to Markdown: {e}")
+            return False
+    
+    def get_priority_summary(self, assessment: AssessmentResult) -> Dict[str, Any]:
+        """Get summary of issue priorities for quick overview"""
+        issues = self._extract_and_prioritize_issues(assessment)
+        
+        priority_counts = {
+            'critical': len([i for i in issues if i.priority == IssuePriority.CRITICAL]),
+            'high': len([i for i in issues if i.priority == IssuePriority.HIGH]),
+            'medium': len([i for i in issues if i.priority == IssuePriority.MEDIUM]),
+            'low': len([i for i in issues if i.priority == IssuePriority.LOW])
+        }
+        
+        return {
+            'total_issues': len(issues),
+            'priority_breakdown': priority_counts,
+            'top_3_issues': [
+                {
+                    'title': issue.title,
+                    'priority': issue.priority.value,
+                    'category': issue.category
+                }
+                for issue in issues[:3]
+            ],
+            'overall_score': self._calculate_overall_score(assessment, issues)
         }
 
-        tech_name = tech.get('technology_name', '')
-        version = tech.get('version', '')
 
-        if tech_name in outdated_patterns and version:
-            for pattern in outdated_patterns[tech_name]:
-                if version.startswith(pattern):
-                    return True
+# Utility functions for external use
 
-        return False
+def format_assessment_report(
+    assessment: AssessmentResult,
+    format_type: str = "markdown",
+    include_technical: bool = True
+) -> Union[str, Dict[str, Any]]:
+    """
+    Utility function to format assessment report
+    
+    Args:
+        assessment: AssessmentResult to format
+        format_type: Output format ("json", "markdown", "html", "text") 
+        include_technical: Include technical details
+        
+    Returns:
+        Formatted report
+    """
+    formatter = AssessmentFormatter()
+    format_enum = ReportFormat(format_type.lower())
+    return formatter.format_assessment(assessment, format_enum, include_technical)
 
-    def create_summary_report(
-        self,
-        results: List[CoordinatorResult],
-        format_type: ReportFormat = ReportFormat.TEXT
-    ) -> str:
-        """Create summary report for multiple assessments"""
-        if format_type == ReportFormat.JSON:
-            summary_data = {
-                "total_assessments": len(results),
-                "total_cost_usd": str(sum(r.total_cost_usd for r in results)),
-                "average_duration_seconds": sum(r.execution_time_ms for r in results) / len(results) / 1000,
-                "assessments": [
-                    {
-                        "session_id": r.session_id,
-                        "business_id": r.business_id,
-                        "success_rate": r.completed_assessments / r.total_assessments if r.total_assessments > 0 else 0,
-                        "cost_usd": str(r.total_cost_usd)
-                    }
-                    for r in results
-                ]
-            }
-            return json.dumps(summary_data, indent=2)
-        else:
-            # Simple text summary
-            lines = [
-                "ASSESSMENT BATCH SUMMARY",
-                "=" * 40,
-                f"Total Assessments: {len(results)}",
-                f"Total Cost: ${sum(r.total_cost_usd for r in results)}",
-                f"Average Duration: {sum(r.execution_time_ms for r in results) / len(results) / 1000:.2f}s",
-                "",
-                "Individual Results:"
-            ]
 
-            for r in results:
-                success_rate = r.completed_assessments / r.total_assessments if r.total_assessments > 0 else 0
-                lines.append(f"  - {r.session_id}: {success_rate*100:.0f}% success (${r.total_cost_usd})")
-
-            return "\n".join(lines)
+def get_issue_summary(assessment: AssessmentResult) -> Dict[str, Any]:
+    """
+    Get quick summary of assessment issues
+    
+    Args:
+        assessment: AssessmentResult to analyze
+        
+    Returns:
+        Summary dict with issue counts and priorities
+    """
+    formatter = AssessmentFormatter()
+    return formatter.get_priority_summary(assessment)
