@@ -128,7 +128,6 @@ class AssessmentCoordinator:
         # Create assessment session
         session = AssessmentSession(
             id=session_id,
-            business_id=business_id,
             assessment_type=AssessmentType.FULL_AUDIT,
             status=AssessmentStatus.RUNNING,
             total_assessments=len(assessment_types),
@@ -157,10 +156,16 @@ class AssessmentCoordinator:
         completed_at = datetime.utcnow()
         execution_time = int((completed_at - started_at).total_seconds() * 1000)
 
-        completed_count = len([r for r in results.values() if r is not None])
-        failed_count = len(assessment_types) - completed_count
+        completed_count = len([
+            r for r in results.values() 
+            if r is not None and r.status == AssessmentStatus.COMPLETED
+        ])
+        failed_count = len([
+            r for r in results.values() 
+            if r is not None and r.status in [AssessmentStatus.FAILED, AssessmentStatus.CANCELLED]
+        ])
         total_cost = sum(
-            r.total_cost_usd
+            r.total_cost_usd or Decimal("0")
             for r in results.values()
             if r is not None and hasattr(r, "total_cost_usd")
         )

@@ -37,7 +37,7 @@ class TestTask034AcceptanceCriteria:
         assessor = AsyncMock()
         assessor.assess_website.return_value = AssessmentResult(
             id=str(uuid.uuid4()),
-            business_id="test-business",
+            business_id="test-business-123",
             session_id="test-session",
             assessment_type=AssessmentType.PAGESPEED,
             status=AssessmentStatus.COMPLETED,
@@ -165,8 +165,11 @@ class TestTask034AcceptanceCriteria:
         Acceptance Criteria: Timeout handling works
         """
         # Mock slow assessment that times out
+        async def slow_assessment(*args, **kwargs):
+            await asyncio.sleep(10)  # 10 second delay, will timeout
+            
         coordinator.pagespeed_assessor.assess_website = AsyncMock(
-            side_effect=asyncio.sleep(10)  # 10 second delay, will timeout
+            side_effect=slow_assessment
         )
 
         # Set short timeout for testing
