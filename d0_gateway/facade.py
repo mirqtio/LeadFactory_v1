@@ -475,6 +475,343 @@ class GatewayFacade:
             self.logger.error(f"Failed to get webhook stats: {e}")
             raise
 
+    # Stripe API Methods
+    async def create_checkout_session(
+        self,
+        price_id: str,
+        success_url: str,
+        cancel_url: str,
+        quantity: int = 1,
+        customer_email: Optional[str] = None,
+        client_reference_id: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        mode: str = "payment"
+    ) -> Dict[str, Any]:
+        """
+        Create a Stripe checkout session
+        
+        Args:
+            price_id: Stripe price ID
+            success_url: URL to redirect after successful payment
+            cancel_url: URL to redirect after cancelled payment
+            quantity: Quantity of items
+            customer_email: Pre-fill customer email
+            client_reference_id: Reference ID for tracking
+            metadata: Additional metadata
+            mode: Payment mode (payment, subscription, setup)
+            
+        Returns:
+            Checkout session data including session ID and URL
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.create_checkout_session(
+                price_id=price_id,
+                success_url=success_url,
+                cancel_url=cancel_url,
+                quantity=quantity,
+                customer_email=customer_email,
+                client_reference_id=client_reference_id,
+                metadata=metadata,
+                mode=mode
+            )
+            
+            self.logger.info(f"Checkout session created: {result.get('id')}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create checkout session: {e}")
+            raise
+
+    async def create_payment_intent(
+        self,
+        amount: int,
+        currency: str = "usd",
+        customer_id: Optional[str] = None,
+        description: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        receipt_email: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a Stripe payment intent
+        
+        Args:
+            amount: Amount in cents
+            currency: Currency code
+            customer_id: Stripe customer ID
+            description: Payment description
+            metadata: Additional metadata
+            receipt_email: Email for receipt
+            
+        Returns:
+            Payment intent data
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.create_payment_intent(
+                amount=amount,
+                currency=currency,
+                customer_id=customer_id,
+                description=description,
+                metadata=metadata,
+                receipt_email=receipt_email
+            )
+            
+            self.logger.info(f"Payment intent created: {result.get('id')}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create payment intent: {e}")
+            raise
+
+    async def get_checkout_session(
+        self,
+        session_id: str
+    ) -> Dict[str, Any]:
+        """
+        Retrieve a checkout session
+        
+        Args:
+            session_id: Checkout session ID
+            
+        Returns:
+            Checkout session data
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            result = await client.get_checkout_session(session_id)
+            
+            self.logger.info(f"Retrieved checkout session: {session_id}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get checkout session: {e}")
+            raise
+
+    async def get_payment_intent(
+        self,
+        payment_intent_id: str
+    ) -> Dict[str, Any]:
+        """
+        Retrieve a payment intent
+        
+        Args:
+            payment_intent_id: Payment intent ID
+            
+        Returns:
+            Payment intent data
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            result = await client.get_payment_intent(payment_intent_id)
+            
+            self.logger.info(f"Retrieved payment intent: {payment_intent_id}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get payment intent: {e}")
+            raise
+
+    async def create_customer(
+        self,
+        email: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a Stripe customer
+        
+        Args:
+            email: Customer email
+            name: Customer name
+            description: Customer description
+            metadata: Additional metadata
+            
+        Returns:
+            Customer data
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.create_customer(
+                email=email,
+                name=name,
+                description=description,
+                metadata=metadata
+            )
+            
+            self.logger.info(f"Customer created: {result.get('id')}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create customer: {e}")
+            raise
+
+    async def get_customer(
+        self,
+        customer_id: str
+    ) -> Dict[str, Any]:
+        """
+        Retrieve a customer
+        
+        Args:
+            customer_id: Stripe customer ID
+            
+        Returns:
+            Customer data
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            result = await client.get_customer(customer_id)
+            
+            self.logger.info(f"Retrieved customer: {customer_id}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get customer: {e}")
+            raise
+
+    async def list_charges(
+        self,
+        customer_id: Optional[str] = None,
+        limit: int = 10,
+        starting_after: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        List charges
+        
+        Args:
+            customer_id: Filter by customer ID
+            limit: Number of charges to return
+            starting_after: Pagination cursor
+            
+        Returns:
+            List of charges
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.list_charges(
+                customer_id=customer_id,
+                limit=limit,
+                starting_after=starting_after
+            )
+            
+            self.logger.info(f"Listed charges: {result.get('data', []).__len__()} charges")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to list charges: {e}")
+            raise
+
+    async def create_price(
+        self,
+        amount: int,
+        currency: str = "usd",
+        product_id: Optional[str] = None,
+        product_data: Optional[Dict[str, str]] = None,
+        recurring: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a price
+        
+        Args:
+            amount: Price amount in cents
+            currency: Currency code
+            product_id: Existing product ID
+            product_data: New product data
+            recurring: Recurring billing configuration
+            
+        Returns:
+            Price data
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.create_price(
+                amount=amount,
+                currency=currency,
+                product_id=product_id,
+                product_data=product_data,
+                recurring=recurring
+            )
+            
+            self.logger.info(f"Price created: {result.get('id')}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create price: {e}")
+            raise
+
+    async def create_webhook_endpoint(
+        self,
+        url: str,
+        enabled_events: List[str],
+        description: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a webhook endpoint
+        
+        Args:
+            url: Webhook URL
+            enabled_events: List of events to listen for
+            description: Webhook description
+            
+        Returns:
+            Webhook endpoint data
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.create_webhook_endpoint(
+                url=url,
+                enabled_events=enabled_events,
+                description=description
+            )
+            
+            self.logger.info(f"Webhook endpoint created: {result.get('id')}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create webhook endpoint: {e}")
+            raise
+
+    async def construct_webhook_event(
+        self,
+        payload: str,
+        signature: str,
+        endpoint_secret: str
+    ) -> Dict[str, Any]:
+        """
+        Verify and construct webhook event
+        
+        Args:
+            payload: Raw webhook payload
+            signature: Webhook signature
+            endpoint_secret: Webhook endpoint secret
+            
+        Returns:
+            Webhook event data
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.construct_webhook_event(
+                payload=payload,
+                signature=signature,
+                endpoint_secret=endpoint_secret
+            )
+            
+            self.logger.info(f"Webhook event constructed: {result.get('type')}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to construct webhook event: {e}")
+            raise
+
     # Combined Workflow Methods
     async def complete_business_analysis(
         self,

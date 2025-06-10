@@ -12,12 +12,12 @@
       "actual_hours": null
     },
     "GAP-002": {
-      "status": "in_progress",
+      "status": "completed",
       "title": "Add SendGrid methods to Gateway Facade",
       "priority": "P0",
       "started_at": "2025-06-10T11:32:04.895932",
-      "completed_at": null,
-      "actual_hours": null
+      "completed_at": "2025-06-10T11:44:00.000000",
+      "actual_hours": 0.2
     },
     "GAP-003": {
       "status": "pending",

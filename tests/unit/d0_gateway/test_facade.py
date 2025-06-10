@@ -226,6 +226,16 @@ class TestGatewayFacade:
         assert hasattr(facade, 'delete_bounce')  # SendGrid
         assert hasattr(facade, 'validate_email_address')  # SendGrid
         assert hasattr(facade, 'get_webhook_stats')  # SendGrid
+        assert hasattr(facade, 'create_checkout_session')  # Stripe
+        assert hasattr(facade, 'create_payment_intent')  # Stripe
+        assert hasattr(facade, 'get_checkout_session')  # Stripe
+        assert hasattr(facade, 'get_payment_intent')  # Stripe
+        assert hasattr(facade, 'create_customer')  # Stripe
+        assert hasattr(facade, 'get_customer')  # Stripe
+        assert hasattr(facade, 'list_charges')  # Stripe
+        assert hasattr(facade, 'create_price')  # Stripe
+        assert hasattr(facade, 'create_webhook_endpoint')  # Stripe
+        assert hasattr(facade, 'construct_webhook_event')  # Stripe
 
         # Should have factory and metrics
         assert hasattr(facade, 'factory')
@@ -628,6 +638,228 @@ class TestGatewayFacade:
             )
 
         assert "SendGrid API error" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_stripe_create_checkout_session(self, facade, mock_factory):
+        """Test Stripe create_checkout_session through facade"""
+        # Mock Stripe client
+        mock_stripe_client = AsyncMock()
+        mock_stripe_client.create_checkout_session.return_value = {
+            'id': 'cs_test_123',
+            'url': 'https://checkout.stripe.com/pay/cs_test_123',
+            'status': 'open'
+        }
+        mock_factory.create_client.return_value = mock_stripe_client
+
+        # Test create checkout session
+        result = await facade.create_checkout_session(
+            price_id="price_123",
+            success_url="https://example.com/success",
+            cancel_url="https://example.com/cancel",
+            quantity=1,
+            customer_email="test@example.com",
+            metadata={'order_id': '123'}
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('stripe')
+
+        # Verify client method was called
+        mock_stripe_client.create_checkout_session.assert_called_once_with(
+            price_id="price_123",
+            success_url="https://example.com/success",
+            cancel_url="https://example.com/cancel",
+            quantity=1,
+            customer_email="test@example.com",
+            client_reference_id=None,
+            metadata={'order_id': '123'},
+            mode="payment"
+        )
+
+        # Verify result
+        assert result['id'] == 'cs_test_123'
+        assert result['url'] == 'https://checkout.stripe.com/pay/cs_test_123'
+
+    @pytest.mark.asyncio
+    async def test_stripe_create_payment_intent(self, facade, mock_factory):
+        """Test Stripe create_payment_intent through facade"""
+        # Mock Stripe client
+        mock_stripe_client = AsyncMock()
+        mock_stripe_client.create_payment_intent.return_value = {
+            'id': 'pi_test_123',
+            'amount': 1999,
+            'currency': 'usd',
+            'status': 'requires_payment_method'
+        }
+        mock_factory.create_client.return_value = mock_stripe_client
+
+        # Test create payment intent
+        result = await facade.create_payment_intent(
+            amount=1999,
+            currency="usd",
+            description="Website report payment"
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('stripe')
+
+        # Verify client method was called
+        mock_stripe_client.create_payment_intent.assert_called_once_with(
+            amount=1999,
+            currency="usd",
+            customer_id=None,
+            description="Website report payment",
+            metadata=None,
+            receipt_email=None
+        )
+
+        # Verify result
+        assert result['id'] == 'pi_test_123'
+        assert result['amount'] == 1999
+
+    @pytest.mark.asyncio
+    async def test_stripe_get_checkout_session(self, facade, mock_factory):
+        """Test Stripe get_checkout_session through facade"""
+        # Mock Stripe client
+        mock_stripe_client = AsyncMock()
+        mock_stripe_client.get_checkout_session.return_value = {
+            'id': 'cs_test_123',
+            'payment_status': 'paid',
+            'customer_email': 'test@example.com'
+        }
+        mock_factory.create_client.return_value = mock_stripe_client
+
+        # Test get checkout session
+        result = await facade.get_checkout_session(session_id="cs_test_123")
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('stripe')
+
+        # Verify client method was called
+        mock_stripe_client.get_checkout_session.assert_called_once_with("cs_test_123")
+
+        # Verify result
+        assert result['id'] == 'cs_test_123'
+        assert result['payment_status'] == 'paid'
+
+    @pytest.mark.asyncio
+    async def test_stripe_create_customer(self, facade, mock_factory):
+        """Test Stripe create_customer through facade"""
+        # Mock Stripe client
+        mock_stripe_client = AsyncMock()
+        mock_stripe_client.create_customer.return_value = {
+            'id': 'cus_test_123',
+            'email': 'test@example.com',
+            'name': 'Test Customer'
+        }
+        mock_factory.create_client.return_value = mock_stripe_client
+
+        # Test create customer
+        result = await facade.create_customer(
+            email="test@example.com",
+            name="Test Customer",
+            metadata={'source': 'leadfactory'}
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('stripe')
+
+        # Verify client method was called
+        mock_stripe_client.create_customer.assert_called_once_with(
+            email="test@example.com",
+            name="Test Customer",
+            description=None,
+            metadata={'source': 'leadfactory'}
+        )
+
+        # Verify result
+        assert result['id'] == 'cus_test_123'
+        assert result['email'] == 'test@example.com'
+
+    @pytest.mark.asyncio
+    async def test_stripe_list_charges(self, facade, mock_factory):
+        """Test Stripe list_charges through facade"""
+        # Mock Stripe client
+        mock_stripe_client = AsyncMock()
+        mock_stripe_client.list_charges.return_value = {
+            'data': [
+                {'id': 'ch_1', 'amount': 1999},
+                {'id': 'ch_2', 'amount': 2999}
+            ],
+            'has_more': False
+        }
+        mock_factory.create_client.return_value = mock_stripe_client
+
+        # Test list charges
+        result = await facade.list_charges(
+            customer_id="cus_test_123",
+            limit=10
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('stripe')
+
+        # Verify client method was called
+        mock_stripe_client.list_charges.assert_called_once_with(
+            customer_id="cus_test_123",
+            limit=10,
+            starting_after=None
+        )
+
+        # Verify result
+        assert len(result['data']) == 2
+        assert result['data'][0]['id'] == 'ch_1'
+
+    @pytest.mark.asyncio
+    async def test_stripe_create_webhook_endpoint(self, facade, mock_factory):
+        """Test Stripe create_webhook_endpoint through facade"""
+        # Mock Stripe client
+        mock_stripe_client = AsyncMock()
+        mock_stripe_client.create_webhook_endpoint.return_value = {
+            'id': 'we_test_123',
+            'url': 'https://example.com/webhook',
+            'enabled_events': ['checkout.session.completed']
+        }
+        mock_factory.create_client.return_value = mock_stripe_client
+
+        # Test create webhook endpoint
+        result = await facade.create_webhook_endpoint(
+            url="https://example.com/webhook",
+            enabled_events=['checkout.session.completed'],
+            description="LeadFactory webhook"
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('stripe')
+
+        # Verify client method was called
+        mock_stripe_client.create_webhook_endpoint.assert_called_once_with(
+            url="https://example.com/webhook",
+            enabled_events=['checkout.session.completed'],
+            description="LeadFactory webhook"
+        )
+
+        # Verify result
+        assert result['id'] == 'we_test_123'
+        assert result['url'] == 'https://example.com/webhook'
+
+    @pytest.mark.asyncio
+    async def test_stripe_error_handling(self, facade, mock_factory):
+        """Test Stripe error handling in facade"""
+        # Mock Stripe client that raises exception
+        mock_stripe_client = AsyncMock()
+        mock_stripe_client.create_checkout_session.side_effect = Exception("Stripe API error")
+        mock_factory.create_client.return_value = mock_stripe_client
+
+        # Test that exception is properly propagated
+        with pytest.raises(Exception) as exc_info:
+            await facade.create_checkout_session(
+                price_id="price_123",
+                success_url="https://example.com/success",
+                cancel_url="https://example.com/cancel"
+            )
+
+        assert "Stripe API error" in str(exc_info.value)
 
     def test_gateway_status_reporting(self, facade, mock_factory):
         """Test gateway status reporting"""
