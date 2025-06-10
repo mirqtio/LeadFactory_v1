@@ -643,12 +643,24 @@ class TestTask035AcceptanceCriteria:
 
         print("✓ API response schemas are correct")
 
-    @pytest.mark.skip(reason="Complex mocking issue with AsyncMock comparisons - core functionality tested by other tests")
     def test_comprehensive_api_flow(self, sample_trigger_request):
         """Test complete API workflow from trigger to results"""
         with patch("d3_assessment.api.coordinator") as mock_coord:
-            # Mock coordinator execution
-            mock_coord.execute_comprehensive_assessment = AsyncMock()
+            # Mock coordinator execution to return a proper result
+            mock_result = CoordinatorResult(
+                session_id="test-session-id",
+                business_id="test-business",
+                total_assessments=3,
+                completed_assessments=0,  # Show running status initially
+                failed_assessments=0,
+                partial_results={},
+                errors={},
+                total_cost_usd=Decimal("0.50"),
+                execution_time_ms=1000,
+                started_at=datetime.utcnow(),
+                completed_at=datetime.utcnow(),
+            )
+            mock_coord.execute_comprehensive_assessment = AsyncMock(return_value=mock_result)
             mock_coord.get_assessment_status.return_value = {
                 "status": "running",
                 "progress": "50%",
