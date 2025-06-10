@@ -18,7 +18,9 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 # Debug: Add comprehensive path setup for pytest collection issues
 project_root = Path(__file__).parent.parent.parent.parent
@@ -69,6 +71,22 @@ except ImportError as e:
         generate_uuid = d6_models.generate_uuid
     else:
         raise e
+
+
+@pytest.fixture(scope="function")
+def db_session():
+    """Create a database session for testing"""
+    from database.base import Base
+    engine = create_engine("sqlite:///:memory:", echo=False)
+    Base.metadata.create_all(engine)
+
+    Session = scoped_session(sessionmaker(bind=engine))
+    session = Session()
+
+    yield session
+
+    session.close()
+    Session.remove()
 
 
 class TestReportGeneration:
