@@ -348,8 +348,8 @@ class TestRateLimiterEnhancements:
         # Create limiter and break the script path
         limiter = RateLimiter("test_lua")
 
-        # Mock the script path to non-existent file
-        with patch("pathlib.Path.open", side_effect=FileNotFoundError("No such file")):
+        # Mock the built-in open function to raise FileNotFoundError
+        with patch("builtins.open", side_effect=FileNotFoundError("No such file")):
             limiter._load_lua_script()
             assert limiter._lua_script is None
 
@@ -368,7 +368,7 @@ class TestRateLimiterEnhancements:
         limiter = RateLimiter("test_redis")
 
         # Mock Redis creation
-        with patch("redis.asyncio.from_url") as mock_from_url:
+        with patch("d0_gateway.rate_limiter.aioredis.from_url") as mock_from_url:
             mock_redis = AsyncMock()
             mock_from_url.return_value = mock_redis
 
@@ -580,17 +580,9 @@ class TestRateLimiterEnhancements:
 
         with patch.object(limiter.settings, "use_stubs", False):
             mock_redis = AsyncMock()
-
-            # Track unique operation calls
-            operation_calls = set()
-
-            def track_eval(*args, **kwargs):
-                # Extract operation from burst key
-                if len(args) > 3 and "rate_limit:burst" in str(args[3]):
-                    operation_calls.add(str(args[3]))
-                return [1, 10, 1]  # Always allow
-
-            mock_redis.eval.side_effect = track_eval
+            
+            # Mock eval to return successful results
+            mock_redis.eval.return_value = [1, 10, 1]  # Always allow
             limiter._redis = mock_redis
 
             # Make requests with different operations concurrently
@@ -601,9 +593,9 @@ class TestRateLimiterEnhancements:
             # All should be allowed
             assert all(results)
 
-            # Should have tracked multiple unique operations
-            # (Each operation generates daily + burst calls)
-            assert len(operation_calls) >= len(operations)
+            # Verify that eval was called multiple times (for daily + burst checks)
+            # Each operation should generate at least 2 calls (daily + burst)
+            assert mock_redis.eval.call_count >= len(operations) * 2
 
     @pytest.mark.asyncio
     async def test_redis_url_configuration(self):

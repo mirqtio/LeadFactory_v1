@@ -57,7 +57,7 @@ class RateLimiter:
     async def _get_redis(self) -> aioredis.Redis:
         """Get Redis connection"""
         if self._redis is None:
-            self._redis = await aioredis.from_url(
+            self._redis = aioredis.from_url(
                 self.settings.redis_url, decode_responses=True
             )
         return self._redis

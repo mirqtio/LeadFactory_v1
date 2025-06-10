@@ -21,11 +21,13 @@ import pytest
 # Import the modules to test
 try:
     from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult, html_to_pdf, save_html_as_pdf
+    from d6_reports import pdf_converter as pdf_converter_module
 except ImportError:
     import sys
     import os
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
     from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult, html_to_pdf, save_html_as_pdf
+    from d6_reports import pdf_converter as pdf_converter_module
 
 # Import additional classes
 try:
