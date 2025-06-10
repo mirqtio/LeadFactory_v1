@@ -109,6 +109,16 @@ class CircuitBreaker:
     def get_state_info(self) -> Dict[str, any]:
         """Get current circuit breaker state information"""
         with self.lock:
+            # Calculate can_execute without calling the method to avoid deadlock
+            now = time.time()
+            can_exec = True
+            
+            if self.state == CircuitState.OPEN:
+                can_exec = now - self.last_failure_time >= self.config.recovery_timeout
+            elif self.state == CircuitState.HALF_OPEN:
+                can_exec = True
+            # CLOSED state can always execute
+            
             return {
                 "provider": self.provider,
                 "state": self.state.value,
@@ -117,7 +127,7 @@ class CircuitBreaker:
                 "failure_threshold": self.config.failure_threshold,
                 "recovery_timeout": self.config.recovery_timeout,
                 "last_failure_time": self.last_failure_time,
-                "can_execute": self.can_execute(),
+                "can_execute": can_exec,
             }
 
     def reset(self) -> None:
