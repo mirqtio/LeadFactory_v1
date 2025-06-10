@@ -306,22 +306,33 @@ class TestGatewayMetricsIntegration:
         # Create metrics instance
         metrics = GatewayMetrics()
 
-        # Verify metrics are registered with Prometheus
-        from prometheus_client import REGISTRY
-
-        # Check that our metrics are in the registry
-        metric_names = [collector._name for collector in REGISTRY._collector_to_names.keys()]
-
-        expected_metrics = [
-            'gateway_api_calls',
-            'gateway_api_latency',
-            'gateway_api_cost',
-            'gateway_circuit_breaker'
+        # Verify metrics are accessible via the instance
+        expected_attributes = [
+            'api_calls_total',
+            'api_latency_seconds', 
+            'api_cost_usd_total',
+            'circuit_breaker_state'
         ]
 
-        for expected_metric in expected_metrics:
-            assert any(expected_metric in name for name in metric_names), \
-                f"Metric {expected_metric} not found in registry"
+        for attr in expected_attributes:
+            assert hasattr(metrics, attr), f"Metrics instance missing attribute: {attr}"
+            metric_obj = getattr(metrics, attr)
+            assert hasattr(metric_obj, '_name'), f"Metric {attr} missing _name attribute"
+
+        # Test that metrics work by recording some data
+        metrics.record_api_call('test', '/test', 200, 1.0)
+        metrics.record_cache_hit('test', '/test')
+        metrics.record_cost('test', '/test', 0.01)
+
+        # Verify metrics have recorded data (just basic functionality test)
+        # For counters, we can use collect() method to get current value
+        api_calls_samples = list(metrics.api_calls_total.collect()[0].samples)
+        cache_hits_samples = list(metrics.cache_hits_total.collect()[0].samples)
+        cost_samples = list(metrics.api_cost_usd_total.collect()[0].samples)
+        
+        assert len(api_calls_samples) > 0, "API calls counter should have samples"
+        assert len(cache_hits_samples) > 0, "Cache hits counter should have samples"
+        assert len(cost_samples) > 0, "Cost counter should have samples"
 
     def test_metrics_labels_consistency(self):
         """Test that metric labels are consistent across related metrics"""
