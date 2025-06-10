@@ -65,7 +65,11 @@ def create_error_response(
     error_data = ErrorResponse(
         error=error_type, message=message, details=details, request_id=str(uuid.uuid4())
     )
-    return HTTPException(status_code=status_code, detail=error_data.dict())
+    # Convert to dict with JSON-serializable datetime
+    error_dict = error_data.dict()
+    if 'timestamp' in error_dict and error_dict['timestamp']:
+        error_dict['timestamp'] = error_dict['timestamp'].isoformat()
+    return HTTPException(status_code=status_code, detail=error_dict)
 
 
 @router.post(
