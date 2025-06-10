@@ -11,11 +11,18 @@ Acceptance Criteria:
 - Performance benchmarked ✓
 """
 
+import sys
 import time
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 # Import domain coordinators and engines
 from d2_sourcing.coordinator import SourcingCoordinator

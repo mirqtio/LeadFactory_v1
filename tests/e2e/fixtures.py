@@ -11,12 +11,19 @@ Acceptance Criteria:
 - Parallel test support ✓
 """
 
+import sys
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, Generator, List
 from unittest.mock import MagicMock
 
 import pytest
 from faker import Faker
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 # Import orchestration models
 from d11_orchestration.models import (Experiment, ExperimentStatus,

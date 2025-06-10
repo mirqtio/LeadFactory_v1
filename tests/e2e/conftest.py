@@ -14,9 +14,11 @@ Acceptance Criteria:
 import asyncio
 import os
 import shutil
+import sys
 import tempfile
 import threading
 import time
+from pathlib import Path
 from typing import Any, Dict, Generator
 from unittest.mock import MagicMock, patch
 
@@ -26,6 +28,11 @@ import uvicorn
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from core.config import get_settings
 from database.base import Base
