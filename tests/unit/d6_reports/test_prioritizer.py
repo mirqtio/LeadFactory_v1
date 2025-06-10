@@ -11,44 +11,27 @@ Acceptance Criteria:
 - Conversion focus ✓
 """
 
-import os
-import sys
 from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
 
-# Add the project root to Python path
-if "/app" not in sys.path:
-    sys.path.insert(0, "/app")
-if os.getcwd() not in sys.path:
-    sys.path.insert(0, os.getcwd())
+# Import the modules to test
+try:
+    from d6_reports.finding_scorer import FindingScore, FindingScorer
+    from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
+except ImportError:
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    from d6_reports.finding_scorer import FindingScore, FindingScorer
+    from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
 
-# Import the modules to test - Direct import for Docker environment
-import importlib.util
-
-# Load scorer module first (prioritizer depends on it)
-scorer_spec = importlib.util.spec_from_file_location(
-    "finding_scorer", "/app/d6_reports/finding_scorer.py"
-)
-scorer_module = importlib.util.module_from_spec(scorer_spec)
-sys.modules["finding_scorer"] = scorer_module
-scorer_spec.loader.exec_module(scorer_module)
-
-# Load prioritizer module
-prioritizer_spec = importlib.util.spec_from_file_location(
-    "prioritizer", "/app/d6_reports/prioritizer.py"
-)
-prioritizer_module = importlib.util.module_from_spec(prioritizer_spec)
-prioritizer_spec.loader.exec_module(prioritizer_module)
-
-# Import the classes we need
-FindingPrioritizer = prioritizer_module.FindingPrioritizer
-PrioritizationResult = prioritizer_module.PrioritizationResult
-FindingScorer = scorer_module.FindingScorer
-FindingScore = scorer_module.FindingScore
-ImpactLevel = scorer_module.ImpactLevel
-EffortLevel = scorer_module.EffortLevel
+# Import additional classes
+try:
+    from d6_reports.finding_scorer import ImpactLevel, EffortLevel
+except ImportError:
+    from d6_reports.finding_scorer import ImpactLevel, EffortLevel
 
 
 class TestFindingScorer:

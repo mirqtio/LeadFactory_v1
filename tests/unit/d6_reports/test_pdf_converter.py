@@ -12,38 +12,26 @@ Acceptance Criteria:
 """
 
 import asyncio
-import os
-import sys
 import tempfile
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# Add the project root to Python path
-if "/app" not in sys.path:
-    sys.path.insert(0, "/app")
-if os.getcwd() not in sys.path:
-    sys.path.insert(0, os.getcwd())
+# Import the modules to test
+try:
+    from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult, html_to_pdf, save_html_as_pdf
+except ImportError:
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult, html_to_pdf, save_html_as_pdf
 
-# Import the modules to test - Direct import for Docker environment
-import importlib.util
-
-# Load PDF converter module
-pdf_converter_spec = importlib.util.spec_from_file_location(
-    "pdf_converter", "/app/d6_reports/pdf_converter.py"
-)
-pdf_converter_module = importlib.util.module_from_spec(pdf_converter_spec)
-pdf_converter_spec.loader.exec_module(pdf_converter_module)
-
-# Import the classes we need
-PDFConverter = pdf_converter_module.PDFConverter
-PDFOptions = pdf_converter_module.PDFOptions
-PDFResult = pdf_converter_module.PDFResult
-PDFOptimizer = pdf_converter_module.PDFOptimizer
-ConcurrencyManager = pdf_converter_module.ConcurrencyManager
-html_to_pdf = pdf_converter_module.html_to_pdf
-save_html_as_pdf = pdf_converter_module.save_html_as_pdf
+# Import additional classes
+try:
+    from d6_reports.pdf_converter import PDFOptimizer, ConcurrencyManager
+except ImportError:
+    from d6_reports.pdf_converter import PDFOptimizer, ConcurrencyManager
 
 
 class TestPDFOptions:

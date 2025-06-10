@@ -12,78 +12,35 @@ Acceptance Criteria:
 """
 
 import asyncio
-import os
-import sys
 import time
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# Add the project root to Python path
-if "/app" not in sys.path:
-    sys.path.insert(0, "/app")
-if os.getcwd() not in sys.path:
-    sys.path.insert(0, os.getcwd())
+# Import the modules to test using standard imports
+try:
+    from d6_reports.generator import GenerationOptions, GenerationResult, ReportGenerator
+    from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
+    from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult
+    from d6_reports.template_engine import TemplateEngine, TemplateData
+except ImportError:
+    # Fallback for test environments
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    from d6_reports.generator import GenerationOptions, GenerationResult, ReportGenerator
+    from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
+    from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult
+    from d6_reports.template_engine import TemplateEngine, TemplateData
 
-# Import the modules to test - Direct import for Docker environment
-import importlib.util
-
-# Direct module loading approach for Docker environment
-# Load template engine module first
-template_engine_spec = importlib.util.spec_from_file_location(
-    "template_engine", "/app/d6_reports/template_engine.py"
-)
-template_engine_module = importlib.util.module_from_spec(template_engine_spec)
-template_engine_spec.loader.exec_module(template_engine_module)
-
-# Load PDF converter module
-pdf_converter_spec = importlib.util.spec_from_file_location(
-    "pdf_converter", "/app/d6_reports/pdf_converter.py"
-)
-pdf_converter_module = importlib.util.module_from_spec(pdf_converter_spec)
-pdf_converter_spec.loader.exec_module(pdf_converter_module)
-
-# Load prioritizer module
-prioritizer_spec = importlib.util.spec_from_file_location(
-    "prioritizer", "/app/d6_reports/prioritizer.py"
-)
-prioritizer_module = importlib.util.module_from_spec(prioritizer_spec)
-prioritizer_spec.loader.exec_module(prioritizer_module)
-
-# Add modules to sys.modules to enable relative imports
-sys.modules["template_engine"] = template_engine_module
-sys.modules["pdf_converter"] = pdf_converter_module
-sys.modules["prioritizer"] = prioritizer_module
-sys.modules[
-    "finding_scorer"
-] = prioritizer_module  # finding_scorer is in prioritizer module
-
-# Now load generator module
-generator_spec = importlib.util.spec_from_file_location(
-    "generator", "/app/d6_reports/generator.py"
-)
-generator_module = importlib.util.module_from_spec(generator_spec)
-generator_spec.loader.exec_module(generator_module)
-
-# Extract classes from modules
-ReportGenerator = generator_module.ReportGenerator
-GenerationOptions = generator_module.GenerationOptions
-GenerationResult = generator_module.GenerationResult
-DataLoader = generator_module.DataLoader
-generate_audit_report = generator_module.generate_audit_report
-generate_html_report = generator_module.generate_html_report
-generate_pdf_report = generator_module.generate_pdf_report
-
-TemplateEngine = template_engine_module.TemplateEngine
-TemplateData = template_engine_module.TemplateData
-
-PDFConverter = pdf_converter_module.PDFConverter
-PDFOptions = pdf_converter_module.PDFOptions
-PDFResult = pdf_converter_module.PDFResult
-
-FindingPrioritizer = prioritizer_module.FindingPrioritizer
-PrioritizationResult = prioritizer_module.PrioritizationResult
+# Import additional classes from generator module
+try:
+    from d6_reports.generator import (DataLoader, generate_audit_report, 
+                                    generate_html_report, generate_pdf_report)
+except ImportError:
+    from d6_reports.generator import (DataLoader, generate_audit_report, 
+                                    generate_html_report, generate_pdf_report)
 
 
 class TestGenerationOptions:

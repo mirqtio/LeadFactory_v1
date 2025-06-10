@@ -20,60 +20,19 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# Add the project root to Python path
-if "/app" not in sys.path:
-    sys.path.insert(0, "/app")
-if os.getcwd() not in sys.path:
-    sys.path.insert(0, os.getcwd())
-
 # Import the modules we need for integration testing
 try:
     from d6_reports import (FindingPrioritizer, GenerationOptions,
                             GenerationResult, PDFConverter, PDFOptions,
                             ReportGenerator, TemplateEngine)
 except ImportError:
-    # Fallback for Docker environment with direct imports
-    import importlib.util
-
-    # Load modules directly
-    template_engine_spec = importlib.util.spec_from_file_location(
-        "template_engine", "/app/d6_reports/template_engine.py"
-    )
-    template_engine_module = importlib.util.module_from_spec(template_engine_spec)
-    template_engine_spec.loader.exec_module(template_engine_module)
-
-    pdf_converter_spec = importlib.util.spec_from_file_location(
-        "pdf_converter", "/app/d6_reports/pdf_converter.py"
-    )
-    pdf_converter_module = importlib.util.module_from_spec(pdf_converter_spec)
-    pdf_converter_spec.loader.exec_module(pdf_converter_module)
-
-    prioritizer_spec = importlib.util.spec_from_file_location(
-        "prioritizer", "/app/d6_reports/prioritizer.py"
-    )
-    prioritizer_module = importlib.util.module_from_spec(prioritizer_spec)
-    prioritizer_spec.loader.exec_module(prioritizer_module)
-
-    # Add modules to sys.modules for relative imports
-    sys.modules["template_engine"] = template_engine_module
-    sys.modules["pdf_converter"] = pdf_converter_module
-    sys.modules["prioritizer"] = prioritizer_module
-    sys.modules["finding_scorer"] = prioritizer_module
-
-    generator_spec = importlib.util.spec_from_file_location(
-        "generator", "/app/d6_reports/generator.py"
-    )
-    generator_module = importlib.util.module_from_spec(generator_spec)
-    generator_spec.loader.exec_module(generator_module)
-
-    # Extract classes
-    ReportGenerator = generator_module.ReportGenerator
-    GenerationOptions = generator_module.GenerationOptions
-    GenerationResult = generator_module.GenerationResult
-    TemplateEngine = template_engine_module.TemplateEngine
-    PDFConverter = pdf_converter_module.PDFConverter
-    PDFOptions = pdf_converter_module.PDFOptions
-    FindingPrioritizer = prioritizer_module.FindingPrioritizer
+    # Fallback for test environments
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+    from d6_reports import (FindingPrioritizer, GenerationOptions,
+                            GenerationResult, PDFConverter, PDFOptions,
+                            ReportGenerator, TemplateEngine)
 
 
 class TestReportGenerationIntegration:
