@@ -24,10 +24,19 @@ from uuid import uuid4
 
 import pytest
 
-# Add project root to Python path
+# Add project root to Python path with multiple approaches
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
+
+# Also add /app for Docker environment
+if "/app" not in sys.path:
+    sys.path.insert(0, "/app")
+
+# Add current working directory as fallback
+import os
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
 
 from d3_assessment.models import (AssessmentResult, AssessmentStatus,
                                   AssessmentType)
