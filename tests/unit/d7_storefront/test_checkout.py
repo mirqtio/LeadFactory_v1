@@ -706,6 +706,462 @@ class TestAcceptanceCriteria:
         print("✓ Success/cancel URLs work")
 
 
+class TestCheckoutManagerEnhancements:
+    """Additional comprehensive tests for D7 Checkout Manager - GAP-010"""
+
+    def test_checkout_config_edge_cases(self):
+        """Test checkout configuration edge cases"""
+        # Test with custom URLs
+        config = CheckoutConfig(
+            base_success_url="https://custom.com/success",
+            base_cancel_url="https://custom.com/cancel",
+            session_expires_minutes=60,
+            default_currency="eur"
+        )
+        
+        assert config.base_success_url == "https://custom.com/success"
+        assert config.base_cancel_url == "https://custom.com/cancel"
+        assert config.session_expires_minutes == 60
+        assert config.default_currency == "eur"
+
+    def test_checkout_item_validation_edge_cases(self):
+        """Test checkout item validation edge cases"""
+        # Test zero amount
+        item = CheckoutItem("Free Product", Decimal("0.00"))
+        assert item.amount_usd == Decimal("0.00")
+        assert item.amount_cents == 0
+        
+        # Test large amount
+        item = CheckoutItem("Expensive Product", Decimal("9999.99"))
+        assert item.amount_cents == 999999
+        
+        # Test fractional cents (should truncate)
+        item = CheckoutItem("Fractional Product", Decimal("29.995"))
+        assert item.amount_cents == 2999  # Truncates to int
+        
+        # Test with maximum quantity
+        item = CheckoutItem("Bulk Product", Decimal("1.00"), quantity=1000)
+        assert item.total_amount_usd == Decimal("1000.00")
+
+    def test_checkout_item_metadata_handling(self):
+        """Test checkout item metadata handling"""
+        metadata = {"sku": "TEST-001", "category": "audit"}
+        item = CheckoutItem(
+            "Test Product",
+            Decimal("29.99"),
+            metadata=metadata,
+            business_id="biz_123"
+        )
+        
+        assert item.metadata["sku"] == "TEST-001"
+        assert item.metadata["category"] == "audit"
+        assert item.business_id == "biz_123"
+
+    def test_checkout_session_validation_comprehensive(self):
+        """Test comprehensive checkout session validation"""
+        # Test invalid email formats
+        items = [CheckoutItem("Product", Decimal("29.99"))]
+        
+        invalid_emails = ["", "invalid", "@test.com", "test@", "test..test@example.com"]
+        for email in invalid_emails:
+            if not email:  # Empty email case
+                with pytest.raises(CheckoutError, match="Customer email is required"):
+                    CheckoutSession(email, items)
+        
+        # Test with valid email
+        session = CheckoutSession("valid@example.com", items)
+        assert session.customer_email == "valid@example.com"
+
+    def test_checkout_session_purchase_id_generation(self):
+        """Test purchase ID generation and uniqueness"""
+        items = [CheckoutItem("Product", Decimal("29.99"))]
+        
+        # Test auto-generated IDs are unique
+        session1 = CheckoutSession("test@example.com", items)
+        session2 = CheckoutSession("test@example.com", items)
+        
+        assert session1.purchase_id != session2.purchase_id
+        assert len(session1.purchase_id) > 10  # Should be UUID-like
+        
+        # Test custom purchase ID
+        custom_id = "custom_purchase_123"
+        session3 = CheckoutSession("test@example.com", items, purchase_id=custom_id)
+        assert session3.purchase_id == custom_id
+
+    def test_checkout_session_url_building_edge_cases(self):
+        """Test URL building with various configurations"""
+        items = [CheckoutItem("Product", Decimal("29.99"))]
+        
+        # Test with custom config
+        config = CheckoutConfig(
+            base_success_url="https://custom.leadfactory.com/checkout/success",
+            base_cancel_url="https://custom.leadfactory.com/checkout/cancel"
+        )
+        
+        session = CheckoutSession("test@example.com", items, config=config)
+        
+        success_url = session.build_success_url()
+        cancel_url = session.build_cancel_url()
+        
+        assert success_url.startswith("https://custom.leadfactory.com/checkout/success")
+        assert cancel_url.startswith("https://custom.leadfactory.com/checkout/cancel")
+        assert "{CHECKOUT_SESSION_ID}" in success_url
+        assert "{CHECKOUT_SESSION_ID}" in cancel_url
+
+    def test_checkout_session_metadata_comprehensive(self):
+        """Test comprehensive metadata building"""
+        items = [
+            CheckoutItem("Audit Report", Decimal("29.99"), product_type=ProductType.AUDIT_REPORT),
+            CheckoutItem("Premium Report", Decimal("99.99"), quantity=2, product_type=ProductType.PREMIUM_REPORT)
+        ]
+        
+        session = CheckoutSession("test@example.com", items, purchase_id="test_123")
+        
+        # Test metadata with various additional data
+        additional = {
+            "utm_source": "google",
+            "utm_campaign": "summer_sale",
+            "referrer": "partner_site"
+        }
+        
+        metadata = session.build_metadata(additional)
+        
+        # Verify structure
+        assert metadata["purchase_id"] == "test_123"
+        assert metadata["customer_email"] == "test@example.com"
+        assert metadata["item_count"] == "2"
+        assert metadata["total_amount_usd"] == "229.97"  # 29.99 + (99.99 * 2)
+        assert metadata["source"] == "leadfactory_checkout"
+        
+        # Verify item details
+        assert metadata["item_0_name"] == "Audit Report"
+        assert metadata["item_0_type"] == "audit_report"
+        assert metadata["item_0_amount"] == "29.99"
+        
+        assert metadata["item_1_name"] == "Premium Report"
+        assert metadata["item_1_type"] == "premium_report"
+        assert metadata["item_1_amount"] == "99.99"
+        
+        # Verify additional metadata
+        assert metadata["utm_source"] == "google"
+        assert metadata["utm_campaign"] == "summer_sale"
+        assert metadata["referrer"] == "partner_site"
+        
+        # Verify timestamp
+        assert "created_at" in metadata
+        assert "T" in metadata["created_at"]  # ISO format
+
+    @patch.object(StripeClient, 'create_checkout_session')
+    def test_checkout_session_stripe_integration_error_handling(self, mock_create):
+        """Test error handling in Stripe integration"""
+        items = [CheckoutItem("Product", Decimal("29.99"))]
+        session = CheckoutSession("test@example.com", items)
+        
+        # Test StripeError
+        mock_create.side_effect = StripeError("Stripe API error")
+        
+        with pytest.raises(CheckoutError, match="Failed to create checkout session"):
+            session.create_stripe_session()
+        
+        # Test generic exception
+        mock_create.side_effect = Exception("Network timeout")
+        
+        with pytest.raises(CheckoutError, match="Unexpected checkout error"):
+            session.create_stripe_session()
+
+    def test_checkout_manager_initialization_variations(self):
+        """Test checkout manager initialization with various configurations"""
+        # Test default initialization
+        manager1 = CheckoutManager()
+        assert manager1.config.test_mode is True
+        assert manager1.stripe_client is not None
+        
+        # Test with custom config
+        config = CheckoutConfig(test_mode=False, default_currency="eur")
+        manager2 = CheckoutManager(config=config)
+        assert manager2.config.test_mode is False
+        assert manager2.config.default_currency == "eur"
+        
+        # Test with custom Stripe client
+        stripe_client = StripeClient(StripeConfig(test_mode=True))
+        manager3 = CheckoutManager(stripe_client=stripe_client)
+        assert manager3.stripe_client is stripe_client
+
+    @patch.object(CheckoutSession, 'create_stripe_session')
+    def test_checkout_manager_attribution_data_handling(self, mock_create_session):
+        """Test attribution data handling in checkout manager"""
+        mock_create_session.return_value = {
+            "session_id": "cs_test_123",
+            "session_url": "https://checkout.stripe.com/pay/cs_test_123",
+            "amount_total": 2999,
+            "currency": "usd",
+            "expires_at": 1234567890
+        }
+        
+        manager = CheckoutManager()
+        items = [CheckoutItem("Product", Decimal("29.99"))]
+        
+        attribution_data = {
+            "utm_source": "google",
+            "utm_medium": "cpc",
+            "utm_campaign": "test_campaign",
+            "referrer": "https://partner.com"
+        }
+        
+        additional_metadata = {
+            "promo_code": "SAVE10",
+            "experiment_id": "exp_123"
+        }
+        
+        result = manager.initiate_checkout(
+            customer_email="test@example.com",
+            items=items,
+            attribution_data=attribution_data,
+            additional_metadata=additional_metadata
+        )
+        
+        assert result["success"] is True
+        
+        # Verify create_stripe_session was called with correct metadata
+        mock_create_session.assert_called_once()
+        call_args = mock_create_session.call_args[1]
+        assert call_args["additional_metadata"]["promo_code"] == "SAVE10"
+        assert call_args["additional_metadata"]["experiment_id"] == "exp_123"
+
+    @patch.object(StripeClient, 'retrieve_checkout_session')
+    def test_checkout_manager_session_retrieval_error_handling(self, mock_retrieve):
+        """Test session retrieval error handling"""
+        manager = CheckoutManager()
+        
+        # Test StripeError
+        mock_retrieve.side_effect = StripeError("Session not found")
+        
+        result = manager.retrieve_session_status("cs_invalid_123")
+        
+        assert result["success"] is False
+        assert result["error"] == "Session not found"
+        assert result["error_type"] == "StripeError"
+
+    def test_audit_report_checkout_customization(self):
+        """Test audit report checkout with various customizations"""
+        manager = CheckoutManager()
+        
+        with patch.object(manager, 'initiate_checkout') as mock_initiate:
+            mock_initiate.return_value = {"success": True}
+            
+            # Test with all parameters
+            result = manager.create_audit_report_checkout(
+                customer_email="test@example.com",
+                business_url="https://example-business.com",
+                business_name="Example Business Corp",
+                amount_usd=Decimal("49.99"),
+                attribution_data={
+                    "utm_source": "facebook",
+                    "utm_campaign": "business_audit_promo"
+                }
+            )
+            
+            assert result["success"] is True
+            
+            # Verify call parameters
+            call_args = mock_initiate.call_args
+            assert call_args[1]["customer_email"] == "test@example.com"
+            
+            item = call_args[1]["items"][0]
+            assert "Example Business Corp" in item.product_name
+            assert item.amount_usd == Decimal("49.99")
+            assert item.product_type == ProductType.AUDIT_REPORT
+            assert item.metadata["business_url"] == "https://example-business.com"
+            assert item.metadata["business_name"] == "Example Business Corp"
+            assert item.metadata["product_sku"] == "WA-BASIC-001"
+            
+            # Check attribution metadata
+            additional_metadata = call_args[1]["additional_metadata"]
+            assert additional_metadata["attr_utm_source"] == "facebook"
+            assert additional_metadata["attr_utm_campaign"] == "business_audit_promo"
+
+    def test_bulk_reports_checkout_edge_cases(self):
+        """Test bulk reports checkout edge cases"""
+        manager = CheckoutManager()
+        
+        # Test empty business URLs
+        with pytest.raises(CheckoutError, match="At least one business URL is required"):
+            manager.create_bulk_reports_checkout(
+                customer_email="test@example.com",
+                business_urls=[]
+            )
+        
+        # Test single URL (edge of bulk)
+        with patch.object(manager, 'initiate_checkout') as mock_initiate:
+            mock_initiate.return_value = {"success": True}
+            
+            result = manager.create_bulk_reports_checkout(
+                customer_email="test@example.com",
+                business_urls=["https://single-business.com"],
+                amount_per_report_usd=Decimal("19.99")
+            )
+            
+            call_args = mock_initiate.call_args
+            item = call_args[1]["items"][0]
+            
+            assert item.quantity == 1
+            assert item.amount_usd == Decimal("19.99")
+            assert "1 reports" in item.product_name
+            assert item.metadata["report_count"] == "1"
+        
+        # Test large bulk order
+        with patch.object(manager, 'initiate_checkout') as mock_initiate:
+            mock_initiate.return_value = {"success": True}
+            
+            business_urls = [f"https://business{i}.com" for i in range(50)]
+            
+            result = manager.create_bulk_reports_checkout(
+                customer_email="test@example.com",
+                business_urls=business_urls,
+                amount_per_report_usd=Decimal("15.99")
+            )
+            
+            call_args = mock_initiate.call_args
+            item = call_args[1]["items"][0]
+            
+            assert item.quantity == 50
+            assert "50 reports" in item.product_name
+            assert item.metadata["report_count"] == "50"
+            assert len(item.metadata["business_urls"].split(",")) == 50
+
+    def test_checkout_manager_status_comprehensive(self):
+        """Test comprehensive status reporting"""
+        config = CheckoutConfig(
+            base_success_url="https://custom.com/success",
+            base_cancel_url="https://custom.com/cancel",
+            webhook_url="https://custom.com/webhook",
+            session_expires_minutes=45,
+            default_currency="eur",
+            test_mode=False
+        )
+        
+        manager = CheckoutManager(config=config)
+        status = manager.get_status()
+        
+        assert status["test_mode"] is False
+        assert status["success_url"] == "https://custom.com/success"
+        assert status["cancel_url"] == "https://custom.com/cancel"
+        assert status["webhook_url"] == "https://custom.com/webhook"
+        assert status["currency"] == "eur"
+        assert status["session_expires_minutes"] == 45
+        assert "stripe_status" in status
+
+    def test_utility_functions_edge_cases(self):
+        """Test utility functions with edge cases"""
+        # Test create_test_checkout_items
+        items = create_test_checkout_items()
+        assert len(items) == 2
+        assert all(isinstance(item, CheckoutItem) for item in items)
+        assert items[0].product_type == ProductType.AUDIT_REPORT
+        assert items[1].product_type == ProductType.PREMIUM_REPORT
+        
+        # Test format_checkout_response_for_api with edge cases
+        success_response = {
+            "success": True,
+            "checkout_url": "https://checkout.stripe.com/pay/cs_test",
+            "purchase_id": "purchase_123",
+            "session_id": "cs_test_123",
+            "amount_total_usd": 29.99,
+            "expires_at": 1234567890,
+            "test_mode": True
+        }
+        
+        formatted = format_checkout_response_for_api(success_response)
+        assert formatted["status"] == "success"
+        assert formatted["data"]["total_amount"] == 29.99
+        assert formatted["data"]["currency"] == "usd"  # Default currency
+        
+        # Test with missing optional fields
+        error_response = {
+            "success": False,
+            "error": "Payment failed",
+            "error_type": "PaymentError"
+        }
+        
+        formatted_error = format_checkout_response_for_api(error_response)
+        assert formatted_error["status"] == "error"
+        assert formatted_error["error"]["message"] == "Payment failed"
+        assert formatted_error["error"]["type"] == "PaymentError"
+
+    def test_constants_and_configuration(self):
+        """Test constants and configuration values"""
+        # Test DEFAULT_PRICING constants
+        assert DEFAULT_PRICING["BASIC_AUDIT"] == Decimal("29.99")
+        assert DEFAULT_PRICING["PREMIUM_AUDIT"] == Decimal("99.99")
+        assert DEFAULT_PRICING["BULK_DISCOUNT_THRESHOLD"] == 5
+        assert DEFAULT_PRICING["BULK_DISCOUNT_RATE"] == Decimal("0.15")
+        
+        # Test CHECKOUT_URLS constants
+        assert "PRODUCTION" in CHECKOUT_URLS
+        assert "STAGING" in CHECKOUT_URLS
+        assert "DEVELOPMENT" in CHECKOUT_URLS
+        
+        for env in CHECKOUT_URLS:
+            urls = CHECKOUT_URLS[env]
+            assert "SUCCESS" in urls
+            assert "CANCEL" in urls
+            assert "WEBHOOK" in urls
+            assert urls["SUCCESS"].startswith("http")
+            assert urls["CANCEL"].startswith("http")
+            assert urls["WEBHOOK"].startswith("http")
+
+    @patch.object(CheckoutSession, 'create_stripe_session')
+    def test_checkout_manager_response_format_consistency(self, mock_create_session):
+        """Test response format consistency across different methods"""
+        mock_create_session.return_value = {
+            "session_id": "cs_test_123",
+            "session_url": "https://checkout.stripe.com/pay/cs_test_123",
+            "amount_total": 2999,
+            "currency": "usd",
+            "expires_at": 1234567890
+        }
+        
+        manager = CheckoutManager()
+        items = [CheckoutItem("Product", Decimal("29.99"))]
+        
+        # Test standard initiate_checkout response
+        result = manager.initiate_checkout("test@example.com", items)
+        
+        # Verify response structure
+        expected_keys = [
+            "success", "purchase_id", "checkout_url", "session_id",
+            "amount_total_usd", "amount_total_cents", "currency",
+            "expires_at", "test_mode", "items"
+        ]
+        
+        for key in expected_keys:
+            assert key in result
+        
+        assert result["success"] is True
+        assert isinstance(result["amount_total_usd"], float)
+        assert isinstance(result["amount_total_cents"], int)
+        assert isinstance(result["items"], list)
+        assert len(result["items"]) == 1
+        
+        # Verify item structure in response
+        item = result["items"][0]
+        assert "name" in item
+        assert "amount_usd" in item
+        assert "quantity" in item
+        assert "type" in item
+
+    def test_error_propagation_and_logging(self):
+        """Test error propagation and logging behavior"""
+        manager = CheckoutManager()
+        
+        # Test with invalid items (empty list)
+        result = manager.initiate_checkout("test@example.com", [])
+        
+        assert result["success"] is False
+        assert "At least one item is required" in result["error"]
+        assert result["error_type"] == "CheckoutError"
+
+
 if __name__ == "__main__":
     # Run basic tests if file is executed directly
     print("Running D7 Storefront Checkout Tests...")
