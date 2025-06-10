@@ -13,14 +13,21 @@ Acceptance Criteria:
 
 import asyncio
 import json
+import sys
 import time
 from datetime import datetime, timedelta
 from decimal import Decimal
+from pathlib import Path
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from d3_assessment.models import (AssessmentResult, AssessmentStatus,
                                   AssessmentType)

@@ -447,7 +447,7 @@ class TestAssessmentIntegrationTask039:
 
     def test_report_formatting_integration(self, mock_coordinator):
         """Test integration with report formatter"""
-        formatter = AssessmentReportFormatter()
+        formatter = AssessmentFormatter()
         mock_result = mock_coordinator.assess_business.return_value
 
         # Test different report formats
@@ -459,7 +459,7 @@ class TestAssessmentIntegrationTask039:
         ]
 
         for format_type, expected_content in formats_to_test:
-            report = formatter.format_report(mock_result, format_type)
+            report = formatter.format_assessment(mock_result, format_type)
             assert expected_content in report
             assert len(report) > 100  # Ensure substantial content
 
