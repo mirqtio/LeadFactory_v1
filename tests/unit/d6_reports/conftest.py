@@ -6,6 +6,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from database.base import Base
+# Import all models to ensure foreign key references are available
+import database.models  # Main database models
+import d6_reports.models  # D6 reports models
 
 
 @pytest.fixture(scope="function")

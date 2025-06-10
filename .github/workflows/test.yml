@@ -67,7 +67,6 @@ jobs:
           -e USE_STUBS=$USE_STUBS \
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
-          -v ${{ github.workspace }}:/app \
           leadfactory-test \
           pytest -x --tb=short --timeout=30 tests/test_setup.py tests/unit/ --ignore=tests/test_docker_compose.py
     
@@ -78,7 +77,6 @@ jobs:
           -e USE_STUBS=$USE_STUBS \
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
-          -v ${{ github.workspace }}:/app \
           leadfactory-test \
           pytest -x --tb=short --timeout=60 tests/integration/ || echo "Integration tests failed but not blocking"
     
