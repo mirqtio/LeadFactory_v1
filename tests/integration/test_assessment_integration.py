@@ -157,6 +157,11 @@ class TestAssessmentIntegrationTask039:
             started_at=datetime.utcnow() - timedelta(seconds=15),
             completed_at=datetime.utcnow(),
         )
+        
+        # Add attributes that the formatter expects
+        mock_result.pagespeed_data = pagespeed_result
+        mock_result.techstack_data = techstack_result  
+        mock_result.ai_insights_data = ai_result
 
         # Configure mock
         coordinator.assess_business = AsyncMock(return_value=mock_result)
@@ -447,7 +452,7 @@ class TestAssessmentIntegrationTask039:
 
     def test_report_formatting_integration(self, mock_coordinator):
         """Test integration with report formatter"""
-        formatter = AssessmentFormatter()
+        formatter = AssessmentReportFormatter()
         mock_result = mock_coordinator.assess_business.return_value
 
         # Test different report formats
