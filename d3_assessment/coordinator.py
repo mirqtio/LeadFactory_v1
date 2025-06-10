@@ -162,7 +162,7 @@ class AssessmentCoordinator:
         ])
         failed_count = len([
             r for r in results.values() 
-            if r is not None and r.status in [AssessmentStatus.FAILED, AssessmentStatus.CANCELLED]
+            if r is None or (r is not None and r.status in [AssessmentStatus.FAILED, AssessmentStatus.CANCELLED])
         ])
         total_cost = sum(
             r.total_cost_usd or Decimal("0")
