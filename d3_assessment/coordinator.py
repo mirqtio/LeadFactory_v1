@@ -154,7 +154,7 @@ class AssessmentCoordinator:
 
         # Calculate totals
         completed_at = datetime.utcnow()
-        execution_time = int((completed_at - started_at).total_seconds() * 1000)
+        execution_time = max(1, int((completed_at - started_at).total_seconds() * 1000))
 
         completed_count = len([
             r for r in results.values() 
@@ -378,9 +378,9 @@ class AssessmentCoordinator:
         Acceptance Criteria: Partial results saved
         """
         # In a real implementation, this would save to database
-        # For now, we'll just mark it as saved
+        # For now, we'll just preserve the actual status
         if result:
-            result.status = AssessmentStatus.COMPLETED
+            # Don't override the status - preserve whether it's COMPLETED, FAILED, etc.
             # TODO: Save to database
             pass
 
