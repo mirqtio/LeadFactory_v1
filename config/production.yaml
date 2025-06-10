@@ -1,0 +1,208 @@
+# LeadFactory Production Configuration
+# Task 090: Create production configuration
+
+app:
+  name: "LeadFactory"
+  version: "1.0.0"
+  environment: "production"
+  debug: false
+  secret_key: "${SECRET_KEY}"
+  allowed_hosts:
+    - "api.leadfactory.com"
+    - "www.leadfactory.com"
+    - "app.leadfactory.com"
+
+database:
+  url: "${DATABASE_URL}"
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+  pool_recycle: 3600
+  echo: false
+  isolation_level: "READ_COMMITTED"
+
+redis:
+  url: "${REDIS_URL}"
+  max_connections: 50
+  socket_timeout: 5
+  socket_connect_timeout: 5
+  retry_on_timeout: true
+  decode_responses: true
+
+external_apis:
+  yelp:
+    api_key: "${YELP_API_KEY}"
+    base_url: "https://api.yelp.com/v3"
+    rate_limit: 300  # requests per minute
+    timeout: 10
+    max_retries: 3
+    
+  google_pagespeed:
+    api_key: "${GOOGLE_PAGESPEED_API_KEY}"
+    base_url: "https://www.googleapis.com/pagespeedonline/v5"
+    rate_limit: 1500
+    timeout: 30
+    max_retries: 2
+    
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4o-mini"
+    rate_limit: 3000
+    timeout: 60
+    max_retries: 3
+    max_tokens: 1000
+    
+  stripe:
+    publishable_key: "${STRIPE_PUBLISHABLE_KEY}"
+    secret_key: "${STRIPE_SECRET_KEY}"
+    webhook_secret: "${STRIPE_WEBHOOK_SECRET}"
+    api_version: "2023-10-16"
+    timeout: 30
+    
+  sendgrid:
+    api_key: "${SENDGRID_API_KEY}"
+    from_email: "noreply@leadfactory.com"
+    timeout: 30
+    rate_limit: 600
+
+monitoring:
+  enabled: true
+  prometheus:
+    port: 9090
+    metrics_path: "/metrics"
+  grafana:
+    port: 3000
+  alerts:
+    enabled: true
+    webhook_url: "${ALERT_WEBHOOK_URL}"
+
+logging:
+  level: "INFO"
+  format: "structured"
+  handlers:
+    - type: "stream"
+      stream: "stdout"
+    - type: "file"
+      filename: "/app/logs/leadfactory.log"
+      max_bytes: 104857600  # 100MB
+      backup_count: 10
+  loggers:
+    - name: "leadfactory"
+      level: "INFO"
+    - name: "sqlalchemy.engine"
+      level: "WARNING"
+    - name: "redis"
+      level: "WARNING"
+
+security:
+  cors:
+    allowed_origins:
+      - "https://app.leadfactory.com"
+      - "https://www.leadfactory.com"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
+      - "X-Requested-With"
+    max_age: 3600
+    
+  session:
+    timeout: 3600
+    secure: true
+    httponly: true
+    samesite: "Lax"
+    
+  api:
+    timeout: 30
+    max_request_size: 10485760  # 10MB
+    rate_limit:
+      enabled: true
+      requests_per_minute: 1000
+      burst: 100
+
+email:
+  from_email: "noreply@leadfactory.com"
+  support_email: "support@leadfactory.com"
+  unsubscribe_url: "https://app.leadfactory.com/unsubscribe"
+  templates_dir: "/app/templates/email"
+  compliance:
+    include_unsubscribe: true
+    include_physical_address: true
+    physical_address: "LeadFactory Inc., 123 Business St, San Francisco, CA 94105"
+
+file_storage:
+  upload_dir: "/app/uploads"
+  max_file_size: 52428800  # 50MB
+  allowed_extensions:
+    - "pdf"
+    - "jpg"
+    - "jpeg"
+    - "png"
+    - "gif"
+  cleanup_interval: 86400  # 24 hours
+
+performance:
+  workers: 4
+  worker_connections: 1000
+  max_requests: 1000
+  max_requests_jitter: 100
+  timeout: 30
+  keepalive: 2
+  preload_app: true
+
+caching:
+  default_ttl: 3600
+  assessment_ttl: 86400
+  report_ttl: 3600
+  business_ttl: 43200
+  
+  cache_sizes:
+    assessment_cache: 1000
+    business_cache: 5000
+    report_cache: 500
+
+pipeline:
+  batch_size: 100
+  max_concurrent_assessments: 10
+  pipeline_timeout: 1800
+  retry_attempts: 3
+  retry_delay: 60
+  
+  quotas:
+    daily_yelp_requests: 4500
+    daily_pagespeed_requests: 22000
+    daily_openai_tokens: 1000000
+
+features:
+  a_b_testing: true
+  analytics: true
+  experiments: true
+  rate_limiting: true
+  circuit_breakers: true
+  
+health_checks:
+  enabled: true
+  endpoint: "/health"
+  checks:
+    - "database"
+    - "redis"
+    - "external_apis"
+  timeout: 10
+  interval: 30
+
+deployment:
+  release_version: "${RELEASE_VERSION}"
+  deployment_date: "${DEPLOYMENT_DATE}"
+  git_commit: "${GIT_COMMIT}"
+  rollback_enabled: true
+  
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  s3_bucket: "${BACKUP_S3_BUCKET}"
