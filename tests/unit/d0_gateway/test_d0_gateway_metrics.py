@@ -12,6 +12,9 @@ class TestGatewayMetrics:
     @pytest.fixture
     def gateway_metrics(self):
         """Create gateway metrics instance for testing"""
+        # Reset singleton state for isolated testing
+        GatewayMetrics._instance = None
+        GatewayMetrics._initialized = False
         return GatewayMetrics()
 
     def test_api_call_counts_tracked_initialization(self, gateway_metrics):

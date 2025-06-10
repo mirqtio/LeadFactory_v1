@@ -18,6 +18,11 @@ class TestGatewayFactory:
         # Reset singleton state for testing
         GatewayClientFactory._instance = None
         GatewayClientFactory._initialized = False
+        
+        # Also reset module-level factory instance
+        import d0_gateway.factory
+        d0_gateway.factory._factory_instance = None
+        
         return GatewayClientFactory()
 
     def test_thread_safe_singleton_pattern(self):
@@ -25,6 +30,10 @@ class TestGatewayFactory:
         # Reset singleton for test
         GatewayClientFactory._instance = None
         GatewayClientFactory._initialized = False
+        
+        # Also reset module-level factory instance
+        import d0_gateway.factory
+        d0_gateway.factory._factory_instance = None
 
         # Create multiple instances
         factory1 = GatewayClientFactory()

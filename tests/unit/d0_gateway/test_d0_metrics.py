@@ -13,6 +13,9 @@ class TestGatewayMetrics:
     @pytest.fixture
     def gateway_metrics(self):
         """Create GatewayMetrics instance for testing"""
+        # Reset singleton state for isolated testing
+        GatewayMetrics._instance = None
+        GatewayMetrics._initialized = False
         return GatewayMetrics()
 
     def test_api_call_counts_tracked_initialization(self, gateway_metrics):
@@ -303,6 +306,9 @@ class TestGatewayMetrics:
 class TestGatewayMetricsIntegration:
     def test_prometheus_integration(self):
         """Test Prometheus metrics integration"""
+        # Reset singleton state for isolated testing
+        GatewayMetrics._instance = None
+        GatewayMetrics._initialized = False
         gateway_metrics = GatewayMetrics()
 
         # Verify that metrics are registered with Prometheus
@@ -317,6 +323,9 @@ class TestGatewayMetricsIntegration:
 
     def test_metrics_with_real_data_patterns(self):
         """Test metrics with realistic data patterns"""
+        # Reset singleton state for isolated testing
+        GatewayMetrics._instance = None
+        GatewayMetrics._initialized = False
         gateway_metrics = GatewayMetrics()
 
         # Simulate realistic usage patterns
@@ -387,6 +396,10 @@ class TestGatewayMetricsIntegration:
         mock_logger = Mock()
         mock_get_logger.return_value = mock_logger
 
+        # Reset singleton state for isolated testing
+        GatewayMetrics._instance = None
+        GatewayMetrics._initialized = False
+        
         gateway_metrics = GatewayMetrics()
 
         # Verify logger was created with correct domain
@@ -404,6 +417,9 @@ class TestGatewayMetricsIntegration:
 
     def test_edge_cases_and_boundary_conditions(self):
         """Test edge cases and boundary conditions"""
+        # Reset singleton state for isolated testing
+        GatewayMetrics._instance = None
+        GatewayMetrics._initialized = False
         gateway_metrics = GatewayMetrics()
 
         # Test edge cases
