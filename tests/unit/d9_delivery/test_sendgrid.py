@@ -67,10 +67,8 @@ class TestSendGridClient:
         with patch.dict('os.environ', {'SENDGRID_API_KEY': 'test_key'}):
             client = SendGridClient()
             
-            assert client.api_key == 'test_key'
-            assert client.base_url == "https://api.sendgrid.com/v3"
+            assert client.gateway is not None
             assert client.default_categories == ['leadfactory', 'automated']
-            assert client.max_requests_per_second == 100
             assert client.sandbox_mode is False
             
         print("✓ SendGrid client initialization works")
@@ -78,9 +76,11 @@ class TestSendGridClient:
     def test_sendgrid_client_initialization_no_api_key(self):
         """Test SendGrid client initialization without API key"""
         
+        # The API key requirement has been moved to the gateway, so SendGridClient
+        # can initialize but operations will fail when the gateway is used
         with patch.dict('os.environ', {}, clear=True):
-            with pytest.raises(ConfigurationError, match="SendGrid API key is required"):
-                SendGridClient()
+            client = SendGridClient()
+            assert client.gateway is not None
         
         print("✓ SendGrid client API key validation works")
     
@@ -96,83 +96,52 @@ class TestSendGridClient:
             
         print("✓ SendGrid client sandbox mode works")
     
-    def test_build_email_payload(self, email_data):
-        """Test building SendGrid email payload - Categories added, Custom args included"""
+    def test_prepare_custom_args(self, email_data):
+        """Test preparing custom args for SendGrid - Categories added, Custom args included"""
         
         with patch.dict('os.environ', {'SENDGRID_API_KEY': 'test_key'}):
             client = SendGridClient()
-            payload = client._build_email_payload(email_data)
+            custom_args = client._prepare_custom_args(email_data)
             
-            # Test basic structure
-            assert 'personalizations' in payload
-            assert 'from' in payload
-            assert 'subject' in payload
-            assert 'content' in payload
-            
-            # Test personalizations
-            personalizations = payload['personalizations']
-            assert len(personalizations) == 1
-            assert personalizations[0]['to'][0]['email'] == "test@example.com"
-            assert personalizations[0]['to'][0]['name'] == "Test User"
-            
-            # Test custom args in personalizations
-            custom_args = personalizations[0]['custom_args']
+            # Test custom args
             assert custom_args['test_flag'] == 'True'  # Converted to string
             assert custom_args['business_id'] == 'biz_123'
             
-            # Test from field
-            assert payload['from']['email'] == "noreply@leadfactory.com"
-            assert payload['from']['name'] == "LeadFactory"
-            
-            # Test subject
-            assert payload['subject'] == "Test Email"
-            
-            # Test content
-            content = payload['content']
-            assert len(content) == 2  # HTML and text
-            assert content[0]['type'] == "text/plain"
-            assert content[0]['value'] == "Test text content"
-            assert content[1]['type'] == "text/html"
-            assert content[1]['value'] == "<p>Test HTML content</p>"
-            
             # Test categories (includes default + custom)
-            categories = payload['categories']
+            assert 'categories' in custom_args
+            categories = custom_args['categories'].split(',')
             assert 'test' in categories
             assert 'integration' in categories
             assert 'leadfactory' in categories  # Default category
             assert 'automated' in categories   # Default category
-            assert len(categories) <= 10  # SendGrid limit
             
-            # Test sandbox mode
-            assert payload['mail_settings']['sandbox_mode']['enable'] is False
-            
-            # Test tracking settings
-            tracking = payload['tracking_settings']
-            assert tracking['click_tracking']['enable'] is True
-            assert tracking['open_tracking']['enable'] is True
-            assert tracking['subscription_tracking']['enable'] is False
-            
-        print("✓ Email payload building works")
+        print("✓ Custom args preparation works")
     
     @pytest.mark.asyncio
     async def test_send_email_success(self, email_data, mock_response):
         """Test successful email sending"""
         
         with patch.dict('os.environ', {'SENDGRID_API_KEY': 'test_key'}):
-            client = SendGridClient()
-            
-            # Mock session and response
-            mock_session = AsyncMock(spec=ClientSession)
-            mock_session.post.return_value.__aenter__.return_value = mock_response
-            client.session = mock_session
-            
-            response = await client.send_email(email_data)
-            
-            assert response.success is True
-            assert response.message_id == 'msg_12345'
-            assert response.status_code == 202
-            assert response.rate_limit_remaining == 95
-            
+            with patch('d9_delivery.sendgrid_client.get_gateway_facade') as mock_get_facade:
+                mock_facade = AsyncMock()
+                mock_get_facade.return_value = mock_facade
+                
+                # Mock gateway response
+                mock_facade.send_email.return_value = {
+                    'message_id': 'msg_12345',
+                    'headers': {'X-RateLimit-Remaining': '95'}
+                }
+                
+                client = SendGridClient()
+                response = await client.send_email(email_data)
+                
+                assert response.success is True
+                assert response.message_id == 'msg_12345'
+                assert response.status_code == 202
+                
+                # Verify gateway was called
+                mock_facade.send_email.assert_called_once()
+                
         print("✓ Successful email sending works")
     
     @pytest.mark.asyncio
@@ -180,24 +149,21 @@ class TestSendGridClient:
         """Test rate limit handling"""
         
         with patch.dict('os.environ', {'SENDGRID_API_KEY': 'test_key'}):
-            client = SendGridClient()
-            
-            # Mock rate limit response  
-            mock_response = Mock(spec=ClientResponse)
-            mock_response.status = 429
-            mock_response.headers = {'Retry-After': '60'}
-            mock_response.text = AsyncMock(return_value='{"errors": [{"message": "Rate limit exceeded"}]}')
-            
-            mock_session = AsyncMock(spec=ClientSession)
-            mock_session.post.return_value.__aenter__.return_value = mock_response
-            client.session = mock_session
-            
-            # Since the code catches the exception and logs it, we check the behavior
-            response = await client.send_email(email_data)
-            
-            # Verify the response indicates failure due to rate limiting
-            assert response.success is False
-            assert "Rate limit exceeded" in response.error_message
+            with patch('d9_delivery.sendgrid_client.get_gateway_facade') as mock_get_facade:
+                mock_facade = AsyncMock()
+                mock_get_facade.return_value = mock_facade
+                
+                # Mock gateway to raise RateLimitError
+                mock_facade.send_email.side_effect = RateLimitError(
+                    provider="SendGrid", 
+                    retry_after=60
+                )
+                
+                client = SendGridClient()
+                
+                # RateLimitError should be re-raised
+                with pytest.raises(RateLimitError):
+                    await client.send_email(email_data)
         
         print("✓ Rate limit error handling works")
     
@@ -206,23 +172,24 @@ class TestSendGridClient:
         """Test API error handling"""
         
         with patch.dict('os.environ', {'SENDGRID_API_KEY': 'test_key'}):
-            client = SendGridClient()
-            
-            # Mock error response
-            mock_response = Mock(spec=ClientResponse)
-            mock_response.status = 400
-            mock_response.headers = {}
-            mock_response.text = AsyncMock(return_value='{"errors": [{"message": "Bad request"}]}')
-            
-            mock_session = AsyncMock(spec=ClientSession)
-            mock_session.post.return_value.__aenter__.return_value = mock_response
-            client.session = mock_session
-            
-            response = await client.send_email(email_data)
-            
-            assert response.success is False
-            assert response.error_message == "Bad request"
-            assert response.status_code == 400
+            with patch('d9_delivery.sendgrid_client.get_gateway_facade') as mock_get_facade:
+                mock_facade = AsyncMock()
+                mock_get_facade.return_value = mock_facade
+                
+                # Mock gateway to raise ExternalAPIError
+                error = ExternalAPIError(
+                    provider="SendGrid",
+                    message="Bad request",
+                    status_code=400
+                )
+                mock_facade.send_email.side_effect = error
+                
+                client = SendGridClient()
+                response = await client.send_email(email_data)
+                
+                assert response.success is False
+                assert "Bad request" in response.error_message
+                assert response.status_code == 400
         
         print("✓ API error handling works")
     
@@ -267,42 +234,34 @@ class TestSendGridClient:
         """Test API key validation"""
         
         with patch.dict('os.environ', {'SENDGRID_API_KEY': 'test_key'}):
-            client = SendGridClient()
-            
-            # Mock successful validation
-            mock_response = Mock(spec=ClientResponse)
-            mock_response.status = 200
-            
-            mock_session = AsyncMock(spec=ClientSession)
-            mock_session.get.return_value.__aenter__.return_value = mock_response
-            client.session = mock_session
-            
-            is_valid = await client.validate_api_key()
-            assert is_valid is True
+            with patch('d9_delivery.sendgrid_client.get_gateway_facade') as mock_get_facade:
+                mock_facade = AsyncMock()
+                mock_get_facade.return_value = mock_facade
+                
+                # Mock successful stats response
+                mock_facade.get_email_stats.return_value = {'stats': 'available'}
+                
+                client = SendGridClient()
+                is_valid = await client.validate_api_key()
+                assert is_valid is True
+                
+                # Verify gateway was called
+                mock_facade.get_email_stats.assert_called_once()
         
         print("✓ API key validation works")
     
     def test_rate_limiting_logic(self):
-        """Test rate limiting logic"""
+        """Test rate limiting is handled by gateway"""
         
         with patch.dict('os.environ', {'SENDGRID_API_KEY': 'test_key'}):
             client = SendGridClient()
             
-            # Test empty timestamps
-            assert len(client.request_timestamps) == 0
-            
-            # Add timestamps to simulate rate limiting
-            now = datetime.now()
-            client.request_timestamps = [now] * 100  # At limit
-            
-            # Test cleanup of old timestamps
-            old_timestamps = [now - timedelta(seconds=2)] * 50
-            client.request_timestamps.extend(old_timestamps)
-            
-            # The rate limiting check should clean up old timestamps
-            # This is tested indirectly through the _check_rate_limit method
+            # Rate limiting is now handled by the gateway
+            # The SendGridClient no longer tracks request timestamps
+            assert not hasattr(client, 'request_timestamps')
+            assert not hasattr(client, 'max_requests_per_second')
         
-        print("✓ Rate limiting logic works")
+        print("✓ Rate limiting delegated to gateway")
 
 
 class TestEmailBuilder:
