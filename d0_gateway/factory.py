@@ -11,6 +11,8 @@ from .base import BaseAPIClient
 from .providers.yelp import YelpClient
 from .providers.pagespeed import PageSpeedClient
 from .providers.openai import OpenAIClient
+from .providers.sendgrid import SendGridClient
+from .providers.stripe import StripeClient
 
 
 class GatewayClientFactory:
@@ -40,7 +42,9 @@ class GatewayClientFactory:
                     self._providers: Dict[str, Type[BaseAPIClient]] = {
                         'yelp': YelpClient,
                         'pagespeed': PageSpeedClient,
-                        'openai': OpenAIClient
+                        'openai': OpenAIClient,
+                        'sendgrid': SendGridClient,
+                        'stripe': StripeClient
                     }
 
                     # Cache for created instances
@@ -157,6 +161,12 @@ class GatewayClientFactory:
 
         elif provider == 'openai':
             config['api_key'] = getattr(self.settings, 'openai_api_key', None)
+
+        elif provider == 'sendgrid':
+            config['api_key'] = getattr(self.settings, 'sendgrid_api_key', None)
+
+        elif provider == 'stripe':
+            config['api_key'] = getattr(self.settings, 'stripe_api_key', None)
 
         # Common configuration
         config.update({

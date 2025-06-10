@@ -132,6 +132,38 @@ If you encounter issues:
 3. **Status Sync Issues**: Manually update `task_status.json`
 4. **TaskMaster Sync**: Check network connectivity
 
+## Gap Remediation (Post-MVP)
+
+After the initial 100 tasks were completed, a comprehensive gap analysis identified 15 additional tasks to address PRD compliance issues. These are tracked separately:
+
+### Gap Remediation Files
+
+- **`taskmaster_gap_remediation.json`**: Contains 15 gap remediation tasks organized by priority
+- **`gap_remediation_status.json`**: Tracks status of gap remediation tasks
+- **`get_next_gap_task.py`**: Script to manage gap remediation workflow
+
+### Gap Remediation Commands
+
+```bash
+# Get next gap task to work on
+python planning/get_next_gap_task.py
+
+# Check gap remediation progress
+python planning/get_next_gap_task.py --progress
+
+# Update gap task status
+python planning/get_next_gap_task.py --update GAP-001 in_progress
+
+# View gap task details
+python planning/get_next_gap_task.py --details GAP-001
+```
+
+### Gap Task Priorities
+
+- **P0 (Critical)**: Gateway pattern violations - must be fixed first
+- **P1 (High)**: Test coverage improvements and CI fixes
+- **P2 (Medium)**: Missing features and minor improvements
+
 ## Contributing
 
 When contributing to planning tools:

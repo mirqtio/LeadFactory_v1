@@ -1,0 +1,415 @@
+{
+  "project": "leadfactory-gap-remediation",
+  "version": "1.0",
+  "created_at": "2025-01-10",
+  "total_tasks": 15,
+  "purpose": "Address critical gaps identified in PRD compliance review",
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Gateway Pattern Fixes",
+      "description": "Fix critical gateway pattern violations to ensure all external API calls go through D0 Gateway",
+      "tasks": [
+        {
+          "id": "GAP-001",
+          "title": "Register SendGrid and Stripe providers in Gateway Factory",
+          "domain": "d0_gateway",
+          "complexity": 2,
+          "dependencies": [],
+          "estimated_hours": 1,
+          "priority": "P0",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_factory.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_factory.py -v"]
+          },
+          "files_to_modify": [
+            "d0_gateway/factory.py"
+          ],
+          "acceptance_criteria": [
+            "SendGridClient imported in factory",
+            "StripeClient imported in factory",
+            "Both providers registered in _providers dict",
+            "Factory can create both provider instances",
+            "Unit tests pass"
+          ]
+        },
+        {
+          "id": "GAP-002",
+          "title": "Add SendGrid methods to Gateway Facade",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["GAP-001"],
+          "estimated_hours": 2,
+          "priority": "P0",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_facade.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_facade.py::test_sendgrid_methods -v"]
+          },
+          "files_to_modify": [
+            "d0_gateway/facade.py"
+          ],
+          "acceptance_criteria": [
+            "send_email method added to facade",
+            "get_email_status method added",
+            "handle_webhook method added",
+            "All methods use SendGrid provider through gateway",
+            "Rate limiting and caching applied",
+            "Unit tests pass"
+          ]
+        },
+        {
+          "id": "GAP-003",
+          "title": "Add Stripe methods to Gateway Facade",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["GAP-001"],
+          "estimated_hours": 2,
+          "priority": "P0",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_facade.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_facade.py::test_stripe_methods -v"]
+          },
+          "files_to_modify": [
+            "d0_gateway/facade.py"
+          ],
+          "acceptance_criteria": [
+            "create_checkout_session method added to facade",
+            "retrieve_session method added",
+            "handle_webhook method added",
+            "All methods use Stripe provider through gateway",
+            "Rate limiting and error handling applied",
+            "Unit tests pass"
+          ]
+        },
+        {
+          "id": "GAP-004",
+          "title": "Refactor D2 Sourcing to use Gateway",
+          "domain": "d2_sourcing",
+          "complexity": 4,
+          "dependencies": ["GAP-001"],
+          "estimated_hours": 3,
+          "priority": "P0",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_sourcing_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_sourcing_integration.py -v"]
+          },
+          "files_to_modify": [
+            "d2_sourcing/yelp_scraper.py",
+            "d2_sourcing/coordinator.py"
+          ],
+          "acceptance_criteria": [
+            "Remove all direct aiohttp usage",
+            "Replace with gateway.yelp.search_businesses calls",
+            "Maintain existing functionality",
+            "All integration tests pass",
+            "No direct external API calls remain"
+          ]
+        },
+        {
+          "id": "GAP-005",
+          "title": "Refactor D7 Storefront to use Gateway",
+          "domain": "d7_storefront",
+          "complexity": 4,
+          "dependencies": ["GAP-003"],
+          "estimated_hours": 3,
+          "priority": "P0",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_payment_flow.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_payment_flow.py -v"]
+          },
+          "files_to_modify": [
+            "d7_storefront/stripe_client.py",
+            "d7_storefront/checkout.py"
+          ],
+          "acceptance_criteria": [
+            "Remove direct Stripe SDK usage",
+            "Replace with gateway.stripe methods",
+            "Maintain payment functionality",
+            "Webhook processing still works",
+            "All payment flow tests pass"
+          ]
+        },
+        {
+          "id": "GAP-006",
+          "title": "Refactor D9 Delivery to use Gateway",
+          "domain": "d9_delivery",
+          "complexity": 4,
+          "dependencies": ["GAP-002"],
+          "estimated_hours": 3,
+          "priority": "P0",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_delivery_integration.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_delivery_integration.py -v"]
+          },
+          "files_to_modify": [
+            "d9_delivery/sendgrid_client.py",
+            "d9_delivery/delivery_manager.py"
+          ],
+          "acceptance_criteria": [
+            "Remove direct aiohttp/sendgrid usage",
+            "Replace with gateway.sendgrid methods",
+            "Maintain email delivery functionality",
+            "Webhook handling still works",
+            "All delivery tests pass"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Test Coverage Improvements",
+      "description": "Increase test coverage to meet 80% requirement, focusing on critical components",
+      "tasks": [
+        {
+          "id": "GAP-007",
+          "title": "Add tests for Gateway base components",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": [],
+          "estimated_hours": 3,
+          "priority": "P1",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_base.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_base.py --cov=d0_gateway.base --cov-report=term-missing"]
+          },
+          "files_to_create": [
+            "tests/unit/d0_gateway/test_base_comprehensive.py"
+          ],
+          "acceptance_criteria": [
+            "Test BaseAPIClient abstract methods",
+            "Test rate limit integration",
+            "Test circuit breaker integration",
+            "Test cache integration",
+            "Coverage for base.py > 80%"
+          ]
+        },
+        {
+          "id": "GAP-008",
+          "title": "Add tests for Circuit Breaker",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": [],
+          "estimated_hours": 2,
+          "priority": "P1",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_circuit_breaker.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_circuit_breaker.py --cov=d0_gateway.circuit_breaker --cov-report=term-missing"]
+          },
+          "files_to_modify": [
+            "tests/unit/d0_gateway/test_circuit_breaker.py"
+          ],
+          "acceptance_criteria": [
+            "Test state transitions (CLOSED -> OPEN -> HALF_OPEN)",
+            "Test failure threshold behavior",
+            "Test recovery timeout",
+            "Test concurrent access",
+            "Coverage for circuit_breaker.py > 80%"
+          ]
+        },
+        {
+          "id": "GAP-009",
+          "title": "Add tests for Rate Limiter",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": [],
+          "estimated_hours": 2,
+          "priority": "P1",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_rate_limiter.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_rate_limiter.py --cov=d0_gateway.rate_limiter --cov-report=term-missing"]
+          },
+          "files_to_modify": [
+            "tests/unit/d0_gateway/test_rate_limiter.py"
+          ],
+          "acceptance_criteria": [
+            "Test token bucket algorithm",
+            "Test daily limit enforcement",
+            "Test burst limit enforcement",
+            "Test Redis integration",
+            "Coverage for rate_limiter.py > 80%"
+          ]
+        },
+        {
+          "id": "GAP-010",
+          "title": "Add tests for D7 Checkout Manager",
+          "domain": "d7_storefront",
+          "complexity": 3,
+          "dependencies": ["GAP-005"],
+          "estimated_hours": 3,
+          "priority": "P1",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d7_storefront/test_checkout.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d7_storefront/test_checkout.py --cov=d7_storefront.checkout --cov-report=term-missing"]
+          },
+          "files_to_modify": [
+            "tests/unit/d7_storefront/test_checkout.py"
+          ],
+          "acceptance_criteria": [
+            "Test checkout session creation",
+            "Test metadata handling",
+            "Test error scenarios",
+            "Test idempotency",
+            "Coverage for checkout.py > 80%"
+          ]
+        },
+        {
+          "id": "GAP-011",
+          "title": "Add tests for D7 Webhook Processing",
+          "domain": "d7_storefront",
+          "complexity": 3,
+          "dependencies": ["GAP-005"],
+          "estimated_hours": 3,
+          "priority": "P1",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d7_storefront/test_webhooks.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d7_storefront/test_webhooks.py --cov=d7_storefront.webhooks --cov-report=term-missing"]
+          },
+          "files_to_modify": [
+            "tests/unit/d7_storefront/test_webhooks.py"
+          ],
+          "acceptance_criteria": [
+            "Test webhook signature verification",
+            "Test checkout.session.completed handling",
+            "Test payment_intent.succeeded handling",
+            "Test idempotency checks",
+            "Coverage for webhooks.py > 80%"
+          ]
+        },
+        {
+          "id": "GAP-012",
+          "title": "Add tests for D9 Compliance module",
+          "domain": "d9_delivery",
+          "complexity": 2,
+          "dependencies": ["GAP-006"],
+          "estimated_hours": 2,
+          "priority": "P1",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d9_delivery/test_compliance.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d9_delivery/test_compliance.py --cov=d9_delivery.compliance --cov-report=term-missing"]
+          },
+          "files_to_create": [
+            "tests/unit/d9_delivery/test_compliance.py"
+          ],
+          "acceptance_criteria": [
+            "Test unsubscribe token generation",
+            "Test suppression list checks",
+            "Test compliance header insertion",
+            "Test GDPR compliance features",
+            "Coverage for compliance.py > 80%"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Missing Features and CI Fixes",
+      "description": "Add missing features and fix CI/CD configuration issues",
+      "tasks": [
+        {
+          "id": "GAP-013",
+          "title": "Create missing email template",
+          "domain": "d8_personalization",
+          "complexity": 2,
+          "dependencies": [],
+          "estimated_hours": 1,
+          "priority": "P2",
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d8_personalization/test_templates.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d8_personalization/test_templates.py -v"]
+          },
+          "files_to_create": [
+            "templates/email/audit_teaser.html",
+            "tests/unit/d8_personalization/test_templates.py"
+          ],
+          "acceptance_criteria": [
+            "HTML template matches PRD section 11.3",
+            "Mobile-responsive design",
+            "Personalization tokens work",
+            "Spam-compliant footer included",
+            "Template renders without errors"
+          ]
+        },
+        {
+          "id": "GAP-014",
+          "title": "Fix CI linting and type checking",
+          "domain": "core",
+          "complexity": 1,
+          "dependencies": [],
+          "estimated_hours": 0.5,
+          "priority": "P1",
+          "test_requirements": {
+            "docker_test": false,
+            "files": [".github/workflows/test.yml"],
+            "commands": ["git diff .github/workflows/test.yml"]
+          },
+          "files_to_modify": [
+            ".github/workflows/test.yml"
+          ],
+          "acceptance_criteria": [
+            "Remove '|| true' from linting step",
+            "Remove '|| true' from type checking step",
+            "CI fails on linting errors",
+            "CI fails on type errors",
+            "Existing code passes checks"
+          ]
+        },
+        {
+          "id": "GAP-015",
+          "title": "Enable integration tests in CI with timeouts",
+          "domain": "core",
+          "complexity": 2,
+          "dependencies": ["GAP-014"],
+          "estimated_hours": 1,
+          "priority": "P2",
+          "test_requirements": {
+            "docker_test": false,
+            "files": [".github/workflows/test.yml"],
+            "commands": ["git diff .github/workflows/test.yml"]
+          },
+          "files_to_modify": [
+            ".github/workflows/test.yml"
+          ],
+          "acceptance_criteria": [
+            "Integration tests run in CI",
+            "30-minute timeout configured",
+            "Tests run in parallel where possible",
+            "Stub server starts properly",
+            "CI time remains under 45 minutes"
+          ]
+        }
+      ]
+    }
+  ],
+  "execution_notes": {
+    "priority_order": [
+      "All P0 tasks must be completed first (Gateway pattern violations)",
+      "P1 tasks should be completed next (Test coverage)",
+      "P2 tasks can be completed last (Minor improvements)"
+    ],
+    "testing_requirements": [
+      "All changes must maintain existing functionality",
+      "All tests must pass in Docker environment",
+      "Coverage must increase, not decrease",
+      "Integration tests must verify cross-domain communication"
+    ],
+    "rollback_plan": [
+      "Each task should be a separate commit",
+      "Tag the repository before starting remediation",
+      "Test thoroughly before merging to main",
+      "Keep the stub server for testing external dependencies"
+    ]
+  }
+}
