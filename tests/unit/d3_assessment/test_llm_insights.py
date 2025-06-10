@@ -164,7 +164,6 @@ class TestTask033AcceptanceCriteria:
         return LLMInsightGenerator(llm_client=mock_llm_client)
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="LLM mock configuration issue - functionality works but needs mock refinement")
     async def test_three_recommendations_generated(
         self, insight_generator, sample_assessment
     ):
@@ -174,7 +173,9 @@ class TestTask033AcceptanceCriteria:
         Acceptance Criteria: 3 recommendations generated
         """
         result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment, industry="ecommerce"
+            assessment=sample_assessment, 
+            industry="ecommerce",
+            insight_types=[InsightType.RECOMMENDATIONS]  # Test specifically for recommendations
         )
 
         # Verify result structure
@@ -215,7 +216,6 @@ class TestTask033AcceptanceCriteria:
         print("✓ 3 recommendations generated correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="LLM mock configuration issue - functionality works but needs mock refinement")
     async def test_industry_specific_insights(
         self, insight_generator, sample_assessment
     ):
@@ -226,7 +226,9 @@ class TestTask033AcceptanceCriteria:
         """
         # Test e-commerce specific insights
         result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment, industry="ecommerce"
+            assessment=sample_assessment, 
+            industry="ecommerce",
+            insight_types=[InsightType.RECOMMENDATIONS]  # Test recommendations for industry context
         )
 
         # Verify industry context in recommendations
@@ -258,7 +260,9 @@ class TestTask033AcceptanceCriteria:
 
         # Test different industry
         healthcare_result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment, industry="healthcare"
+            assessment=sample_assessment, 
+            industry="healthcare",
+            insight_types=[InsightType.RECOMMENDATIONS]  # Test with different industry
         )
 
         assert healthcare_result.industry == "healthcare"
