@@ -142,28 +142,27 @@ class TestTask029AcceptanceCriteria:
         Acceptance Criteria: Full scrape flow works
         """
 
-        # Mock the Yelp API responses and API key
-        with patch('d2_sourcing.yelp_scraper.aiohttp.ClientSession') as mock_session_class, \
+        # Mock the Gateway facade
+        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
              patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
 
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
             settings.YELP_DAILY_QUOTA = 5000
+            settings.YELP_BATCH_QUOTA = 1000
             mock_settings.return_value = settings
 
-            mock_session = AsyncMock()
-            mock_session_class.return_value.__aenter__.return_value = mock_session
-
+            # Mock the gateway facade
+            mock_facade = Mock()
+            mock_get_facade.return_value = mock_facade
+            
             # Mock successful Yelp API response
-            mock_response = AsyncMock()
-            mock_response.status = 200
-            mock_response.json.return_value = {
+            mock_facade.search_businesses = AsyncMock(return_value={
                 "businesses": sample_yelp_businesses,
                 "total": len(sample_yelp_businesses),
                 "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}}
-            }
-            mock_session.get.return_value.__aenter__.return_value = mock_response
+            })
 
             # Create and initialize scraper
             scraper = YelpScraper(session=integration_session)
@@ -303,23 +302,22 @@ class TestTask029AcceptanceCriteria:
         """
 
         # Mock quota exceeded response
-        with patch('d2_sourcing.yelp_scraper.aiohttp.ClientSession') as mock_session_class, \
+        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
              patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
 
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
             settings.YELP_DAILY_QUOTA = 5000
+            settings.YELP_BATCH_QUOTA = 1000
             mock_settings.return_value = settings
 
-            mock_session = AsyncMock()
-            mock_session_class.return_value.__aenter__.return_value = mock_session
-
-            # Mock quota exceeded response (429 status)
-            mock_response = AsyncMock()
-            mock_response.status = 429
-            mock_response.text.return_value = "Rate limit exceeded"
-            mock_session.get.return_value.__aenter__.return_value = mock_response
+            # Mock the gateway facade
+            mock_facade = Mock()
+            mock_get_facade.return_value = mock_facade
+            
+            # Mock quota exceeded response
+            mock_facade.search_businesses = AsyncMock(side_effect=Exception("Rate limit exceeded"))
 
             # Create scraper
             scraper = YelpScraper(session=integration_session)
@@ -337,23 +335,22 @@ class TestTask029AcceptanceCriteria:
             assert "rate limit" in result.error_message.lower() or "quota" in result.error_message.lower()
 
         # Test quota handling in coordinator
-        with patch('d2_sourcing.yelp_scraper.aiohttp.ClientSession') as mock_session_class, \
+        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
              patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
 
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
             settings.YELP_DAILY_QUOTA = 5000
+            settings.YELP_BATCH_QUOTA = 1000
             mock_settings.return_value = settings
 
-            mock_session = AsyncMock()
-            mock_session_class.return_value.__aenter__.return_value = mock_session
-
+            # Mock the gateway facade
+            mock_facade = Mock()
+            mock_get_facade.return_value = mock_facade
+            
             # Mock quota exceeded response
-            mock_response = AsyncMock()
-            mock_response.status = 429
-            mock_response.text.return_value = "Daily quota exceeded"
-            mock_session.get.return_value.__aenter__.return_value = mock_response
+            mock_facade.search_businesses = AsyncMock(side_effect=Exception("Daily quota exceeded"))
 
             # Test with coordinator
             coordinator = SourcingCoordinator(session=integration_session)
@@ -389,25 +386,25 @@ class TestTask029AcceptanceCriteria:
         """
 
         # Mock successful Yelp API response
-        with patch('d2_sourcing.yelp_scraper.aiohttp.ClientSession') as mock_session_class, \
+        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
              patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
 
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
             settings.YELP_DAILY_QUOTA = 5000
+            settings.YELP_BATCH_QUOTA = 1000
             mock_settings.return_value = settings
 
-            mock_session = AsyncMock()
-            mock_session_class.return_value.__aenter__.return_value = mock_session
-
-            mock_response = AsyncMock()
-            mock_response.status = 200
-            mock_response.json.return_value = {
+            # Mock the gateway facade
+            mock_facade = Mock()
+            mock_get_facade.return_value = mock_facade
+            
+            # Mock successful response
+            mock_facade.search_businesses = AsyncMock(return_value={
                 "businesses": sample_yelp_businesses,
                 "total": len(sample_yelp_businesses)
-            }
-            mock_session.get.return_value.__aenter__.return_value = mock_response
+            })
 
             # Use coordinator for full pipeline test
             coordinator = SourcingCoordinator(session=integration_session)
@@ -558,25 +555,25 @@ class TestTask029AcceptanceCriteria:
         """
 
         # Mock Yelp API response
-        with patch('d2_sourcing.yelp_scraper.aiohttp.ClientSession') as mock_session_class, \
+        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
              patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
 
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
             settings.YELP_DAILY_QUOTA = 5000
+            settings.YELP_BATCH_QUOTA = 1000
             mock_settings.return_value = settings
 
-            mock_session = AsyncMock()
-            mock_session_class.return_value.__aenter__.return_value = mock_session
-
-            mock_response = AsyncMock()
-            mock_response.status = 200
-            mock_response.json.return_value = {
+            # Mock the gateway facade
+            mock_facade = Mock()
+            mock_get_facade.return_value = mock_facade
+            
+            # Mock successful response
+            mock_facade.search_businesses = AsyncMock(return_value={
                 "businesses": sample_yelp_businesses,
                 "total": len(sample_yelp_businesses)
-            }
-            mock_session.get.return_value.__aenter__.return_value = mock_response
+            })
 
             # Test using convenience function
             try:

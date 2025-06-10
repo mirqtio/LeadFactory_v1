@@ -20,12 +20,12 @@ from enum import Enum
 import json
 import uuid
 
-import aiohttp
 from sqlalchemy.orm import Session
 
 from core.config import get_settings
 from core.logging import get_logger
 from database.session import SessionLocal
+from d0_gateway.facade import get_gateway_facade
 from .models import YelpMetadata, SourcedLocation
 from .exceptions import (
     YelpAPIException,
@@ -87,12 +87,6 @@ class YelpScraper:
     """
 
     # Yelp API Constants
-    BASE_URL = "https://api.yelp.com/v3"
-    SEARCH_ENDPOINT = "/businesses/search"
-    BUSINESS_ENDPOINT = "/businesses/{id}"
-
-    # Rate limiting and quota constants
-    DEFAULT_RATE_LIMIT_DELAY = 0.2  # 200ms between requests
     MAX_RESULTS_PER_REQUEST = 50
     YELP_MAX_RESULTS = 1000  # Yelp's hard limit
     MAX_RETRIES = 3
@@ -104,9 +98,8 @@ class YelpScraper:
         self.logger = get_logger("yelp_scraper", domain="d2")
         self.session = session or SessionLocal()
 
-        # API configuration
-        self.api_key = self._get_api_key()
-        self.rate_limit_delay = self.DEFAULT_RATE_LIMIT_DELAY
+        # Gateway facade for all external API calls
+        self.gateway = get_gateway_facade()
 
         # Quota tracking
         self.daily_quota_limit = self._get_daily_quota_limit()
@@ -117,18 +110,6 @@ class YelpScraper:
         self.consecutive_errors = 0
         self.last_error_time = None
 
-        # Request session
-        self._http_session = None
-
-    def _get_api_key(self) -> str:
-        """Get Yelp API key from configuration"""
-        api_key = getattr(self.settings, 'YELP_API_KEY', None)
-        if not api_key:
-            if hasattr(self.settings, 'USE_STUBS') and self.settings.USE_STUBS:
-                return "test-api-key-for-stubs"
-            raise YelpAuthenticationException("YELP_API_KEY not configured")
-        return api_key
-
     def _get_daily_quota_limit(self) -> int:
         """Get daily quota limit from configuration"""
         return getattr(self.settings, 'YELP_DAILY_QUOTA', 5000)
@@ -136,22 +117,6 @@ class YelpScraper:
     def _get_batch_quota_limit(self) -> int:
         """Get per-batch quota limit from configuration"""
         return getattr(self.settings, 'YELP_BATCH_QUOTA', 1000)
-
-    async def __aenter__(self):
-        """Async context manager entry"""
-        self._http_session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30),
-            headers={
-                'Authorization': f'Bearer {self.api_key}',
-                'Accept': 'application/json'
-            }
-        )
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit"""
-        if self._http_session:
-            await self._http_session.close()
 
     def check_quota_availability(self, requested_results: int) -> bool:
         """
@@ -227,83 +192,79 @@ class YelpScraper:
         )
 
         try:
-            async with self:
-                # Initialize pagination state
-                pagination = PaginationState(limit=self.MAX_RESULTS_PER_REQUEST)
+            # Initialize pagination state
+            pagination = PaginationState(limit=self.MAX_RESULTS_PER_REQUEST)
 
-                # Collect all businesses across pages
-                all_businesses = []
+            # Collect all businesses across pages
+            all_businesses = []
 
-                while pagination.has_more and len(all_businesses) < max_results:
-                    # Calculate remaining results needed
-                    remaining_needed = max_results - len(all_businesses)
-                    current_limit = min(pagination.limit, remaining_needed)
+            while pagination.has_more and len(all_businesses) < max_results:
+                # Calculate remaining results needed
+                remaining_needed = max_results - len(all_businesses)
+                current_limit = min(pagination.limit, remaining_needed)
 
-                    # Perform paginated search
-                    page_result = await self._search_page(
-                        location=location,
-                        term=term,
-                        categories=categories,
-                        offset=pagination.offset,
-                        limit=current_limit,
-                        **search_params
-                    )
-
-                    # Update result tracking
-                    result.quota_used += 1
-                    self.current_quota_usage += 1
-
-                    if page_result.get('error'):
-                        result.error_count += 1
-                        self.logger.error(f"Page error: {page_result['error']}")
-
-                        # Try error recovery
-                        if not await self._handle_error_recovery(page_result['error']):
-                            break
-                        continue
-
-                    # Process successful page
-                    businesses = page_result.get('businesses', [])
-                    total = page_result.get('total', 0)
-
-                    # Update pagination state
-                    pagination.total_results = total
-                    pagination.offset += len(businesses)
-                    pagination.has_more = (
-                        len(businesses) == current_limit and
-                        pagination.offset < total and
-                        pagination.offset < self.YELP_MAX_RESULTS
-                    )
-
-                    # Add businesses to results
-                    all_businesses.extend(businesses)
-                    result.fetched_count = len(all_businesses)
-
-                    self.logger.info(
-                        f"Fetched page: offset={pagination.offset - len(businesses)}, "
-                        f"count={len(businesses)}, total_so_far={len(all_businesses)}"
-                    )
-
-                    # Rate limiting
-                    await self._apply_rate_limit()
-
-                    # Respect 1000 result limit
-                    if len(all_businesses) >= self.YELP_MAX_RESULTS:
-                        self.logger.info(f"Reached Yelp's 1000 result limit")
-                        break
-
-                # Finalize result
-                result.businesses = all_businesses
-                result.total_results = pagination.total_results
-                result.status = ScrapingStatus.COMPLETED
-                result.duration_seconds = time.time() - start_time
-
-                self.logger.info(
-                    f"Search completed: fetched={result.fetched_count}, "
-                    f"total_available={result.total_results}, quota_used={result.quota_used}"
+                # Perform paginated search
+                page_result = await self._search_page(
+                    location=location,
+                    term=term,
+                    categories=categories,
+                    offset=pagination.offset,
+                    limit=current_limit,
+                    **search_params
                 )
 
-                return result
+                # Update result tracking
+                result.quota_used += 1
+                self.current_quota_usage += 1
+
+                if page_result.get('error'):
+                    result.error_count += 1
+                    self.logger.error(f"Page error: {page_result['error']}")
+
+                    # Try error recovery
+                    if not await self._handle_error_recovery(page_result['error']):
+                        break
+                    continue
+
+                # Process successful page
+                businesses = page_result.get('businesses', [])
+                total = page_result.get('total', 0)
+
+                # Update pagination state
+                pagination.total_results = total
+                pagination.offset += len(businesses)
+                pagination.has_more = (
+                    len(businesses) == current_limit and
+                    pagination.offset < total and
+                    pagination.offset < self.YELP_MAX_RESULTS
+                )
+
+                # Add businesses to results
+                all_businesses.extend(businesses)
+                result.fetched_count = len(all_businesses)
+
+                self.logger.info(
+                    f"Fetched page: offset={pagination.offset - len(businesses)}, "
+                    f"count={len(businesses)}, total_so_far={len(all_businesses)}"
+                )
+
+                # Respect 1000 result limit
+                if len(all_businesses) >= self.YELP_MAX_RESULTS:
+                    self.logger.info(f"Reached Yelp's 1000 result limit")
+                    break
+
+            # Finalize result
+            result.businesses = all_businesses
+            result.total_results = pagination.total_results
+            result.status = ScrapingStatus.COMPLETED
+            result.duration_seconds = time.time() - start_time
+
+            self.logger.info(
+                f"Search completed: fetched={result.fetched_count}, "
+                f"total_available={result.total_results}, quota_used={result.quota_used}"
+            )
+
+            return result
 
         except YelpQuotaExceededException as e:
             result.status = ScrapingStatus.QUOTA_EXCEEDED
@@ -340,59 +301,40 @@ class YelpScraper:
 
         Acceptance Criteria: Pagination handled correctly
         """
-        # Build search parameters
-        params = {
-            'location': location,
-            'offset': offset,
-            'limit': limit,
-            **search_params
-        }
-
-        if term:
-            params['term'] = term
-
-        if categories:
-            params['categories'] = ','.join(categories)
-
         # Make API request with retry logic
         for attempt in range(self.MAX_RETRIES):
             try:
-                async with self._http_session.get(
-                    f"{self.BASE_URL}{self.SEARCH_ENDPOINT}",
-                    params=params
-                ) as response:
+                # Use gateway for Yelp API call
+                data = await self.gateway.search_businesses(
+                    term=term,
+                    location=location,
+                    categories=','.join(categories) if categories else None,
+                    limit=limit,
+                    offset=offset,
+                    **search_params
+                )
+                
+                self.consecutive_errors = 0  # Reset error counter
+                return data
 
-                    # Handle different response codes
-                    if response.status == 200:
-                        data = await response.json()
-                        self.consecutive_errors = 0  # Reset error counter
-                        return data
-
-                    elif response.status == 429:
-                        # Rate limit or quota exceeded
-                        retry_after = response.headers.get('Retry-After', 60)
-                        if 'quota' in (await response.text()).lower():
-                            raise YelpQuotaExceededException()
-                        else:
-                            raise YelpRateLimitException(retry_after=int(retry_after))
-
-                    elif response.status == 401:
-                        raise YelpAuthenticationException()
-
-                    elif response.status == 404:
-                        return {'businesses': [], 'total': 0}
-
-                    else:
-                        error_text = await response.text()
-                        raise YelpAPIException(
-                            f"API error: {error_text}",
-                            status_code=response.status
-                        )
-
-            except aiohttp.ClientError as e:
+            except Exception as e:
                 self.consecutive_errors += 1
+                
+                # Check for specific error types from gateway
+                error_msg = str(e).lower()
+                if 'rate limit' in error_msg:
+                    # Extract retry after if available
+                    retry_after = 60  # Default to 60 seconds
+                    raise YelpRateLimitException(retry_after=retry_after)
+                elif 'quota' in error_msg:
+                    raise YelpQuotaExceededException()
+                elif 'authentication' in error_msg or 'unauthorized' in error_msg:
+                    raise YelpAuthenticationException()
+                elif 'not found' in error_msg:
+                    return {'businesses': [], 'total': 0}
+                
                 if attempt == self.MAX_RETRIES - 1:
-                    raise NetworkException(f"Network error after {self.MAX_RETRIES} attempts: {e}")
+                    raise NetworkException(f"API error after {self.MAX_RETRIES} attempts: {e}")
 
                 # Exponential backoff
                 await asyncio.sleep(self.BACKOFF_MULTIPLIER ** attempt)
@@ -438,11 +380,6 @@ class YelpScraper:
 
         return False
 
-    async def _apply_rate_limit(self):
-        """Apply rate limiting between requests"""
-        if self.rate_limit_delay > 0:
-            await asyncio.sleep(self.rate_limit_delay)
-
     async def get_business_details(self, business_id: str) -> Dict[str, Any]:
         """
         Get detailed information for a specific business
@@ -453,34 +390,26 @@ class YelpScraper:
 
         for attempt in range(self.MAX_RETRIES):
             try:
-                async with self._http_session.get(
-                    f"{self.BASE_URL}{self.BUSINESS_ENDPOINT.format(id=business_id)}"
-                ) as response:
+                # Use gateway for Yelp API call
+                data = await self.gateway.get_business_details(business_id)
+                self.current_quota_usage += 1
+                return data
 
-                    self.current_quota_usage += 1
-
-                    if response.status == 200:
-                        return await response.json()
-                    elif response.status == 404:
-                        raise YelpBusinessNotFoundException(business_id)
-                    elif response.status == 429:
-                        retry_after = response.headers.get('Retry-After', 60)
-                        raise YelpRateLimitException(retry_after=int(retry_after))
-                    elif response.status == 401:
-                        raise YelpAuthenticationException()
-                    else:
-                        error_text = await response.text()
-                        raise YelpAPIException(
-                            f"API error: {error_text}",
-                            status_code=response.status
-                        )
-
-            except aiohttp.ClientError as e:
+            except Exception as e:
+                error_msg = str(e).lower()
+                if 'not found' in error_msg:
+                    raise YelpBusinessNotFoundException(business_id)
+                elif 'rate limit' in error_msg:
+                    retry_after = 60  # Default to 60 seconds
+                    raise YelpRateLimitException(retry_after=retry_after)
+                elif 'authentication' in error_msg or 'unauthorized' in error_msg:
+                    raise YelpAuthenticationException()
+                
                 if attempt == self.MAX_RETRIES - 1:
                     raise NetworkException(f"Failed to get business details: {e}")
                 await asyncio.sleep(self.BACKOFF_MULTIPLIER ** attempt)
 
-    def save_business_data(self, business_data: Dict[str, Any]) -> str:
+    async def save_business_data(self, business_data: Dict[str, Any]) -> str:
         """Save business data to database with metadata tracking"""
         try:
             # Create or update business record
@@ -554,8 +483,7 @@ class YelpScraper:
             "daily_quota_limit": self.daily_quota_limit,
             "batch_quota_limit": self.batch_quota_limit,
             "consecutive_errors": self.consecutive_errors,
-            "last_error_time": self.last_error_time,
-            "rate_limit_delay": self.rate_limit_delay
+            "last_error_time": self.last_error_time
         }
 
 

@@ -719,10 +719,6 @@ class SourcingCoordinator:
         for batch_id in list(self.active_batches.keys()):
             self.cancel_batch(batch_id)
 
-        # Close scraper if needed
-        if self.scraper and hasattr(self.scraper, '_http_session') and self.scraper._http_session:
-            await self.scraper._http_session.close()
-
         # Finalize metrics
         self.metrics.end_time = datetime.utcnow()
         self.metrics.total_processing_time = (
