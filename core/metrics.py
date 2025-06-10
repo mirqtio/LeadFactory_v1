@@ -228,6 +228,29 @@ class MetricsCollector:
         """Track cache miss"""
         cache_misses.labels(cache_type=cache_type).inc()
 
+    def increment_counter(self, metric_name: str, amount: int = 1):
+        """Generic method to increment counters by metric name"""
+        # Map metric names to specific counter metrics
+        if metric_name == "targeting_universes_created":
+            businesses_processed.labels(source="targeting", status="universe_created").inc(amount)
+        elif metric_name == "targeting_universes_updated":
+            businesses_processed.labels(source="targeting", status="universe_updated").inc(amount)
+        elif metric_name == "targeting_universes_deleted":
+            businesses_processed.labels(source="targeting", status="universe_deleted").inc(amount)
+        elif metric_name == "targeting_campaigns_created":
+            businesses_processed.labels(source="targeting", status="campaign_created").inc(amount)
+        elif metric_name == "targeting_campaigns_updated":
+            businesses_processed.labels(source="targeting", status="campaign_updated").inc(amount)
+        elif metric_name == "targeting_batches_created":
+            businesses_processed.labels(source="targeting", status="batch_created").inc(amount)
+        elif metric_name == "targeting_batches_updated":
+            businesses_processed.labels(source="targeting", status="batch_updated").inc(amount)
+        elif metric_name == "targeting_boundaries_created":
+            businesses_processed.labels(source="targeting", status="boundary_created").inc(amount)
+        else:
+            # Default to generic business processing metric
+            businesses_processed.labels(source="generic", status=metric_name).inc(amount)
+
     async def record_pipeline_event(
         self, pipeline_name: str, event_type: str, run_id: str = None, **kwargs
     ):

@@ -37,6 +37,7 @@ from .schemas import (BatchFilterSchema, BatchResponseSchema,
                       UniversePriorityResponseSchema, UpdateCampaignSchema,
                       UpdateTargetUniverseSchema)
 from .target_universe import TargetUniverseManager
+from .types import VerticalMarket
 
 # Initialize logger
 logger = get_logger("d1_targeting_api", domain="d1")
@@ -58,10 +59,15 @@ def get_db() -> Session:
 # Exception handler decorator
 def handle_api_errors(func):
     """Decorator to handle common API errors"""
+    from functools import wraps
 
+    @wraps(func)
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
+        except HTTPException:
+            # Re-raise HTTPException as-is (these are intentional HTTP responses)
+            raise
         except ValidationError as e:
             logger.warning(f"Validation error in {func.__name__}: {str(e)}")
             raise HTTPException(status_code=422, detail=str(e))
@@ -134,11 +140,17 @@ async def create_target_universe(
 
 
 @router.get("/universes", response_model=List[TargetUniverseResponseSchema])
-@handle_api_errors
 async def list_target_universes(
-    filters: TargetUniverseFilterSchema = Depends(),
-    pagination: PaginationSchema = Depends(),
     db: Session = Depends(get_db),
+    page: int = Query(default=1, ge=1, description="Page number"),
+    size: int = Query(default=20, ge=1, le=100, description="Items per page"),
+    name_contains: Optional[str] = Query(None, description="Filter by name containing text"),
+    verticals: Optional[List[VerticalMarket]] = Query(None, description="Filter by verticals"),
+    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    min_size: Optional[int] = Query(None, ge=0, description="Minimum universe size"),
+    max_size: Optional[int] = Query(None, ge=0, description="Maximum universe size"),
+    created_after: Optional[datetime] = Query(None, description="Created after date"),
+    created_before: Optional[datetime] = Query(None, description="Created before date"),
 ):
     """
     List target universes with optional filtering and pagination.
@@ -148,25 +160,26 @@ async def list_target_universes(
     query = db.query(TargetUniverse)
 
     # Apply filters
-    if filters.name_contains:
-        query = query.filter(TargetUniverse.name.contains(filters.name_contains))
-    if filters.verticals:
+    if name_contains:
+        query = query.filter(TargetUniverse.name.contains(name_contains))
+    if verticals:
         # Filter by any of the specified verticals
-        vertical_values = [v.value for v in filters.verticals]
+        vertical_values = [v.value for v in verticals]
         query = query.filter(TargetUniverse.verticals.op("?|")(vertical_values))
-    if filters.is_active is not None:
-        query = query.filter(TargetUniverse.is_active == filters.is_active)
-    if filters.min_size is not None:
-        query = query.filter(TargetUniverse.actual_size >= filters.min_size)
-    if filters.max_size is not None:
-        query = query.filter(TargetUniverse.actual_size <= filters.max_size)
-    if filters.created_after:
-        query = query.filter(TargetUniverse.created_at >= filters.created_after)
-    if filters.created_before:
-        query = query.filter(TargetUniverse.created_at <= filters.created_before)
+    if is_active is not None:
+        query = query.filter(TargetUniverse.is_active == is_active)
+    if min_size is not None:
+        query = query.filter(TargetUniverse.actual_size >= min_size)
+    if max_size is not None:
+        query = query.filter(TargetUniverse.actual_size <= max_size)
+    if created_after:
+        query = query.filter(TargetUniverse.created_at >= created_after)
+    if created_before:
+        query = query.filter(TargetUniverse.created_at <= created_before)
 
     # Apply pagination
-    universes = query.offset(pagination.offset).limit(pagination.size).all()
+    offset = (page - 1) * size
+    universes = query.offset(offset).limit(size).all()
 
     return universes
 
