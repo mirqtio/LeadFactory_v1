@@ -278,8 +278,11 @@ class TestTask033AcceptanceCriteria:
         Acceptance Criteria: Cost tracking works
         """
         with patch("d3_assessment.llm_insights.AssessmentCost") as mock_cost:
+            # Test with single insight type to verify precise cost calculation
             result = await insight_generator.generate_comprehensive_insights(
-                assessment=sample_assessment, industry="ecommerce"
+                assessment=sample_assessment, 
+                industry="ecommerce",
+                insight_types=[InsightType.RECOMMENDATIONS]  # Single type for precise cost test
             )
 
             # Verify cost tracking was called
@@ -291,7 +294,7 @@ class TestTask033AcceptanceCriteria:
                 result.total_cost_usd, Decimal
             ), "Cost should be Decimal type"
 
-            # Verify cost calculation based on token usage
+            # Verify cost calculation based on token usage (single call)
             expected_cost = (1500 * Decimal("0.00003")) + (800 * Decimal("0.00006"))
             assert abs(result.total_cost_usd - expected_cost) < Decimal(
                 "0.001"
