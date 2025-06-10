@@ -1,0 +1,11 @@
+target_name,vertical,location,zip_code,radius_miles,daily_quota,priority,description
+Premium_Restaurants_SF,restaurant,"San Francisco, CA",94102,5,50,high,High-end restaurants in downtown SF financial district
+Medical_Practices_Manhattan,medical,"New York, NY",10001,3,30,high,Medical practices and clinics in Manhattan
+Cafes_Beverly_Hills,restaurant,"Beverly Hills, CA",90210,2,25,medium,Coffee shops and cafes in upscale Beverly Hills
+Dental_Offices_Boston,medical,"Boston, MA",02101,4,35,high,Dental practices in downtown Boston area
+Fine_Dining_Chicago,restaurant,"Chicago, IL",60601,3,40,high,Fine dining establishments in Chicago Loop
+Dermatology_Austin,medical,"Austin, TX",78701,6,20,medium,Dermatology and cosmetic practices in Austin
+Breweries_Seattle,restaurant,"Seattle, WA",98101,5,30,medium,Craft breweries and gastropubs in Seattle downtown
+Orthodontics_Miami,medical,"Miami, FL",33101,4,25,medium,Orthodontic practices in Miami metropolitan area
+Steakhouses_Dallas,restaurant,"Dallas, TX",75201,7,35,high,Premium steakhouses in Dallas business district
+Wellness_Centers_LA,medical,"Los Angeles, CA",90012,8,45,high,Wellness centers and medical spas in LA area
