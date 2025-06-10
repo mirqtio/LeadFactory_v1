@@ -248,6 +248,233 @@ class GatewayFacade:
             self.logger.error(f"Failed to generate email content: {e}")
             raise
 
+    # SendGrid API Methods
+    async def send_email(
+        self,
+        to_email: str,
+        from_email: str,
+        from_name: str,
+        subject: str,
+        html_content: str,
+        text_content: Optional[str] = None,
+        reply_to: Optional[str] = None,
+        template_id: Optional[str] = None,
+        dynamic_template_data: Optional[Dict[str, Any]] = None,
+        custom_args: Optional[Dict[str, str]] = None,
+        tracking_settings: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Send email via SendGrid
+        
+        Args:
+            to_email: Recipient email address
+            from_email: Sender email address
+            from_name: Sender name
+            subject: Email subject
+            html_content: HTML content of the email
+            text_content: Plain text content (optional)
+            reply_to: Reply-to email address
+            template_id: Dynamic template ID
+            dynamic_template_data: Data for dynamic templates
+            custom_args: Custom arguments for webhook tracking
+            tracking_settings: Email tracking settings
+            
+        Returns:
+            SendGrid response with message ID and status
+        """
+        try:
+            client = self.factory.create_client('sendgrid')
+            
+            result = await client.send_email(
+                to_email=to_email,
+                from_email=from_email,
+                from_name=from_name,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+                reply_to=reply_to,
+                template_id=template_id,
+                dynamic_template_data=dynamic_template_data,
+                custom_args=custom_args,
+                tracking_settings=tracking_settings
+            )
+            
+            self.logger.info(f"Email sent to {to_email}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send email: {e}")
+            raise
+
+    async def send_bulk_emails(
+        self,
+        emails: List[Dict[str, Any]],
+        from_email: str,
+        from_name: Optional[str] = None,
+        template_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Send multiple emails efficiently
+        
+        Args:
+            emails: List of email dictionaries with to_email, subject, content
+            from_email: Sender email address
+            from_name: Sender name
+            template_id: Dynamic template ID
+            
+        Returns:
+            Bulk send results
+        """
+        try:
+            client = self.factory.create_client('sendgrid')
+            
+            result = await client.send_bulk_emails(
+                emails=emails,
+                from_email=from_email,
+                from_name=from_name,
+                template_id=template_id
+            )
+            
+            self.logger.info(f"Bulk email sent: {result['sent']} sent, {result['failed']} failed")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send bulk emails: {e}")
+            raise
+
+    async def get_email_stats(
+        self,
+        start_date: str,
+        end_date: Optional[str] = None,
+        aggregated_by: str = "day"
+    ) -> Dict[str, Any]:
+        """
+        Get SendGrid email statistics
+        
+        Args:
+            start_date: Start date (YYYY-MM-DD)
+            end_date: End date (YYYY-MM-DD)
+            aggregated_by: Aggregation period (day, week, month)
+            
+        Returns:
+            Email statistics
+        """
+        try:
+            client = self.factory.create_client('sendgrid')
+            result = await client.get_email_stats(
+                start_date=start_date,
+                end_date=end_date,
+                aggregated_by=aggregated_by
+            )
+            
+            self.logger.info(f"SendGrid statistics retrieved: {start_date} to {end_date}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get SendGrid statistics: {e}")
+            raise
+
+    async def get_bounces(
+        self,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None,
+        limit: int = 500,
+        offset: int = 0
+    ) -> Dict[str, Any]:
+        """
+        Get bounce information from SendGrid
+        
+        Args:
+            start_time: Start timestamp
+            end_time: End timestamp
+            limit: Number of results to return
+            offset: Offset for pagination
+            
+        Returns:
+            Bounce information
+        """
+        try:
+            client = self.factory.create_client('sendgrid')
+            result = await client.get_bounces(
+                start_time=start_time,
+                end_time=end_time,
+                limit=limit,
+                offset=offset
+            )
+            
+            self.logger.info(f"Retrieved bounce information")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get bounces: {e}")
+            raise
+
+    async def delete_bounce(
+        self,
+        email: str
+    ) -> Dict[str, Any]:
+        """
+        Remove an email from the bounce list
+        
+        Args:
+            email: Email address to remove from bounces
+            
+        Returns:
+            Deletion response
+        """
+        try:
+            client = self.factory.create_client('sendgrid')
+            result = await client.delete_bounce(email)
+            
+            self.logger.info(f"Removed {email} from bounce list")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to delete bounce: {e}")
+            raise
+
+    async def validate_email_address(
+        self,
+        email: str
+    ) -> Dict[str, Any]:
+        """
+        Validate an email address using SendGrid
+        
+        Args:
+            email: Email address to validate
+            
+        Returns:
+            Validation results
+        """
+        try:
+            client = self.factory.create_client('sendgrid')
+            result = await client.validate_email_address(email)
+            
+            self.logger.info(f"Email validation completed for {email}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to validate email: {e}")
+            raise
+
+    async def get_webhook_stats(self) -> Dict[str, Any]:
+        """
+        Get webhook event statistics from SendGrid
+        
+        Returns:
+            Webhook statistics
+        """
+        try:
+            client = self.factory.create_client('sendgrid')
+            result = await client.get_webhook_stats()
+            
+            self.logger.info("Retrieved webhook statistics")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get webhook stats: {e}")
+            raise
+
     # Combined Workflow Methods
     async def complete_business_analysis(
         self,

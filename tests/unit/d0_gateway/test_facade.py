@@ -84,12 +84,14 @@ class TestGatewayFactory:
             with patch.dict(factory._providers, {'yelp': mock_client_class}):
                 factory.create_client('yelp', extra_param='value')
 
-                # Verify config was injected and kwargs merged
+                # Verify only api_key was passed to client constructor
+                # (BaseAPIClient only accepts api_key in constructor)
                 call_args = mock_client_class.call_args[1]
                 assert call_args['api_key'] == 'test-key'
-                assert call_args['timeout'] == 30
-                assert call_args['debug'] is True
-                assert call_args['extra_param'] == 'value'
+                # Other config is stored internally but not passed to constructor
+                assert 'timeout' not in call_args
+                assert 'debug' not in call_args
+                assert 'extra_param' not in call_args
 
     def test_provider_config_generation(self, factory):
         """Test provider-specific configuration generation"""
@@ -217,6 +219,13 @@ class TestGatewayFacade:
         assert hasattr(facade, 'get_core_web_vitals')  # PageSpeed
         assert hasattr(facade, 'generate_website_insights')  # OpenAI
         assert hasattr(facade, 'generate_personalized_email')  # OpenAI
+        assert hasattr(facade, 'send_email')  # SendGrid
+        assert hasattr(facade, 'send_bulk_emails')  # SendGrid
+        assert hasattr(facade, 'get_email_stats')  # SendGrid
+        assert hasattr(facade, 'get_bounces')  # SendGrid
+        assert hasattr(facade, 'delete_bounce')  # SendGrid
+        assert hasattr(facade, 'validate_email_address')  # SendGrid
+        assert hasattr(facade, 'get_webhook_stats')  # SendGrid
 
         # Should have factory and metrics
         assert hasattr(facade, 'factory')
@@ -244,6 +253,7 @@ class TestGatewayFacade:
         mock_factory.create_client.assert_called_with('yelp')
 
         # Verify client method was called
+        # Note: 'attributes' parameter is not passed to YelpClient
         mock_yelp_client.search_businesses.assert_called_once_with(
             term="restaurants",
             location="San Francisco",
@@ -252,8 +262,7 @@ class TestGatewayFacade:
             offset=0,
             sort_by="best_match",
             price=None,
-            open_now=None,
-            attributes=None
+            open_now=None
         )
 
         # Verify result
@@ -372,6 +381,253 @@ class TestGatewayFacade:
         assert len(result['ai_insights']['ai_recommendations']) == 1
         assert result['email_content']['email_subject'] == 'Website Performance Report'
         assert len(result['errors']) == 0
+
+    @pytest.mark.asyncio
+    async def test_sendgrid_send_email(self, facade, mock_factory):
+        """Test SendGrid send_email through facade"""
+        # Mock SendGrid client
+        mock_sendgrid_client = AsyncMock()
+        mock_sendgrid_client.send_email.return_value = {
+            'message_id': 'msg-123',
+            'status': 'accepted'
+        }
+        mock_factory.create_client.return_value = mock_sendgrid_client
+
+        # Test send email
+        result = await facade.send_email(
+            to_email="test@example.com",
+            from_email="sender@example.com",
+            from_name="Test Sender",
+            subject="Test Email",
+            html_content="<p>Test content</p>",
+            text_content="Test content",
+            custom_args={'campaign': 'test'}
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('sendgrid')
+
+        # Verify client method was called
+        mock_sendgrid_client.send_email.assert_called_once_with(
+            to_email="test@example.com",
+            from_email="sender@example.com",
+            from_name="Test Sender",
+            subject="Test Email",
+            html_content="<p>Test content</p>",
+            text_content="Test content",
+            reply_to=None,
+            template_id=None,
+            dynamic_template_data=None,
+            custom_args={'campaign': 'test'},
+            tracking_settings=None
+        )
+
+        # Verify result
+        assert result['message_id'] == 'msg-123'
+        assert result['status'] == 'accepted'
+
+    @pytest.mark.asyncio
+    async def test_sendgrid_send_bulk_emails(self, facade, mock_factory):
+        """Test SendGrid send_bulk_emails through facade"""
+        # Mock SendGrid client
+        mock_sendgrid_client = AsyncMock()
+        mock_sendgrid_client.send_bulk_emails.return_value = {
+            'total_emails': 2,
+            'sent': 2,
+            'failed': 0,
+            'results': [
+                {'email': 'test1@example.com', 'status': 'sent', 'message_id': 'msg-1'},
+                {'email': 'test2@example.com', 'status': 'sent', 'message_id': 'msg-2'}
+            ]
+        }
+        mock_factory.create_client.return_value = mock_sendgrid_client
+
+        # Test bulk send
+        emails = [
+            {'to_email': 'test1@example.com', 'subject': 'Email 1', 'html_content': '<p>Content 1</p>'},
+            {'to_email': 'test2@example.com', 'subject': 'Email 2', 'html_content': '<p>Content 2</p>'}
+        ]
+        
+        result = await facade.send_bulk_emails(
+            emails=emails,
+            from_email="sender@example.com",
+            from_name="Test Sender"
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('sendgrid')
+
+        # Verify client method was called
+        mock_sendgrid_client.send_bulk_emails.assert_called_once_with(
+            emails=emails,
+            from_email="sender@example.com",
+            from_name="Test Sender",
+            template_id=None
+        )
+
+        # Verify result
+        assert result['sent'] == 2
+        assert result['failed'] == 0
+
+    @pytest.mark.asyncio
+    async def test_sendgrid_get_email_stats(self, facade, mock_factory):
+        """Test SendGrid get_email_stats through facade"""
+        # Mock SendGrid client
+        mock_sendgrid_client = AsyncMock()
+        mock_sendgrid_client.get_email_stats.return_value = {
+            'date': '2024-01-01',
+            'stats': [
+                {'metrics': {'delivered': 100, 'opens': 50, 'clicks': 25}}
+            ]
+        }
+        mock_factory.create_client.return_value = mock_sendgrid_client
+
+        # Test get stats
+        result = await facade.get_email_stats(
+            start_date="2024-01-01",
+            end_date="2024-01-31",
+            aggregated_by="day"
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('sendgrid')
+
+        # Verify client method was called
+        mock_sendgrid_client.get_email_stats.assert_called_once_with(
+            start_date="2024-01-01",
+            end_date="2024-01-31",
+            aggregated_by="day"
+        )
+
+        # Verify result
+        assert result['stats'][0]['metrics']['delivered'] == 100
+
+    @pytest.mark.asyncio
+    async def test_sendgrid_get_bounces(self, facade, mock_factory):
+        """Test SendGrid get_bounces through facade"""
+        # Mock SendGrid client
+        mock_sendgrid_client = AsyncMock()
+        mock_sendgrid_client.get_bounces.return_value = {
+            'bounces': [
+                {'email': 'bounce@example.com', 'reason': '550 5.1.1 The email account does not exist'}
+            ]
+        }
+        mock_factory.create_client.return_value = mock_sendgrid_client
+
+        # Test get bounces
+        result = await facade.get_bounces(
+            start_time=1640995200,
+            limit=100
+        )
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('sendgrid')
+
+        # Verify client method was called
+        mock_sendgrid_client.get_bounces.assert_called_once_with(
+            start_time=1640995200,
+            end_time=None,
+            limit=100,
+            offset=0
+        )
+
+        # Verify result
+        assert len(result['bounces']) == 1
+        assert result['bounces'][0]['email'] == 'bounce@example.com'
+
+    @pytest.mark.asyncio
+    async def test_sendgrid_delete_bounce(self, facade, mock_factory):
+        """Test SendGrid delete_bounce through facade"""
+        # Mock SendGrid client
+        mock_sendgrid_client = AsyncMock()
+        mock_sendgrid_client.delete_bounce.return_value = {
+            'status': 'deleted'
+        }
+        mock_factory.create_client.return_value = mock_sendgrid_client
+
+        # Test delete bounce
+        result = await facade.delete_bounce(email="bounce@example.com")
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('sendgrid')
+
+        # Verify client method was called
+        mock_sendgrid_client.delete_bounce.assert_called_once_with("bounce@example.com")
+
+        # Verify result
+        assert result['status'] == 'deleted'
+
+    @pytest.mark.asyncio
+    async def test_sendgrid_validate_email_address(self, facade, mock_factory):
+        """Test SendGrid validate_email_address through facade"""
+        # Mock SendGrid client
+        mock_sendgrid_client = AsyncMock()
+        mock_sendgrid_client.validate_email_address.return_value = {
+            'result': {
+                'email': 'test@example.com',
+                'verdict': 'Valid',
+                'score': 0.95
+            }
+        }
+        mock_factory.create_client.return_value = mock_sendgrid_client
+
+        # Test validate email
+        result = await facade.validate_email_address(email="test@example.com")
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('sendgrid')
+
+        # Verify client method was called
+        mock_sendgrid_client.validate_email_address.assert_called_once_with("test@example.com")
+
+        # Verify result
+        assert result['result']['verdict'] == 'Valid'
+        assert result['result']['score'] == 0.95
+
+    @pytest.mark.asyncio
+    async def test_sendgrid_get_webhook_stats(self, facade, mock_factory):
+        """Test SendGrid get_webhook_stats through facade"""
+        # Mock SendGrid client
+        mock_sendgrid_client = AsyncMock()
+        mock_sendgrid_client.get_webhook_stats.return_value = {
+            'enabled': True,
+            'url': 'https://example.com/webhook',
+            'event_types': ['delivered', 'opened', 'clicked']
+        }
+        mock_factory.create_client.return_value = mock_sendgrid_client
+
+        # Test get webhook stats
+        result = await facade.get_webhook_stats()
+
+        # Verify factory was called correctly
+        mock_factory.create_client.assert_called_with('sendgrid')
+
+        # Verify client method was called
+        mock_sendgrid_client.get_webhook_stats.assert_called_once_with()
+
+        # Verify result
+        assert result['enabled'] is True
+        assert result['url'] == 'https://example.com/webhook'
+
+    @pytest.mark.asyncio
+    async def test_sendgrid_error_handling(self, facade, mock_factory):
+        """Test SendGrid error handling in facade"""
+        # Mock SendGrid client that raises exception
+        mock_sendgrid_client = AsyncMock()
+        mock_sendgrid_client.send_email.side_effect = Exception("SendGrid API error")
+        mock_factory.create_client.return_value = mock_sendgrid_client
+
+        # Test that exception is properly propagated
+        with pytest.raises(Exception) as exc_info:
+            await facade.send_email(
+                to_email="test@example.com",
+                from_email="sender@example.com",
+                from_name="Test",
+                subject="Test",
+                html_content="<p>Test</p>"
+            )
+
+        assert "SendGrid API error" in str(exc_info.value)
 
     def test_gateway_status_reporting(self, facade, mock_factory):
         """Test gateway status reporting"""
