@@ -503,7 +503,7 @@ class ReportGenerator:
         """
         options = GenerationOptions(
             include_pdf=True,
-            include_html=False,  # Still need HTML for PDF generation
+            include_html=True,  # Need HTML for PDF generation
             pdf_options=pdf_options,
             timeout_seconds=25,  # Allow more time for PDF generation
         )

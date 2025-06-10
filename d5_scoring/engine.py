@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .models import ScoreBreakdown
 from .models import ScoringEngine as BaseScoringEngine
-from .models import ScoringResult
+from .models import D5ScoringResult
 from .rules_parser import ComponentRules, ScoringRulesParser, TierRule
 from .types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
 
@@ -128,7 +128,7 @@ class ConfigurableScoringEngine:
 
     def calculate_score(
         self, business_data: Dict[str, Any], version: Optional[ScoringVersion] = None
-    ) -> ScoringResult:
+    ) -> D5ScoringResult:
         """
         Calculate comprehensive score for a business using configured rules
 
@@ -142,7 +142,7 @@ class ConfigurableScoringEngine:
             version: Scoring version to use (optional)
 
         Returns:
-            ScoringResult with calculated score and breakdowns
+            D5ScoringResult with calculated score and breakdowns
         """
         start_time = time.time()
 
@@ -207,7 +207,7 @@ class ConfigurableScoringEngine:
             )
 
             # Create scoring result
-            scoring_result = ScoringResult(
+            scoring_result = D5ScoringResult(
                 business_id=business_data.get(
                     "id", business_data.get("business_id", "unknown")
                 ),
@@ -244,7 +244,7 @@ class ConfigurableScoringEngine:
 
     def calculate_detailed_score(
         self, business_data: Dict[str, Any]
-    ) -> Tuple[ScoringResult, List[ScoreBreakdown]]:
+    ) -> Tuple[D5ScoringResult, List[ScoreBreakdown]]:
         """
         Calculate score with detailed component breakdowns
 
@@ -252,7 +252,7 @@ class ConfigurableScoringEngine:
             business_data: Business data to score
 
         Returns:
-            Tuple of (ScoringResult, List of ScoreBreakdown objects)
+            Tuple of (D5ScoringResult, List of ScoreBreakdown objects)
         """
         scoring_result = self.calculate_score(business_data)
 

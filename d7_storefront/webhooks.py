@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 
 import stripe
 
-from .models import PaymentMethod, PaymentSession, Purchase, PurchaseStatus
+from .models import PaymentMethod, PaymentSession, D7Purchase, PurchaseStatus
 from .stripe_client import StripeClient, StripeConfig, StripeError
 
 logger = logging.getLogger(__name__)

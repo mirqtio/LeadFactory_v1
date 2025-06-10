@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from .models import ScoreBreakdown, ScoringResult
+from .models import ScoreBreakdown, D5ScoringResult
 from .rules_parser import ScoringRulesParser
 from .types import ScoringVersion
 
@@ -180,7 +180,7 @@ class VerticalScoringEngine:
 
     def calculate_score(
         self, business_data: Dict[str, Any], version: Optional[ScoringVersion] = None
-    ) -> ScoringResult:
+    ) -> D5ScoringResult:
         """
         Calculate score using vertical-specific rules with base rule inheritance
 
@@ -191,7 +191,7 @@ class VerticalScoringEngine:
             version: Scoring version (optional)
 
         Returns:
-            ScoringResult with vertical-specific scoring
+            D5ScoringResult with vertical-specific scoring
         """
         try:
             # Auto-detect vertical if not set and data contains industry info
@@ -272,7 +272,7 @@ class VerticalScoringEngine:
             )
 
             # Create scoring result
-            scoring_result = ScoringResult(
+            scoring_result = D5ScoringResult(
                 business_id=business_data.get(
                     "id", business_data.get("business_id", "unknown")
                 ),
@@ -305,12 +305,12 @@ class VerticalScoringEngine:
 
     def calculate_detailed_score(
         self, business_data: Dict[str, Any]
-    ) -> tuple[ScoringResult, List[ScoreBreakdown]]:
+    ) -> tuple[D5ScoringResult, List[ScoreBreakdown]]:
         """
         Calculate detailed score with component breakdowns
 
         Returns:
-            Tuple of (ScoringResult, List of ScoreBreakdown objects)
+            Tuple of (D5ScoringResult, List of ScoreBreakdown objects)
         """
         scoring_result = self.calculate_score(business_data)
 

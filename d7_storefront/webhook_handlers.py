@@ -16,7 +16,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from .models import (Customer, PaymentMethod, PaymentSession, Purchase,
+from .models import (Customer, PaymentMethod, PaymentSession, D7Purchase,
                      PurchaseStatus)
 from .stripe_client import StripeClient
 from .webhooks import WebhookError, WebhookStatus

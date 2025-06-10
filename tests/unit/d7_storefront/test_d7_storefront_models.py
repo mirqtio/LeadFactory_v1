@@ -21,7 +21,7 @@ from sqlalchemy.pool import StaticPool
 
 # Import models to test
 from d7_storefront.models import (Customer, PaymentMethod, PaymentSession,
-                                  ProductType, Purchase, PurchaseCreateRequest,
+                                  ProductType, D7Purchase, PurchaseCreateRequest,
                                   PurchaseItem, PurchaseStatus,
                                   PurchaseSummary, generate_uuid)
 from database.base import Base
@@ -83,7 +83,7 @@ class TestPurchaseModel:
     def test_purchase_creation(self, db_session):
         """Test purchase tracking model creation"""
         # Create purchase with required fields
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="test@example.com",
             amount_cents=2999,  # $29.99
             total_cents=3299,  # $32.99 with tax
@@ -106,7 +106,7 @@ class TestPurchaseModel:
 
     def test_stripe_id_fields(self, db_session):
         """Test Stripe ID fields - Acceptance Criteria"""
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="stripe@example.com",
             amount_cents=1999,
             total_cents=1999,
@@ -128,7 +128,7 @@ class TestPurchaseModel:
 
     def test_attribution_tracking(self, db_session):
         """Test attribution tracking - Acceptance Criteria"""
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="attribution@example.com",
             amount_cents=2999,
             total_cents=2999,
@@ -165,7 +165,7 @@ class TestPurchaseModel:
 
     def test_status_management(self, db_session):
         """Test status management - Acceptance Criteria"""
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="status@example.com",
             amount_cents=2999,
             total_cents=2999,
@@ -198,7 +198,7 @@ class TestPurchaseModel:
 
     def test_purchase_amounts(self, db_session):
         """Test purchase amount calculations"""
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="amounts@example.com",
             amount_cents=2999,  # $29.99
             total_cents=3299,  # $32.99 with tax
@@ -216,7 +216,7 @@ class TestPurchaseModel:
     def test_purchase_constraints(self, db_session):
         """Test database constraints"""
         # Test that amounts must be positive
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="constraints@example.com",
             amount_cents=1000,
             total_cents=1000,
@@ -236,7 +236,7 @@ class TestPurchaseItemModel:
     def test_purchase_item_creation(self, db_session):
         """Test purchase item creation"""
         # Create parent purchase
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="items@example.com", amount_cents=2999, total_cents=2999
         )
         db_session.add(purchase)
@@ -270,7 +270,7 @@ class TestPurchaseItemModel:
 
     def test_purchase_item_amounts(self, db_session):
         """Test purchase item amount calculations"""
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="item_amounts@example.com",
             amount_cents=5998,
             total_cents=5998,
@@ -297,7 +297,7 @@ class TestPurchaseItemModel:
 
     def test_purchase_item_delivery_tracking(self, db_session):
         """Test item delivery tracking"""
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="delivery@example.com", amount_cents=2999, total_cents=2999
         )
         db_session.add(purchase)
@@ -400,7 +400,7 @@ class TestPaymentSessionModel:
     def test_payment_session_creation(self, db_session):
         """Test payment session creation"""
         # Create parent purchase
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="session@example.com", amount_cents=2999, total_cents=2999
         )
         db_session.add(purchase)
@@ -431,7 +431,7 @@ class TestPaymentSessionModel:
 
     def test_session_expiration(self, db_session):
         """Test session expiration logic"""
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="expiry@example.com", amount_cents=2999, total_cents=2999
         )
         db_session.add(purchase)
@@ -527,7 +527,7 @@ class TestDataClasses:
     def test_purchase_summary(self, db_session):
         """Test PurchaseSummary data class"""
         # Create purchase with items
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="summary@example.com",
             amount_cents=2999,
             total_cents=3299,
@@ -597,7 +597,7 @@ class TestModelRelationships:
         db_session.commit()
 
         # Create purchase
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email=customer.email, amount_cents=2999, total_cents=2999
         )
         # Manually set customer relationship
@@ -613,7 +613,7 @@ class TestModelRelationships:
     def test_purchase_items_relationship(self, db_session):
         """Test purchase-items relationship"""
         # Create purchase
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="items_rel@example.com", amount_cents=5998, total_cents=5998
         )
         db_session.add(purchase)
@@ -652,7 +652,7 @@ class TestModelRelationships:
     def test_purchase_sessions_relationship(self, db_session):
         """Test purchase-sessions relationship"""
         # Create purchase
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="sessions_rel@example.com",
             amount_cents=2999,
             total_cents=2999,
@@ -687,7 +687,7 @@ class TestModelValidation:
     def test_required_fields(self, db_session):
         """Test that required fields are enforced"""
         # Test purchase without required fields
-        purchase = Purchase()  # Missing required fields
+        purchase = D7Purchase()  # Missing required fields
 
         db_session.add(purchase)
 
@@ -730,7 +730,7 @@ class TestModelValidation:
 
     def test_purchase_status_transitions(self, db_session):
         """Test valid purchase status transitions"""
-        purchase = Purchase(
+        purchase = D7Purchase(
             customer_email="transitions@example.com",
             amount_cents=2999,
             total_cents=2999,

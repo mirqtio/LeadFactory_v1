@@ -19,7 +19,7 @@ from typing import Any, Dict, List
 sys.path.insert(0, "/app")
 
 from d5_scoring.engine import ConfigurableScoringEngine
-from d5_scoring.models import ScoreBreakdown, ScoringEngine, ScoringResult
+from d5_scoring.models import ScoreBreakdown, ScoringEngine, D5ScoringResult
 from d5_scoring.tiers import (LeadTier, TierAssignmentEngine, assign_lead_tier,
                               create_standard_configuration)
 from d5_scoring.types import ScoreComponent, ScoringTier, ScoringVersion
@@ -120,8 +120,8 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
             # Verify scoring result structure
             self.assertIsInstance(
                 result,
-                ScoringResult,
-                f"Should return ScoringResult for {business_name}",
+                D5ScoringResult,
+                f"Should return D5ScoringResult for {business_name}",
             )
             self.assertEqual(
                 result.business_id, business_data["id"], "Business ID should match"
@@ -146,8 +146,8 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         )
         self.assertIsInstance(
             premium_result,
-            ScoringResult,
-            "Configurable engine should return ScoringResult",
+            D5ScoringResult,
+            "Configurable engine should return D5ScoringResult",
         )
         self.assertTrue(
             float(premium_result.overall_score) > 0, "Premium business should score > 0"
@@ -166,11 +166,11 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         self.assertIsInstance(
             restaurant_result,
-            ScoringResult,
-            "Restaurant engine should return ScoringResult",
+            D5ScoringResult,
+            "Restaurant engine should return D5ScoringResult",
         )
         self.assertIsInstance(
-            medical_result, ScoringResult, "Medical engine should return ScoringResult"
+            medical_result, ScoringResult, "Medical engine should return D5ScoringResult"
         )
 
         # Test 4: Tier assignment integration
@@ -221,10 +221,10 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         # Vertical engine should apply restaurant-specific rules
         self.assertIsInstance(
-            base_restaurant_score, ScoringResult, "Base engine should work"
+            base_restaurant_score, D5ScoringResult, "Base engine should work"
         )
         self.assertIsInstance(
-            vertical_restaurant_score, ScoringResult, "Restaurant engine should work"
+            vertical_restaurant_score, D5ScoringResult, "Restaurant engine should work"
         )
 
         # Test detailed scoring breakdown
@@ -266,7 +266,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         # Should apply fallback values and still score
         self.assertIsInstance(
-            incomplete_result, ScoringResult, "Should handle incomplete data"
+            incomplete_result, D5ScoringResult, "Should handle incomplete data"
         )
         self.assertTrue(
             float(incomplete_result.overall_score) >= 0, "Should not score negative"
@@ -617,7 +617,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         try:
             empty_result = base_engine.calculate_score(empty_data)
             self.assertIsInstance(
-                empty_result, ScoringResult, "Should handle empty data gracefully"
+                empty_result, D5ScoringResult, "Should handle empty data gracefully"
             )
             self.assertTrue(
                 0 <= float(empty_result.overall_score) <= 100,
@@ -638,7 +638,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         minimal_result = base_engine.calculate_score(minimal_data)
         self.assertIsInstance(
-            minimal_result, ScoringResult, "Should handle minimal data"
+            minimal_result, D5ScoringResult, "Should handle minimal data"
         )
 
         # Test 4: Very large datasets
@@ -682,7 +682,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         for result in concurrent_results:
             self.assertIsInstance(
-                result, ScoringResult, "All concurrent results should be valid"
+                result, D5ScoringResult, "All concurrent results should be valid"
             )
             self.assertTrue(
                 0 <= float(result.overall_score) <= 100, "All scores should be valid"

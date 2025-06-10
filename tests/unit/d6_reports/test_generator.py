@@ -350,7 +350,7 @@ class TestReportGenerator:
 
         mock_prioritizer = Mock()
         mock_prioritizer.prioritize_findings.return_value = PrioritizationResult(
-            top_issues=[], quick_wins=[], all_scored_findings=[]
+            top_issues=[], quick_wins=[], all_findings=[], summary={}
         )
 
         generator = ReportGenerator(
@@ -398,7 +398,7 @@ class TestReportGenerator:
 
         mock_prioritizer = Mock()
         mock_prioritizer.prioritize_findings.return_value = PrioritizationResult(
-            top_issues=[], quick_wins=[], all_scored_findings=[]
+            top_issues=[], quick_wins=[], all_findings=[], summary={}
         )
 
         generator = ReportGenerator(
@@ -430,7 +430,7 @@ class TestReportGenerator:
 
         mock_prioritizer = Mock()
         mock_prioritizer.prioritize_findings.return_value = PrioritizationResult(
-            top_issues=[], quick_wins=[], all_scored_findings=[]
+            top_issues=[], quick_wins=[], all_findings=[], summary={}
         )
 
         generator = ReportGenerator(
@@ -460,7 +460,7 @@ class TestReportGenerator:
 
         mock_prioritizer = Mock()
         mock_prioritizer.prioritize_findings.return_value = PrioritizationResult(
-            top_issues=[], quick_wins=[], all_scored_findings=[]
+            top_issues=[], quick_wins=[], all_findings=[], summary={}
         )
 
         generator = ReportGenerator(
@@ -502,7 +502,7 @@ class TestReportGenerator:
 
         mock_prioritizer = Mock()
         mock_prioritizer.prioritize_findings.return_value = PrioritizationResult(
-            top_issues=[], quick_wins=[], all_scored_findings=[]
+            top_issues=[], quick_wins=[], all_findings=[], summary={}
         )
 
         generator = ReportGenerator(
@@ -545,7 +545,7 @@ class TestReportGenerator:
 
         mock_prioritizer = Mock()
         mock_prioritizer.prioritize_findings.return_value = PrioritizationResult(
-            top_issues=[], quick_wins=[], all_scored_findings=[]
+            top_issues=[], quick_wins=[], all_findings=[], summary={}
         )
 
         generator = ReportGenerator(
@@ -641,7 +641,7 @@ class TestUtilityFunctions:
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
             mock_generator = Mock()
-            mock_generator.generate_report.return_value = mock_result
+            mock_generator.generate_report = AsyncMock(return_value=mock_result)
             mock_generator_class.return_value = mock_generator
 
             result = await generate_audit_report("test123")
@@ -658,7 +658,7 @@ class TestUtilityFunctions:
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
             mock_generator = Mock()
-            mock_generator.generate_html_only.return_value = mock_result
+            mock_generator.generate_html_only = AsyncMock(return_value=mock_result)
             mock_generator_class.return_value = mock_generator
 
             html_content = await generate_html_report("test123", "custom_template")
@@ -677,7 +677,7 @@ class TestUtilityFunctions:
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
             mock_generator = Mock()
-            mock_generator.generate_html_only.return_value = mock_result
+            mock_generator.generate_html_only = AsyncMock(return_value=mock_result)
             mock_generator_class.return_value = mock_generator
 
             with pytest.raises(Exception) as exc_info:
@@ -696,7 +696,7 @@ class TestUtilityFunctions:
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
             mock_generator = Mock()
-            mock_generator.generate_pdf_only.return_value = mock_result
+            mock_generator.generate_pdf_only = AsyncMock(return_value=mock_result)
             mock_generator_class.return_value = mock_generator
 
             pdf_options = PDFOptions(format="Letter")
@@ -716,7 +716,7 @@ class TestUtilityFunctions:
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
             mock_generator = Mock()
-            mock_generator.generate_pdf_only.return_value = mock_result
+            mock_generator.generate_pdf_only = AsyncMock(return_value=mock_result)
             mock_generator_class.return_value = mock_generator
 
             with pytest.raises(Exception) as exc_info:
@@ -786,7 +786,7 @@ class TestTimeoutAndPerformance:
 
         mock_prioritizer = Mock()
         mock_prioritizer.prioritize_findings.return_value = PrioritizationResult(
-            top_issues=[], quick_wins=[], all_scored_findings=[]
+            top_issues=[], quick_wins=[], all_findings=[], summary={}
         )
 
         generator.template_engine = mock_template_engine
@@ -822,7 +822,7 @@ class TestTimeoutAndPerformance:
 
         mock_prioritizer = Mock()
         mock_prioritizer.prioritize_findings.return_value = PrioritizationResult(
-            top_issues=[], quick_wins=[], all_scored_findings=[]
+            top_issues=[], quick_wins=[], all_findings=[], summary={}
         )
 
         generator.template_engine = mock_template_engine

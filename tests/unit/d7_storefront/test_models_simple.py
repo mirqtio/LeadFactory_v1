@@ -20,7 +20,7 @@ sys.path.insert(0, "/app")
 
 # Import models to test
 from d7_storefront.models import (Customer, PaymentMethod, PaymentSession,
-                                  ProductType, Purchase, PurchaseCreateRequest,
+                                  ProductType, D7Purchase, PurchaseCreateRequest,
                                   PurchaseItem, PurchaseStatus,
                                   PurchaseSummary, generate_uuid)
 
@@ -58,7 +58,7 @@ def test_purchase_model_creation():
     print("Testing Purchase model creation...")
 
     # Test purchase object creation
-    purchase = Purchase(
+    purchase = D7Purchase(
         customer_email="test@example.com",
         amount_cents=2999,  # $29.99
         total_cents=3299,  # $32.99 with tax
@@ -80,7 +80,7 @@ def test_stripe_id_fields():
     """Test Stripe ID fields - Acceptance Criteria"""
     print("Testing Stripe ID fields...")
 
-    purchase = Purchase(
+    purchase = D7Purchase(
         customer_email="stripe@example.com",
         amount_cents=1999,
         total_cents=1999,
@@ -104,7 +104,7 @@ def test_attribution_tracking():
     """Test attribution tracking - Acceptance Criteria"""
     print("Testing attribution tracking...")
 
-    purchase = Purchase(
+    purchase = D7Purchase(
         customer_email="attribution@example.com",
         amount_cents=2999,
         total_cents=2999,
@@ -143,7 +143,7 @@ def test_status_management():
     """Test status management - Acceptance Criteria"""
     print("Testing status management...")
 
-    purchase = Purchase(
+    purchase = D7Purchase(
         customer_email="status@example.com",
         amount_cents=2999,
         total_cents=2999,
@@ -179,7 +179,7 @@ def test_purchase_amounts():
     """Test purchase amount calculations"""
     print("Testing purchase amounts...")
 
-    purchase = Purchase(
+    purchase = D7Purchase(
         customer_email="amounts@example.com",
         amount_cents=2999,  # $29.99
         total_cents=3299,  # $32.99 with tax
@@ -318,7 +318,7 @@ def test_data_classes():
     assert request.attribution["utm_source"] == "google"
 
     # Test PurchaseSummary
-    purchase = Purchase(
+    purchase = D7Purchase(
         customer_email="summary@example.com",
         amount_cents=2999,
         total_cents=3299,

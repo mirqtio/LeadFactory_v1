@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from .models import (PaymentSession, ProductType, Purchase, PurchaseItem,
+from .models import (PaymentSession, ProductType, D7Purchase, PurchaseItem,
                      PurchaseStatus)
 from .stripe_client import (PAYMENT_METHOD_TYPES, SESSION_MODES,
                             StripeCheckoutSession, StripeClient, StripeConfig,

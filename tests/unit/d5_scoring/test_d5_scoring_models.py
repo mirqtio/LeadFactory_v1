@@ -17,7 +17,7 @@ import pytest
 sys.path.insert(0, "/app")
 
 from d5_scoring.models import (ScoreBreakdown, ScoreHistory, ScoringEngine,
-                               ScoringResult)
+                               D5ScoringResult)
 from d5_scoring.types import (ScoreComponent, ScoringStatus, ScoringTier,
                               ScoringVersion)
 
@@ -32,7 +32,7 @@ class TestTask045AcceptanceCriteria:
         Acceptance Criteria: Scoring result model
         """
         # Test scoring result creation
-        result = ScoringResult(
+        result = D5ScoringResult(
             business_id="test_biz_001",
             overall_score=Decimal("85.5"),
             tier=ScoringTier.GOLD.value,
@@ -104,7 +104,7 @@ class TestTask045AcceptanceCriteria:
         Acceptance Criteria: Score breakdown stored
         """
         # Create main scoring result
-        scoring_result = ScoringResult(
+        scoring_result = D5ScoringResult(
             business_id="test_biz_002",
             overall_score=Decimal("78.5"),
             tier=ScoringTier.SILVER.value,
@@ -230,7 +230,7 @@ class TestTask045AcceptanceCriteria:
     def test_score_history_tracking(self):
         """Test score history tracking functionality"""
         # Create scoring result
-        scoring_result = ScoringResult(
+        scoring_result = D5ScoringResult(
             business_id="test_biz_003",
             overall_score=Decimal("75.0"),
             tier=ScoringTier.SILVER.value,
@@ -286,7 +286,7 @@ class TestTask045AcceptanceCriteria:
         result = engine.calculate_score(business_data)
 
         # Verify result structure
-        assert isinstance(result, ScoringResult)
+        assert isinstance(result, D5ScoringResult)
         assert result.business_id == "test_engine_001"
         assert 0 <= float(result.overall_score) <= 100
         assert result.tier in [tier.value for tier in ScoringTier]
@@ -326,7 +326,7 @@ class TestTask045AcceptanceCriteria:
         # This test verifies all four acceptance criteria work together
 
         # 1. Scoring result model - create and validate
-        scoring_result = ScoringResult(
+        scoring_result = D5ScoringResult(
             business_id="comprehensive_test_001",
             overall_score=Decimal("82.7"),
             tier=ScoringTier.GOLD.value,
@@ -336,7 +336,7 @@ class TestTask045AcceptanceCriteria:
             status=ScoringStatus.COMPLETED.value,
         )
 
-        assert isinstance(scoring_result, ScoringResult), "Scoring result model failed"
+        assert isinstance(scoring_result, D5ScoringResult), "Scoring result model failed"
         assert scoring_result.overall_score == Decimal("82.7"), "Score storage failed"
 
         # 2. Tier enumeration - verify tier classification

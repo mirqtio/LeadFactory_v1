@@ -65,7 +65,7 @@ class ProductType(str, enum.Enum):
 
 
 # Main purchase tracking model
-class Purchase(Base):
+class D7Purchase(Base):
     """
     Purchase tracking model - Core model for tracking customer purchases
 
@@ -165,7 +165,7 @@ class Purchase(Base):
     )
 
     def __repr__(self):
-        return f"<Purchase(id={self.id}, email={self.customer_email}, status={self.status}, amount=${self.amount_cents/100:.2f})>"
+        return f"<D7Purchase(id={self.id}, email={self.customer_email}, status={self.status}, amount=${self.amount_cents/100:.2f})>"
 
     @property
     def amount_usd(self) -> Decimal:
@@ -225,7 +225,7 @@ class PurchaseItem(Base):
     )
 
     # Relationships
-    purchase = relationship("Purchase", back_populates="items")
+    purchase = relationship("D7Purchase", back_populates="items")
 
     __table_args__ = (
         Index("idx_d7_item_purchase_id", "purchase_id"),
@@ -344,7 +344,7 @@ class PaymentSession(Base):
     )
 
     # Relationships
-    purchase = relationship("Purchase", back_populates="sessions")
+    purchase = relationship("D7Purchase", back_populates="sessions")
 
     __table_args__ = (
         Index("idx_d7_session_purchase_id", "purchase_id"),
@@ -385,7 +385,7 @@ class PurchaseCreateRequest:
 class PurchaseSummary:
     """Summary data for purchase tracking and reporting"""
 
-    def __init__(self, purchase: Purchase):
+    def __init__(self, purchase: D7Purchase):
         self.id = purchase.id
         self.customer_email = purchase.customer_email
         self.status = purchase.status

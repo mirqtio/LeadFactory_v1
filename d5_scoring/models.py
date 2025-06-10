@@ -45,7 +45,7 @@ except ImportError:
         return Column(String(36), ForeignKey(f"{table_name}.id"), nullable=False)
 
 
-class ScoringResult(Base):
+class D5ScoringResult(Base):
     """
     Main scoring result model
 
@@ -162,7 +162,7 @@ class ScoreBreakdown(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     scoring_result_id = Column(
-        String(36), ForeignKey("scoring_results.id"), nullable=False
+        String(36), ForeignKey("d5_scoring_results.id"), nullable=False
     )
 
     # Component details
@@ -185,7 +185,7 @@ class ScoreBreakdown(Base):
     calculation_notes = Column(Text)
 
     # Relationships
-    scoring_result = relationship("ScoringResult", back_populates="breakdowns")
+    scoring_result = relationship("D5ScoringResult", back_populates="breakdowns")
 
     # Indexing
     __table_args__ = (
@@ -242,7 +242,7 @@ class ScoreHistory(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     scoring_result_id = Column(
-        String(36), ForeignKey("scoring_results.id"), nullable=False
+        String(36), ForeignKey("d5_scoring_results.id"), nullable=False
     )
     business_id = Column(String(50), nullable=False, index=True)
 
@@ -266,7 +266,7 @@ class ScoreHistory(Base):
     change_type = Column(String(50))  # "automatic", "manual", "recalculation"
 
     # Relationships
-    scoring_result = relationship("ScoringResult", back_populates="history")
+    scoring_result = relationship("D5ScoringResult", back_populates="history")
 
     # Indexing
     __table_args__ = (
@@ -327,7 +327,7 @@ class ScoringEngine:
                 component: component.max_points for component in ScoreComponent
             }
 
-    def calculate_score(self, business_data: Dict[str, Any]) -> ScoringResult:
+    def calculate_score(self, business_data: Dict[str, Any]) -> D5ScoringResult:
         """
         Calculate overall score for a business
 
@@ -335,7 +335,7 @@ class ScoringEngine:
             business_data: Enriched business data to score
 
         Returns:
-            ScoringResult with calculated score and tier
+            D5ScoringResult with calculated score and tier
         """
         business_id = business_data.get("id", str(uuid.uuid4()))
 
@@ -366,7 +366,7 @@ class ScoringEngine:
         data_completeness = self._calculate_data_completeness(business_data)
 
         # Create scoring result
-        scoring_result = ScoringResult(
+        scoring_result = D5ScoringResult(
             business_id=business_id,
             overall_score=Decimal(str(round(overall_score, 2))),
             tier=tier.value,
@@ -510,7 +510,7 @@ class ScoringEngine:
         filled_fields = sum(1 for field in key_fields if data.get(field))
         return filled_fields / len(key_fields)
 
-    def get_scoring_summary(self, scoring_result: ScoringResult) -> Dict[str, Any]:
+    def get_scoring_summary(self, scoring_result: D5ScoringResult) -> Dict[str, Any]:
         """Get human-readable scoring summary"""
         return {
             "business_id": scoring_result.business_id,
