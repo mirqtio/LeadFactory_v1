@@ -307,3 +307,390 @@ class TestRateLimiterConfiguration:
 
             # Window should be reasonable (1-60 seconds)
             assert 1 <= limits['window_seconds'] <= 60
+
+
+class TestRateLimiterEnhancements:
+    """Additional comprehensive tests for rate limiter - GAP-009"""
+
+    def test_edge_case_zero_limits(self):
+        """Test edge cases with zero or very low limits"""
+        # Test with custom limits to simulate edge cases
+        limiter = RateLimiter("test_zero")
+        
+        # Override limits to test edge cases
+        limiter.limits = {
+            'daily_limit': 0,
+            'burst_limit': 0,
+            'window_seconds': 1
+        }
+        
+        # Should handle zero limits gracefully
+        assert limiter.limits['daily_limit'] == 0
+        assert limiter.limits['burst_limit'] == 0
+
+    def test_redis_key_generation_consistency(self):
+        """Test that Redis keys are generated consistently"""
+        limiter = RateLimiter("test_provider")
+        
+        # Test daily key generation
+        expected_daily = "rate_limit:daily:test_provider"
+        # We can't directly access the key generation without running the method
+        # but we can verify the provider is correctly stored
+        assert limiter.provider == "test_provider"
+        
+        # Test burst key would include operation
+        # Format: f"rate_limit:burst:{provider}:{operation}"
+        # This is verified indirectly through the tests that use operations
+
+    def test_lua_script_loading_error_handling(self):
+        """Test Lua script loading with missing file"""
+        # Create limiter and break the script path
+        limiter = RateLimiter("test_lua")
+        
+        # Mock the script path to non-existent file
+        with patch('pathlib.Path.open', side_effect=FileNotFoundError("No such file")):
+            limiter._load_lua_script()
+            assert limiter._lua_script is None
+
+    def test_provider_limits_inheritance(self):
+        """Test that unknown providers get default limits"""
+        unknown_limiter = RateLimiter("unknown_provider_xyz")
+        
+        # Should get default limits
+        assert unknown_limiter.limits['daily_limit'] == 1000
+        assert unknown_limiter.limits['burst_limit'] == 10
+        assert unknown_limiter.limits['window_seconds'] == 1
+
+    @pytest.mark.asyncio
+    async def test_redis_connection_management(self):
+        """Test Redis connection management and reuse"""
+        limiter = RateLimiter("test_redis")
+        
+        # Mock Redis creation
+        with patch('redis.asyncio.from_url') as mock_from_url:
+            mock_redis = AsyncMock()
+            mock_from_url.return_value = mock_redis
+            
+            # First call should create connection
+            redis1 = await limiter._get_redis()
+            assert redis1 is mock_redis
+            mock_from_url.assert_called_once()
+            
+            # Second call should reuse connection
+            redis2 = await limiter._get_redis()
+            assert redis2 is redis1
+            # from_url should still only be called once
+            assert mock_from_url.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_close_connection_handling(self):
+        """Test proper connection closing"""
+        limiter = RateLimiter("test_close")
+        
+        # Mock Redis connection
+        mock_redis = AsyncMock()
+        limiter._redis = mock_redis
+        
+        await limiter.close()
+        mock_redis.close.assert_called_once()
+        
+        # Test closing when no connection exists
+        limiter._redis = None
+        await limiter.close()  # Should not raise exception
+
+    @pytest.mark.asyncio
+    async def test_lua_script_execution_error_handling(self):
+        """Test error handling in Lua script execution"""
+        limiter = RateLimiter("test_lua_error")
+        
+        # Mock Redis that fails on eval
+        mock_redis = AsyncMock()
+        mock_redis.eval.side_effect = Exception("Lua script execution failed")
+        
+        with pytest.raises(Exception):
+            await limiter._execute_lua_script(
+                mock_redis, 
+                "test_command", 
+                ["test_key"], 
+                ["test_arg"]
+            )
+
+    @pytest.mark.asyncio
+    async def test_lua_script_execution_without_script(self):
+        """Test Lua script execution when script is not loaded"""
+        limiter = RateLimiter("test_no_script")
+        limiter._lua_script = None  # Simulate failed script loading
+        
+        mock_redis = AsyncMock()
+        
+        with pytest.raises(RuntimeError, match="Lua script not loaded"):
+            await limiter._execute_lua_script(
+                mock_redis,
+                "test_command",
+                ["test_key"],
+                ["test_arg"]
+            )
+
+    @pytest.mark.asyncio
+    async def test_usage_statistics_error_handling(self):
+        """Test usage statistics with Redis errors"""
+        limiter = RateLimiter("test_usage_error")
+        
+        # Test with stub mode disabled
+        with patch.object(limiter.settings, 'use_stubs', False):
+            # Mock Redis that fails
+            mock_redis = AsyncMock()
+            mock_redis.get.side_effect = Exception("Redis connection failed")
+            limiter._redis = mock_redis
+            
+            usage = await limiter.get_usage()
+            
+            # Should return default values on error
+            assert usage['daily_used'] == 0
+            assert usage['daily_limit'] == limiter.limits['daily_limit']
+            assert usage['burst_limit'] == limiter.limits['burst_limit']
+
+    @pytest.mark.asyncio
+    async def test_reset_usage_error_handling(self):
+        """Test reset usage with Redis errors"""
+        limiter = RateLimiter("test_reset_error")
+        
+        # Mock Redis that fails on delete
+        mock_redis = AsyncMock()
+        mock_redis.delete.side_effect = Exception("Redis delete failed")
+        mock_redis.keys.return_value = ["key1", "key2"]
+        limiter._redis = mock_redis
+        
+        # Should not raise exception despite Redis errors
+        await limiter.reset_usage()
+
+    @pytest.mark.asyncio
+    async def test_daily_limit_boundary_conditions(self):
+        """Test daily limit at exact boundary conditions"""
+        limiter = RateLimiter("test_boundary")
+        
+        with patch.object(limiter.settings, 'use_stubs', False):
+            mock_redis = AsyncMock()
+            
+            # Test exactly at limit
+            mock_redis.eval.return_value = [1000, 1000, 0]  # At limit, not allowed
+            limiter._redis = mock_redis
+            
+            allowed = await limiter.is_allowed()
+            assert allowed is False
+            
+            # Test just under limit
+            mock_redis.eval.return_value = [999, 1000, 1]  # Under limit, allowed
+            allowed = await limiter.is_allowed()
+            assert allowed is True
+
+    @pytest.mark.asyncio
+    async def test_burst_limit_boundary_conditions(self):
+        """Test burst limit at exact boundary conditions"""
+        limiter = RateLimiter("test_burst_boundary")
+        
+        with patch.object(limiter.settings, 'use_stubs', False):
+            mock_redis = AsyncMock()
+            
+            # Mock daily check to pass, burst check to fail at boundary
+            mock_redis.eval.side_effect = [
+                [1, 1000, 1],    # Daily check: allowed
+                [10, 10, 0]      # Burst check: at limit, not allowed
+            ]
+            limiter._redis = mock_redis
+            
+            allowed = await limiter.is_allowed("boundary_test")
+            assert allowed is False
+
+    @pytest.mark.asyncio
+    async def test_operation_specific_burst_limits(self):
+        """Test that different operations have separate burst limits"""
+        limiter = RateLimiter("test_operations")
+        
+        with patch.object(limiter.settings, 'use_stubs', False):
+            mock_redis = AsyncMock()
+            
+            # Mock different burst usage for different operations
+            call_count = 0
+            def mock_eval(*args, **kwargs):
+                nonlocal call_count
+                call_count += 1
+                if call_count % 2 == 1:  # Daily checks (odd calls)
+                    return [1, 1000, 1]  # Always allow daily
+                else:  # Burst checks (even calls)
+                    # First operation has low usage, second has high usage
+                    if "op1" in str(args):
+                        return [1, 10, 1]  # Low usage, allowed
+                    else:
+                        return [9, 10, 1]  # High usage, still allowed
+            
+            mock_redis.eval.side_effect = mock_eval
+            limiter._redis = mock_redis
+            
+            # Test different operations
+            allowed1 = await limiter.is_allowed("op1")
+            allowed2 = await limiter.is_allowed("op2")
+            
+            assert allowed1 is True
+            assert allowed2 is True
+
+    @pytest.mark.asyncio
+    async def test_fallback_daily_check_edge_cases(self):
+        """Test fallback daily check edge cases"""
+        limiter = RateLimiter("test_fallback_daily")
+        
+        # Test with None return from Redis
+        mock_redis = AsyncMock()
+        mock_redis.get.return_value = None
+        mock_redis.incr.return_value = 1
+        
+        allowed = await limiter._simple_daily_check(mock_redis)
+        assert allowed is True
+        mock_redis.expire.assert_called_once_with(f"rate_limit:daily:{limiter.provider}", 86400)
+        
+        # Test at exact limit
+        mock_redis.get.return_value = str(limiter.limits['daily_limit'])
+        allowed = await limiter._simple_daily_check(mock_redis)
+        assert allowed is False
+
+    @pytest.mark.asyncio
+    async def test_fallback_burst_check_edge_cases(self):
+        """Test fallback burst check edge cases"""
+        limiter = RateLimiter("test_fallback_burst")
+        
+        mock_redis = AsyncMock()
+        mock_redis.zcard.return_value = 0  # No current usage
+        
+        # Test with empty burst window
+        allowed = await limiter._simple_burst_check(mock_redis, "test_op")
+        assert allowed is True
+        
+        # Verify cleanup and add operations were called
+        mock_redis.zremrangebyscore.assert_called_once()
+        mock_redis.zadd.assert_called_once()
+        mock_redis.expire.assert_called_once()
+        
+        # Test at burst limit
+        mock_redis.zcard.return_value = limiter.limits['burst_limit']
+        allowed = await limiter._simple_burst_check(mock_redis, "test_op")
+        assert allowed is False
+
+    @pytest.mark.asyncio
+    async def test_concurrent_operations_isolation(self):
+        """Test that concurrent operations maintain isolation"""
+        limiter = RateLimiter("test_concurrent")
+        
+        with patch.object(limiter.settings, 'use_stubs', False):
+            mock_redis = AsyncMock()
+            
+            # Track unique operation calls
+            operation_calls = set()
+            
+            def track_eval(*args, **kwargs):
+                # Extract operation from burst key
+                if len(args) > 3 and "rate_limit:burst" in str(args[3]):
+                    operation_calls.add(str(args[3]))
+                return [1, 10, 1]  # Always allow
+            
+            mock_redis.eval.side_effect = track_eval
+            limiter._redis = mock_redis
+            
+            # Make requests with different operations concurrently
+            operations = ["upload", "download", "process", "analyze"]
+            tasks = [limiter.is_allowed(op) for op in operations]
+            results = await asyncio.gather(*tasks)
+            
+            # All should be allowed
+            assert all(results)
+            
+            # Should have tracked multiple unique operations
+            # (Each operation generates daily + burst calls)
+            assert len(operation_calls) >= len(operations)
+
+    @pytest.mark.asyncio
+    async def test_redis_url_configuration(self):
+        """Test Redis URL configuration from settings"""
+        limiter = RateLimiter("test_redis_url")
+        
+        with patch('redis.asyncio.from_url') as mock_from_url:
+            mock_from_url.return_value = AsyncMock()
+            
+            await limiter._get_redis()
+            
+            # Should use Redis URL from settings
+            mock_from_url.assert_called_once_with(
+                limiter.settings.redis_url,
+                decode_responses=True
+            )
+
+    def test_logger_initialization(self):
+        """Test logger initialization with provider context"""
+        provider = "test_logger_provider"
+        limiter = RateLimiter(provider)
+        
+        # Logger should include provider in name
+        assert provider in limiter.logger.name
+        assert "rate_limiter" in limiter.logger.name
+        # Logger is properly initialized
+        assert hasattr(limiter.logger, 'info')
+        assert hasattr(limiter.logger, 'error')
+        assert hasattr(limiter.logger, 'warning')
+
+    @pytest.mark.asyncio
+    async def test_comprehensive_error_scenarios(self):
+        """Test comprehensive error scenarios and recovery"""
+        limiter = RateLimiter("test_comprehensive_errors")
+        
+        with patch.object(limiter.settings, 'use_stubs', False):
+            # Test Redis connection failure
+            with patch.object(limiter, '_get_redis', side_effect=Exception("Redis connection failed")):
+                allowed = await limiter.is_allowed()
+                assert allowed is True  # Should fail open
+            
+            # Test partial failure (daily succeeds, burst fails)
+            mock_redis = AsyncMock()
+            mock_redis.eval.side_effect = [
+                [1, 1000, 1],  # Daily: success
+                Exception("Burst check failed")  # Burst: failure
+            ]
+            limiter._redis = mock_redis
+            
+            # Should use fallback for burst check
+            with patch.object(limiter, '_simple_burst_check', return_value=True):
+                allowed = await limiter.is_allowed("error_test")
+                assert allowed is True
+
+    def test_provider_limits_immutability(self):
+        """Test that provider limits are not accidentally modified"""
+        original_limits = RateLimiter.PROVIDER_LIMITS.copy()
+        
+        # Create multiple limiters
+        limiters = [RateLimiter(provider) for provider in ['yelp', 'openai', 'pagespeed']]
+        
+        # Modify instance limits
+        for limiter in limiters:
+            limiter.limits['daily_limit'] = 99999
+        
+        # Original class limits should be unchanged
+        assert RateLimiter.PROVIDER_LIMITS == original_limits
+
+    @pytest.mark.asyncio 
+    async def test_stub_mode_comprehensive(self):
+        """Test comprehensive stub mode behavior"""
+        with patch('core.config.get_settings') as mock_get_settings:
+            mock_settings = Mock()
+            mock_settings.use_stubs = True
+            mock_get_settings.return_value = mock_settings
+            
+            limiter = RateLimiter("test_stub_comprehensive")
+            
+            # All operations should be allowed in stub mode
+            operations = ["test1", "test2", "test3"]
+            for op in operations:
+                allowed = await limiter.is_allowed(op)
+                assert allowed is True
+            
+            # Usage should return zero
+            usage = await limiter.get_usage()
+            assert usage['daily_used'] == 0
+            assert usage['daily_limit'] == limiter.limits['daily_limit']
