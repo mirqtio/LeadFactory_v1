@@ -39,10 +39,20 @@ try:
 except ImportError as e:
     # If import fails, try direct file import as fallback
     import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        "d6_reports.models", 
-        os.path.join(app_dir, "d6_reports", "models.py")
-    )
+    
+    # Try multiple potential locations
+    potential_paths = [
+        os.path.join(app_dir, "d6_reports", "models.py"),
+        os.path.join(current_dir, "d6_reports", "models.py"),
+        os.path.join(str(project_root), "d6_reports", "models.py")
+    ]
+    
+    spec = None
+    for path in potential_paths:
+        if os.path.exists(path):
+            spec = importlib.util.spec_from_file_location("d6_reports.models", path)
+            break
+    
     if spec and spec.loader:
         d6_models = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(d6_models)
