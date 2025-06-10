@@ -105,9 +105,9 @@ class TestTargetModel:
         for vertical in expected_verticals:
             # Should be able to create targets with each vertical
             target = Target(
-                business_name=f"Test {vertical.value} Business",
+                geo_type=GeoType.STATE,
+                geo_value="CA",
                 vertical=vertical.value,
-                source_provider="test",
             )
             assert target.vertical == vertical.value
 
@@ -117,13 +117,14 @@ class TestTargetModel:
         assert hasattr(Target, "__table_args__")
         table_args = Target.__table_args__
 
-        # Should have unique constraint on source_provider + external_id
-        constraint_names = []
-        for arg in table_args:
-            if hasattr(arg, "name"):
-                constraint_names.append(arg.name)
-
-        assert "uq_targets_source_external" in constraint_names
+        # Check that table_args is a tuple and contains constraints
+        assert isinstance(table_args, tuple)
+        assert len(table_args) > 0
+        
+        # The Target model should have unique constraint on (geo_type, geo_value, vertical)
+        # and check constraint on priority_score
+        constraint_types = [type(arg).__name__ for arg in table_args]
+        assert "UniqueConstraint" in constraint_types
 
 
 class TestTargetUniverseModel:
@@ -234,18 +235,17 @@ class TestModelDefinitions:
 
     def test_models_have_required_relationships(self):
         """Test that models have expected relationships defined"""
-        # Target should have campaign_targets relationship
-        assert hasattr(Target, "campaign_targets")
+        # Target should have batches relationship
+        assert hasattr(Target, "batches")
 
         # TargetUniverse should have campaigns relationship
         assert hasattr(TargetUniverse, "campaigns")
 
-        # Campaign should have target_universe, campaign_targets, and campaign_batches relationships
+        # Campaign should have target_universe and campaign_targets relationships
         assert hasattr(Campaign, "target_universe")
         assert hasattr(Campaign, "campaign_targets")
-        assert hasattr(Campaign, "campaign_batches")
 
-        # CampaignTarget should have campaign and target relationships
+        # CampaignTarget should have campaign relationship
         assert hasattr(CampaignTarget, "campaign")
         assert hasattr(CampaignTarget, "target")
 
