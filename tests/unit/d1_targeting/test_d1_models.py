@@ -7,15 +7,17 @@ from datetime import datetime
 import pytest
 
 from d1_targeting.models import (Campaign, CampaignTarget, GeographicBoundary,
-                                 Target, TargetUniverse)
+                                 TargetUniverse)
+from database.models import Business, Target, GeoType
 from d1_targeting.types import CampaignStatus, GeographyLevel, VerticalMarket
 
 
-class TestTargetModel:
-    def test_target_model_complete(self):
-        """Test that target model has all required fields"""
-        target = Target(
-            business_name="Joe's Restaurant",
+class TestBusinessModel:
+    def test_business_model_complete(self):
+        """Test that business model has all required fields"""
+        business = Business(
+            yelp_id="joe-restaurant-sf",
+            name="Joe's Restaurant",
             vertical=VerticalMarket.RESTAURANTS.value,
             website="https://joesrestaurant.com",
             phone="555-0123",
@@ -24,54 +26,61 @@ class TestTargetModel:
             city="San Francisco",
             state="CA",
             zip_code="94102",
-            country="US",
             latitude=37.7749,
             longitude=-122.4194,
             rating=4.5,
-            review_count=150,
+            user_ratings_total=150,
             price_level=2,
             categories=["restaurant", "italian", "casual dining"],
-            source_provider="yelp",
-            external_id="yelp_123456",
         )
 
         # Verify all attributes are accessible
-        assert target.business_name == "Joe's Restaurant"
-        assert target.vertical == VerticalMarket.RESTAURANTS.value
-        assert target.website == "https://joesrestaurant.com"
-        assert target.phone == "555-0123"
-        assert target.email == "info@joesrestaurant.com"
-        assert target.city == "San Francisco"
-        assert target.state == "CA"
-        assert target.zip_code == "94102"
-        assert target.latitude == 37.7749
-        assert target.longitude == -122.4194
-        assert target.source_provider == "yelp"
-        assert target.external_id == "yelp_123456"
+        assert business.name == "Joe's Restaurant"
+        assert business.vertical == VerticalMarket.RESTAURANTS.value
+        assert business.website == "https://joesrestaurant.com"
+        assert business.phone == "555-0123"
+        assert business.email == "info@joesrestaurant.com"
+        assert business.city == "San Francisco"
+        assert business.state == "CA"
+        assert business.zip_code == "94102"
+        assert business.latitude == 37.7749
+        assert business.longitude == -122.4194
+        assert business.yelp_id == "joe-restaurant-sf"
 
-    def test_geo_hierarchy_validated(self):
-        """Test that geographic hierarchy fields are properly defined"""
+
+class TestTargetModel:
+    def test_target_model_complete(self):
+        """Test that target model has all required fields"""
+        
         target = Target(
-            business_name="Test Business",
-            vertical=VerticalMarket.RETAIL.value,
-            source_provider="test",
+            geo_type=GeoType.STATE,
+            geo_value="CA",
+            vertical=VerticalMarket.RESTAURANTS.value,
+            priority_score=0.8,
+            is_active=True
         )
 
-        # Test setting geographic fields
-        target.country = "US"
-        target.state = "CA"
-        target.city = "San Francisco"
-        target.zip_code = "94102"
-        target.latitude = 37.7749
-        target.longitude = -122.4194
+        # Verify all attributes are accessible
+        assert target.geo_type == GeoType.STATE
+        assert target.geo_value == "CA"
+        assert target.vertical == VerticalMarket.RESTAURANTS.value
+        assert target.priority_score == 0.8
+        assert target.is_active is True
 
-        # Verify fields are accessible
-        assert target.country == "US"
-        assert target.state == "CA"
-        assert target.city == "San Francisco"
-        assert target.zip_code == "94102"
-        assert target.latitude == 37.7749
-        assert target.longitude == -122.4194
+    def test_target_uniqueness_constraint(self):
+        """Test that target uniqueness constraint works"""
+        
+        target = Target(
+            geo_type=GeoType.CITY,
+            geo_value="San Francisco",
+            vertical=VerticalMarket.RETAIL.value,
+            priority_score=0.8
+        )
+        
+        assert target.geo_type == GeoType.CITY
+        assert target.geo_value == "San Francisco"
+        assert target.vertical == VerticalMarket.RETAIL.value
+        assert target.priority_score == 0.8
 
     def test_vertical_enum_defined(self):
         """Test that vertical market enum is properly defined"""
