@@ -15,7 +15,11 @@ from .models import (
     ReportGeneration,
     ReportTemplate,
     ReportSection,
-    ReportDelivery
+    ReportDelivery,
+    ReportStatus,
+    ReportType,
+    DeliveryMethod,
+    TemplateFormat
 )
 from .prioritizer import FindingPrioritizer, PrioritizationResult
 from .finding_scorer import FindingScorer, FindingScore
@@ -31,6 +35,10 @@ __all__ = [
     "ReportTemplate",
     "ReportSection",
     "ReportDelivery",
+    "ReportStatus",
+    "ReportType",
+    "DeliveryMethod",
+    "TemplateFormat",
     # Prioritization
     "FindingPrioritizer",
     "PrioritizationResult",

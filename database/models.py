@@ -174,7 +174,7 @@ class Business(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    # assessments = relationship("AssessmentResult", back_populates="business")  # Temporarily disabled due to circular import
+    assessments = relationship("AssessmentResult", back_populates="business", foreign_keys="AssessmentResult.business_id")
     scores = relationship("ScoringResult", back_populates="business")
     emails = relationship("Email", back_populates="business")
     purchases = relationship("Purchase", back_populates="business")
@@ -325,3 +325,10 @@ class EmailClick(Base):
 
 
 # D11: Pipeline/Experiment Models moved to d11_orchestration/models.py
+
+# Import domain-specific models for relationships
+try:
+    from d3_assessment.models import AssessmentResult
+except ImportError:
+    # Handle case where d3_assessment models might not be available
+    pass
