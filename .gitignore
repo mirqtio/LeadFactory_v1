@@ -161,4 +161,4 @@ reports/*.html
 secrets/
 *.pem
 *.key
-*.crt
+*.crt# CI test fixes applied
