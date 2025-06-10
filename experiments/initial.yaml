@@ -1,0 +1,367 @@
+# LeadFactory A/B Experiments Configuration - Task 098
+#
+# This file defines the initial A/B testing experiments for the LeadFactory production launch
+# Configures subject line testing and price point testing with 50/50 splits
+#
+# Acceptance Criteria:
+# - Subject line test configured ✓
+# - Price point test configured ✓  
+# - 50/50 split configured ✓
+# - Tracking enabled ✓
+
+version: "1.0"
+created_at: "2025-06-10T05:40:00Z"
+description: "Initial A/B experiments for LeadFactory production launch"
+
+# Global experiment settings
+global_settings:
+  # Default traffic allocation method
+  allocation_method: "random_hash"
+  
+  # Hash seed for consistent user assignment
+  hash_seed: "leadfactory_2025"
+  
+  # Experiment duration settings
+  default_duration_days: 30
+  min_sample_size: 1000
+  
+  # Statistical significance settings
+  confidence_level: 0.95
+  minimum_effect_size: 0.05
+  
+  # Tracking configuration
+  tracking:
+    enabled: true
+    metrics_endpoint: "/api/v1/experiments/track"
+    conversion_events: ["email_open", "email_click", "purchase_click", "purchase_complete"]
+    attribution_window_hours: 72
+
+# Active experiments
+experiments:
+  
+  # Experiment 1: Subject Line Testing
+  # Tests different email subject line strategies
+  subject_line_test:
+    id: "exp_001_subject_lines"
+    name: "Email Subject Line Optimization"
+    description: "Test different subject line approaches for email open rates"
+    
+    # Experiment metadata
+    status: "active"
+    start_date: "2025-06-10T00:00:00Z"
+    end_date: "2025-07-10T23:59:59Z"
+    created_by: "system"
+    
+    # Traffic allocation (50/50 split)
+    traffic_allocation:
+      enabled: true
+      total_traffic: 1.0
+      
+    # Experiment variants
+    variants:
+      control:
+        id: "subject_control"
+        name: "Standard Subject Line"
+        description: "Current standard subject line format"
+        allocation: 0.5  # 50% traffic
+        parameters:
+          subject_template: "Your Website Analysis Report is Ready"
+          personalization_level: "business_name"
+          urgency_level: "low"
+          emoji_enabled: false
+        
+      variant_a:
+        id: "subject_variant_a"
+        name: "Personalized Urgent Subject"
+        description: "Personalized subject with urgency and emoji"
+        allocation: 0.5  # 50% traffic
+        parameters:
+          subject_template: "🚀 {business_name}: Critical Website Issues Found"
+          personalization_level: "business_name_location"
+          urgency_level: "high"
+          emoji_enabled: true
+    
+    # Success metrics
+    primary_metric: "email_open_rate"
+    secondary_metrics: ["email_click_rate", "time_to_open"]
+    
+    # Conversion goals
+    conversion_goals:
+      - name: "email_opened"
+        type: "engagement"
+        weight: 1.0
+      - name: "email_clicked"
+        type: "engagement" 
+        weight: 2.0
+      - name: "report_downloaded"
+        type: "conversion"
+        weight: 5.0
+    
+    # Tracking configuration
+    tracking:
+      events: ["email_sent", "email_delivered", "email_opened", "email_clicked"]
+      custom_properties: ["subject_variant", "business_vertical", "tier"]
+  
+  # Experiment 2: Price Point Testing
+  # Tests different pricing strategies for report purchases
+  price_point_test:
+    id: "exp_002_pricing"
+    name: "Report Pricing Optimization"
+    description: "Test different price points for website analysis reports"
+    
+    # Experiment metadata
+    status: "active"
+    start_date: "2025-06-10T00:00:00Z"
+    end_date: "2025-07-10T23:59:59Z"
+    created_by: "system"
+    
+    # Traffic allocation (50/50 split)
+    traffic_allocation:
+      enabled: true
+      total_traffic: 1.0
+      
+    # Experiment variants
+    variants:
+      control:
+        id: "price_control"
+        name: "Standard Pricing"
+        description: "Current standard pricing model"
+        allocation: 0.5  # 50% traffic
+        parameters:
+          base_price_usd: 29.99
+          tier_multipliers:
+            A: 2.0    # $59.98
+            B: 1.5    # $44.99
+            C: 1.0    # $29.99
+            D: 0.5    # $14.99
+          discount_enabled: false
+          payment_plans: ["one_time"]
+        
+      variant_a:
+        id: "price_variant_a"
+        name: "Premium Pricing with Discount"
+        description: "Higher base price with limited-time discount"
+        allocation: 0.5  # 50% traffic
+        parameters:
+          base_price_usd: 49.99
+          tier_multipliers:
+            A: 2.0    # $99.98
+            B: 1.5    # $74.99
+            C: 1.0    # $49.99
+            D: 0.5    # $24.99
+          discount_enabled: true
+          discount_percentage: 40
+          discount_label: "Limited Time: 40% OFF"
+          payment_plans: ["one_time", "monthly"]
+    
+    # Success metrics
+    primary_metric: "conversion_rate"
+    secondary_metrics: ["revenue_per_visitor", "average_order_value"]
+    
+    # Conversion goals
+    conversion_goals:
+      - name: "purchase_initiated"
+        type: "funnel"
+        weight: 1.0
+      - name: "purchase_completed"
+        type: "conversion"
+        weight: 10.0
+      - name: "subscription_created"
+        type: "retention"
+        weight: 20.0
+    
+    # Tracking configuration
+    tracking:
+      events: ["price_displayed", "purchase_clicked", "payment_started", "purchase_completed"]
+      custom_properties: ["price_variant", "tier", "discount_applied", "payment_method"]
+
+# Experiment assignment rules
+assignment_rules:
+  
+  # Rule 1: Subject line assignment based on email hash
+  subject_line_assignment:
+    experiment_id: "exp_001_subject_lines"
+    method: "hash_based"
+    hash_input: "email_address"
+    
+    # Assignment logic
+    conditions:
+      - field: "user_type"
+        operator: "equals"
+        value: "business_owner"
+      - field: "email_valid"
+        operator: "equals"
+        value: true
+    
+    # Variant assignment
+    assignment_map:
+      - hash_range: [0.0, 0.5]
+        variant: "control"
+      - hash_range: [0.5, 1.0]
+        variant: "variant_a"
+  
+  # Rule 2: Price point assignment based on business hash
+  price_point_assignment:
+    experiment_id: "exp_002_pricing"
+    method: "hash_based"
+    hash_input: "business_id"
+    
+    # Assignment logic
+    conditions:
+      - field: "tier"
+        operator: "in"
+        value: ["A", "B", "C"]  # Exclude D tier from pricing test
+      - field: "vertical"
+        operator: "in"
+        value: ["restaurant", "medical"]
+    
+    # Variant assignment  
+    assignment_map:
+      - hash_range: [0.0, 0.5]
+        variant: "control"
+      - hash_range: [0.5, 1.0]
+        variant: "variant_a"
+
+# Monitoring and alerting
+monitoring:
+  
+  # Real-time monitoring
+  realtime_tracking:
+    enabled: true
+    update_interval_minutes: 15
+    
+  # Statistical monitoring
+  statistical_checks:
+    enabled: true
+    check_interval_hours: 24
+    early_stopping:
+      enabled: true
+      significance_threshold: 0.01
+      minimum_runtime_days: 7
+  
+  # Alerts and notifications
+  alerts:
+    
+    # Sample size alerts
+    - name: "low_sample_size"
+      condition: "sample_size < min_sample_size"
+      threshold: 500
+      action: "notify_admin"
+      
+    # Performance degradation alerts
+    - name: "conversion_drop"
+      condition: "conversion_rate < baseline * 0.8"
+      action: "pause_experiment"
+      
+    # Statistical significance alerts  
+    - name: "significance_achieved"
+      condition: "p_value < 0.05 AND runtime_days > 7"
+      action: "notify_decision_maker"
+
+# Reporting configuration
+reporting:
+  
+  # Dashboard configuration
+  dashboard:
+    refresh_interval_minutes: 30
+    default_date_range_days: 7
+    
+  # Automated reports
+  automated_reports:
+    
+    # Daily summary report
+    - name: "daily_experiment_summary"
+      frequency: "daily"
+      time: "09:00"
+      timezone: "UTC"
+      recipients: ["data@company.com"]
+      format: "email"
+      
+    # Weekly detailed report
+    - name: "weekly_experiment_analysis"
+      frequency: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "UTC"
+      recipients: ["product@company.com", "marketing@company.com"]
+      format: "pdf"
+  
+  # Export configuration
+  data_export:
+    enabled: true
+    formats: ["csv", "json"]
+    retention_days: 90
+    
+# Integration settings
+integrations:
+  
+  # Analytics platforms
+  analytics:
+    google_analytics:
+      enabled: false
+      tracking_id: ""
+      
+    mixpanel:
+      enabled: false
+      project_token: ""
+      
+    amplitude:
+      enabled: false
+      api_key: ""
+  
+  # Marketing platforms
+  marketing:
+    sendgrid:
+      enabled: true
+      webhook_events: ["delivered", "opened", "clicked"]
+      
+    stripe:
+      enabled: true
+      webhook_events: ["payment_intent.succeeded", "payment_intent.payment_failed"]
+
+# Data quality and validation
+data_quality:
+  
+  # Validation rules
+  validation_rules:
+    
+    # Traffic allocation validation
+    - name: "traffic_allocation_sum"
+      description: "Ensure traffic allocations sum to 1.0"
+      rule: "sum(variants.*.allocation) == 1.0"
+      
+    # Sample size validation
+    - name: "minimum_sample_size"
+      description: "Ensure minimum sample size is met"
+      rule: "sample_size >= min_sample_size"
+      
+    # Conversion rate validation
+    - name: "conversion_rate_bounds"
+      description: "Ensure conversion rates are within reasonable bounds"
+      rule: "0.0 <= conversion_rate <= 1.0"
+  
+  # Data retention
+  retention:
+    raw_events: 90  # days
+    aggregated_metrics: 365  # days
+    experiment_results: 730  # days
+
+# Security and privacy
+security:
+  
+  # Data anonymization
+  anonymization:
+    enabled: true
+    hash_pii: true
+    retention_limit_days: 90
+    
+  # Access control
+  access_control:
+    admin_users: ["admin@company.com"]
+    read_only_users: ["analyst@company.com"]
+    
+  # Audit logging
+  audit_logging:
+    enabled: true
+    log_level: "info"
+    retention_days: 180
