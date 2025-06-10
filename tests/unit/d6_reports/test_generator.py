@@ -18,29 +18,15 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# Import the modules to test using standard imports
-try:
-    from d6_reports.generator import GenerationOptions, GenerationResult, ReportGenerator
-    from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
-    from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult
-    from d6_reports.template_engine import TemplateEngine, TemplateData
-except ImportError:
-    # Fallback for test environments
-    import sys
-    import os
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-    from d6_reports.generator import GenerationOptions, GenerationResult, ReportGenerator
-    from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
-    from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult
-    from d6_reports.template_engine import TemplateEngine, TemplateData
+# Import the modules to test
+from d6_reports.generator import GenerationOptions, GenerationResult, ReportGenerator
+from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
+from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult
+from d6_reports.template_engine import TemplateEngine, TemplateData
 
 # Import additional classes from generator module
-try:
-    from d6_reports.generator import (DataLoader, generate_audit_report, 
-                                    generate_html_report, generate_pdf_report)
-except ImportError:
-    from d6_reports.generator import (DataLoader, generate_audit_report, 
-                                    generate_html_report, generate_pdf_report)
+from d6_reports.generator import (DataLoader, generate_audit_report, 
+                                generate_html_report, generate_pdf_report)
 
 
 class TestGenerationOptions:
