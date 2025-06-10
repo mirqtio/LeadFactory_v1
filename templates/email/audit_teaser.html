@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Audit Results for {{ business_name | default("Your Business") | e }}</title>
+    
+    <style>
+        /* Email-safe styles - inline and with fallbacks */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8fafc;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        /* Content area */
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #1e293b;
+        }
+        
+        /* Score card */
+        .score-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .score-number {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            {{ score_color | default('color: #d97706;') }}
+        }
+        
+        .score-label {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+        
+        /* Issues list */
+        .issues-section {
+            margin: 30px 0;
+        }
+        
+        .issues-section h2 {
+            color: #1e293b;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .issues-list {
+            text-align: left;
+            padding-left: 0;
+            list-style: none;
+        }
+        
+        .issue-item {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .issue-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 5px;
+        }
+        
+        .issue-impact {
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        /* CTA Button */
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin: 10px 0;
+        }
+        
+        .cta-button:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        }
+        
+        .price-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        
+        .current-price {
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        /* Benefits list */
+        .benefits-section {
+            margin: 30px 0;
+        }
+        
+        .benefits-section h3 {
+            color: #1e293b;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .benefits-list {
+            text-align: left;
+            color: #374151;
+            line-height: 1.8;
+        }
+        
+        .benefits-list li {
+            margin-bottom: 8px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .signature {
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+        
+        .footer-text {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+        
+        .unsubscribe {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        
+        .unsubscribe a {
+            color: #9ca3af;
+            text-decoration: underline;
+        }
+        
+        /* Mobile responsive */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100%;
+            }
+            
+            .header,
+            .content,
+            .footer {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .score-number {
+                font-size: 36px;
+            }
+            
+            .cta-button {
+                padding: 14px 24px;
+                font-size: 14px;
+            }
+            
+            .cta-section {
+                padding: 20px;
+            }
+            
+            .issue-item {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Website Issues Found - Action Required</h1>
+            <p>Your personalized audit results are ready</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Hi {{ business_name | default("there") | e }},
+            </div>
+            
+            <p>I analyzed your website and found some issues that are likely costing you customers.</p>
+            
+            <!-- Score Card -->
+            <div class="score-card">
+                <div class="score-number">{{ score | default(67) }}/100</div>
+                <div class="score-label">Website Performance Score</div>
+            </div>
+            
+            <!-- Top Issues -->
+            <div class="issues-section">
+                <h2>Top 3 Issues Found:</h2>
+                <ol class="issues-list">
+                {% for issue in top_issues %}
+                    <li class="issue-item">
+                        <div class="issue-title">{{ issue.title }}</div>
+                        <div class="issue-impact">{{ issue.impact }}</div>
+                    </li>
+                {% else %}
+                    <li class="issue-item">
+                        <div class="issue-title">Page Load Speed</div>
+                        <div class="issue-impact">Your site takes 4.2 seconds to load - 58% of visitors leave after 3 seconds</div>
+                    </li>
+                    <li class="issue-item">
+                        <div class="issue-title">Mobile Optimization</div>
+                        <div class="issue-impact">Mobile users see broken layouts - 65% of traffic comes from mobile devices</div>
+                    </li>
+                    <li class="issue-item">
+                        <div class="issue-title">SEO Structure</div>
+                        <div class="issue-impact">Missing meta descriptions and poor heading structure hurt search rankings</div>
+                    </li>
+                {% endfor %}
+                </ol>
+            </div>
+            
+            <p><strong>The good news?</strong> These are all fixable. I've prepared a detailed report showing exactly what to fix and how.</p>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <a href="{{ report_url | default('#') }}" class="cta-button">
+                    Get Your Full Report
+                </a>
+                <div class="price-info">
+                    <span class="current-price">${{ price | default(49) }}</span>
+                    {% if original_price %}
+                        <span class="original-price">${{ original_price }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Benefits -->
+            <div class="benefits-section">
+                <h3>This report includes:</h3>
+                <ul class="benefits-list">
+                    <li>Detailed analysis of all {{ total_issues | default(15) }} issues found</li>
+                    <li>Step-by-step fixes you can implement</li>
+                    <li>Priority order to maximize impact</li>
+                    <li>Competitor comparison analysis</li>
+                    <li>Expected revenue impact for each fix</li>
+                    <li>Technical implementation guidelines</li>
+                </ul>
+            </div>
+            
+            <p>Don't let these issues continue costing you customers. Most of our clients see a 20-30% improvement in conversions after implementing our recommendations.</p>
+            
+            <!-- Signature -->
+            <div class="signature">
+                <p>Best regards,<br>
+                <strong>The LeadFactory Team</strong></p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-text">
+                This audit was performed on {{ audit_date | default("today") }} using industry-standard testing tools and methodologies.
+            </div>
+            
+            <div class="unsubscribe">
+                <a href="{{ unsubscribe_url | default('#') }}">Unsubscribe</a> | 
+                LeadFactory, San Francisco, CA 94105 |
+                <a href="mailto:support@leadfactory.com">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

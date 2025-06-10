@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-06-10T14:55:00.000000",
+  "last_updated": "2025-06-10T15:08:14.675264",
   "remediation_started": true,
   "total_gaps": 15,
   "tasks": {
@@ -100,19 +100,19 @@
       "actual_hours": 0.12
     },
     "GAP-013": {
-      "status": "pending",
+      "status": "in_progress",
       "title": "Create missing email template",
       "priority": "P2",
-      "started_at": null,
+      "started_at": "2025-06-10T15:08:14.675145",
       "completed_at": null,
       "actual_hours": null
     },
     "GAP-014": {
-      "status": "pending",
+      "status": "completed",
       "title": "Fix CI linting and type checking",
       "priority": "P1",
       "started_at": null,
-      "completed_at": null,
+      "completed_at": "2025-06-10T15:08:00.412078",
       "actual_hours": null
     },
     "GAP-015": {
