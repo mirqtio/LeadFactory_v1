@@ -22,11 +22,15 @@ from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import (Float, ForeignKey, Index, Integer, String, Text,
                         UniqueConstraint)
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+# Database compatibility: Use JSON for better SQLite compatibility
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from database.base import Base
+# Use JSON type for better cross-database compatibility in tests
+JsonColumn = JSON
+
+from database.base import Base, UUID
 
 
 def generate_uuid():
@@ -96,7 +100,7 @@ class EmailTemplate(Base):
 
     __tablename__ = "email_templates"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
     name = Column(String(200), nullable=False, index=True)
     description = Column(Text)
     content_type = Column(SQLEnum(EmailContentType), nullable=False, index=True)
@@ -108,9 +112,9 @@ class EmailTemplate(Base):
     text_template = Column(Text)  # Plain text version
 
     # Personalization configuration
-    required_tokens = Column(JSONB)  # List of required personalization tokens
-    optional_tokens = Column(JSONB)  # List of optional tokens with defaults
-    variable_config = Column(JSONB)  # Configuration for dynamic variables
+    required_tokens = Column(JsonColumn)  # List of required personalization tokens
+    optional_tokens = Column(JsonColumn)  # List of optional tokens with defaults
+    variable_config = Column(JsonColumn)  # Configuration for dynamic variables
 
     # Performance tracking
     usage_count = Column(Integer, default=0)
@@ -139,15 +143,15 @@ class SubjectLineVariant(Base):
 
     __tablename__ = "subject_line_variants"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
     template_id = Column(
-        UUID(as_uuid=True), ForeignKey("email_templates.id"), nullable=False
+        UUID(), ForeignKey("email_templates.id"), nullable=False
     )
 
     # Variant details
     variant_name = Column(String(100), nullable=False)
     subject_text = Column(String(200), nullable=False)  # Personalized subject line
-    personalization_tokens = Column(JSONB)  # Tokens used in this variant
+    personalization_tokens = Column(JsonColumn)  # Tokens used in this variant
 
     # Testing configuration
     status = Column(SQLEnum(VariantStatus), default=VariantStatus.DRAFT, index=True)
@@ -188,7 +192,7 @@ class PersonalizationToken(Base):
 
     __tablename__ = "personalization_tokens"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
 
     # Token definition
     token_name = Column(String(100), nullable=False, unique=True, index=True)
@@ -203,7 +207,7 @@ class PersonalizationToken(Base):
     )  # Where to get the data (business, assessment, etc.)
     field_path = Column(String(200))  # JSONPath to the data field
     default_value = Column(String(500))  # Fallback value
-    transformation_rules = Column(JSONB)  # Rules for formatting the value
+    transformation_rules = Column(JsonColumn)  # Rules for formatting the value
 
     # Usage tracking
     usage_count = Column(Integer, default=0)
@@ -233,9 +237,9 @@ class PersonalizationVariable(Base):
 
     __tablename__ = "personalization_variables"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
     token_id = Column(
-        UUID(as_uuid=True), ForeignKey("personalization_tokens.id"), nullable=False
+        UUID(), ForeignKey("personalization_tokens.id"), nullable=False
     )
 
     # Context identification
@@ -249,7 +253,7 @@ class PersonalizationVariable(Base):
     confidence_score = Column(Float)  # Confidence in the personalization
 
     # Source data
-    source_data = Column(JSONB)  # Raw data used for generation
+    source_data = Column(JsonColumn)  # Raw data used for generation
     generation_method = Column(String(100))  # How this was generated
 
     # Quality metrics
@@ -284,9 +288,9 @@ class EmailContent(Base):
 
     __tablename__ = "email_content"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
     template_id = Column(
-        UUID(as_uuid=True), ForeignKey("email_templates.id"), nullable=False
+        UUID(), ForeignKey("email_templates.id"), nullable=False
     )
 
     # Content identification
@@ -301,7 +305,7 @@ class EmailContent(Base):
     preview_text = Column(String(150))  # Email preview text
 
     # Personalization details
-    personalization_data = Column(JSONB)  # All personalization tokens used
+    personalization_data = Column(JsonColumn)  # All personalization tokens used
     personalization_strategy = Column(SQLEnum(PersonalizationStrategy), index=True)
     content_strategy = Column(SQLEnum(ContentStrategy), index=True)
 
@@ -342,9 +346,9 @@ class ContentVariant(Base):
 
     __tablename__ = "content_variants"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
     template_id = Column(
-        UUID(as_uuid=True), ForeignKey("email_templates.id"), nullable=False
+        UUID(), ForeignKey("email_templates.id"), nullable=False
     )
 
     # Variant configuration
@@ -392,15 +396,15 @@ class SpamScoreTracking(Base):
 
     __tablename__ = "spam_score_tracking"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
     email_content_id = Column(
-        UUID(as_uuid=True), ForeignKey("email_content.id"), nullable=False
+        UUID(), ForeignKey("email_content.id"), nullable=False
     )
 
     # Spam scoring details
     overall_score = Column(Float, nullable=False)  # 0-100, lower is better
-    category_scores = Column(JSONB)  # Scores by category
-    spam_indicators = Column(JSONB)  # List of detected issues
+    category_scores = Column(JsonColumn)  # Scores by category
+    spam_indicators = Column(JsonColumn)  # List of detected issues
 
     # Analysis breakdown
     subject_line_score = Column(Float)
@@ -410,7 +414,7 @@ class SpamScoreTracking(Base):
     personalization_score = Column(Float)
 
     # Specific issues
-    flagged_words = Column(JSONB)  # Words triggering spam filters
+    flagged_words = Column(JsonColumn)  # Words triggering spam filters
     excessive_caps = Column(Boolean, default=False)
     too_many_exclamations = Column(Boolean, default=False)
     suspicious_links = Column(Integer, default=0)
@@ -422,7 +426,7 @@ class SpamScoreTracking(Base):
     confidence_score = Column(Float)
 
     # Recommendations
-    improvement_suggestions = Column(JSONB)  # List of suggested improvements
+    improvement_suggestions = Column(JsonColumn)  # List of suggested improvements
     risk_level = Column(String(20))  # low, medium, high, critical
 
     # Tracking
@@ -446,9 +450,9 @@ class EmailGenerationLog(Base):
 
     __tablename__ = "email_generation_logs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
     template_id = Column(
-        UUID(as_uuid=True), ForeignKey("email_templates.id"), nullable=False
+        UUID(), ForeignKey("email_templates.id"), nullable=False
     )
 
     # Generation context
@@ -457,14 +461,14 @@ class EmailGenerationLog(Base):
     generation_request_id = Column(String(100), unique=True, index=True)
 
     # Input data
-    input_data = Column(JSONB)  # Raw data used for personalization
+    input_data = Column(JsonColumn)  # Raw data used for personalization
     personalization_strategy = Column(SQLEnum(PersonalizationStrategy))
     content_strategy = Column(SQLEnum(ContentStrategy))
 
     # Generation process
-    tokens_requested = Column(JSONB)  # List of tokens requested
-    tokens_resolved = Column(JSONB)  # Successfully resolved tokens
-    tokens_failed = Column(JSONB)  # Failed token resolutions
+    tokens_requested = Column(JsonColumn)  # List of tokens requested
+    tokens_resolved = Column(JsonColumn)  # Successfully resolved tokens
+    tokens_failed = Column(JsonColumn)  # Failed token resolutions
 
     # LLM interaction (if used)
     llm_model_used = Column(String(100))
@@ -474,8 +478,8 @@ class EmailGenerationLog(Base):
 
     # Generation results
     generation_successful = Column(Boolean, nullable=False, index=True)
-    email_content_id = Column(UUID(as_uuid=True), ForeignKey("email_content.id"))
-    error_details = Column(JSONB)  # Error information if failed
+    email_content_id = Column(UUID(), ForeignKey("email_content.id"))
+    error_details = Column(JsonColumn)  # Error information if failed
 
     # Quality metrics
     personalization_completeness = Column(Float)  # % of tokens successfully resolved

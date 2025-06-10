@@ -22,11 +22,11 @@ from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import (Float, ForeignKey, Index, Integer, String, Text,
                         UniqueConstraint)
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from database.base import Base
+from database.base import Base, UUID
 
 
 def generate_uuid():

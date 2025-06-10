@@ -24,25 +24,16 @@ from database.base import Base
 
 from .types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
 
+from database.base import UUID
+
 # UUID handling for both PostgreSQL and SQLite
-try:
-    from sqlalchemy.dialects.postgresql import UUID
+def get_uuid_column():
+    return Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    def get_uuid_column():
-        return Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-
-    def get_uuid_foreign_key(table_name):
-        return Column(
-            UUID(as_uuid=True), ForeignKey(f"{table_name}.id"), nullable=False
-        )
-
-except ImportError:
-    # Fallback for SQLite
-    def get_uuid_column():
-        return Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-
-    def get_uuid_foreign_key(table_name):
-        return Column(String(36), ForeignKey(f"{table_name}.id"), nullable=False)
+def get_uuid_foreign_key(table_name):
+    return Column(
+        UUID(as_uuid=True), ForeignKey(f"{table_name}.id"), nullable=False
+    )
 
 
 class D5ScoringResult(Base):

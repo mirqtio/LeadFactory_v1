@@ -21,11 +21,15 @@ from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import (ForeignKey, Index, Integer, String, Text,
                         UniqueConstraint)
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+# Database compatibility: Use JSON for better SQLite compatibility
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from database.base import Base
+# Use JSON type for better cross-database compatibility in tests
+JsonColumn = JSON
+
+from database.base import Base, UUID
 
 
 def generate_uuid():
@@ -105,7 +109,7 @@ class D7Purchase(Base):
     # Customer information
     customer_email = Column(String(255), nullable=False, index=True)
     customer_name = Column(String(255))
-    billing_address = Column(JSONB)  # Stripe billing address
+    billing_address = Column(JsonColumn)  # Stripe billing address
 
     # Attribution tracking - Acceptance Criteria
     utm_source = Column(String(100))  # e.g., "google", "facebook", "email"
@@ -118,7 +122,7 @@ class D7Purchase(Base):
     session_id = Column(String(255))  # Analytics session ID
     user_agent = Column(Text)  # Browser user agent
     ip_address = Column(String(45))  # Customer IP address
-    attribution_metadata = Column(JSONB)  # Additional attribution data
+    attribution_metadata = Column(JsonColumn)  # Additional attribution data
 
     # Status management - Acceptance Criteria
     status = Column(
@@ -131,8 +135,8 @@ class D7Purchase(Base):
     cancelled_at = Column(TIMESTAMP)
 
     # Metadata
-    product_metadata = Column(JSONB)  # Product-specific data
-    checkout_metadata = Column(JSONB)  # Checkout session metadata from Stripe
+    product_metadata = Column(JsonColumn)  # Product-specific data
+    checkout_metadata = Column(JsonColumn)  # Checkout session metadata from Stripe
     notes = Column(Text)  # Internal notes
 
     # Timestamps
@@ -211,7 +215,7 @@ class PurchaseItem(Base):
     business_id = Column(
         String, ForeignKey("businesses.id")
     )  # Business this report is for
-    report_config = Column(JSONB)  # Configuration for this specific report
+    report_config = Column(JsonColumn)  # Configuration for this specific report
 
     # Delivery tracking
     delivered = Column(Boolean, default=False, nullable=False)
@@ -323,7 +327,7 @@ class PaymentSession(Base):
     # Session configuration
     success_url = Column(Text, nullable=False)
     cancel_url = Column(Text, nullable=False)
-    payment_methods = Column(JSONB)  # Allowed payment methods
+    payment_methods = Column(JsonColumn)  # Allowed payment methods
 
     # Session tracking
     session_started_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
@@ -335,7 +339,7 @@ class PaymentSession(Base):
     # Session metadata
     customer_ip = Column(String(45))
     user_agent = Column(Text)
-    session_metadata = Column(JSONB)
+    session_metadata = Column(JsonColumn)
 
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
