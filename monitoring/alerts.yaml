@@ -1,0 +1,218 @@
+# LeadFactory Production Alerts Configuration - Task 092
+# Prometheus alerting rules for production monitoring
+
+groups:
+  - name: leadfactory_critical
+    interval: 30s
+    rules:
+      # Application availability
+      - alert: ApplicationDown
+        expr: up{job="leadfactory-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: leadfactory
+        annotations:
+          summary: "LeadFactory application is down"
+          description: "LeadFactory API has been down for more than 1 minute"
+
+      # Database connectivity
+      - alert: DatabaseConnectionFailed
+        expr: leadfactory_database_connection_failures_total > 0
+        for: 30s
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database connection failures detected"
+          description: "Database connections are failing. Check PostgreSQL health."
+
+      # External API failures
+      - alert: ExternalAPIFailures
+        expr: increase(leadfactory_external_api_errors_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+          service: external_apis
+        annotations:
+          summary: "High external API failure rate"
+          description: "External API calls are failing at a high rate: {{ $value }} errors in 5 minutes"
+
+  - name: leadfactory_performance
+    interval: 60s
+    rules:
+      # High response times
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, leadfactory_request_duration_seconds_bucket) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          service: leadfactory
+        annotations:
+          summary: "High API response times"
+          description: "95th percentile response time is {{ $value }}s, above 2s threshold"
+
+      # Memory usage
+      - alert: HighMemoryUsage
+        expr: (leadfactory_memory_usage_bytes / leadfactory_memory_limit_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: leadfactory
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} of limit"
+
+      # CPU usage
+      - alert: HighCPUUsage
+        expr: rate(leadfactory_cpu_usage_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: leadfactory
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+
+  - name: leadfactory_business
+    interval: 60s
+    rules:
+      # Daily processing volume low
+      - alert: LowProcessingVolume
+        expr: increase(leadfactory_businesses_processed_total[24h]) < 1000
+        for: 1h
+        labels:
+          severity: warning
+          service: pipeline
+        annotations:
+          summary: "Low daily business processing volume"
+          description: "Only {{ $value }} businesses processed in last 24 hours, below 1000 target"
+
+      # Email send failures
+      - alert: EmailSendFailures
+        expr: increase(leadfactory_emails_failed_total[1h]) > 10
+        for: 30m
+        labels:
+          severity: warning
+          service: email
+        annotations:
+          summary: "High email send failure rate"
+          description: "{{ $value }} email sends failed in the last hour"
+
+      # Payment failures
+      - alert: PaymentFailures
+        expr: increase(leadfactory_payments_failed_total[1h]) > 5
+        for: 15m
+        labels:
+          severity: critical
+          service: payments
+        annotations:
+          summary: "Payment processing failures"
+          description: "{{ $value }} payment failures detected in the last hour"
+
+  - name: leadfactory_infrastructure
+    interval: 60s
+    rules:
+      # Redis connectivity
+      - alert: RedisConnectionFailed
+        expr: leadfactory_redis_connection_failures_total > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis connection failures"
+          description: "Redis cache connections are failing"
+
+      # Disk space
+      - alert: LowDiskSpace
+        expr: (leadfactory_disk_free_bytes / leadfactory_disk_total_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "Low disk space"
+          description: "Free disk space is {{ $value | humanizePercentage }}, below 10% threshold"
+
+      # File upload volume
+      - alert: HighFileUploadVolume
+        expr: increase(leadfactory_file_uploads_total[1h]) > 1000
+        for: 30m
+        labels:
+          severity: warning
+          service: file_storage
+        annotations:
+          summary: "High file upload volume"
+          description: "{{ $value }} file uploads in the last hour, may indicate abuse"
+
+  - name: leadfactory_rate_limits
+    interval: 30s
+    rules:
+      # API rate limit approaching
+      - alert: YelpRateLimitApproaching
+        expr: leadfactory_yelp_requests_remaining < 100
+        for: 1m
+        labels:
+          severity: warning
+          service: external_apis
+        annotations:
+          summary: "Yelp API rate limit approaching"
+          description: "Only {{ $value }} Yelp API requests remaining for today"
+
+      - alert: OpenAIRateLimitApproaching
+        expr: leadfactory_openai_tokens_remaining < 10000
+        for: 1m
+        labels:
+          severity: warning
+          service: external_apis
+        annotations:
+          summary: "OpenAI token limit approaching"
+          description: "Only {{ $value }} OpenAI tokens remaining for today"
+
+      # Internal rate limiting
+      - alert: HighRateLimitHits
+        expr: increase(leadfactory_rate_limit_hits_total[5m]) > 100
+        for: 2m
+        labels:
+          severity: warning
+          service: rate_limiting
+        annotations:
+          summary: "High rate limit hits"
+          description: "{{ $value }} rate limit hits in 5 minutes, possible abuse"
+
+  - name: leadfactory_data_quality
+    interval: 300s  # 5 minutes
+    rules:
+      # Assessment failures
+      - alert: HighAssessmentFailureRate
+        expr: (increase(leadfactory_assessments_failed_total[1h]) / increase(leadfactory_assessments_total[1h])) > 0.1
+        for: 30m
+        labels:
+          severity: warning
+          service: assessment
+        annotations:
+          summary: "High assessment failure rate"
+          description: "{{ $value | humanizePercentage }} of assessments are failing"
+
+      # Scoring anomalies
+      - alert: ScoringAnomalies
+        expr: abs(avg_over_time(leadfactory_scoring_average[1h]) - avg_over_time(leadfactory_scoring_average[24h])) > 20
+        for: 1h
+        labels:
+          severity: warning
+          service: scoring
+        annotations:
+          summary: "Scoring average anomaly detected"
+          description: "Hourly scoring average deviates significantly from daily average"
+
+      # Data pipeline stalls
+      - alert: PipelineStalled
+        expr: time() - leadfactory_pipeline_last_completion_timestamp > 86400  # 24 hours
+        for: 30m
+        labels:
+          severity: critical
+          service: pipeline
+        annotations:
+          summary: "Data pipeline has stalled"
+          description: "Pipeline hasn't completed successfully in over 24 hours"

@@ -542,14 +542,14 @@
       "actual_hours": 1.0
     },
     "091": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2025-06-10T01:10:30.000000",
-      "completed_at": null,
-      "actual_hours": null
+      "completed_at": "2025-06-10T01:15:00.000000",
+      "actual_hours": 0.75
     },
     "092": {
-      "status": "pending",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2025-06-10T01:15:30.000000",
       "completed_at": null,
       "actual_hours": null
     },

@@ -1,0 +1,222 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "LeadFactory Production Dashboard",
+    "tags": ["leadfactory", "production"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"leadfactory-api\"}",
+            "legendFormat": "API Status"
+          },
+          {
+            "expr": "leadfactory_database_connections_active",
+            "legendFormat": "DB Connections"
+          },
+          {
+            "expr": "leadfactory_redis_connections_active", 
+            "legendFormat": "Redis Connections"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(leadfactory_requests_total[5m])",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Response Times",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, leadfactory_request_duration_seconds_bucket)",
+            "legendFormat": "50th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.95, leadfactory_request_duration_seconds_bucket)",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.99, leadfactory_request_duration_seconds_bucket)",
+            "legendFormat": "99th percentile"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Business Processing Pipeline",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "increase(leadfactory_businesses_sourced_total[1h])",
+            "legendFormat": "Businesses Sourced"
+          },
+          {
+            "expr": "increase(leadfactory_assessments_completed_total[1h])",
+            "legendFormat": "Assessments Completed"
+          },
+          {
+            "expr": "increase(leadfactory_emails_sent_total[1h])",
+            "legendFormat": "Emails Sent"
+          },
+          {
+            "expr": "increase(leadfactory_reports_generated_total[1h])",
+            "legendFormat": "Reports Generated"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+      },
+      {
+        "id": 5,
+        "title": "External API Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "leadfactory_yelp_requests_remaining",
+            "legendFormat": "Yelp Requests Remaining"
+          },
+          {
+            "expr": "leadfactory_openai_tokens_remaining",
+            "legendFormat": "OpenAI Tokens Remaining"
+          },
+          {
+            "expr": "increase(leadfactory_pagespeed_requests_total[1h])",
+            "legendFormat": "PageSpeed Requests/hour"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 6,
+        "title": "Revenue Metrics",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "increase(leadfactory_revenue_total[24h])",
+            "legendFormat": "Daily Revenue"
+          },
+          {
+            "expr": "increase(leadfactory_purchases_total[24h])",
+            "legendFormat": "Daily Purchases"
+          },
+          {
+            "expr": "leadfactory_revenue_total / leadfactory_purchases_total",
+            "legendFormat": "Avg Order Value"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+      },
+      {
+        "id": 7,
+        "title": "Error Rates",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(leadfactory_requests_total{status=~\"5..\"}[5m])",
+            "legendFormat": "5xx Errors/sec"
+          },
+          {
+            "expr": "rate(leadfactory_external_api_errors_total[5m])",
+            "legendFormat": "External API Errors/sec"
+          },
+          {
+            "expr": "rate(leadfactory_database_errors_total[5m])",
+            "legendFormat": "Database Errors/sec"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 32}
+      },
+      {
+        "id": 8,
+        "title": "Resource Usage",
+        "type": "graph", 
+        "targets": [
+          {
+            "expr": "leadfactory_memory_usage_bytes / 1024 / 1024",
+            "legendFormat": "Memory Usage (MB)"
+          },
+          {
+            "expr": "rate(leadfactory_cpu_usage_seconds_total[5m]) * 100",
+            "legendFormat": "CPU Usage (%)"
+          },
+          {
+            "expr": "(leadfactory_disk_total_bytes - leadfactory_disk_free_bytes) / 1024 / 1024 / 1024",
+            "legendFormat": "Disk Usage (GB)"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40}
+      },
+      {
+        "id": 9,
+        "title": "Campaign Performance",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "leadfactory_campaign_emails_sent",
+            "legendFormat": "Emails Sent",
+            "format": "table"
+          },
+          {
+            "expr": "leadfactory_campaign_opens_total",
+            "legendFormat": "Opens",
+            "format": "table"
+          },
+          {
+            "expr": "leadfactory_campaign_clicks_total", 
+            "legendFormat": "Clicks",
+            "format": "table"
+          },
+          {
+            "expr": "leadfactory_campaign_purchases_total",
+            "legendFormat": "Purchases",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 40}
+      },
+      {
+        "id": 10,
+        "title": "Data Quality Metrics",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "leadfactory_assessment_success_rate",
+            "legendFormat": "Assessment Success Rate"
+          },
+          {
+            "expr": "leadfactory_scoring_average",
+            "legendFormat": "Average Score"
+          },
+          {
+            "expr": "leadfactory_email_deliverability_rate",
+            "legendFormat": "Email Deliverability"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 48}
+      }
+    ],
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    },
+    "refresh": "30s"
+  }
+}
