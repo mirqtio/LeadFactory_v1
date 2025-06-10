@@ -25,6 +25,7 @@ from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult
 from d6_reports.template_engine import TemplateEngine, TemplateData
 
 # Import additional classes from generator module
+from d6_reports import generator as generator_module
 from d6_reports.generator import (DataLoader, generate_audit_report, 
                                 generate_html_report, generate_pdf_report)
 
