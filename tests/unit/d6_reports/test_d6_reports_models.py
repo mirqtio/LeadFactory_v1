@@ -11,39 +11,16 @@ Acceptance Criteria:
 - Print-optimized CSS ✓
 """
 
-import os
-import sys
-
-import pytest
-
-# Add the project root to Python path
-if "/app" not in sys.path:
-    sys.path.insert(0, "/app")
-if os.getcwd() not in sys.path:
-    sys.path.insert(0, os.getcwd())
-
-# Import models directly from the file since module import issues persist
-import importlib.util
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+import pytest
 from sqlalchemy.exc import IntegrityError
 
-spec = importlib.util.spec_from_file_location(
-    "d6_reports.models", "/app/d6_reports/models.py"
-)
-d6_models = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(d6_models)
-
-ReportGeneration = d6_models.ReportGeneration
-ReportTemplate = d6_models.ReportTemplate
-ReportSection = d6_models.ReportSection
-ReportDelivery = d6_models.ReportDelivery
-ReportStatus = d6_models.ReportStatus
-ReportType = d6_models.ReportType
-TemplateFormat = d6_models.TemplateFormat
-DeliveryMethod = d6_models.DeliveryMethod
-generate_uuid = d6_models.generate_uuid
+from d6_reports.models import (DeliveryMethod, ReportDelivery,
+                               ReportGeneration, ReportSection, ReportStatus,
+                               ReportTemplate, ReportType, TemplateFormat,
+                               generate_uuid)
 
 
 class TestReportGeneration:
