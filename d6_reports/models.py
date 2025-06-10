@@ -17,9 +17,10 @@ from enum import Enum
 from typing import Optional
 
 from sqlalchemy import (DECIMAL, JSON, Boolean, CheckConstraint, Column,
-                        DateTime)
+                        DateTime, ForeignKey)
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from database.base import Base
@@ -92,8 +93,8 @@ class ReportGeneration(Base):
     )
     status = Column(SQLEnum(ReportStatus), nullable=False, default=ReportStatus.PENDING)
     template_id = Column(
-        String, nullable=False
-    )  # Reference to template (FK will be added later)
+        String, ForeignKey("d6_report_templates.id"), nullable=False
+    )
 
     # Generation tracking
     requested_at = Column(DateTime, nullable=False, default=func.now())
@@ -130,9 +131,9 @@ class ReportGeneration(Base):
     )
     created_by = Column(String, nullable=True)
 
-    # Relationships (commented out until foreign keys are established)
-    # template = relationship("ReportTemplate", back_populates="generations")
-    # deliveries = relationship("ReportDelivery", back_populates="report_generation")
+    # Relationships
+    template = relationship("ReportTemplate", back_populates="generations")
+    deliveries = relationship("ReportDelivery", back_populates="report_generation")
 
     # Indexes
     __table_args__ = (
@@ -226,9 +227,9 @@ class ReportTemplate(Base):
     )
     created_by = Column(String, nullable=True)
 
-    # Relationships (commented out until foreign keys are established)
-    # generations = relationship("ReportGeneration", back_populates="template")
-    # sections = relationship("ReportSection", back_populates="template")
+    # Relationships
+    generations = relationship("ReportGeneration", back_populates="template")
+    sections = relationship("ReportSection", back_populates="template")
 
     # Indexes
     __table_args__ = (
@@ -267,8 +268,8 @@ class ReportSection(Base):
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
     template_id = Column(
-        String, nullable=False
-    )  # Reference to template (FK will be added later)
+        String, ForeignKey("d6_report_templates.id"), nullable=False
+    )
 
     # Section metadata
     name = Column(String, nullable=False)
@@ -298,16 +299,16 @@ class ReportSection(Base):
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
-    # Relationships (commented out until foreign keys are established)
-    # template = relationship("ReportTemplate", back_populates="sections")
+    # Relationships
+    template = relationship("ReportTemplate", back_populates="sections")
 
     # Indexes
     __table_args__ = (
         Index("idx_section_template_id", "template_id"),
         Index("idx_section_order", "template_id", "section_order"),
         Index("idx_section_enabled", "is_enabled"),
-        # UniqueConstraint("template_id", "name",
-        #                  name="uq_section_template_name"),  # Commented out until FK
+        UniqueConstraint("template_id", "name",
+                         name="uq_section_template_name"),
     )
 
     def __repr__(self):
@@ -326,9 +327,8 @@ class ReportDelivery(Base):
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
     report_generation_id = Column(
-        String, nullable=False
-    )  # Reference to report generation
-    # (FK will be added later)
+        String, ForeignKey("d6_report_generations.id"), nullable=False
+    )
 
     # Delivery metadata
     delivery_method = Column(SQLEnum(DeliveryMethod), nullable=False)
@@ -364,8 +364,8 @@ class ReportDelivery(Base):
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
-    # Relationships (commented out until foreign keys are established)
-    # report_generation = relationship("ReportGeneration", back_populates="deliveries")
+    # Relationships
+    report_generation = relationship("ReportGeneration", back_populates="deliveries")
 
     # Indexes
     __table_args__ = (

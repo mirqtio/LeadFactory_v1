@@ -40,7 +40,7 @@ if os.getcwd() not in sys.path:
 
 from d3_assessment.models import (AssessmentResult, AssessmentStatus,
                                   AssessmentType)
-from d6_reports.models import ReportGeneration, ReportStatus
+from d6_reports.models import ReportGeneration, ReportStatus, ReportType
 from d11_orchestration.models import PipelineRun, PipelineRunStatus
 from database.models import (Batch, BatchStatus, Business, Email, EmailStatus,
                              GeoType, Purchase, PurchaseStatus, Target)
@@ -292,8 +292,9 @@ def test_partial_results_saved(test_db_session):
     batch = Batch(
         id=f"partial_test_batch_{uuid4().hex[:8]}",
         target_id=target.id,
-        size_limit=50,
-        status=BatchStatus.PROCESSING,
+        batch_date=datetime.utcnow().date(),
+        planned_size=50,
+        status=BatchStatus.RUNNING,
         started_at=datetime.utcnow(),
     )
     test_db_session.add(batch)
@@ -377,7 +378,7 @@ def test_partial_results_saved(test_db_session):
                     assessment = AssessmentResult(
                         id=item_id,
                         business_id=businesses[i % len(businesses)].id,
-                        assessment_type=AssessmentType.COMPREHENSIVE,
+                        assessment_type=AssessmentType.FULL_AUDIT,
                         status=AssessmentStatus.COMPLETED,
                         url=businesses[i % len(businesses)].website,
                         domain=f"partial{i}.example.com",
@@ -398,7 +399,7 @@ def test_partial_results_saved(test_db_session):
                         subject=f"Test Email {i}",
                         html_body=f"<p>Test content for business {i}</p>",
                         text_body=f"Test content for business {i}",
-                        status=EmailStatus.GENERATED,
+                        status=EmailStatus.PENDING,
                         created_at=datetime.utcnow(),
                     )
                     test_db_session.add(email)
@@ -409,9 +410,10 @@ def test_partial_results_saved(test_db_session):
                     report = ReportGeneration(
                         id=item_id,
                         business_id=businesses[i % len(businesses)].id,
-                        report_type="audit_report",
-                        status=ReportStatus.GENERATED,
-                        generated_at=datetime.utcnow(),
+                        template_id="test-template-001",
+                        report_type=ReportType.BUSINESS_AUDIT,
+                        status=ReportStatus.COMPLETED,
+                        completed_at=datetime.utcnow(),
                     )
                     test_db_session.add(report)
                     processed_items.append(report)
@@ -421,7 +423,7 @@ def test_partial_results_saved(test_db_session):
                     pipeline_run = PipelineRun(
                         id=item_id,
                         pipeline_type="lead_generation",
-                        status=PipelineRunStatus.COMPLETED,
+                        status=PipelineRunStatus.SUCCESS,
                         started_at=scenario_start_time,
                         completed_at=datetime.utcnow(),
                         total_businesses=1,
@@ -943,8 +945,9 @@ def test_no_data_corruption(test_db_session):
     batch = Batch(
         id=f"consistency_batch_{uuid4().hex[:8]}",
         target_id=target.id,
-        size_limit=25,
-        status=BatchStatus.PROCESSING,
+        batch_date=datetime.utcnow().date(),
+        planned_size=25,
+        status=BatchStatus.RUNNING,
         started_at=datetime.utcnow(),
     )
     test_db_session.add(batch)
@@ -1046,7 +1049,7 @@ def test_no_data_corruption(test_db_session):
                         assessment = AssessmentResult(
                             id=f"consistency_assessment_{uuid4().hex[:8]}",
                             business_id=business.id,
-                            assessment_type=AssessmentType.PERFORMANCE,
+                            assessment_type=AssessmentType.PAGESPEED,
                             status=AssessmentStatus.COMPLETED,
                             url=business.website,
                             domain="consistency.example.com",
@@ -1074,7 +1077,7 @@ def test_no_data_corruption(test_db_session):
                             subject="Consistency Test Email",
                             html_body="<p>Test content</p>",
                             text_body="Test content",
-                            status=EmailStatus.GENERATED,
+                            status=EmailStatus.PENDING,
                             created_at=datetime.utcnow(),
                         )
                         test_db_session.add(email)
@@ -1105,7 +1108,7 @@ def test_no_data_corruption(test_db_session):
                             subject="Invalid Email",
                             html_body="<p>Invalid</p>",
                             text_body="Invalid",
-                            status=EmailStatus.GENERATED,
+                            status=EmailStatus.PENDING,
                             created_at=datetime.utcnow(),
                         )
                         test_db_session.add(invalid_email)
@@ -1133,7 +1136,7 @@ def test_no_data_corruption(test_db_session):
                             subject="Duplicate Email",
                             html_body="<p>Duplicate</p>",
                             text_body="Duplicate",
-                            status=EmailStatus.GENERATED,
+                            status=EmailStatus.PENDING,
                             created_at=datetime.utcnow(),
                         )
                         test_db_session.add(duplicate_email)
@@ -1152,7 +1155,7 @@ def test_no_data_corruption(test_db_session):
                             processing_record = AssessmentResult(
                                 id=f"bulk_assessment_{business_num}_{uuid4().hex[:8]}",
                                 business_id=business.id,
-                                assessment_type=AssessmentType.BASIC,
+                                assessment_type=AssessmentType.QUICK_SCAN,
                                 status=AssessmentStatus.COMPLETED,
                                 url=f"https://business{business_num}.example.com",
                                 domain=f"business{business_num}.example.com",
@@ -1351,7 +1354,7 @@ def test_no_data_corruption(test_db_session):
                         subject=f"Concurrent Email {i}",
                         html_body=f"<p>Concurrent content {i}</p>",
                         text_body=f"Concurrent content {i}",
-                        status=EmailStatus.GENERATED,
+                        status=EmailStatus.PENDING,
                         created_at=datetime.utcnow(),
                     )
                     test_db_session.add(concurrent_email)
@@ -1363,7 +1366,7 @@ def test_no_data_corruption(test_db_session):
                     concurrent_assessment = AssessmentResult(
                         id=f"concurrent_assessment_{i}_{uuid4().hex[:8]}",
                         business_id=business.id,
-                        assessment_type=AssessmentType.COMPREHENSIVE,
+                        assessment_type=AssessmentType.FULL_AUDIT,
                         status=AssessmentStatus.COMPLETED,
                         url=business.website,
                         domain="concurrent.example.com",
