@@ -3,20 +3,16 @@ Test Docker Compose configuration
 """
 import subprocess
 import time
-import pytest
+
 import httpx
 import psycopg2
+import pytest
 import redis
 
 
 def run_command(cmd: str) -> tuple[int, str, str]:
     """Run a shell command and return exit code, stdout, stderr"""
-    result = subprocess.run(
-        cmd,
-        shell=True,
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     return result.returncode, result.stdout, result.stderr
 
 
@@ -50,27 +46,43 @@ class TestDockerCompose:
         # Cleanup
         run_command("docker-compose down -v")
 
-    @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_docker_compose_file_valid(self):
         """Test that docker-compose.yml is valid"""
         code, stdout, stderr = run_command("docker-compose config")
         assert code == 0, f"Invalid docker-compose.yml: {stderr}"
 
-    @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_docker_compose_test_file_valid(self):
         """Test that docker-compose.test.yml is valid"""
-        code, stdout, stderr = run_command("docker-compose -f docker-compose.test.yml config")
+        code, stdout, stderr = run_command(
+            "docker-compose -f docker-compose.test.yml config"
+        )
         assert code == 0, f"Invalid docker-compose.test.yml: {stderr}"
 
     @pytest.mark.integration
-    @pytest.mark.skipif(not docker_compose_available(), reason="docker-compose not available")
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_all_services_start(self, docker_compose_up):
         """Test that all services start properly"""
         code, stdout, stderr = run_command("docker-compose ps")
         assert code == 0
 
         # Check that all services are running
-        services = ["db", "redis", "stub-server", "app", "prometheus", "grafana", "mailhog"]
+        services = [
+            "db",
+            "redis",
+            "stub-server",
+            "app",
+            "prometheus",
+            "grafana",
+            "mailhog",
+        ]
         for service in services:
             assert service in stdout, f"Service {service} not found in running services"
 
@@ -83,7 +95,7 @@ class TestDockerCompose:
                 port=5432,
                 database="leadfactory_dev",
                 user="leadfactory",
-                password="leadfactory_dev"
+                password="leadfactory_dev",
             )
             cursor = conn.cursor()
             cursor.execute("SELECT version()")
@@ -162,8 +174,9 @@ class TestDockerCompose:
         try:
             # Check SMTP port
             import socket
+
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            result = sock.connect_ex(('localhost', 1025))
+            result = sock.connect_ex(("localhost", 1025))
             sock.close()
             assert result == 0, "Mailhog SMTP port not accessible"
 
@@ -182,9 +195,10 @@ class TestDockerCompose:
             "postgres-data",
             "redis-data",
             "prometheus-data",
-            "grafana-data"
+            "grafana-data",
         ]
 
         for volume in expected_volumes:
-            assert any(volume in line for line in stdout.splitlines()), \
-                f"Volume {volume} not found"
+            assert any(
+                volume in line for line in stdout.splitlines()
+            ), f"Volume {volume} not found"

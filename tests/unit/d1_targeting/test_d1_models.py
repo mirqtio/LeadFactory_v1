@@ -1,16 +1,17 @@
 """
 Test targeting domain models - simplified version
 """
-import pytest
-from datetime import datetime
 import uuid
+from datetime import datetime
 
-from d1_targeting.models import Target, TargetUniverse, Campaign, CampaignTarget, GeographicBoundary
-from d1_targeting.types import VerticalMarket, GeographyLevel, CampaignStatus
+import pytest
+
+from d1_targeting.models import (Campaign, CampaignTarget, GeographicBoundary,
+                                 Target, TargetUniverse)
+from d1_targeting.types import CampaignStatus, GeographyLevel, VerticalMarket
 
 
 class TestTargetModel:
-
     def test_target_model_complete(self):
         """Test that target model has all required fields"""
         target = Target(
@@ -31,7 +32,7 @@ class TestTargetModel:
             price_level=2,
             categories=["restaurant", "italian", "casual dining"],
             source_provider="yelp",
-            external_id="yelp_123456"
+            external_id="yelp_123456",
         )
 
         # Verify all attributes are accessible
@@ -53,7 +54,7 @@ class TestTargetModel:
         target = Target(
             business_name="Test Business",
             vertical=VerticalMarket.RETAIL.value,
-            source_provider="test"
+            source_provider="test",
         )
 
         # Test setting geographic fields
@@ -89,7 +90,7 @@ class TestTargetModel:
             VerticalMarket.HOSPITALITY,
             VerticalMarket.FINANCIAL_SERVICES,
             VerticalMarket.TECHNOLOGY,
-            VerticalMarket.LEGAL
+            VerticalMarket.LEGAL,
         ]
 
         for vertical in expected_verticals:
@@ -97,27 +98,26 @@ class TestTargetModel:
             target = Target(
                 business_name=f"Test {vertical.value} Business",
                 vertical=vertical.value,
-                source_provider="test"
+                source_provider="test",
             )
             assert target.vertical == vertical.value
 
     def test_unique_constraints_defined(self):
         """Test that unique constraints are properly defined"""
         # Test that the model has the expected table args for constraints
-        assert hasattr(Target, '__table_args__')
+        assert hasattr(Target, "__table_args__")
         table_args = Target.__table_args__
 
         # Should have unique constraint on source_provider + external_id
         constraint_names = []
         for arg in table_args:
-            if hasattr(arg, 'name'):
+            if hasattr(arg, "name"):
                 constraint_names.append(arg.name)
 
-        assert 'uq_targets_source_external' in constraint_names
+        assert "uq_targets_source_external" in constraint_names
 
 
 class TestTargetUniverseModel:
-
     def test_target_universe_fields(self):
         """Test target universe model fields"""
         universe = TargetUniverse(
@@ -127,10 +127,10 @@ class TestTargetUniverseModel:
             geography_config={
                 "level": GeographyLevel.CITY.value,
                 "values": ["San Francisco", "Oakland", "San Jose"],
-                "state": "CA"
+                "state": "CA",
             },
             estimated_size=5000,
-            actual_size=4235
+            actual_size=4235,
         )
 
         assert universe.name == "SF Bay Area Restaurants"
@@ -141,7 +141,6 @@ class TestTargetUniverseModel:
 
 
 class TestCampaignModel:
-
     def test_campaign_fields(self):
         """Test campaign model fields"""
         campaign_id = str(uuid.uuid4())
@@ -151,7 +150,7 @@ class TestCampaignModel:
             name="Q1 Restaurant Outreach",
             description="Quarterly restaurant campaign",
             target_universe_id=universe_id,
-            status=CampaignStatus.DRAFT.value
+            status=CampaignStatus.DRAFT.value,
         )
 
         assert campaign.name == "Q1 Restaurant Outreach"
@@ -164,9 +163,7 @@ class TestCampaignModel:
         target_id = str(uuid.uuid4())
 
         campaign_target = CampaignTarget(
-            campaign_id=campaign_id,
-            target_id=target_id,
-            status="pending"
+            campaign_id=campaign_id, target_id=target_id, status="pending"
         )
 
         assert campaign_target.campaign_id == campaign_id
@@ -175,7 +172,6 @@ class TestCampaignModel:
 
 
 class TestGeographicBoundaryModel:
-
     def test_geographic_boundary_fields(self):
         """Test geographic boundary model fields"""
         boundary = GeographicBoundary(
@@ -184,7 +180,7 @@ class TestGeographicBoundaryModel:
             code="CA",
             country="US",
             center_latitude=36.7783,
-            center_longitude=-119.4179
+            center_longitude=-119.4179,
         )
 
         assert boundary.name == "California"
@@ -203,7 +199,7 @@ class TestGeographicBoundaryModel:
             level=GeographyLevel.CITY.value,
             parent_id=parent_id,
             country="US",
-            state_code="CA"
+            state_code="CA",
         )
 
         assert boundary.parent_id == parent_id
@@ -211,7 +207,6 @@ class TestGeographicBoundaryModel:
 
 
 class TestModelDefinitions:
-
     def test_all_models_have_tablenames(self):
         """Test that all models have proper table names defined"""
         models = [Target, TargetUniverse, Campaign, CampaignTarget, GeographicBoundary]
@@ -221,47 +216,47 @@ class TestModelDefinitions:
             TargetUniverse: "target_universes",
             Campaign: "campaigns",
             CampaignTarget: "campaign_targets",
-            GeographicBoundary: "geographic_boundaries"
+            GeographicBoundary: "geographic_boundaries",
         }
 
         for model in models:
-            assert hasattr(model, '__tablename__')
+            assert hasattr(model, "__tablename__")
             assert model.__tablename__ == expected_tablenames[model]
 
     def test_models_have_required_relationships(self):
         """Test that models have expected relationships defined"""
         # Target should have campaign_targets relationship
-        assert hasattr(Target, 'campaign_targets')
+        assert hasattr(Target, "campaign_targets")
 
         # TargetUniverse should have campaigns relationship
-        assert hasattr(TargetUniverse, 'campaigns')
+        assert hasattr(TargetUniverse, "campaigns")
 
         # Campaign should have target_universe, campaign_targets, and campaign_batches relationships
-        assert hasattr(Campaign, 'target_universe')
-        assert hasattr(Campaign, 'campaign_targets')
-        assert hasattr(Campaign, 'campaign_batches')
+        assert hasattr(Campaign, "target_universe")
+        assert hasattr(Campaign, "campaign_targets")
+        assert hasattr(Campaign, "campaign_batches")
 
         # CampaignTarget should have campaign and target relationships
-        assert hasattr(CampaignTarget, 'campaign')
-        assert hasattr(CampaignTarget, 'target')
+        assert hasattr(CampaignTarget, "campaign")
+        assert hasattr(CampaignTarget, "target")
 
     def test_enum_types_defined(self):
         """Test that all enum types are properly defined"""
         # Test VerticalMarket enum
-        assert hasattr(VerticalMarket, 'RESTAURANTS')
-        assert hasattr(VerticalMarket, 'RETAIL')
-        assert hasattr(VerticalMarket, 'PROFESSIONAL_SERVICES')
+        assert hasattr(VerticalMarket, "RESTAURANTS")
+        assert hasattr(VerticalMarket, "RETAIL")
+        assert hasattr(VerticalMarket, "PROFESSIONAL_SERVICES")
 
         # Test GeographyLevel enum
-        assert hasattr(GeographyLevel, 'COUNTRY')
-        assert hasattr(GeographyLevel, 'STATE')
-        assert hasattr(GeographyLevel, 'CITY')
-        assert hasattr(GeographyLevel, 'ZIP_CODE')
+        assert hasattr(GeographyLevel, "COUNTRY")
+        assert hasattr(GeographyLevel, "STATE")
+        assert hasattr(GeographyLevel, "CITY")
+        assert hasattr(GeographyLevel, "ZIP_CODE")
 
         # Test CampaignStatus enum
-        assert hasattr(CampaignStatus, 'DRAFT')
-        assert hasattr(CampaignStatus, 'RUNNING')
-        assert hasattr(CampaignStatus, 'COMPLETED')
+        assert hasattr(CampaignStatus, "DRAFT")
+        assert hasattr(CampaignStatus, "RUNNING")
+        assert hasattr(CampaignStatus, "COMPLETED")
 
         # Test enum values
         assert VerticalMarket.RESTAURANTS.value == "restaurants"

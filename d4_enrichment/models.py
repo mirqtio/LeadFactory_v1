@@ -10,30 +10,37 @@ Acceptance Criteria:
 - Source attribution
 - Data versioning
 """
+import uuid
+from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Dict, Any, List, Optional, Set
 from enum import Enum
-from dataclasses import dataclass
-import uuid
+from typing import Any, Dict, List, Optional, Set
 
-from sqlalchemy import (
-    Column, String, Integer, DateTime, Text, Boolean,
-    Numeric, JSON, ForeignKey, Index, UniqueConstraint
-)
+from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Index,
+                        Integer, Numeric, String, Text, UniqueConstraint)
+
 # UUID handling for both PostgreSQL and SQLite
 try:
     from sqlalchemy.dialects.postgresql import UUID
+
     def get_uuid_column():
         return Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
     def get_uuid_foreign_key(table_name):
-        return Column(UUID(as_uuid=True), ForeignKey(f"{table_name}.id"), nullable=False)
+        return Column(
+            UUID(as_uuid=True), ForeignKey(f"{table_name}.id"), nullable=False
+        )
+
 except ImportError:
     # Fallback for SQLite
     def get_uuid_column():
         return Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+
     def get_uuid_foreign_key(table_name):
         return Column(String(36), ForeignKey(f"{table_name}.id"), nullable=False)
+
+
 from sqlalchemy.orm import relationship
 
 from database.base import Base
@@ -41,6 +48,7 @@ from database.base import Base
 
 class EnrichmentSource(Enum):
     """Sources of enrichment data"""
+
     CLEARBIT = "clearbit"
     HUNTER_IO = "hunter_io"
     APOLLO = "apollo"
@@ -54,15 +62,17 @@ class EnrichmentSource(Enum):
 
 class MatchConfidence(Enum):
     """Confidence levels for data matching"""
-    EXACT = "exact"          # 100% match
-    HIGH = "high"            # 90-99% match
-    MEDIUM = "medium"        # 70-89% match
-    LOW = "low"             # 50-69% match
+
+    EXACT = "exact"  # 100% match
+    HIGH = "high"  # 90-99% match
+    MEDIUM = "medium"  # 70-89% match
+    LOW = "low"  # 50-69% match
     UNCERTAIN = "uncertain"  # <50% match
 
 
 class EnrichmentStatus(Enum):
     """Status of enrichment process"""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -77,6 +87,7 @@ class DataVersion:
 
     Acceptance Criteria: Data versioning
     """
+
     version: str
     created_at: datetime
     source: EnrichmentSource
@@ -90,6 +101,7 @@ class EnrichmentRequest(Base):
 
     Tracks enrichment requests and their status
     """
+
     __tablename__ = "enrichment_requests"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -125,12 +137,14 @@ class EnrichmentRequest(Base):
     error_details = Column(JSON)
 
     # Relationships
-    results = relationship("EnrichmentResult", back_populates="request", cascade="all, delete-orphan")
+    results = relationship(
+        "EnrichmentResult", back_populates="request", cascade="all, delete-orphan"
+    )
 
     # Indexing
     __table_args__ = (
-        Index('idx_enrichment_requests_business_status', 'business_id', 'status'),
-        Index('idx_enrichment_requests_requested_at', 'requested_at'),
+        Index("idx_enrichment_requests_business_status", "business_id", "status"),
+        Index("idx_enrichment_requests_requested_at", "requested_at"),
     )
 
 
@@ -141,10 +155,13 @@ class EnrichmentResult(Base):
     Acceptance Criteria: Enrichment result model, Match confidence tracking,
     Source attribution, Data versioning
     """
+
     __tablename__ = "enrichment_results"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    request_id = Column(String(36), ForeignKey("enrichment_requests.id"), nullable=False)
+    request_id = Column(
+        String(36), ForeignKey("enrichment_requests.id"), nullable=False
+    )
     business_id = Column(String(50), nullable=False, index=True)
 
     # Source attribution (Acceptance Criteria: Source attribution)
@@ -239,13 +256,15 @@ class EnrichmentResult(Base):
 
     # Indexing for performance
     __table_args__ = (
-        Index('idx_enrichment_results_business_source', 'business_id', 'source'),
-        Index('idx_enrichment_results_confidence', 'match_confidence'),
-        Index('idx_enrichment_results_enriched_at', 'enriched_at'),
-        Index('idx_enrichment_results_expires_at', 'expires_at'),
-        Index('idx_enrichment_results_company_name', 'company_name'),
-        Index('idx_enrichment_results_domain', 'domain'),
-        UniqueConstraint('business_id', 'source', 'data_version', name='uq_business_source_version'),
+        Index("idx_enrichment_results_business_source", "business_id", "source"),
+        Index("idx_enrichment_results_confidence", "match_confidence"),
+        Index("idx_enrichment_results_enriched_at", "enriched_at"),
+        Index("idx_enrichment_results_expires_at", "expires_at"),
+        Index("idx_enrichment_results_company_name", "company_name"),
+        Index("idx_enrichment_results_domain", "domain"),
+        UniqueConstraint(
+            "business_id", "source", "data_version", name="uq_business_source_version"
+        ),
     )
 
     def __repr__(self):
@@ -271,50 +290,56 @@ class EnrichmentResult(Base):
         addr = self.headquarters_address
         parts = []
 
-        if addr.get('street'):
-            parts.append(addr['street'])
-        if addr.get('city'):
-            parts.append(addr['city'])
-        if addr.get('state'):
-            parts.append(addr['state'])
-        if addr.get('postal_code'):
-            parts.append(addr['postal_code'])
-        if addr.get('country'):
-            parts.append(addr['country'])
+        if addr.get("street"):
+            parts.append(addr["street"])
+        if addr.get("city"):
+            parts.append(addr["city"])
+        if addr.get("state"):
+            parts.append(addr["state"])
+        if addr.get("postal_code"):
+            parts.append(addr["postal_code"])
+        if addr.get("country"):
+            parts.append(addr["country"])
 
-        return ', '.join(parts) if parts else None
+        return ", ".join(parts) if parts else None
 
     def get_contact_info(self) -> Dict[str, Any]:
         """Get consolidated contact information"""
         return {
-            'phone': self.phone,
-            'email_domain': self.email_domain,
-            'website': self.website,
-            'linkedin': self.linkedin_url,
-            'address': self.get_address_string()
+            "phone": self.phone,
+            "email_domain": self.email_domain,
+            "website": self.website,
+            "linkedin": self.linkedin_url,
+            "address": self.get_address_string(),
         }
 
     def get_company_metrics(self) -> Dict[str, Any]:
         """Get company size and financial metrics"""
         return {
-            'employee_count': self.employee_count,
-            'employee_range': self.employee_range,
-            'annual_revenue': float(self.annual_revenue) if self.annual_revenue else None,
-            'revenue_range': self.revenue_range,
-            'funding_total': float(self.funding_total) if self.funding_total else None,
-            'founded_year': self.founded_year
+            "employee_count": self.employee_count,
+            "employee_range": self.employee_range,
+            "annual_revenue": float(self.annual_revenue)
+            if self.annual_revenue
+            else None,
+            "revenue_range": self.revenue_range,
+            "funding_total": float(self.funding_total) if self.funding_total else None,
+            "founded_year": self.founded_year,
         }
 
     def get_data_quality_metrics(self) -> Dict[str, Any]:
         """Get data quality assessment metrics"""
         return {
-            'match_confidence': self.match_confidence,
-            'match_score': float(self.match_score) if self.match_score else None,
-            'data_quality_score': float(self.data_quality_score) if self.data_quality_score else None,
-            'completeness_score': float(self.completeness_score) if self.completeness_score else None,
-            'freshness_days': self.freshness_days,
-            'age_days': self.age_days,
-            'is_expired': self.is_expired
+            "match_confidence": self.match_confidence,
+            "match_score": float(self.match_score) if self.match_score else None,
+            "data_quality_score": float(self.data_quality_score)
+            if self.data_quality_score
+            else None,
+            "completeness_score": float(self.completeness_score)
+            if self.completeness_score
+            else None,
+            "freshness_days": self.freshness_days,
+            "age_days": self.age_days,
+            "is_expired": self.is_expired,
         }
 
     def update_data_version(self, new_data: Dict[str, Any]) -> str:
@@ -342,7 +367,9 @@ class EnrichmentResult(Base):
 
         return new_version
 
-    def calculate_match_score(self, input_data: Dict[str, Any], matched_data: Dict[str, Any]) -> float:
+    def calculate_match_score(
+        self, input_data: Dict[str, Any], matched_data: Dict[str, Any]
+    ) -> float:
         """
         Calculate match confidence score
 
@@ -353,17 +380,17 @@ class EnrichmentResult(Base):
 
         # Define field weights for matching
         field_weights = {
-            'company_name': 0.4,
-            'domain': 0.3,
-            'phone': 0.2,
-            'address': 0.1
+            "company_name": 0.4,
+            "domain": 0.3,
+            "phone": 0.2,
+            "address": 0.1,
         }
 
         for field, weight in field_weights.items():
             total_weight += weight
 
-            input_val = str(input_data.get(field, '')).lower().strip()
-            matched_val = str(matched_data.get(field, '')).lower().strip()
+            input_val = str(input_data.get(field, "")).lower().strip()
+            matched_val = str(matched_data.get(field, "")).lower().strip()
 
             if input_val and matched_val:
                 # Simple string similarity check
@@ -424,6 +451,7 @@ class EnrichmentAuditLog(Base):
 
     Tracks all enrichment activities for compliance and debugging
     """
+
     __tablename__ = "enrichment_audit_logs"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -451,9 +479,9 @@ class EnrichmentAuditLog(Base):
 
     # Indexing
     __table_args__ = (
-        Index('idx_enrichment_audit_business_timestamp', 'business_id', 'timestamp'),
-        Index('idx_enrichment_audit_action', 'action'),
-        Index('idx_enrichment_audit_source', 'source'),
+        Index("idx_enrichment_audit_business_timestamp", "business_id", "timestamp"),
+        Index("idx_enrichment_audit_action", "action"),
+        Index("idx_enrichment_audit_source", "source"),
     )
 
 
@@ -467,31 +495,31 @@ def validate_enrichment_data(data: Dict[str, Any]) -> List[str]:
     errors = []
 
     # Required fields validation
-    if not data.get('company_name'):
+    if not data.get("company_name"):
         errors.append("Company name is required")
 
     # Domain validation
-    domain = data.get('domain')
+    domain = data.get("domain")
     if domain and not _is_valid_domain(domain):
         errors.append(f"Invalid domain format: {domain}")
 
     # Email validation
-    email_domain = data.get('email_domain')
+    email_domain = data.get("email_domain")
     if email_domain and not _is_valid_domain(email_domain):
         errors.append(f"Invalid email domain format: {email_domain}")
 
     # Phone validation
-    phone = data.get('phone')
+    phone = data.get("phone")
     if phone and not _is_valid_phone(phone):
         errors.append(f"Invalid phone format: {phone}")
 
     # Employee count validation
-    employee_count = data.get('employee_count')
+    employee_count = data.get("employee_count")
     if employee_count is not None and (employee_count < 0 or employee_count > 1000000):
         errors.append(f"Invalid employee count: {employee_count}")
 
     # Revenue validation
-    revenue = data.get('annual_revenue')
+    revenue = data.get("annual_revenue")
     if revenue is not None and revenue < 0:
         errors.append(f"Invalid annual revenue: {revenue}")
 
@@ -501,15 +529,19 @@ def validate_enrichment_data(data: Dict[str, Any]) -> List[str]:
 def _is_valid_domain(domain: str) -> bool:
     """Basic domain validation"""
     import re
-    pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.([a-zA-Z]{2,}\.)*[a-zA-Z]{2,}$'
+
+    pattern = (
+        r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.([a-zA-Z]{2,}\.)*[a-zA-Z]{2,}$"
+    )
     return bool(re.match(pattern, domain))
 
 
 def _is_valid_phone(phone: str) -> bool:
     """Basic phone number validation"""
     import re
+
     # Remove all non-digit characters
-    digits = re.sub(r'\D', '', phone)
+    digits = re.sub(r"\D", "", phone)
     # Check if we have 10-15 digits (international format)
     return 10 <= len(digits) <= 15
 
@@ -522,18 +554,18 @@ def calculate_completeness_score(data: Dict[str, Any]) -> float:
     """
     # Define core fields and their weights
     core_fields = {
-        'company_name': 0.15,
-        'domain': 0.15,
-        'industry': 0.10,
-        'employee_count': 0.10,
-        'headquarters_city': 0.10,
-        'headquarters_state': 0.05,
-        'headquarters_country': 0.05,
-        'phone': 0.08,
-        'description': 0.07,
-        'founded_year': 0.05,
-        'website': 0.05,
-        'annual_revenue': 0.05
+        "company_name": 0.15,
+        "domain": 0.15,
+        "industry": 0.10,
+        "employee_count": 0.10,
+        "headquarters_city": 0.10,
+        "headquarters_state": 0.05,
+        "headquarters_country": 0.05,
+        "phone": 0.08,
+        "description": 0.07,
+        "founded_year": 0.05,
+        "website": 0.05,
+        "annual_revenue": 0.05,
     }
 
     total_weight = sum(core_fields.values())

@@ -12,26 +12,28 @@ Acceptance Criteria:
 """
 import asyncio
 import uuid
-from typing import Dict, Any, List, Optional, Set
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
-from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
+from .llm_insights import LLMInsightGenerator
 from .models import AssessmentResult, AssessmentSession
-from .types import AssessmentType, AssessmentStatus
 from .pagespeed import PageSpeedAssessor
 from .techstack import TechStackDetector
-from .llm_insights import LLMInsightGenerator
+from .types import AssessmentStatus, AssessmentType
 
 
 class CoordinatorError(Exception):
     """Custom exception for coordinator errors"""
+
     pass
 
 
 class AssessmentPriority(Enum):
     """Priority levels for assessments"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -41,6 +43,7 @@ class AssessmentPriority(Enum):
 @dataclass
 class AssessmentRequest:
     """Request for a single assessment"""
+
     assessment_type: AssessmentType
     url: str
     priority: AssessmentPriority = AssessmentPriority.MEDIUM
@@ -52,6 +55,7 @@ class AssessmentRequest:
 @dataclass
 class CoordinatorResult:
     """Result from coordinator execution"""
+
     session_id: str
     business_id: str
     total_assessments: int
@@ -94,7 +98,7 @@ class AssessmentCoordinator:
         url: str,
         assessment_types: List[AssessmentType] = None,
         industry: str = "default",
-        session_config: Optional[Dict[str, Any]] = None
+        session_config: Optional[Dict[str, Any]] = None,
     ) -> CoordinatorResult:
         """
         Execute comprehensive assessment with multiple types
@@ -118,7 +122,7 @@ class AssessmentCoordinator:
             assessment_types = [
                 AssessmentType.PAGESPEED,
                 AssessmentType.TECH_STACK,
-                AssessmentType.AI_INSIGHTS
+                AssessmentType.AI_INSIGHTS,
             ]
 
         # Create assessment session
@@ -129,7 +133,7 @@ class AssessmentCoordinator:
             status=AssessmentStatus.RUNNING,
             total_assessments=len(assessment_types),
             completed_assessments=0,
-            config_data=session_config or {}
+            config_data=session_config or {},
         )
 
         # Create assessment requests
@@ -140,7 +144,7 @@ class AssessmentCoordinator:
                 url=url,
                 priority=self._get_assessment_priority(assessment_type),
                 timeout_seconds=self._get_assessment_timeout(assessment_type),
-                retry_count=2
+                retry_count=2,
             )
             requests.append(request)
 
@@ -156,8 +160,9 @@ class AssessmentCoordinator:
         completed_count = len([r for r in results.values() if r is not None])
         failed_count = len(assessment_types) - completed_count
         total_cost = sum(
-            r.total_cost_usd for r in results.values()
-            if r is not None and hasattr(r, 'total_cost_usd')
+            r.total_cost_usd
+            for r in results.values()
+            if r is not None and hasattr(r, "total_cost_usd")
         )
 
         # Extract errors
@@ -165,11 +170,18 @@ class AssessmentCoordinator:
         for assessment_type in assessment_types:
             if assessment_type not in results or results[assessment_type] is None:
                 errors[assessment_type] = "Assessment failed or timed out"
-            elif hasattr(results[assessment_type], 'error_message') and results[assessment_type].error_message:
+            elif (
+                hasattr(results[assessment_type], "error_message")
+                and results[assessment_type].error_message
+            ):
                 errors[assessment_type] = results[assessment_type].error_message
 
         # Update session
-        session.status = AssessmentStatus.COMPLETED if failed_count == 0 else AssessmentStatus.PARTIAL
+        session.status = (
+            AssessmentStatus.COMPLETED
+            if failed_count == 0
+            else AssessmentStatus.PARTIAL
+        )
         session.completed_assessments = completed_count
         session.total_cost_usd = total_cost
         session.completed_at = completed_at
@@ -185,7 +197,7 @@ class AssessmentCoordinator:
             total_cost_usd=total_cost,
             execution_time_ms=execution_time,
             started_at=started_at,
-            completed_at=completed_at
+            completed_at=completed_at,
         )
 
     async def _execute_parallel_assessments(
@@ -193,7 +205,7 @@ class AssessmentCoordinator:
         business_id: str,
         session_id: str,
         requests: List[AssessmentRequest],
-        industry: str
+        industry: str,
     ) -> Dict[AssessmentType, Optional[AssessmentResult]]:
         """
         Execute multiple assessments in parallel with timeout and error handling
@@ -216,7 +228,7 @@ class AssessmentCoordinator:
                             self._run_assessment(
                                 business_id, session_id, request, industry
                             ),
-                            timeout=request.timeout_seconds
+                            timeout=request.timeout_seconds,
                         )
 
                         # Save partial result immediately
@@ -227,13 +239,15 @@ class AssessmentCoordinator:
                     except asyncio.TimeoutError:
                         if attempt < request.retry_count:
                             # Retry with exponential backoff
-                            await asyncio.sleep(2 ** attempt)
+                            await asyncio.sleep(2**attempt)
                             continue
                         else:
                             # Final timeout - create failed result
                             failed_result = self._create_failed_result(
-                                business_id, session_id, request,
-                                f"Assessment timed out after {request.timeout_seconds}s"
+                                business_id,
+                                session_id,
+                                request,
+                                f"Assessment timed out after {request.timeout_seconds}s",
                             )
                             await self._save_partial_result(failed_result)
                             return assessment_type, failed_result
@@ -241,7 +255,7 @@ class AssessmentCoordinator:
                     except Exception as e:
                         if attempt < request.retry_count:
                             # Retry on error
-                            await asyncio.sleep(2 ** attempt)
+                            await asyncio.sleep(2**attempt)
                             continue
                         else:
                             # Final error - create failed result
@@ -274,7 +288,7 @@ class AssessmentCoordinator:
         business_id: str,
         session_id: str,
         request: AssessmentRequest,
-        industry: str
+        industry: str,
     ) -> AssessmentResult:
         """Run a specific assessment type"""
         assessment_type = request.assessment_type
@@ -282,16 +296,13 @@ class AssessmentCoordinator:
 
         if assessment_type == AssessmentType.PAGESPEED:
             return await self.pagespeed_assessor.assess_website(
-                business_id=business_id,
-                url=url,
-                session_id=session_id
+                business_id=business_id, url=url, session_id=session_id
             )
 
         elif assessment_type == AssessmentType.TECH_STACK:
             # For tech stack, we need to adapt the interface
             detections = await self.techstack_detector.detect_technologies(
-                assessment_id=str(uuid.uuid4()),
-                url=url
+                assessment_id=str(uuid.uuid4()), url=url
             )
 
             # Create AssessmentResult from tech stack detections
@@ -311,12 +322,13 @@ class AssessmentCoordinator:
                             "technology_name": d.technology_name,
                             "category": d.category.value,
                             "confidence": d.confidence,
-                            "version": d.version
-                        } for d in detections
+                            "version": d.version,
+                        }
+                        for d in detections
                     ],
                     "detection_count": len(detections),
-                    "detection_method": "pattern_matching"
-                }
+                    "detection_method": "pattern_matching",
+                },
             )
             return result
 
@@ -332,12 +344,11 @@ class AssessmentCoordinator:
                 domain=self._extract_domain(url),
                 performance_score=80,  # Default values for LLM analysis
                 accessibility_score=85,
-                seo_score=75
+                seo_score=75,
             )
 
             insights = await self.llm_generator.generate_comprehensive_insights(
-                assessment=base_assessment,
-                industry=industry
+                assessment=base_assessment, industry=industry
             )
 
             # Update base assessment with insights
@@ -346,7 +357,7 @@ class AssessmentCoordinator:
                 "industry": insights.industry,
                 "total_cost_usd": float(insights.total_cost_usd),
                 "model_version": insights.model_version,
-                "processing_time_ms": insights.processing_time_ms
+                "processing_time_ms": insights.processing_time_ms,
             }
             base_assessment.total_cost_usd = insights.total_cost_usd
 
@@ -373,7 +384,7 @@ class AssessmentCoordinator:
         business_id: str,
         session_id: str,
         request: AssessmentRequest,
-        error_message: str
+        error_message: str,
     ) -> AssessmentResult:
         """
         Create a failed assessment result
@@ -390,16 +401,18 @@ class AssessmentCoordinator:
             domain=self._extract_domain(request.url),
             started_at=datetime.utcnow(),
             completed_at=datetime.utcnow(),
-            error_message=error_message
+            error_message=error_message,
         )
 
-    def _get_assessment_priority(self, assessment_type: AssessmentType) -> AssessmentPriority:
+    def _get_assessment_priority(
+        self, assessment_type: AssessmentType
+    ) -> AssessmentPriority:
         """Get priority for assessment type"""
         priority_map = {
             AssessmentType.PAGESPEED: AssessmentPriority.HIGH,
             AssessmentType.TECH_STACK: AssessmentPriority.MEDIUM,
             AssessmentType.AI_INSIGHTS: AssessmentPriority.MEDIUM,
-            AssessmentType.FULL_AUDIT: AssessmentPriority.HIGH
+            AssessmentType.FULL_AUDIT: AssessmentPriority.HIGH,
         }
         return priority_map.get(assessment_type, AssessmentPriority.MEDIUM)
 
@@ -409,19 +422,18 @@ class AssessmentCoordinator:
             AssessmentType.PAGESPEED: 180,  # 3 minutes
             AssessmentType.TECH_STACK: 120,  # 2 minutes
             AssessmentType.AI_INSIGHTS: 300,  # 5 minutes
-            AssessmentType.FULL_AUDIT: 600   # 10 minutes
+            AssessmentType.FULL_AUDIT: 600,  # 10 minutes
         }
         return timeout_map.get(assessment_type, 300)
 
     def _extract_domain(self, url: str) -> str:
         """Extract domain from URL"""
         from urllib.parse import urlparse
+
         return urlparse(url).netloc.replace("www.", "")
 
     async def execute_batch_assessments(
-        self,
-        assessment_configs: List[Dict[str, Any]],
-        max_concurrent_sessions: int = 3
+        self, assessment_configs: List[Dict[str, Any]], max_concurrent_sessions: int = 3
     ) -> List[CoordinatorResult]:
         """
         Execute assessments for multiple websites in batch
@@ -442,16 +454,14 @@ class AssessmentCoordinator:
                     url=config["url"],
                     assessment_types=config.get("assessment_types"),
                     industry=config.get("industry", "default"),
-                    session_config=config.get("session_config")
+                    session_config=config.get("session_config"),
                 )
 
         tasks = [execute_single_config(config) for config in assessment_configs]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
     async def resume_failed_session(
-        self,
-        session_id: str,
-        retry_failed_only: bool = True
+        self, session_id: str, retry_failed_only: bool = True
     ) -> CoordinatorResult:
         """
         Resume a failed or partial assessment session
@@ -488,7 +498,7 @@ class AssessmentCoordinator:
             "progress": "50%",
             "completed_assessments": 1,
             "total_assessments": 3,
-            "estimated_completion": datetime.utcnow() + timedelta(minutes=5)
+            "estimated_completion": datetime.utcnow() + timedelta(minutes=5),
         }
 
     async def cancel_session(self, session_id: str) -> bool:
@@ -527,7 +537,7 @@ class AssessmentScheduler:
         url: str,
         priority: AssessmentPriority = AssessmentPriority.MEDIUM,
         scheduled_time: Optional[datetime] = None,
-        assessment_types: Optional[List[AssessmentType]] = None
+        assessment_types: Optional[List[AssessmentType]] = None,
     ) -> str:
         """
         Schedule an assessment for execution
@@ -551,7 +561,7 @@ class AssessmentScheduler:
             "url": url,
             "assessment_types": assessment_types,
             "scheduled_time": scheduled_time or datetime.utcnow(),
-            "priority": priority
+            "priority": priority,
         }
 
         # Add to priority queue
@@ -566,7 +576,7 @@ class AssessmentScheduler:
             AssessmentPriority.CRITICAL: 1,
             AssessmentPriority.HIGH: 2,
             AssessmentPriority.MEDIUM: 3,
-            AssessmentPriority.LOW: 4
+            AssessmentPriority.LOW: 4,
         }
         return priority_values.get(priority, 3)
 
@@ -597,7 +607,7 @@ class AssessmentScheduler:
                     result = await self.coordinator.execute_comprehensive_assessment(
                         business_id=config["business_id"],
                         url=config["url"],
-                        assessment_types=config["assessment_types"]
+                        assessment_types=config["assessment_types"],
                     )
 
                     # Handle result (save to database, send notifications, etc.)

@@ -6,19 +6,21 @@ Acceptance Criteria:
 - Priority scoring implemented
 - Freshness tracking works
 """
-import pytest
-import sys
 import os
-from unittest.mock import Mock, patch
+import sys
 from datetime import datetime, timedelta
 from decimal import Decimal
+from unittest.mock import Mock, patch
+
+import pytest
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
+from d1_targeting.geo_validator import GeoConflict, GeoValidator
 from d1_targeting.target_universe import TargetUniverseManager
-from d1_targeting.geo_validator import GeoValidator, GeoConflict
-from d1_targeting.types import VerticalMarket, GeographyLevel, GeographicConstraint
+from d1_targeting.types import (GeographicConstraint, GeographyLevel,
+                                VerticalMarket)
 
 
 class TestTask021AcceptanceCriteria:
@@ -38,28 +40,26 @@ class TestTask021AcceptanceCriteria:
 
         # Test CREATE operation
         verticals = [VerticalMarket.RESTAURANTS, VerticalMarket.RETAIL]
-        geography_config = {
-            'constraints': [
-                {'level': 'state', 'values': ['CA', 'NY']}
-            ]
-        }
+        geography_config = {"constraints": [{"level": "state", "values": ["CA", "NY"]}]}
 
         universe = manager.create_universe(
             name="Test Universe",
             description="Test description",
             verticals=verticals,
-            geography_config=geography_config
+            geography_config=geography_config,
         )
 
         # Verify universe was created
         assert universe.name == "Test Universe"
-        assert universe.verticals == ['restaurants', 'retail']
+        assert universe.verticals == ["restaurants", "retail"]
         assert universe.geography_config == geography_config
         mock_session.add.assert_called_once()
         mock_session.commit.assert_called_once()
 
         # Test READ operation
-        mock_session.query.return_value.filter_by.return_value.first.return_value = universe
+        mock_session.query.return_value.filter_by.return_value.first.return_value = (
+            universe
+        )
         retrieved = manager.get_universe(universe.id)
         assert retrieved == universe
 
@@ -81,40 +81,40 @@ class TestTask021AcceptanceCriteria:
 
         # Test conflict detection with hierarchy conflict
         geography_config = {
-            'constraints': [
-                {'level': 'country', 'values': ['US']},
-                {'level': 'state', 'values': ['CA', 'NY']}  # Conflict with country
+            "constraints": [
+                {"level": "country", "values": ["US"]},
+                {"level": "state", "values": ["CA", "NY"]},  # Conflict with country
             ]
         }
 
         conflicts = validator.detect_conflicts(geography_config)
 
         # Should detect hierarchy conflict
-        hierarchy_conflicts = [c for c in conflicts if c.conflict_type == 'hierarchy_conflict']
+        hierarchy_conflicts = [
+            c for c in conflicts if c.conflict_type == "hierarchy_conflict"
+        ]
         assert len(hierarchy_conflicts) > 0
-        assert hierarchy_conflicts[0].severity == 'error'
+        assert hierarchy_conflicts[0].severity == "error"
 
         # Test format validation
         bad_format_config = {
-            'constraints': [
-                {'level': 'zip_code', 'values': ['12345', 'invalid-zip']},
-                {'level': 'state', 'values': ['CA', 'ZZ']}  # ZZ is invalid
+            "constraints": [
+                {"level": "zip_code", "values": ["12345", "invalid-zip"]},
+                {"level": "state", "values": ["CA", "ZZ"]},  # ZZ is invalid
             ]
         }
 
         format_conflicts = validator.detect_conflicts(bad_format_config)
-        format_errors = [c for c in format_conflicts if c.conflict_type == 'format_error']
+        format_errors = [
+            c for c in format_conflicts if c.conflict_type == "format_error"
+        ]
         assert len(format_errors) >= 2
 
         # Test clean configuration
-        clean_config = {
-            'constraints': [
-                {'level': 'state', 'values': ['CA', 'NY']}
-            ]
-        }
+        clean_config = {"constraints": [{"level": "state", "values": ["CA", "NY"]}]}
 
         clean_conflicts = validator.detect_conflicts(clean_config)
-        error_conflicts = [c for c in clean_conflicts if c.severity == 'error']
+        error_conflicts = [c for c in clean_conflicts if c.severity == "error"]
         assert len(error_conflicts) == 0
 
         print("✓ Geo conflict detection works")
@@ -132,7 +132,7 @@ class TestTask021AcceptanceCriteria:
         mock_universe.id = "test-id"
         mock_universe.actual_size = 5000
         mock_universe.qualified_count = 2500
-        mock_universe.verticals = ['restaurants', 'retail']
+        mock_universe.verticals = ["restaurants", "retail"]
         mock_universe.last_refresh = datetime.utcnow() - timedelta(hours=12)
 
         # Test priority calculation
@@ -145,7 +145,9 @@ class TestTask021AcceptanceCriteria:
 
         # Test ranking functionality
         mock_universes = [mock_universe]
-        mock_session.query.return_value.filter_by.return_value.limit.return_value.all.return_value = mock_universes
+        mock_session.query.return_value.filter_by.return_value.limit.return_value.all.return_value = (
+            mock_universes
+        )
 
         ranked = manager.rank_universes_by_priority(limit=10)
 
@@ -166,7 +168,9 @@ class TestTask021AcceptanceCriteria:
         # Create mock universe
         mock_universe = Mock()
         mock_universe.actual_size = 1000
-        mock_session.query.return_value.filter_by.return_value.first.return_value = mock_universe
+        mock_session.query.return_value.filter_by.return_value.first.return_value = (
+            mock_universe
+        )
 
         # Test freshness update
         manager.update_freshness_metrics("test-id")
@@ -196,7 +200,9 @@ class TestTask021AcceptanceCriteria:
         assert never_score == 0.0
 
         # Test finding stale universes
-        mock_session.query.return_value.filter.return_value.all.return_value = [stale_universe]
+        mock_session.query.return_value.filter.return_value.all.return_value = [
+            stale_universe
+        ]
         stale_universes = manager.get_stale_universes(max_age_hours=24)
         assert len(stale_universes) == 1
 
@@ -217,7 +223,7 @@ class TestTask021AcceptanceCriteria:
             conflict_type="test",
             description="test conflict",
             affected_constraints=["test"],
-            severity="warning"
+            severity="warning",
         )
         assert conflict.conflict_type == "test"
 
@@ -226,22 +232,20 @@ class TestTask021AcceptanceCriteria:
     def test_integration_with_existing_models(self):
         """Test integration with existing database models"""
         # Test that we can import and use the models
-        from d1_targeting.models import TargetUniverse, Campaign, CampaignTarget, GeographicBoundary
+        from d1_targeting.models import (Campaign, CampaignTarget,
+                                         GeographicBoundary, TargetUniverse)
         from database.models import Target
 
         # Test that models can be instantiated
         universe = TargetUniverse(
             name="Test Universe",
-            verticals=['restaurants'],
+            verticals=["restaurants"],
             geography_config={},
-            estimated_size=1000
+            estimated_size=1000,
         )
         assert universe.name == "Test Universe"
 
-        campaign = Campaign(
-            name="Test Campaign",
-            target_universe_id="test-id"
-        )
+        campaign = Campaign(name="Test Campaign", target_universe_id="test-id")
         assert campaign.name == "Test Campaign"
 
         print("✓ Integration with existing models works")

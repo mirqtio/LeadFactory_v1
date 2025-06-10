@@ -8,22 +8,24 @@ Tests all acceptance criteria:
 - Partial results saved
 - Error recovery implemented
 """
-import pytest
 import asyncio
+import sys
 import uuid
-from unittest.mock import AsyncMock, patch, MagicMock
 from datetime import datetime, timedelta
 from decimal import Decimal
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import sys
-sys.path.insert(0, '/app')  # noqa: E402
+import pytest
 
-from d3_assessment.coordinator import (  # noqa: E402
-    AssessmentCoordinator, AssessmentRequest, CoordinatorResult,
-    AssessmentPriority, CoordinatorError, AssessmentScheduler
-)
-from d3_assessment.models import AssessmentResult, AssessmentSession  # noqa: E402
-from d3_assessment.types import AssessmentType, AssessmentStatus  # noqa: E402
+sys.path.insert(0, "/app")  # noqa: E402
+
+from d3_assessment.coordinator import AssessmentCoordinator  # noqa: E402
+from d3_assessment.coordinator import (AssessmentPriority, AssessmentRequest,
+                                       AssessmentScheduler, CoordinatorError,
+                                       CoordinatorResult)
+from d3_assessment.models import (AssessmentResult,  # noqa: E402
+                                  AssessmentSession)
+from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
 
 
 class TestTask034AcceptanceCriteria:
@@ -47,7 +49,7 @@ class TestTask034AcceptanceCriteria:
             largest_contentful_paint=2500,
             first_input_delay=120,
             cumulative_layout_shift=0.08,
-            total_cost_usd=Decimal("0.15")
+            total_cost_usd=Decimal("0.15"),
         )
         return assessor
 
@@ -60,14 +62,14 @@ class TestTask034AcceptanceCriteria:
                 technology_name="WordPress",
                 category=MagicMock(value="cms"),
                 confidence=0.95,
-                version="6.0"
+                version="6.0",
             ),
             MagicMock(
                 technology_name="React",
                 category=MagicMock(value="frontend"),
                 confidence=0.88,
-                version="18.0"
-            )
+                version="18.0",
+            ),
         ]
         return detector
 
@@ -80,18 +82,20 @@ class TestTask034AcceptanceCriteria:
                 "recommendations": [
                     {"title": "Optimize Images", "priority": "High"},
                     {"title": "Enable Compression", "priority": "Medium"},
-                    {"title": "Improve Mobile UX", "priority": "Medium"}
+                    {"title": "Improve Mobile UX", "priority": "Medium"},
                 ]
             },
             industry="ecommerce",
             total_cost_usd=Decimal("0.35"),
             model_version="gpt-4-0125-preview",
-            processing_time_ms=2500
+            processing_time_ms=2500,
         )
         return generator
 
     @pytest.fixture
-    def coordinator(self, mock_pagespeed_assessor, mock_techstack_detector, mock_llm_generator):
+    def coordinator(
+        self, mock_pagespeed_assessor, mock_techstack_detector, mock_llm_generator
+    ):
         """Create coordinator with mocked dependencies"""
         coordinator = AssessmentCoordinator(max_concurrent=3)
         coordinator.pagespeed_assessor = mock_pagespeed_assessor
@@ -116,9 +120,9 @@ class TestTask034AcceptanceCriteria:
             assessment_types=[
                 AssessmentType.PAGESPEED,
                 AssessmentType.TECH_STACK,
-                AssessmentType.AI_INSIGHTS
+                AssessmentType.AI_INSIGHTS,
             ],
-            industry="ecommerce"
+            industry="ecommerce",
         )
 
         end_time = datetime.utcnow()
@@ -170,7 +174,7 @@ class TestTask034AcceptanceCriteria:
             business_id="test-business-timeout",
             url="https://slow-site.com",
             assessment_types=[AssessmentType.PAGESPEED],
-            session_config={"timeout_seconds": 1}  # 1 second timeout
+            session_config={"timeout_seconds": 1},  # 1 second timeout
         )
 
         # Verify timeout was handled
@@ -206,15 +210,15 @@ class TestTask034AcceptanceCriteria:
             assessment_types=[
                 AssessmentType.PAGESPEED,
                 AssessmentType.TECH_STACK,
-                AssessmentType.AI_INSIGHTS
+                AssessmentType.AI_INSIGHTS,
             ],
-            industry="technology"
+            industry="technology",
         )
 
         # Verify partial success
         assert result.total_assessments == 3
         assert result.completed_assessments == 2  # 2 succeeded
-        assert result.failed_assessments == 1     # 1 failed
+        assert result.failed_assessments == 1  # 1 failed
 
         # Verify successful assessments have results
         assert AssessmentType.TECH_STACK in result.partial_results
@@ -240,6 +244,7 @@ class TestTask034AcceptanceCriteria:
         """
         # Mock assessment that fails first time, succeeds on retry
         call_count = 0
+
         async def failing_then_succeeding(*args, **kwargs):
             nonlocal call_count
             call_count += 1
@@ -255,7 +260,7 @@ class TestTask034AcceptanceCriteria:
                     status=AssessmentStatus.COMPLETED,
                     url="https://example.com",
                     domain="example.com",
-                    performance_score=85
+                    performance_score=85,
                 )
 
         coordinator.pagespeed_assessor.assess_website = AsyncMock(
@@ -266,14 +271,17 @@ class TestTask034AcceptanceCriteria:
             business_id="test-business-retry",
             url="https://retry-test.com",
             assessment_types=[AssessmentType.PAGESPEED],
-            industry="default"
+            industry="default",
         )
 
         # Verify retry worked and assessment eventually succeeded
         assert result.completed_assessments == 1
         assert result.failed_assessments == 0
         assert AssessmentType.PAGESPEED in result.partial_results
-        assert result.partial_results[AssessmentType.PAGESPEED].status == AssessmentStatus.COMPLETED
+        assert (
+            result.partial_results[AssessmentType.PAGESPEED].status
+            == AssessmentStatus.COMPLETED
+        )
 
         # Verify retry was attempted (call_count should be 2)
         assert call_count == 2, "Should have retried after initial failure"
@@ -286,7 +294,7 @@ class TestTask034AcceptanceCriteria:
         result2 = await coordinator.execute_comprehensive_assessment(
             business_id="test-business-permanent-fail",
             url="https://permanent-fail.com",
-            assessment_types=[AssessmentType.PAGESPEED]
+            assessment_types=[AssessmentType.PAGESPEED],
         )
 
         # Verify permanent failure is handled
@@ -303,25 +311,24 @@ class TestTask034AcceptanceCriteria:
                 "business_id": "business-1",
                 "url": "https://site1.com",
                 "assessment_types": [AssessmentType.PAGESPEED],
-                "industry": "ecommerce"
+                "industry": "ecommerce",
             },
             {
                 "business_id": "business-2",
                 "url": "https://site2.com",
                 "assessment_types": [AssessmentType.TECH_STACK],
-                "industry": "healthcare"
+                "industry": "healthcare",
             },
             {
                 "business_id": "business-3",
                 "url": "https://site3.com",
                 "assessment_types": [AssessmentType.AI_INSIGHTS],
-                "industry": "finance"
-            }
+                "industry": "finance",
+            },
         ]
 
         results = await coordinator.execute_batch_assessments(
-            assessment_configs=assessment_configs,
-            max_concurrent_sessions=2
+            assessment_configs=assessment_configs, max_concurrent_sessions=2
         )
 
         # Verify batch results
@@ -343,7 +350,7 @@ class TestTask034AcceptanceCriteria:
             url="https://high-priority.com",
             priority=AssessmentPriority.HIGH,
             timeout_seconds=180,
-            retry_count=3
+            retry_count=3,
         )
 
         low_priority_request = AssessmentRequest(
@@ -351,12 +358,18 @@ class TestTask034AcceptanceCriteria:
             url="https://low-priority.com",
             priority=AssessmentPriority.LOW,
             timeout_seconds=120,
-            retry_count=1
+            retry_count=1,
         )
 
         # Verify priority mapping
-        assert coordinator._get_assessment_priority(AssessmentType.PAGESPEED) == AssessmentPriority.HIGH
-        assert coordinator._get_assessment_priority(AssessmentType.TECH_STACK) == AssessmentPriority.MEDIUM
+        assert (
+            coordinator._get_assessment_priority(AssessmentType.PAGESPEED)
+            == AssessmentPriority.HIGH
+        )
+        assert (
+            coordinator._get_assessment_priority(AssessmentType.TECH_STACK)
+            == AssessmentPriority.MEDIUM
+        )
 
         # Verify timeout mapping
         assert coordinator._get_assessment_timeout(AssessmentType.PAGESPEED) == 180
@@ -372,7 +385,7 @@ class TestTask034AcceptanceCriteria:
             url="https://session-test.com",
             assessment_types=[AssessmentType.PAGESPEED, AssessmentType.TECH_STACK],
             industry="retail",
-            session_config={"custom_param": "test_value"}
+            session_config={"custom_param": "test_value"},
         )
 
         # Verify session data
@@ -402,9 +415,9 @@ class TestTask034AcceptanceCriteria:
             assessment_types=[
                 AssessmentType.PAGESPEED,
                 AssessmentType.TECH_STACK,
-                AssessmentType.AI_INSIGHTS
+                AssessmentType.AI_INSIGHTS,
             ],
-            industry="technology"
+            industry="technology",
         )
 
         # Verify cost aggregation
@@ -427,14 +440,14 @@ class TestTask034AcceptanceCriteria:
             business_id="sched-test-1",
             url="https://high-priority.com",
             priority=AssessmentPriority.HIGH,
-            assessment_types=[AssessmentType.PAGESPEED]
+            assessment_types=[AssessmentType.PAGESPEED],
         )
 
         session_id_2 = await scheduler.schedule_assessment(
             business_id="sched-test-2",
             url="https://low-priority.com",
             priority=AssessmentPriority.LOW,
-            assessment_types=[AssessmentType.TECH_STACK]
+            assessment_types=[AssessmentType.TECH_STACK],
         )
 
         # Verify session IDs generated
@@ -465,9 +478,17 @@ class TestTask034AcceptanceCriteria:
 
     def test_domain_extraction(self, coordinator):
         """Test URL domain extraction"""
-        assert coordinator._extract_domain("https://www.example.com/path") == "example.com"
-        assert coordinator._extract_domain("http://subdomain.test.org") == "subdomain.test.org"
-        assert coordinator._extract_domain("https://shop.example.co.uk/products") == "shop.example.co.uk"
+        assert (
+            coordinator._extract_domain("https://www.example.com/path") == "example.com"
+        )
+        assert (
+            coordinator._extract_domain("http://subdomain.test.org")
+            == "subdomain.test.org"
+        )
+        assert (
+            coordinator._extract_domain("https://shop.example.co.uk/products")
+            == "shop.example.co.uk"
+        )
 
         print("✓ Domain extraction works correctly")
 
@@ -481,14 +502,14 @@ class TestTask034AcceptanceCriteria:
             assessment_types=[
                 AssessmentType.PAGESPEED,
                 AssessmentType.TECH_STACK,
-                AssessmentType.AI_INSIGHTS
+                AssessmentType.AI_INSIGHTS,
             ],
             industry="ecommerce",
             session_config={
                 "client_ip": "192.168.1.1",
                 "user_agent": "TestAgent/1.0",
-                "custom_settings": {"detailed_analysis": True}
-            }
+                "custom_settings": {"detailed_analysis": True},
+            },
         )
 
         # Verify comprehensive result structure
@@ -504,7 +525,11 @@ class TestTask034AcceptanceCriteria:
         assert result.started_at <= result.completed_at
 
         # Verify each assessment type completed successfully
-        for assessment_type in [AssessmentType.PAGESPEED, AssessmentType.TECH_STACK, AssessmentType.AI_INSIGHTS]:
+        for assessment_type in [
+            AssessmentType.PAGESPEED,
+            AssessmentType.TECH_STACK,
+            AssessmentType.AI_INSIGHTS,
+        ]:
             assert assessment_type in result.partial_results
             assessment_result = result.partial_results[assessment_type]
             assert assessment_result.business_id == "comprehensive-test"
@@ -544,7 +569,9 @@ if __name__ == "__main__":
             mock_pagespeed = test_instance.mock_pagespeed_assessor()
             mock_techstack = test_instance.mock_techstack_detector()
             mock_llm = test_instance.mock_llm_generator()
-            coordinator = test_instance.coordinator(mock_pagespeed, mock_techstack, mock_llm)
+            coordinator = test_instance.coordinator(
+                mock_pagespeed, mock_techstack, mock_llm
+            )
 
             # Run all acceptance criteria tests
             await test_instance.test_parallel_assessment_execution(coordinator)
@@ -572,6 +599,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run async tests

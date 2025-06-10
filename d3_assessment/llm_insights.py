@@ -13,10 +13,10 @@ Acceptance Criteria:
 """
 import json
 import uuid
-from typing import Dict, Any, List, Optional
-from decimal import Decimal
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
+from decimal import Decimal
+from typing import Any, Dict, List, Optional
 
 # Placeholder for LLM client - will be implemented in d0_gateway
 try:
@@ -26,20 +26,30 @@ except ImportError:
     class LLMClient:
         async def generate_completion(self, prompt, max_tokens=1000, temperature=0.7):
             class MockResponse:
-                content = '{"recommendations": [], "error": "LLM client not implemented"}'
-                usage = {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
+                content = (
+                    '{"recommendations": [], "error": "LLM client not implemented"}'
+                )
+                usage = {
+                    "prompt_tokens": 100,
+                    "completion_tokens": 50,
+                    "total_tokens": 150,
+                }
+
             return MockResponse()
 
         async def get_model_version(self):
             return "mock-model-v1"
-from .models import AssessmentResult, AssessmentCost
-from .types import InsightType, CostType
+
+
+from .models import AssessmentCost, AssessmentResult
 from .prompts import InsightPrompts
+from .types import CostType, InsightType
 
 
 @dataclass
 class LLMInsightResult:
     """Data class for LLM insight generation results"""
+
     id: str
     assessment_id: str
     business_id: str
@@ -76,7 +86,7 @@ class LLMInsightGenerator:
         self,
         assessment: AssessmentResult,
         industry: str = "default",
-        insight_types: List[InsightType] = None
+        insight_types: List[InsightType] = None,
     ) -> LLMInsightResult:
         """
         Generate comprehensive insights for website assessment
@@ -98,7 +108,7 @@ class LLMInsightGenerator:
             insight_types = [
                 InsightType.RECOMMENDATIONS,
                 InsightType.TECHNICAL_ANALYSIS,
-                InsightType.INDUSTRY_BENCHMARK
+                InsightType.INDUSTRY_BENCHMARK,
             ]
 
         try:
@@ -150,9 +160,9 @@ class LLMInsightGenerator:
                 generated_at=started_at,
                 completed_at=datetime.utcnow(),
                 model_version=await self.llm_client.get_model_version(),
-                processing_time_ms=max(1, int(
-                    (datetime.utcnow() - started_at).total_seconds() * 1000
-                ))
+                processing_time_ms=max(
+                    1, int((datetime.utcnow() - started_at).total_seconds() * 1000)
+                ),
             )
 
             # Validate output meets acceptance criteria
@@ -174,16 +184,13 @@ class LLMInsightGenerator:
                 completed_at=datetime.utcnow(),
                 error_message=str(e),
                 model_version=await self.llm_client.get_model_version(),
-                processing_time_ms=max(1, int(
-                    (datetime.utcnow() - started_at).total_seconds() * 1000
-                ))
+                processing_time_ms=max(
+                    1, int((datetime.utcnow() - started_at).total_seconds() * 1000)
+                ),
             )
 
     async def _generate_recommendations(
-        self,
-        assessment_data: Dict[str, Any],
-        industry: str,
-        insight_id: str
+        self, assessment_data: Dict[str, Any], industry: str, insight_id: str
     ) -> tuple[Dict[str, Any], Decimal]:
         """
         Generate 3 actionable recommendations
@@ -194,9 +201,7 @@ class LLMInsightGenerator:
         prompt = self.prompts.WEBSITE_ANALYSIS_PROMPT.format(**prompt_vars)
 
         response = await self.llm_client.generate_completion(
-            prompt=prompt,
-            max_tokens=2000,
-            temperature=0.7
+            prompt=prompt, max_tokens=2000, temperature=0.7
         )
 
         # Track cost
@@ -211,7 +216,9 @@ class LLMInsightGenerator:
             # Validate 3 recommendations
             recommendations = parsed_response.get("recommendations", [])
             if len(recommendations) < 3:
-                raise ValueError(f"Expected 3 recommendations, got {len(recommendations)}")
+                raise ValueError(
+                    f"Expected 3 recommendations, got {len(recommendations)}"
+                )
 
             return parsed_response, cost
 
@@ -220,18 +227,14 @@ class LLMInsightGenerator:
             return self._extract_recommendations_fallback(response.content), cost
 
     async def _generate_technical_analysis(
-        self,
-        assessment_data: Dict[str, Any],
-        insight_id: str
+        self, assessment_data: Dict[str, Any], insight_id: str
     ) -> tuple[Dict[str, Any], Decimal]:
         """Generate technical performance analysis"""
         prompt_vars = self.prompts.get_prompt_variables(assessment_data)
         prompt = self.prompts.TECHNICAL_ANALYSIS_PROMPT.format(**prompt_vars)
 
         response = await self.llm_client.generate_completion(
-            prompt=prompt,
-            max_tokens=1500,
-            temperature=0.5
+            prompt=prompt, max_tokens=1500, temperature=0.5
         )
 
         cost = await self._track_llm_cost(
@@ -244,10 +247,7 @@ class LLMInsightGenerator:
             return self._extract_technical_analysis_fallback(response.content), cost
 
     async def _generate_industry_benchmark(
-        self,
-        assessment_data: Dict[str, Any],
-        industry: str,
-        insight_id: str
+        self, assessment_data: Dict[str, Any], industry: str, insight_id: str
     ) -> tuple[Dict[str, Any], Decimal]:
         """
         Generate industry-specific benchmarking analysis
@@ -258,9 +258,7 @@ class LLMInsightGenerator:
         prompt = self.prompts.INDUSTRY_BENCHMARK_PROMPT.format(**prompt_vars)
 
         response = await self.llm_client.generate_completion(
-            prompt=prompt,
-            max_tokens=1200,
-            temperature=0.6
+            prompt=prompt, max_tokens=1200, temperature=0.6
         )
 
         cost = await self._track_llm_cost(
@@ -273,18 +271,14 @@ class LLMInsightGenerator:
             return self._extract_benchmark_analysis_fallback(response.content), cost
 
     async def _generate_quick_wins(
-        self,
-        assessment_data: Dict[str, Any],
-        insight_id: str
+        self, assessment_data: Dict[str, Any], insight_id: str
     ) -> tuple[Dict[str, Any], Decimal]:
         """Generate quick win recommendations"""
         prompt_vars = self.prompts.get_prompt_variables(assessment_data)
         prompt = self.prompts.QUICK_WINS_PROMPT.format(**prompt_vars)
 
         response = await self.llm_client.generate_completion(
-            prompt=prompt,
-            max_tokens=1000,
-            temperature=0.8
+            prompt=prompt, max_tokens=1000, temperature=0.8
         )
 
         cost = await self._track_llm_cost(
@@ -314,52 +308,58 @@ class LLMInsightGenerator:
             # Extract additional data from JSONB fields
             "tech_stack": self._extract_tech_stack(assessment),
             "performance_issues": self._extract_performance_issues(assessment),
-            "mobile_performance_score": self._extract_mobile_score(assessment)
+            "mobile_performance_score": self._extract_mobile_score(assessment),
         }
 
     def _extract_tech_stack(self, assessment: AssessmentResult) -> List[Dict[str, Any]]:
         """Extract technology stack from assessment data"""
         # This would integrate with the tech stack detector results
-        tech_data = getattr(assessment, 'tech_stack_data', {})
+        tech_data = getattr(assessment, "tech_stack_data", {})
         if isinstance(tech_data, dict):
-            return tech_data.get('technologies', [])
+            return tech_data.get("technologies", [])
         return []
 
-    def _extract_performance_issues(self, assessment: AssessmentResult) -> List[Dict[str, Any]]:
+    def _extract_performance_issues(
+        self, assessment: AssessmentResult
+    ) -> List[Dict[str, Any]]:
         """Extract performance issues from PageSpeed data"""
-        pagespeed_data = getattr(assessment, 'pagespeed_data', {})
+        pagespeed_data = getattr(assessment, "pagespeed_data", {})
         if isinstance(pagespeed_data, dict):
-            mobile_data = pagespeed_data.get('mobile', {})
-            opportunities = mobile_data.get('lighthouseResult', {}).get('audits', {})
+            mobile_data = pagespeed_data.get("mobile", {})
+            opportunities = mobile_data.get("lighthouseResult", {}).get("audits", {})
 
             issues = []
             for audit_id, audit in opportunities.items():
-                if audit.get('score', 1) < 1 and audit.get('title'):
-                    issues.append({
-                        'id': audit_id,
-                        'title': audit.get('title', ''),
-                        'description': audit.get('description', ''),
-                        'impact': self._categorize_audit_impact(audit),
-                        'savings_ms': audit.get('details', {}).get('overallSavingsMs', 0)
-                    })
+                if audit.get("score", 1) < 1 and audit.get("title"):
+                    issues.append(
+                        {
+                            "id": audit_id,
+                            "title": audit.get("title", ""),
+                            "description": audit.get("description", ""),
+                            "impact": self._categorize_audit_impact(audit),
+                            "savings_ms": audit.get("details", {}).get(
+                                "overallSavingsMs", 0
+                            ),
+                        }
+                    )
 
-            return sorted(issues, key=lambda x: x['savings_ms'], reverse=True)
+            return sorted(issues, key=lambda x: x["savings_ms"], reverse=True)
         return []
 
     def _extract_mobile_score(self, assessment: AssessmentResult) -> int:
         """Extract mobile performance score"""
-        pagespeed_data = getattr(assessment, 'pagespeed_data', {})
+        pagespeed_data = getattr(assessment, "pagespeed_data", {})
         if isinstance(pagespeed_data, dict):
-            mobile_data = pagespeed_data.get('mobile', {})
-            categories = mobile_data.get('lighthouseResult', {}).get('categories', {})
-            perf_score = categories.get('performance', {}).get('score', 0)
+            mobile_data = pagespeed_data.get("mobile", {})
+            categories = mobile_data.get("lighthouseResult", {}).get("categories", {})
+            perf_score = categories.get("performance", {}).get("score", 0)
             return int(perf_score * 100) if perf_score else 0
         return assessment.performance_score
 
     def _categorize_audit_impact(self, audit: Dict[str, Any]) -> str:
         """Categorize audit impact level"""
-        savings_ms = audit.get('details', {}).get('overallSavingsMs', 0) or 0
-        score = audit.get('score', 1) or 1
+        savings_ms = audit.get("details", {}).get("overallSavingsMs", 0) or 0
+        score = audit.get("score", 1) or 1
 
         if savings_ms >= 1000 or score < 0.5:
             return "high"
@@ -373,7 +373,7 @@ class LLMInsightGenerator:
         insight_id: str,
         insight_type: str,
         usage: Dict[str, Any],
-        description: str
+        description: str,
     ) -> Decimal:
         """
         Track LLM API costs
@@ -381,16 +381,15 @@ class LLMInsightGenerator:
         Acceptance Criteria: Cost tracking works
         """
         # Calculate cost based on token usage
-        input_tokens = usage.get('prompt_tokens', 0)
-        output_tokens = usage.get('completion_tokens', 0)
+        input_tokens = usage.get("prompt_tokens", 0)
+        output_tokens = usage.get("completion_tokens", 0)
 
         # OpenAI GPT-4 pricing (as of 2024)
         input_cost_per_token = Decimal("0.00003")  # $0.03 per 1K tokens
         output_cost_per_token = Decimal("0.00006")  # $0.06 per 1K tokens
 
-        total_cost = (
-            (input_tokens * input_cost_per_token) +
-            (output_tokens * output_cost_per_token)
+        total_cost = (input_tokens * input_cost_per_token) + (
+            output_tokens * output_cost_per_token
         )
 
         # Track the cost
@@ -403,7 +402,7 @@ class LLMInsightGenerator:
             description=description,
             units_consumed=float(input_tokens + output_tokens),
             unit_type="tokens",
-            rate_per_unit=input_cost_per_token
+            rate_per_unit=input_cost_per_token,
         )
 
         return total_cost
@@ -420,14 +419,18 @@ class LLMInsightGenerator:
         if "recommendations" in insights:
             recommendations = insights["recommendations"].get("recommendations", [])
             if len(recommendations) < 3:
-                raise ValueError(f"Expected 3 recommendations, got {len(recommendations)}")
+                raise ValueError(
+                    f"Expected 3 recommendations, got {len(recommendations)}"
+                )
 
             # Validate recommendation structure
             for i, rec in enumerate(recommendations):
                 required_fields = ["title", "description", "priority", "effort"]
                 for field in required_fields:
                     if field not in rec:
-                        raise ValueError(f"Recommendation {i+1} missing required field: {field}")
+                        raise ValueError(
+                            f"Recommendation {i+1} missing required field: {field}"
+                        )
 
         # Validate industry insights if present
         if "industry_benchmark" in insights:
@@ -446,36 +449,48 @@ class LLMInsightGenerator:
         Acceptance Criteria: Structured output parsing
         """
         # Simple fallback to ensure we always return structured data
-        lines = content.split('\n')
+        lines = content.split("\n")
         recommendations = []
 
         # Extract recommendation-like content
         for i, line in enumerate(lines):
-            if any(keyword in line.lower() for keyword in ['recommend', 'improve', 'optimize']):
-                recommendations.append({
-                    "title": line.strip()[:100],
-                    "description": f"Extracted from LLM response: {line.strip()}",
-                    "priority": "Medium",
-                    "effort": "Medium",
-                    "impact": "Performance improvement",
-                    "implementation_steps": ["Review and implement suggested changes"],
-                    "industry_context": "General website optimization"
-                })
+            if any(
+                keyword in line.lower()
+                for keyword in ["recommend", "improve", "optimize"]
+            ):
+                recommendations.append(
+                    {
+                        "title": line.strip()[:100],
+                        "description": f"Extracted from LLM response: {line.strip()}",
+                        "priority": "Medium",
+                        "effort": "Medium",
+                        "impact": "Performance improvement",
+                        "implementation_steps": [
+                            "Review and implement suggested changes"
+                        ],
+                        "industry_context": "General website optimization",
+                    }
+                )
 
                 if len(recommendations) >= 3:
                     break
 
         # Ensure we have exactly 3 recommendations
         while len(recommendations) < 3:
-            recommendations.append({
-                "title": f"General Improvement {len(recommendations) + 1}",
-                "description": "Review website performance and user experience",
-                "priority": "Medium",
-                "effort": "Low",
-                "impact": "Improved user satisfaction",
-                "implementation_steps": ["Conduct detailed analysis", "Implement improvements"],
-                "industry_context": "Standard web optimization practices"
-            })
+            recommendations.append(
+                {
+                    "title": f"General Improvement {len(recommendations) + 1}",
+                    "description": "Review website performance and user experience",
+                    "priority": "Medium",
+                    "effort": "Low",
+                    "impact": "Improved user satisfaction",
+                    "implementation_steps": [
+                        "Conduct detailed analysis",
+                        "Implement improvements",
+                    ],
+                    "industry_context": "Standard web optimization practices",
+                }
+            )
 
         return {
             "recommendations": recommendations[:3],
@@ -483,13 +498,13 @@ class LLMInsightGenerator:
                 "industry": "general",
                 "benchmarks": {"status": "analysis_needed"},
                 "competitive_advantage": "Focus on core web vitals",
-                "compliance_notes": "Follow web standards"
+                "compliance_notes": "Follow web standards",
             },
             "summary": {
                 "overall_health": "Requires analysis",
                 "quick_wins": "Optimize performance",
-                "long_term_strategy": "Comprehensive improvement plan"
-            }
+                "long_term_strategy": "Comprehensive improvement plan",
+            },
         }
 
     def _extract_technical_analysis_fallback(self, content: str) -> Dict[str, Any]:
@@ -501,14 +516,16 @@ class LLMInsightGenerator:
                     "title": "Performance Optimization",
                     "description": "Optimize website performance based on assessment data",
                     "implementation": "Review and optimize identified issues",
-                    "expected_improvement": "Improved load times and user experience"
+                    "expected_improvement": "Improved load times and user experience",
                 }
             ],
             "infrastructure_insights": {
                 "current_setup": "Analysis required",
-                "optimization_opportunities": content[:200] if content else "Review needed",
-                "modernization_path": "Follow web performance best practices"
-            }
+                "optimization_opportunities": content[:200]
+                if content
+                else "Review needed",
+                "modernization_path": "Follow web performance best practices",
+            },
         }
 
     def _extract_benchmark_analysis_fallback(self, content: str) -> Dict[str, Any]:
@@ -519,20 +536,20 @@ class LLMInsightGenerator:
                 "performance_vs_industry": {
                     "percentile": "Analysis needed",
                     "key_strengths": ["Baseline established"],
-                    "improvement_areas": ["Performance optimization"]
+                    "improvement_areas": ["Performance optimization"],
                 },
                 "industry_specific_insights": [
                     {
                         "insight": "Industry analysis required",
                         "implication": "Competitive positioning needs assessment",
-                        "action": "Conduct detailed industry comparison"
+                        "action": "Conduct detailed industry comparison",
                     }
                 ],
                 "competitive_analysis": {
                     "advantages": "Assessment completed",
                     "gaps": "Areas for improvement identified",
-                    "differentiation_opportunities": "Focus on core strengths"
-                }
+                    "differentiation_opportunities": "Focus on core strengths",
+                },
             }
         }
 
@@ -548,9 +565,9 @@ class LLMInsightGenerator:
                     "implementation_guide": [
                         "Review current performance metrics",
                         "Identify optimization opportunities",
-                        "Implement quick fixes"
+                        "Implement quick fixes",
                     ],
-                    "success_metrics": "Improved Core Web Vitals scores"
+                    "success_metrics": "Improved Core Web Vitals scores",
                 }
             ]
         }
@@ -572,7 +589,7 @@ class LLMInsightBatchGenerator:
         self,
         assessments: List[AssessmentResult],
         industry_mapping: Dict[str, str] = None,
-        max_concurrent: int = 3
+        max_concurrent: int = 3,
     ) -> List[LLMInsightResult]:
         """
         Generate insights for multiple assessments efficiently
@@ -603,7 +620,7 @@ class LLMInsightBatchGenerator:
     async def calculate_batch_cost(
         self,
         assessments: List[AssessmentResult],
-        insight_types: List[InsightType] = None
+        insight_types: List[InsightType] = None,
     ) -> Decimal:
         """Calculate estimated cost for batch insight generation"""
         base_cost_per_assessment = Decimal("0.50")  # Estimated $0.50 per assessment

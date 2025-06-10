@@ -2,10 +2,10 @@
 """
 Simple test runner for d4_enrichment integration tests without pytest dependency
 """
-import sys
-import traceback
 import asyncio
+import sys
 import time
+import traceback
 
 sys.path.insert(0, "/app")
 
@@ -14,15 +14,13 @@ def run_simple_tests():
     """Run basic integration tests for d4_enrichment"""
     try:
         # Test imports
-        from d4_enrichment.coordinator import (
-            EnrichmentCoordinator,
-            enrich_business,
-            enrich_businesses,
-        )
+        from d4_enrichment.coordinator import (EnrichmentCoordinator,
+                                               enrich_business,
+                                               enrich_businesses)
         from d4_enrichment.gbp_enricher import GBPEnricher
         from d4_enrichment.matchers import BusinessMatcher
-        from d4_enrichment.similarity import PhoneSimilarity, NameSimilarity
         from d4_enrichment.models import EnrichmentSource
+        from d4_enrichment.similarity import NameSimilarity, PhoneSimilarity
 
         print("✓ All integration imports successful")
 

@@ -2,9 +2,9 @@
 """
 Simple test runner for d4_enrichment GBP enricher without pytest dependency
 """
+import asyncio
 import sys
 import traceback
-import asyncio
 
 sys.path.insert(0, "/app")
 
@@ -13,12 +13,9 @@ def run_simple_tests():
     """Run basic tests for d4_enrichment GBP enricher"""
     try:
         # Test imports
-        from d4_enrichment.gbp_enricher import (
-            GBPEnricher,
-            GBPSearchResult,
-            GBPDataQuality,
-            BatchGBPEnricher,
-        )
+        from d4_enrichment.gbp_enricher import (BatchGBPEnricher,
+                                                GBPDataQuality, GBPEnricher,
+                                                GBPSearchResult)
         from d4_enrichment.matchers import MatchConfidence
         from d4_enrichment.models import EnrichmentResult
 

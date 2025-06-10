@@ -8,22 +8,24 @@ Tests all acceptance criteria:
 - Results retrieval API
 - Proper error responses
 """
-import pytest
 import asyncio
+import sys
 import uuid
-from unittest.mock import AsyncMock, patch, MagicMock
 from datetime import datetime, timedelta
 from decimal import Decimal
-from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-import sys
-sys.path.insert(0, '/app')  # noqa: E402
+sys.path.insert(0, "/app")  # noqa: E402
 
-from d3_assessment.api import router, coordinator, assessment_sessions  # noqa: E402
+from d3_assessment.api import (assessment_sessions, coordinator,  # noqa: E402
+                               router)
 from d3_assessment.coordinator import CoordinatorResult  # noqa: E402
-from d3_assessment.types import AssessmentType, AssessmentStatus  # noqa: E402
 from d3_assessment.models import AssessmentResult  # noqa: E402
+from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
 
 # Create test app
 test_app = FastAPI()
@@ -51,9 +53,7 @@ class TestTask035AcceptanceCriteria:
             "assessment_types": ["pagespeed", "tech_stack", "ai_insights"],
             "industry": "ecommerce",
             "priority": "high",
-            "session_config": {
-                "detailed_analysis": True
-            }
+            "session_config": {"detailed_analysis": True},
         }
 
     @pytest.fixture
@@ -81,7 +81,7 @@ class TestTask035AcceptanceCriteria:
                     first_input_delay=120,
                     cumulative_layout_shift=0.08,
                     speed_index=3200,
-                    time_to_interactive=4100
+                    time_to_interactive=4100,
                 ),
                 AssessmentType.TECH_STACK: AssessmentResult(
                     id=str(uuid.uuid4()),
@@ -97,16 +97,16 @@ class TestTask035AcceptanceCriteria:
                                 "technology_name": "WordPress",
                                 "category": "cms",
                                 "confidence": 0.95,
-                                "version": "6.0"
+                                "version": "6.0",
                             },
                             {
                                 "technology_name": "WooCommerce",
                                 "category": "ecommerce",
                                 "confidence": 0.90,
-                                "version": "7.0"
-                            }
+                                "version": "7.0",
+                            },
                         ]
-                    }
+                    },
                 ),
                 AssessmentType.AI_INSIGHTS: AssessmentResult(
                     id=str(uuid.uuid4()),
@@ -122,38 +122,38 @@ class TestTask035AcceptanceCriteria:
                                 {
                                     "title": "Optimize Image Loading",
                                     "priority": "High",
-                                    "impact": "Reduce LCP by 30%"
+                                    "impact": "Reduce LCP by 30%",
                                 },
                                 {
                                     "title": "Enable Compression",
                                     "priority": "Medium",
-                                    "impact": "Reduce file sizes by 60%"
+                                    "impact": "Reduce file sizes by 60%",
                                 },
                                 {
                                     "title": "Improve Mobile UX",
                                     "priority": "Medium",
-                                    "impact": "Better mobile conversion"
-                                }
+                                    "impact": "Better mobile conversion",
+                                },
                             ],
                             "industry_insights": {
                                 "industry": "ecommerce",
-                                "competitive_advantage": "Fast loading improves conversion rates"
+                                "competitive_advantage": "Fast loading improves conversion rates",
                             },
                             "summary": {
                                 "overall_health": "Good performance with improvement opportunities"
-                            }
+                            },
                         },
                         "model_version": "gpt-4-0125-preview",
-                        "total_cost_usd": 0.35
+                        "total_cost_usd": 0.35,
                     },
-                    total_cost_usd=Decimal("0.35")
-                )
+                    total_cost_usd=Decimal("0.35"),
+                ),
             },
             errors={},
             total_cost_usd=Decimal("0.50"),
             execution_time_ms=150000,
             started_at=datetime.utcnow() - timedelta(minutes=3),
-            completed_at=datetime.utcnow()
+            completed_at=datetime.utcnow(),
         )
 
     def test_trigger_assessment_endpoint(self, sample_trigger_request):
@@ -162,11 +162,13 @@ class TestTask035AcceptanceCriteria:
 
         Acceptance Criteria: Trigger assessment endpoint
         """
-        with patch('d3_assessment.api.coordinator') as mock_coord:
+        with patch("d3_assessment.api.coordinator") as mock_coord:
             # Mock the coordinator execution
             mock_coord.execute_comprehensive_assessment = AsyncMock()
 
-            response = client.post("/api/v1/assessments/trigger", json=sample_trigger_request)
+            response = client.post(
+                "/api/v1/assessments/trigger", json=sample_trigger_request
+            )
 
             # Verify response structure
             assert response.status_code == 200
@@ -204,7 +206,7 @@ class TestTask035AcceptanceCriteria:
         invalid_request = {
             "business_id": "biz_test123",
             "url": "not-a-valid-url",
-            "industry": "ecommerce"
+            "industry": "ecommerce",
         }
         response = client.post("/api/v1/assessments/trigger", json=invalid_request)
         assert response.status_code == 422
@@ -213,18 +215,22 @@ class TestTask035AcceptanceCriteria:
         invalid_priority_request = {
             "business_id": "biz_test123",
             "url": "https://example.com",
-            "priority": "invalid_priority"
+            "priority": "invalid_priority",
         }
-        response = client.post("/api/v1/assessments/trigger", json=invalid_priority_request)
+        response = client.post(
+            "/api/v1/assessments/trigger", json=invalid_priority_request
+        )
         assert response.status_code == 422
 
         # Test invalid industry
         invalid_industry_request = {
             "business_id": "biz_test123",
             "url": "https://example.com",
-            "industry": "invalid_industry"
+            "industry": "invalid_industry",
         }
-        response = client.post("/api/v1/assessments/trigger", json=invalid_industry_request)
+        response = client.post(
+            "/api/v1/assessments/trigger", json=invalid_industry_request
+        )
         assert response.status_code == 422
 
         print("✓ Trigger assessment validation errors handled correctly")
@@ -270,13 +276,15 @@ class TestTask035AcceptanceCriteria:
 
         # Test with running assessment (not in sessions)
         running_session_id = "sess_running123"
-        with patch('d3_assessment.api.coordinator.get_assessment_status') as mock_status:
+        with patch(
+            "d3_assessment.api.coordinator.get_assessment_status"
+        ) as mock_status:
             mock_status.return_value = {
                 "status": "running",
                 "progress": "1/3 complete",
                 "total_assessments": 3,
                 "completed_assessments": 1,
-                "estimated_completion": datetime.utcnow() + timedelta(minutes=5)
+                "estimated_completion": datetime.utcnow() + timedelta(minutes=5),
             }
 
             response = client.get(f"/api/v1/assessments/{running_session_id}/status")
@@ -398,7 +406,7 @@ class TestTask035AcceptanceCriteria:
             total_cost_usd=Decimal("0"),
             execution_time_ms=30000,
             started_at=datetime.utcnow() - timedelta(minutes=1),
-            completed_at=datetime.utcnow()
+            completed_at=datetime.utcnow(),
         )
 
         assessment_sessions[session_id] = running_result
@@ -440,7 +448,7 @@ class TestTask035AcceptanceCriteria:
         # Test validation error for invalid business ID
         invalid_request = {
             "business_id": "ab",  # Too short
-            "url": "https://example.com"
+            "url": "https://example.com",
         }
         response = client.post("/api/v1/assessments/trigger", json=invalid_request)
         assert response.status_code == 400
@@ -458,19 +466,21 @@ class TestTask035AcceptanceCriteria:
                 {
                     "business_id": "biz_test1",
                     "url": "https://site1.com",
-                    "industry": "ecommerce"
+                    "industry": "ecommerce",
                 },
                 {
                     "business_id": "biz_test2",
                     "url": "https://site2.com",
-                    "industry": "healthcare"
-                }
+                    "industry": "healthcare",
+                },
             ],
             "max_concurrent": 2,
-            "batch_id": "batch_test123"
+            "batch_id": "batch_test123",
         }
 
-        with patch('d3_assessment.api.coordinator.execute_batch_assessments') as mock_batch:
+        with patch(
+            "d3_assessment.api.coordinator.execute_batch_assessments"
+        ) as mock_batch:
             mock_batch.return_value = []
 
             response = client.post("/api/v1/assessments/batch", json=batch_request)
@@ -492,7 +502,7 @@ class TestTask035AcceptanceCriteria:
         """Test assessment cancellation"""
         session_id = "sess_cancel123"
 
-        with patch('d3_assessment.api.coordinator.cancel_session') as mock_cancel:
+        with patch("d3_assessment.api.coordinator.cancel_session") as mock_cancel:
             mock_cancel.return_value = True
 
             response = client.delete(f"/api/v1/assessments/{session_id}")
@@ -550,19 +560,27 @@ class TestTask035AcceptanceCriteria:
 
         print("✓ API error handling edge cases work correctly")
 
-    def test_api_response_schemas(self, sample_trigger_request, sample_coordinator_result):
+    def test_api_response_schemas(
+        self, sample_trigger_request, sample_coordinator_result
+    ):
         """Test that API responses match expected schemas"""
         # Test trigger response schema
-        with patch('d3_assessment.api.coordinator') as mock_coord:
+        with patch("d3_assessment.api.coordinator") as mock_coord:
             mock_coord.execute_comprehensive_assessment = AsyncMock()
 
-            response = client.post("/api/v1/assessments/trigger", json=sample_trigger_request)
+            response = client.post(
+                "/api/v1/assessments/trigger", json=sample_trigger_request
+            )
             data = response.json()
 
             # Validate trigger response fields
             required_fields = [
-                "session_id", "business_id", "status", "total_assessments",
-                "estimated_completion_time", "tracking_url"
+                "session_id",
+                "business_id",
+                "status",
+                "total_assessments",
+                "estimated_completion_time",
+                "tracking_url",
             ]
             for field in required_fields:
                 assert field in data, f"Missing required field: {field}"
@@ -575,9 +593,14 @@ class TestTask035AcceptanceCriteria:
         data = response.json()
 
         status_required_fields = [
-            "session_id", "business_id", "status", "progress",
-            "total_assessments", "completed_assessments", "failed_assessments",
-            "started_at"
+            "session_id",
+            "business_id",
+            "status",
+            "progress",
+            "total_assessments",
+            "completed_assessments",
+            "failed_assessments",
+            "started_at",
         ]
         for field in status_required_fields:
             assert field in data, f"Missing required field: {field}"
@@ -587,9 +610,17 @@ class TestTask035AcceptanceCriteria:
         data = response.json()
 
         results_required_fields = [
-            "session_id", "business_id", "url", "domain", "status",
-            "total_assessments", "completed_assessments", "started_at",
-            "completed_at", "execution_time_ms", "total_cost_usd"
+            "session_id",
+            "business_id",
+            "url",
+            "domain",
+            "status",
+            "total_assessments",
+            "completed_assessments",
+            "started_at",
+            "completed_at",
+            "execution_time_ms",
+            "total_cost_usd",
         ]
         for field in results_required_fields:
             assert field in data, f"Missing required field: {field}"
@@ -598,19 +629,21 @@ class TestTask035AcceptanceCriteria:
 
     def test_comprehensive_api_flow(self, sample_trigger_request):
         """Test complete API workflow from trigger to results"""
-        with patch('d3_assessment.api.coordinator') as mock_coord:
+        with patch("d3_assessment.api.coordinator") as mock_coord:
             # Mock coordinator execution
             mock_coord.execute_comprehensive_assessment = AsyncMock()
             mock_coord.get_assessment_status.return_value = {
                 "status": "running",
                 "progress": "50%",
                 "total_assessments": 3,
-                "completed_assessments": 1
+                "completed_assessments": 1,
             }
             mock_coord.cancel_session.return_value = True
 
             # 1. Trigger assessment
-            trigger_response = client.post("/api/v1/assessments/trigger", json=sample_trigger_request)
+            trigger_response = client.post(
+                "/api/v1/assessments/trigger", json=sample_trigger_request
+            )
             assert trigger_response.status_code == 200
 
             session_id = trigger_response.json()["session_id"]
@@ -636,14 +669,14 @@ class TestTask035AcceptanceCriteria:
                         status=AssessmentStatus.COMPLETED,
                         url="https://example-store.com",
                         domain="example-store.com",
-                        performance_score=85
+                        performance_score=85,
                     )
                 },
                 errors={},
                 total_cost_usd=Decimal("0.25"),
                 execution_time_ms=120000,
                 started_at=datetime.utcnow() - timedelta(minutes=2),
-                completed_at=datetime.utcnow()
+                completed_at=datetime.utcnow(),
             )
             assessment_sessions[session_id] = completed_result
 
@@ -684,7 +717,7 @@ if __name__ == "__main__":
                 "url": "https://example-store.com",
                 "assessment_types": ["pagespeed", "tech_stack", "ai_insights"],
                 "industry": "ecommerce",
-                "priority": "high"
+                "priority": "high",
             }
 
             sample_coordinator_result = test_instance.sample_coordinator_result()
@@ -704,7 +737,9 @@ if __name__ == "__main__":
             test_instance.test_cancel_assessment_endpoint()
             test_instance.test_health_check_endpoint()
             test_instance.test_api_error_handling_edge_cases()
-            test_instance.test_api_response_schemas(sample_trigger_request, sample_coordinator_result)
+            test_instance.test_api_response_schemas(
+                sample_trigger_request, sample_coordinator_result
+            )
             test_instance.test_comprehensive_api_flow(sample_trigger_request)
 
             print()
@@ -717,6 +752,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run async tests

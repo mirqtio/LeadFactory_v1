@@ -12,25 +12,23 @@ Acceptance Criteria:
 """
 import uuid
 
-from sqlalchemy import (
-    Column, String, Integer, Float, Boolean, Text,
-    ForeignKey, UniqueConstraint, CheckConstraint, Index,
-    DECIMAL, TIMESTAMP, Enum as SQLEnum, JSON
-)
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-
+from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
+                        Column)
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import (Float, ForeignKey, Index, Integer, String, Text,
+                        UniqueConstraint)
 # Database compatibility: Use JSON for better SQLite compatibility
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 # Use JSON type for better cross-database compatibility in tests
 JsonColumn = JSON
 
 from database.base import Base
-from .types import (
-    AssessmentStatus, AssessmentType,
-    TechCategory, InsightCategory, InsightType, CostType
-)
+
+from .types import (AssessmentStatus, AssessmentType, CostType,
+                    InsightCategory, InsightType, TechCategory)
 
 
 def generate_uuid():
@@ -44,6 +42,7 @@ class AssessmentResult(Base):
 
     Acceptance Criteria: Assessment result model, JSONB for flexible data
     """
+
     __tablename__ = "d3_assessment_results"
 
     # Primary identification
@@ -53,8 +52,7 @@ class AssessmentResult(Base):
 
     # Assessment metadata
     assessment_type = Column(SQLEnum(AssessmentType), nullable=False)
-    status = Column(SQLEnum(AssessmentStatus),
-                   default=AssessmentStatus.PENDING)
+    status = Column(SQLEnum(AssessmentStatus), default=AssessmentStatus.PENDING)
     priority = Column(Integer, default=5, nullable=False)
 
     # Website information
@@ -109,40 +107,47 @@ class AssessmentResult(Base):
 
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(),
-                         onupdate=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # Relationships
     session = relationship("AssessmentSession", back_populates="results")
     costs = relationship("AssessmentCost", back_populates="assessment")
-    
+
     # Add business relationship for compatibility with other models
-    business = relationship("Business", back_populates="assessments", foreign_keys=[business_id])
+    business = relationship(
+        "Business", back_populates="assessments", foreign_keys=[business_id]
+    )
 
     # Proper indexing for performance
     __table_args__ = (
         # Core query indexes
-        Index("idx_d3_assessment_business_type",
-              "business_id", "assessment_type"),
+        Index("idx_d3_assessment_business_type", "business_id", "assessment_type"),
         Index("idx_d3_assessment_status", "status"),
         Index("idx_d3_assessment_created", "created_at"),
         Index("idx_d3_assessment_domain", "domain"),
-
         # Performance query indexes
-        Index("idx_d3_assessment_scores",
-              "performance_score", "accessibility_score"),
-        Index("idx_d3_assessment_vitals",
-              "largest_contentful_paint", "first_input_delay"),
-
+        Index("idx_d3_assessment_scores", "performance_score", "accessibility_score"),
+        Index(
+            "idx_d3_assessment_vitals", "largest_contentful_paint", "first_input_delay"
+        ),
         # JSON indexes for flexible queries (removed postgresql-specific GIN for SQLite compatibility)
-
         # Composite indexes for common queries
-        Index("idx_d3_assessment_business_status_type", "business_id", "status", "assessment_type"),
+        Index(
+            "idx_d3_assessment_business_status_type",
+            "business_id",
+            "status",
+            "assessment_type",
+        ),
         Index("idx_d3_assessment_cost_created", "total_cost_usd", "created_at"),
-
         # Constraints
-        CheckConstraint("performance_score >= 0 AND performance_score <= 100", name="check_performance_score"),
-        CheckConstraint("accessibility_score >= 0 AND accessibility_score <= 100", name="check_accessibility_score"),
+        CheckConstraint(
+            "performance_score >= 0 AND performance_score <= 100",
+            name="check_performance_score",
+        ),
+        CheckConstraint(
+            "accessibility_score >= 0 AND accessibility_score <= 100",
+            name="check_accessibility_score",
+        ),
         CheckConstraint("priority >= 1 AND priority <= 10", name="check_priority"),
         CheckConstraint("total_cost_usd >= 0", name="check_cost_positive"),
     )
@@ -154,10 +159,13 @@ class PageSpeedAssessment(Base):
 
     Acceptance Criteria: JSONB for flexible data, Proper indexing
     """
+
     __tablename__ = "d3_pagespeed_assessments"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    assessment_id = Column(String, ForeignKey("d3_assessment_results.id"), nullable=False)
+    assessment_id = Column(
+        String, ForeignKey("d3_assessment_results.id"), nullable=False
+    )
 
     # Device type
     is_mobile = Column(Boolean, default=False)
@@ -198,8 +206,9 @@ class PageSpeedAssessment(Base):
         Index("idx_d3_pagespeed_assessment", "assessment_id"),
         Index("idx_d3_pagespeed_mobile", "is_mobile"),
         Index("idx_d3_pagespeed_scores", "performance_score", "accessibility_score"),
-
-        UniqueConstraint("assessment_id", "is_mobile", name="uq_pagespeed_assessment_device"),
+        UniqueConstraint(
+            "assessment_id", "is_mobile", name="uq_pagespeed_assessment_device"
+        ),
     )
 
 
@@ -209,10 +218,13 @@ class TechStackDetection(Base):
 
     Acceptance Criteria: JSONB for flexible data, Proper indexing
     """
+
     __tablename__ = "d3_tech_stack_detections"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    assessment_id = Column(String, ForeignKey("d3_assessment_results.id"), nullable=False)
+    assessment_id = Column(
+        String, ForeignKey("d3_assessment_results.id"), nullable=False
+    )
 
     # Technology details
     technology_name = Column(String(200), nullable=False)
@@ -242,8 +254,9 @@ class TechStackDetection(Base):
         Index("idx_d3_tech_name", "technology_name"),
         Index("idx_d3_tech_confidence", "confidence"),
         Index("idx_d3_tech_category_confidence", "category", "confidence"),
-
-        CheckConstraint("confidence >= 0 AND confidence <= 1", name="check_tech_confidence"),
+        CheckConstraint(
+            "confidence >= 0 AND confidence <= 1", name="check_tech_confidence"
+        ),
     )
 
 
@@ -253,10 +266,13 @@ class AIInsight(Base):
 
     Acceptance Criteria: JSONB for flexible data, Proper indexing
     """
+
     __tablename__ = "d3_ai_insights"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    assessment_id = Column(String, ForeignKey("d3_assessment_results.id"), nullable=False)
+    assessment_id = Column(
+        String, ForeignKey("d3_assessment_results.id"), nullable=False
+    )
 
     # Insight classification
     category = Column(SQLEnum(InsightCategory), nullable=False)
@@ -294,11 +310,18 @@ class AIInsight(Base):
         Index("idx_d3_insights_impact", "impact"),
         Index("idx_d3_insights_confidence", "confidence"),
         Index("idx_d3_insights_category_priority", "category", "priority"),
-
-        CheckConstraint("priority >= 1 AND priority <= 10", name="check_insight_priority"),
-        CheckConstraint("confidence >= 0 AND confidence <= 1", name="check_insight_confidence"),
-        CheckConstraint("impact IN ('high', 'medium', 'low')", name="check_insight_impact"),
-        CheckConstraint("effort IN ('high', 'medium', 'low')", name="check_insight_effort"),
+        CheckConstraint(
+            "priority >= 1 AND priority <= 10", name="check_insight_priority"
+        ),
+        CheckConstraint(
+            "confidence >= 0 AND confidence <= 1", name="check_insight_confidence"
+        ),
+        CheckConstraint(
+            "impact IN ('high', 'medium', 'low')", name="check_insight_impact"
+        ),
+        CheckConstraint(
+            "effort IN ('high', 'medium', 'low')", name="check_insight_effort"
+        ),
     )
 
 
@@ -308,6 +331,7 @@ class AssessmentSession(Base):
 
     Acceptance Criteria: Assessment result model, Cost tracking fields
     """
+
     __tablename__ = "d3_assessment_sessions"
 
     id = Column(String, primary_key=True, default=generate_uuid)
@@ -339,8 +363,7 @@ class AssessmentSession(Base):
 
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(),
-                         onupdate=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # Relationships
     results = relationship("AssessmentResult", back_populates="session")
@@ -352,9 +375,10 @@ class AssessmentSession(Base):
         Index("idx_d3_session_user", "user_id"),
         Index("idx_d3_session_created", "created_at"),
         Index("idx_d3_session_cost", "total_cost_usd"),
-
         CheckConstraint("total_cost_usd >= 0", name="check_session_cost_positive"),
-        CheckConstraint("completed_assessments <= total_assessments", name="check_session_progress"),
+        CheckConstraint(
+            "completed_assessments <= total_assessments", name="check_session_progress"
+        ),
     )
 
 
@@ -364,6 +388,7 @@ class AssessmentCost(Base):
 
     Acceptance Criteria: Cost tracking fields
     """
+
     __tablename__ = "d3_assessment_costs"
 
     id = Column(String, primary_key=True, default=generate_uuid)
@@ -403,7 +428,6 @@ class AssessmentCost(Base):
         Index("idx_d3_costs_amount", "amount"),
         Index("idx_d3_costs_created", "created_at"),
         Index("idx_d3_costs_type_amount", "cost_type", "amount"),
-
         CheckConstraint("amount >= 0", name="check_cost_amount_positive"),
     )
 
@@ -418,11 +442,14 @@ class LLMInsightResult(Base):
     Acceptance Criteria: 3 recommendations generated, Industry-specific insights,
     Cost tracking works, Structured output parsing
     """
+
     __tablename__ = "d3_llm_insights"
 
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    assessment_id = Column(String, ForeignKey("d3_assessment_results.id"), nullable=False)
+    assessment_id = Column(
+        String, ForeignKey("d3_assessment_results.id"), nullable=False
+    )
     business_id = Column(String, ForeignKey("businesses.id"), nullable=False)
 
     # Industry and context
@@ -458,6 +485,5 @@ class LLMInsightResult(Base):
         Index("idx_d3_llm_insights_cost", "total_cost_usd"),
         Index("idx_d3_llm_insights_model", "model_version"),
         Index("idx_d3_llm_insights_industry_cost", "industry", "total_cost_usd"),
-
         CheckConstraint("total_cost_usd >= 0", name="check_llm_cost_positive"),
     )

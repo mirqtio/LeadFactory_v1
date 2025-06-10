@@ -13,14 +13,13 @@ Acceptance Criteria:
 
 import uuid
 from datetime import datetime
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
-from sqlalchemy import (
-    Column, String, Integer, Float, Boolean, DateTime, Text,
-    UniqueConstraint, CheckConstraint, Index,
-    DECIMAL, Enum as SQLEnum, JSON
-)
+from sqlalchemy import (DECIMAL, JSON, Boolean, CheckConstraint, Column,
+                        DateTime)
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import Float, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.sql import func
 
 from database.base import Base
@@ -33,6 +32,7 @@ def generate_uuid():
 
 class ReportStatus(Enum):
     """Report generation status enumeration"""
+
     PENDING = "pending"
     GENERATING = "generating"
     COMPLETED = "completed"
@@ -43,6 +43,7 @@ class ReportStatus(Enum):
 
 class ReportType(Enum):
     """Report type enumeration"""
+
     BUSINESS_AUDIT = "business_audit"
     WEBSITE_ANALYSIS = "website_analysis"
     COMPETITIVE_INSIGHTS = "competitive_insights"
@@ -52,6 +53,7 @@ class ReportType(Enum):
 
 class TemplateFormat(Enum):
     """Template format enumeration"""
+
     HTML = "html"
     PDF = "pdf"
     EMAIL = "email"
@@ -60,6 +62,7 @@ class TemplateFormat(Enum):
 
 class DeliveryMethod(Enum):
     """Report delivery method enumeration"""
+
     EMAIL = "email"
     DOWNLOAD = "download"
     API = "api"
@@ -72,18 +75,25 @@ class ReportGeneration(Base):
 
     Acceptance Criteria: Report generation tracked
     """
+
     __tablename__ = "d6_report_generations"
 
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    business_id = Column(String, nullable=False)  # Reference to business (FK removed for now)
+    business_id = Column(
+        String, nullable=False
+    )  # Reference to business (FK removed for now)
     user_id = Column(String, nullable=True)  # Customer who requested report
     order_id = Column(String, nullable=True)  # Associated purchase order
 
     # Report metadata
-    report_type = Column(SQLEnum(ReportType), nullable=False, default=ReportType.BUSINESS_AUDIT)
+    report_type = Column(
+        SQLEnum(ReportType), nullable=False, default=ReportType.BUSINESS_AUDIT
+    )
     status = Column(SQLEnum(ReportStatus), nullable=False, default=ReportStatus.PENDING)
-    template_id = Column(String, nullable=False)  # Reference to template (FK will be added later)
+    template_id = Column(
+        String, nullable=False
+    )  # Reference to template (FK will be added later)
 
     # Generation tracking
     requested_at = Column(DateTime, nullable=False, default=func.now())
@@ -115,7 +125,9 @@ class ReportGeneration(Base):
 
     # Audit fields
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
     created_by = Column(String, nullable=True)
 
     # Relationships (commented out until foreign keys are established)
@@ -130,15 +142,20 @@ class ReportGeneration(Base):
         Index("idx_report_gen_requested_at", "requested_at"),
         Index("idx_report_gen_user_order", "user_id", "order_id"),
         CheckConstraint("retry_count >= 0", name="check_retry_count_non_negative"),
-        CheckConstraint("generation_time_seconds >= 0",
-                        name="check_generation_time_positive"),
-        CheckConstraint("quality_score >= 0 AND quality_score <= 100",
-                        name="check_quality_score_range"),
+        CheckConstraint(
+            "generation_time_seconds >= 0", name="check_generation_time_positive"
+        ),
+        CheckConstraint(
+            "quality_score >= 0 AND quality_score <= 100",
+            name="check_quality_score_range",
+        ),
     )
 
     def __repr__(self):
-        return (f"<ReportGeneration(id='{self.id}', business_id='{self.business_id}', "
-                f"status='{self.status.value}')>")
+        return (
+            f"<ReportGeneration(id='{self.id}', business_id='{self.business_id}', "
+            f"status='{self.status.value}')>"
+        )
 
     @property
     def is_completed(self) -> bool:
@@ -164,6 +181,7 @@ class ReportTemplate(Base):
 
     Acceptance Criteria: Template structure defined, Mobile-responsive HTML, Print-optimized CSS
     """
+
     __tablename__ = "d6_report_templates"
 
     # Primary identification
@@ -174,7 +192,9 @@ class ReportTemplate(Base):
 
     # Template metadata
     template_type = Column(SQLEnum(ReportType), nullable=False)
-    format = Column(SQLEnum(TemplateFormat), nullable=False, default=TemplateFormat.HTML)
+    format = Column(
+        SQLEnum(TemplateFormat), nullable=False, default=TemplateFormat.HTML
+    )
     version = Column(String, nullable=False, default="1.0.0")
 
     # Template content
@@ -193,7 +213,7 @@ class ReportTemplate(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     is_default = Column(Boolean, nullable=False, default=False)
     supports_mobile = Column(Boolean, nullable=False, default=True)  # Mobile-responsive
-    supports_print = Column(Boolean, nullable=False, default=True)   # Print-optimized
+    supports_print = Column(Boolean, nullable=False, default=True)  # Print-optimized
 
     # Performance settings
     max_pages = Column(Integer, nullable=True)
@@ -201,7 +221,9 @@ class ReportTemplate(Base):
 
     # Audit fields
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
     created_by = Column(String, nullable=True)
 
     # Relationships (commented out until foreign keys are established)
@@ -217,8 +239,10 @@ class ReportTemplate(Base):
     )
 
     def __repr__(self):
-        return (f"<ReportTemplate(id='{self.id}', name='{self.name}', "
-                f"type='{self.template_type.value}')>")
+        return (
+            f"<ReportTemplate(id='{self.id}', name='{self.name}', "
+            f"type='{self.template_type.value}')>"
+        )
 
     @property
     def is_mobile_responsive(self) -> bool:
@@ -237,11 +261,14 @@ class ReportSection(Base):
 
     Acceptance Criteria: Template structure defined
     """
+
     __tablename__ = "d6_report_sections"
 
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    template_id = Column(String, nullable=False)  # Reference to template (FK will be added later)
+    template_id = Column(
+        String, nullable=False
+    )  # Reference to template (FK will be added later)
 
     # Section metadata
     name = Column(String, nullable=False)
@@ -251,8 +278,8 @@ class ReportSection(Base):
 
     # Section content
     html_content = Column(Text, nullable=True)  # Section HTML template
-    css_styles = Column(Text, nullable=True)   # Section-specific CSS
-    data_query = Column(Text, nullable=True)   # Data extraction query/logic
+    css_styles = Column(Text, nullable=True)  # Section-specific CSS
+    data_query = Column(Text, nullable=True)  # Data extraction query/logic
 
     # Section configuration
     is_required = Column(Boolean, nullable=False, default=False)
@@ -267,7 +294,9 @@ class ReportSection(Base):
 
     # Audit fields
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
 
     # Relationships (commented out until foreign keys are established)
     # template = relationship("ReportTemplate", back_populates="sections")
@@ -291,11 +320,14 @@ class ReportDelivery(Base):
 
     Acceptance Criteria: Report generation tracked
     """
+
     __tablename__ = "d6_report_deliveries"
 
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    report_generation_id = Column(String, nullable=False)  # Reference to report generation
+    report_generation_id = Column(
+        String, nullable=False
+    )  # Reference to report generation
     # (FK will be added later)
 
     # Delivery metadata
@@ -328,7 +360,9 @@ class ReportDelivery(Base):
 
     # Audit fields
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
 
     # Relationships (commented out until foreign keys are established)
     # report_generation = relationship("ReportGeneration", back_populates="deliveries")
@@ -341,13 +375,17 @@ class ReportDelivery(Base):
         Index("idx_delivery_scheduled", "scheduled_at"),
         Index("idx_delivery_recipient", "recipient_email"),
         CheckConstraint("retry_count >= 0", name="check_delivery_retry_non_negative"),
-        CheckConstraint("download_count >= 0", name="check_download_count_non_negative"),
+        CheckConstraint(
+            "download_count >= 0", name="check_download_count_non_negative"
+        ),
         CheckConstraint("open_count >= 0", name="check_open_count_non_negative"),
     )
 
     def __repr__(self):
-        return (f"<ReportDelivery(id='{self.id}', method='{self.delivery_method.value}', "
-                f"status='{self.delivery_status}')>")
+        return (
+            f"<ReportDelivery(id='{self.id}', method='{self.delivery_method.value}', "
+            f"status='{self.delivery_status}')>"
+        )
 
     @property
     def is_delivered(self) -> bool:

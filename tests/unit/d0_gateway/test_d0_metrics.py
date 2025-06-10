@@ -1,15 +1,15 @@
 """
 Test D0 Gateway metrics implementation
 """
-import pytest
-from unittest.mock import Mock, patch
 import time
+from unittest.mock import Mock, patch
+
+import pytest
 
 from d0_gateway.metrics import GatewayMetrics
 
 
 class TestGatewayMetrics:
-
     @pytest.fixture
     def gateway_metrics(self):
         """Create GatewayMetrics instance for testing"""
@@ -18,17 +18,17 @@ class TestGatewayMetrics:
     def test_api_call_counts_tracked_initialization(self, gateway_metrics):
         """Test that API call counting is properly initialized"""
         # Should have all required metrics
-        assert hasattr(gateway_metrics, 'api_calls_total')
-        assert hasattr(gateway_metrics, 'api_latency_seconds')
-        assert hasattr(gateway_metrics, 'api_cost_usd_total')
-        assert hasattr(gateway_metrics, 'circuit_breaker_state')
-        assert hasattr(gateway_metrics, 'cache_hits_total')
-        assert hasattr(gateway_metrics, 'cache_misses_total')
-        assert hasattr(gateway_metrics, 'rate_limit_exceeded_total')
-        assert hasattr(gateway_metrics, 'rate_limit_usage')
+        assert hasattr(gateway_metrics, "api_calls_total")
+        assert hasattr(gateway_metrics, "api_latency_seconds")
+        assert hasattr(gateway_metrics, "api_cost_usd_total")
+        assert hasattr(gateway_metrics, "circuit_breaker_state")
+        assert hasattr(gateway_metrics, "cache_hits_total")
+        assert hasattr(gateway_metrics, "cache_misses_total")
+        assert hasattr(gateway_metrics, "rate_limit_exceeded_total")
+        assert hasattr(gateway_metrics, "rate_limit_usage")
 
         # Should have gateway info
-        assert hasattr(gateway_metrics, 'gateway_info')
+        assert hasattr(gateway_metrics, "gateway_info")
 
     def test_api_call_counts_tracked_recording(self, gateway_metrics):
         """Test that API call counts are tracked correctly"""
@@ -48,9 +48,9 @@ class TestGatewayMetrics:
         # Test various latency ranges
         test_cases = [
             ("yelp", "/businesses/search", 0.05),  # Fast
-            ("pagespeed", "/runPagespeed", 2.5),   # Medium
+            ("pagespeed", "/runPagespeed", 2.5),  # Medium
             ("openai", "/chat/completions", 8.0),  # Slow
-            ("yelp", "/business/details", 15.0),   # Very slow
+            ("yelp", "/business/details", 15.0),  # Very slow
         ]
 
         for provider, endpoint, duration in test_cases:
@@ -58,15 +58,15 @@ class TestGatewayMetrics:
 
         # Verify histogram buckets are configured properly
         buckets = gateway_metrics.api_latency_seconds._upper_bounds
-        expected_buckets = [0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, float('inf')]
+        expected_buckets = [0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, float("inf")]
         assert list(buckets) == expected_buckets
 
     def test_cost_counters_accurate_tracking(self, gateway_metrics):
         """Test that cost counters are accurate"""
         # Record costs for different providers
         cost_data = [
-            ("yelp", "/businesses/search", 0.0),     # Free
-            ("pagespeed", "/runPagespeed", 0.0),     # Free
+            ("yelp", "/businesses/search", 0.0),  # Free
+            ("pagespeed", "/runPagespeed", 0.0),  # Free
             ("openai", "/chat/completions", 0.003),  # GPT-4o-mini cost
             ("openai", "/chat/completions", 0.005),  # Another AI call
         ]
@@ -96,7 +96,9 @@ class TestGatewayMetrics:
     def test_circuit_breaker_state_exposed_mapping(self, gateway_metrics):
         """Test circuit breaker state value mapping"""
         # Test state to number mapping
-        with patch.object(gateway_metrics.circuit_breaker_state, 'labels') as mock_labels:
+        with patch.object(
+            gateway_metrics.circuit_breaker_state, "labels"
+        ) as mock_labels:
             mock_gauge = Mock()
             mock_labels.return_value = mock_gauge
 
@@ -194,24 +196,24 @@ class TestGatewayMetrics:
 
         # Verify summary structure
         assert isinstance(summary, dict)
-        assert 'metrics_enabled' in summary
-        assert summary['metrics_enabled'] is True
-        assert 'collectors' in summary
+        assert "metrics_enabled" in summary
+        assert summary["metrics_enabled"] is True
+        assert "collectors" in summary
 
         # Verify all expected collectors are listed
         expected_collectors = [
-            'api_calls_total',
-            'api_latency_seconds',
-            'api_cost_usd_total',
-            'circuit_breaker_state',
-            'cache_hits_total',
-            'cache_misses_total',
-            'rate_limit_exceeded_total',
-            'rate_limit_usage'
+            "api_calls_total",
+            "api_latency_seconds",
+            "api_cost_usd_total",
+            "circuit_breaker_state",
+            "cache_hits_total",
+            "cache_misses_total",
+            "rate_limit_exceeded_total",
+            "rate_limit_usage",
         ]
 
         for collector in expected_collectors:
-            assert collector in summary['collectors']
+            assert collector in summary["collectors"]
 
     def test_provider_specific_metrics(self, gateway_metrics):
         """Test metrics tracking for specific providers"""
@@ -219,18 +221,18 @@ class TestGatewayMetrics:
             "yelp": {
                 "endpoints": ["/businesses/search", "/business/details"],
                 "typical_latency": 1.2,
-                "rate_limits": {"daily": 5000, "burst": 20}
+                "rate_limits": {"daily": 5000, "burst": 20},
             },
             "pagespeed": {
                 "endpoints": ["/runPagespeed"],
                 "typical_latency": 4.5,
-                "rate_limits": {"daily": 25000, "burst": 50}
+                "rate_limits": {"daily": 25000, "burst": 50},
             },
             "openai": {
                 "endpoints": ["/chat/completions"],
                 "typical_latency": 3.1,
-                "rate_limits": {"daily": 10000, "burst": 20}
-            }
+                "rate_limits": {"daily": 10000, "burst": 20},
+            },
         }
 
         # Record metrics for each provider
@@ -299,20 +301,19 @@ class TestGatewayMetrics:
 
 
 class TestGatewayMetricsIntegration:
-
     def test_prometheus_integration(self):
         """Test Prometheus metrics integration"""
         gateway_metrics = GatewayMetrics()
 
         # Verify that metrics are registered with Prometheus
-        assert hasattr(gateway_metrics.api_calls_total, '_name')
-        assert hasattr(gateway_metrics.api_latency_seconds, '_name')
-        assert hasattr(gateway_metrics.api_cost_usd_total, '_name')
+        assert hasattr(gateway_metrics.api_calls_total, "_name")
+        assert hasattr(gateway_metrics.api_latency_seconds, "_name")
+        assert hasattr(gateway_metrics.api_cost_usd_total, "_name")
 
         # Verify metric names (Prometheus adds suffixes automatically)
-        assert 'gateway_api_calls' in gateway_metrics.api_calls_total._name
-        assert 'gateway_api_latency' in gateway_metrics.api_latency_seconds._name
-        assert 'gateway_api_cost' in gateway_metrics.api_cost_usd_total._name
+        assert "gateway_api_calls" in gateway_metrics.api_calls_total._name
+        assert "gateway_api_latency" in gateway_metrics.api_latency_seconds._name
+        assert "gateway_api_cost" in gateway_metrics.api_cost_usd_total._name
 
     def test_metrics_with_real_data_patterns(self):
         """Test metrics with realistic data patterns"""
@@ -325,35 +326,32 @@ class TestGatewayMetricsIntegration:
                 "provider": "yelp",
                 "endpoint": "/businesses/search",
                 "calls": [
-                    (200, 1.2), (200, 0.8), (200, 1.5), (200, 1.1),
-                    (429, 0.3)  # Rate limited
+                    (200, 1.2),
+                    (200, 0.8),
+                    (200, 1.5),
+                    (200, 1.1),
+                    (429, 0.3),  # Rate limited
                 ],
                 "cache_hits": 3,
-                "cache_misses": 2
+                "cache_misses": 2,
             },
             # PageSpeed analysis - lower volume, variable latency
             {
                 "provider": "pagespeed",
                 "endpoint": "/runPagespeed",
-                "calls": [
-                    (200, 5.2), (200, 8.1), (200, 4.7),
-                    (400, 1.0)  # Bad URL
-                ],
+                "calls": [(200, 5.2), (200, 8.1), (200, 4.7), (400, 1.0)],  # Bad URL
                 "cache_hits": 1,
-                "cache_misses": 3
+                "cache_misses": 3,
             },
             # OpenAI completions - moderate volume, consistent cost
             {
                 "provider": "openai",
                 "endpoint": "/chat/completions",
-                "calls": [
-                    (200, 3.1), (200, 2.8), (200, 3.5),
-                    (200, 4.2), (200, 2.9)
-                ],
+                "calls": [(200, 3.1), (200, 2.8), (200, 3.5), (200, 4.2), (200, 2.9)],
                 "cache_hits": 0,  # AI responses not typically cached
                 "cache_misses": 5,
-                "costs": [0.0035, 0.0028, 0.0042, 0.0031, 0.0033]
-            }
+                "costs": [0.0035, 0.0028, 0.0042, 0.0031, 0.0033],
+            },
         ]
 
         # Execute realistic scenarios
@@ -381,9 +379,9 @@ class TestGatewayMetricsIntegration:
 
         # Generate summary after realistic usage
         summary = gateway_metrics.get_metrics_summary()
-        assert summary['metrics_enabled'] is True
+        assert summary["metrics_enabled"] is True
 
-    @patch('d0_gateway.metrics.get_logger')
+    @patch("d0_gateway.metrics.get_logger")
     def test_logging_integration(self, mock_get_logger):
         """Test integration with logging system"""
         mock_logger = Mock()

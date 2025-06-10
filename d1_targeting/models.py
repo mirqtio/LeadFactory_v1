@@ -1,18 +1,23 @@
 """
 Database models for targeting domain
 """
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, JSON, ForeignKey, UniqueConstraint, Index
-from sqlalchemy.orm import relationship
-from datetime import datetime
 import uuid
+from datetime import datetime
+
+from sqlalchemy import (JSON, Boolean, Column, DateTime, Float, ForeignKey,
+                        Index, Integer, String, Text, UniqueConstraint)
+from sqlalchemy.orm import relationship
 
 from database.base import Base
 from database.models import Target
-from .types import VerticalMarket, GeographyLevel, CampaignStatus, TargetQualificationStatus
+
+from .types import (CampaignStatus, GeographyLevel, TargetQualificationStatus,
+                    VerticalMarket)
 
 
 class TargetUniverse(Base):
     """Definition of a target universe for campaigns"""
+
     __tablename__ = "target_universes"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -32,7 +37,9 @@ class TargetUniverse(Base):
 
     # Metadata
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(
+        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
     created_by = Column(String(255), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
 
@@ -45,6 +52,7 @@ class TargetUniverse(Base):
 
 class Campaign(Base):
     """Marketing campaign targeting specific universe"""
+
     __tablename__ = "campaigns"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -52,7 +60,9 @@ class Campaign(Base):
     description = Column(Text, nullable=True)
 
     # Campaign configuration
-    target_universe_id = Column(String(36), ForeignKey("target_universes.id"), nullable=False)
+    target_universe_id = Column(
+        String(36), ForeignKey("target_universes.id"), nullable=False
+    )
     status = Column(String(20), nullable=False, default="draft", index=True)
     campaign_type = Column(String(50), nullable=False, default="lead_generation")
 
@@ -79,7 +89,9 @@ class Campaign(Base):
 
     # Metadata
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(
+        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
     created_by = Column(String(255), nullable=True)
 
     # Relationships
@@ -88,8 +100,8 @@ class Campaign(Base):
     campaign_batches = relationship("CampaignBatch", back_populates="campaign")
 
     __table_args__ = (
-        Index('idx_campaigns_status', 'status'),
-        Index('idx_campaigns_schedule', 'scheduled_start', 'scheduled_end'),
+        Index("idx_campaigns_status", "status"),
+        Index("idx_campaigns_schedule", "scheduled_start", "scheduled_end"),
     )
 
     def __repr__(self):
@@ -98,6 +110,7 @@ class Campaign(Base):
 
 class CampaignTarget(Base):
     """Association between campaigns and targets with specific status"""
+
     __tablename__ = "campaign_targets"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -130,9 +143,9 @@ class CampaignTarget(Base):
     target = relationship("Target")
 
     __table_args__ = (
-        UniqueConstraint('campaign_id', 'target_id', name='uq_campaign_targets'),
-        Index('idx_campaign_targets_status', 'campaign_id', 'status'),
-        Index('idx_campaign_targets_contact', 'campaign_id', 'first_contacted'),
+        UniqueConstraint("campaign_id", "target_id", name="uq_campaign_targets"),
+        Index("idx_campaign_targets_status", "campaign_id", "status"),
+        Index("idx_campaign_targets_contact", "campaign_id", "first_contacted"),
     )
 
     def __repr__(self):
@@ -141,6 +154,7 @@ class CampaignTarget(Base):
 
 class CampaignBatch(Base):
     """Batch processing records for campaigns"""
+
     __tablename__ = "campaign_batches"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -172,9 +186,9 @@ class CampaignBatch(Base):
     campaign = relationship("Campaign", back_populates="campaign_batches")
 
     __table_args__ = (
-        UniqueConstraint('campaign_id', 'batch_number', name='uq_campaign_batches'),
-        Index('idx_campaign_batches_status', 'campaign_id', 'status'),
-        Index('idx_campaign_batches_schedule', 'scheduled_at', 'status'),
+        UniqueConstraint("campaign_id", "batch_number", name="uq_campaign_batches"),
+        Index("idx_campaign_batches_status", "campaign_id", "status"),
+        Index("idx_campaign_batches_schedule", "scheduled_at", "status"),
     )
 
     def __repr__(self):
@@ -183,12 +197,15 @@ class CampaignBatch(Base):
 
 class GeographicBoundary(Base):
     """Predefined geographic boundaries for targeting"""
+
     __tablename__ = "geographic_boundaries"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False, index=True)
     level = Column(String(20), nullable=False, index=True)  # GeographyLevel enum
-    parent_id = Column(String(36), ForeignKey("geographic_boundaries.id"), nullable=True)
+    parent_id = Column(
+        String(36), ForeignKey("geographic_boundaries.id"), nullable=True
+    )
 
     # Geographic identifiers
     code = Column(String(20), nullable=True, index=True)  # State code, ZIP, etc.
@@ -217,9 +234,9 @@ class GeographicBoundary(Base):
     children = relationship("GeographicBoundary", backref="parent", remote_side=[id])
 
     __table_args__ = (
-        Index('idx_geo_hierarchy', 'level', 'country', 'state_code'),
-        Index('idx_geo_code', 'level', 'code'),
-        UniqueConstraint('level', 'code', 'country', name='uq_geo_boundaries'),
+        Index("idx_geo_hierarchy", "level", "country", "state_code"),
+        Index("idx_geo_code", "level", "code"),
+        UniqueConstraint("level", "code", "country", name="uq_geo_boundaries"),
     )
 
     def __repr__(self):

@@ -11,36 +11,35 @@ Acceptance Criteria:
 - Metrics tracked
 """
 import asyncio
-import time
-import logging
-from typing import List, Dict, Any, Optional, Tuple, Set
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
-import uuid
 import json
+import logging
+import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func
 
 from core.config import get_settings
 from core.logging import get_logger
-from database.session import SessionLocal
 from database.models import Business
-from .models import YelpMetadata, SourcedLocation
-from .yelp_scraper import YelpScraper, ScrapingResult, ScrapingStatus
-from .deduplicator import BusinessDeduplicator, DuplicateMatch, MergeResult, find_and_merge_duplicates
-from .exceptions import (
-    SourcingException,
-    YelpAPIException,
-    DeduplicationException,
-    BatchQuotaException,
-    ErrorRecoveryException
-)
+from database.session import SessionLocal
+
+from .deduplicator import (BusinessDeduplicator, DuplicateMatch, MergeResult,
+                           find_and_merge_duplicates)
+from .exceptions import (BatchQuotaException, DeduplicationException,
+                         ErrorRecoveryException, SourcingException,
+                         YelpAPIException)
+from .models import SourcedLocation, YelpMetadata
+from .yelp_scraper import ScrapingResult, ScrapingStatus, YelpScraper
 
 
 class CoordinatorStatus(Enum):
     """Status of the sourcing coordinator"""
+
     IDLE = "idle"
     INITIALIZING = "initializing"
     SCRAPING = "scraping"
@@ -53,6 +52,7 @@ class CoordinatorStatus(Enum):
 
 class BatchStatus(Enum):
     """Status of a sourcing batch"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -64,6 +64,7 @@ class BatchStatus(Enum):
 @dataclass
 class SourcingBatch:
     """Represents a batch of sourcing operations"""
+
     id: str
     location: str
     search_terms: List[str]
@@ -99,6 +100,7 @@ class SourcingBatch:
 @dataclass
 class CoordinatorMetrics:
     """Comprehensive metrics for the sourcing coordinator"""
+
     session_id: str
     start_time: datetime
     end_time: Optional[datetime] = None
@@ -160,15 +162,22 @@ class SourcingCoordinator:
         # Metrics and monitoring
         self.session_id = str(uuid.uuid4())
         self.metrics = CoordinatorMetrics(
-            session_id=self.session_id,
-            start_time=datetime.utcnow()
+            session_id=self.session_id, start_time=datetime.utcnow()
         )
 
         # Configuration
-        self.max_concurrent_batches = getattr(self.settings, 'MAX_CONCURRENT_SOURCING_BATCHES', 3)
-        self.batch_timeout_minutes = getattr(self.settings, 'SOURCING_BATCH_TIMEOUT_MINUTES', 60)
-        self.auto_deduplicate = getattr(self.settings, 'AUTO_DEDUPLICATE_SOURCING', True)
-        self.validate_scraped_data = getattr(self.settings, 'VALIDATE_SCRAPED_DATA', True)
+        self.max_concurrent_batches = getattr(
+            self.settings, "MAX_CONCURRENT_SOURCING_BATCHES", 3
+        )
+        self.batch_timeout_minutes = getattr(
+            self.settings, "SOURCING_BATCH_TIMEOUT_MINUTES", 60
+        )
+        self.auto_deduplicate = getattr(
+            self.settings, "AUTO_DEDUPLICATE_SOURCING", True
+        )
+        self.validate_scraped_data = getattr(
+            self.settings, "VALIDATE_SCRAPED_DATA", True
+        )
 
     async def initialize(self):
         """Initialize async components"""
@@ -192,7 +201,7 @@ class SourcingCoordinator:
         location: str,
         search_terms: Optional[List[str]] = None,
         categories: Optional[List[str]] = None,
-        max_results: int = 1000
+        max_results: int = 1000,
     ) -> str:
         """
         Create a new sourcing batch
@@ -206,13 +215,15 @@ class SourcingCoordinator:
             categories=categories or [],
             max_results=max_results,
             status=BatchStatus.PENDING,
-            created_at=datetime.utcnow()
+            created_at=datetime.utcnow(),
         )
 
         self.batch_queue.append(batch)
         self.metrics.total_batches += 1
 
-        self.logger.info(f"Created batch {batch.id} for location '{location}' with {max_results} max results")
+        self.logger.info(
+            f"Created batch {batch.id} for location '{location}' with {max_results} max results"
+        )
         return batch.id
 
     async def process_batch(self, batch_id: str) -> SourcingBatch:
@@ -275,7 +286,9 @@ class SourcingCoordinator:
                 del self.active_batches[batch_id]
 
             self.logger.error(f"Batch {batch_id} failed: {e}")
-            raise ErrorRecoveryException(f"Batch processing failed: {e}", original_error=e)
+            raise ErrorRecoveryException(
+                f"Batch processing failed: {e}", original_error=e
+            )
 
     async def _process_scraping_phase(self, batch: SourcingBatch):
         """Process the scraping phase of a batch"""
@@ -286,7 +299,7 @@ class SourcingCoordinator:
             # Build search parameters
             search_params = {}
             if batch.categories:
-                search_params['categories'] = batch.categories
+                search_params["categories"] = batch.categories
 
             if batch.search_terms:
                 # Process multiple search terms
@@ -296,7 +309,7 @@ class SourcingCoordinator:
                         location=batch.location,
                         term=term,
                         max_results=batch.max_results // len(batch.search_terms),
-                        **search_params
+                        **search_params,
                     )
 
                     if result.status == ScrapingStatus.COMPLETED:
@@ -315,14 +328,14 @@ class SourcingCoordinator:
                     error_count=0,
                     quota_used=len(batch.search_terms),
                     duration_seconds=time.time() - phase_start,
-                    businesses=all_businesses
+                    businesses=all_businesses,
                 )
             else:
                 # Single location-based search
                 scraping_result = await self.scraper.search_businesses(
                     location=batch.location,
                     max_results=batch.max_results,
-                    **search_params
+                    **search_params,
                 )
 
             # Process scraping results
@@ -333,7 +346,9 @@ class SourcingCoordinator:
                 # Save scraped businesses to database
                 for business_data in scraping_result.businesses:
                     try:
-                        business_id = await self.scraper.save_business_data(business_data)
+                        business_id = await self.scraper.save_business_data(
+                            business_data
+                        )
                         self.logger.debug(f"Saved business {business_id}")
                     except Exception as e:
                         self.logger.warning(f"Failed to save business: {e}")
@@ -346,12 +361,18 @@ class SourcingCoordinator:
                 self.metrics.scraping_errors += 1
                 if scraping_result.status == ScrapingStatus.QUOTA_EXCEEDED:
                     self.metrics.quota_exceeded_count += 1
-                    raise BatchQuotaException("Scraping quota exceeded during batch processing")
+                    raise BatchQuotaException(
+                        "Scraping quota exceeded during batch processing"
+                    )
                 else:
-                    raise SourcingException(f"Scraping failed: {scraping_result.error_message}")
+                    raise SourcingException(
+                        f"Scraping failed: {scraping_result.error_message}"
+                    )
 
             batch.scraping_time = time.time() - phase_start
-            self.logger.info(f"Scraping phase completed: {batch.scraped_count} businesses in {batch.scraping_time:.2f}s")
+            self.logger.info(
+                f"Scraping phase completed: {batch.scraped_count} businesses in {batch.scraping_time:.2f}s"
+            )
 
         except Exception as e:
             batch.scraping_time = time.time() - phase_start
@@ -365,12 +386,16 @@ class SourcingCoordinator:
 
         try:
             # Get businesses for this batch (recent additions)
-            recent_businesses = self.session.query(Business).filter(
-                and_(
-                    Business.created_at >= batch.started_at,
-                    Business.is_active == True
+            recent_businesses = (
+                self.session.query(Business)
+                .filter(
+                    and_(
+                        Business.created_at >= batch.started_at,
+                        Business.is_active == True,
+                    )
                 )
-            ).all()
+                .all()
+            )
 
             business_ids = [b.id for b in recent_businesses]
 
@@ -379,11 +404,11 @@ class SourcingCoordinator:
                 stats = find_and_merge_duplicates(
                     business_ids=business_ids,
                     confidence_threshold=0.7,
-                    auto_merge_threshold=0.9
+                    auto_merge_threshold=0.9,
                 )
 
-                batch.duplicates_found = stats.get('duplicates_identified', 0)
-                batch.duplicates_merged = stats.get('merges_completed', 0)
+                batch.duplicates_found = stats.get("duplicates_identified", 0)
+                batch.duplicates_merged = stats.get("merges_completed", 0)
 
                 self.metrics.total_duplicates_found += batch.duplicates_found
                 self.metrics.total_duplicates_merged += batch.duplicates_merged
@@ -408,12 +433,16 @@ class SourcingCoordinator:
 
         try:
             # Get businesses for validation
-            recent_businesses = self.session.query(Business).filter(
-                and_(
-                    Business.created_at >= batch.started_at,
-                    Business.is_active == True
+            recent_businesses = (
+                self.session.query(Business)
+                .filter(
+                    and_(
+                        Business.created_at >= batch.started_at,
+                        Business.is_active == True,
+                    )
                 )
-            ).all()
+                .all()
+            )
 
             validation_passed = 0
             validation_failed = 0
@@ -429,7 +458,9 @@ class SourcingCoordinator:
 
                 except Exception as e:
                     validation_failed += 1
-                    self.logger.warning(f"Validation error for business {business.id}: {e}")
+                    self.logger.warning(
+                        f"Validation error for business {business.id}: {e}"
+                    )
 
             batch.validation_passed = validation_passed
             batch.validation_failed = validation_failed
@@ -478,7 +509,7 @@ class SourcingCoordinator:
         # Phone validation (if present)
         if business.phone:
             # Basic phone validation - must contain digits
-            digits = ''.join(filter(str.isdigit, business.phone))
+            digits = "".join(filter(str.isdigit, business.phone))
             if len(digits) < 10:
                 return False
 
@@ -516,28 +547,31 @@ class SourcingCoordinator:
             # Update scraping time average
             old_avg_scraping = self.metrics.avg_scraping_time_per_batch
             self.metrics.avg_scraping_time_per_batch = (
-                (old_avg_scraping * (total_batches - 1) + batch.scraping_time) / total_batches
-            )
+                old_avg_scraping * (total_batches - 1) + batch.scraping_time
+            ) / total_batches
 
             # Update deduplication time average
             old_avg_dedup = self.metrics.avg_deduplication_time_per_batch
             self.metrics.avg_deduplication_time_per_batch = (
-                (old_avg_dedup * (total_batches - 1) + batch.deduplication_time) / total_batches
-            )
+                old_avg_dedup * (total_batches - 1) + batch.deduplication_time
+            ) / total_batches
 
             # Update validation time average
             old_avg_validation = self.metrics.avg_validation_time_per_batch
             self.metrics.avg_validation_time_per_batch = (
-                (old_avg_validation * (total_batches - 1) + batch.validation_time) / total_batches
-            )
+                old_avg_validation * (total_batches - 1) + batch.validation_time
+            ) / total_batches
 
         # Update quality metrics
         if self.metrics.total_businesses_scraped > 0:
             self.metrics.duplicate_rate = (
-                self.metrics.total_duplicates_found / self.metrics.total_businesses_scraped
+                self.metrics.total_duplicates_found
+                / self.metrics.total_businesses_scraped
             )
 
-        validated_total = self.metrics.total_businesses_validated + self.metrics.validation_errors
+        validated_total = (
+            self.metrics.total_businesses_validated + self.metrics.validation_errors
+        )
         if validated_total > 0:
             self.metrics.validation_pass_rate = (
                 self.metrics.total_businesses_validated / validated_total
@@ -563,7 +597,9 @@ class SourcingCoordinator:
                 steps_completed += 1
             if batch.duplicates_found >= 0:  # Deduplication attempted
                 steps_completed += 1
-            if batch.validation_passed + batch.validation_failed > 0:  # Validation attempted
+            if (
+                batch.validation_passed + batch.validation_failed > 0
+            ):  # Validation attempted
                 steps_completed += 1
 
             progress_percentage = (steps_completed / total_steps) * 100
@@ -577,7 +613,9 @@ class SourcingCoordinator:
             "progress_percentage": progress_percentage,
             "created_at": batch.created_at.isoformat(),
             "started_at": batch.started_at.isoformat() if batch.started_at else None,
-            "completed_at": batch.completed_at.isoformat() if batch.completed_at else None,
+            "completed_at": batch.completed_at.isoformat()
+            if batch.completed_at
+            else None,
             "error_message": batch.error_message,
             "metrics": {
                 "total_expected": batch.total_expected,
@@ -589,8 +627,8 @@ class SourcingCoordinator:
                 "scraping_time": batch.scraping_time,
                 "deduplication_time": batch.deduplication_time,
                 "validation_time": batch.validation_time,
-                "total_time": batch.total_time
-            }
+                "total_time": batch.total_time,
+            },
         }
 
     def get_coordinator_status(self) -> Dict[str, Any]:
@@ -610,7 +648,7 @@ class SourcingCoordinator:
                 "max_concurrent_batches": self.max_concurrent_batches,
                 "batch_timeout_minutes": self.batch_timeout_minutes,
                 "auto_deduplicate": self.auto_deduplicate,
-                "validate_scraped_data": self.validate_scraped_data
+                "validate_scraped_data": self.validate_scraped_data,
             },
             "metrics": {
                 "session_start": self.metrics.start_time.isoformat(),
@@ -629,11 +667,13 @@ class SourcingCoordinator:
                 "validation_errors": self.metrics.validation_errors,
                 "quota_exceeded_count": self.metrics.quota_exceeded_count,
                 "duplicate_rate": self.metrics.duplicate_rate,
-                "validation_pass_rate": self.metrics.validation_pass_rate
-            }
+                "validation_pass_rate": self.metrics.validation_pass_rate,
+            },
         }
 
-    async def process_multiple_batches(self, batch_configs: List[Dict[str, Any]]) -> List[str]:
+    async def process_multiple_batches(
+        self, batch_configs: List[Dict[str, Any]]
+    ) -> List[str]:
         """
         Process multiple batches with concurrency control
 
@@ -731,10 +771,9 @@ class SourcingCoordinator:
 
 # Convenience functions for common coordinator operations
 
+
 async def process_location_batch(
-    location: str,
-    categories: Optional[List[str]] = None,
-    max_results: int = 1000
+    location: str, categories: Optional[List[str]] = None, max_results: int = 1000
 ) -> Dict[str, Any]:
     """
     Convenience function to process a single location batch
@@ -746,9 +785,7 @@ async def process_location_batch(
 
     try:
         batch_id = coordinator.create_batch(
-            location=location,
-            categories=categories,
-            max_results=max_results
+            location=location, categories=categories, max_results=max_results
         )
 
         await coordinator.process_batch(batch_id)
@@ -761,7 +798,7 @@ async def process_location_batch(
 async def process_multiple_locations(
     locations: List[str],
     categories: Optional[List[str]] = None,
-    max_results_per_location: int = 500
+    max_results_per_location: int = 500,
 ) -> Dict[str, Any]:
     """
     Convenience function to process multiple locations concurrently
@@ -776,7 +813,7 @@ async def process_multiple_locations(
             {
                 "location": location,
                 "categories": categories,
-                "max_results": max_results_per_location
+                "max_results": max_results_per_location,
             }
             for location in locations
         ]
@@ -790,7 +827,7 @@ async def process_multiple_locations(
 
         return {
             "coordinator_status": coordinator.get_coordinator_status(),
-            "batch_results": batch_results
+            "batch_results": batch_results,
         }
 
     finally:

@@ -2,14 +2,15 @@
 Integration tests for D0 Gateway
 Tests the complete gateway integration with all providers, stubs, rate limiting, circuit breaker, and caching
 """
-import pytest
 import asyncio
 import time
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
+import pytest
+
+from core.config import get_settings
 from d0_gateway.facade import GatewayFacade, get_gateway_facade
 from d0_gateway.factory import GatewayClientFactory, get_gateway_factory
-from core.config import get_settings
 
 
 class TestGatewayProviderIntegration:
@@ -21,6 +22,7 @@ class TestGatewayProviderIntegration:
         # Reset singletons for clean test state
         import d0_gateway.facade
         import d0_gateway.factory
+
         d0_gateway.facade._facade_instance = None
         d0_gateway.factory._factory_instance = None
         GatewayClientFactory._instance = None
@@ -38,48 +40,45 @@ class TestGatewayProviderIntegration:
 
         # Test Yelp search functionality
         result = await facade.search_businesses(
-            term="restaurants",
-            location="San Francisco, CA",
-            limit=5
+            term="restaurants", location="San Francisco, CA", limit=5
         )
 
         # Verify stub response structure
-        assert 'businesses' in result
-        assert 'total' in result
-        assert len(result['businesses']) <= 5
+        assert "businesses" in result
+        assert "total" in result
+        assert len(result["businesses"]) <= 5
 
         # Verify business structure from stubs
-        if result['businesses']:
-            business = result['businesses'][0]
-            assert 'id' in business
-            assert business['id'].startswith('stub-yelp-')
-            assert 'name' in business
-            assert 'rating' in business
-            assert 'location' in business
+        if result["businesses"]:
+            business = result["businesses"][0]
+            assert "id" in business
+            assert business["id"].startswith("stub-yelp-")
+            assert "name" in business
+            assert "rating" in business
+            assert "location" in business
 
     @pytest.mark.asyncio
     async def test_all_providers_work_with_stubs_pagespeed(self, facade):
         """Test that PageSpeed provider works with stubs"""
         # Test PageSpeed analysis functionality
         result = await facade.analyze_website(
-            url="https://example.com",
-            strategy="mobile"
+            url="https://example.com", strategy="mobile"
         )
 
         # Verify stub response structure
-        assert 'lighthouseResult' in result
-        assert 'categories' in result['lighthouseResult']
+        assert "lighthouseResult" in result
+        assert "categories" in result["lighthouseResult"]
 
         # Verify categories from stubs
-        categories = result['lighthouseResult']['categories']
-        assert 'performance' in categories
-        assert 'seo' in categories
-        assert 'accessibility' in categories
-        assert 'best-practices' in categories
+        categories = result["lighthouseResult"]["categories"]
+        assert "performance" in categories
+        assert "seo" in categories
+        assert "accessibility" in categories
+        assert "best-practices" in categories
 
         # Verify scores are realistic
         for category in categories.values():
-            assert 0 <= category['score'] <= 1
+            assert 0 <= category["score"] <= 1
 
     @pytest.mark.asyncio
     async def test_all_providers_work_with_stubs_openai(self, facade):
@@ -90,34 +89,31 @@ class TestGatewayProviderIntegration:
                 "categories": {
                     "performance": {"score": 0.75},
                     "seo": {"score": 0.85},
-                    "accessibility": {"score": 0.90}
+                    "accessibility": {"score": 0.90},
                 },
                 "audits": {
-                    "largest-contentful-paint": {
-                        "score": 0.7,
-                        "displayValue": "2.5 s"
-                    }
-                }
+                    "largest-contentful-paint": {"score": 0.7, "displayValue": "2.5 s"}
+                },
             }
         }
 
         # Test AI insights generation
         result = await facade.generate_website_insights(
             pagespeed_data=pagespeed_data,
-            business_context={"name": "Test Business", "industry": "restaurant"}
+            business_context={"name": "Test Business", "industry": "restaurant"},
         )
 
         # Verify stub response structure
-        assert 'ai_recommendations' in result
-        assert isinstance(result['ai_recommendations'], list)
-        assert len(result['ai_recommendations']) == 3  # Stub returns 3 recommendations
+        assert "ai_recommendations" in result
+        assert isinstance(result["ai_recommendations"], list)
+        assert len(result["ai_recommendations"]) == 3  # Stub returns 3 recommendations
 
         # Verify recommendation structure
-        for rec in result['ai_recommendations']:
-            assert 'issue' in rec
-            assert 'impact' in rec
-            assert 'effort' in rec
-            assert 'improvement' in rec
+        for rec in result["ai_recommendations"]:
+            assert "issue" in rec
+            assert "impact" in rec
+            assert "effort" in rec
+            assert "improvement" in rec
 
     @pytest.mark.asyncio
     async def test_all_providers_work_with_stubs_complete_workflow(self, facade):
@@ -125,16 +121,15 @@ class TestGatewayProviderIntegration:
         # This would normally fail without a valid business ID, but stubs should handle it
         try:
             result = await facade.complete_business_analysis(
-                business_id="stub-test-business",
-                include_email_generation=True
+                business_id="stub-test-business", include_email_generation=True
             )
 
             # Should have attempted all steps
-            assert 'business_id' in result
-            assert result['business_id'] == "stub-test-business"
+            assert "business_id" in result
+            assert result["business_id"] == "stub-test-business"
 
             # May have errors due to stub limitations, but should not crash
-            assert 'errors' in result
+            assert "errors" in result
 
         except Exception as e:
             # If it fails, should be a controlled failure, not a crash
@@ -149,6 +144,7 @@ class TestRateLimitingIntegration:
         """Get fresh facade instance"""
         import d0_gateway.facade
         import d0_gateway.factory
+
         d0_gateway.facade._facade_instance = None
         d0_gateway.factory._factory_instance = None
         GatewayClientFactory._instance = None
@@ -163,16 +159,16 @@ class TestRateLimitingIntegration:
         rate_limits = await facade.get_all_rate_limits()
 
         # Should have rate limits for all providers
-        expected_providers = ['yelp', 'pagespeed', 'openai']
+        expected_providers = ["yelp", "pagespeed", "openai"]
         for provider in expected_providers:
             assert provider in rate_limits
 
-            if 'error' not in rate_limits[provider]:
+            if "error" not in rate_limits[provider]:
                 limits = rate_limits[provider]
-                assert 'daily_limit' in limits
-                assert 'burst_limit' in limits
-                assert limits['daily_limit'] > 0
-                assert limits['burst_limit'] > 0
+                assert "daily_limit" in limits
+                assert "burst_limit" in limits
+                assert limits["daily_limit"] > 0
+                assert limits["burst_limit"] > 0
 
     @pytest.mark.asyncio
     async def test_rate_limiting_verified_tracking(self, facade):
@@ -183,9 +179,7 @@ class TestRateLimitingIntegration:
         for i in range(3):
             try:
                 result = await facade.search_businesses(
-                    term="test",
-                    location="test",
-                    limit=1
+                    term="test", location="test", limit=1
                 )
                 results.append(result)
 
@@ -220,7 +214,9 @@ class TestRateLimitingIntegration:
             providers_tested.append("pagespeed")
 
             # Test OpenAI
-            mock_data = {"lighthouseResult": {"categories": {"performance": {"score": 0.8}}}}
+            mock_data = {
+                "lighthouseResult": {"categories": {"performance": {"score": 0.8}}}
+            }
             await facade.generate_website_insights(mock_data)
             providers_tested.append("openai")
 
@@ -240,6 +236,7 @@ class TestCircuitBreakerIntegration:
         """Get fresh facade instance"""
         import d0_gateway.facade
         import d0_gateway.factory
+
         d0_gateway.facade._facade_instance = None
         d0_gateway.factory._factory_instance = None
         GatewayClientFactory._instance = None
@@ -253,16 +250,16 @@ class TestCircuitBreakerIntegration:
         # Get a client to verify circuit breaker exists
         factory = facade.factory
 
-        for provider in ['yelp', 'pagespeed', 'openai']:
+        for provider in ["yelp", "pagespeed", "openai"]:
             try:
                 client = factory.create_client(provider)
 
                 # Verify circuit breaker is present
-                assert hasattr(client, 'circuit_breaker')
+                assert hasattr(client, "circuit_breaker")
                 assert client.circuit_breaker is not None
 
                 # Verify initial state
-                assert hasattr(client.circuit_breaker, 'state')
+                assert hasattr(client.circuit_breaker, "state")
 
             except Exception as e:
                 # Some providers may fail in test environment
@@ -274,11 +271,11 @@ class TestCircuitBreakerIntegration:
         # Check gateway status which includes circuit breaker states
         status = facade.get_gateway_status()
 
-        assert 'status' in status
-        assert 'health' in status or 'factory' in status
+        assert "status" in status
+        assert "health" in status or "factory" in status
 
         # Circuit breaker states should be tracked in metrics
-        assert hasattr(facade.metrics, 'circuit_breaker_state')
+        assert hasattr(facade.metrics, "circuit_breaker_state")
 
     @pytest.mark.asyncio
     async def test_circuit_breaker_tested_failure_handling(self, facade):
@@ -296,7 +293,14 @@ class TestCircuitBreakerIntegration:
 
                 # Should handle errors gracefully
                 error_msg = str(e).lower()
-                expected_errors = ["invalid", "url", "failed", "error", "timeout", "circuit"]
+                expected_errors = [
+                    "invalid",
+                    "url",
+                    "failed",
+                    "error",
+                    "timeout",
+                    "circuit",
+                ]
                 assert any(expected in error_msg for expected in expected_errors)
 
         # Should handle failures without crashing
@@ -311,6 +315,7 @@ class TestCacheIntegration:
         """Get fresh facade instance"""
         import d0_gateway.facade
         import d0_gateway.factory
+
         d0_gateway.facade._facade_instance = None
         d0_gateway.factory._factory_instance = None
         GatewayClientFactory._instance = None
@@ -323,19 +328,19 @@ class TestCacheIntegration:
         """Test that caching is properly initialized"""
         factory = facade.factory
 
-        for provider in ['yelp', 'pagespeed', 'openai']:
+        for provider in ["yelp", "pagespeed", "openai"]:
             try:
                 client = factory.create_client(provider)
 
                 # Verify cache is present
-                assert hasattr(client, 'cache')
+                assert hasattr(client, "cache")
                 assert client.cache is not None
                 assert client.cache.provider == provider
 
                 # Verify cache methods exist
-                assert hasattr(client.cache, 'get')
-                assert hasattr(client.cache, 'set')
-                assert hasattr(client.cache, 'generate_key')
+                assert hasattr(client.cache, "get")
+                assert hasattr(client.cache, "set")
+                assert hasattr(client.cache, "generate_key")
 
             except Exception:
                 # Some providers may fail in test environment
@@ -347,7 +352,7 @@ class TestCacheIntegration:
         factory = facade.factory
 
         try:
-            client = factory.create_client('yelp')
+            client = factory.create_client("yelp")
             cache = client.cache
 
             # Test key generation
@@ -369,11 +374,7 @@ class TestCacheIntegration:
     async def test_cache_hit_miss_validated_functionality(self, facade):
         """Test cache hit/miss functionality with real requests"""
         # Make the same request twice to test caching
-        search_params = {
-            "term": "test",
-            "location": "test location",
-            "limit": 1
-        }
+        search_params = {"term": "test", "location": "test location", "limit": 1}
 
         try:
             # First request (should be cache miss)
@@ -391,11 +392,15 @@ class TestCacheIntegration:
 
             # In stub mode, results should be the same
             if get_settings().use_stubs:
-                assert result1.get('total', 0) == result2.get('total', 0)
+                assert result1.get("total", 0) == result2.get("total", 0)
 
         except Exception as e:
             # Cache testing may fail in stub environment
-            assert "test" in str(e).lower() or "stub" in str(e).lower() or "location" in str(e).lower()
+            assert (
+                "test" in str(e).lower()
+                or "stub" in str(e).lower()
+                or "location" in str(e).lower()
+            )
 
     @pytest.mark.asyncio
     async def test_cache_hit_miss_validated_metrics(self, facade):
@@ -403,8 +408,8 @@ class TestCacheIntegration:
         # Verify cache metrics exist
         metrics = facade.metrics
 
-        assert hasattr(metrics, 'cache_hits_total')
-        assert hasattr(metrics, 'cache_misses_total')
+        assert hasattr(metrics, "cache_hits_total")
+        assert hasattr(metrics, "cache_misses_total")
 
         # Verify metrics can be recorded
         try:
@@ -441,6 +446,7 @@ class TestGatewayIntegrationHealth:
         """Get fresh facade instance"""
         import d0_gateway.facade
         import d0_gateway.factory
+
         d0_gateway.facade._facade_instance = None
         d0_gateway.factory._factory_instance = None
         GatewayClientFactory._instance = None
@@ -454,13 +460,13 @@ class TestGatewayIntegrationHealth:
         status = facade.get_gateway_status()
 
         # Should return status
-        assert 'status' in status
-        assert status['status'] in ['operational', 'degraded', 'error']
+        assert "status" in status
+        assert status["status"] in ["operational", "degraded", "error"]
 
         # Should include component status
-        expected_components = ['factory', 'health', 'metrics']
+        expected_components = ["factory", "health", "metrics"]
         for component in expected_components:
-            assert component in status or 'error' in status
+            assert component in status or "error" in status
 
     @pytest.mark.asyncio
     async def test_factory_health_check(self, facade):
@@ -468,46 +474,47 @@ class TestGatewayIntegrationHealth:
         factory = facade.factory
         health = factory.health_check()
 
-        assert 'factory_healthy' in health
-        assert 'providers' in health
-        assert 'overall_status' in health
+        assert "factory_healthy" in health
+        assert "providers" in health
+        assert "overall_status" in health
 
         # Should check all registered providers
         providers = factory.get_provider_names()
         assert len(providers) >= 3  # yelp, pagespeed, openai
 
         for provider in providers:
-            assert provider in health['providers']
+            assert provider in health["providers"]
 
     @pytest.mark.asyncio
     async def test_metrics_collection(self, facade):
         """Test that metrics are properly collected"""
         metrics_summary = facade.metrics.get_metrics_summary()
 
-        assert 'metrics_enabled' in metrics_summary
-        assert metrics_summary['metrics_enabled'] is True
-        assert 'collectors' in metrics_summary
+        assert "metrics_enabled" in metrics_summary
+        assert metrics_summary["metrics_enabled"] is True
+        assert "collectors" in metrics_summary
 
         # Should have all expected metric types
         expected_metrics = [
-            'api_calls_total',
-            'api_latency_seconds',
-            'api_cost_usd_total',
-            'circuit_breaker_state'
+            "api_calls_total",
+            "api_latency_seconds",
+            "api_cost_usd_total",
+            "circuit_breaker_state",
         ]
 
         for metric in expected_metrics:
-            assert any(metric in collector for collector in metrics_summary['collectors'])
+            assert any(
+                metric in collector for collector in metrics_summary["collectors"]
+            )
 
     @pytest.mark.asyncio
     async def test_concurrent_requests(self, facade):
         """Test handling concurrent requests"""
+
         async def make_request(i):
             try:
                 return await facade.search_businesses(
-                    term=f"test_{i}",
-                    location="test",
-                    limit=1
+                    term=f"test_{i}", location="test", limit=1
                 )
             except Exception as e:
                 return {"error": str(e)}
@@ -533,12 +540,10 @@ class TestGatewayIntegrationHealth:
         for i in range(5):
             try:
                 result = await facade.search_businesses(
-                    term="test",
-                    location="test location",
-                    limit=1
+                    term="test", location="test location", limit=1
                 )
 
-                if result and 'businesses' in result:
+                if result and "businesses" in result:
                     success_count += 1
 
             except Exception as e:

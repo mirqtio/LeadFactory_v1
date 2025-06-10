@@ -2,28 +2,30 @@
 Circuit breaker pattern implementation for graceful degradation
 """
 import time
-from enum import Enum
-from typing import Dict, Optional
 from dataclasses import dataclass
+from enum import Enum
 from threading import Lock
+from typing import Dict, Optional
 
 from core.logging import get_logger
 
 
 class CircuitState(Enum):
     """Circuit breaker states"""
-    CLOSED = "closed"      # Normal operation
-    OPEN = "open"          # Failing, blocking requests
+
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"  # Failing, blocking requests
     HALF_OPEN = "half_open"  # Testing recovery
 
 
 @dataclass
 class CircuitBreakerConfig:
     """Circuit breaker configuration"""
-    failure_threshold: int = 5        # Failures before opening
-    recovery_timeout: int = 60        # Seconds before testing recovery
-    success_threshold: int = 3        # Successes to close from half-open
-    timeout_duration: int = 30        # Request timeout in seconds
+
+    failure_threshold: int = 5  # Failures before opening
+    recovery_timeout: int = 60  # Seconds before testing recovery
+    success_threshold: int = 3  # Successes to close from half-open
+    timeout_duration: int = 30  # Request timeout in seconds
 
 
 class CircuitBreaker:
@@ -52,7 +54,9 @@ class CircuitBreaker:
             elif self.state == CircuitState.OPEN:
                 # Check if we should move to half-open
                 if now - self.last_failure_time >= self.config.recovery_timeout:
-                    self.logger.info(f"Circuit breaker half-opening for {self.provider}")
+                    self.logger.info(
+                        f"Circuit breaker half-opening for {self.provider}"
+                    )
                     self.state = CircuitState.HALF_OPEN
                     self.success_count = 0
                     return True
@@ -106,14 +110,14 @@ class CircuitBreaker:
         """Get current circuit breaker state information"""
         with self.lock:
             return {
-                'provider': self.provider,
-                'state': self.state.value,
-                'failure_count': self.failure_count,
-                'success_count': self.success_count,
-                'failure_threshold': self.config.failure_threshold,
-                'recovery_timeout': self.config.recovery_timeout,
-                'last_failure_time': self.last_failure_time,
-                'can_execute': self.can_execute()
+                "provider": self.provider,
+                "state": self.state.value,
+                "failure_count": self.failure_count,
+                "success_count": self.success_count,
+                "failure_threshold": self.config.failure_threshold,
+                "recovery_timeout": self.config.recovery_timeout,
+                "last_failure_time": self.last_failure_time,
+                "can_execute": self.can_execute(),
             }
 
     def reset(self) -> None:

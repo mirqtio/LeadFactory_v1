@@ -1,8 +1,8 @@
 """
 Yelp Fusion API v3 client implementation
 """
-from typing import Dict, Any, Optional, List
 from decimal import Decimal
+from typing import Any, Dict, List, Optional
 
 from ..base import BaseAPIClient
 
@@ -11,10 +11,7 @@ class YelpClient(BaseAPIClient):
     """Yelp Fusion API v3 client"""
 
     def __init__(self, api_key: Optional[str] = None):
-        super().__init__(
-            provider="yelp",
-            api_key=api_key
-        )
+        super().__init__(provider="yelp", api_key=api_key)
 
     def _get_base_url(self) -> str:
         """Get Yelp API base URL"""
@@ -24,16 +21,16 @@ class YelpClient(BaseAPIClient):
         """Get Yelp API headers"""
         return {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
     def get_rate_limit(self) -> Dict[str, int]:
         """Get Yelp rate limit configuration"""
         return {
-            'daily_limit': 5000,
-            'daily_used': 0,  # Would be fetched from Redis in real implementation
-            'burst_limit': 10,
-            'window_seconds': 1
+            "daily_limit": 5000,
+            "daily_used": 0,  # Would be fetched from Redis in real implementation
+            "burst_limit": 10,
+            "window_seconds": 1,
         }
 
     def calculate_cost(self, operation: str, **kwargs) -> Decimal:
@@ -45,13 +42,13 @@ class YelpClient(BaseAPIClient):
         """
         if operation.startswith("GET:/v3/businesses/search"):
             # Free tier - no cost
-            return Decimal('0.000')
+            return Decimal("0.000")
         elif operation.startswith("GET:/v3/businesses/"):
             # Business details - free tier
-            return Decimal('0.000')
+            return Decimal("0.000")
         else:
             # Other operations - minimal cost
-            return Decimal('0.001')
+            return Decimal("0.001")
 
     async def search_businesses(
         self,
@@ -63,7 +60,7 @@ class YelpClient(BaseAPIClient):
         radius: Optional[int] = None,
         price: Optional[str] = None,
         open_now: Optional[bool] = None,
-        sort_by: Optional[str] = None
+        sort_by: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Search for businesses on Yelp
@@ -83,30 +80,26 @@ class YelpClient(BaseAPIClient):
             Dict containing businesses list and metadata
         """
         params = {
-            'location': location,
-            'limit': min(limit, 50),  # Yelp max is 50
-            'offset': offset
+            "location": location,
+            "limit": min(limit, 50),  # Yelp max is 50
+            "offset": offset,
         }
 
         # Add optional parameters
         if categories:
-            params['categories'] = categories
+            params["categories"] = categories
         if term:
-            params['term'] = term
+            params["term"] = term
         if radius:
-            params['radius'] = min(radius, 40000)  # Yelp max is 40km
+            params["radius"] = min(radius, 40000)  # Yelp max is 40km
         if price:
-            params['price'] = price
+            params["price"] = price
         if open_now is not None:
-            params['open_now'] = open_now
+            params["open_now"] = open_now
         if sort_by:
-            params['sort_by'] = sort_by
+            params["sort_by"] = sort_by
 
-        return await self.make_request(
-            'GET',
-            '/v3/businesses/search',
-            params=params
-        )
+        return await self.make_request("GET", "/v3/businesses/search", params=params)
 
     async def get_business_details(self, business_id: str) -> Dict[str, Any]:
         """
@@ -118,15 +111,10 @@ class YelpClient(BaseAPIClient):
         Returns:
             Dict containing detailed business information
         """
-        return await self.make_request(
-            'GET',
-            f'/v3/businesses/{business_id}'
-        )
+        return await self.make_request("GET", f"/v3/businesses/{business_id}")
 
     async def get_business_reviews(
-        self,
-        business_id: str,
-        locale: Optional[str] = None
+        self, business_id: str, locale: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Get reviews for a specific business
@@ -140,12 +128,10 @@ class YelpClient(BaseAPIClient):
         """
         params = {}
         if locale:
-            params['locale'] = locale
+            params["locale"] = locale
 
         return await self.make_request(
-            'GET',
-            f'/v3/businesses/{business_id}/reviews',
-            params=params
+            "GET", f"/v3/businesses/{business_id}/reviews", params=params
         )
 
     async def search_businesses_by_phone(self, phone: str) -> Dict[str, Any]:
@@ -159,16 +145,14 @@ class YelpClient(BaseAPIClient):
             Dict containing business matches
         """
         return await self.make_request(
-            'GET',
-            '/v3/businesses/search/phone',
-            params={'phone': phone}
+            "GET", "/v3/businesses/search/phone", params={"phone": phone}
         )
 
     async def get_autocomplete(
         self,
         text: str,
         latitude: Optional[float] = None,
-        longitude: Optional[float] = None
+        longitude: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
         Get autocomplete suggestions
@@ -181,23 +165,19 @@ class YelpClient(BaseAPIClient):
         Returns:
             Dict containing autocomplete suggestions
         """
-        params = {'text': text}
+        params = {"text": text}
 
         if latitude is not None and longitude is not None:
-            params['latitude'] = latitude
-            params['longitude'] = longitude
+            params["latitude"] = latitude
+            params["longitude"] = longitude
 
-        return await self.make_request(
-            'GET',
-            '/v3/autocomplete',
-            params=params
-        )
+        return await self.make_request("GET", "/v3/autocomplete", params=params)
 
     async def batch_search_locations(
         self,
         locations: List[str],
         categories: Optional[str] = None,
-        limit_per_location: int = 50
+        limit_per_location: int = 50,
     ) -> Dict[str, Any]:
         """
         Search multiple locations efficiently
@@ -215,9 +195,7 @@ class YelpClient(BaseAPIClient):
         for location in locations:
             try:
                 result = await self.search_businesses(
-                    location=location,
-                    categories=categories,
-                    limit=limit_per_location
+                    location=location, categories=categories, limit=limit_per_location
                 )
                 results[location] = result
             except Exception as e:
@@ -227,5 +205,7 @@ class YelpClient(BaseAPIClient):
         return {
             "locations": results,
             "total_locations": len(locations),
-            "successful_locations": len([r for r in results.values() if "error" not in r])
+            "successful_locations": len(
+                [r for r in results.values() if "error" not in r]
+            ),
         }

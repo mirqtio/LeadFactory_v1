@@ -1,17 +1,18 @@
 """
 Main FastAPI application entry point
 """
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from prometheus_client import make_asgi_app
-import uvicorn
 import time
 
+import uvicorn
+from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from prometheus_client import make_asgi_app
+
 from core.config import settings
-from core.logging import get_logger
 from core.exceptions import LeadFactoryError
-from core.metrics import metrics, get_metrics_response, CONTENT_TYPE_LATEST
+from core.logging import get_logger
+from core.metrics import CONTENT_TYPE_LATEST, get_metrics_response, metrics
 
 logger = get_logger(__name__)
 
@@ -20,7 +21,7 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     docs_url="/docs" if not settings.is_production else None,
-    redoc_url="/redoc" if not settings.is_production else None
+    redoc_url="/redoc" if not settings.is_production else None,
 )
 
 # CORS middleware
@@ -51,7 +52,7 @@ async def track_requests(request: Request, call_next):
         method=request.method,
         endpoint=request.url.path,
         status=response.status_code,
-        duration=duration
+        duration=duration,
     )
 
     return response
@@ -65,28 +66,18 @@ async def leadfactory_error_handler(request: Request, exc: LeadFactoryError):
         "LeadFactory error",
         error_code=exc.error_code,
         details=exc.details,
-        path=request.url.path
+        path=request.url.path,
     )
-    return JSONResponse(
-        status_code=exc.status_code,
-        content=exc.to_dict()
-    )
+    return JSONResponse(status_code=exc.status_code, content=exc.to_dict())
 
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors"""
-    logger.exception(
-        "Unexpected error",
-        path=request.url.path,
-        exc_info=exc
-    )
+    logger.exception("Unexpected error", path=request.url.path, exc_info=exc)
     return JSONResponse(
         status_code=500,
-        content={
-            "error": "INTERNAL_ERROR",
-            "message": "An unexpected error occurred"
-        }
+        content={"error": "INTERNAL_ERROR", "message": "An unexpected error occurred"},
     )
 
 
@@ -97,7 +88,7 @@ async def health_check():
     return {
         "status": "healthy",
         "version": settings.app_version,
-        "environment": settings.environment
+        "environment": settings.environment,
     }
 
 
@@ -106,10 +97,7 @@ async def health_check():
 async def prometheus_metrics():
     """Expose metrics for Prometheus scraping"""
     if not settings.prometheus_enabled:
-        return JSONResponse(
-            status_code=404,
-            content={"error": "Metrics not enabled"}
-        )
+        return JSONResponse(status_code=404, content={"error": "Metrics not enabled"})
 
     metrics_data, content_type = get_metrics_response()
     return Response(content=metrics_data, media_type=content_type)
@@ -123,7 +111,7 @@ async def startup_event():
         "Starting LeadFactory",
         version=settings.app_version,
         environment=settings.environment,
-        use_stubs=settings.use_stubs
+        use_stubs=settings.use_stubs,
     )
 
 
@@ -145,5 +133,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8000,
         reload=settings.is_development,
-        log_level=settings.log_level.lower()
+        log_level=settings.log_level.lower(),
     )

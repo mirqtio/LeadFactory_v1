@@ -8,17 +8,19 @@ Tests for configurable scoring engine ensuring all acceptance criteria are met:
 - Fallback values used
 """
 
-import pytest
+import os
 import sys
 import tempfile
-import os
-from pathlib import Path
 from decimal import Decimal
+from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, "/app")
 
 from d5_scoring.engine import ConfigurableScoringEngine, ScoringMetrics
-from d5_scoring.rules_parser import ScoringRulesParser, ScoringRule, ComponentRules, TierRule
+from d5_scoring.rules_parser import (ComponentRules, ScoringRule,
+                                     ScoringRulesParser, TierRule)
 
 
 class TestTask046AcceptanceCriteria:
@@ -48,13 +50,22 @@ class TestTask046AcceptanceCriteria:
 
         # Test specific components loaded
         component_names = list(parser.component_rules.keys())
-        expected_components = ['company_info', 'contact_info', 'revenue_indicators']
+        expected_components = ["company_info", "contact_info", "revenue_indicators"]
         for component in expected_components:
-            assert component in component_names, f"Component '{component}' should be loaded"
+            assert (
+                component in component_names
+            ), f"Component '{component}' should be loaded"
 
         # Test tier rules loaded
         tier_names = list(parser.tier_rules.keys())
-        expected_tiers = ['platinum', 'gold', 'silver', 'bronze', 'basic', 'unqualified']
+        expected_tiers = [
+            "platinum",
+            "gold",
+            "silver",
+            "bronze",
+            "basic",
+            "unqualified",
+        ]
         for tier in expected_tiers:
             assert tier in tier_names, f"Tier '{tier}' should be loaded"
 
@@ -70,42 +81,52 @@ class TestTask046AcceptanceCriteria:
 
         # Test with sample business data
         business_data = {
-            'id': 'test_eval_001',
-            'company_name': 'Test Corporation',
-            'industry': 'technology',
-            'website': 'https://test.com',
-            'phone': '555-123-4567',
-            'email': 'contact@test.com',
-            'address': '123 Test Street, Test City, TC 12345',
-            'annual_revenue': 1500000,
-            'employee_count': 75,
-            'business_status': 'active',
-            'rating': 4.2,
-            'reviews_count': 45
+            "id": "test_eval_001",
+            "company_name": "Test Corporation",
+            "industry": "technology",
+            "website": "https://test.com",
+            "phone": "555-123-4567",
+            "email": "contact@test.com",
+            "address": "123 Test Street, Test City, TC 12345",
+            "annual_revenue": 1500000,
+            "employee_count": 75,
+            "business_status": "active",
+            "rating": 4.2,
+            "reviews_count": 45,
         }
 
         # Calculate score
         result = engine.calculate_score(business_data)
 
         # Verify result structure
-        assert result.business_id == 'test_eval_001', "Business ID should match"
+        assert result.business_id == "test_eval_001", "Business ID should match"
         assert isinstance(result.overall_score, Decimal), "Score should be Decimal"
         assert 0 <= float(result.overall_score) <= 100, "Score should be 0-100"
-        assert result.tier in ['platinum', 'gold', 'silver', 'bronze', 'basic', 'unqualified'], "Should assign valid tier"
-        assert result.status == 'completed', "Status should be completed"
+        assert result.tier in [
+            "platinum",
+            "gold",
+            "silver",
+            "bronze",
+            "basic",
+            "unqualified",
+        ], "Should assign valid tier"
+        assert result.status == "completed", "Status should be completed"
 
         # Test with minimal data to check rule evaluation
-        minimal_data = {
-            'id': 'test_eval_002',
-            'company_name': 'Minimal Corp'
-        }
+        minimal_data = {"id": "test_eval_002", "company_name": "Minimal Corp"}
 
         minimal_result = engine.calculate_score(minimal_data)
-        assert minimal_result.business_id == 'test_eval_002', "Should handle minimal data"
-        assert float(minimal_result.overall_score) >= 0, "Should calculate score with minimal data"
+        assert (
+            minimal_result.business_id == "test_eval_002"
+        ), "Should handle minimal data"
+        assert (
+            float(minimal_result.overall_score) >= 0
+        ), "Should calculate score with minimal data"
 
         # Verify different data yields different scores
-        assert result.overall_score != minimal_result.overall_score, "Different data should yield different scores"
+        assert (
+            result.overall_score != minimal_result.overall_score
+        ), "Different data should yield different scores"
 
         print("✓ Rule evaluation works correctly")
 
@@ -119,27 +140,32 @@ class TestTask046AcceptanceCriteria:
 
         # Create test data that should score well in high-weight components
         high_revenue_data = {
-            'id': 'test_weight_001',
-            'company_name': 'High Revenue Corp',
-            'annual_revenue': 10000000,  # Should score well in revenue_indicators (weight: 12.0)
-            'employee_count': 200,
-            'business_status': 'active'
+            "id": "test_weight_001",
+            "company_name": "High Revenue Corp",
+            "annual_revenue": 10000000,  # Should score well in revenue_indicators (weight: 12.0)
+            "employee_count": 200,
+            "business_status": "active",
         }
 
         # Create test data that should score well in low-weight components
         low_weight_data = {
-            'id': 'test_weight_002',
-            'company_name': 'Tech Stack Corp',
-            'tech_stack': ['cloud', 'aws', 'api'],  # Should score in technology_stack (weight: 4.0)
-            'website': 'https://techstack.com'
+            "id": "test_weight_002",
+            "company_name": "Tech Stack Corp",
+            "tech_stack": [
+                "cloud",
+                "aws",
+                "api",
+            ],  # Should score in technology_stack (weight: 4.0)
+            "website": "https://techstack.com",
         }
 
         high_revenue_result = engine.calculate_score(high_revenue_data)
         low_weight_result = engine.calculate_score(low_weight_data)
 
         # High-weight component scoring should have more impact
-        assert float(high_revenue_result.overall_score) > float(low_weight_result.overall_score), \
-            "High-weight component should contribute more to overall score"
+        assert float(high_revenue_result.overall_score) > float(
+            low_weight_result.overall_score
+        ), "High-weight component should contribute more to overall score"
 
         # Test detailed breakdown to verify weights
         detailed_result, breakdowns = engine.calculate_detailed_score(high_revenue_data)
@@ -147,15 +173,19 @@ class TestTask046AcceptanceCriteria:
         # Find revenue indicators breakdown
         revenue_breakdown = None
         for breakdown in breakdowns:
-            if breakdown.component == 'revenue_indicators':
+            if breakdown.component == "revenue_indicators":
                 revenue_breakdown = breakdown
                 break
 
         assert revenue_breakdown is not None, "Should have revenue indicators breakdown"
-        assert float(revenue_breakdown.weight) == 12.0, "Revenue indicators should have weight 12.0"
+        assert (
+            float(revenue_breakdown.weight) == 12.0
+        ), "Revenue indicators should have weight 12.0"
 
         # Verify weighted calculation
-        component_contribution = float(revenue_breakdown.component_score) * float(revenue_breakdown.weight)
+        component_contribution = float(revenue_breakdown.component_score) * float(
+            revenue_breakdown.weight
+        )
         assert component_contribution > 0, "Weighted contribution should be positive"
 
         print("✓ Weighted scoring calculation is accurate")
@@ -171,8 +201,8 @@ class TestTask046AcceptanceCriteria:
 
         # Test data with missing fields
         incomplete_data = {
-            'id': 'test_fallback_001',
-            'company_name': 'Incomplete Corp'
+            "id": "test_fallback_001",
+            "company_name": "Incomplete Corp"
             # Missing: industry, website, phone, email, etc.
         }
 
@@ -180,26 +210,40 @@ class TestTask046AcceptanceCriteria:
         enriched_data = parser.apply_fallbacks(incomplete_data)
 
         # Verify fallbacks were applied
-        assert 'industry' in enriched_data, "Industry fallback should be applied"
-        assert enriched_data['industry'] == 'unknown', "Industry should fallback to 'unknown'"
+        assert "industry" in enriched_data, "Industry fallback should be applied"
+        assert (
+            enriched_data["industry"] == "unknown"
+        ), "Industry should fallback to 'unknown'"
 
-        assert 'annual_revenue' in enriched_data, "Revenue fallback should be applied"
-        assert enriched_data['annual_revenue'] == 0, "Revenue should fallback to 0"
+        assert "annual_revenue" in enriched_data, "Revenue fallback should be applied"
+        assert enriched_data["annual_revenue"] == 0, "Revenue should fallback to 0"
 
-        assert 'employee_count' in enriched_data, "Employee count fallback should be applied"
-        assert enriched_data['employee_count'] == 1, "Employee count should fallback to 1"
+        assert (
+            "employee_count" in enriched_data
+        ), "Employee count fallback should be applied"
+        assert (
+            enriched_data["employee_count"] == 1
+        ), "Employee count should fallback to 1"
 
         # Verify original data is preserved
-        assert enriched_data['company_name'] == 'Incomplete Corp', "Original data should be preserved"
-        assert enriched_data['id'] == 'test_fallback_001', "Original ID should be preserved"
+        assert (
+            enriched_data["company_name"] == "Incomplete Corp"
+        ), "Original data should be preserved"
+        assert (
+            enriched_data["id"] == "test_fallback_001"
+        ), "Original ID should be preserved"
 
         # Test that engine can score with fallbacks
         result = engine.calculate_score(incomplete_data)
-        assert result.business_id == 'test_fallback_001', "Should score with fallback data"
-        assert float(result.overall_score) >= 0, "Should calculate valid score with fallbacks"
+        assert (
+            result.business_id == "test_fallback_001"
+        ), "Should score with fallback data"
+        assert (
+            float(result.overall_score) >= 0
+        ), "Should calculate valid score with fallbacks"
 
         # Test that fallbacks improve scoring compared to completely empty data
-        empty_data = {'id': 'test_fallback_002'}
+        empty_data = {"id": "test_fallback_002"}
         empty_result = engine.calculate_score(empty_data)
 
         # Both should work without errors
@@ -220,21 +264,21 @@ class TestTask046AcceptanceCriteria:
 
         # 2. Rule evaluation works - test with comprehensive data
         comprehensive_data = {
-            'id': 'comprehensive_test_001',
-            'company_name': 'Comprehensive Test Corp',
-            'industry': 'technology',
-            'website': 'https://comprehensive.com',
-            'phone': '555-999-8888',
-            'email': 'info@comprehensive.com',
-            'address': '999 Comprehensive Ave, Test City, TC 99999',
-            'annual_revenue': 2500000,
-            'employee_count': 150,
-            'business_status': 'active',
-            'rating': 4.5,
-            'reviews_count': 125,
-            'years_in_business': 8,
-            'funding_total': 5000000,
-            'tech_stack': ['cloud', 'aws', 'api', 'rest']
+            "id": "comprehensive_test_001",
+            "company_name": "Comprehensive Test Corp",
+            "industry": "technology",
+            "website": "https://comprehensive.com",
+            "phone": "555-999-8888",
+            "email": "info@comprehensive.com",
+            "address": "999 Comprehensive Ave, Test City, TC 99999",
+            "annual_revenue": 2500000,
+            "employee_count": 150,
+            "business_status": "active",
+            "rating": 4.5,
+            "reviews_count": 125,
+            "years_in_business": 8,
+            "funding_total": 5000000,
+            "tech_stack": ["cloud", "aws", "api", "rest"],
         }
 
         result = engine.calculate_score(comprehensive_data)
@@ -242,11 +286,15 @@ class TestTask046AcceptanceCriteria:
         assert float(result.overall_score) > 50, "Comprehensive data should score well"
 
         # 3. Weighted scoring accurate - get detailed breakdown
-        detailed_result, breakdowns = engine.calculate_detailed_score(comprehensive_data)
+        detailed_result, breakdowns = engine.calculate_detailed_score(
+            comprehensive_data
+        )
 
         total_weighted = 0.0
         for breakdown in breakdowns:
-            weighted_contribution = float(breakdown.component_score) * float(breakdown.weight)
+            weighted_contribution = float(breakdown.component_score) * float(
+                breakdown.weight
+            )
             total_weighted += weighted_contribution
 
         assert total_weighted > 0, "Weighted scoring should calculate correctly"
@@ -254,17 +302,20 @@ class TestTask046AcceptanceCriteria:
 
         # 4. Fallback values used - test with missing data
         incomplete_data = {
-            'id': 'comprehensive_test_002',
-            'company_name': 'Incomplete Corp'
+            "id": "comprehensive_test_002",
+            "company_name": "Incomplete Corp"
             # Most fields missing - should use fallbacks
         }
 
         incomplete_result = engine.calculate_score(incomplete_data)
-        assert incomplete_result.business_id == 'comprehensive_test_002', "Should handle missing data with fallbacks"
+        assert (
+            incomplete_result.business_id == "comprehensive_test_002"
+        ), "Should handle missing data with fallbacks"
 
         # Verify scores are different (comprehensive should score higher)
-        assert float(result.overall_score) > float(incomplete_result.overall_score), \
-            "Complete data should score higher than incomplete data"
+        assert float(result.overall_score) > float(
+            incomplete_result.overall_score
+        ), "Complete data should score higher than incomplete data"
 
         print("✓ All acceptance criteria working together successfully")
 
@@ -274,9 +325,21 @@ class TestTask046AcceptanceCriteria:
 
         # Test multiple scoring operations
         test_data_list = [
-            {'id': 'metrics_001', 'company_name': 'Metrics Corp 1', 'annual_revenue': 1000000},
-            {'id': 'metrics_002', 'company_name': 'Metrics Corp 2', 'annual_revenue': 500000},
-            {'id': 'metrics_003', 'company_name': 'Metrics Corp 3', 'annual_revenue': 2000000}
+            {
+                "id": "metrics_001",
+                "company_name": "Metrics Corp 1",
+                "annual_revenue": 1000000,
+            },
+            {
+                "id": "metrics_002",
+                "company_name": "Metrics Corp 2",
+                "annual_revenue": 500000,
+            },
+            {
+                "id": "metrics_003",
+                "company_name": "Metrics Corp 3",
+                "annual_revenue": 2000000,
+            },
         ]
 
         results = []
@@ -286,9 +349,9 @@ class TestTask046AcceptanceCriteria:
 
         # Check metrics were collected
         metrics = engine.get_performance_metrics()
-        assert metrics['total_evaluations'] == 3, "Should track 3 evaluations"
-        assert metrics['average_execution_time'] > 0, "Should track execution time"
-        assert len(metrics['tier_distribution']) > 0, "Should track tier distribution"
+        assert metrics["total_evaluations"] == 3, "Should track 3 evaluations"
+        assert metrics["average_execution_time"] > 0, "Should track execution time"
+        assert len(metrics["tier_distribution"]) > 0, "Should track tier distribution"
 
         print("✓ Scoring metrics tracking works correctly")
 
@@ -312,27 +375,39 @@ class TestTask046AcceptanceCriteria:
         engine = ConfigurableScoringEngine()
 
         test_data = {
-            'id': 'explanation_test_001',
-            'company_name': 'Explanation Corp',
-            'industry': 'technology',
-            'annual_revenue': 1200000
+            "id": "explanation_test_001",
+            "company_name": "Explanation Corp",
+            "industry": "technology",
+            "annual_revenue": 1200000,
         }
 
         explanation = engine.explain_score(test_data)
 
         # Verify explanation structure
-        assert 'business_id' in explanation, "Should include business ID"
-        assert 'component_explanations' in explanation, "Should explain components"
-        assert 'overall_calculation' in explanation, "Should explain overall calculation"
-        assert 'tier_assignment' in explanation, "Should explain tier assignment"
+        assert "business_id" in explanation, "Should include business ID"
+        assert "component_explanations" in explanation, "Should explain components"
+        assert (
+            "overall_calculation" in explanation
+        ), "Should explain overall calculation"
+        assert "tier_assignment" in explanation, "Should explain tier assignment"
 
         # Verify component explanations
-        assert len(explanation['component_explanations']) > 0, "Should have component details"
+        assert (
+            len(explanation["component_explanations"]) > 0
+        ), "Should have component details"
 
-        for component_name, component_explanation in explanation['component_explanations'].items():
-            assert 'weight' in component_explanation, f"Component {component_name} should have weight"
-            assert 'total_points' in component_explanation, f"Component {component_name} should have points"
-            assert 'rule_details' in component_explanation, f"Component {component_name} should have rule details"
+        for component_name, component_explanation in explanation[
+            "component_explanations"
+        ].items():
+            assert (
+                "weight" in component_explanation
+            ), f"Component {component_name} should have weight"
+            assert (
+                "total_points" in component_explanation
+            ), f"Component {component_name} should have points"
+            assert (
+                "rule_details" in component_explanation
+            ), f"Component {component_name} should have rule details"
 
         print("✓ Score explanation works correctly")
 
@@ -377,7 +452,7 @@ quality_control:
   manual_review_triggers: []
 """
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(custom_rules)
             temp_file = f.name
 
@@ -387,11 +462,11 @@ quality_control:
             assert engine.loaded, "Should load custom rules file"
 
             # Test scoring with custom rules
-            test_data = {'id': 'custom_001', 'company_name': 'Custom Test Corp'}
+            test_data = {"id": "custom_001", "company_name": "Custom Test Corp"}
             result = engine.calculate_score(test_data)
 
-            assert result.business_id == 'custom_001', "Should work with custom rules"
-            assert result.tier in ['high', 'low'], "Should use custom tier definitions"
+            assert result.business_id == "custom_001", "Should work with custom rules"
+            assert result.tier in ["high", "low"], "Should use custom tier definitions"
 
         finally:
             os.unlink(temp_file)
@@ -430,6 +505,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run tests

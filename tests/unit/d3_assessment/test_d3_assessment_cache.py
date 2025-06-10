@@ -8,23 +8,23 @@ Tests all acceptance criteria:
 - Cache invalidation logic
 - Hit rate tracking
 """
-import pytest
 import asyncio
+import sys
 import uuid
-from unittest.mock import AsyncMock, patch
 from datetime import datetime, timedelta
 from decimal import Decimal
+from unittest.mock import AsyncMock, patch
 
-import sys
-sys.path.insert(0, '/app')  # noqa: E402
+import pytest
 
-from d3_assessment.cache import (  # noqa: E402
-    AssessmentCache, CacheStrategy, CacheEntry, CacheStats,
-    CacheManager, cached_assessment
-)
+sys.path.insert(0, "/app")  # noqa: E402
+
+from d3_assessment.cache import CacheEntry  # noqa: E402
+from d3_assessment.cache import (AssessmentCache, CacheManager, CacheStats,
+                                 CacheStrategy, cached_assessment)
 from d3_assessment.coordinator import CoordinatorResult  # noqa: E402
-from d3_assessment.types import AssessmentType, AssessmentStatus  # noqa: E402
 from d3_assessment.models import AssessmentResult  # noqa: E402
+from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
 
 
 class TestTask036AcceptanceCriteria:
@@ -43,7 +43,7 @@ class TestTask036AcceptanceCriteria:
             default_ttl_seconds=300,  # 5 minutes
             max_size_mb=1,
             strategy=CacheStrategy.LRU,
-            cleanup_interval_seconds=60
+            cleanup_interval_seconds=60,
         )
 
     @pytest.fixture
@@ -63,7 +63,7 @@ class TestTask036AcceptanceCriteria:
                     status=AssessmentStatus.COMPLETED,
                     url="https://example.com",
                     domain="example.com",
-                    performance_score=85
+                    performance_score=85,
                 ),
                 AssessmentType.TECH_STACK: AssessmentResult(
                     id=str(uuid.uuid4()),
@@ -72,14 +72,14 @@ class TestTask036AcceptanceCriteria:
                     status=AssessmentStatus.COMPLETED,
                     url="https://example.com",
                     domain="example.com",
-                    tech_stack_data={"technologies": []}
-                )
+                    tech_stack_data={"technologies": []},
+                ),
             },
             errors={},
             total_cost_usd=Decimal("0.25"),
             execution_time_ms=120000,
             started_at=datetime.utcnow() - timedelta(minutes=2),
-            completed_at=datetime.utcnow()
+            completed_at=datetime.utcnow(),
         )
 
     @pytest.mark.asyncio
@@ -110,7 +110,10 @@ class TestTask036AcceptanceCriteria:
         assert cached_result is not None
         assert cached_result.session_id == sample_coordinator_result.session_id
         assert cached_result.business_id == sample_coordinator_result.business_id
-        assert cached_result.total_assessments == sample_coordinator_result.total_assessments
+        assert (
+            cached_result.total_assessments
+            == sample_coordinator_result.total_assessments
+        )
 
         # Verify cache stats
         stats = cache.get_stats()
@@ -143,8 +146,11 @@ class TestTask036AcceptanceCriteria:
 
         # Store with custom TTL override
         await cache.put(
-            business_id, url, assessment_types, sample_coordinator_result,
-            ttl_override=120  # 2 minutes
+            business_id,
+            url,
+            assessment_types,
+            sample_coordinator_result,
+            ttl_override=120,  # 2 minutes
         )
 
         # Check entry TTL
@@ -184,17 +190,18 @@ class TestTask036AcceptanceCriteria:
 
         # Store entry with tags
         await cache.put(
-            business_id, url1, [AssessmentType.TECH_STACK], sample_coordinator_result,
-            tags={"test", "api"}
+            business_id,
+            url1,
+            [AssessmentType.TECH_STACK],
+            sample_coordinator_result,
+            tags={"test", "api"},
         )
 
         assert cache.get_stats().entry_count == 3
 
         # Test specific invalidation
         removed_count = await cache.invalidate(
-            business_id=business_id,
-            url=url1,
-            assessment_types=assessment_types
+            business_id=business_id, url=url1, assessment_types=assessment_types
         )
         assert removed_count == 1
         assert cache.get_stats().entry_count == 2
@@ -259,8 +266,8 @@ class TestTask036AcceptanceCriteria:
         stats = cache.get_stats()
         assert stats.hits == 2
         assert stats.misses == 1
-        assert stats.hit_rate == 2/3
-        assert stats.miss_rate == 1/3
+        assert stats.hit_rate == 2 / 3
+        assert stats.miss_rate == 1 / 3
 
         # Access count tracking
         cache_key = cache._generate_cache_key(business_id, url, assessment_types)
@@ -278,8 +285,10 @@ class TestTask036AcceptanceCriteria:
         # Fill cache
         for i in range(4):
             await lru_cache.put(
-                f"biz_{i}", f"https://site{i}.com", [AssessmentType.PAGESPEED],
-                sample_coordinator_result
+                f"biz_{i}",
+                f"https://site{i}.com",
+                [AssessmentType.PAGESPEED],
+                sample_coordinator_result,
             )
 
         # Should have evicted oldest accessed entry
@@ -291,19 +300,41 @@ class TestTask036AcceptanceCriteria:
         lfu_cache = AssessmentCache(max_entries=3, strategy=CacheStrategy.LFU)
 
         # Add entries with different access patterns
-        await lfu_cache.put("biz_1", "https://site1.com", [AssessmentType.PAGESPEED], sample_coordinator_result)
-        await lfu_cache.put("biz_2", "https://site2.com", [AssessmentType.PAGESPEED], sample_coordinator_result)
-        await lfu_cache.put("biz_3", "https://site3.com", [AssessmentType.PAGESPEED], sample_coordinator_result)
+        await lfu_cache.put(
+            "biz_1",
+            "https://site1.com",
+            [AssessmentType.PAGESPEED],
+            sample_coordinator_result,
+        )
+        await lfu_cache.put(
+            "biz_2",
+            "https://site2.com",
+            [AssessmentType.PAGESPEED],
+            sample_coordinator_result,
+        )
+        await lfu_cache.put(
+            "biz_3",
+            "https://site3.com",
+            [AssessmentType.PAGESPEED],
+            sample_coordinator_result,
+        )
 
         # Access entry 1 multiple times
         await lfu_cache.get("biz_1", "https://site1.com", [AssessmentType.PAGESPEED])
         await lfu_cache.get("biz_1", "https://site1.com", [AssessmentType.PAGESPEED])
 
         # Add new entry to trigger eviction
-        await lfu_cache.put("biz_4", "https://site4.com", [AssessmentType.PAGESPEED], sample_coordinator_result)
+        await lfu_cache.put(
+            "biz_4",
+            "https://site4.com",
+            [AssessmentType.PAGESPEED],
+            sample_coordinator_result,
+        )
 
         # Entry 1 should still be in cache (most frequently used)
-        cached = await lfu_cache.get("biz_1", "https://site1.com", [AssessmentType.PAGESPEED])
+        cached = await lfu_cache.get(
+            "biz_1", "https://site1.com", [AssessmentType.PAGESPEED]
+        )
         assert cached is not None
 
         await lru_cache.close()
@@ -316,9 +347,7 @@ class TestTask036AcceptanceCriteria:
         """Test cache size limits and eviction"""
         # Create cache with very small size limit
         size_cache = AssessmentCache(
-            max_entries=100,
-            max_size_mb=0.001,  # 1KB limit
-            strategy=CacheStrategy.LRU
+            max_entries=100, max_size_mb=0.001, strategy=CacheStrategy.LRU  # 1KB limit
         )
 
         # Add large entries to trigger size-based eviction
@@ -333,14 +362,16 @@ class TestTask036AcceptanceCriteria:
             total_cost_usd=Decimal("0"),
             execution_time_ms=0,
             started_at=datetime.utcnow(),
-            completed_at=datetime.utcnow()
+            completed_at=datetime.utcnow(),
         )
 
         # Add entries until size limit triggers eviction
         for i in range(10):
             await size_cache.put(
-                f"biz_large_{i}", f"https://large{i}.com", [AssessmentType.PAGESPEED],
-                large_result
+                f"biz_large_{i}",
+                f"https://large{i}.com",
+                [AssessmentType.PAGESPEED],
+                large_result,
             )
 
         stats = size_cache.get_stats()
@@ -386,13 +417,15 @@ class TestTask036AcceptanceCriteria:
         cleanup_cache = AssessmentCache(
             max_entries=10,
             default_ttl_seconds=1,  # 1 second TTL
-            cleanup_interval_seconds=2  # 2 second cleanup
+            cleanup_interval_seconds=2,  # 2 second cleanup
         )
 
         # Add entry that will expire
         await cleanup_cache.put(
-            "biz_expire", "https://expire.com", [AssessmentType.PAGESPEED],
-            sample_coordinator_result
+            "biz_expire",
+            "https://expire.com",
+            [AssessmentType.PAGESPEED],
+            sample_coordinator_result,
         )
 
         assert cleanup_cache.get_stats().entry_count == 1
@@ -418,7 +451,9 @@ class TestTask036AcceptanceCriteria:
         cache1 = await CacheManager.get_cache(max_entries=50)
 
         # Get second instance - should be same
-        cache2 = await CacheManager.get_cache(max_entries=100)  # Different config ignored
+        cache2 = await CacheManager.get_cache(
+            max_entries=100
+        )  # Different config ignored
 
         assert cache1 is cache2
         assert cache1.max_entries == 50  # Original config preserved
@@ -440,23 +475,31 @@ class TestTask036AcceptanceCriteria:
         call_count = 0
 
         @cached_assessment(ttl_seconds=300, tags={"decorator_test"})
-        async def mock_assessment(business_id, url, assessment_types, industry="default"):
+        async def mock_assessment(
+            business_id, url, assessment_types, industry="default"
+        ):
             nonlocal call_count
             call_count += 1
             return sample_coordinator_result
 
         # First call - should execute function
-        result1 = await mock_assessment("biz_test", "https://test.com", [AssessmentType.PAGESPEED])
+        result1 = await mock_assessment(
+            "biz_test", "https://test.com", [AssessmentType.PAGESPEED]
+        )
         assert result1 == sample_coordinator_result
         assert call_count == 1
 
         # Second call - should use cache
-        result2 = await mock_assessment("biz_test", "https://test.com", [AssessmentType.PAGESPEED])
+        result2 = await mock_assessment(
+            "biz_test", "https://test.com", [AssessmentType.PAGESPEED]
+        )
         assert result2 == sample_coordinator_result
         assert call_count == 1  # Function not called again
 
         # Different parameters - should execute function again
-        result3 = await mock_assessment("biz_test", "https://other.com", [AssessmentType.PAGESPEED])
+        result3 = await mock_assessment(
+            "biz_test", "https://other.com", [AssessmentType.PAGESPEED]
+        )
         assert result3 == sample_coordinator_result
         assert call_count == 2
 
@@ -468,8 +511,18 @@ class TestTask036AcceptanceCriteria:
     async def test_cache_info_and_debugging(self, cache, sample_coordinator_result):
         """Test cache information and debugging features"""
         # Add some entries
-        await cache.put("biz_1", "https://site1.com", [AssessmentType.PAGESPEED], sample_coordinator_result)
-        await cache.put("biz_2", "https://site2.com", [AssessmentType.TECH_STACK], sample_coordinator_result)
+        await cache.put(
+            "biz_1",
+            "https://site1.com",
+            [AssessmentType.PAGESPEED],
+            sample_coordinator_result,
+        )
+        await cache.put(
+            "biz_2",
+            "https://site2.com",
+            [AssessmentType.TECH_STACK],
+            sample_coordinator_result,
+        )
 
         # Get cache info
         cache_info = cache.get_cache_info()
@@ -504,8 +557,18 @@ class TestTask036AcceptanceCriteria:
     async def test_cache_clear_functionality(self, cache, sample_coordinator_result):
         """Test cache clear functionality"""
         # Add entries
-        await cache.put("biz_1", "https://site1.com", [AssessmentType.PAGESPEED], sample_coordinator_result)
-        await cache.put("biz_2", "https://site2.com", [AssessmentType.TECH_STACK], sample_coordinator_result)
+        await cache.put(
+            "biz_1",
+            "https://site1.com",
+            [AssessmentType.PAGESPEED],
+            sample_coordinator_result,
+        )
+        await cache.put(
+            "biz_2",
+            "https://site2.com",
+            [AssessmentType.TECH_STACK],
+            sample_coordinator_result,
+        )
 
         assert cache.get_stats().entry_count == 2
 
@@ -529,7 +592,11 @@ class TestTask036AcceptanceCriteria:
         """Test comprehensive cache workflow"""
         business_id = "biz_comprehensive"
         url = "https://comprehensive-test.com"
-        assessment_types = [AssessmentType.PAGESPEED, AssessmentType.TECH_STACK, AssessmentType.AI_INSIGHTS]
+        assessment_types = [
+            AssessmentType.PAGESPEED,
+            AssessmentType.TECH_STACK,
+            AssessmentType.AI_INSIGHTS,
+        ]
         industry = "technology"
 
         # 1. Initial miss
@@ -537,7 +604,9 @@ class TestTask036AcceptanceCriteria:
         assert result is None
 
         # 2. Store result
-        cache_key = await cache.put(business_id, url, assessment_types, sample_coordinator_result, industry)
+        cache_key = await cache.put(
+            business_id, url, assessment_types, sample_coordinator_result, industry
+        )
         assert cache_key is not None
 
         # 3. Cache hit
@@ -550,7 +619,9 @@ class TestTask036AcceptanceCriteria:
         assert result is None
 
         # 5. Test invalidation
-        removed = await cache.invalidate(business_id=business_id, url=url, assessment_types=assessment_types)
+        removed = await cache.invalidate(
+            business_id=business_id, url=url, assessment_types=assessment_types
+        )
         assert removed == 1
 
         # 6. Verify invalidation
@@ -586,7 +657,7 @@ if __name__ == "__main__":
                 default_ttl_seconds=300,
                 max_size_mb=1,
                 strategy=CacheStrategy.LRU,
-                cleanup_interval_seconds=60
+                cleanup_interval_seconds=60,
             )
 
             sample_coordinator_result = CoordinatorResult(
@@ -603,32 +674,50 @@ if __name__ == "__main__":
                         status=AssessmentStatus.COMPLETED,
                         url="https://example.com",
                         domain="example.com",
-                        performance_score=85
+                        performance_score=85,
                     )
                 },
                 errors={},
                 total_cost_usd=Decimal("0.25"),
                 execution_time_ms=120000,
                 started_at=datetime.utcnow() - timedelta(minutes=2),
-                completed_at=datetime.utcnow()
+                completed_at=datetime.utcnow(),
             )
 
             # Run all acceptance criteria tests
-            await test_instance.test_recent_assessments_cached(cache, sample_coordinator_result)
-            await test_instance.test_ttl_configuration_works(cache, sample_coordinator_result)
-            await test_instance.test_cache_invalidation_logic(cache, sample_coordinator_result)
+            await test_instance.test_recent_assessments_cached(
+                cache, sample_coordinator_result
+            )
+            await test_instance.test_ttl_configuration_works(
+                cache, sample_coordinator_result
+            )
+            await test_instance.test_cache_invalidation_logic(
+                cache, sample_coordinator_result
+            )
             await test_instance.test_hit_rate_tracking(cache, sample_coordinator_result)
 
             # Run additional functionality tests
-            await test_instance.test_cache_eviction_strategies(sample_coordinator_result)
+            await test_instance.test_cache_eviction_strategies(
+                sample_coordinator_result
+            )
             await test_instance.test_cache_size_limits(sample_coordinator_result)
             await test_instance.test_cache_key_generation(cache)
-            await test_instance.test_cache_cleanup_and_expiration(sample_coordinator_result)
+            await test_instance.test_cache_cleanup_and_expiration(
+                sample_coordinator_result
+            )
             await test_instance.test_cache_manager_singleton()
-            await test_instance.test_cached_assessment_decorator(sample_coordinator_result)
-            await test_instance.test_cache_info_and_debugging(cache, sample_coordinator_result)
-            await test_instance.test_cache_clear_functionality(cache, sample_coordinator_result)
-            await test_instance.test_comprehensive_cache_flow(cache, sample_coordinator_result)
+            await test_instance.test_cached_assessment_decorator(
+                sample_coordinator_result
+            )
+            await test_instance.test_cache_info_and_debugging(
+                cache, sample_coordinator_result
+            )
+            await test_instance.test_cache_clear_functionality(
+                cache, sample_coordinator_result
+            )
+            await test_instance.test_comprehensive_cache_flow(
+                cache, sample_coordinator_result
+            )
 
             print()
             print("🎉 All Task 036 acceptance criteria tests pass!")
@@ -643,6 +732,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run async tests

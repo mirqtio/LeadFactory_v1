@@ -186,55 +186,119 @@ Provide only valid JSON output."""
         """Get industry-specific context for prompts"""
         industry_contexts = {
             "ecommerce": {
-                "key_metrics": ["conversion_rate", "cart_abandonment", "page_load_time"],
+                "key_metrics": [
+                    "conversion_rate",
+                    "cart_abandonment",
+                    "page_load_time",
+                ],
                 "compliance": ["PCI DSS", "GDPR", "accessibility"],
-                "benchmarks": {"performance_score": 85, "lcp": 2500, "cls": 0.1}
+                "benchmarks": {"performance_score": 85, "lcp": 2500, "cls": 0.1},
             },
             "healthcare": {
                 "key_metrics": ["trust_signals", "accessibility", "mobile_performance"],
                 "compliance": ["HIPAA", "accessibility", "mobile_first"],
-                "benchmarks": {"performance_score": 90, "accessibility_score": 95, "lcp": 2000}
+                "benchmarks": {
+                    "performance_score": 90,
+                    "accessibility_score": 95,
+                    "lcp": 2000,
+                },
             },
             "finance": {
                 "key_metrics": ["security", "trust", "performance", "mobile"],
                 "compliance": ["SOX", "PCI DSS", "security_headers", "SSL"],
-                "benchmarks": {"performance_score": 92, "security_score": 98, "lcp": 1800}
+                "benchmarks": {
+                    "performance_score": 92,
+                    "security_score": 98,
+                    "lcp": 1800,
+                },
             },
             "education": {
-                "key_metrics": ["accessibility", "mobile_performance", "content_readability"],
+                "key_metrics": [
+                    "accessibility",
+                    "mobile_performance",
+                    "content_readability",
+                ],
                 "compliance": ["WCAG 2.1 AA", "FERPA", "accessibility"],
-                "benchmarks": {"accessibility_score": 95, "performance_score": 85, "mobile_score": 90}
+                "benchmarks": {
+                    "accessibility_score": 95,
+                    "performance_score": 85,
+                    "mobile_score": 90,
+                },
             },
             "nonprofit": {
-                "key_metrics": ["engagement", "mobile_performance", "donation_conversion"],
+                "key_metrics": [
+                    "engagement",
+                    "mobile_performance",
+                    "donation_conversion",
+                ],
                 "compliance": ["accessibility", "transparency", "donor_privacy"],
-                "benchmarks": {"performance_score": 80, "accessibility_score": 90, "seo_score": 85}
+                "benchmarks": {
+                    "performance_score": 80,
+                    "accessibility_score": 90,
+                    "seo_score": 85,
+                },
             },
             "technology": {
                 "key_metrics": ["performance", "innovation", "developer_experience"],
                 "compliance": ["technical_standards", "API_performance", "security"],
-                "benchmarks": {"performance_score": 95, "lcp": 1500, "technical_score": 92}
+                "benchmarks": {
+                    "performance_score": 95,
+                    "lcp": 1500,
+                    "technical_score": 92,
+                },
             },
             "professional_services": {
-                "key_metrics": ["trust_signals", "contact_conversion", "mobile_experience"],
+                "key_metrics": [
+                    "trust_signals",
+                    "contact_conversion",
+                    "mobile_experience",
+                ],
                 "compliance": ["professional_standards", "client_confidentiality"],
-                "benchmarks": {"seo_score": 88, "performance_score": 85, "trust_score": 90}
+                "benchmarks": {
+                    "seo_score": 88,
+                    "performance_score": 85,
+                    "trust_score": 90,
+                },
             },
             "retail": {
-                "key_metrics": ["product_discovery", "checkout_flow", "mobile_commerce"],
-                "compliance": ["payment_security", "consumer_protection", "accessibility"],
-                "benchmarks": {"performance_score": 87, "mobile_score": 90, "conversion_rate": 2.5}
+                "key_metrics": [
+                    "product_discovery",
+                    "checkout_flow",
+                    "mobile_commerce",
+                ],
+                "compliance": [
+                    "payment_security",
+                    "consumer_protection",
+                    "accessibility",
+                ],
+                "benchmarks": {
+                    "performance_score": 87,
+                    "mobile_score": 90,
+                    "conversion_rate": 2.5,
+                },
             },
             "manufacturing": {
-                "key_metrics": ["b2b_functionality", "technical_content", "lead_generation"],
+                "key_metrics": [
+                    "b2b_functionality",
+                    "technical_content",
+                    "lead_generation",
+                ],
                 "compliance": ["industry_standards", "technical_compliance"],
-                "benchmarks": {"performance_score": 82, "b2b_optimization": 85, "technical_seo": 88}
+                "benchmarks": {
+                    "performance_score": 82,
+                    "b2b_optimization": 85,
+                    "technical_seo": 88,
+                },
             },
             "default": {
                 "key_metrics": ["performance", "user_experience", "seo"],
                 "compliance": ["basic_accessibility", "privacy"],
-                "benchmarks": {"performance_score": 85, "accessibility_score": 85, "seo_score": 85}
-            }
+                "benchmarks": {
+                    "performance_score": 85,
+                    "accessibility_score": 85,
+                    "seo_score": 85,
+                },
+            },
         }
 
         return industry_contexts.get(industry.lower(), industry_contexts["default"])
@@ -247,17 +311,17 @@ Provide only valid JSON output."""
 
         tech_by_category = {}
         for tech in tech_stack:
-            category = tech.get('category', 'Other')
+            category = tech.get("category", "Other")
             if category not in tech_by_category:
                 tech_by_category[category] = []
-            tech_by_category[category].append(tech.get('technology_name', 'Unknown'))
+            tech_by_category[category].append(tech.get("technology_name", "Unknown"))
 
         formatted = []
         for category, technologies in tech_by_category.items():
-            tech_list = ', '.join(technologies[:3])  # Limit to first 3 per category
+            tech_list = ", ".join(technologies[:3])  # Limit to first 3 per category
             formatted.append(f"{category}: {tech_list}")
 
-        return '; '.join(formatted)
+        return "; ".join(formatted)
 
     @staticmethod
     def format_issues(issues: list, limit: int = 5) -> str:
@@ -267,61 +331,67 @@ Provide only valid JSON output."""
 
         formatted_issues = []
         for issue in issues[:limit]:
-            impact = issue.get('impact', 'Unknown')
-            title = issue.get('title', 'Unknown issue')
-            savings = issue.get('savings_ms', 0)
+            impact = issue.get("impact", "Unknown")
+            title = issue.get("title", "Unknown issue")
+            savings = issue.get("savings_ms", 0)
 
             if savings > 0:
-                formatted_issues.append(f"• {title} (Impact: {impact}, Saves: {savings}ms)")
+                formatted_issues.append(
+                    f"• {title} (Impact: {impact}, Saves: {savings}ms)"
+                )
             else:
                 formatted_issues.append(f"• {title} (Impact: {impact})")
 
-        return '\n'.join(formatted_issues)
+        return "\n".join(formatted_issues)
 
     @staticmethod
     def get_prompt_variables(assessment_data: dict, industry: str = "default") -> dict:
         """Extract and format variables for prompt templates"""
-        tech_stack = assessment_data.get('tech_stack', [])
-        performance_issues = assessment_data.get('performance_issues', [])
+        tech_stack = assessment_data.get("tech_stack", [])
+        performance_issues = assessment_data.get("performance_issues", [])
 
         return {
-            'url': assessment_data.get('url', 'Unknown'),
-            'industry': industry,
-            'performance_score': assessment_data.get('performance_score', 0),
-            'accessibility_score': assessment_data.get('accessibility_score', 0),
-            'seo_score': assessment_data.get('seo_score', 0),
-            'lcp': assessment_data.get('largest_contentful_paint', 0),
-            'fid': assessment_data.get('first_input_delay', 0),
-            'cls': assessment_data.get('cumulative_layout_shift', 0),
-            'speed_index': assessment_data.get('speed_index', 0),
-            'technologies': InsightPrompts.format_technologies(tech_stack),
-            'top_issues': InsightPrompts.format_issues(performance_issues),
-            'tech_stack': InsightPrompts.format_technologies(tech_stack),
-            'hosting': InsightPrompts._extract_hosting(tech_stack),
-            'overall_score': InsightPrompts._calculate_overall_score(assessment_data),
-            'metrics': InsightPrompts._format_key_metrics(assessment_data),
-            'barriers': InsightPrompts._identify_conversion_barriers(assessment_data),
-            'ux_issues': InsightPrompts._identify_ux_issues(assessment_data),
-            'performance_problems': InsightPrompts._format_performance_problems(performance_issues),
-            'performance_issues': InsightPrompts.format_issues(performance_issues)
+            "url": assessment_data.get("url", "Unknown"),
+            "industry": industry,
+            "performance_score": assessment_data.get("performance_score", 0),
+            "accessibility_score": assessment_data.get("accessibility_score", 0),
+            "seo_score": assessment_data.get("seo_score", 0),
+            "lcp": assessment_data.get("largest_contentful_paint", 0),
+            "fid": assessment_data.get("first_input_delay", 0),
+            "cls": assessment_data.get("cumulative_layout_shift", 0),
+            "speed_index": assessment_data.get("speed_index", 0),
+            "technologies": InsightPrompts.format_technologies(tech_stack),
+            "top_issues": InsightPrompts.format_issues(performance_issues),
+            "tech_stack": InsightPrompts.format_technologies(tech_stack),
+            "hosting": InsightPrompts._extract_hosting(tech_stack),
+            "overall_score": InsightPrompts._calculate_overall_score(assessment_data),
+            "metrics": InsightPrompts._format_key_metrics(assessment_data),
+            "barriers": InsightPrompts._identify_conversion_barriers(assessment_data),
+            "ux_issues": InsightPrompts._identify_ux_issues(assessment_data),
+            "performance_problems": InsightPrompts._format_performance_problems(
+                performance_issues
+            ),
+            "performance_issues": InsightPrompts.format_issues(performance_issues),
         }
 
     @staticmethod
     def _extract_hosting(tech_stack: list) -> str:
         """Extract hosting platform from tech stack"""
-        hosting_techs = [tech for tech in tech_stack if tech.get('category') == 'hosting']
+        hosting_techs = [
+            tech for tech in tech_stack if tech.get("category") == "hosting"
+        ]
         if hosting_techs:
-            return hosting_techs[0].get('technology_name', 'Unknown')
+            return hosting_techs[0].get("technology_name", "Unknown")
         return "Not detected"
 
     @staticmethod
     def _calculate_overall_score(assessment_data: dict) -> int:
         """Calculate overall website score"""
         scores = [
-            assessment_data.get('performance_score', 0),
-            assessment_data.get('accessibility_score', 0),
-            assessment_data.get('seo_score', 0),
-            assessment_data.get('best_practices_score', 0)
+            assessment_data.get("performance_score", 0),
+            assessment_data.get("accessibility_score", 0),
+            assessment_data.get("seo_score", 0),
+            assessment_data.get("best_practices_score", 0),
         ]
         valid_scores = [s for s in scores if s > 0]
         return int(sum(valid_scores) / len(valid_scores)) if valid_scores else 0
@@ -330,46 +400,46 @@ Provide only valid JSON output."""
     def _format_key_metrics(assessment_data: dict) -> str:
         """Format key performance metrics"""
         metrics = []
-        if assessment_data.get('largest_contentful_paint'):
+        if assessment_data.get("largest_contentful_paint"):
             metrics.append(f"LCP: {assessment_data['largest_contentful_paint']}ms")
-        if assessment_data.get('first_input_delay'):
+        if assessment_data.get("first_input_delay"):
             metrics.append(f"FID: {assessment_data['first_input_delay']}ms")
-        if assessment_data.get('cumulative_layout_shift'):
+        if assessment_data.get("cumulative_layout_shift"):
             metrics.append(f"CLS: {assessment_data['cumulative_layout_shift']}")
-        return ', '.join(metrics) if metrics else "No core metrics available"
+        return ", ".join(metrics) if metrics else "No core metrics available"
 
     @staticmethod
     def _identify_conversion_barriers(assessment_data: dict) -> str:
         """Identify potential conversion barriers"""
         barriers = []
 
-        if assessment_data.get('largest_contentful_paint', 0) > 4000:
+        if assessment_data.get("largest_contentful_paint", 0) > 4000:
             barriers.append("Slow page loading (4+ seconds)")
 
-        if assessment_data.get('accessibility_score', 100) < 85:
+        if assessment_data.get("accessibility_score", 100) < 85:
             barriers.append("Accessibility issues limiting user access")
 
-        if assessment_data.get('performance_score', 100) < 75:
+        if assessment_data.get("performance_score", 100) < 75:
             barriers.append("Poor performance impacting user experience")
 
-        return '; '.join(barriers) if barriers else "No major barriers identified"
+        return "; ".join(barriers) if barriers else "No major barriers identified"
 
     @staticmethod
     def _identify_ux_issues(assessment_data: dict) -> str:
         """Identify user experience issues"""
         ux_issues = []
 
-        if assessment_data.get('cumulative_layout_shift', 0) > 0.25:
+        if assessment_data.get("cumulative_layout_shift", 0) > 0.25:
             ux_issues.append("Layout instability (high CLS)")
 
-        if assessment_data.get('first_input_delay', 0) > 300:
+        if assessment_data.get("first_input_delay", 0) > 300:
             ux_issues.append("Slow interactivity (high FID)")
 
-        mobile_score = assessment_data.get('mobile_performance_score', 100)
+        mobile_score = assessment_data.get("mobile_performance_score", 100)
         if mobile_score < 80:
             ux_issues.append("Poor mobile experience")
 
-        return '; '.join(ux_issues) if ux_issues else "No major UX issues identified"
+        return "; ".join(ux_issues) if ux_issues else "No major UX issues identified"
 
     @staticmethod
     def _format_performance_problems(issues: list) -> str:
@@ -379,8 +449,8 @@ Provide only valid JSON output."""
 
         problems = []
         for issue in issues[:3]:  # Top 3 issues
-            title = issue.get('title', 'Unknown')
-            impact = issue.get('impact', 'unknown')
+            title = issue.get("title", "Unknown")
+            impact = issue.get("impact", "unknown")
             problems.append(f"{title} ({impact} impact)")
 
-        return '; '.join(problems)
+        return "; ".join(problems)

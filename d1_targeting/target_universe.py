@@ -1,22 +1,23 @@
 """
 Target Universe Manager for managing CRUD operations, geo conflicts, priority scoring, and freshness tracking
 """
-from typing import Dict, List, Optional, Any, Tuple
+import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func, desc, asc
-import uuid
+from typing import Any, Dict, List, Optional, Tuple
 
-from core.logging import get_logger
+from sqlalchemy import and_, asc, desc, func, or_
+from sqlalchemy.orm import Session
+
 from core.config import get_settings
+from core.logging import get_logger
 from database.session import SessionLocal
-from .models import TargetUniverse, Campaign, CampaignTarget, GeographicBoundary
-from .types import (
-    VerticalMarket, GeographyLevel, TargetingCriteria,
-    GeographicConstraint, TargetMetrics, QualificationRules
-)
+
 from .geo_validator import GeoValidator
+from .models import (Campaign, CampaignTarget, GeographicBoundary,
+                     TargetUniverse)
+from .types import (GeographicConstraint, GeographyLevel, QualificationRules,
+                    TargetingCriteria, TargetMetrics, VerticalMarket)
 
 
 class TargetUniverseManager:
@@ -40,7 +41,7 @@ class TargetUniverseManager:
         verticals: List[VerticalMarket],
         geography_config: Dict[str, Any],
         qualification_rules: Optional[QualificationRules] = None,
-        created_by: Optional[str] = None
+        created_by: Optional[str] = None,
     ) -> TargetUniverse:
         """
         Create a new target universe with validation
@@ -63,7 +64,9 @@ class TargetUniverseManager:
             # Validate geography configuration
             geo_conflicts = self.geo_validator.detect_conflicts(geography_config)
             if geo_conflicts:
-                self.logger.warning(f"Geography conflicts detected for universe '{name}': {geo_conflicts}")
+                self.logger.warning(
+                    f"Geography conflicts detected for universe '{name}': {geo_conflicts}"
+                )
 
             # Validate verticals
             validated_verticals = [VerticalMarket(v) for v in verticals]
@@ -75,9 +78,13 @@ class TargetUniverseManager:
                 description=description,
                 verticals=[v.value for v in validated_verticals],
                 geography_config=geography_config,
-                qualification_rules=qualification_rules.dict() if qualification_rules else None,
+                qualification_rules=qualification_rules.dict()
+                if qualification_rules
+                else None,
                 created_by=created_by,
-                estimated_size=self._estimate_universe_size(validated_verticals, geography_config)
+                estimated_size=self._estimate_universe_size(
+                    validated_verticals, geography_config
+                ),
             )
 
             self.session.add(universe)
@@ -96,10 +103,7 @@ class TargetUniverseManager:
         return self.session.query(TargetUniverse).filter_by(id=universe_id).first()
 
     def list_universes(
-        self,
-        active_only: bool = True,
-        limit: int = 100,
-        offset: int = 0
+        self, active_only: bool = True, limit: int = 100, offset: int = 0
     ) -> List[TargetUniverse]:
         """
         List target universes with pagination
@@ -117,13 +121,14 @@ class TargetUniverseManager:
         if active_only:
             query = query.filter_by(is_active=True)
 
-        return query.order_by(desc(TargetUniverse.created_at)).offset(offset).limit(limit).all()
+        return (
+            query.order_by(desc(TargetUniverse.created_at))
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
 
-    def update_universe(
-        self,
-        universe_id: str,
-        **updates
-    ) -> Optional[TargetUniverse]:
+    def update_universe(self, universe_id: str, **updates) -> Optional[TargetUniverse]:
         """
         Update target universe with validation
 
@@ -140,10 +145,14 @@ class TargetUniverseManager:
                 return None
 
             # Validate geography updates
-            if 'geography_config' in updates:
-                geo_conflicts = self.geo_validator.detect_conflicts(updates['geography_config'])
+            if "geography_config" in updates:
+                geo_conflicts = self.geo_validator.detect_conflicts(
+                    updates["geography_config"]
+                )
                 if geo_conflicts:
-                    self.logger.warning(f"Geography conflicts in update for {universe_id}: {geo_conflicts}")
+                    self.logger.warning(
+                        f"Geography conflicts in update for {universe_id}: {geo_conflicts}"
+                    )
 
             # Update fields
             for field, value in updates.items():
@@ -177,15 +186,21 @@ class TargetUniverseManager:
                 return False
 
             # Check for active campaigns
-            active_campaigns = self.session.query(Campaign).filter(
-                and_(
-                    Campaign.target_universe_id == universe_id,
-                    Campaign.status.in_(['scheduled', 'running'])
+            active_campaigns = (
+                self.session.query(Campaign)
+                .filter(
+                    and_(
+                        Campaign.target_universe_id == universe_id,
+                        Campaign.status.in_(["scheduled", "running"]),
+                    )
                 )
-            ).count()
+                .count()
+            )
 
             if active_campaigns > 0:
-                raise ValueError(f"Cannot delete universe with {active_campaigns} active campaigns")
+                raise ValueError(
+                    f"Cannot delete universe with {active_campaigns} active campaigns"
+                )
 
             universe.is_active = False
             universe.updated_at = datetime.utcnow()
@@ -201,7 +216,9 @@ class TargetUniverseManager:
 
     # Geo Conflict Detection
 
-    def detect_geo_conflicts(self, geography_config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def detect_geo_conflicts(
+        self, geography_config: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """
         Detect geographic conflicts in configuration
 
@@ -213,7 +230,9 @@ class TargetUniverseManager:
         """
         return self.geo_validator.detect_conflicts(geography_config)
 
-    def validate_geo_hierarchy(self, constraints: List[GeographicConstraint]) -> List[str]:
+    def validate_geo_hierarchy(
+        self, constraints: List[GeographicConstraint]
+    ) -> List[str]:
         """
         Validate geographic hierarchy consistency
 
@@ -226,8 +245,7 @@ class TargetUniverseManager:
         return self.geo_validator.validate_hierarchy(constraints)
 
     def resolve_geo_overlaps(
-        self,
-        constraints: List[GeographicConstraint]
+        self, constraints: List[GeographicConstraint]
     ) -> List[GeographicConstraint]:
         """
         Resolve geographic overlaps by merging or removing redundant constraints
@@ -257,7 +275,9 @@ class TargetUniverseManager:
 
             # Size factor (30% weight) - larger universes get higher priority
             if universe.actual_size > 0:
-                size_factor = min(universe.actual_size / 10000, 1.0)  # Cap at 10k targets
+                size_factor = min(
+                    universe.actual_size / 10000, 1.0
+                )  # Cap at 10k targets
                 score += size_factor * 0.3
 
             # Qualification rate (25% weight)
@@ -281,13 +301,13 @@ class TargetUniverseManager:
             return min(score, 1.0)
 
         except Exception as e:
-            self.logger.error(f"Failed to calculate priority for universe {universe.id}: {e}")
+            self.logger.error(
+                f"Failed to calculate priority for universe {universe.id}: {e}"
+            )
             return 0.0
 
     def rank_universes_by_priority(
-        self,
-        universe_ids: Optional[List[str]] = None,
-        limit: int = 50
+        self, universe_ids: Optional[List[str]] = None, limit: int = 50
     ) -> List[Tuple[TargetUniverse, float]]:
         """
         Rank target universes by priority score
@@ -343,7 +363,9 @@ class TargetUniverseManager:
 
         except Exception as e:
             self.session.rollback()
-            self.logger.error(f"Failed to update freshness for universe {universe_id}: {e}")
+            self.logger.error(
+                f"Failed to update freshness for universe {universe_id}: {e}"
+            )
             raise
 
     def get_stale_universes(self, max_age_hours: int = 24) -> List[TargetUniverse]:
@@ -358,15 +380,19 @@ class TargetUniverseManager:
         """
         cutoff_time = datetime.utcnow() - timedelta(hours=max_age_hours)
 
-        return self.session.query(TargetUniverse).filter(
-            and_(
-                TargetUniverse.is_active == True,
-                or_(
-                    TargetUniverse.last_refresh.is_(None),
-                    TargetUniverse.last_refresh < cutoff_time
+        return (
+            self.session.query(TargetUniverse)
+            .filter(
+                and_(
+                    TargetUniverse.is_active == True,
+                    or_(
+                        TargetUniverse.last_refresh.is_(None),
+                        TargetUniverse.last_refresh < cutoff_time,
+                    ),
                 )
             )
-        ).all()
+            .all()
+        )
 
     def calculate_freshness_score(self, universe: TargetUniverse) -> float:
         """
@@ -397,14 +423,18 @@ class TargetUniverseManager:
             return TargetMetrics()
 
         # Query campaign metrics
-        campaign_stats = self.session.query(
-            func.sum(Campaign.total_targets).label('total'),
-            func.sum(Campaign.contacted_targets).label('contacted'),
-            func.sum(Campaign.responded_targets).label('responded'),
-            func.sum(Campaign.converted_targets).label('converted'),
-            func.sum(Campaign.excluded_targets).label('excluded'),
-            func.sum(Campaign.total_cost).label('cost')
-        ).filter_by(target_universe_id=universe_id).first()
+        campaign_stats = (
+            self.session.query(
+                func.sum(Campaign.total_targets).label("total"),
+                func.sum(Campaign.contacted_targets).label("contacted"),
+                func.sum(Campaign.responded_targets).label("responded"),
+                func.sum(Campaign.converted_targets).label("converted"),
+                func.sum(Campaign.excluded_targets).label("excluded"),
+                func.sum(Campaign.total_cost).label("cost"),
+            )
+            .filter_by(target_universe_id=universe_id)
+            .first()
+        )
 
         # Calculate rates
         total = campaign_stats.total or 0
@@ -419,13 +449,19 @@ class TargetUniverseManager:
             responded_targets=responded,
             converted_targets=converted,
             excluded_targets=campaign_stats.excluded or 0,
-            qualification_rate=universe.qualified_count / universe.actual_size if universe.actual_size > 0 else 0.0,
+            qualification_rate=universe.qualified_count / universe.actual_size
+            if universe.actual_size > 0
+            else 0.0,
             contact_rate=contacted / total if total > 0 else 0.0,
             response_rate=responded / contacted if contacted > 0 else 0.0,
             conversion_rate=converted / contacted if contacted > 0 else 0.0,
             total_cost=Decimal(str(campaign_stats.cost or 0)),
-            cost_per_contact=Decimal(str(campaign_stats.cost or 0)) / contacted if contacted > 0 else Decimal("0.00"),
-            cost_per_conversion=Decimal(str(campaign_stats.cost or 0)) / converted if converted > 0 else Decimal("0.00")
+            cost_per_contact=Decimal(str(campaign_stats.cost or 0)) / contacted
+            if contacted > 0
+            else Decimal("0.00"),
+            cost_per_conversion=Decimal(str(campaign_stats.cost or 0)) / converted
+            if converted > 0
+            else Decimal("0.00"),
         )
 
     def get_performance_summary(self, days: int = 30) -> Dict[str, Any]:
@@ -441,51 +477,63 @@ class TargetUniverseManager:
         cutoff_date = datetime.utcnow() - timedelta(days=days)
 
         # Get universe counts
-        total_universes = self.session.query(TargetUniverse).filter_by(is_active=True).count()
+        total_universes = (
+            self.session.query(TargetUniverse).filter_by(is_active=True).count()
+        )
 
         # Get fresh vs stale counts
-        fresh_universes = self.session.query(TargetUniverse).filter(
-            and_(
-                TargetUniverse.is_active == True,
-                TargetUniverse.last_refresh >= cutoff_date
+        fresh_universes = (
+            self.session.query(TargetUniverse)
+            .filter(
+                and_(
+                    TargetUniverse.is_active == True,
+                    TargetUniverse.last_refresh >= cutoff_date,
+                )
             )
-        ).count()
+            .count()
+        )
 
         # Get campaign metrics
-        campaign_metrics = self.session.query(
-            func.count(Campaign.id).label('total_campaigns'),
-            func.sum(Campaign.total_targets).label('total_targets'),
-            func.sum(Campaign.contacted_targets).label('contacted'),
-            func.sum(Campaign.converted_targets).label('converted'),
-            func.sum(Campaign.total_cost).label('cost')
-        ).join(TargetUniverse).filter(
-            and_(
-                TargetUniverse.is_active == True,
-                Campaign.created_at >= cutoff_date
+        campaign_metrics = (
+            self.session.query(
+                func.count(Campaign.id).label("total_campaigns"),
+                func.sum(Campaign.total_targets).label("total_targets"),
+                func.sum(Campaign.contacted_targets).label("contacted"),
+                func.sum(Campaign.converted_targets).label("converted"),
+                func.sum(Campaign.total_cost).label("cost"),
             )
-        ).first()
+            .join(TargetUniverse)
+            .filter(
+                and_(
+                    TargetUniverse.is_active == True, Campaign.created_at >= cutoff_date
+                )
+            )
+            .first()
+        )
 
         return {
-            'period_days': days,
-            'total_universes': total_universes,
-            'fresh_universes': fresh_universes,
-            'stale_universes': total_universes - fresh_universes,
-            'freshness_rate': fresh_universes / total_universes if total_universes > 0 else 0.0,
-            'total_campaigns': campaign_metrics.total_campaigns or 0,
-            'total_targets': campaign_metrics.total_targets or 0,
-            'contacted_targets': campaign_metrics.contacted or 0,
-            'converted_targets': campaign_metrics.converted or 0,
-            'conversion_rate': (campaign_metrics.converted or 0) / (campaign_metrics.contacted or 1),
-            'total_cost': float(campaign_metrics.cost or 0),
-            'average_cost_per_conversion': float(campaign_metrics.cost or 0) / (campaign_metrics.converted or 1)
+            "period_days": days,
+            "total_universes": total_universes,
+            "fresh_universes": fresh_universes,
+            "stale_universes": total_universes - fresh_universes,
+            "freshness_rate": fresh_universes / total_universes
+            if total_universes > 0
+            else 0.0,
+            "total_campaigns": campaign_metrics.total_campaigns or 0,
+            "total_targets": campaign_metrics.total_targets or 0,
+            "contacted_targets": campaign_metrics.contacted or 0,
+            "converted_targets": campaign_metrics.converted or 0,
+            "conversion_rate": (campaign_metrics.converted or 0)
+            / (campaign_metrics.contacted or 1),
+            "total_cost": float(campaign_metrics.cost or 0),
+            "average_cost_per_conversion": float(campaign_metrics.cost or 0)
+            / (campaign_metrics.converted or 1),
         }
 
     # Private helper methods
 
     def _estimate_universe_size(
-        self,
-        verticals: List[VerticalMarket],
-        geography_config: Dict[str, Any]
+        self, verticals: List[VerticalMarket], geography_config: Dict[str, Any]
     ) -> Optional[int]:
         """Estimate universe size based on criteria (placeholder implementation)"""
         # This would typically query historical data or use estimation algorithms
@@ -503,7 +551,7 @@ class TargetUniverseManager:
             return 1.0
 
         # More specific targeting = smaller multiplier
-        constraint_count = len(geography_config.get('constraints', []))
+        constraint_count = len(geography_config.get("constraints", []))
         return max(0.1, 1.0 - (constraint_count * 0.2))
 
     def _calculate_freshness_score(self, universe: TargetUniverse) -> float:
@@ -511,7 +559,9 @@ class TargetUniverseManager:
         if not universe.last_refresh:
             return 0.0
 
-        hours_since_refresh = (datetime.utcnow() - universe.last_refresh).total_seconds() / 3600
+        hours_since_refresh = (
+            datetime.utcnow() - universe.last_refresh
+        ).total_seconds() / 3600
 
         # Score decreases over time: 1.0 at 0 hours, 0.5 at 24 hours, 0.0 at 72 hours
         if hours_since_refresh <= 24:
@@ -521,9 +571,9 @@ class TargetUniverseManager:
 
     def _calculate_campaign_performance(self, universe: TargetUniverse) -> float:
         """Calculate average campaign performance for universe"""
-        campaigns = self.session.query(Campaign).filter_by(
-            target_universe_id=universe.id
-        ).all()
+        campaigns = (
+            self.session.query(Campaign).filter_by(target_universe_id=universe.id).all()
+        )
 
         if not campaigns:
             return 0.5  # Neutral score for new universes
@@ -531,7 +581,9 @@ class TargetUniverseManager:
         total_conversion_rate = 0.0
         for campaign in campaigns:
             if campaign.contacted_targets > 0:
-                conversion_rate = campaign.converted_targets / campaign.contacted_targets
+                conversion_rate = (
+                    campaign.converted_targets / campaign.contacted_targets
+                )
                 total_conversion_rate += conversion_rate
 
         return total_conversion_rate / len(campaigns) if campaigns else 0.0
@@ -540,4 +592,6 @@ class TargetUniverseManager:
         """Get current actual size of universe (placeholder implementation)"""
         # This would typically query the d2_sourcing module to get actual counts
         # For now, return the current value with some simulation
-        return universe.actual_size + (universe.actual_size // 10)  # Simulate 10% growth
+        return universe.actual_size + (
+            universe.actual_size // 10
+        )  # Simulate 10% growth

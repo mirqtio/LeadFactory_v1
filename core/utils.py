@@ -1,17 +1,17 @@
 """
 Core utility functions used across domains
 """
-import hashlib
-import secrets
-import re
-from typing import Any, Dict, List, Optional, TypeVar, Callable
-from datetime import datetime, timedelta, date
-from decimal import Decimal, ROUND_HALF_UP
-from urllib.parse import urlparse, urljoin
 import asyncio
+import hashlib
+import re
+import secrets
+from datetime import date, datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, TypeVar
+from urllib.parse import urljoin, urlparse
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def generate_token(length: int = 32) -> str:
@@ -27,12 +27,12 @@ def hash_email(email: str) -> str:
 def normalize_phone(phone: str) -> Optional[str]:
     """Normalize phone number to E.164 format"""
     # Remove all non-digits
-    digits = re.sub(r'\D', '', phone)
+    digits = re.sub(r"\D", "", phone)
 
     # Handle US numbers
     if len(digits) == 10:
         return f"+1{digits}"
-    elif len(digits) == 11 and digits.startswith('1'):
+    elif len(digits) == 11 and digits.startswith("1"):
         return f"+{digits}"
     elif len(digits) > 0:
         # Assume it's already in correct format
@@ -47,14 +47,14 @@ def clean_url(url: str) -> str:
         return ""
 
     # Add scheme if missing
-    if not url.startswith(('http://', 'https://')):
+    if not url.startswith(("http://", "https://")):
         url = f"https://{url}"
 
     # Parse and reconstruct
     parsed = urlparse(url)
 
     # Remove trailing slashes from path
-    path = parsed.path.rstrip('/')
+    path = parsed.path.rstrip("/")
 
     # Reconstruct URL
     return f"{parsed.scheme}://{parsed.netloc}{path}"
@@ -64,7 +64,7 @@ def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
     """Truncate text to max length with suffix"""
     if len(text) <= max_length:
         return text
-    return text[:max_length - len(suffix)] + suffix
+    return text[: max_length - len(suffix)] + suffix
 
 
 def calculate_percentage(value: float, total: float, decimals: int = 2) -> float:
@@ -87,18 +87,18 @@ def format_currency(cents: int, currency: str = "USD") -> str:
 def parse_currency(amount_str: str) -> int:
     """Parse currency string to cents"""
     # Remove currency symbols and whitespace
-    cleaned = re.sub(r'[^\d.,]', '', amount_str)
+    cleaned = re.sub(r"[^\d.,]", "", amount_str)
     # Replace comma with dot for decimal
-    cleaned = cleaned.replace(',', '.')
+    cleaned = cleaned.replace(",", ".")
     # Convert to cents
     dollars = Decimal(cleaned)
-    cents = int((dollars * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+    cents = int((dollars * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     return cents
 
 
 def chunk_list(lst: List[T], chunk_size: int) -> List[List[T]]:
     """Split list into chunks of specified size"""
-    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+    return [lst[i : i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
 def deep_merge(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
@@ -138,9 +138,10 @@ def retry_async(
     max_attempts: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-    exceptions: tuple = (Exception,)
+    exceptions: tuple = (Exception,),
 ):
     """Decorator for retrying async functions with exponential backoff"""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -152,12 +153,13 @@ def retry_async(
                 except exceptions as e:
                     last_exception = e
                     if attempt < max_attempts - 1:
-                        wait_time = delay * (backoff ** attempt)
+                        wait_time = delay * (backoff**attempt)
                         await asyncio.sleep(wait_time)
 
             raise last_exception
 
         return wrapper
+
     return decorator
 
 
@@ -176,7 +178,7 @@ def extract_domain(url: str) -> Optional[str]:
         if not domain:  # No domain found
             return None
         # Remove www prefix
-        if domain.startswith('www.'):
+        if domain.startswith("www."):
             domain = domain[4:]
         return domain
     except:
@@ -187,12 +189,12 @@ def generate_slug(text: str, max_length: int = 50) -> str:
     """Generate URL-safe slug from text"""
     # Convert to lowercase and replace spaces with hyphens
     slug = text.lower().strip()
-    slug = re.sub(r'[^\w\s-]', '', slug)
-    slug = re.sub(r'[-\s]+', '-', slug)
+    slug = re.sub(r"[^\w\s-]", "", slug)
+    slug = re.sub(r"[-\s]+", "-", slug)
 
     # Trim to max length
     if len(slug) > max_length:
-        slug = slug[:max_length].rsplit('-', 1)[0]
+        slug = slug[:max_length].rsplit("-", 1)[0]
 
     return slug
 
@@ -207,10 +209,7 @@ def mask_sensitive_data(data: str, visible_chars: int = 4) -> str:
 
 
 def calculate_rate_limit_wait(
-    used: int,
-    limit: int,
-    reset_time: datetime,
-    buffer_percent: float = 0.1
+    used: int, limit: int, reset_time: datetime, buffer_percent: float = 0.1
 ) -> Optional[float]:
     """Calculate wait time to avoid rate limits"""
     # Check if we're close to the limit

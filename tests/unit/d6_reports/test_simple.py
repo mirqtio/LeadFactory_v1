@@ -1,14 +1,15 @@
 """
 Simple test to verify D6 Reports models work in Docker
 """
-import pytest
-import sys
 import importlib.util
+import sys
+
+import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 # Ensure we can import from project root
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
 # Import models via direct file import to avoid module issues
 spec = importlib.util.spec_from_file_location("d6_models", "/app/d6_reports/models.py")
@@ -16,12 +17,16 @@ d6_models = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(d6_models)
 
 # Import database models to create all tables
-spec_models = importlib.util.spec_from_file_location("database_models", "/app/database/models.py")
+spec_models = importlib.util.spec_from_file_location(
+    "database_models", "/app/database/models.py"
+)
 db_models = importlib.util.module_from_spec(spec_models)
 spec_models.loader.exec_module(db_models)
 
 # Import database base
-spec_base = importlib.util.spec_from_file_location("database_base", "/app/database/base.py")
+spec_base = importlib.util.spec_from_file_location(
+    "database_base", "/app/database/base.py"
+)
 db_base = importlib.util.module_from_spec(spec_base)
 spec_base.loader.exec_module(db_base)
 
@@ -55,7 +60,7 @@ def test_report_generation_creation(db_session):
     report = d6_models.ReportGeneration(
         business_id="business-123",
         template_id="template-001",
-        report_type=d6_models.ReportType.BUSINESS_AUDIT
+        report_type=d6_models.ReportType.BUSINESS_AUDIT,
     )
     db_session.add(report)
     db_session.commit()
@@ -74,7 +79,7 @@ def test_report_template_creation(db_session):
         name="business_audit_v1",
         display_name="Business Audit Report",
         template_type=d6_models.ReportType.BUSINESS_AUDIT,
-        format=d6_models.TemplateFormat.HTML
+        format=d6_models.TemplateFormat.HTML,
     )
     db_session.add(template)
     db_session.commit()
@@ -96,7 +101,7 @@ def test_report_section_creation(db_session):
     template = d6_models.ReportTemplate(
         name="test_template",
         display_name="Test Template",
-        template_type=d6_models.ReportType.BUSINESS_AUDIT
+        template_type=d6_models.ReportType.BUSINESS_AUDIT,
     )
     db_session.add(template)
     db_session.flush()
@@ -106,7 +111,7 @@ def test_report_section_creation(db_session):
         template_id=template.id,
         name="executive_summary",
         display_name="Executive Summary",
-        section_order=1
+        section_order=1,
     )
     db_session.add(section)
     db_session.commit()
@@ -124,8 +129,7 @@ def test_report_delivery_creation(db_session):
     """Test creating a ReportDelivery model"""
     # Create report generation first
     report = d6_models.ReportGeneration(
-        business_id="business-123",
-        template_id="template-001"
+        business_id="business-123", template_id="template-001"
     )
     db_session.add(report)
     db_session.flush()
@@ -134,7 +138,7 @@ def test_report_delivery_creation(db_session):
     delivery = d6_models.ReportDelivery(
         report_generation_id=report.id,
         delivery_method=d6_models.DeliveryMethod.EMAIL,
-        recipient_email="test@example.com"
+        recipient_email="test@example.com",
     )
     db_session.add(delivery)
     db_session.commit()
@@ -154,7 +158,7 @@ def test_template_mobile_responsive_property(db_session):
         name="basic_template",
         display_name="Basic Template",
         template_type=d6_models.ReportType.BUSINESS_AUDIT,
-        supports_mobile=True
+        supports_mobile=True,
     )
 
     # Template with mobile CSS
@@ -163,7 +167,7 @@ def test_template_mobile_responsive_property(db_session):
         display_name="Responsive Template",
         template_type=d6_models.ReportType.BUSINESS_AUDIT,
         supports_mobile=True,
-        mobile_css="@media (max-width: 768px) { body { font-size: 14px; } }"
+        mobile_css="@media (max-width: 768px) { body { font-size: 14px; } }",
     )
 
     db_session.add_all([template1, template2])
@@ -171,7 +175,7 @@ def test_template_mobile_responsive_property(db_session):
 
     # Test properties
     assert template1.is_mobile_responsive is False  # No mobile CSS
-    assert template2.is_mobile_responsive is True   # Has mobile CSS
+    assert template2.is_mobile_responsive is True  # Has mobile CSS
 
 
 def test_template_print_optimized_property(db_session):
@@ -181,7 +185,7 @@ def test_template_print_optimized_property(db_session):
         name="basic_template",
         display_name="Basic Template",
         template_type=d6_models.ReportType.BUSINESS_AUDIT,
-        supports_print=True
+        supports_print=True,
     )
 
     # Template with print CSS
@@ -190,7 +194,7 @@ def test_template_print_optimized_property(db_session):
         display_name="Print Template",
         template_type=d6_models.ReportType.BUSINESS_AUDIT,
         supports_print=True,
-        print_css="@media print { body { color: black; } }"
+        print_css="@media print { body { color: black; } }",
     )
 
     db_session.add_all([template1, template2])
@@ -198,7 +202,7 @@ def test_template_print_optimized_property(db_session):
 
     # Test properties
     assert template1.is_print_optimized is False  # No print CSS
-    assert template2.is_print_optimized is True   # Has print CSS
+    assert template2.is_print_optimized is True  # Has print CSS
 
 
 def test_uuid_generation():

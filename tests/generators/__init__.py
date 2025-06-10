@@ -11,8 +11,8 @@ Acceptance Criteria:
 - Performance data sets ✓
 """
 
-from .business_generator import BusinessGenerator, BusinessScenario
 from .assessment_generator import AssessmentGenerator, AssessmentScenario
+from .business_generator import BusinessGenerator, BusinessScenario
 
 __version__ = "1.0.0"
 
@@ -20,8 +20,7 @@ __all__ = [
     # Business data generation
     "BusinessGenerator",
     "BusinessScenario",
-    
     # Assessment data generation
-    "AssessmentGenerator", 
+    "AssessmentGenerator",
     "AssessmentScenario",
 ]

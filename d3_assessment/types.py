@@ -3,14 +3,15 @@ D3 Assessment Types - Task 030
 
 Enums and type definitions for website assessment functionality.
 """
-from enum import Enum
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class AssessmentStatus(Enum):
     """Status of an assessment"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -21,6 +22,7 @@ class AssessmentStatus(Enum):
 
 class AssessmentType(Enum):
     """Type of assessment being performed"""
+
     PAGESPEED = "pagespeed"
     TECH_STACK = "tech_stack"
     AI_INSIGHTS = "ai_insights"
@@ -31,6 +33,7 @@ class AssessmentType(Enum):
 
 class PageSpeedMetric(Enum):
     """PageSpeed Insights metrics"""
+
     PERFORMANCE = "performance"
     ACCESSIBILITY = "accessibility"
     BEST_PRACTICES = "best_practices"
@@ -47,6 +50,7 @@ class PageSpeedMetric(Enum):
 
 class TechCategory(Enum):
     """Technology stack categories"""
+
     CMS = "cms"
     ECOMMERCE = "ecommerce"
     FRONTEND = "frontend"
@@ -70,6 +74,7 @@ class TechCategory(Enum):
 
 class InsightCategory(Enum):
     """AI insight categories"""
+
     PERFORMANCE_OPTIMIZATION = "performance_optimization"
     SEO_RECOMMENDATIONS = "seo_recommendations"
     USER_EXPERIENCE = "user_experience"
@@ -86,6 +91,7 @@ class InsightCategory(Enum):
 
 class InsightType(Enum):
     """Types of LLM insights to generate"""
+
     RECOMMENDATIONS = "recommendations"
     TECHNICAL_ANALYSIS = "technical_analysis"
     INDUSTRY_BENCHMARK = "industry_benchmark"
@@ -96,6 +102,7 @@ class InsightType(Enum):
 
 class CostType(Enum):
     """Types of costs associated with assessments"""
+
     API_CALL = "api_call"
     PROCESSING_TIME = "processing_time"
     STORAGE = "storage"
@@ -108,6 +115,7 @@ class CostType(Enum):
 
 class IssueType(Enum):
     """Types of issues that can be identified in assessments"""
+
     PERFORMANCE = "performance"
     SEO = "seo"
     USABILITY = "usability"
@@ -122,6 +130,7 @@ class IssueType(Enum):
 
 class IssueSeverity(Enum):
     """Severity levels for assessment issues"""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -132,6 +141,7 @@ class IssueSeverity(Enum):
 @dataclass
 class AssessmentConfig:
     """Configuration for assessment operations"""
+
     assessment_type: AssessmentType
     include_pagespeed: bool = True
     include_tech_stack: bool = True
@@ -149,6 +159,7 @@ class AssessmentConfig:
 @dataclass
 class PageSpeedScore:
     """PageSpeed Insights score data"""
+
     metric: PageSpeedMetric
     score: float
     value: Optional[float] = None
@@ -160,6 +171,7 @@ class PageSpeedScore:
 @dataclass
 class TechStackItem:
     """Individual technology detected"""
+
     name: str
     category: TechCategory
     version: Optional[str] = None
@@ -173,6 +185,7 @@ class TechStackItem:
 @dataclass
 class AIInsightItem:
     """Individual AI-generated insight"""
+
     category: InsightCategory
     title: str
     description: str
@@ -187,6 +200,7 @@ class AIInsightItem:
 @dataclass
 class AssessmentCostItem:
     """Individual cost item for an assessment"""
+
     cost_type: CostType
     amount: float
     currency: str = "USD"
@@ -198,6 +212,7 @@ class AssessmentCostItem:
 @dataclass
 class AssessmentMetadata:
     """Metadata about an assessment"""
+
     user_agent: Optional[str] = None
     ip_address: Optional[str] = None
     referrer: Optional[str] = None

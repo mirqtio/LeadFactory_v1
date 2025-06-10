@@ -6,19 +6,21 @@ Acceptance Criteria:
 - Priority-based scheduling
 - No duplicate batches
 """
-import pytest
-import sys
 import os
-from unittest.mock import Mock, patch
-from datetime import datetime, timedelta, date, time
+import sys
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
+from unittest.mock import Mock, patch
+
+import pytest
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
 from d1_targeting.batch_scheduler import BatchScheduler
 from d1_targeting.quota_tracker import QuotaTracker
-from d1_targeting.types import CampaignStatus, BatchProcessingStatus, BatchSchedule
+from d1_targeting.types import (BatchProcessingStatus, BatchSchedule,
+                                CampaignStatus)
 
 
 class TestTask022AcceptanceCriteria:
@@ -94,7 +96,7 @@ class TestTask022AcceptanceCriteria:
             campaign.contacted_targets = i * 100
             campaign.converted_targets = i * 20
             campaign.responded_targets = i * 40
-            campaign.actual_start = datetime.utcnow() - timedelta(days=i+1)
+            campaign.actual_start = datetime.utcnow() - timedelta(days=i + 1)
             campaign.batch_settings = None
 
             # Mock target_universe properly
@@ -105,7 +107,9 @@ class TestTask022AcceptanceCriteria:
             campaigns.append(campaign)
 
         # Mock methods
-        scheduler._get_remaining_targets_count = Mock(side_effect=lambda c: 800 - campaigns.index(c) * 200)
+        scheduler._get_remaining_targets_count = Mock(
+            side_effect=lambda c: 800 - campaigns.index(c) * 200
+        )
         scheduler._get_campaign_batch_settings = Mock(return_value=BatchSchedule())
 
         # Test allocation
@@ -114,12 +118,16 @@ class TestTask022AcceptanceCriteria:
 
         # Verify fair allocation
         assert len(allocations) == 3
-        total_allocated = sum(alloc['quota'] for alloc in allocations.values())
+        total_allocated = sum(alloc["quota"] for alloc in allocations.values())
         assert total_allocated <= total_quota
 
         # Check that all campaigns get some allocation if they have remaining targets
-        campaigns_with_targets = [c for c in campaigns if scheduler._get_remaining_targets_count(c) > 0]
-        campaigns_with_quota = [c for c, alloc in allocations.items() if alloc['quota'] > 0]
+        campaigns_with_targets = [
+            c for c in campaigns if scheduler._get_remaining_targets_count(c) > 0
+        ]
+        campaigns_with_quota = [
+            c for c, alloc in allocations.items() if alloc["quota"] > 0
+        ]
         assert len(campaigns_with_quota) >= min(len(campaigns_with_targets), 1)
 
         print("✓ Quota allocation is fair")
@@ -149,8 +157,8 @@ class TestTask022AcceptanceCriteria:
         low_performing_campaign.id = "low-perf"
         low_performing_campaign.total_targets = 1000
         low_performing_campaign.contacted_targets = 500
-        low_performing_campaign.converted_targets = 10   # 2% conversion
-        low_performing_campaign.responded_targets = 50   # 10% response
+        low_performing_campaign.converted_targets = 10  # 2% conversion
+        low_performing_campaign.responded_targets = 50  # 10% response
         low_performing_campaign.actual_start = datetime.utcnow() - timedelta(days=10)
 
         # Mock target_universe properly for low performing campaign
@@ -174,8 +182,8 @@ class TestTask022AcceptanceCriteria:
 
         allocations = scheduler._calculate_priority_allocations(campaigns, 300)
 
-        high_perf_quota = allocations[high_performing_campaign]['quota']
-        low_perf_quota = allocations[low_performing_campaign]['quota']
+        high_perf_quota = allocations[high_performing_campaign]["quota"]
+        low_perf_quota = allocations[low_performing_campaign]["quota"]
 
         # High performing campaign should get equal or more quota
         assert high_perf_quota >= low_perf_quota
@@ -195,7 +203,9 @@ class TestTask022AcceptanceCriteria:
         scheduler.quota_tracker.get_daily_quota = Mock(return_value=500)
 
         # Test that campaigns with existing batches are excluded
-        target_date = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        target_date = datetime.utcnow().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         campaigns = scheduler._get_campaigns_needing_batches(target_date)
 
         # Should return empty list since all campaigns have existing batches
@@ -203,7 +213,9 @@ class TestTask022AcceptanceCriteria:
         assert len(campaigns) == 0
 
         # Test get next batch number to ensure proper sequencing
-        mock_session.query.return_value.filter.return_value.scalar.return_value = 2  # Mock existing max batch number
+        mock_session.query.return_value.filter.return_value.scalar.return_value = (
+            2  # Mock existing max batch number
+        )
 
         next_batch_num = scheduler._get_next_batch_number("campaign-1", target_date)
         assert next_batch_num == 3  # Should be next in sequence
@@ -220,7 +232,9 @@ class TestTask022AcceptanceCriteria:
         mock_session = Mock()
 
         # Mock database queries for quota tracker
-        mock_session.query.return_value.filter.return_value.scalar.return_value = 100  # Mock used quota
+        mock_session.query.return_value.filter.return_value.scalar.return_value = (
+            100  # Mock used quota
+        )
 
         quota_tracker = QuotaTracker(session=mock_session)
 
@@ -243,9 +257,9 @@ class TestTask022AcceptanceCriteria:
         # Test quota allocation for campaign
         allocation = quota_tracker.get_campaign_quota_allocation("test-campaign", today)
         assert isinstance(allocation, dict)
-        assert 'total_daily_quota' in allocation
-        assert 'campaign_max_quota' in allocation
-        assert 'campaign_remaining_quota' in allocation
+        assert "total_daily_quota" in allocation
+        assert "campaign_max_quota" in allocation
+        assert "campaign_remaining_quota" in allocation
 
         print("✓ Quota tracker integration works")
 
@@ -264,13 +278,15 @@ class TestTask022AcceptanceCriteria:
         mock_batch.status = BatchProcessingStatus.PENDING.value
         mock_batch.retry_count = 0
 
-        mock_session.query.return_value.filter_by.return_value.first.return_value = mock_batch
+        mock_session.query.return_value.filter_by.return_value.first.return_value = (
+            mock_batch
+        )
 
         # Test marking batch as processing
         result = scheduler.mark_batch_processing("batch-123")
         assert result is True
         assert mock_batch.status == BatchProcessingStatus.PROCESSING.value
-        assert hasattr(mock_batch, 'started_at')
+        assert hasattr(mock_batch, "started_at")
 
         # Test marking batch as completed
         mock_batch.status = BatchProcessingStatus.PROCESSING.value
@@ -303,16 +319,20 @@ class TestTask022AcceptanceCriteria:
         batch_settings = BatchSchedule(
             allowed_hours_start=time(9, 0),
             allowed_hours_end=time(17, 0),
-            delay_between_batches_seconds=300  # 5 minutes
+            delay_between_batches_seconds=300,  # 5 minutes
         )
 
         # Test first batch
-        scheduled_time1 = scheduler._calculate_batch_schedule_time(target_date, 1, batch_settings)
+        scheduled_time1 = scheduler._calculate_batch_schedule_time(
+            target_date, 1, batch_settings
+        )
         expected_start = datetime(2024, 1, 15, 9, 0, 0)
         assert scheduled_time1 == expected_start
 
         # Test second batch (should be 5 minutes later)
-        scheduled_time2 = scheduler._calculate_batch_schedule_time(target_date, 2, batch_settings)
+        scheduled_time2 = scheduler._calculate_batch_schedule_time(
+            target_date, 2, batch_settings
+        )
         expected_second = datetime(2024, 1, 15, 9, 5, 0)
         assert scheduled_time2 == expected_second
 
@@ -322,24 +342,26 @@ class TestTask022AcceptanceCriteria:
         """Test that all required files from Task 022 exist and can be imported"""
         # Test batch_scheduler.py
         from d1_targeting.batch_scheduler import BatchScheduler
+
         scheduler = BatchScheduler()
         assert scheduler is not None
 
         # Test quota_tracker.py
         from d1_targeting.quota_tracker import QuotaTracker
+
         tracker = QuotaTracker()
         assert tracker is not None
 
         # Test that classes have required methods
-        assert hasattr(scheduler, 'create_daily_batches')
-        assert hasattr(scheduler, 'get_pending_batches')
-        assert hasattr(scheduler, 'mark_batch_processing')
-        assert hasattr(scheduler, 'mark_batch_completed')
+        assert hasattr(scheduler, "create_daily_batches")
+        assert hasattr(scheduler, "get_pending_batches")
+        assert hasattr(scheduler, "mark_batch_processing")
+        assert hasattr(scheduler, "mark_batch_completed")
 
-        assert hasattr(tracker, 'get_daily_quota')
-        assert hasattr(tracker, 'get_remaining_quota')
-        assert hasattr(tracker, 'is_quota_available')
-        assert hasattr(tracker, 'reserve_quota')
+        assert hasattr(tracker, "get_daily_quota")
+        assert hasattr(tracker, "get_remaining_quota")
+        assert hasattr(tracker, "is_quota_available")
+        assert hasattr(tracker, "reserve_quota")
 
         print("✓ All required files exist and can be imported")
 
@@ -347,13 +369,13 @@ class TestTask022AcceptanceCriteria:
         """Test integration with existing database models"""
         # Test that we can import and use the models
         from d1_targeting.models import Campaign, CampaignBatch, TargetUniverse
-        from d1_targeting.types import CampaignStatus, BatchProcessingStatus
+        from d1_targeting.types import BatchProcessingStatus, CampaignStatus
 
         # Test that models can be instantiated
         campaign = Campaign(
             name="Test Campaign",
             target_universe_id="test-universe-id",
-            status=CampaignStatus.RUNNING.value
+            status=CampaignStatus.RUNNING.value,
         )
         assert campaign.name == "Test Campaign"
         assert campaign.status == CampaignStatus.RUNNING.value
@@ -362,7 +384,7 @@ class TestTask022AcceptanceCriteria:
             campaign_id="test-campaign-id",
             batch_number=1,
             batch_size=100,
-            status=BatchProcessingStatus.PENDING.value
+            status=BatchProcessingStatus.PENDING.value,
         )
         assert batch.batch_number == 1
         assert batch.batch_size == 100

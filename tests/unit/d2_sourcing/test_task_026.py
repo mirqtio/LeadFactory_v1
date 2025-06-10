@@ -6,27 +6,26 @@ Acceptance Criteria:
 - Batch quota enforcement
 - Error recovery works
 """
-import pytest
-import sys
-import os
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+import os
+import sys
 from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
 import aiohttp
+import pytest
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
-from d2_sourcing.yelp_scraper import YelpScraper, ScrapingResult, ScrapingStatus, PaginationState
-from d2_sourcing.exceptions import (
-    YelpAPIException,
-    YelpRateLimitException,
-    YelpQuotaExceededException,
-    BatchQuotaException,
-    ErrorRecoveryException,
-    YelpAuthenticationException,
-    NetworkException
-)
+from d2_sourcing.exceptions import (BatchQuotaException,
+                                    ErrorRecoveryException, NetworkException,
+                                    YelpAPIException,
+                                    YelpAuthenticationException,
+                                    YelpQuotaExceededException,
+                                    YelpRateLimitException)
+from d2_sourcing.yelp_scraper import (PaginationState, ScrapingResult,
+                                      ScrapingStatus, YelpScraper)
 
 
 class TestTask026AcceptanceCriteria:
@@ -55,8 +54,9 @@ class TestTask026AcceptanceCriteria:
     @pytest.fixture
     def scraper(self, mock_session, mock_settings):
         """Create YelpScraper instance with mocked dependencies"""
-        with patch('d2_sourcing.yelp_scraper.get_settings', return_value=mock_settings), \
-             patch('d2_sourcing.yelp_scraper.SessionLocal', return_value=mock_session):
+        with patch(
+            "d2_sourcing.yelp_scraper.get_settings", return_value=mock_settings
+        ), patch("d2_sourcing.yelp_scraper.SessionLocal", return_value=mock_session):
             return YelpScraper(session=mock_session)
 
     def test_pagination_handled_correctly(self, scraper):
@@ -77,21 +77,27 @@ class TestTask026AcceptanceCriteria:
 
         # Test pagination with mock API responses
         mock_response_page1 = {
-            'businesses': [{'id': f'biz_{i}', 'name': f'Business {i}'} for i in range(50)],
-            'total': 150,
-            'region': {'center': {'latitude': 37.7749, 'longitude': -122.4194}}
+            "businesses": [
+                {"id": f"biz_{i}", "name": f"Business {i}"} for i in range(50)
+            ],
+            "total": 150,
+            "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}},
         }
 
         mock_response_page2 = {
-            'businesses': [{'id': f'biz_{i}', 'name': f'Business {i}'} for i in range(50, 100)],
-            'total': 150,
-            'region': {'center': {'latitude': 37.7749, 'longitude': -122.4194}}
+            "businesses": [
+                {"id": f"biz_{i}", "name": f"Business {i}"} for i in range(50, 100)
+            ],
+            "total": 150,
+            "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}},
         }
 
         mock_response_page3 = {
-            'businesses': [{'id': f'biz_{i}', 'name': f'Business {i}'} for i in range(100, 150)],
-            'total': 150,
-            'region': {'center': {'latitude': 37.7749, 'longitude': -122.4194}}
+            "businesses": [
+                {"id": f"biz_{i}", "name": f"Business {i}"} for i in range(100, 150)
+            ],
+            "total": 150,
+            "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}},
         }
 
         # Test pagination logic with multiple pages
@@ -103,14 +109,13 @@ class TestTask026AcceptanceCriteria:
             elif offset == 100:
                 return mock_response_page3
             else:
-                return {'businesses': [], 'total': 150}
+                return {"businesses": [], "total": 150}
 
-        with patch.object(scraper, '_search_page', side_effect=mock_search_page):
+        with patch.object(scraper, "_search_page", side_effect=mock_search_page):
             # Test async pagination
             async def test_pagination():
                 result = await scraper.search_businesses(
-                    location="San Francisco, CA",
-                    max_results=150
+                    location="San Francisco, CA", max_results=150
                 )
 
                 assert result.status == ScrapingStatus.COMPLETED
@@ -119,8 +124,8 @@ class TestTask026AcceptanceCriteria:
                 assert len(result.businesses) == 150
 
                 # Verify all businesses were collected across pages
-                business_ids = [b['id'] for b in result.businesses]
-                expected_ids = [f'biz_{i}' for i in range(150)]
+                business_ids = [b["id"] for b in result.businesses]
+                expected_ids = [f"biz_{i}" for i in range(150)]
                 assert business_ids == expected_ids
 
             # Run the async test
@@ -135,32 +140,38 @@ class TestTask026AcceptanceCriteria:
         async def test_limit_enforcement():
             # Mock a large total result count from Yelp
             mock_response = {
-                'businesses': [{'id': f'biz_{i}', 'name': f'Business {i}'} for i in range(50)],
-                'total': 5000,  # More than 1000 available
-                'region': {'center': {'latitude': 37.7749, 'longitude': -122.4194}}
+                "businesses": [
+                    {"id": f"biz_{i}", "name": f"Business {i}"} for i in range(50)
+                ],
+                "total": 5000,  # More than 1000 available
+                "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}},
             }
 
             call_count = 0
+
             async def mock_search_page(location, offset, limit, **kwargs):
                 nonlocal call_count
                 call_count += 1
 
                 # Return businesses until we hit 1000 limit
                 if offset >= 1000:
-                    return {'businesses': [], 'total': 5000}
+                    return {"businesses": [], "total": 5000}
 
-                businesses = [{'id': f'biz_{offset + i}', 'name': f'Business {offset + i}'} for i in range(min(50, 1000 - offset))]
+                businesses = [
+                    {"id": f"biz_{offset + i}", "name": f"Business {offset + i}"}
+                    for i in range(min(50, 1000 - offset))
+                ]
                 return {
-                    'businesses': businesses,
-                    'total': 5000,
-                    'region': {'center': {'latitude': 37.7749, 'longitude': -122.4194}}
+                    "businesses": businesses,
+                    "total": 5000,
+                    "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}},
                 }
 
-            with patch.object(scraper, '_search_page', side_effect=mock_search_page):
+            with patch.object(scraper, "_search_page", side_effect=mock_search_page):
                 # Request more than 1000 results
                 result = await scraper.search_businesses(
                     location="San Francisco, CA",
-                    max_results=2000  # Request more than Yelp's limit
+                    max_results=2000,  # Request more than Yelp's limit
                 )
 
                 # Should be capped at 1000
@@ -169,8 +180,8 @@ class TestTask026AcceptanceCriteria:
 
                 # Should stop at 1000 even if more are available
                 if result.fetched_count == 1000:
-                    business_ids = [b['id'] for b in result.businesses]
-                    expected_ids = [f'biz_{i}' for i in range(1000)]
+                    business_ids = [b["id"] for b in result.businesses]
+                    expected_ids = [f"biz_{i}" for i in range(1000)]
                     assert business_ids == expected_ids
 
         # Test internal limit constant
@@ -178,7 +189,7 @@ class TestTask026AcceptanceCriteria:
 
         # Test that internal methods respect the limit
         test_cases = [
-            (500, 500),    # Normal case
+            (500, 500),  # Normal case
             (1000, 1000),  # At limit
             (1500, 1000),  # Over limit - should be capped
             (2000, 1000),  # Way over limit - should be capped
@@ -186,7 +197,9 @@ class TestTask026AcceptanceCriteria:
 
         for requested, expected in test_cases:
             capped = min(requested, scraper.YELP_MAX_RESULTS)
-            assert capped == expected, f"Failed for requested={requested}, expected={expected}, got={capped}"
+            assert (
+                capped == expected
+            ), f"Failed for requested={requested}, expected={expected}, got={capped}"
 
         # Run the async test
         asyncio.run(test_limit_enforcement())
@@ -216,15 +229,16 @@ class TestTask026AcceptanceCriteria:
             initial_usage = scraper.current_quota_usage
 
             mock_response = {
-                'businesses': [{'id': f'biz_{i}', 'name': f'Business {i}'} for i in range(20)],
-                'total': 20,
-                'region': {'center': {'latitude': 37.7749, 'longitude': -122.4194}}
+                "businesses": [
+                    {"id": f"biz_{i}", "name": f"Business {i}"} for i in range(20)
+                ],
+                "total": 20,
+                "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}},
             }
 
-            with patch.object(scraper, '_search_page', return_value=mock_response):
+            with patch.object(scraper, "_search_page", return_value=mock_response):
                 result = await scraper.search_businesses(
-                    location="San Francisco, CA",
-                    max_results=20
+                    location="San Francisco, CA", max_results=20
                 )
 
                 # Quota should have increased by number of API calls made
@@ -232,7 +246,7 @@ class TestTask026AcceptanceCriteria:
                 assert result.quota_used > 0
 
         # Test daily quota enforcement
-        with patch.object(scraper, '_get_current_daily_usage', return_value=4900):
+        with patch.object(scraper, "_get_current_daily_usage", return_value=4900):
             scraper.daily_quota_limit = 5000
 
             # Should pass - within daily limit
@@ -255,10 +269,14 @@ class TestTask026AcceptanceCriteria:
 
         # Test rate limit recovery
         async def test_rate_limit_recovery():
-            rate_limit_error = YelpRateLimitException("Rate limit exceeded", retry_after=1)
+            rate_limit_error = YelpRateLimitException(
+                "Rate limit exceeded", retry_after=1
+            )
 
             # Mock error recovery
-            with patch.object(scraper, '_handle_error_recovery', return_value=True) as mock_recovery:
+            with patch.object(
+                scraper, "_handle_error_recovery", return_value=True
+            ) as mock_recovery:
                 should_retry = await scraper._handle_error_recovery(rate_limit_error)
                 assert should_retry == True
                 mock_recovery.assert_called_once()
@@ -310,21 +328,22 @@ class TestTask026AcceptanceCriteria:
 
                 if call_count == 1:
                     # First call fails
-                    return {'error': YelpRateLimitException("Rate limited")}
+                    return {"error": YelpRateLimitException("Rate limited")}
                 else:
                     # Second call succeeds
                     return {
-                        'businesses': [{'id': 'biz_1', 'name': 'Business 1'}],
-                        'total': 1,
-                        'region': {'center': {'latitude': 37.7749, 'longitude': -122.4194}}
+                        "businesses": [{"id": "biz_1", "name": "Business 1"}],
+                        "total": 1,
+                        "region": {
+                            "center": {"latitude": 37.7749, "longitude": -122.4194}
+                        },
                     }
 
-            with patch.object(scraper, '_search_page', side_effect=mock_search_page_with_errors), \
-                 patch.object(scraper, '_handle_error_recovery', return_value=True):
-
+            with patch.object(
+                scraper, "_search_page", side_effect=mock_search_page_with_errors
+            ), patch.object(scraper, "_handle_error_recovery", return_value=True):
                 result = await scraper.search_businesses(
-                    location="San Francisco, CA",
-                    max_results=10
+                    location="San Francisco, CA", max_results=10
                 )
 
                 # Should eventually succeed after error recovery
@@ -358,29 +377,29 @@ class TestTask026AcceptanceCriteria:
         # Test business details fetching
         async def test_business_details():
             mock_business_data = {
-                'id': 'business_123',
-                'name': 'Test Business',
-                'url': 'https://yelp.com/biz/test-business',
-                'phone': '+14155551234',
-                'location': {'address1': '123 Main St'}
+                "id": "business_123",
+                "name": "Test Business",
+                "url": "https://yelp.com/biz/test-business",
+                "phone": "+14155551234",
+                "location": {"address1": "123 Main St"},
             }
 
-            with patch.object(scraper, '_http_session') as mock_session:
+            with patch.object(scraper, "_http_session") as mock_session:
                 mock_response = AsyncMock()
                 mock_response.status = 200
                 mock_response.json = AsyncMock(return_value=mock_business_data)
                 mock_session.get.return_value.__aenter__.return_value = mock_response
 
-                result = await scraper.get_business_details('business_123')
+                result = await scraper.get_business_details("business_123")
                 assert result == mock_business_data
 
         # Test data saving functionality
         business_data = {
-            'id': 'test_business',
-            'name': 'Test Restaurant',
-            'url': 'https://yelp.com/biz/test-restaurant',
-            'photos': ['photo1.jpg', 'photo2.jpg'],
-            'phone': '+14155551234'
+            "id": "test_business",
+            "name": "Test Restaurant",
+            "url": "https://yelp.com/biz/test-restaurant",
+            "photos": ["photo1.jpg", "photo2.jpg"],
+            "phone": "+14155551234",
         }
 
         business_id = scraper.save_business_data(business_data)
@@ -393,16 +412,18 @@ class TestTask026AcceptanceCriteria:
         assert isinstance(score, float)
 
         # Test pagination generator interface
-        generator = scraper.get_pagination_generator("San Francisco, CA", max_results=100)
+        generator = scraper.get_pagination_generator(
+            "San Francisco, CA", max_results=100
+        )
         assert generator is not None
 
         # Test scraping statistics
         stats = scraper.get_scraping_stats()
-        assert 'quota_used' in stats
-        assert 'daily_quota_limit' in stats
-        assert 'batch_quota_limit' in stats
-        assert 'consecutive_errors' in stats
-        assert 'rate_limit_delay' in stats
+        assert "quota_used" in stats
+        assert "daily_quota_limit" in stats
+        assert "batch_quota_limit" in stats
+        assert "consecutive_errors" in stats
+        assert "rate_limit_delay" in stats
 
         # Run async tests
         asyncio.run(test_context_manager())
@@ -413,7 +434,8 @@ class TestTask026AcceptanceCriteria:
     def test_convenience_functions(self):
         """Test convenience functions for common use cases"""
 
-        from d2_sourcing.yelp_scraper import scrape_businesses_by_location, scrape_businesses_by_term
+        from d2_sourcing.yelp_scraper import (scrape_businesses_by_location,
+                                              scrape_businesses_by_term)
 
         # Test function signatures exist
         assert callable(scrape_businesses_by_location)
@@ -421,7 +443,7 @@ class TestTask026AcceptanceCriteria:
 
         # Test that functions return ScrapingResult
         async def test_convenience_functions():
-            with patch('d2_sourcing.yelp_scraper.YelpScraper') as mock_scraper_class:
+            with patch("d2_sourcing.yelp_scraper.YelpScraper") as mock_scraper_class:
                 mock_scraper = Mock()
                 mock_result = ScrapingResult(
                     status=ScrapingStatus.COMPLETED,
@@ -430,7 +452,7 @@ class TestTask026AcceptanceCriteria:
                     error_count=0,
                     quota_used=1,
                     duration_seconds=1.5,
-                    businesses=[{'id': 'test_biz', 'name': 'Test Business'}]
+                    businesses=[{"id": "test_biz", "name": "Test Business"}],
                 )
                 mock_scraper.search_businesses = AsyncMock(return_value=mock_result)
                 mock_scraper_class.return_value = mock_scraper
@@ -439,16 +461,14 @@ class TestTask026AcceptanceCriteria:
                 result1 = await scrape_businesses_by_location(
                     location="San Francisco, CA",
                     categories=["restaurants"],
-                    max_results=50
+                    max_results=50,
                 )
                 assert isinstance(result1, ScrapingResult)
                 assert result1.status == ScrapingStatus.COMPLETED
 
                 # Test term-based search
                 result2 = await scrape_businesses_by_term(
-                    term="pizza",
-                    location="New York, NY",
-                    max_results=100
+                    term="pizza", location="New York, NY", max_results=100
                 )
                 assert isinstance(result2, ScrapingResult)
                 assert result2.status == ScrapingStatus.COMPLETED
@@ -460,15 +480,13 @@ class TestTask026AcceptanceCriteria:
     def test_exception_hierarchy(self):
         """Test that exception hierarchy is properly defined"""
 
-        from d2_sourcing.exceptions import (
-            SourcingException,
-            YelpAPIException,
-            YelpRateLimitException,
-            YelpQuotaExceededException,
-            BatchQuotaException,
-            PaginationException,
-            ErrorRecoveryException
-        )
+        from d2_sourcing.exceptions import (BatchQuotaException,
+                                            ErrorRecoveryException,
+                                            PaginationException,
+                                            SourcingException,
+                                            YelpAPIException,
+                                            YelpQuotaExceededException,
+                                            YelpRateLimitException)
 
         # Test exception inheritance
         assert issubclass(YelpAPIException, SourcingException)
@@ -511,8 +529,9 @@ if __name__ == "__main__":
     mock_settings.YELP_BATCH_QUOTA = 1000
     mock_settings.USE_STUBS = True
 
-    with patch('d2_sourcing.yelp_scraper.get_settings', return_value=mock_settings), \
-         patch('d2_sourcing.yelp_scraper.SessionLocal', return_value=mock_session):
+    with patch(
+        "d2_sourcing.yelp_scraper.get_settings", return_value=mock_settings
+    ), patch("d2_sourcing.yelp_scraper.SessionLocal", return_value=mock_session):
         scraper = YelpScraper(session=mock_session)
 
     # Run tests

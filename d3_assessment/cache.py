@@ -14,16 +14,16 @@ Acceptance Criteria:
 import asyncio
 import hashlib
 import json
+import logging
 import time
-from typing import Dict, Any, Optional, List, Tuple, Set
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
-from dataclasses import dataclass, asdict
 from enum import Enum
-import logging
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .types import AssessmentType, AssessmentStatus
 from .coordinator import CoordinatorResult
+from .types import AssessmentStatus, AssessmentType
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class CacheStrategy(Enum):
     """Cache strategy options"""
+
     LRU = "lru"  # Least Recently Used
     LFU = "lfu"  # Least Frequently Used
     FIFO = "fifo"  # First In, First Out
@@ -40,6 +41,7 @@ class CacheStrategy(Enum):
 @dataclass
 class CacheEntry:
     """Cache entry with metadata"""
+
     key: str
     value: Any
     created_at: datetime
@@ -70,6 +72,7 @@ class CacheEntry:
 @dataclass
 class CacheStats:
     """Cache statistics for monitoring"""
+
     hits: int = 0
     misses: int = 0
     evictions: int = 0
@@ -103,7 +106,7 @@ class AssessmentCache:
         default_ttl_seconds: int = 3600,  # 1 hour
         max_size_mb: int = 100,
         strategy: CacheStrategy = CacheStrategy.LRU,
-        cleanup_interval_seconds: int = 300  # 5 minutes
+        cleanup_interval_seconds: int = 300,  # 5 minutes
     ):
         """
         Initialize assessment cache
@@ -127,10 +130,10 @@ class AssessmentCache:
 
         # Configuration per assessment type
         self._ttl_config: Dict[AssessmentType, int] = {
-            AssessmentType.PAGESPEED: 1800,    # 30 minutes
-            AssessmentType.TECH_STACK: 7200,   # 2 hours
+            AssessmentType.PAGESPEED: 1800,  # 30 minutes
+            AssessmentType.TECH_STACK: 7200,  # 2 hours
             AssessmentType.AI_INSIGHTS: 3600,  # 1 hour
-            AssessmentType.FULL_AUDIT: 1800    # 30 minutes
+            AssessmentType.FULL_AUDIT: 1800,  # 30 minutes
         }
 
         # Background cleanup task
@@ -143,6 +146,7 @@ class AssessmentCache:
 
     def _start_background_cleanup(self):
         """Start background cleanup task"""
+
         async def cleanup_loop():
             while True:
                 try:
@@ -157,10 +161,7 @@ class AssessmentCache:
 
     async def _cleanup_expired(self):
         """Clean up expired cache entries"""
-        expired_keys = [
-            key for key, entry in self._cache.items()
-            if entry.is_expired
-        ]
+        expired_keys = [key for key, entry in self._cache.items() if entry.is_expired]
 
         for key in expired_keys:
             self._remove_entry(key, reason="expired")
@@ -175,7 +176,7 @@ class AssessmentCache:
         url: str,
         assessment_types: List[AssessmentType],
         industry: str = "default",
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Generate cache key for assessment
@@ -188,7 +189,7 @@ class AssessmentCache:
             "url": url.lower().strip("/"),  # Normalize URL
             "assessment_types": sorted([t.value for t in assessment_types]),
             "industry": industry.lower(),
-            "extra": kwargs
+            "extra": kwargs,
         }
 
         # Generate hash of key data
@@ -218,16 +219,16 @@ class AssessmentCache:
         try:
             # Convert to JSON to estimate size
             json_str = json.dumps(value, default=str, ensure_ascii=False)
-            return len(json_str.encode('utf-8'))
+            return len(json_str.encode("utf-8"))
         except Exception:
             # Fallback estimation
-            return len(str(value).encode('utf-8'))
+            return len(str(value).encode("utf-8"))
 
     def _should_evict(self) -> bool:
         """Check if cache eviction is needed"""
         return (
-            len(self._cache) >= self.max_entries or
-            self._stats.total_size_bytes >= self.max_size_bytes
+            len(self._cache) >= self.max_entries
+            or self._stats.total_size_bytes >= self.max_size_bytes
         )
 
     def _evict_entries(self):
@@ -245,26 +246,22 @@ class AssessmentCache:
         if self.strategy == CacheStrategy.LRU:
             # Evict least recently used
             entries_by_access = sorted(
-                self._cache.items(),
-                key=lambda x: x[1].accessed_at
+                self._cache.items(), key=lambda x: x[1].accessed_at
             )
         elif self.strategy == CacheStrategy.LFU:
             # Evict least frequently used
             entries_by_access = sorted(
-                self._cache.items(),
-                key=lambda x: (x[1].access_count, x[1].accessed_at)
+                self._cache.items(), key=lambda x: (x[1].access_count, x[1].accessed_at)
             )
         elif self.strategy == CacheStrategy.FIFO:
             # Evict oldest entries
             entries_by_access = sorted(
-                self._cache.items(),
-                key=lambda x: x[1].created_at
+                self._cache.items(), key=lambda x: x[1].created_at
             )
         else:  # TTL_ONLY
             # Evict by TTL, then by age
             entries_by_access = sorted(
-                self._cache.items(),
-                key=lambda x: (x[1].is_expired, x[1].created_at)
+                self._cache.items(), key=lambda x: (x[1].is_expired, x[1].created_at)
             )
 
         # Evict entries
@@ -288,7 +285,7 @@ class AssessmentCache:
         url: str,
         assessment_types: List[AssessmentType],
         industry: str = "default",
-        **kwargs
+        **kwargs,
     ) -> Optional[CoordinatorResult]:
         """
         Get cached assessment result
@@ -330,7 +327,7 @@ class AssessmentCache:
         industry: str = "default",
         ttl_override: Optional[int] = None,
         tags: Optional[Set[str]] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Store assessment result in cache
@@ -356,7 +353,7 @@ class AssessmentCache:
             access_count=1,
             ttl_seconds=ttl_seconds,
             tags=tags or set(),
-            size_bytes=size_bytes
+            size_bytes=size_bytes,
         )
 
         # Check if eviction is needed
@@ -374,7 +371,9 @@ class AssessmentCache:
         self._cache[key] = entry
         self._stats.total_size_bytes += size_bytes
 
-        logger.debug(f"Cached assessment result {key} (TTL: {ttl_seconds}s, Size: {size_bytes}b)")
+        logger.debug(
+            f"Cached assessment result {key} (TTL: {ttl_seconds}s, Size: {size_bytes}b)"
+        )
         return key
 
     async def invalidate(
@@ -383,7 +382,7 @@ class AssessmentCache:
         url: Optional[str] = None,
         assessment_types: Optional[List[AssessmentType]] = None,
         tags: Optional[Set[str]] = None,
-        **kwargs
+        **kwargs,
     ) -> int:
         """
         Invalidate cache entries based on criteria
@@ -433,9 +432,9 @@ class AssessmentCache:
 
         for key, entry in self._cache.items():
             # Check if entry's result contains the domain
-            if hasattr(entry.value, 'partial_results'):
+            if hasattr(entry.value, "partial_results"):
                 for assessment_result in entry.value.partial_results.values():
-                    if hasattr(assessment_result, 'domain'):
+                    if hasattr(assessment_result, "domain"):
                         if assessment_result.domain.lower() == domain_lower:
                             keys_to_remove.append(key)
                             break
@@ -446,7 +445,9 @@ class AssessmentCache:
             removed_count += 1
 
         if removed_count > 0:
-            logger.info(f"Invalidated {removed_count} cache entries for domain {domain}")
+            logger.info(
+                f"Invalidated {removed_count} cache entries for domain {domain}"
+            )
 
         return removed_count
 
@@ -458,7 +459,9 @@ class AssessmentCache:
         """
         # Update current stats
         self._stats.entry_count = len(self._cache)
-        self._stats.total_size_bytes = sum(entry.size_bytes for entry in self._cache.values())
+        self._stats.total_size_bytes = sum(
+            entry.size_bytes for entry in self._cache.values()
+        )
 
         return CacheStats(
             hits=self._stats.hits,
@@ -466,7 +469,7 @@ class AssessmentCache:
             evictions=self._stats.evictions,
             expired_removals=self._stats.expired_removals,
             total_size_bytes=self._stats.total_size_bytes,
-            entry_count=self._stats.entry_count
+            entry_count=self._stats.entry_count,
         )
 
     def get_cache_info(self) -> Dict[str, Any]:
@@ -475,7 +478,9 @@ class AssessmentCache:
 
         # Calculate additional metrics
         total_requests = stats.hits + stats.misses
-        avg_entry_size = stats.total_size_bytes / stats.entry_count if stats.entry_count > 0 else 0
+        avg_entry_size = (
+            stats.total_size_bytes / stats.entry_count if stats.entry_count > 0 else 0
+        )
 
         # Get entry age distribution
         ages = [entry.age_seconds for entry in self._cache.values()]
@@ -488,7 +493,7 @@ class AssessmentCache:
                 "max_size_mb": self.max_size_bytes // (1024 * 1024),
                 "default_ttl_seconds": self.default_ttl_seconds,
                 "strategy": self.strategy.value,
-                "cleanup_interval_seconds": self.cleanup_interval_seconds
+                "cleanup_interval_seconds": self.cleanup_interval_seconds,
             },
             "metrics": {
                 "hit_rate_percentage": round(stats.hit_rate * 100, 2),
@@ -500,11 +505,11 @@ class AssessmentCache:
                     (stats.total_size_bytes / self.max_size_bytes) * 100, 2
                 ),
                 "average_entry_size_bytes": round(avg_entry_size, 2),
-                "average_entry_age_seconds": round(avg_age, 2)
+                "average_entry_age_seconds": round(avg_age, 2),
             },
             "ttl_configuration": {
                 atype.value: ttl for atype, ttl in self._ttl_config.items()
-            }
+            },
         }
 
     async def clear(self) -> int:
@@ -530,18 +535,22 @@ class AssessmentCache:
         entries = []
 
         for key, entry in list(self._cache.items())[:limit]:
-            entries.append({
-                "key": key,
-                "created_at": entry.created_at.isoformat(),
-                "accessed_at": entry.accessed_at.isoformat(),
-                "access_count": entry.access_count,
-                "age_seconds": entry.age_seconds,
-                "ttl_seconds": entry.ttl_seconds,
-                "is_expired": entry.is_expired,
-                "size_bytes": entry.size_bytes,
-                "tags": list(entry.tags),
-                "business_id": getattr(entry.value, 'business_id', 'unknown') if entry.value else 'unknown'
-            })
+            entries.append(
+                {
+                    "key": key,
+                    "created_at": entry.created_at.isoformat(),
+                    "accessed_at": entry.accessed_at.isoformat(),
+                    "access_count": entry.access_count,
+                    "age_seconds": entry.age_seconds,
+                    "ttl_seconds": entry.ttl_seconds,
+                    "is_expired": entry.is_expired,
+                    "size_bytes": entry.size_bytes,
+                    "tags": list(entry.tags),
+                    "business_id": getattr(entry.value, "business_id", "unknown")
+                    if entry.value
+                    else "unknown",
+                }
+            )
 
         return entries
 
@@ -573,7 +582,7 @@ class CacheManager:
         max_entries: int = 1000,
         default_ttl_seconds: int = 3600,
         max_size_mb: int = 100,
-        strategy: CacheStrategy = CacheStrategy.LRU
+        strategy: CacheStrategy = CacheStrategy.LRU,
     ) -> AssessmentCache:
         """Get or create singleton cache instance"""
         if cls._instance is None:
@@ -583,7 +592,7 @@ class CacheManager:
                         max_entries=max_entries,
                         default_ttl_seconds=default_ttl_seconds,
                         max_size_mb=max_size_mb,
-                        strategy=strategy
+                        strategy=strategy,
                     )
                     logger.info("Created assessment cache instance")
 
@@ -602,7 +611,7 @@ class CacheManager:
 def cached_assessment(
     ttl_seconds: Optional[int] = None,
     tags: Optional[Set[str]] = None,
-    cache_manager: Optional[CacheManager] = None
+    cache_manager: Optional[CacheManager] = None,
 ):
     """
     Decorator for caching assessment results
@@ -612,6 +621,7 @@ def cached_assessment(
         async def perform_assessment(...):
             ...
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # Extract cache key parameters
@@ -634,4 +644,5 @@ def cached_assessment(
             return result
 
         return wrapper
+
     return decorator

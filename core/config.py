@@ -3,10 +3,10 @@ Configuration management using Pydantic Settings
 Handles environment variables and validation
 """
 import os
-from typing import Optional, Dict, Any
 from functools import lru_cache
+from typing import Any, Dict, Optional
 
-from pydantic import Field, field_validator, ConfigDict
+from pydantic import ConfigDict, Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -96,7 +96,10 @@ class Settings(BaseSettings):
     @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v, info):
-        if info.data.get("environment") == "production" and v == "dev-secret-key-change-in-production":
+        if (
+            info.data.get("environment") == "production"
+            and v == "dev-secret-key-change-in-production"
+        ):
             raise ValueError("Secret key must be changed for production")
         return v
 
@@ -117,7 +120,7 @@ class Settings(BaseSettings):
                 "pagespeed": self.stub_base_url,
                 "stripe": self.stub_base_url,
                 "sendgrid": self.stub_base_url,
-                "openai": self.stub_base_url
+                "openai": self.stub_base_url,
             }
         else:
             return {
@@ -125,7 +128,7 @@ class Settings(BaseSettings):
                 "pagespeed": "https://www.googleapis.com",
                 "stripe": "https://api.stripe.com",
                 "sendgrid": "https://api.sendgrid.com",
-                "openai": "https://api.openai.com"
+                "openai": "https://api.openai.com",
             }
 
     def get_api_key(self, service: str) -> str:
@@ -138,7 +141,7 @@ class Settings(BaseSettings):
             "google": self.google_api_key,
             "stripe": self.stripe_secret_key,
             "sendgrid": self.sendgrid_api_key,
-            "openai": self.openai_api_key
+            "openai": self.openai_api_key,
         }
 
         key = keys.get(service)
@@ -150,7 +153,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore"  # Ignore extra environment variables
+        extra="ignore",  # Ignore extra environment variables
     )
 
 

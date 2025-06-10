@@ -5,19 +5,8 @@ Business scoring and tier classification system for qualifying leads
 and prospects based on enrichment data.
 """
 
-from .models import (
-    ScoringResult,
-    ScoreBreakdown,
-    ScoreHistory,
-    ScoringEngine
-)
-
-from .types import (
-    ScoringTier,
-    ScoreComponent,
-    ScoringStatus,
-    ScoringVersion
-)
+from .models import ScoreBreakdown, ScoreHistory, ScoringEngine, ScoringResult
+from .types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
 
 __version__ = "1.0.0"
 
@@ -27,10 +16,9 @@ __all__ = [
     "ScoreBreakdown",
     "ScoreHistory",
     "ScoringEngine",
-
     # Types
     "ScoringTier",
     "ScoreComponent",
     "ScoringStatus",
-    "ScoringVersion"
+    "ScoringVersion",
 ]

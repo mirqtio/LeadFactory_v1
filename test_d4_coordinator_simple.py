@@ -2,9 +2,9 @@
 """
 Simple test runner for d4_enrichment coordinator without pytest dependency
 """
+import asyncio
 import sys
 import traceback
-import asyncio
 
 sys.path.insert(0, "/app")
 
@@ -13,14 +13,12 @@ def run_simple_tests():
     """Run basic tests for d4_enrichment coordinator"""
     try:
         # Test imports
-        from d4_enrichment.coordinator import (
-            EnrichmentCoordinator,
-            EnrichmentProgress,
-            BatchEnrichmentResult,
-            EnrichmentPriority,
-            enrich_business,
-            enrich_businesses,
-        )
+        from d4_enrichment.coordinator import (BatchEnrichmentResult,
+                                               EnrichmentCoordinator,
+                                               EnrichmentPriority,
+                                               EnrichmentProgress,
+                                               enrich_business,
+                                               enrich_businesses)
         from d4_enrichment.models import EnrichmentSource
 
         print("✓ All imports successful")
@@ -92,7 +90,10 @@ def run_simple_tests():
 
             # Test enricher management
             original_count = len(coordinator.enrichers)
-            await coordinator.add_enricher(EnrichmentSource.CLEARBIT, coordinator.enrichers[EnrichmentSource.INTERNAL])
+            await coordinator.add_enricher(
+                EnrichmentSource.CLEARBIT,
+                coordinator.enrichers[EnrichmentSource.INTERNAL],
+            )
             assert len(coordinator.enrichers) == original_count + 1
 
             await coordinator.remove_enricher(EnrichmentSource.CLEARBIT)

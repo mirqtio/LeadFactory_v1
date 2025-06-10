@@ -4,19 +4,20 @@ Base API client with common functionality for all external API providers
 import asyncio
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 from decimal import Decimal
+from typing import Any, Dict, Optional
 
 import httpx
-from prometheus_client import Counter, Histogram, Gauge
+from prometheus_client import Counter, Gauge, Histogram
 
 from core.config import get_settings
-from core.logging import get_logger
 from core.exceptions import ExternalAPIError, RateLimitError
-from .rate_limiter import RateLimiter
-from .circuit_breaker import CircuitBreaker
+from core.logging import get_logger
+
 from .cache import ResponseCache
+from .circuit_breaker import CircuitBreaker
 from .metrics import GatewayMetrics
+from .rate_limiter import RateLimiter
 
 
 class BaseAPIClient(ABC):
@@ -26,7 +27,7 @@ class BaseAPIClient(ABC):
         self,
         provider: str,
         api_key: Optional[str] = None,
-        base_url: Optional[str] = None
+        base_url: Optional[str] = None,
     ):
         self.provider = provider
         self.settings = get_settings()
@@ -48,8 +49,7 @@ class BaseAPIClient(ABC):
 
         # HTTP client with proper timeouts
         self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(30.0),
-            headers=self._get_headers()
+            timeout=httpx.Timeout(30.0), headers=self._get_headers()
         )
 
     async def __aenter__(self):
@@ -79,10 +79,7 @@ class BaseAPIClient(ABC):
         pass
 
     async def make_request(
-        self,
-        method: str,
-        endpoint: str,
-        **kwargs
+        self, method: str, endpoint: str, **kwargs
     ) -> Dict[str, Any]:
         """
         Make an authenticated API request with all gateway features
@@ -100,7 +97,7 @@ class BaseAPIClient(ABC):
             ExternalAPIError: When the API returns an error
         """
         operation = f"{method}:{endpoint}"
-        cache_key = self.cache.generate_key(endpoint, kwargs.get('params', {}))
+        cache_key = self.cache.generate_key(endpoint, kwargs.get("params", {}))
 
         # Check cache first
         cached_response = await self.cache.get(cache_key)
@@ -120,7 +117,7 @@ class BaseAPIClient(ABC):
             raise ExternalAPIError(
                 provider=self.provider,
                 message="Service temporarily unavailable",
-                status_code=503
+                status_code=503,
             )
 
         start_time = time.time()
@@ -137,7 +134,7 @@ class BaseAPIClient(ABC):
                 error_msg = f"HTTP {response.status_code}"
                 try:
                     error_data = response.json()
-                    error_msg = error_data.get('message', error_msg)
+                    error_msg = error_data.get("message", error_msg)
                 except:
                     error_msg = response.text or error_msg
 
@@ -145,7 +142,7 @@ class BaseAPIClient(ABC):
                     provider=self.provider,
                     message=error_msg,
                     status_code=response.status_code,
-                    response_body=response.text
+                    response_body=response.text,
                 )
 
             # Parse successful response
@@ -170,9 +167,7 @@ class BaseAPIClient(ABC):
                 raise
             else:
                 raise ExternalAPIError(
-                    provider=self.provider,
-                    message=str(e),
-                    status_code=500
+                    provider=self.provider, message=str(e), status_code=500
                 ) from e
 
         finally:
@@ -184,7 +179,7 @@ class BaseAPIClient(ABC):
                 provider=self.provider,
                 endpoint=endpoint,
                 status_code=status_code,
-                duration=duration
+                duration=duration,
             )
 
             if not error:
@@ -201,25 +196,25 @@ class BaseAPIClient(ABC):
             raise RateLimitError(
                 provider=self.provider,
                 retry_after=3600,  # 1 hour default
-                daily_limit=rate_info.get('daily_limit', 0),
-                daily_used=rate_info.get('daily_used', 0)
+                daily_limit=rate_info.get("daily_limit", 0),
+                daily_used=rate_info.get("daily_used", 0),
             )
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform a health check on the API"""
         try:
             # Simple test request to verify connectivity
-            response = await self.make_request('GET', 'health')
+            response = await self.make_request("GET", "health")
             return {
-                'provider': self.provider,
-                'status': 'healthy',
-                'circuit_breaker': self.circuit_breaker.state.name,
-                'rate_limit': self.get_rate_limit()
+                "provider": self.provider,
+                "status": "healthy",
+                "circuit_breaker": self.circuit_breaker.state.name,
+                "rate_limit": self.get_rate_limit(),
             }
         except Exception as e:
             return {
-                'provider': self.provider,
-                'status': 'unhealthy',
-                'error': str(e),
-                'circuit_breaker': self.circuit_breaker.state.name
+                "provider": self.provider,
+                "status": "unhealthy",
+                "error": str(e),
+                "circuit_breaker": self.circuit_breaker.state.name,
             }

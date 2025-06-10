@@ -39,8 +39,16 @@ jobs:
     
     - name: Run Flake8
       run: |
+        # Check for critical errors that should fail CI
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics
+        # Check for other style issues but don't fail CI
+        flake8 . --count --exit-zero --max-complexity=15 --max-line-length=100 --ignore=F401,E402,W291,W293,F541,F811,F841,E712,E722,W391 --statistics
+    
+    - name: Run mypy type checking
+      run: |
+        mypy --install-types --non-interactive || true
+        mypy . --ignore-missing-imports --show-error-codes --pretty || true
+      continue-on-error: true
     
     - name: Run Bandit security scan
       run: bandit -r . -f json -o bandit-report.json || true

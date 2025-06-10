@@ -11,14 +11,14 @@ Acceptance Criteria:
 - Distribution tracking ✓
 """
 
+import json
 import logging
-from enum import Enum
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Tuple
 from decimal import Decimal
-import json
-import threading
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ class LeadTier(Enum):
 
     Acceptance Criteria: A/B/C/D tiers assigned
     """
+
     A = "A"  # Highest quality leads
     B = "B"  # High quality leads
     C = "C"  # Medium quality leads
@@ -43,7 +44,7 @@ class LeadTier(Enum):
             LeadTier.B: 2,
             LeadTier.C: 3,
             LeadTier.D: 4,
-            LeadTier.FAILED: 5
+            LeadTier.FAILED: 5,
         }
         return order[self]
 
@@ -55,7 +56,7 @@ class LeadTier(Enum):
             LeadTier.B: "High-quality leads with strong conversion potential",
             LeadTier.C: "Medium-quality leads requiring nurturing",
             LeadTier.D: "Lower-quality leads needing significant development",
-            LeadTier.FAILED: "Leads that did not meet minimum qualification threshold"
+            LeadTier.FAILED: "Leads that did not meet minimum qualification threshold",
         }
         return descriptions[self]
 
@@ -67,6 +68,7 @@ class TierBoundary:
 
     Acceptance Criteria: Configurable boundaries
     """
+
     tier: LeadTier
     min_score: float
     max_score: float
@@ -79,7 +81,9 @@ class TierBoundary:
         if self.min_score > self.max_score:
             raise ValueError("Min score cannot exceed max score")
         if not self.description:
-            self.description = f"Tier {self.tier.value} ({self.min_score}-{self.max_score} points)"
+            self.description = (
+                f"Tier {self.tier.value} ({self.min_score}-{self.max_score} points)"
+            )
 
 
 @dataclass
@@ -89,6 +93,7 @@ class TierConfiguration:
 
     Acceptance Criteria: Configurable boundaries, Gate pass/fail logic
     """
+
     name: str
     version: str
     gate_threshold: float  # Minimum score to pass gate
@@ -104,9 +109,13 @@ class TierConfiguration:
 
         # Validate no overlapping boundaries
         for i, boundary in enumerate(self.boundaries):
-            for j, other in enumerate(self.boundaries[i+1:], i+1):
-                if boundary.tier != other.tier and self._boundaries_overlap(boundary, other):
-                    raise ValueError(f"Overlapping boundaries detected: {boundary.tier} and {other.tier}")
+            for j, other in enumerate(self.boundaries[i + 1 :], i + 1):
+                if boundary.tier != other.tier and self._boundaries_overlap(
+                    boundary, other
+                ):
+                    raise ValueError(
+                        f"Overlapping boundaries detected: {boundary.tier} and {other.tier}"
+                    )
 
         # Sort boundaries by min_score for efficient lookup
         self.boundaries.sort(key=lambda b: b.min_score)
@@ -136,6 +145,7 @@ class TierAssignment:
     """
     Individual tier assignment result
     """
+
     lead_id: str
     score: float
     tier: LeadTier
@@ -153,9 +163,12 @@ class TierDistribution:
 
     Acceptance Criteria: Distribution tracking
     """
+
     configuration_name: str
     total_assignments: int = 0
-    tier_counts: Dict[LeadTier, int] = field(default_factory=lambda: {tier: 0 for tier in LeadTier})
+    tier_counts: Dict[LeadTier, int] = field(
+        default_factory=lambda: {tier: 0 for tier in LeadTier}
+    )
     gate_pass_count: int = 0
     gate_fail_count: int = 0
     last_updated: datetime = field(default_factory=datetime.now)
@@ -210,7 +223,9 @@ class TierAssignmentEngine:
         self.assignments: List[TierAssignment] = []
         self._lock = threading.Lock()  # Thread safety for distribution tracking
 
-        logger.info(f"Initialized TierAssignmentEngine with configuration '{self.configuration.name}'")
+        logger.info(
+            f"Initialized TierAssignmentEngine with configuration '{self.configuration.name}'"
+        )
 
     def _create_default_configuration(self) -> TierConfiguration:
         """Create default A/B/C/D tier configuration"""
@@ -221,13 +236,21 @@ class TierAssignmentEngine:
             description="Default A/B/C/D tier configuration",
             boundaries=[
                 TierBoundary(LeadTier.A, 80.0, 100.0, "Premium leads (80-100 points)"),
-                TierBoundary(LeadTier.B, 65.0, 79.9, "High-quality leads (65-80 points)"),
-                TierBoundary(LeadTier.C, 50.0, 64.9, "Medium-quality leads (50-65 points)"),
-                TierBoundary(LeadTier.D, 30.0, 49.9, "Lower-quality leads (30-50 points)")
-            ]
+                TierBoundary(
+                    LeadTier.B, 65.0, 79.9, "High-quality leads (65-80 points)"
+                ),
+                TierBoundary(
+                    LeadTier.C, 50.0, 64.9, "Medium-quality leads (50-65 points)"
+                ),
+                TierBoundary(
+                    LeadTier.D, 30.0, 49.9, "Lower-quality leads (30-50 points)"
+                ),
+            ],
         )
 
-    def assign_tier(self, lead_id: str, score: float, confidence: float = 1.0, notes: str = "") -> TierAssignment:
+    def assign_tier(
+        self, lead_id: str, score: float, confidence: float = 1.0, notes: str = ""
+    ) -> TierAssignment:
         """
         Assign tier to a lead based on score
 
@@ -255,7 +278,7 @@ class TierAssignmentEngine:
             passed_gate=passed_gate,
             configuration_used=self.configuration.name,
             confidence=confidence,
-            notes=notes
+            notes=notes,
         )
 
         # Update tracking with thread safety
@@ -263,7 +286,9 @@ class TierAssignmentEngine:
             self.assignments.append(assignment)
             self.distribution.add_assignment(assignment)
 
-        logger.info(f"Assigned lead {lead_id} to tier {tier.value} (score: {score}, gate: {'PASS' if passed_gate else 'FAIL'})")
+        logger.info(
+            f"Assigned lead {lead_id} to tier {tier.value} (score: {score}, gate: {'PASS' if passed_gate else 'FAIL'})"
+        )
 
         return assignment
 
@@ -303,17 +328,25 @@ class TierAssignmentEngine:
     def get_assignments_by_tier(self, tier: LeadTier) -> List[TierAssignment]:
         """Get all assignments for a specific tier"""
         with self._lock:
-            return [assignment for assignment in self.assignments if assignment.tier == tier]
+            return [
+                assignment for assignment in self.assignments if assignment.tier == tier
+            ]
 
     def get_qualified_leads(self) -> List[TierAssignment]:
         """Get all leads that passed the gate threshold"""
         with self._lock:
-            return [assignment for assignment in self.assignments if assignment.passed_gate]
+            return [
+                assignment for assignment in self.assignments if assignment.passed_gate
+            ]
 
     def get_failed_leads(self) -> List[TierAssignment]:
         """Get all leads that failed the gate threshold"""
         with self._lock:
-            return [assignment for assignment in self.assignments if not assignment.passed_gate]
+            return [
+                assignment
+                for assignment in self.assignments
+                if not assignment.passed_gate
+            ]
 
     def update_configuration(self, new_configuration: TierConfiguration):
         """
@@ -327,9 +360,13 @@ class TierAssignmentEngine:
 
         # Reset distribution tracking for new configuration
         with self._lock:
-            self.distribution = TierDistribution(configuration_name=new_configuration.name)
+            self.distribution = TierDistribution(
+                configuration_name=new_configuration.name
+            )
 
-        logger.info(f"Updated configuration from '{old_config}' to '{new_configuration.name}'")
+        logger.info(
+            f"Updated configuration from '{old_config}' to '{new_configuration.name}'"
+        )
 
     def export_distribution_summary(self) -> Dict[str, Any]:
         """
@@ -345,22 +382,30 @@ class TierAssignmentEngine:
                     "version": self.configuration.version,
                     "gate_threshold": self.configuration.gate_threshold,
                     "total_boundaries": len(self.configuration.boundaries),
-                    "enabled": self.configuration.enabled
+                    "enabled": self.configuration.enabled,
                 },
                 "distribution": {
                     "total_assignments": self.distribution.total_assignments,
                     "gate_pass_rate": self.distribution.gate_pass_rate,
                     "gate_pass_count": self.distribution.gate_pass_count,
                     "gate_fail_count": self.distribution.gate_fail_count,
-                    "tier_counts": {tier.value: count for tier, count in self.distribution.tier_counts.items()},
-                    "tier_percentages": {tier.value: pct for tier, pct in self.distribution.tier_percentages.items()},
-                    "last_updated": self.distribution.last_updated.isoformat()
+                    "tier_counts": {
+                        tier.value: count
+                        for tier, count in self.distribution.tier_counts.items()
+                    },
+                    "tier_percentages": {
+                        tier.value: pct
+                        for tier, pct in self.distribution.tier_percentages.items()
+                    },
+                    "last_updated": self.distribution.last_updated.isoformat(),
                 },
                 "summary": {
-                    "highest_tier_leads": self.distribution.tier_counts.get(LeadTier.A, 0),
+                    "highest_tier_leads": self.distribution.tier_counts.get(
+                        LeadTier.A, 0
+                    ),
                     "qualified_leads": self.distribution.gate_pass_count,
-                    "total_processed": self.distribution.total_assignments
-                }
+                    "total_processed": self.distribution.total_assignments,
+                },
             }
 
     @classmethod
@@ -371,7 +416,7 @@ class TierAssignmentEngine:
         tier_a_min: float = 80.0,
         tier_b_min: float = 65.0,
         tier_c_min: float = 50.0,
-        tier_d_min: float = 30.0
+        tier_d_min: float = 30.0,
     ) -> TierConfiguration:
         """
         Helper method to create custom tier configuration
@@ -396,35 +441,37 @@ class TierAssignmentEngine:
                 TierBoundary(LeadTier.A, tier_a_min, 100.0),
                 TierBoundary(LeadTier.B, tier_b_min, tier_a_min - 0.1),
                 TierBoundary(LeadTier.C, tier_c_min, tier_b_min - 0.1),
-                TierBoundary(LeadTier.D, tier_d_min, tier_c_min - 0.1)
-            ]
+                TierBoundary(LeadTier.D, tier_d_min, tier_c_min - 0.1),
+            ],
         )
 
     @classmethod
-    def from_configuration_file(cls, file_path: str) -> 'TierAssignmentEngine':
+    def from_configuration_file(cls, file_path: str) -> "TierAssignmentEngine":
         """Load tier assignment engine from JSON configuration file"""
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 config_data = json.load(f)
 
             # Parse boundaries
             boundaries = []
-            for boundary_data in config_data['boundaries']:
-                boundaries.append(TierBoundary(
-                    tier=LeadTier(boundary_data['tier']),
-                    min_score=boundary_data['min_score'],
-                    max_score=boundary_data['max_score'],
-                    description=boundary_data.get('description', '')
-                ))
+            for boundary_data in config_data["boundaries"]:
+                boundaries.append(
+                    TierBoundary(
+                        tier=LeadTier(boundary_data["tier"]),
+                        min_score=boundary_data["min_score"],
+                        max_score=boundary_data["max_score"],
+                        description=boundary_data.get("description", ""),
+                    )
+                )
 
             # Create configuration
             configuration = TierConfiguration(
-                name=config_data['name'],
-                version=config_data['version'],
-                gate_threshold=config_data['gate_threshold'],
+                name=config_data["name"],
+                version=config_data["version"],
+                gate_threshold=config_data["gate_threshold"],
                 boundaries=boundaries,
-                description=config_data.get('description', ''),
-                enabled=config_data.get('enabled', True)
+                description=config_data.get("description", ""),
+                enabled=config_data.get("enabled", True),
             )
 
             return cls(configuration)
@@ -436,7 +483,10 @@ class TierAssignmentEngine:
 
 # Convenience functions for common operations
 
-def assign_lead_tier(lead_id: str, score: float, configuration: Optional[TierConfiguration] = None) -> TierAssignment:
+
+def assign_lead_tier(
+    lead_id: str, score: float, configuration: Optional[TierConfiguration] = None
+) -> TierAssignment:
     """
     Quick function to assign a single lead tier
 
@@ -471,7 +521,9 @@ def create_standard_configuration(gate_threshold: float = 30.0) -> TierConfigura
             TierBoundary(LeadTier.A, 80.0, 100.0, "Tier A: Premium leads"),
             TierBoundary(LeadTier.B, 65.0, 79.9, "Tier B: High-quality leads"),
             TierBoundary(LeadTier.C, 50.0, 64.9, "Tier C: Medium-quality leads"),
-            TierBoundary(LeadTier.D, gate_threshold, 49.9, f"Tier D: Basic qualified leads")
+            TierBoundary(
+                LeadTier.D, gate_threshold, 49.9, f"Tier D: Basic qualified leads"
+            ),
         ]
     else:
         # Adjust boundaries for higher gate thresholds
@@ -482,9 +534,18 @@ def create_standard_configuration(gate_threshold: float = 30.0) -> TierConfigura
 
         boundaries = [
             TierBoundary(LeadTier.A, tier_a_min, 100.0, "Tier A: Premium leads"),
-            TierBoundary(LeadTier.B, tier_b_min, tier_a_min - 0.1, "Tier B: High-quality leads"),
-            TierBoundary(LeadTier.C, tier_c_min, tier_b_min - 0.1, "Tier C: Medium-quality leads"),
-            TierBoundary(LeadTier.D, gate_threshold, tier_c_min - 0.1, f"Tier D: Basic qualified leads")
+            TierBoundary(
+                LeadTier.B, tier_b_min, tier_a_min - 0.1, "Tier B: High-quality leads"
+            ),
+            TierBoundary(
+                LeadTier.C, tier_c_min, tier_b_min - 0.1, "Tier C: Medium-quality leads"
+            ),
+            TierBoundary(
+                LeadTier.D,
+                gate_threshold,
+                tier_c_min - 0.1,
+                f"Tier D: Basic qualified leads",
+            ),
         ]
 
     return TierConfiguration(
@@ -492,5 +553,5 @@ def create_standard_configuration(gate_threshold: float = 30.0) -> TierConfigura
         version="1.0.0",
         gate_threshold=gate_threshold,
         description="Standard A/B/C/D tier configuration",
-        boundaries=boundaries
+        boundaries=boundaries,
     )

@@ -6,25 +6,21 @@ Acceptance Criteria:
 - Update timestamps properly
 - Performance optimized
 """
-import pytest
-import sys
 import os
-from unittest.mock import Mock, patch, MagicMock
+import sys
 from datetime import datetime, timedelta
 from decimal import Decimal
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
-from d2_sourcing.deduplicator import (
-    BusinessDeduplicator,
-    DuplicateMatch,
-    MergeResult,
-    MatchConfidence,
-    MergeStrategy,
-    find_and_merge_duplicates,
-    detect_duplicates_only
-)
+from d2_sourcing.deduplicator import (BusinessDeduplicator, DuplicateMatch,
+                                      MatchConfidence, MergeResult,
+                                      MergeStrategy, detect_duplicates_only,
+                                      find_and_merge_duplicates)
 from d2_sourcing.exceptions import DeduplicationException
 from database.models import Business
 
@@ -110,17 +106,22 @@ class TestTask027AcceptanceCriteria:
     @pytest.fixture
     def deduplicator(self, mock_session):
         """Create BusinessDeduplicator instance with mocked dependencies"""
-        with patch('d2_sourcing.deduplicator.get_settings') as mock_settings, \
-             patch('d2_sourcing.deduplicator.SessionLocal', return_value=mock_session):
+        with patch("d2_sourcing.deduplicator.get_settings") as mock_settings, patch(
+            "d2_sourcing.deduplicator.SessionLocal", return_value=mock_session
+        ):
             settings = Mock()
             mock_settings.return_value = settings
             return BusinessDeduplicator(session=mock_session)
 
-    def test_duplicate_detection_works(self, deduplicator, sample_businesses, mock_session):
+    def test_duplicate_detection_works(
+        self, deduplicator, sample_businesses, mock_session
+    ):
         """Test that duplicate detection correctly identifies similar businesses"""
 
         # Mock the database query to return our sample businesses
-        mock_session.query.return_value.filter.return_value.all.return_value = sample_businesses
+        mock_session.query.return_value.filter.return_value.all.return_value = (
+            sample_businesses
+        )
 
         # Run duplicate detection
         duplicates = deduplicator.find_duplicates(confidence_threshold=0.5)
@@ -129,8 +130,11 @@ class TestTask027AcceptanceCriteria:
         assert len(duplicates) >= 1
 
         # Find the Mario's Pizza duplicate match
-        mario_duplicates = [d for d in duplicates
-                          if {d.business_1_id, d.business_2_id} == {"biz_001", "biz_002"}]
+        mario_duplicates = [
+            d
+            for d in duplicates
+            if {d.business_1_id, d.business_2_id} == {"biz_001", "biz_002"}
+        ]
 
         assert len(mario_duplicates) == 1
         mario_match = mario_duplicates[0]
@@ -167,17 +171,19 @@ class TestTask027AcceptanceCriteria:
             distance_meters=50.0,
             name_similarity=0.9,
             phone_similarity=1.0,
-            address_similarity=0.8
+            address_similarity=0.8,
         )
 
         # Mock business queries for merge
         business1, business2 = sample_businesses[0], sample_businesses[1]
-        mock_session.query.return_value.filter.return_value.all.return_value = [business1, business2]
+        mock_session.query.return_value.filter.return_value.all.return_value = [
+            business1,
+            business2,
+        ]
 
         # Test merge with KEEP_MOST_COMPLETE strategy
         merge_results = deduplicator.merge_duplicates(
-            [duplicate_match],
-            strategy=MergeStrategy.KEEP_MOST_COMPLETE
+            [duplicate_match], strategy=MergeStrategy.KEEP_MOST_COMPLETE
         )
 
         assert len(merge_results) == 1
@@ -194,7 +200,7 @@ class TestTask027AcceptanceCriteria:
         strategies_to_test = [
             MergeStrategy.KEEP_NEWEST,
             MergeStrategy.KEEP_OLDEST,
-            MergeStrategy.KEEP_HIGHEST_RATED
+            MergeStrategy.KEEP_HIGHEST_RATED,
         ]
 
         for strategy in strategies_to_test:
@@ -213,9 +219,14 @@ class TestTask027AcceptanceCriteria:
             fresh_b2.updated_at = datetime(2023, 2, 1)
             fresh_b2.is_active = True
 
-            mock_session.query.return_value.filter.return_value.all.return_value = [fresh_b1, fresh_b2]
+            mock_session.query.return_value.filter.return_value.all.return_value = [
+                fresh_b1,
+                fresh_b2,
+            ]
 
-            primary = deduplicator._select_primary_business([fresh_b1, fresh_b2], strategy)
+            primary = deduplicator._select_primary_business(
+                [fresh_b1, fresh_b2], strategy
+            )
 
             if strategy == MergeStrategy.KEEP_NEWEST:
                 assert primary.id == "biz_002"  # Newer business
@@ -226,7 +237,9 @@ class TestTask027AcceptanceCriteria:
 
         print("✓ Merge logic correct")
 
-    def test_update_timestamps_properly(self, deduplicator, sample_businesses, mock_session):
+    def test_update_timestamps_properly(
+        self, deduplicator, sample_businesses, mock_session
+    ):
         """Test that timestamps are updated properly during merge operations"""
 
         business1, business2 = sample_businesses[0], sample_businesses[1]
@@ -236,7 +249,10 @@ class TestTask027AcceptanceCriteria:
         original_b2_updated = business2.updated_at
 
         # Mock the merge process
-        mock_session.query.return_value.filter.return_value.all.return_value = [business1, business2]
+        mock_session.query.return_value.filter.return_value.all.return_value = [
+            business1,
+            business2,
+        ]
 
         # Perform merge
         start_time = datetime.utcnow()
@@ -247,7 +263,7 @@ class TestTask027AcceptanceCriteria:
             confidence=MatchConfidence.HIGH,
             confidence_score=0.95,
             match_reasons=["Test match"],
-            distance_meters=50.0
+            distance_meters=50.0,
         )
 
         merge_results = deduplicator.merge_duplicates([duplicate_match])
@@ -268,9 +284,11 @@ class TestTask027AcceptanceCriteria:
         assert merge_result.merge_timestamp > original_b2_updated
 
         # Test sourced location timestamp updates
-        with patch.object(deduplicator, '_update_sourced_locations') as mock_update_sourced, \
-             patch.object(deduplicator, '_update_yelp_metadata') as mock_update_yelp:
-
+        with patch.object(
+            deduplicator, "_update_sourced_locations"
+        ) as mock_update_sourced, patch.object(
+            deduplicator, "_update_yelp_metadata"
+        ) as mock_update_yelp:
             deduplicator._update_sourced_locations("primary_id", ["merged_id"])
             deduplicator._update_yelp_metadata("primary_id", ["merged_id"])
 
@@ -305,23 +323,23 @@ class TestTask027AcceptanceCriteria:
 
         # Should group businesses by location
         assert len(location_groups) >= 1
-        total_businesses_in_groups = sum(len(group) for group in location_groups.values())
+        total_businesses_in_groups = sum(
+            len(group) for group in location_groups.values()
+        )
         assert total_businesses_in_groups == len(businesses)
 
         # Test nearby business filtering
         target_business = businesses[0]
         nearby = deduplicator._get_nearby_businesses(
-            target_business,
-            location_groups,
-            businesses[1:]
+            target_business, location_groups, businesses[1:]
         )
 
         # Should filter to only nearby businesses
         assert len(nearby) <= len(businesses) - 1
 
         # Test caching
-        assert hasattr(deduplicator, '_similarity_cache')
-        assert hasattr(deduplicator, '_business_cache')
+        assert hasattr(deduplicator, "_similarity_cache")
+        assert hasattr(deduplicator, "_business_cache")
 
         # Test that similarity calculation caches results
         business1, business2 = businesses[0], businesses[1]
@@ -342,12 +360,12 @@ class TestTask027AcceptanceCriteria:
 
         # Test statistics tracking
         stats = deduplicator.get_deduplication_stats()
-        assert 'processed_count' in stats
-        assert 'duplicates_found' in stats
-        assert 'merges_performed' in stats
-        assert 'processing_time_seconds' in stats
-        assert 'businesses_per_second' in stats
-        assert 'cache_hit_rate' in stats
+        assert "processed_count" in stats
+        assert "duplicates_found" in stats
+        assert "merges_performed" in stats
+        assert "processing_time_seconds" in stats
+        assert "businesses_per_second" in stats
+        assert "cache_hit_rate" in stats
 
         print("✓ Performance optimized")
 
@@ -367,7 +385,9 @@ class TestTask027AcceptanceCriteria:
 
         for name1, name2, expected_min in test_cases:
             similarity = deduplicator._calculate_name_similarity(name1, name2)
-            assert similarity >= expected_min, f"'{name1}' vs '{name2}' similarity {similarity} < {expected_min}"
+            assert (
+                similarity >= expected_min
+            ), f"'{name1}' vs '{name2}' similarity {similarity} < {expected_min}"
             assert 0.0 <= similarity <= 1.0
 
         print("✓ Name similarity calculation works")
@@ -387,7 +407,9 @@ class TestTask027AcceptanceCriteria:
 
         for phone1, phone2, expected in test_cases:
             similarity = deduplicator._calculate_phone_similarity(phone1, phone2)
-            assert similarity == expected, f"'{phone1}' vs '{phone2}' similarity {similarity} != {expected}"
+            assert (
+                similarity == expected
+            ), f"'{phone1}' vs '{phone2}' similarity {similarity} != {expected}"
 
         print("✓ Phone similarity calculation works")
 
@@ -397,14 +419,20 @@ class TestTask027AcceptanceCriteria:
         test_cases = [
             # (addr1, addr2, expected_min_similarity)
             ("123 Main St", "123 Main Street", 0.8),  # Abbreviation differences
-            ("123 Main St, San Francisco, CA", "123 Main Street, SF, CA", 0.7),  # City abbreviation
+            (
+                "123 Main St, San Francisco, CA",
+                "123 Main Street, SF, CA",
+                0.7,
+            ),  # City abbreviation
             ("123 Main St Apt 1", "123 Main Street Suite 1", 0.6),  # Apt vs Suite
             ("123 Main St", "456 Oak Ave", 0.1),  # Completely different
         ]
 
         for addr1, addr2, expected_min in test_cases:
             similarity = deduplicator._calculate_address_similarity(addr1, addr2)
-            assert similarity >= expected_min, f"'{addr1}' vs '{addr2}' similarity {similarity} < {expected_min}"
+            assert (
+                similarity >= expected_min
+            ), f"'{addr1}' vs '{addr2}' similarity {similarity} < {expected_min}"
             assert 0.0 <= similarity <= 1.0
 
         print("✓ Address similarity calculation works")
@@ -440,27 +468,27 @@ class TestTask027AcceptanceCriteria:
         """Test convenience functions for common operations"""
 
         # Test find_and_merge_duplicates function
-        with patch('d2_sourcing.deduplicator.BusinessDeduplicator') as mock_dedup_class:
+        with patch("d2_sourcing.deduplicator.BusinessDeduplicator") as mock_dedup_class:
             mock_dedup = Mock()
             mock_dedup.find_duplicates.return_value = []
             mock_dedup.merge_duplicates.return_value = []
             mock_dedup.get_deduplication_stats.return_value = {
-                'processed_count': 100,
-                'duplicates_found': 5,
-                'merges_performed': 3
+                "processed_count": 100,
+                "duplicates_found": 5,
+                "merges_performed": 3,
             }
             mock_dedup_class.return_value = mock_dedup
 
             stats = find_and_merge_duplicates(
-                business_ids=['biz_001', 'biz_002'],
+                business_ids=["biz_001", "biz_002"],
                 confidence_threshold=0.8,
-                merge_strategy=MergeStrategy.KEEP_NEWEST
+                merge_strategy=MergeStrategy.KEEP_NEWEST,
             )
 
-            assert 'processed_count' in stats
-            assert 'duplicates_identified' in stats
-            assert 'merges_completed' in stats
-            assert 'merge_strategy' in stats
+            assert "processed_count" in stats
+            assert "duplicates_identified" in stats
+            assert "merges_completed" in stats
+            assert "merge_strategy" in stats
 
             # Verify methods were called
             mock_dedup.find_duplicates.assert_called_once()
@@ -468,7 +496,7 @@ class TestTask027AcceptanceCriteria:
             mock_dedup.get_deduplication_stats.assert_called_once()
 
         # Test detect_duplicates_only function
-        with patch('d2_sourcing.deduplicator.BusinessDeduplicator') as mock_dedup_class:
+        with patch("d2_sourcing.deduplicator.BusinessDeduplicator") as mock_dedup_class:
             mock_dedup = Mock()
             mock_duplicates = [
                 DuplicateMatch(
@@ -476,7 +504,7 @@ class TestTask027AcceptanceCriteria:
                     business_2_id="biz_002",
                     confidence=MatchConfidence.HIGH,
                     confidence_score=0.9,
-                    match_reasons=["Test match"]
+                    match_reasons=["Test match"],
                 )
             ]
             mock_dedup.find_duplicates.return_value = mock_duplicates
@@ -501,15 +529,15 @@ class TestTask027AcceptanceCriteria:
                 business_2_id="biz_002",
                 confidence=MatchConfidence.HIGH,
                 confidence_score=0.9,
-                match_reasons=["Similar"]
+                match_reasons=["Similar"],
             ),
             DuplicateMatch(
                 business_1_id="biz_002",
                 business_2_id="biz_003",
                 confidence=MatchConfidence.HIGH,
                 confidence_score=0.85,
-                match_reasons=["Similar"]
-            )
+                match_reasons=["Similar"],
+            ),
         ]
 
         clusters = deduplicator._group_duplicates_into_clusters(matches)
@@ -569,8 +597,9 @@ if __name__ == "__main__":
     mock_session.commit = Mock()
     mock_session.rollback = Mock()
 
-    with patch('d2_sourcing.deduplicator.get_settings') as mock_settings, \
-         patch('d2_sourcing.deduplicator.SessionLocal', return_value=mock_session):
+    with patch("d2_sourcing.deduplicator.get_settings") as mock_settings, patch(
+        "d2_sourcing.deduplicator.SessionLocal", return_value=mock_session
+    ):
         settings = Mock()
         mock_settings.return_value = settings
         deduplicator = BusinessDeduplicator(session=mock_session)
@@ -607,9 +636,15 @@ if __name__ == "__main__":
     sample_businesses.append(business2)
 
     # Run tests
-    test_instance.test_duplicate_detection_works(deduplicator, sample_businesses, mock_session)
-    test_instance.test_merge_logic_correct(deduplicator, sample_businesses, mock_session)
-    test_instance.test_update_timestamps_properly(deduplicator, sample_businesses, mock_session)
+    test_instance.test_duplicate_detection_works(
+        deduplicator, sample_businesses, mock_session
+    )
+    test_instance.test_merge_logic_correct(
+        deduplicator, sample_businesses, mock_session
+    )
+    test_instance.test_update_timestamps_properly(
+        deduplicator, sample_businesses, mock_session
+    )
     test_instance.test_performance_optimized(deduplicator, mock_session)
     test_instance.test_name_similarity_calculation(deduplicator)
     test_instance.test_phone_similarity_calculation(deduplicator)

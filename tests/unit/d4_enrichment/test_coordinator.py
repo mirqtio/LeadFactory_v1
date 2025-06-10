@@ -8,18 +8,20 @@ Tests for enrichment coordinator ensuring all acceptance criteria are met:
 - Progress tracking
 """
 
-import pytest
 import asyncio
 import sys
-from unittest.mock import Mock, AsyncMock, patch
 from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, Mock, patch
 
-from d4_enrichment.coordinator import (
-    EnrichmentCoordinator, EnrichmentProgress, BatchEnrichmentResult,
-    EnrichmentPriority, enrich_business, enrich_businesses
-)
-from d4_enrichment.models import EnrichmentSource, EnrichmentResult, MatchConfidence
+import pytest
+
+from d4_enrichment.coordinator import (BatchEnrichmentResult,
+                                       EnrichmentCoordinator,
+                                       EnrichmentPriority, EnrichmentProgress,
+                                       enrich_business, enrich_businesses)
 from d4_enrichment.gbp_enricher import GBPEnricher
+from d4_enrichment.models import (EnrichmentResult, EnrichmentSource,
+                                  MatchConfidence)
 
 sys.path.insert(0, "/app")
 
@@ -32,30 +34,30 @@ class TestTask043AcceptanceCriteria:
         """Sample business data for testing"""
         return [
             {
-                'id': 'biz_001',
-                'name': 'Test Company 1',
-                'phone': '555-1234',
-                'address': '123 Test St'
+                "id": "biz_001",
+                "name": "Test Company 1",
+                "phone": "555-1234",
+                "address": "123 Test St",
             },
             {
-                'id': 'biz_002',
-                'name': 'Test Company 2',
-                'phone': '555-5678',
-                'address': '456 Sample Ave'
+                "id": "biz_002",
+                "name": "Test Company 2",
+                "phone": "555-5678",
+                "address": "456 Sample Ave",
             },
             {
-                'id': 'biz_003',
-                'name': 'Test Company 3',
-                'phone': '555-9999',
-                'address': '789 Example Blvd'
-            }
+                "id": "biz_003",
+                "name": "Test Company 3",
+                "phone": "555-9999",
+                "address": "789 Example Blvd",
+            },
         ]
 
     @pytest.fixture
     def mock_enrichment_result(self):
         """Mock enrichment result"""
         result = Mock(spec=EnrichmentResult)
-        result.business_id = 'test_biz_001'
+        result.business_id = "test_biz_001"
         result.match_confidence = MatchConfidence.HIGH.value
         result.source = EnrichmentSource.INTERNAL.value
         return result
@@ -71,18 +73,21 @@ class TestTask043AcceptanceCriteria:
 
         Acceptance Criteria: Batch enrichment works
         """
+
         async def run_test():
             # Test batch enrichment
             result = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses,
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Verify batch result structure
             assert isinstance(result, BatchEnrichmentResult)
             assert result.total_processed == len(sample_businesses)
-            assert result.successful_enrichments + result.failed_enrichments <= len(sample_businesses)
+            assert result.successful_enrichments + result.failed_enrichments <= len(
+                sample_businesses
+            )
             assert result.execution_time_seconds > 0
             assert isinstance(result.results, list)
             assert isinstance(result.errors, list)
@@ -102,14 +107,15 @@ class TestTask043AcceptanceCriteria:
 
         Acceptance Criteria: Skip already enriched
         """
+
         async def run_test():
             # Mock the _is_recently_enriched method to return True for first business
             original_method = coordinator._is_recently_enriched
 
             async def mock_is_recently_enriched(business_id):
-                if business_id == 'biz_001':
+                if business_id == "biz_001":
                     return True  # Skip this one
-                return False     # Enrich others
+                return False  # Enrich others
 
             coordinator._is_recently_enriched = mock_is_recently_enriched
 
@@ -117,7 +123,7 @@ class TestTask043AcceptanceCriteria:
             result = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses,
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=True
+                skip_existing=True,
             )
 
             # Verify skipping behavior
@@ -137,10 +143,13 @@ class TestTask043AcceptanceCriteria:
 
         Acceptance Criteria: Error handling proper
         """
+
         async def run_test():
             # Create a mock enricher that always fails
             failing_enricher = Mock()
-            failing_enricher.enrich_business = AsyncMock(side_effect=Exception("Test error"))
+            failing_enricher.enrich_business = AsyncMock(
+                side_effect=Exception("Test error")
+            )
 
             # Replace the enricher with failing one
             coordinator.enrichers[EnrichmentSource.INTERNAL] = failing_enricher
@@ -149,7 +158,7 @@ class TestTask043AcceptanceCriteria:
             result = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses,
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Verify error handling
@@ -171,13 +180,14 @@ class TestTask043AcceptanceCriteria:
 
         Acceptance Criteria: Progress tracking
         """
+
         async def run_test():
             # Start batch enrichment (don't await yet)
             task = asyncio.create_task(
                 coordinator.enrich_businesses_batch(
                     businesses=sample_businesses,
                     sources=[EnrichmentSource.INTERNAL],
-                    skip_existing=False
+                    skip_existing=False,
                 )
             )
 
@@ -216,6 +226,7 @@ class TestTask043AcceptanceCriteria:
 
     def test_concurrent_processing(self, coordinator, sample_businesses):
         """Test concurrent processing works correctly"""
+
         async def run_test():
             # Test with multiple concurrent requests
             coordinator.max_concurrent = 2
@@ -223,7 +234,7 @@ class TestTask043AcceptanceCriteria:
             result = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses * 2,  # 6 businesses total
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Should process all businesses
@@ -236,11 +247,12 @@ class TestTask043AcceptanceCriteria:
 
     def test_multiple_sources(self, coordinator, sample_businesses):
         """Test enrichment with multiple sources"""
+
         async def run_test():
             # Add a second mock enricher
             mock_enricher = Mock()
             mock_result = Mock(spec=EnrichmentResult)
-            mock_result.business_id = 'test'
+            mock_result.business_id = "test"
             mock_result.match_confidence = MatchConfidence.HIGH.value
             mock_enricher.enrich_business = AsyncMock(return_value=mock_result)
 
@@ -250,7 +262,7 @@ class TestTask043AcceptanceCriteria:
             result = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses[:1],  # Just one business
                 sources=[EnrichmentSource.INTERNAL, EnrichmentSource.CLEARBIT],
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Should succeed with at least one source
@@ -265,20 +277,21 @@ class TestTask043AcceptanceCriteria:
 
     def test_priority_handling(self, coordinator, sample_businesses):
         """Test priority handling for enrichment requests"""
+
         async def run_test():
             # Test different priority levels
             result_high = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses[:1],
                 sources=[EnrichmentSource.INTERNAL],
                 priority=EnrichmentPriority.HIGH,
-                skip_existing=False
+                skip_existing=False,
             )
 
             result_low = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses[1:2],
                 sources=[EnrichmentSource.INTERNAL],
                 priority=EnrichmentPriority.LOW,
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Both should complete successfully
@@ -291,13 +304,14 @@ class TestTask043AcceptanceCriteria:
 
     def test_request_cancellation(self, coordinator, sample_businesses):
         """Test request cancellation functionality"""
+
         async def run_test():
             # Start a request
             task = asyncio.create_task(
                 coordinator.enrich_businesses_batch(
                     businesses=sample_businesses,
                     sources=[EnrichmentSource.INTERNAL],
-                    skip_existing=False
+                    skip_existing=False,
                 )
             )
 
@@ -333,23 +347,27 @@ class TestTask043AcceptanceCriteria:
 
     def test_statistics_tracking(self, coordinator, sample_businesses):
         """Test statistics tracking"""
+
         async def run_test():
             # Get initial stats
             initial_stats = coordinator.get_statistics()
-            assert 'total_requests' in initial_stats
-            assert 'total_businesses_processed' in initial_stats
+            assert "total_requests" in initial_stats
+            assert "total_businesses_processed" in initial_stats
 
             # Process some businesses
             await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses,
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Check updated stats
             final_stats = coordinator.get_statistics()
-            assert final_stats['total_requests'] > initial_stats['total_requests']
-            assert final_stats['total_businesses_processed'] > initial_stats['total_businesses_processed']
+            assert final_stats["total_requests"] > initial_stats["total_requests"]
+            assert (
+                final_stats["total_businesses_processed"]
+                > initial_stats["total_businesses_processed"]
+            )
 
             print("✓ Statistics tracking works correctly")
 
@@ -357,12 +375,13 @@ class TestTask043AcceptanceCriteria:
 
     def test_cleanup_old_requests(self, coordinator):
         """Test cleanup of old completed requests"""
+
         async def run_test():
             # Create some fake old completed requests
             old_progress = EnrichmentProgress(
                 request_id="old_request",
                 total_businesses=1,
-                started_at=datetime.utcnow() - timedelta(hours=25)
+                started_at=datetime.utcnow() - timedelta(hours=25),
             )
 
             old_result = BatchEnrichmentResult(
@@ -374,7 +393,7 @@ class TestTask043AcceptanceCriteria:
                 progress=old_progress,
                 results=[],
                 errors=[],
-                execution_time_seconds=1.0
+                execution_time_seconds=1.0,
             )
 
             coordinator.completed_requests["old_request"] = old_result
@@ -391,11 +410,11 @@ class TestTask043AcceptanceCriteria:
 
     def test_convenience_functions(self, sample_businesses):
         """Test convenience functions"""
+
         async def run_test():
             # Test single business enrichment
             result = await enrich_business(
-                business=sample_businesses[0],
-                sources=[EnrichmentSource.INTERNAL]
+                business=sample_businesses[0], sources=[EnrichmentSource.INTERNAL]
             )
 
             # Should return EnrichmentResult or None
@@ -406,7 +425,7 @@ class TestTask043AcceptanceCriteria:
                 businesses=sample_businesses,
                 sources=[EnrichmentSource.INTERNAL],
                 max_concurrent=2,
-                skip_existing=False
+                skip_existing=False,
             )
 
             assert isinstance(batch_result, BatchEnrichmentResult)
@@ -418,6 +437,7 @@ class TestTask043AcceptanceCriteria:
 
     def test_comprehensive_acceptance_criteria(self, coordinator, sample_businesses):
         """Comprehensive test covering all acceptance criteria"""
+
         async def run_test():
             # This test verifies all four acceptance criteria work together
 
@@ -425,23 +445,33 @@ class TestTask043AcceptanceCriteria:
             result = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses,
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=True  # Enable skip logic
+                skip_existing=True,  # Enable skip logic
             )
 
             assert isinstance(result, BatchEnrichmentResult), "Batch enrichment failed"
-            assert result.total_processed == len(sample_businesses), "Not all businesses processed"
+            assert result.total_processed == len(
+                sample_businesses
+            ), "Not all businesses processed"
 
             # 2. Skip already enriched - verify skip logic can work
-            assert hasattr(coordinator, '_is_recently_enriched'), "Skip enriched logic missing"
+            assert hasattr(
+                coordinator, "_is_recently_enriched"
+            ), "Skip enriched logic missing"
 
             # 3. Error handling proper - verify errors are captured
-            assert hasattr(result, 'errors'), "Error handling missing"
-            assert hasattr(result.progress, 'errors'), "Progress error tracking missing"
+            assert hasattr(result, "errors"), "Error handling missing"
+            assert hasattr(result.progress, "errors"), "Progress error tracking missing"
 
             # 4. Progress tracking - verify progress is tracked
-            assert result.progress.completion_percentage == 100.0, "Progress tracking failed"
-            assert result.progress.total_businesses == len(sample_businesses), "Progress total incorrect"
-            assert result.progress.processed_businesses == len(sample_businesses), "Progress processed incorrect"
+            assert (
+                result.progress.completion_percentage == 100.0
+            ), "Progress tracking failed"
+            assert result.progress.total_businesses == len(
+                sample_businesses
+            ), "Progress total incorrect"
+            assert result.progress.processed_businesses == len(
+                sample_businesses
+            ), "Progress processed incorrect"
 
             print("✓ All acceptance criteria working together successfully")
 
@@ -460,8 +490,8 @@ if __name__ == "__main__":
         try:
             # Sample data
             sample_businesses = [
-                {'id': 'test_001', 'name': 'Test Corp', 'phone': '555-1111'},
-                {'id': 'test_002', 'name': 'Sample Inc', 'phone': '555-2222'}
+                {"id": "test_001", "name": "Test Corp", "phone": "555-1111"},
+                {"id": "test_002", "name": "Sample Inc", "phone": "555-2222"},
             ]
 
             coordinator = EnrichmentCoordinator(max_concurrent=2)
@@ -478,7 +508,9 @@ if __name__ == "__main__":
             test_instance.test_statistics_tracking(coordinator, sample_businesses)
             test_instance.test_cleanup_old_requests(coordinator)
             test_instance.test_convenience_functions(sample_businesses)
-            test_instance.test_comprehensive_acceptance_criteria(coordinator, sample_businesses)
+            test_instance.test_comprehensive_acceptance_criteria(
+                coordinator, sample_businesses
+            )
 
             print()
             print("🎉 All Task 043 acceptance criteria tests pass!")
@@ -490,6 +522,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run tests

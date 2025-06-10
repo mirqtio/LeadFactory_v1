@@ -1,5 +1,6 @@
 """Database session management"""
 import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -14,7 +15,7 @@ if DATABASE_URL.startswith("sqlite"):
         DATABASE_URL,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
-        echo=os.getenv("SQL_ECHO", "false").lower() == "true"
+        echo=os.getenv("SQL_ECHO", "false").lower() == "true",
     )
 else:
     # PostgreSQL settings for production
@@ -22,7 +23,7 @@ else:
         DATABASE_URL,
         pool_size=10,
         max_overflow=20,
-        echo=os.getenv("SQL_ECHO", "false").lower() == "true"
+        echo=os.getenv("SQL_ECHO", "false").lower() == "true",
     )
 
 # Create session factory

@@ -1,9 +1,10 @@
 """
 Test metrics endpoint integration
 """
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 from fastapi.testclient import TestClient
 
 # Add parent directory to path
@@ -19,7 +20,6 @@ def client():
 
 
 class TestMetricsEndpoint:
-
     def test_metrics_endpoint_accessible(self, client):
         """Test that metrics endpoint is accessible"""
         response = client.get("/metrics")
@@ -83,7 +83,7 @@ class TestMetricsEndpoint:
         metrics_text = metrics_response.text
 
         # Verify health check was tracked
-        assert 'leadfactory_http_requests_total' in metrics_text
+        assert "leadfactory_http_requests_total" in metrics_text
         assert 'endpoint="/health"' in metrics_text
         assert 'method="GET"' in metrics_text
         assert 'status="200"' in metrics_text

@@ -8,6 +8,7 @@ and data sourcing error handling.
 
 class SourcingException(Exception):
     """Base exception for all sourcing-related errors"""
+
     pass
 
 
@@ -64,7 +65,9 @@ class YelpBusinessNotFoundException(YelpAPIException):
 class PaginationException(SourcingException):
     """Pagination handling errors"""
 
-    def __init__(self, message: str, current_offset: int = None, total_results: int = None):
+    def __init__(
+        self, message: str, current_offset: int = None, total_results: int = None
+    ):
         super().__init__(message)
         self.current_offset = current_offset
         self.total_results = total_results
@@ -87,7 +90,7 @@ class BatchQuotaException(SourcingException):
 class DataValidationException(SourcingException):
     """Data validation and normalization errors"""
 
-    def __init__(self, message: str, field: str = None, value = None):
+    def __init__(self, message: str, field: str = None, value=None):
         super().__init__(message)
         self.field = field
         self.value = value
@@ -109,7 +112,9 @@ class DeduplicationException(SourcingException):
 class ErrorRecoveryException(SourcingException):
     """Error recovery mechanism failures"""
 
-    def __init__(self, message: str, original_error: Exception = None, retry_count: int = 0):
+    def __init__(
+        self, message: str, original_error: Exception = None, retry_count: int = 0
+    ):
         super().__init__(message)
         self.original_error = original_error
         self.retry_count = retry_count

@@ -1,9 +1,10 @@
 """
 Test stub server endpoints
 """
+import json
+
 import pytest
 from fastapi.testclient import TestClient
-import json
 
 from stubs.server import app
 
@@ -23,9 +24,9 @@ class TestYelpStubs:
                 "location": "New York, NY",
                 "categories": "restaurant",
                 "limit": 10,
-                "offset": 0
+                "offset": 0,
             },
-            headers={"Authorization": "Bearer test-key"}
+            headers={"Authorization": "Bearer test-key"},
         )
 
         assert response.status_code == 200
@@ -49,7 +50,7 @@ class TestYelpStubs:
         # First page
         response1 = client.get(
             "/v3/businesses/search",
-            params={"location": "NYC", "limit": 50, "offset": 0}
+            params={"location": "NYC", "limit": 50, "offset": 0},
         )
         assert response1.status_code == 200
         data1 = response1.json()
@@ -57,7 +58,7 @@ class TestYelpStubs:
         # Second page
         response2 = client.get(
             "/v3/businesses/search",
-            params={"location": "NYC", "limit": 50, "offset": 50}
+            params={"location": "NYC", "limit": 50, "offset": 50},
         )
         assert response2.status_code == 200
         data2 = response2.json()
@@ -73,10 +74,7 @@ class TestPageSpeedStubs:
         """Test PageSpeed analysis returns data"""
         response = client.get(
             "/pagespeedonline/v5/runPagespeed",
-            params={
-                "url": "https://example.com",
-                "strategy": "mobile"
-            }
+            params={"url": "https://example.com", "strategy": "mobile"},
         )
 
         assert response.status_code == 200
@@ -109,25 +107,19 @@ class TestStripeStubs:
         """Test Stripe checkout session creation"""
         session_data = {
             "payment_method_types": ["card"],
-            "line_items": [{
-                "price": "price_test_123",
-                "quantity": 1
-            }],
+            "line_items": [{"price": "price_test_123", "quantity": 1}],
             "mode": "payment",
             "success_url": "https://example.com/success",
             "cancel_url": "https://example.com/cancel",
             "client_reference_id": "biz_123",
             "customer_email": "test@example.com",
-            "metadata": {
-                "business_id": "123",
-                "source": "email"
-            }
+            "metadata": {"business_id": "123", "source": "email"},
         }
 
         response = client.post(
             "/v1/checkout/sessions",
             json=session_data,
-            headers={"Authorization": "Bearer sk_test_123"}
+            headers={"Authorization": "Bearer sk_test_123"},
         )
 
         assert response.status_code == 200
@@ -144,22 +136,16 @@ class TestSendGridStubs:
     def test_send_email(self, client):
         """Test SendGrid email sending"""
         mail_data = {
-            "personalizations": [{
-                "to": [{"email": "test@example.com"}],
-                "subject": "Test Email"
-            }],
+            "personalizations": [
+                {"to": [{"email": "test@example.com"}], "subject": "Test Email"}
+            ],
             "from_email": {"email": "sender@example.com", "name": "Sender"},
             "subject": "Test Email",
-            "content": [{
-                "type": "text/html",
-                "value": "<p>Test content</p>"
-            }]
+            "content": [{"type": "text/html", "value": "<p>Test content</p>"}],
         }
 
         response = client.post(
-            "/v3/mail/send",
-            json=mail_data,
-            headers={"Authorization": "Bearer SG.test"}
+            "/v3/mail/send", json=mail_data, headers={"Authorization": "Bearer SG.test"}
         )
 
         assert response.status_code == 202
@@ -172,17 +158,15 @@ class TestOpenAIStubs:
         """Test OpenAI chat completion"""
         completion_data = {
             "model": "gpt-4o-mini",
-            "messages": [
-                {"role": "user", "content": "Analyze this website"}
-            ],
+            "messages": [{"role": "user", "content": "Analyze this website"}],
             "temperature": 0.3,
-            "max_tokens": 500
+            "max_tokens": 500,
         }
 
         response = client.post(
             "/v1/chat/completions",
             json=completion_data,
-            headers={"Authorization": "Bearer sk-test"}
+            headers={"Authorization": "Bearer sk-test"},
         )
 
         assert response.status_code == 200
@@ -213,8 +197,8 @@ class TestWebhooks:
             "/webhooks/stripe",
             params={
                 "event_type": "checkout.session.completed",
-                "session_id": "cs_test_123"
-            }
+                "session_id": "cs_test_123",
+            },
         )
 
         assert response.status_code == 200
@@ -229,7 +213,7 @@ class TestWebhooks:
         events = [
             {"email": "test1@example.com", "event": "delivered"},
             {"email": "test2@example.com", "event": "open"},
-            {"email": "test3@example.com", "event": "click"}
+            {"email": "test3@example.com", "event": "click"},
         ]
 
         response = client.post("/webhooks/sendgrid", json=events)

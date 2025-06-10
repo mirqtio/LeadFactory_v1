@@ -1,15 +1,16 @@
 """
 Type definitions for targeting domain
 """
-from enum import Enum
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime, time
 from decimal import Decimal
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class VerticalMarket(str, Enum):
     """Industry verticals for targeting"""
+
     RESTAURANTS = "restaurants"
     RETAIL = "retail"
     PROFESSIONAL_SERVICES = "professional_services"
@@ -34,6 +35,7 @@ class VerticalMarket(str, Enum):
 
 class GeographyLevel(str, Enum):
     """Geographic hierarchy levels"""
+
     COUNTRY = "country"
     STATE = "state"
     COUNTY = "county"
@@ -45,6 +47,7 @@ class GeographyLevel(str, Enum):
 
 class CampaignStatus(str, Enum):
     """Campaign execution status"""
+
     DRAFT = "draft"
     SCHEDULED = "scheduled"
     RUNNING = "running"
@@ -56,6 +59,7 @@ class CampaignStatus(str, Enum):
 
 class BatchProcessingStatus(str, Enum):
     """Status of batch processing"""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -65,6 +69,7 @@ class BatchProcessingStatus(str, Enum):
 
 class TargetQualificationStatus(str, Enum):
     """Target qualification status"""
+
     UNQUALIFIED = "unqualified"
     PENDING_REVIEW = "pending_review"
     QUALIFIED = "qualified"
@@ -77,6 +82,7 @@ class TargetQualificationStatus(str, Enum):
 @dataclass
 class TargetingCriteria:
     """Criteria for target selection"""
+
     verticals: List[VerticalMarket]
     geography: Dict[str, Any]  # Geographic constraints
     business_size: Optional[Dict[str, int]] = None  # employee/revenue ranges
@@ -92,6 +98,7 @@ class TargetingCriteria:
 @dataclass
 class GeographicConstraint:
     """Geographic targeting constraint"""
+
     level: GeographyLevel
     values: List[str]  # State codes, city names, zip codes, etc.
     radius_miles: Optional[float] = None  # For radius-based targeting
@@ -102,6 +109,7 @@ class GeographicConstraint:
 @dataclass
 class BatchSchedule:
     """Batch processing schedule configuration"""
+
     batch_size: int = 100
     max_concurrent_batches: int = 5
     delay_between_batches_seconds: int = 60
@@ -116,6 +124,7 @@ class BatchSchedule:
 @dataclass
 class TargetMetrics:
     """Metrics for a target or campaign"""
+
     total_targets: int = 0
     qualified_targets: int = 0
     contacted_targets: int = 0
@@ -135,6 +144,7 @@ class TargetMetrics:
 @dataclass
 class CampaignSettings:
     """Campaign execution settings"""
+
     auto_qualify: bool = True
     auto_contact: bool = False
     contact_method: str = "email"  # email, phone, both
@@ -148,6 +158,7 @@ class CampaignSettings:
 @dataclass
 class TargetSource:
     """Source information for a target"""
+
     provider: str  # yelp, google, manual, etc.
     external_id: Optional[str] = None
     discovered_at: Optional[datetime] = None
@@ -168,6 +179,7 @@ BusinessInfo = Dict[str, Any]
 @dataclass
 class QualificationRules:
     """Rules for automatic target qualification"""
+
     min_website_score: Optional[float] = None
     required_contact_methods: List[str] = None
     exclude_keywords: List[str] = None
@@ -181,6 +193,7 @@ class QualificationRules:
 @dataclass
 class TargetingMetrics:
     """Detailed metrics for targeting analysis"""
+
     search_queries_executed: int = 0
     raw_results_found: int = 0
     duplicates_removed: int = 0

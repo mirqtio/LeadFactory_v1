@@ -2,20 +2,20 @@
 Database models for LeadFactory MVP
 Based on PRD specifications for all domains (D0-D11)
 """
+import enum
 import uuid
 from datetime import datetime
-from typing import Optional, Dict, Any
 from decimal import Decimal
+from typing import Any, Dict, Optional
 
-from sqlalchemy import (
-    Column, String, Integer, Float, Boolean, DateTime, Text,
-    ForeignKey, UniqueConstraint, CheckConstraint, Index,
-    DECIMAL, JSON, Date, TIMESTAMP, Enum as SQLEnum
-)
-from sqlalchemy.dialects.postgresql import UUID, INET, JSONB
+from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
+                        Column, Date, DateTime)
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import (Float, ForeignKey, Index, Integer, String, Text,
+                        UniqueConstraint)
+from sqlalchemy.dialects.postgresql import INET, JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import enum
 
 from database.base import Base
 
@@ -59,7 +59,6 @@ class PurchaseStatus(str, enum.Enum):
     COMPLETED = "completed"
     REFUNDED = "refunded"
     FAILED = "failed"
-
 
 
 # D0: Gateway Models
@@ -174,7 +173,11 @@ class Business(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    assessments = relationship("AssessmentResult", back_populates="business", foreign_keys="AssessmentResult.business_id")
+    assessments = relationship(
+        "AssessmentResult",
+        back_populates="business",
+        foreign_keys="AssessmentResult.business_id",
+    )
     scores = relationship("ScoringResult", back_populates="business")
     emails = relationship("Email", back_populates="business")
     purchases = relationship("Purchase", back_populates="business")
@@ -245,9 +248,7 @@ class Purchase(Base):
     # Relationships
     business = relationship("Business", back_populates="purchases")
 
-    __table_args__ = (
-        Index("idx_purchase_status_created", "status", "created_at"),
-    )
+    __table_args__ = (Index("idx_purchase_status_created", "status", "created_at"),)
 
 
 class WebhookEvent(Base):

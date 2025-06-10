@@ -1,15 +1,15 @@
 """
 Test d2_sourcing domain models
 """
-import pytest
 import uuid
 from datetime import datetime
 
-from d2_sourcing.models import Business, YelpMetadata, SourcedLocation
+import pytest
+
+from d2_sourcing.models import Business, SourcedLocation, YelpMetadata
 
 
 class TestBusinessModel:
-
     def test_business_model_complete(self):
         """Test that business model has all required fields"""
         business = Business(
@@ -33,23 +33,28 @@ class TestBusinessModel:
             price="$$",
             categories=[
                 {"alias": "italian", "title": "Italian"},
-                {"alias": "restaurants", "title": "Restaurants"}
+                {"alias": "restaurants", "title": "Restaurants"},
             ],
             hours=[
                 {
                     "open": [
-                        {"is_overnight": False, "start": "1100", "end": "2200", "day": 0}
+                        {
+                            "is_overnight": False,
+                            "start": "1100",
+                            "end": "2200",
+                            "day": 0,
+                        }
                     ],
                     "hours_type": "REGULAR",
-                    "is_open_now": True
+                    "is_open_now": True,
                 }
             ],
             transactions=["pickup", "delivery"],
             attributes={
                 "outdoor_seating": True,
                 "takes_reservations": True,
-                "wheelchair_accessible": True
-            }
+                "wheelchair_accessible": True,
+            },
         )
 
         # Verify all attributes are accessible
@@ -70,7 +75,7 @@ class TestBusinessModel:
         """Test that Yelp ID unique constraint is defined"""
         # Check that the model has the unique constraint on yelp_id
         business_columns = Business.__table__.columns
-        yelp_id_column = business_columns['yelp_id']
+        yelp_id_column = business_columns["yelp_id"]
 
         assert yelp_id_column.unique is True
         assert yelp_id_column.index is True
@@ -81,21 +86,26 @@ class TestBusinessModel:
             name="Test Business",
             categories=[
                 {"alias": "test", "title": "Test Category"},
-                {"alias": "sample", "title": "Sample Category"}
+                {"alias": "sample", "title": "Sample Category"},
             ],
             attributes={
                 "parking": {"street": True, "lot": False},
                 "noise_level": "quiet",
-                "good_for": {"breakfast": True, "lunch": True}
+                "good_for": {"breakfast": True, "lunch": True},
             },
             hours=[
                 {
                     "open": [
-                        {"is_overnight": False, "start": "0900", "end": "1700", "day": 1}
+                        {
+                            "is_overnight": False,
+                            "start": "0900",
+                            "end": "1700",
+                            "day": 1,
+                        }
                     ],
-                    "hours_type": "REGULAR"
+                    "hours_type": "REGULAR",
                 }
-            ]
+            ],
         )
 
         # Test categories JSONB field
@@ -120,17 +130,17 @@ class TestBusinessModel:
         # Extract index names
         index_names = []
         for arg in table_args:
-            if hasattr(arg, 'name'):
+            if hasattr(arg, "name"):
                 index_names.append(arg.name)
 
         # Verify expected indexes exist
         expected_indexes = [
-            'idx_businesses_location',
-            'idx_businesses_geo',
-            'idx_businesses_rating',
-            'idx_businesses_categories',
-            'idx_businesses_attributes',
-            'idx_businesses_search'
+            "idx_businesses_location",
+            "idx_businesses_geo",
+            "idx_businesses_rating",
+            "idx_businesses_categories",
+            "idx_businesses_attributes",
+            "idx_businesses_search",
         ]
 
         for expected_index in expected_indexes:
@@ -138,7 +148,6 @@ class TestBusinessModel:
 
 
 class TestYelpMetadataModel:
-
     def test_yelp_metadata_fields(self):
         """Test YelpMetadata model fields"""
         business_id = str(uuid.uuid4())
@@ -147,9 +156,7 @@ class TestYelpMetadataModel:
             business_id=business_id,
             yelp_url="https://www.yelp.com/biz/joes-restaurant",
             photos=["photo1.jpg", "photo2.jpg"],
-            special_hours=[
-                {"date": "2024-12-25", "is_closed": True}
-            ],
+            special_hours=[{"date": "2024-12-25", "is_closed": True}],
             messaging={"use_case_text": "Request a Quote"},
             raw_response={"id": "test", "name": "Test Business"},
             api_version="v3",
@@ -159,7 +166,7 @@ class TestYelpMetadataModel:
             completeness_score=0.85,
             freshness_score=0.95,
             accuracy_score=0.90,
-            fetch_count=3
+            fetch_count=3,
         )
 
         assert metadata.business_id == business_id
@@ -177,12 +184,11 @@ class TestYelpMetadataModel:
     def test_yelp_metadata_relationships(self):
         """Test YelpMetadata relationships"""
         # Verify the relationship is defined
-        assert hasattr(YelpMetadata, 'business')
-        assert YelpMetadata.business.property.back_populates == 'yelp_metadata'
+        assert hasattr(YelpMetadata, "business")
+        assert YelpMetadata.business.property.back_populates == "yelp_metadata"
 
 
 class TestSourcedLocationModel:
-
     def test_sourced_location_fields(self):
         """Test SourcedLocation model fields"""
         business_id = str(uuid.uuid4())
@@ -204,7 +210,7 @@ class TestSourcedLocationModel:
             is_primary=True,
             is_duplicate=False,
             is_conflicting=False,
-            needs_review=False
+            needs_review=False,
         )
 
         assert location.business_id == business_id
@@ -226,48 +232,46 @@ class TestSourcedLocationModel:
         # Find unique constraint
         constraint_names = []
         for arg in table_args:
-            if hasattr(arg, 'name') and 'uq_' in arg.name:
+            if hasattr(arg, "name") and "uq_" in arg.name:
                 constraint_names.append(arg.name)
 
-        assert 'uq_sourced_locations_provider_id' in constraint_names
+        assert "uq_sourced_locations_provider_id" in constraint_names
 
 
 class TestModelRelationships:
-
     def test_business_yelp_metadata_relationship(self):
         """Test Business-YelpMetadata relationship"""
         # Verify relationships are defined
-        assert hasattr(Business, 'yelp_metadata')
-        assert hasattr(YelpMetadata, 'business')
+        assert hasattr(Business, "yelp_metadata")
+        assert hasattr(YelpMetadata, "business")
 
         # Verify back_populates is correct
-        assert Business.yelp_metadata.property.back_populates == 'business'
-        assert YelpMetadata.business.property.back_populates == 'yelp_metadata'
+        assert Business.yelp_metadata.property.back_populates == "business"
+        assert YelpMetadata.business.property.back_populates == "yelp_metadata"
 
     def test_business_sourced_locations_relationship(self):
         """Test Business-SourcedLocation relationship"""
         # Verify relationships are defined
-        assert hasattr(Business, 'sourced_locations')
-        assert hasattr(SourcedLocation, 'business')
+        assert hasattr(Business, "sourced_locations")
+        assert hasattr(SourcedLocation, "business")
 
         # Verify back_populates is correct
-        assert Business.sourced_locations.property.back_populates == 'business'
-        assert SourcedLocation.business.property.back_populates == 'sourced_locations'
+        assert Business.sourced_locations.property.back_populates == "business"
+        assert SourcedLocation.business.property.back_populates == "sourced_locations"
 
 
 class TestModelDefinitions:
-
     def test_all_models_have_tablenames(self):
         """Test that all models have proper table names"""
         models = [Business, YelpMetadata, SourcedLocation]
         expected_tablenames = {
             Business: "businesses",
             YelpMetadata: "yelp_metadata",
-            SourcedLocation: "sourced_locations"
+            SourcedLocation: "sourced_locations",
         }
 
         for model in models:
-            assert hasattr(model, '__tablename__')
+            assert hasattr(model, "__tablename__")
             assert model.__tablename__ == expected_tablenames[model]
 
     def test_primary_keys_defined(self):
@@ -277,21 +281,21 @@ class TestModelDefinitions:
         for model in models:
             pk_columns = [col for col in model.__table__.columns if col.primary_key]
             assert len(pk_columns) == 1
-            assert pk_columns[0].name == 'id'
+            assert pk_columns[0].name == "id"
 
     def test_timestamp_fields(self):
         """Test that models have appropriate timestamp fields"""
         # Business should have created_at and updated_at
         business_columns = [col.name for col in Business.__table__.columns]
-        assert 'created_at' in business_columns
-        assert 'updated_at' in business_columns
+        assert "created_at" in business_columns
+        assert "updated_at" in business_columns
 
         # YelpMetadata should have response_timestamp and last_fetched
         metadata_columns = [col.name for col in YelpMetadata.__table__.columns]
-        assert 'response_timestamp' in metadata_columns
-        assert 'last_fetched' in metadata_columns
+        assert "response_timestamp" in metadata_columns
+        assert "last_fetched" in metadata_columns
 
         # SourcedLocation should have discovered_at and last_updated
         location_columns = [col.name for col in SourcedLocation.__table__.columns]
-        assert 'discovered_at' in location_columns
-        assert 'last_updated' in location_columns
+        assert "discovered_at" in location_columns
+        assert "last_updated" in location_columns

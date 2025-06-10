@@ -11,32 +11,32 @@ Acceptance Criteria:
 - Weighted combination logic
 """
 import logging
-from typing import Dict, Any, List, Optional, Tuple, Set
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .similarity import (
-    SimilarityResult, SimilarityAlgorithm, WeightedSimilarity,
-    PhoneSimilarity, NameSimilarity, AddressSimilarity, ZipSimilarity
-)
-
+from .similarity import (AddressSimilarity, NameSimilarity, PhoneSimilarity,
+                         SimilarityAlgorithm, SimilarityResult,
+                         WeightedSimilarity, ZipSimilarity)
 
 logger = logging.getLogger(__name__)
 
 
 class MatchConfidence(Enum):
     """Match confidence levels"""
-    EXACT = "exact"          # 0.95-1.0
-    HIGH = "high"            # 0.85-0.94
-    MEDIUM = "medium"        # 0.70-0.84
-    LOW = "low"             # 0.50-0.69
+
+    EXACT = "exact"  # 0.95-1.0
+    HIGH = "high"  # 0.85-0.94
+    MEDIUM = "medium"  # 0.70-0.84
+    LOW = "low"  # 0.50-0.69
     UNCERTAIN = "uncertain"  # 0.0-0.49
 
 
 class MatchType(Enum):
     """Types of matches found"""
+
     EXACT_MATCH = "exact_match"
     FUZZY_MATCH = "fuzzy_match"
     PARTIAL_MATCH = "partial_match"
@@ -47,6 +47,7 @@ class MatchType(Enum):
 @dataclass
 class MatchResult:
     """Result of a matching operation"""
+
     record1_id: str
     record2_id: str
     overall_score: float
@@ -62,14 +63,17 @@ class MatchResult:
 @dataclass
 class MatchConfig:
     """Configuration for matching behavior"""
+
     # Weights for different components
-    weights: Dict[str, float] = field(default_factory=lambda: {
-        'business_name': 0.40,
-        'phone': 0.25,
-        'address': 0.20,
-        'zip': 0.10,
-        'domain': 0.05
-    })
+    weights: Dict[str, float] = field(
+        default_factory=lambda: {
+            "business_name": 0.40,
+            "phone": 0.25,
+            "address": 0.20,
+            "zip": 0.10,
+            "domain": 0.05,
+        }
+    )
 
     # Thresholds for confidence levels
     exact_threshold: float = 0.95
@@ -106,12 +110,12 @@ class BusinessMatcher:
         self.config = config or MatchConfig()
         self.match_cache: Dict[str, MatchResult] = {}
         self.stats = {
-            'total_matches': 0,
-            'exact_matches': 0,
-            'high_matches': 0,
-            'medium_matches': 0,
-            'low_matches': 0,
-            'no_matches': 0
+            "total_matches": 0,
+            "exact_matches": 0,
+            "high_matches": 0,
+            "medium_matches": 0,
+            "low_matches": 0,
+            "no_matches": 0,
         }
 
     def match_records(
@@ -119,7 +123,7 @@ class BusinessMatcher:
         record1: Dict[str, Any],
         record2: Dict[str, Any],
         record1_id: Optional[str] = None,
-        record2_id: Optional[str] = None
+        record2_id: Optional[str] = None,
     ) -> MatchResult:
         """
         Match two business records
@@ -128,9 +132,9 @@ class BusinessMatcher:
         """
         # Generate IDs if not provided
         if record1_id is None:
-            record1_id = record1.get('id', str(uuid.uuid4()))
+            record1_id = record1.get("id", str(uuid.uuid4()))
         if record2_id is None:
-            record2_id = record2.get('id', str(uuid.uuid4()))
+            record2_id = record2.get("id", str(uuid.uuid4()))
 
         # Check cache first
         cache_key = f"{record1_id}:{record2_id}"
@@ -146,8 +150,10 @@ class BusinessMatcher:
         component_scores = {}
         similarity_details = {}
 
-        if 'component_details' in similarity_result.metadata:
-            for component, result in similarity_result.metadata['component_details'].items():
+        if "component_details" in similarity_result.metadata:
+            for component, result in similarity_result.metadata[
+                "component_details"
+            ].items():
                 component_scores[component] = result.score
                 similarity_details[component] = result
 
@@ -176,12 +182,12 @@ class BusinessMatcher:
             component_scores=component_scores,
             similarity_details=similarity_details,
             metadata={
-                'original_score': similarity_result.score,
-                'adjustments_applied': adjusted_score != similarity_result.score,
-                'weights_used': self.config.weights,
-                'record1_snippet': self._create_record_snippet(record1),
-                'record2_snippet': self._create_record_snippet(record2)
-            }
+                "original_score": similarity_result.score,
+                "adjustments_applied": adjusted_score != similarity_result.score,
+                "weights_used": self.config.weights,
+                "record1_snippet": self._create_record_snippet(record1),
+                "record2_snippet": self._create_record_snippet(record2),
+            },
         )
 
         # Cache result
@@ -190,7 +196,9 @@ class BusinessMatcher:
         # Update statistics
         self._update_stats(confidence)
 
-        logger.debug(f"Matched {record1_id} vs {record2_id}: {confidence.value} ({adjusted_score:.3f})")
+        logger.debug(
+            f"Matched {record1_id} vs {record2_id}: {confidence.value} ({adjusted_score:.3f})"
+        )
 
         return result
 
@@ -200,7 +208,7 @@ class BusinessMatcher:
         candidate_records: List[Dict[str, Any]],
         target_id: Optional[str] = None,
         min_score: float = 0.5,
-        max_results: int = 10
+        max_results: int = 10,
     ) -> List[MatchResult]:
         """
         Find best matching records from a list of candidates
@@ -208,15 +216,15 @@ class BusinessMatcher:
         Acceptance Criteria: Implements efficient matching with scoring
         """
         if target_id is None:
-            target_id = target_record.get('id', str(uuid.uuid4()))
+            target_id = target_record.get("id", str(uuid.uuid4()))
 
         matches = []
 
         # Limit candidates for performance
-        candidates_to_check = candidate_records[:self.config.max_candidates]
+        candidates_to_check = candidate_records[: self.config.max_candidates]
 
         for i, candidate in enumerate(candidates_to_check):
-            candidate_id = candidate.get('id', f"candidate_{i}")
+            candidate_id = candidate.get("id", f"candidate_{i}")
 
             match_result = self.match_records(
                 target_record, candidate, target_id, candidate_id
@@ -227,7 +235,9 @@ class BusinessMatcher:
 
                 # Early exit for perfect matches
                 if match_result.overall_score >= self.config.early_exit_threshold:
-                    logger.debug(f"Early exit on near-perfect match: {match_result.overall_score}")
+                    logger.debug(
+                        f"Early exit on near-perfect match: {match_result.overall_score}"
+                    )
                     break
 
         # Sort by score descending
@@ -244,7 +254,9 @@ class BusinessMatcher:
         result = PhoneSimilarity.calculate_similarity(phone1, phone2)
 
         confidence = self._determine_confidence(result.score)
-        match_type = MatchType.EXACT_MATCH if result.score == 1.0 else MatchType.FUZZY_MATCH
+        match_type = (
+            MatchType.EXACT_MATCH if result.score == 1.0 else MatchType.FUZZY_MATCH
+        )
 
         return MatchResult(
             record1_id="phone1",
@@ -252,21 +264,19 @@ class BusinessMatcher:
             overall_score=result.score,
             confidence=confidence,
             match_type=match_type,
-            component_scores={'phone': result.score},
-            similarity_details={'phone': result},
+            component_scores={"phone": result.score},
+            similarity_details={"phone": result},
             metadata={
-                'match_type': 'phone_only',
-                'phone1': phone1,
-                'phone2': phone2,
-                'normalized1': result.normalized_input,
-                'normalized2': result.normalized_target
-            }
+                "match_type": "phone_only",
+                "phone1": phone1,
+                "phone2": phone2,
+                "normalized1": result.normalized_input,
+                "normalized2": result.normalized_target,
+            },
         )
 
     def match_names_and_zips(
-        self,
-        name1: str, zip1: str,
-        name2: str, zip2: str
+        self, name1: str, zip1: str, name2: str, zip2: str
     ) -> MatchResult:
         """
         Dedicated name and ZIP matching
@@ -277,10 +287,9 @@ class BusinessMatcher:
         zip_result = ZipSimilarity.calculate_similarity(zip1, zip2)
 
         # Weighted combination (names more important than ZIP)
-        weights = {'name': 0.7, 'zip': 0.3}
+        weights = {"name": 0.7, "zip": 0.3}
         combined_score = (
-            name_result.score * weights['name'] +
-            zip_result.score * weights['zip']
+            name_result.score * weights["name"] + zip_result.score * weights["zip"]
         )
 
         confidence = self._determine_confidence(combined_score)
@@ -301,22 +310,16 @@ class BusinessMatcher:
             overall_score=combined_score,
             confidence=confidence,
             match_type=match_type,
-            component_scores={
-                'name': name_result.score,
-                'zip': zip_result.score
-            },
-            similarity_details={
-                'name': name_result,
-                'zip': zip_result
-            },
+            component_scores={"name": name_result.score, "zip": zip_result.score},
+            similarity_details={"name": name_result, "zip": zip_result},
             metadata={
-                'match_type': 'name_zip',
-                'weights': weights,
-                'name1': name1,
-                'name2': name2,
-                'zip1': zip1,
-                'zip2': zip2
-            }
+                "match_type": "name_zip",
+                "weights": weights,
+                "name1": name1,
+                "name2": name2,
+                "zip1": zip1,
+                "zip2": zip2,
+            },
         )
 
     def match_addresses(self, address1: str, address2: str) -> MatchResult:
@@ -344,13 +347,13 @@ class BusinessMatcher:
             overall_score=result.score,
             confidence=confidence,
             match_type=match_type,
-            component_scores={'address': result.score},
-            similarity_details={'address': result},
+            component_scores={"address": result.score},
+            similarity_details={"address": result},
             metadata={
-                'match_type': 'address_only',
-                'address1': address1,
-                'address2': address2
-            }
+                "match_type": "address_only",
+                "address1": address1,
+                "address2": address2,
+            },
         )
 
     def _apply_scoring_adjustments(
@@ -358,18 +361,18 @@ class BusinessMatcher:
         base_score: float,
         component_scores: Dict[str, float],
         record1: Dict[str, Any],
-        record2: Dict[str, Any]
+        record2: Dict[str, Any],
     ) -> float:
         """Apply bonuses and penalties to base score"""
         adjusted_score = base_score
 
         # Phone exact match bonus
-        if 'phone' in component_scores and component_scores['phone'] == 1.0:
+        if "phone" in component_scores and component_scores["phone"] == 1.0:
             adjusted_score += self.config.phone_exact_match_bonus
 
         # Penalty for very different business types (if available)
-        type1 = record1.get('business_type', '').lower()
-        type2 = record2.get('business_type', '').lower()
+        type1 = record1.get("business_type", "").lower()
+        type2 = record2.get("business_type", "").lower()
         if type1 and type2 and type1 != type2:
             # Small penalty for different business types
             adjusted_score *= 0.95
@@ -391,16 +394,16 @@ class BusinessMatcher:
             return MatchConfidence.UNCERTAIN
 
     def _determine_match_type(
-        self,
-        overall_score: float,
-        component_scores: Dict[str, float]
+        self, overall_score: float, component_scores: Dict[str, float]
     ) -> MatchType:
         """Determine match type from scores"""
         if overall_score >= self.config.exact_threshold:
             return MatchType.EXACT_MATCH
         elif overall_score >= self.config.medium_threshold:
             # Check if it's a fuzzy match or partial match
-            high_components = sum(1 for score in component_scores.values() if score >= 0.8)
+            high_components = sum(
+                1 for score in component_scores.values() if score >= 0.8
+            )
             if high_components >= 2:
                 return MatchType.FUZZY_MATCH
             else:
@@ -419,14 +422,14 @@ class BusinessMatcher:
 
         # Check name similarity requirement
         if self.config.require_name_similarity:
-            name_score = component_scores.get('business_name', 0)
+            name_score = component_scores.get("business_name", 0)
             if name_score < 0.3:  # Very low name similarity
                 return False
 
         # Check location match requirement
         if self.config.require_location_match:
-            address_score = component_scores.get('address', 0)
-            zip_score = component_scores.get('zip', 0)
+            address_score = component_scores.get("address", 0)
+            zip_score = component_scores.get("zip", 0)
             if address_score < 0.5 and zip_score < 0.5:
                 return False
 
@@ -435,7 +438,14 @@ class BusinessMatcher:
     def _create_record_snippet(self, record: Dict[str, Any]) -> Dict[str, str]:
         """Create a snippet of record for debugging"""
         snippet = {}
-        fields_to_include = ['business_name', 'name', 'phone', 'address', 'zip', 'domain']
+        fields_to_include = [
+            "business_name",
+            "name",
+            "phone",
+            "address",
+            "zip",
+            "domain",
+        ]
 
         for field in fields_to_include:
             if field in record and record[field]:
@@ -445,32 +455,33 @@ class BusinessMatcher:
 
     def _update_stats(self, confidence: MatchConfidence):
         """Update matching statistics"""
-        self.stats['total_matches'] += 1
+        self.stats["total_matches"] += 1
 
         if confidence == MatchConfidence.EXACT:
-            self.stats['exact_matches'] += 1
+            self.stats["exact_matches"] += 1
         elif confidence == MatchConfidence.HIGH:
-            self.stats['high_matches'] += 1
+            self.stats["high_matches"] += 1
         elif confidence == MatchConfidence.MEDIUM:
-            self.stats['medium_matches'] += 1
+            self.stats["medium_matches"] += 1
         elif confidence == MatchConfidence.LOW:
-            self.stats['low_matches'] += 1
+            self.stats["low_matches"] += 1
         else:
-            self.stats['no_matches'] += 1
+            self.stats["no_matches"] += 1
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get matching statistics"""
-        total = self.stats['total_matches']
+        total = self.stats["total_matches"]
         if total == 0:
             return self.stats.copy()
 
         return {
             **self.stats,
-            'success_rate': (total - self.stats['no_matches']) / total,
-            'high_confidence_rate': (
-                self.stats['exact_matches'] + self.stats['high_matches']
-            ) / total,
-            'cache_size': len(self.match_cache)
+            "success_rate": (total - self.stats["no_matches"]) / total,
+            "high_confidence_rate": (
+                self.stats["exact_matches"] + self.stats["high_matches"]
+            )
+            / total,
+            "cache_size": len(self.match_cache),
         }
 
     def clear_cache(self):
@@ -486,7 +497,7 @@ class BusinessMatcher:
         exact: Optional[float] = None,
         high: Optional[float] = None,
         medium: Optional[float] = None,
-        low: Optional[float] = None
+        low: Optional[float] = None,
     ):
         """Update confidence thresholds"""
         if exact is not None:
@@ -509,13 +520,13 @@ class BatchMatcher:
         self,
         dataset1: List[Dict[str, Any]],
         dataset2: List[Dict[str, Any]],
-        min_score: float = 0.7
+        min_score: float = 0.7,
     ) -> List[MatchResult]:
         """Match all records in dataset1 against dataset2"""
         all_matches = []
 
         for i, record1 in enumerate(dataset1):
-            record1_id = record1.get('id', f"dataset1_{i}")
+            record1_id = record1.get("id", f"dataset1_{i}")
 
             matches = self.matcher.find_best_matches(
                 record1, dataset2, record1_id, min_score, max_results=5
@@ -526,9 +537,7 @@ class BatchMatcher:
         return all_matches
 
     def deduplicate_dataset(
-        self,
-        dataset: List[Dict[str, Any]],
-        min_score: float = 0.8
+        self, dataset: List[Dict[str, Any]], min_score: float = 0.8
     ) -> Tuple[List[Dict[str, Any]], List[MatchResult]]:
         """Find and remove duplicates within a dataset"""
         unique_records = []
@@ -536,13 +545,13 @@ class BatchMatcher:
         processed_ids = set()
 
         for i, record in enumerate(dataset):
-            record_id = record.get('id', f"record_{i}")
+            record_id = record.get("id", f"record_{i}")
 
             if record_id in processed_ids:
                 continue
 
             # Find matches for this record in remaining records
-            remaining_records = dataset[i+1:]
+            remaining_records = dataset[i + 1 :]
             matches = self.matcher.find_best_matches(
                 record, remaining_records, record_id, min_score
             )

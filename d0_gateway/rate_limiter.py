@@ -2,13 +2,14 @@
 Token bucket rate limiter with Redis backing for distributed rate limiting
 """
 import asyncio
-import time
 import os
-from typing import Dict, Optional
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Dict, Optional
 
 import redis.asyncio as aioredis
+
 from core.config import get_settings
 from core.logging import get_logger
 
@@ -18,31 +19,11 @@ class RateLimiter:
 
     # Provider-specific rate limits
     PROVIDER_LIMITS = {
-        'yelp': {
-            'daily_limit': 5000,
-            'burst_limit': 10,
-            'window_seconds': 1
-        },
-        'pagespeed': {
-            'daily_limit': 25000,
-            'burst_limit': 50,
-            'window_seconds': 1
-        },
-        'openai': {
-            'daily_limit': 10000,
-            'burst_limit': 20,
-            'window_seconds': 1
-        },
-        'sendgrid': {
-            'daily_limit': 100000,
-            'burst_limit': 100,
-            'window_seconds': 1
-        },
-        'stripe': {
-            'daily_limit': 50000,
-            'burst_limit': 25,
-            'window_seconds': 1
-        }
+        "yelp": {"daily_limit": 5000, "burst_limit": 10, "window_seconds": 1},
+        "pagespeed": {"daily_limit": 25000, "burst_limit": 50, "window_seconds": 1},
+        "openai": {"daily_limit": 10000, "burst_limit": 20, "window_seconds": 1},
+        "sendgrid": {"daily_limit": 100000, "burst_limit": 100, "window_seconds": 1},
+        "stripe": {"daily_limit": 50000, "burst_limit": 25, "window_seconds": 1},
     }
 
     def __init__(self, provider: str):
@@ -51,11 +32,9 @@ class RateLimiter:
         self.logger = get_logger(f"rate_limiter.{provider}", domain="d0")
 
         # Get provider limits or use defaults
-        self.limits = self.PROVIDER_LIMITS.get(provider, {
-            'daily_limit': 1000,
-            'burst_limit': 10,
-            'window_seconds': 1
-        })
+        self.limits = self.PROVIDER_LIMITS.get(
+            provider, {"daily_limit": 1000, "burst_limit": 10, "window_seconds": 1}
+        )
 
         # Redis connection for distributed rate limiting
         self._redis: Optional[aioredis.Redis] = None
@@ -68,7 +47,7 @@ class RateLimiter:
         """Load the Lua script for atomic rate limiting operations"""
         script_path = Path(__file__).parent / "lua_scripts" / "rate_limit.lua"
         try:
-            with open(script_path, 'r') as f:
+            with open(script_path, "r") as f:
                 self._lua_script = f.read()
             self.logger.debug("Loaded rate limiting Lua script")
         except Exception as e:
@@ -79,12 +58,13 @@ class RateLimiter:
         """Get Redis connection"""
         if self._redis is None:
             self._redis = await aioredis.from_url(
-                self.settings.redis_url,
-                decode_responses=True
+                self.settings.redis_url, decode_responses=True
             )
         return self._redis
 
-    async def _execute_lua_script(self, redis: aioredis.Redis, command: str, keys: list, args: list):
+    async def _execute_lua_script(
+        self, redis: aioredis.Redis, command: str, keys: list, args: list
+    ):
         """Execute Lua script with given command and parameters"""
         if not self._lua_script:
             raise RuntimeError("Lua script not loaded")
@@ -132,7 +112,7 @@ class RateLimiter:
                 redis,
                 "check_daily",
                 [daily_key],
-                [str(self.limits['daily_limit']), "86400"]  # 24 hours
+                [str(self.limits["daily_limit"]), "86400"],  # 24 hours
             )
 
             current, limit, allowed = result
@@ -152,8 +132,8 @@ class RateLimiter:
     async def _check_burst_limit(self, redis: aioredis.Redis, operation: str) -> bool:
         """Check burst rate limit using external Lua script"""
         burst_key = f"rate_limit:burst:{self.provider}:{operation}"
-        window_seconds = self.limits['window_seconds']
-        burst_limit = self.limits['burst_limit']
+        window_seconds = self.limits["window_seconds"]
+        burst_limit = self.limits["burst_limit"]
 
         try:
             # Use external Lua script for sliding window burst limiting
@@ -162,7 +142,7 @@ class RateLimiter:
                 redis,
                 "check_burst",
                 [burst_key],
-                [str(window_seconds), str(burst_limit), str(now)]
+                [str(window_seconds), str(burst_limit), str(now)],
             )
 
             current, limit, allowed = result
@@ -183,9 +163,9 @@ class RateLimiter:
         """Get current usage statistics"""
         if self.settings.use_stubs:
             return {
-                'daily_used': 0,
-                'daily_limit': self.limits['daily_limit'],
-                'burst_limit': self.limits['burst_limit']
+                "daily_used": 0,
+                "daily_limit": self.limits["daily_limit"],
+                "burst_limit": self.limits["burst_limit"],
             }
 
         try:
@@ -197,18 +177,18 @@ class RateLimiter:
             daily_used = int(daily_used)
 
             return {
-                'daily_used': daily_used,
-                'daily_limit': self.limits['daily_limit'],
-                'burst_limit': self.limits['burst_limit'],
-                'window_seconds': self.limits['window_seconds']
+                "daily_used": daily_used,
+                "daily_limit": self.limits["daily_limit"],
+                "burst_limit": self.limits["burst_limit"],
+                "window_seconds": self.limits["window_seconds"],
             }
 
         except Exception as e:
             self.logger.error(f"Failed to get usage: {e}")
             return {
-                'daily_used': 0,
-                'daily_limit': self.limits['daily_limit'],
-                'burst_limit': self.limits['burst_limit']
+                "daily_used": 0,
+                "daily_limit": self.limits["daily_limit"],
+                "burst_limit": self.limits["burst_limit"],
             }
 
     async def reset_usage(self) -> None:
@@ -239,7 +219,7 @@ class RateLimiter:
             current = await redis.get(daily_key) or 0
             current = int(current)
 
-            if current >= self.limits['daily_limit']:
+            if current >= self.limits["daily_limit"]:
                 return False
 
             # Simple increment (not atomic, but better than nothing)
@@ -259,7 +239,7 @@ class RateLimiter:
 
         try:
             now = time.time()
-            window_start = now - self.limits['window_seconds']
+            window_start = now - self.limits["window_seconds"]
 
             # Remove expired entries (not atomic)
             await redis.zremrangebyscore(burst_key, 0, window_start)
@@ -267,12 +247,12 @@ class RateLimiter:
             # Check current count
             current = await redis.zcard(burst_key)
 
-            if current >= self.limits['burst_limit']:
+            if current >= self.limits["burst_limit"]:
                 return False
 
             # Add current request
             await redis.zadd(burst_key, {str(now): now})
-            await redis.expire(burst_key, self.limits['window_seconds'] + 1)
+            await redis.expire(burst_key, self.limits["window_seconds"] + 1)
 
             return True
 

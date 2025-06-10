@@ -8,16 +8,13 @@ Tests for GBP enricher ensuring all acceptance criteria are met:
 - Confidence scoring
 """
 
-import pytest
 import asyncio
 import sys
 
-from d4_enrichment.gbp_enricher import (
-    GBPEnricher,
-    GBPSearchResult,
-    GBPDataQuality,
-    BatchGBPEnricher,
-)
+import pytest
+
+from d4_enrichment.gbp_enricher import (BatchGBPEnricher, GBPDataQuality,
+                                        GBPEnricher, GBPSearchResult)
 from d4_enrichment.matchers import BusinessMatcher, MatchConfidence
 from d4_enrichment.models import EnrichmentResult, EnrichmentSource
 

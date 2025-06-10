@@ -1,15 +1,15 @@
 """
 Tests for D0 Gateway base client functionality
 """
-import pytest
-from unittest.mock import AsyncMock, Mock, patch
 from decimal import Decimal
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
 from prometheus_client import REGISTRY
 
+from core.exceptions import ExternalAPIError, RateLimitError
 from d0_gateway.base import BaseAPIClient
 from d0_gateway.circuit_breaker import CircuitState
-from core.exceptions import ExternalAPIError, RateLimitError
 
 
 class TestAPIClient(BaseAPIClient):
@@ -25,11 +25,10 @@ class TestAPIClient(BaseAPIClient):
         return {"daily_limit": 1000, "daily_used": 0, "burst_limit": 10}
 
     def calculate_cost(self, operation: str, **kwargs) -> Decimal:
-        return Decimal('0.001')
+        return Decimal("0.001")
 
 
 class TestBaseAPIClient:
-
     @pytest.fixture
     def api_client(self):
         """Create test API client"""
@@ -41,7 +40,10 @@ class TestBaseAPIClient:
         # API key might be overridden by stub configuration
         assert api_client.api_key in ["test-key", "stub-test-key"]
         # Base URL might be overridden by stub configuration
-        assert api_client.base_url in ["https://api.example.com", "http://localhost:5010"]
+        assert api_client.base_url in [
+            "https://api.example.com",
+            "http://localhost:5010",
+        ]
         assert api_client.rate_limiter is not None
         assert api_client.circuit_breaker is not None
         assert api_client.cache is not None
@@ -49,7 +51,7 @@ class TestBaseAPIClient:
 
     def test_client_initialization_with_stubs(self):
         """Test client initializes with stub configuration"""
-        with patch('d0_gateway.base.get_settings') as mock_settings:
+        with patch("d0_gateway.base.get_settings") as mock_settings:
             mock_settings.return_value.use_stubs = True
             mock_settings.return_value.stub_base_url = "http://stub:5010"
 
@@ -76,7 +78,7 @@ class TestBaseAPIClient:
         api_client.client.request = AsyncMock(return_value=mock_response)
 
         # Make request
-        result = await api_client.make_request('GET', '/test')
+        result = await api_client.make_request("GET", "/test")
 
         # Verify result
         assert result == {"data": "test"}
@@ -89,7 +91,7 @@ class TestBaseAPIClient:
         cached_data = {"cached": "data"}
         api_client.cache.get = AsyncMock(return_value=cached_data)
 
-        result = await api_client.make_request('GET', '/test')
+        result = await api_client.make_request("GET", "/test")
 
         assert result == cached_data
         # Should not make HTTP request - we verify this by ensuring client.request was not called
@@ -102,7 +104,7 @@ class TestBaseAPIClient:
         api_client.rate_limiter.is_allowed = AsyncMock(return_value=False)
 
         with pytest.raises(RateLimitError):
-            await api_client.make_request('GET', '/test')
+            await api_client.make_request("GET", "/test")
 
     @pytest.mark.asyncio
     async def test_make_request_circuit_breaker_open(self, api_client):
@@ -112,7 +114,7 @@ class TestBaseAPIClient:
         api_client.circuit_breaker.can_execute = Mock(return_value=False)
 
         with pytest.raises(ExternalAPIError) as exc_info:
-            await api_client.make_request('GET', '/test')
+            await api_client.make_request("GET", "/test")
 
         assert exc_info.value.status_code == 503
         assert "temporarily unavailable" in str(exc_info.value)
@@ -135,7 +137,7 @@ class TestBaseAPIClient:
         api_client.client.request = AsyncMock(return_value=mock_response)
 
         with pytest.raises(ExternalAPIError) as exc_info:
-            await api_client.make_request('GET', '/test')
+            await api_client.make_request("GET", "/test")
 
         assert exc_info.value.status_code == 400
         api_client.circuit_breaker.record_failure.assert_called_once()
@@ -153,7 +155,7 @@ class TestBaseAPIClient:
         api_client.client.request = AsyncMock(side_effect=Exception("Network error"))
 
         with pytest.raises(ExternalAPIError) as exc_info:
-            await api_client.make_request('GET', '/test')
+            await api_client.make_request("GET", "/test")
 
         assert "Network error" in str(exc_info.value)
         api_client.circuit_breaker.record_failure.assert_called_once()
@@ -165,10 +167,10 @@ class TestBaseAPIClient:
 
         result = await api_client.health_check()
 
-        assert result['provider'] == 'test'
-        assert result['status'] == 'healthy'
-        assert 'circuit_breaker' in result
-        assert 'rate_limit' in result
+        assert result["provider"] == "test"
+        assert result["status"] == "healthy"
+        assert "circuit_breaker" in result
+        assert "rate_limit" in result
 
     @pytest.mark.asyncio
     async def test_health_check_failure(self, api_client):
@@ -177,9 +179,9 @@ class TestBaseAPIClient:
 
         result = await api_client.health_check()
 
-        assert result['provider'] == 'test'
-        assert result['status'] == 'unhealthy'
-        assert 'Service down' in result['error']
+        assert result["provider"] == "test"
+        assert result["status"] == "unhealthy"
+        assert "Service down" in result["error"]
 
     @pytest.mark.asyncio
     async def test_context_manager(self, api_client):

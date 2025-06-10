@@ -6,22 +6,21 @@ Acceptance Criteria:
 - Error handling proper
 - Documentation generated
 """
-import pytest
-import sys
 import os
+import sys
+from datetime import date, datetime, time
 from unittest.mock import Mock, patch
-from datetime import datetime, date, time
+
+import pytest
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
 from d1_targeting.api import router
-from d1_targeting.schemas import (
-    CreateTargetUniverseSchema,
-    GeographicConstraintSchema,
-    TargetingCriteriaSchema
-)
-from d1_targeting.types import VerticalMarket, GeographyLevel
+from d1_targeting.schemas import (CreateTargetUniverseSchema,
+                                  GeographicConstraintSchema,
+                                  TargetingCriteriaSchema)
+from d1_targeting.types import GeographyLevel, VerticalMarket
 
 
 class TestTask023AcceptanceCriteriaSimple:
@@ -31,20 +30,17 @@ class TestTask023AcceptanceCriteriaSimple:
         """Test that FastAPI routes work properly"""
         # Verify router exists and has routes
         assert router is not None
-        assert hasattr(router, 'routes')
+        assert hasattr(router, "routes")
         assert len(router.routes) > 0
 
         # Check that expected routes exist
         route_paths = [route.path for route in router.routes]
-        expected_paths = [
-            "/universes",
-            "/campaigns",
-            "/batches",
-            "/health"
-        ]
+        expected_paths = ["/universes", "/campaigns", "/batches", "/health"]
 
         for expected_path in expected_paths:
-            assert any(expected_path in path for path in route_paths), f"Missing route: {expected_path}"
+            assert any(
+                expected_path in path for path in route_paths
+            ), f"Missing route: {expected_path}"
 
         print("✓ FastAPI routes work")
 
@@ -53,8 +49,7 @@ class TestTask023AcceptanceCriteriaSimple:
 
         # Test valid geographic constraint
         valid_constraint = GeographicConstraintSchema(
-            level=GeographyLevel.STATE,
-            values=["CA", "NY"]
+            level=GeographyLevel.STATE, values=["CA", "NY"]
         )
         assert valid_constraint.level == GeographyLevel.STATE
         assert valid_constraint.values == ["CA", "NY"]
@@ -62,7 +57,7 @@ class TestTask023AcceptanceCriteriaSimple:
         # Test valid criteria
         valid_criteria = TargetingCriteriaSchema(
             verticals=[VerticalMarket.RESTAURANTS],
-            geographic_constraints=[valid_constraint]
+            geographic_constraints=[valid_constraint],
         )
         assert len(valid_criteria.verticals) == 1
         assert len(valid_criteria.geographic_constraints) == 1
@@ -71,7 +66,7 @@ class TestTask023AcceptanceCriteriaSimple:
         with pytest.raises(ValueError):
             TargetingCriteriaSchema(
                 verticals=[],  # Empty list should fail
-                geographic_constraints=[valid_constraint]
+                geographic_constraints=[valid_constraint],
             )
 
         # Test radius validation
@@ -81,7 +76,7 @@ class TestTask023AcceptanceCriteriaSimple:
                 values=["Test Location"],
                 radius_miles=10.0,  # Missing coordinates
                 center_lat=None,
-                center_lng=None
+                center_lng=None,
             )
 
         print("✓ Validation complete")
@@ -91,6 +86,7 @@ class TestTask023AcceptanceCriteriaSimple:
 
         # Test that error handling decorator exists
         from d1_targeting.api import handle_api_errors
+
         assert callable(handle_api_errors)
 
         # Test schema validation errors
@@ -101,11 +97,10 @@ class TestTask023AcceptanceCriteriaSimple:
                     verticals=[VerticalMarket.RESTAURANTS],
                     geographic_constraints=[
                         GeographicConstraintSchema(
-                            level=GeographyLevel.STATE,
-                            values=["CA"]
+                            level=GeographyLevel.STATE, values=["CA"]
                         )
-                    ]
-                )
+                    ],
+                ),
             )
 
         print("✓ Error handling proper")
@@ -122,22 +117,24 @@ class TestTask023AcceptanceCriteriaSimple:
 
         # Check for main CRUD endpoints
         expected_endpoints = [
-            "/universes",           # POST, GET
+            "/universes",  # POST, GET
             "/universes/{universe_id}",  # GET, PUT, DELETE
-            "/campaigns",           # POST, GET
+            "/campaigns",  # POST, GET
             "/campaigns/{campaign_id}",  # GET, PUT
-            "/batches",             # POST, GET
-            "/analytics/quota",     # GET
-            "/health"               # GET
+            "/batches",  # POST, GET
+            "/analytics/quota",  # GET
+            "/health",  # GET
         ]
 
         for endpoint in expected_endpoints:
-            assert any(endpoint in path for path in route_paths), f"Missing endpoint: {endpoint}"
+            assert any(
+                endpoint in path for path in route_paths
+            ), f"Missing endpoint: {endpoint}"
 
         # Test that schemas have proper annotations for documentation
-        assert hasattr(CreateTargetUniverseSchema, '__annotations__')
-        assert hasattr(TargetingCriteriaSchema, '__annotations__')
-        assert hasattr(GeographicConstraintSchema, '__annotations__')
+        assert hasattr(CreateTargetUniverseSchema, "__annotations__")
+        assert hasattr(TargetingCriteriaSchema, "__annotations__")
+        assert hasattr(GeographicConstraintSchema, "__annotations__")
 
         print("✓ Documentation generated")
 
@@ -145,25 +142,22 @@ class TestTask023AcceptanceCriteriaSimple:
         """Test that schema structure is complete"""
 
         # Test that key schemas exist and can be imported
-        from d1_targeting.schemas import (
-            CreateTargetUniverseSchema,
-            UpdateTargetUniverseSchema,
-            TargetUniverseResponseSchema,
-            CreateCampaignSchema,
-            CampaignResponseSchema,
-            BatchResponseSchema,
-            QuotaAllocationResponseSchema,
-            ErrorResponseSchema
-        )
+        from d1_targeting.schemas import (BatchResponseSchema,
+                                          CampaignResponseSchema,
+                                          CreateCampaignSchema,
+                                          CreateTargetUniverseSchema,
+                                          ErrorResponseSchema,
+                                          QuotaAllocationResponseSchema,
+                                          TargetUniverseResponseSchema,
+                                          UpdateTargetUniverseSchema)
 
         # Test that schemas have proper field types
         universe_schema = CreateTargetUniverseSchema
-        assert hasattr(universe_schema, '__annotations__')
+        assert hasattr(universe_schema, "__annotations__")
 
         # Test geographic constraint validation works
         valid_geo_constraint = GeographicConstraintSchema(
-            level=GeographyLevel.CITY,
-            values=["San Francisco", "New York"]
+            level=GeographyLevel.CITY, values=["San Francisco", "New York"]
         )
         assert valid_geo_constraint.level == GeographyLevel.CITY
 
@@ -179,14 +173,14 @@ class TestTask023AcceptanceCriteriaSimple:
         delete_routes = []
 
         for route in router.routes:
-            if hasattr(route, 'methods'):
-                if 'GET' in route.methods:
+            if hasattr(route, "methods"):
+                if "GET" in route.methods:
                     get_routes.append(route.path)
-                if 'POST' in route.methods:
+                if "POST" in route.methods:
                     post_routes.append(route.path)
-                if 'PUT' in route.methods:
+                if "PUT" in route.methods:
                     put_routes.append(route.path)
-                if 'DELETE' in route.methods:
+                if "DELETE" in route.methods:
                     delete_routes.append(route.path)
 
         # Should have multiple GET endpoints
@@ -208,17 +202,21 @@ class TestTask023AcceptanceCriteriaSimple:
 
         # Test that we can import the router from the main package
         from d1_targeting import api_router
+
         assert api_router is not None
         assert api_router == router
 
         # Test that we can import key components used by the API
-        from d1_targeting import TargetUniverseManager, BatchScheduler, QuotaTracker
+        from d1_targeting import (BatchScheduler, QuotaTracker,
+                                  TargetUniverseManager)
+
         assert TargetUniverseManager is not None
         assert BatchScheduler is not None
         assert QuotaTracker is not None
 
         # Test that database models can be imported
-        from d1_targeting.models import TargetUniverse, Campaign, CampaignBatch
+        from d1_targeting.models import Campaign, CampaignBatch, TargetUniverse
+
         assert TargetUniverse is not None
         assert Campaign is not None
         assert CampaignBatch is not None
@@ -229,19 +227,19 @@ class TestTask023AcceptanceCriteriaSimple:
         """Test that all required files from Task 023 exist and can be imported"""
 
         # Test api.py
-        from d1_targeting.api import router, get_db, handle_api_errors
+        from d1_targeting.api import get_db, handle_api_errors, router
+
         assert router is not None
         assert callable(get_db)
         assert callable(handle_api_errors)
 
         # Test schemas.py
-        from d1_targeting.schemas import (
-            CreateTargetUniverseSchema,
-            TargetUniverseResponseSchema,
-            CreateCampaignSchema,
-            BatchResponseSchema,
-            PaginationSchema
-        )
+        from d1_targeting.schemas import (BatchResponseSchema,
+                                          CreateCampaignSchema,
+                                          CreateTargetUniverseSchema,
+                                          PaginationSchema,
+                                          TargetUniverseResponseSchema)
+
         assert CreateTargetUniverseSchema is not None
         assert TargetUniverseResponseSchema is not None
         assert CreateCampaignSchema is not None
@@ -260,7 +258,8 @@ class TestTask023AcceptanceCriteriaSimple:
         """Test that enum integration works properly"""
 
         # Test that enums can be used in schemas
-        from d1_targeting.types import VerticalMarket, GeographyLevel, CampaignStatus
+        from d1_targeting.types import (CampaignStatus, GeographyLevel,
+                                        VerticalMarket)
 
         # Test vertical market enum
         assert VerticalMarket.RESTAURANTS.value == "restaurants"
@@ -278,11 +277,8 @@ class TestTask023AcceptanceCriteriaSimple:
         criteria = TargetingCriteriaSchema(
             verticals=[VerticalMarket.RESTAURANTS, VerticalMarket.RETAIL],
             geographic_constraints=[
-                GeographicConstraintSchema(
-                    level=GeographyLevel.STATE,
-                    values=["CA"]
-                )
-            ]
+                GeographicConstraintSchema(level=GeographyLevel.STATE, values=["CA"])
+            ],
         )
         assert len(criteria.verticals) == 2
 

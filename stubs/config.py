@@ -2,7 +2,7 @@
 Configuration for stub server usage
 """
 import os
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class StubConfig:
@@ -20,7 +20,7 @@ class StubConfig:
                 "pagespeed": f"{self.stub_base_url}",
                 "stripe": f"{self.stub_base_url}",
                 "sendgrid": f"{self.stub_base_url}",
-                "openai": f"{self.stub_base_url}"
+                "openai": f"{self.stub_base_url}",
             }
         else:
             return {
@@ -28,7 +28,7 @@ class StubConfig:
                 "pagespeed": "https://www.googleapis.com",
                 "stripe": "https://api.stripe.com",
                 "sendgrid": "https://api.sendgrid.com",
-                "openai": "https://api.openai.com"
+                "openai": "https://api.openai.com",
             }
 
     def get_headers(self, service: str) -> Dict[str, str]:
@@ -43,7 +43,7 @@ class StubConfig:
                 "pagespeed": os.getenv("GOOGLE_API_KEY", ""),
                 "stripe": os.getenv("STRIPE_SECRET_KEY", ""),
                 "sendgrid": os.getenv("SENDGRID_API_KEY", ""),
-                "openai": os.getenv("OPENAI_API_KEY", "")
+                "openai": os.getenv("OPENAI_API_KEY", ""),
             }
 
             key = api_keys.get(service, "")
@@ -74,13 +74,13 @@ class StubConfig:
         if self.use_stubs:
             return {
                 "stop_after_attempt": 1,  # No retries for stubs
-                "wait_exponential_multiplier": 0
+                "wait_exponential_multiplier": 0,
             }
         else:
             return {
                 "stop_after_attempt": 3,
                 "wait_exponential_multiplier": 1000,
-                "wait_exponential_max": 10000
+                "wait_exponential_max": 10000,
             }
 
 

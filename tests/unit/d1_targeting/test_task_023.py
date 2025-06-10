@@ -6,28 +6,28 @@ Acceptance Criteria:
 - Error handling proper
 - Documentation generated
 """
-import pytest
-import sys
 import os
-from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, date, time
+import sys
+from datetime import date, datetime, time
 from decimal import Decimal
-from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
-from d1_targeting.api import router, handle_api_errors
-from d1_targeting.schemas import (
-    CreateTargetUniverseSchema,
-    UpdateTargetUniverseSchema,
-    CreateCampaignSchema,
-    TargetingCriteriaSchema,
-    GeographicConstraintSchema,
-    BatchStatusUpdateSchema
-)
-from d1_targeting.types import VerticalMarket, GeographyLevel, CampaignStatus, BatchProcessingStatus
+from d1_targeting.api import handle_api_errors, router
+from d1_targeting.schemas import (BatchStatusUpdateSchema,
+                                  CreateCampaignSchema,
+                                  CreateTargetUniverseSchema,
+                                  GeographicConstraintSchema,
+                                  TargetingCriteriaSchema,
+                                  UpdateTargetUniverseSchema)
+from d1_targeting.types import (BatchProcessingStatus, CampaignStatus,
+                                GeographyLevel, VerticalMarket)
 
 
 class TestTask023AcceptanceCriteria:
@@ -65,14 +65,21 @@ class TestTask023AcceptanceCriteria:
 
         # Override dependency in the router
         from d1_targeting.api import get_db
+
         client.app.dependency_overrides[get_db] = override_get_db
 
         # Test health endpoint (may fail due to database issues)
         response = client.get("/api/v1/targeting/health")
-        assert response.status_code in [200, 422, 503]  # Various possible responses with mocked DB
+        assert response.status_code in [
+            200,
+            422,
+            503,
+        ]  # Various possible responses with mocked DB
 
         # Test universes list endpoint
-        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = []
+        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = (
+            []
+        )
         response = client.get("/api/v1/targeting/universes")
         assert response.status_code == 200
         assert response.json() == []
@@ -88,7 +95,7 @@ class TestTask023AcceptanceCriteria:
         assert response.json() == []
 
         # Test pending batches endpoint
-        with patch('d1_targeting.api.BatchScheduler') as mock_scheduler:
+        with patch("d1_targeting.api.BatchScheduler") as mock_scheduler:
             mock_scheduler.return_value.get_pending_batches.return_value = []
             response = client.get("/api/v1/targeting/batches/pending")
             assert response.status_code == 200
@@ -110,11 +117,13 @@ class TestTask023AcceptanceCriteria:
             "name": "",  # Empty name should fail validation
             "targeting_criteria": {
                 "verticals": [],  # Empty verticals should fail
-                "geographic_constraints": []  # Empty constraints should fail
-            }
+                "geographic_constraints": [],  # Empty constraints should fail
+            },
         }
 
-        response = client.post("/api/v1/targeting/universes", json=invalid_universe_data)
+        response = client.post(
+            "/api/v1/targeting/universes", json=invalid_universe_data
+        )
         assert response.status_code == 422  # Validation error
 
         # Test valid universe creation data structure
@@ -123,14 +132,9 @@ class TestTask023AcceptanceCriteria:
             "description": "Test description",
             "targeting_criteria": {
                 "verticals": ["restaurants", "retail"],
-                "geographic_constraints": [
-                    {
-                        "level": "state",
-                        "values": ["CA", "NY"]
-                    }
-                ]
+                "geographic_constraints": [{"level": "state", "values": ["CA", "NY"]}],
             },
-            "estimated_size": 1000
+            "estimated_size": 1000,
         }
 
         # Mock successful creation
@@ -139,7 +143,9 @@ class TestTask023AcceptanceCriteria:
         mock_universe.name = "Test Universe"
         mock_universe.description = "Test description"
         mock_universe.verticals = ["restaurants", "retail"]
-        mock_universe.geography_config = {"constraints": [{"level": "state", "values": ["CA", "NY"]}]}
+        mock_universe.geography_config = {
+            "constraints": [{"level": "state", "values": ["CA", "NY"]}]
+        }
         mock_universe.estimated_size = 1000
         mock_universe.actual_size = 0
         mock_universe.qualified_count = 0
@@ -149,21 +155,28 @@ class TestTask023AcceptanceCriteria:
         mock_universe.created_by = None
         mock_universe.is_active = True
 
-        with patch('d1_targeting.api.TargetUniverseManager') as mock_manager:
+        with patch("d1_targeting.api.TargetUniverseManager") as mock_manager:
             mock_manager.return_value.create_universe.return_value = mock_universe
-            response = client.post("/api/v1/targeting/universes", json=valid_universe_data)
+            response = client.post(
+                "/api/v1/targeting/universes", json=valid_universe_data
+            )
             # Note: This might still fail due to enum validation, but structure is correct
-            assert response.status_code in [201, 422]  # Either success or validation error
+            assert response.status_code in [
+                201,
+                422,
+            ]  # Either success or validation error
 
         # Test campaign validation
         invalid_campaign_data = {
             "name": "x" * 256,  # Too long name
             "target_universe_id": "",  # Empty universe ID
             "scheduled_start": "2024-01-15T10:00:00Z",
-            "scheduled_end": "2024-01-14T10:00:00Z"  # End before start
+            "scheduled_end": "2024-01-14T10:00:00Z",  # End before start
         }
 
-        response = client.post("/api/v1/targeting/campaigns", json=invalid_campaign_data)
+        response = client.post(
+            "/api/v1/targeting/campaigns", json=invalid_campaign_data
+        )
         assert response.status_code == 422  # Validation error
 
         print("✓ Validation complete")
@@ -178,14 +191,16 @@ class TestTask023AcceptanceCriteria:
         client.app.dependency_overrides[get_db] = override_get_db
 
         # Test 404 error for non-existent universe
-        with patch('d1_targeting.api.TargetUniverseManager') as mock_manager:
+        with patch("d1_targeting.api.TargetUniverseManager") as mock_manager:
             mock_manager.return_value.get_universe.return_value = None
             response = client.get("/api/v1/targeting/universes/nonexistent-id")
             assert response.status_code == 404
             assert "not found" in response.json()["detail"].lower()
 
         # Test 404 error for non-existent campaign
-        mock_db_session.query.return_value.filter_by.return_value.first.return_value = None
+        mock_db_session.query.return_value.filter_by.return_value.first.return_value = (
+            None
+        )
         response = client.get("/api/v1/targeting/campaigns/nonexistent-id")
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
@@ -202,14 +217,14 @@ class TestTask023AcceptanceCriteria:
         assert callable(test_func_with_error)
 
         # Test batch status update with invalid batch ID
-        with patch('d1_targeting.api.BatchScheduler') as mock_scheduler:
+        with patch("d1_targeting.api.BatchScheduler") as mock_scheduler:
             mock_scheduler.return_value.mark_batch_processing.return_value = False
 
-            batch_update_data = {
-                "status": "processing"
-            }
+            batch_update_data = {"status": "processing"}
 
-            response = client.put("/api/v1/targeting/batches/invalid-id/status", json=batch_update_data)
+            response = client.put(
+                "/api/v1/targeting/batches/invalid-id/status", json=batch_update_data
+            )
             assert response.status_code == 404
 
         print("✓ Error handling proper")
@@ -234,23 +249,33 @@ class TestTask023AcceptanceCriteria:
             "/analytics/quota",
             "/analytics/priorities",
             "/geographic-boundaries",
-            "/health"
+            "/health",
         ]
 
         for expected_path in expected_paths:
-            assert any(expected_path in path for path in route_paths), f"Missing route: {expected_path}"
+            assert any(
+                expected_path in path for path in route_paths
+            ), f"Missing route: {expected_path}"
 
         # Test that schemas have proper documentation
         universe_schema = CreateTargetUniverseSchema
-        assert universe_schema.__doc__ or hasattr(universe_schema, '__annotations__')
+        assert universe_schema.__doc__ or hasattr(universe_schema, "__annotations__")
 
         # Check that API responses have proper status codes defined
-        universe_routes = [route for route in router.routes if "/universes" in route.path and hasattr(route, 'methods')]
-        post_routes = [route for route in universe_routes if 'POST' in getattr(route, 'methods', [])]
+        universe_routes = [
+            route
+            for route in router.routes
+            if "/universes" in route.path and hasattr(route, "methods")
+        ]
+        post_routes = [
+            route
+            for route in universe_routes
+            if "POST" in getattr(route, "methods", [])
+        ]
 
         if post_routes:
             # Check that POST routes return 201 for creation
-            assert any(hasattr(route, 'status_code') for route in post_routes)
+            assert any(hasattr(route, "status_code") for route in post_routes)
 
         print("✓ Documentation generated")
 
@@ -261,11 +286,8 @@ class TestTask023AcceptanceCriteria:
         valid_criteria = TargetingCriteriaSchema(
             verticals=[VerticalMarket.RESTAURANTS],
             geographic_constraints=[
-                GeographicConstraintSchema(
-                    level=GeographyLevel.STATE,
-                    values=["CA"]
-                )
-            ]
+                GeographicConstraintSchema(level=GeographyLevel.STATE, values=["CA"])
+            ],
         )
         assert valid_criteria.verticals == [VerticalMarket.RESTAURANTS]
         assert len(valid_criteria.geographic_constraints) == 1
@@ -276,10 +298,9 @@ class TestTask023AcceptanceCriteria:
                 verticals=[],  # Should fail validation
                 geographic_constraints=[
                     GeographicConstraintSchema(
-                        level=GeographyLevel.STATE,
-                        values=["CA"]
+                        level=GeographyLevel.STATE, values=["CA"]
                     )
-                ]
+                ],
             )
 
         # Test geographic constraint with radius validation
@@ -287,7 +308,7 @@ class TestTask023AcceptanceCriteria:
             GeographicConstraintSchema(
                 level=GeographyLevel.RADIUS,
                 values=["Test Location"],
-                radius_miles=10.0  # Missing center coordinates
+                radius_miles=10.0,  # Missing center coordinates
             )
 
         # Valid radius constraint
@@ -296,7 +317,7 @@ class TestTask023AcceptanceCriteria:
             values=["Test Location"],
             radius_miles=10.0,
             center_lat=37.7749,
-            center_lng=-122.4194
+            center_lng=-122.4194,
         )
         assert radius_constraint.radius_miles == 10.0
         assert radius_constraint.center_lat == 37.7749
@@ -306,7 +327,7 @@ class TestTask023AcceptanceCriteria:
             status=BatchProcessingStatus.COMPLETED,
             targets_processed=100,
             targets_contacted=95,
-            targets_failed=5
+            targets_failed=5,
         )
         assert batch_update.status == BatchProcessingStatus.COMPLETED
         assert batch_update.targets_processed == 100
@@ -323,7 +344,9 @@ class TestTask023AcceptanceCriteria:
         client.app.dependency_overrides[get_db] = override_get_db
 
         # Test GET methods work
-        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = []
+        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = (
+            []
+        )
 
         get_endpoints = [
             "/api/v1/targeting/universes",
@@ -332,19 +355,26 @@ class TestTask023AcceptanceCriteria:
             "/api/v1/targeting/batches/pending",
             "/api/v1/targeting/analytics/quota",
             "/api/v1/targeting/analytics/priorities",
-            "/api/v1/targeting/geographic-boundaries"
+            "/api/v1/targeting/geographic-boundaries",
         ]
 
         for endpoint in get_endpoints:
-            with patch('d1_targeting.api.QuotaTracker'), \
-                 patch('d1_targeting.api.TargetUniverseManager'), \
-                 patch('d1_targeting.api.BatchScheduler'):
+            with patch("d1_targeting.api.QuotaTracker"), patch(
+                "d1_targeting.api.TargetUniverseManager"
+            ), patch("d1_targeting.api.BatchScheduler"):
                 response = client.get(endpoint)
-                assert response.status_code in [200, 422, 500], f"GET {endpoint} failed with {response.status_code}"
+                assert response.status_code in [
+                    200,
+                    422,
+                    500,
+                ], f"GET {endpoint} failed with {response.status_code}"
 
         # Test POST method for batch creation
-        with patch('d1_targeting.api.BatchScheduler') as mock_scheduler:
-            mock_scheduler.return_value.create_daily_batches.return_value = ["batch-1", "batch-2"]
+        with patch("d1_targeting.api.BatchScheduler") as mock_scheduler:
+            mock_scheduler.return_value.create_daily_batches.return_value = [
+                "batch-1",
+                "batch-2",
+            ]
 
             response = client.post("/api/v1/targeting/batches", json={})
             assert response.status_code == 200
@@ -355,9 +385,14 @@ class TestTask023AcceptanceCriteria:
         mock_campaign.id = "test-campaign"
         mock_campaign.name = "Updated Campaign"
         mock_campaign.updated_at = datetime.utcnow()
-        mock_db_session.query.return_value.filter_by.return_value.first.return_value = mock_campaign
+        mock_db_session.query.return_value.filter_by.return_value.first.return_value = (
+            mock_campaign
+        )
 
-        response = client.put("/api/v1/targeting/campaigns/test-campaign", json={"name": "Updated Campaign"})
+        response = client.put(
+            "/api/v1/targeting/campaigns/test-campaign",
+            json={"name": "Updated Campaign"},
+        )
         assert response.status_code in [200, 422]  # Success or validation error
 
         print("✓ API endpoint methods work")
@@ -372,25 +407,37 @@ class TestTask023AcceptanceCriteria:
         client.app.dependency_overrides[get_db] = override_get_db
 
         # Test pagination parameters
-        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = []
+        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = (
+            []
+        )
 
         response = client.get("/api/v1/targeting/universes?page=2&size=10")
         assert response.status_code == 200
 
         # Verify pagination was applied
-        mock_db_session.query.return_value.offset.assert_called_with(10)  # (page-1) * size = (2-1) * 10
-        mock_db_session.query.return_value.offset.return_value.limit.assert_called_with(10)
+        mock_db_session.query.return_value.offset.assert_called_with(
+            10
+        )  # (page-1) * size = (2-1) * 10
+        mock_db_session.query.return_value.offset.return_value.limit.assert_called_with(
+            10
+        )
 
         # Test filtering parameters
-        response = client.get("/api/v1/targeting/universes?name_contains=test&is_active=true")
+        response = client.get(
+            "/api/v1/targeting/universes?name_contains=test&is_active=true"
+        )
         assert response.status_code == 200
 
         # Test campaign filtering
-        response = client.get("/api/v1/targeting/campaigns?status=running&campaign_type=lead_generation")
+        response = client.get(
+            "/api/v1/targeting/campaigns?status=running&campaign_type=lead_generation"
+        )
         assert response.status_code == 200
 
         # Test batch filtering
-        response = client.get("/api/v1/targeting/batches?campaign_id=test-campaign&has_errors=false")
+        response = client.get(
+            "/api/v1/targeting/batches?campaign_id=test-campaign&has_errors=false"
+        )
         assert response.status_code == 200
 
         print("✓ Pagination and filtering work")
@@ -399,18 +446,17 @@ class TestTask023AcceptanceCriteria:
         """Test that all required files from Task 023 exist and can be imported"""
         # Test api.py
         from d1_targeting.api import router
+
         assert router is not None
-        assert hasattr(router, 'routes')
+        assert hasattr(router, "routes")
         assert len(router.routes) > 0
 
         # Test schemas.py
-        from d1_targeting.schemas import (
-            CreateTargetUniverseSchema,
-            TargetUniverseResponseSchema,
-            CreateCampaignSchema,
-            CampaignResponseSchema,
-            BatchResponseSchema
-        )
+        from d1_targeting.schemas import (BatchResponseSchema,
+                                          CampaignResponseSchema,
+                                          CreateCampaignSchema,
+                                          CreateTargetUniverseSchema,
+                                          TargetUniverseResponseSchema)
 
         # Test that schemas can be instantiated
         assert CreateTargetUniverseSchema is not None
@@ -419,6 +465,7 @@ class TestTask023AcceptanceCriteria:
 
         # Test router integration
         from d1_targeting import api_router
+
         assert api_router is not None
         assert api_router == router
 
@@ -434,7 +481,7 @@ class TestTask023AcceptanceCriteria:
         client.app.dependency_overrides[get_db] = override_get_db
 
         # Test integration with TargetUniverseManager
-        with patch('d1_targeting.api.TargetUniverseManager') as mock_manager:
+        with patch("d1_targeting.api.TargetUniverseManager") as mock_manager:
             mock_universe = Mock()
             mock_universe.id = "test-id"
             mock_manager.return_value.get_universe.return_value = mock_universe
@@ -444,7 +491,7 @@ class TestTask023AcceptanceCriteria:
             mock_manager.return_value.get_universe.assert_called_with("test-id")
 
         # Test integration with BatchScheduler
-        with patch('d1_targeting.api.BatchScheduler') as mock_scheduler:
+        with patch("d1_targeting.api.BatchScheduler") as mock_scheduler:
             mock_scheduler.return_value.create_daily_batches.return_value = ["batch-1"]
 
             response = client.post("/api/v1/targeting/batches", json={})
@@ -452,7 +499,7 @@ class TestTask023AcceptanceCriteria:
             mock_scheduler.return_value.create_daily_batches.assert_called_once()
 
         # Test integration with QuotaTracker
-        with patch('d1_targeting.api.QuotaTracker') as mock_tracker:
+        with patch("d1_targeting.api.QuotaTracker") as mock_tracker:
             mock_tracker.return_value.get_daily_quota.return_value = 1000
             mock_tracker.return_value.get_used_quota.return_value = 300
             mock_tracker.return_value.get_remaining_quota.return_value = 700

@@ -6,28 +6,26 @@ Acceptance Criteria:
 - Error handling complete
 - Metrics tracked
 """
-import pytest
-import sys
-import os
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, timedelta
+import os
+import sys
 import uuid
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
-from d2_sourcing.coordinator import (
-    SourcingCoordinator,
-    SourcingBatch,
-    CoordinatorStatus,
-    BatchStatus,
-    CoordinatorMetrics,
-    process_location_batch,
-    process_multiple_locations
-)
+from d2_sourcing.coordinator import (BatchStatus, CoordinatorMetrics,
+                                     CoordinatorStatus, SourcingBatch,
+                                     SourcingCoordinator,
+                                     process_location_batch,
+                                     process_multiple_locations)
+from d2_sourcing.exceptions import (BatchQuotaException,
+                                    ErrorRecoveryException, SourcingException)
 from d2_sourcing.yelp_scraper import ScrapingResult, ScrapingStatus
-from d2_sourcing.exceptions import SourcingException, BatchQuotaException, ErrorRecoveryException
 
 
 class TestTask028AcceptanceCriteria:
@@ -56,11 +54,15 @@ class TestTask028AcceptanceCriteria:
     @pytest.fixture
     async def coordinator(self, mock_session, mock_settings):
         """Create SourcingCoordinator instance with mocked dependencies"""
-        with patch('d2_sourcing.coordinator.get_settings', return_value=mock_settings), \
-             patch('d2_sourcing.coordinator.SessionLocal', return_value=mock_session), \
-             patch('d2_sourcing.coordinator.YelpScraper') as mock_scraper_class, \
-             patch('d2_sourcing.coordinator.BusinessDeduplicator') as mock_dedup_class:
-
+        with patch(
+            "d2_sourcing.coordinator.get_settings", return_value=mock_settings
+        ), patch(
+            "d2_sourcing.coordinator.SessionLocal", return_value=mock_session
+        ), patch(
+            "d2_sourcing.coordinator.YelpScraper"
+        ) as mock_scraper_class, patch(
+            "d2_sourcing.coordinator.BusinessDeduplicator"
+        ) as mock_dedup_class:
             # Mock scraper
             mock_scraper = AsyncMock()
             mock_scraper.search_businesses.return_value = ScrapingResult(
@@ -70,7 +72,9 @@ class TestTask028AcceptanceCriteria:
                 error_count=0,
                 quota_used=1,
                 duration_seconds=2.5,
-                businesses=[{"id": f"biz_{i}", "name": f"Business {i}"} for i in range(50)]
+                businesses=[
+                    {"id": f"biz_{i}", "name": f"Business {i}"} for i in range(50)
+                ],
             )
             mock_scraper.save_business_data = AsyncMock(return_value=str(uuid.uuid4()))
             mock_scraper_class.return_value = mock_scraper
@@ -93,7 +97,7 @@ class TestTask028AcceptanceCriteria:
             location="San Francisco, CA",
             search_terms=["pizza", "restaurants"],
             categories=["food"],
-            max_results=200
+            max_results=200,
         )
 
         assert batch_id is not None
@@ -110,11 +114,11 @@ class TestTask028AcceptanceCriteria:
         assert batch.status == BatchStatus.PENDING
 
         # Test batch processing
-        with patch('d2_sourcing.coordinator.find_and_merge_duplicates') as mock_merge:
+        with patch("d2_sourcing.coordinator.find_and_merge_duplicates") as mock_merge:
             mock_merge.return_value = {
-                'duplicates_identified': 5,
-                'merges_completed': 3,
-                'processed_count': 50
+                "duplicates_identified": 5,
+                "merges_completed": 3,
+                "processed_count": 50,
             }
 
             # Process the batch
@@ -160,10 +164,7 @@ class TestTask028AcceptanceCriteria:
         assert initial_status["completed_batches"] == 0
 
         # Test batch creation updates
-        batch_id = coordinator.create_batch(
-            location="New York, NY",
-            max_results=100
-        )
+        batch_id = coordinator.create_batch(location="New York, NY", max_results=100)
 
         status_after_creation = coordinator.get_coordinator_status()
         assert status_after_creation["queued_batches"] == 1
@@ -218,7 +219,7 @@ class TestTask028AcceptanceCriteria:
         """Test that error handling is complete and robust"""
 
         # Test handling of scraping errors
-        with patch.object(coordinator.scraper, 'search_businesses') as mock_search:
+        with patch.object(coordinator.scraper, "search_businesses") as mock_search:
             mock_search.return_value = ScrapingResult(
                 status=ScrapingStatus.FAILED,
                 total_results=0,
@@ -226,10 +227,12 @@ class TestTask028AcceptanceCriteria:
                 error_count=1,
                 quota_used=1,
                 duration_seconds=1.0,
-                error_message="API Error"
+                error_message="API Error",
             )
 
-            batch_id = coordinator.create_batch(location="Test Location", max_results=50)
+            batch_id = coordinator.create_batch(
+                location="Test Location", max_results=50
+            )
 
             # Should handle scraping failure gracefully
             with pytest.raises(ErrorRecoveryException):
@@ -245,7 +248,7 @@ class TestTask028AcceptanceCriteria:
             assert batch.error_message is not None
 
         # Test handling of quota exceeded errors
-        with patch.object(coordinator.scraper, 'search_businesses') as mock_search:
+        with patch.object(coordinator.scraper, "search_businesses") as mock_search:
             mock_search.return_value = ScrapingResult(
                 status=ScrapingStatus.QUOTA_EXCEEDED,
                 total_results=0,
@@ -253,10 +256,12 @@ class TestTask028AcceptanceCriteria:
                 error_count=0,
                 quota_used=1,
                 duration_seconds=1.0,
-                error_message="Quota exceeded"
+                error_message="Quota exceeded",
             )
 
-            batch_id = coordinator.create_batch(location="Test Location 2", max_results=50)
+            batch_id = coordinator.create_batch(
+                location="Test Location 2", max_results=50
+            )
 
             with pytest.raises(ErrorRecoveryException):
                 await coordinator.process_batch(batch_id)
@@ -264,11 +269,11 @@ class TestTask028AcceptanceCriteria:
             assert coordinator.metrics.quota_exceeded_count > 0
 
         # Test handling of deduplication errors (should not fail batch)
-        with patch('d2_sourcing.coordinator.find_and_merge_duplicates') as mock_merge:
+        with patch("d2_sourcing.coordinator.find_and_merge_duplicates") as mock_merge:
             mock_merge.side_effect = Exception("Deduplication failed")
 
             # Mock successful scraping
-            with patch.object(coordinator.scraper, 'search_businesses') as mock_search:
+            with patch.object(coordinator.scraper, "search_businesses") as mock_search:
                 mock_search.return_value = ScrapingResult(
                     status=ScrapingStatus.COMPLETED,
                     total_results=10,
@@ -276,10 +281,12 @@ class TestTask028AcceptanceCriteria:
                     error_count=0,
                     quota_used=1,
                     duration_seconds=1.0,
-                    businesses=[{"id": f"biz_{i}"} for i in range(10)]
+                    businesses=[{"id": f"biz_{i}"} for i in range(10)],
                 )
 
-                batch_id = coordinator.create_batch(location="Test Location 3", max_results=50)
+                batch_id = coordinator.create_batch(
+                    location="Test Location 3", max_results=50
+                )
 
                 # Should complete despite deduplication error
                 result_batch = await coordinator.process_batch(batch_id)
@@ -398,11 +405,12 @@ class TestTask028AcceptanceCriteria:
         batch_configs = [
             {"location": "San Francisco, CA", "max_results": 100},
             {"location": "New York, NY", "max_results": 150},
-            {"location": "Los Angeles, CA", "max_results": 200}
+            {"location": "Los Angeles, CA", "max_results": 200},
         ]
 
         # Mock successful processing for all batches
-        with patch.object(coordinator, 'process_batch') as mock_process:
+        with patch.object(coordinator, "process_batch") as mock_process:
+
             async def mock_process_batch(batch_id):
                 batch = coordinator._get_batch(batch_id)
                 batch.status = BatchStatus.COMPLETED
@@ -454,13 +462,21 @@ class TestTask028AcceptanceCriteria:
             # Invalid phone (too short)
             {"name": "Test", "phone": "123", "email": None, "website": None},
             # Invalid address (too short)
-            {"name": "Test", "phone": "(415) 555-1234", "address": "123"}
+            {"name": "Test", "phone": "(415) 555-1234", "address": "123"},
         ]
 
         for i, invalid_data in enumerate(invalid_cases):
             invalid_business = Mock(spec=Business)
             # Set all attributes to None first
-            for attr in ['name', 'phone', 'email', 'website', 'address', 'latitude', 'longitude']:
+            for attr in [
+                "name",
+                "phone",
+                "email",
+                "website",
+                "address",
+                "latitude",
+                "longitude",
+            ]:
                 setattr(invalid_business, attr, None)
             # Set test data
             for attr, value in invalid_data.items():
@@ -491,7 +507,7 @@ class TestTask028AcceptanceCriteria:
             max_results=100,
             status=BatchStatus.COMPLETED,
             created_at=datetime.utcnow() - timedelta(hours=25),
-            completed_at=datetime.utcnow() - timedelta(hours=25)
+            completed_at=datetime.utcnow() - timedelta(hours=25),
         )
         coordinator.completed_batches["old-batch"] = old_batch
 
@@ -504,7 +520,7 @@ class TestTask028AcceptanceCriteria:
             max_results=100,
             status=BatchStatus.COMPLETED,
             created_at=datetime.utcnow() - timedelta(hours=1),
-            completed_at=datetime.utcnow() - timedelta(hours=1)
+            completed_at=datetime.utcnow() - timedelta(hours=1),
         )
         coordinator.completed_batches["recent-batch"] = recent_batch
 
@@ -520,10 +536,13 @@ class TestTask028AcceptanceCriteria:
     async def test_convenience_functions(self, mock_session, mock_settings):
         """Test convenience functions for common operations"""
 
-        with patch('d2_sourcing.coordinator.get_settings', return_value=mock_settings), \
-             patch('d2_sourcing.coordinator.SessionLocal', return_value=mock_session), \
-             patch('d2_sourcing.coordinator.SourcingCoordinator') as mock_coordinator_class:
-
+        with patch(
+            "d2_sourcing.coordinator.get_settings", return_value=mock_settings
+        ), patch(
+            "d2_sourcing.coordinator.SessionLocal", return_value=mock_session
+        ), patch(
+            "d2_sourcing.coordinator.SourcingCoordinator"
+        ) as mock_coordinator_class:
             # Mock coordinator
             mock_coordinator = AsyncMock()
             mock_coordinator.initialize = AsyncMock()
@@ -533,13 +552,16 @@ class TestTask028AcceptanceCriteria:
             mock_coordinator.get_batch_status.return_value = {
                 "batch_id": "test-batch-id",
                 "status": "completed",
-                "metrics": {"scraped_count": 50}
+                "metrics": {"scraped_count": 50},
             }
             mock_coordinator.process_multiple_batches = AsyncMock()
-            mock_coordinator.process_multiple_batches.return_value = ["batch-1", "batch-2"]
+            mock_coordinator.process_multiple_batches.return_value = [
+                "batch-1",
+                "batch-2",
+            ]
             mock_coordinator.get_coordinator_status.return_value = {
                 "status": "completed",
-                "metrics": {"total_batches": 2}
+                "metrics": {"total_batches": 2},
             }
             mock_coordinator_class.return_value = mock_coordinator
 
@@ -547,7 +569,7 @@ class TestTask028AcceptanceCriteria:
             result = await process_location_batch(
                 location="San Francisco, CA",
                 categories=["restaurants"],
-                max_results=500
+                max_results=500,
             )
 
             assert result["batch_id"] == "test-batch-id"
@@ -558,9 +580,7 @@ class TestTask028AcceptanceCriteria:
             # Test multiple location processing
             locations = ["San Francisco, CA", "New York, NY"]
             result = await process_multiple_locations(
-                locations=locations,
-                categories=["food"],
-                max_results_per_location=300
+                locations=locations, categories=["food"], max_results_per_location=300
             )
 
             assert "coordinator_status" in result
@@ -588,11 +608,15 @@ if __name__ == "__main__":
     mock_settings.VALIDATE_SCRAPED_DATA = True
 
     async def run_tests():
-        with patch('d2_sourcing.coordinator.get_settings', return_value=mock_settings), \
-             patch('d2_sourcing.coordinator.SessionLocal', return_value=mock_session), \
-             patch('d2_sourcing.coordinator.YelpScraper') as mock_scraper_class, \
-             patch('d2_sourcing.coordinator.BusinessDeduplicator') as mock_dedup_class:
-
+        with patch(
+            "d2_sourcing.coordinator.get_settings", return_value=mock_settings
+        ), patch(
+            "d2_sourcing.coordinator.SessionLocal", return_value=mock_session
+        ), patch(
+            "d2_sourcing.coordinator.YelpScraper"
+        ) as mock_scraper_class, patch(
+            "d2_sourcing.coordinator.BusinessDeduplicator"
+        ) as mock_dedup_class:
             # Mock scraper
             mock_scraper = AsyncMock()
             mock_scraper.search_businesses.return_value = ScrapingResult(
@@ -602,7 +626,9 @@ if __name__ == "__main__":
                 error_count=0,
                 quota_used=1,
                 duration_seconds=2.5,
-                businesses=[{"id": f"biz_{i}", "name": f"Business {i}"} for i in range(50)]
+                businesses=[
+                    {"id": f"biz_{i}", "name": f"Business {i}"} for i in range(50)
+                ],
             )
             mock_scraper.save_business_data = AsyncMock(return_value=str(uuid.uuid4()))
             mock_scraper_class.return_value = mock_scraper

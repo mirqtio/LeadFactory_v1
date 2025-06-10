@@ -11,33 +11,26 @@ Acceptance Criteria:
 - Spam score tracking ✓
 """
 
-import pytest
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database.base import Base
 
-from d8_personalization.models import (
-    EmailTemplate,
-    EmailContent, 
-    SubjectLineVariant,
-    PersonalizationToken,
-    PersonalizationVariable,
-    SpamScoreTracking,
-    ContentVariant,
-    EmailGenerationLog,
-    EmailContentType,
-    PersonalizationStrategy,
-    ContentStrategy,
-    SpamCategory,
-    VariantStatus,
-    calculate_personalization_score,
-    determine_risk_level,
-    generate_content_hash
-)
+from d8_personalization.models import (ContentStrategy, ContentVariant,
+                                       EmailContent, EmailContentType,
+                                       EmailGenerationLog, EmailTemplate,
+                                       PersonalizationStrategy,
+                                       PersonalizationToken,
+                                       PersonalizationVariable, SpamCategory,
+                                       SpamScoreTracking, SubjectLineVariant,
+                                       VariantStatus,
+                                       calculate_personalization_score,
+                                       determine_risk_level,
+                                       generate_content_hash)
+from database.base import Base
 
 
 @pytest.fixture
@@ -69,7 +62,7 @@ def sample_email_template(db_session):
         success_rate=0.23,
         avg_spam_score=25.5,
         is_active=True,
-        created_by="system"
+        created_by="system",
     )
     db_session.add(template)
     db_session.commit()
@@ -91,7 +84,7 @@ def sample_personalization_token(db_session):
         success_rate=0.95,
         max_length=100,
         min_length=2,
-        is_active=True
+        is_active=True,
     )
     db_session.add(token)
     db_session.commit()
@@ -100,7 +93,7 @@ def sample_personalization_token(db_session):
 
 class TestEmailTemplate:
     """Test EmailTemplate model - Acceptance Criteria"""
-    
+
     def test_create_email_template(self, db_session):
         """Test creating an email template"""
         template = EmailTemplate(
@@ -111,12 +104,12 @@ class TestEmailTemplate:
             body_template="Test body content with {business_name} personalization",
             required_tokens=["business_name"],
             optional_tokens=["industry"],
-            is_active=True
+            is_active=True,
         )
-        
+
         db_session.add(template)
         db_session.commit()
-        
+
         assert template.id is not None
         assert template.name == "Test Template"
         assert template.content_type == EmailContentType.AUDIT_OFFER
@@ -124,7 +117,7 @@ class TestEmailTemplate:
         assert template.usage_count == 0
         assert template.is_active is True
         assert template.created_at is not None
-    
+
     def test_template_relationships(self, sample_email_template, db_session):
         """Test template relationships work correctly"""
         # Add subject line variant
@@ -132,11 +125,11 @@ class TestEmailTemplate:
             template_id=sample_email_template.id,
             variant_name="Variant A",
             subject_text="Test subject line",
-            status=VariantStatus.ACTIVE
+            status=VariantStatus.ACTIVE,
         )
         db_session.add(variant)
         db_session.commit()
-        
+
         # Test relationship
         db_session.refresh(sample_email_template)
         assert len(sample_email_template.subject_variants) == 1
@@ -145,7 +138,7 @@ class TestEmailTemplate:
 
 class TestSubjectLineVariant:
     """Test SubjectLineVariant model - Acceptance Criteria"""
-    
+
     def test_create_subject_variant(self, sample_email_template, db_session):
         """Test creating subject line variants"""
         variant = SubjectLineVariant(
@@ -159,19 +152,19 @@ class TestSubjectLineVariant:
             sent_count=100,
             open_count=25,
             click_count=8,
-            conversion_count=3
+            conversion_count=3,
         )
-        
+
         db_session.add(variant)
         db_session.commit()
-        
+
         assert variant.id is not None
         assert variant.variant_name == "High Converting Subject"
         assert variant.status == VariantStatus.ACTIVE
         assert variant.weight == 1.5
         assert variant.sent_count == 100
         assert variant.open_count == 25
-    
+
     def test_performance_calculations(self, sample_email_template, db_session):
         """Test performance metric calculations"""
         variant = SubjectLineVariant(
@@ -182,18 +175,28 @@ class TestSubjectLineVariant:
             open_count=250,
             click_count=50,
             conversion_count=10,
-            spam_reports=5
+            spam_reports=5,
         )
-        
+
         # Calculate rates
-        variant.open_rate = variant.open_count / variant.sent_count if variant.sent_count > 0 else 0
-        variant.click_rate = variant.click_count / variant.open_count if variant.open_count > 0 else 0
-        variant.conversion_rate = variant.conversion_count / variant.sent_count if variant.sent_count > 0 else 0
-        variant.spam_rate = variant.spam_reports / variant.sent_count if variant.sent_count > 0 else 0
-        
+        variant.open_rate = (
+            variant.open_count / variant.sent_count if variant.sent_count > 0 else 0
+        )
+        variant.click_rate = (
+            variant.click_count / variant.open_count if variant.open_count > 0 else 0
+        )
+        variant.conversion_rate = (
+            variant.conversion_count / variant.sent_count
+            if variant.sent_count > 0
+            else 0
+        )
+        variant.spam_rate = (
+            variant.spam_reports / variant.sent_count if variant.sent_count > 0 else 0
+        )
+
         db_session.add(variant)
         db_session.commit()
-        
+
         assert variant.open_rate == 0.25  # 25%
         assert variant.click_rate == 0.20  # 20% of opens
         assert variant.conversion_rate == 0.01  # 1%
@@ -202,7 +205,7 @@ class TestSubjectLineVariant:
 
 class TestPersonalizationToken:
     """Test PersonalizationToken model - Acceptance Criteria"""
-    
+
     def test_create_personalization_token(self, db_session):
         """Test creating personalization tokens"""
         token = PersonalizationToken(
@@ -216,12 +219,12 @@ class TestPersonalizationToken:
             max_length=50,
             min_length=1,
             required_format=r"^[A-Za-z\s]+$",
-            is_active=True
+            is_active=True,
         )
-        
+
         db_session.add(token)
         db_session.commit()
-        
+
         assert token.id is not None
         assert token.token_name == "contact_name"
         assert token.token_type == "contact_info"
@@ -229,35 +232,37 @@ class TestPersonalizationToken:
         assert token.default_value == "there"
         assert token.max_length == 50
         assert token.is_active is True
-    
+
     def test_token_uniqueness(self, db_session):
         """Test token name uniqueness constraint"""
         token1 = PersonalizationToken(
             token_name="unique_token",
             token_type="test",
             data_source="test",
-            field_path="$.test"
+            field_path="$.test",
         )
         db_session.add(token1)
         db_session.commit()
-        
+
         # Try to create duplicate
         token2 = PersonalizationToken(
             token_name="unique_token",
             token_type="test2",
             data_source="test2",
-            field_path="$.test2"
+            field_path="$.test2",
         )
         db_session.add(token2)
-        
+
         with pytest.raises(Exception):  # Should raise integrity error
             db_session.commit()
 
 
 class TestPersonalizationVariable:
     """Test PersonalizationVariable model"""
-    
-    def test_create_personalization_variable(self, sample_personalization_token, db_session):
+
+    def test_create_personalization_variable(
+        self, sample_personalization_token, db_session
+    ):
         """Test creating personalization variables"""
         variable = PersonalizationVariable(
             token_id=sample_personalization_token.id,
@@ -274,12 +279,12 @@ class TestPersonalizationVariable:
             sentiment_score=0.7,
             readability_score=0.8,
             times_used=5,
-            last_used_at=datetime.utcnow()
+            last_used_at=datetime.utcnow(),
         )
-        
+
         db_session.add(variable)
         db_session.commit()
-        
+
         assert variable.id is not None
         assert variable.business_id == "biz_123"
         assert variable.generated_value == "Acme Restaurant"
@@ -290,7 +295,7 @@ class TestPersonalizationVariable:
 
 class TestEmailContent:
     """Test EmailContent model - Acceptance Criteria"""
-    
+
     def test_create_email_content(self, sample_email_template, db_session):
         """Test creating email content"""
         content = EmailContent(
@@ -305,7 +310,7 @@ class TestEmailContent:
             personalization_data={
                 "business_name": "Acme Restaurant",
                 "contact_name": "John",
-                "location": "Seattle"
+                "location": "Seattle",
             },
             personalization_strategy=PersonalizationStrategy.BUSINESS_SPECIFIC,
             content_strategy=ContentStrategy.PROBLEM_AGITATION,
@@ -320,23 +325,29 @@ class TestEmailContent:
             click_rate=0.08,
             conversion_rate=0.02,
             is_approved=True,
-            approved_by="manager@example.com"
+            approved_by="manager@example.com",
         )
-        
+
         db_session.add(content)
         db_session.commit()
-        
+
         assert content.id is not None
         assert content.business_id == "biz_789"
-        assert content.subject_line == "Improve Acme Restaurant's website performance in Seattle"
-        assert content.personalization_strategy == PersonalizationStrategy.BUSINESS_SPECIFIC
+        assert (
+            content.subject_line
+            == "Improve Acme Restaurant's website performance in Seattle"
+        )
+        assert (
+            content.personalization_strategy
+            == PersonalizationStrategy.BUSINESS_SPECIFIC
+        )
         assert content.is_approved is True
         assert content.open_rate == 0.25
 
 
 class TestSpamScoreTracking:
     """Test SpamScoreTracking model - Acceptance Criteria"""
-    
+
     def test_create_spam_score_tracking(self, sample_email_template, db_session):
         """Test creating spam score tracking"""
         # First create email content
@@ -346,11 +357,11 @@ class TestSpamScoreTracking:
             subject_line="Test spam analysis",
             html_content="<html><body>Test content</body></html>",
             personalization_strategy=PersonalizationStrategy.BUSINESS_SPECIFIC,
-            content_strategy=ContentStrategy.DIRECT_OFFER
+            content_strategy=ContentStrategy.DIRECT_OFFER,
         )
         db_session.add(content)
         db_session.commit()
-        
+
         # Create spam score tracking
         spam_score = SpamScoreTracking(
             email_content_id=content.id,
@@ -359,12 +370,9 @@ class TestSpamScoreTracking:
                 "subject_line": 25.0,
                 "content_body": 40.0,
                 "call_to_action": 30.0,
-                "formatting": 45.0
+                "formatting": 45.0,
             },
-            spam_indicators=[
-                "excessive_exclamation_marks",
-                "urgent_language_detected"
-            ],
+            spam_indicators=["excessive_exclamation_marks", "urgent_language_detected"],
             subject_line_score=25.0,
             content_body_score=40.0,
             call_to_action_score=30.0,
@@ -381,14 +389,14 @@ class TestSpamScoreTracking:
             improvement_suggestions=[
                 "Reduce exclamation marks",
                 "Use less urgent language",
-                "Improve text-to-image ratio"
+                "Improve text-to-image ratio",
             ],
-            risk_level="medium"
+            risk_level="medium",
         )
-        
+
         db_session.add(spam_score)
         db_session.commit()
-        
+
         assert spam_score.id is not None
         assert spam_score.overall_score == 35.7
         assert spam_score.risk_level == "medium"
@@ -396,7 +404,7 @@ class TestSpamScoreTracking:
         assert spam_score.suspicious_links == 0
         assert len(spam_score.flagged_words) == 3
         assert len(spam_score.improvement_suggestions) == 3
-    
+
     def test_spam_score_constraints(self, sample_email_template, db_session):
         """Test spam score validation constraints"""
         content = EmailContent(
@@ -405,27 +413,27 @@ class TestSpamScoreTracking:
             subject_line="Test constraints",
             html_content="<html><body>Test</body></html>",
             personalization_strategy=PersonalizationStrategy.BUSINESS_SPECIFIC,
-            content_strategy=ContentStrategy.DIRECT_OFFER
+            content_strategy=ContentStrategy.DIRECT_OFFER,
         )
         db_session.add(content)
         db_session.commit()
-        
+
         # Test valid score
         valid_spam_score = SpamScoreTracking(
             email_content_id=content.id,
             overall_score=75.5,
             analyzer_version="v1.0",
-            analysis_method="test"
+            analysis_method="test",
         )
         db_session.add(valid_spam_score)
         db_session.commit()
-        
+
         assert valid_spam_score.overall_score == 75.5
 
 
 class TestContentVariant:
     """Test ContentVariant model"""
-    
+
     def test_create_content_variant(self, sample_email_template, db_session):
         """Test creating content variants"""
         variant = ContentVariant(
@@ -442,12 +450,12 @@ class TestContentVariant:
             min_sample_size=50,
             sent_count=200,
             engagement_score=0.75,
-            conversion_rate=0.03
+            conversion_rate=0.03,
         )
-        
+
         db_session.add(variant)
         db_session.commit()
-        
+
         assert variant.id is not None
         assert variant.variant_name == "Problem-Solution Variant"
         assert variant.content_strategy == ContentStrategy.PROBLEM_AGITATION
@@ -457,7 +465,7 @@ class TestContentVariant:
 
 class TestEmailGenerationLog:
     """Test EmailGenerationLog model"""
-    
+
     def test_create_generation_log(self, sample_email_template, db_session):
         """Test creating email generation log"""
         log = EmailGenerationLog(
@@ -468,7 +476,7 @@ class TestEmailGenerationLog:
             input_data={
                 "business_name": "Test Business",
                 "contact_name": "Jane Doe",
-                "industry": "restaurant"
+                "industry": "restaurant",
             },
             personalization_strategy=PersonalizationStrategy.BUSINESS_SPECIFIC,
             content_strategy=ContentStrategy.EDUCATIONAL_VALUE,
@@ -483,12 +491,12 @@ class TestEmailGenerationLog:
             personalization_completeness=0.67,
             content_quality_score=0.82,
             generation_time_ms=1200,
-            generated_by="api_user_123"
+            generated_by="api_user_123",
         )
-        
+
         db_session.add(log)
         db_session.commit()
-        
+
         assert log.id is not None
         assert log.generation_request_id == "req_123456789"
         assert log.generation_successful is True
@@ -499,27 +507,27 @@ class TestEmailGenerationLog:
 
 class TestUtilityFunctions:
     """Test utility functions"""
-    
+
     def test_calculate_personalization_score(self):
         """Test personalization score calculation"""
         assert calculate_personalization_score(5, 5) == 1.0
         assert calculate_personalization_score(3, 5) == 0.6
         assert calculate_personalization_score(0, 5) == 0.0
         assert calculate_personalization_score(0, 0) == 1.0
-    
+
     def test_determine_risk_level(self):
         """Test risk level determination"""
         assert determine_risk_level(15.0) == "low"
         assert determine_risk_level(35.0) == "medium"
         assert determine_risk_level(65.0) == "high"
         assert determine_risk_level(85.0) == "critical"
-    
+
     def test_generate_content_hash(self):
         """Test content hash generation"""
         hash1 = generate_content_hash("Subject 1", "Body content 1")
         hash2 = generate_content_hash("Subject 1", "Body content 1")
         hash3 = generate_content_hash("Subject 2", "Body content 1")
-        
+
         assert hash1 == hash2  # Same content should generate same hash
         assert hash1 != hash3  # Different content should generate different hash
         assert len(hash1) == 16  # Should be 16 characters long
@@ -527,19 +535,19 @@ class TestUtilityFunctions:
 
 class TestEnumValues:
     """Test enum values and constraints"""
-    
+
     def test_email_content_type_enum(self):
         """Test EmailContentType enum values"""
         assert EmailContentType.COLD_OUTREACH == "cold_outreach"
         assert EmailContentType.AUDIT_OFFER == "audit_offer"
         assert EmailContentType.FOLLOW_UP == "follow_up"
-    
+
     def test_personalization_strategy_enum(self):
         """Test PersonalizationStrategy enum values"""
         assert PersonalizationStrategy.BUSINESS_SPECIFIC == "business_specific"
         assert PersonalizationStrategy.INDUSTRY_VERTICAL == "industry_vertical"
         assert PersonalizationStrategy.GEOGRAPHIC == "geographic"
-    
+
     def test_variant_status_enum(self):
         """Test VariantStatus enum values"""
         assert VariantStatus.DRAFT == "draft"
@@ -550,7 +558,7 @@ class TestEnumValues:
 
 class TestModelIntegration:
     """Test integration between different models"""
-    
+
     def test_complete_personalization_workflow(self, db_session):
         """Test complete workflow from template to generated content"""
         # 1. Create template
@@ -561,11 +569,11 @@ class TestModelIntegration:
             subject_template="Hi {business_name}",
             body_template="Your business {business_name} could benefit...",
             required_tokens=["business_name"],
-            is_active=True
+            is_active=True,
         )
         db_session.add(template)
         db_session.commit()
-        
+
         # 2. Create personalization token
         token = PersonalizationToken(
             token_name="business_name",
@@ -573,21 +581,21 @@ class TestModelIntegration:
             data_source="yelp",
             field_path="$.name",
             default_value="your business",
-            is_active=True
+            is_active=True,
         )
         db_session.add(token)
         db_session.commit()
-        
+
         # 3. Create personalization variable
         variable = PersonalizationVariable(
             token_id=token.id,
             business_id="biz_integration",
             generated_value="Integration Test Cafe",
-            confidence_score=0.95
+            confidence_score=0.95,
         )
         db_session.add(variable)
         db_session.commit()
-        
+
         # 4. Create email content
         content = EmailContent(
             template_id=template.id,
@@ -597,22 +605,22 @@ class TestModelIntegration:
             personalization_data={"business_name": "Integration Test Cafe"},
             personalization_strategy=PersonalizationStrategy.BUSINESS_SPECIFIC,
             content_strategy=ContentStrategy.DIRECT_OFFER,
-            is_approved=True
+            is_approved=True,
         )
         db_session.add(content)
         db_session.commit()
-        
+
         # 5. Create spam score
         spam_score = SpamScoreTracking(
             email_content_id=content.id,
             overall_score=20.0,
             risk_level="low",
             analyzer_version="v1.0",
-            analysis_method="integration_test"
+            analysis_method="integration_test",
         )
         db_session.add(spam_score)
         db_session.commit()
-        
+
         # 6. Create generation log
         log = EmailGenerationLog(
             template_id=template.id,
@@ -624,16 +632,16 @@ class TestModelIntegration:
             generation_successful=True,
             email_content_id=content.id,
             personalization_completeness=1.0,
-            generated_by="integration_test"
+            generated_by="integration_test",
         )
         db_session.add(log)
         db_session.commit()
-        
+
         # Verify all relationships work
         db_session.refresh(template)
         db_session.refresh(content)
         db_session.refresh(token)
-        
+
         assert len(template.generation_logs) == 1
         assert len(content.spam_scores) == 1
         assert len(token.variables) == 1

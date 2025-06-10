@@ -1,8 +1,9 @@
 """
 Test basic project setup and dependencies
 """
-import sys
 import importlib
+import sys
+
 import pytest
 
 
@@ -15,17 +16,17 @@ def test_python_version():
 def test_core_imports():
     """Test that core dependencies can be imported"""
     dependencies = [
-        'fastapi',
-        'sqlalchemy',
-        'alembic',
-        'httpx',
-        'redis',
-        'stripe',
-        'sendgrid',
-        'pandas',
-        'prometheus_client',
-        'pydantic',
-        'pytest'
+        "fastapi",
+        "sqlalchemy",
+        "alembic",
+        "httpx",
+        "redis",
+        "stripe",
+        "sendgrid",
+        "pandas",
+        "prometheus_client",
+        "pydantic",
+        "pytest",
     ]
 
     for dep in dependencies:
@@ -39,9 +40,9 @@ def test_environment_setup():
     """Test that environment is properly configured"""
     import os
 
-    assert os.getenv('ENVIRONMENT') == 'test'
-    assert os.getenv('USE_STUBS') == 'true'
-    assert 'tmp/test.db' in os.getenv('DATABASE_URL', '')
+    assert os.getenv("ENVIRONMENT") == "test"
+    assert os.getenv("USE_STUBS") == "true"
+    assert "tmp/test.db" in os.getenv("DATABASE_URL", "")
 
 
 def test_project_structure():
@@ -52,13 +53,13 @@ def test_project_structure():
     root = Path(__file__).parent.parent
 
     # Check required files exist
-    assert (root / 'requirements.txt').exists()
-    assert (root / 'requirements-dev.txt').exists()
-    assert (root / 'Dockerfile.test').exists()
-    assert (root / 'setup.py').exists()
-    assert (root / '.gitignore').exists()
-    assert (root / 'README.md').exists()
-    assert (root / 'PRD.md').exists()
+    assert (root / "requirements.txt").exists()
+    assert (root / "requirements-dev.txt").exists()
+    assert (root / "Dockerfile.test").exists()
+    assert (root / "setup.py").exists()
+    assert (root / ".gitignore").exists()
+    assert (root / "README.md").exists()
+    assert (root / "PRD.md").exists()
 
     # Check tmp directory exists
-    assert (root / 'tmp').exists() or os.makedirs(root / 'tmp', exist_ok=True) is None
+    assert (root / "tmp").exists() or os.makedirs(root / "tmp", exist_ok=True) is None

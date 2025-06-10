@@ -11,33 +11,33 @@ Acceptance Criteria:
 - Performance acceptable
 """
 
-import pytest
 import asyncio
 import os
 import sys
 import time
-from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, timedelta
 import uuid
-from typing import List, Dict, Any
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
-from d4_enrichment.coordinator import (
-    EnrichmentCoordinator, EnrichmentProgress, BatchEnrichmentResult,
-    EnrichmentPriority, enrich_business, enrich_businesses
-)
-from d4_enrichment.gbp_enricher import GBPEnricher, GBPSearchResult, GBPDataQuality
-from d4_enrichment.matchers import BusinessMatcher, MatchResult, MatchConfidence
-from d4_enrichment.similarity import (
-    PhoneSimilarity, NameSimilarity, AddressSimilarity,
-    WeightedSimilarity, SimilarityResult
-)
-from d4_enrichment.models import (
-    EnrichmentSource, EnrichmentResult, EnrichmentStatus,
-    EnrichmentRequest
-)
+from d4_enrichment.coordinator import (BatchEnrichmentResult,
+                                       EnrichmentCoordinator,
+                                       EnrichmentPriority, EnrichmentProgress,
+                                       enrich_business, enrich_businesses)
+from d4_enrichment.gbp_enricher import (GBPDataQuality, GBPEnricher,
+                                        GBPSearchResult)
+from d4_enrichment.matchers import (BusinessMatcher, MatchConfidence,
+                                    MatchResult)
+from d4_enrichment.models import (EnrichmentRequest, EnrichmentResult,
+                                  EnrichmentSource, EnrichmentStatus)
+from d4_enrichment.similarity import (AddressSimilarity, NameSimilarity,
+                                      PhoneSimilarity, SimilarityResult,
+                                      WeightedSimilarity)
 
 
 class TestTask044AcceptanceCriteria:
@@ -48,51 +48,51 @@ class TestTask044AcceptanceCriteria:
         """Comprehensive business data for integration testing"""
         return [
             {
-                'id': 'integration_biz_001',
-                'name': 'Acme Corporation',
-                'business_name': 'Acme Corporation',
-                'phone': '+1-415-555-1234',
-                'address': '123 Market Street, San Francisco, CA 94105',
-                'city': 'San Francisco',
-                'state': 'CA',
-                'zip': '94105',
-                'website': 'https://acme.com'
+                "id": "integration_biz_001",
+                "name": "Acme Corporation",
+                "business_name": "Acme Corporation",
+                "phone": "+1-415-555-1234",
+                "address": "123 Market Street, San Francisco, CA 94105",
+                "city": "San Francisco",
+                "state": "CA",
+                "zip": "94105",
+                "website": "https://acme.com",
             },
             {
-                'id': 'integration_biz_002',
-                'name': 'Tech Innovations LLC',
-                'business_name': 'Tech Innovations LLC',
-                'phone': '(415) 555-9876',
-                'address': '456 Mission St, San Francisco, California 94103',
-                'city': 'San Francisco',
-                'state': 'California',
-                'zip': '94103',
-                'website': 'http://techinnovations.com'
+                "id": "integration_biz_002",
+                "name": "Tech Innovations LLC",
+                "business_name": "Tech Innovations LLC",
+                "phone": "(415) 555-9876",
+                "address": "456 Mission St, San Francisco, California 94103",
+                "city": "San Francisco",
+                "state": "California",
+                "zip": "94103",
+                "website": "http://techinnovations.com",
             },
             {
-                'id': 'integration_biz_003',
-                'name': 'Global Services Inc',
-                'business_name': 'Global Services Incorporated',
-                'phone': '415.555.2468',
-                'address': '789 Third Street, San Francisco, CA 94107',
-                'city': 'San Francisco',
-                'state': 'CA',
-                'zip': '94107'
+                "id": "integration_biz_003",
+                "name": "Global Services Inc",
+                "business_name": "Global Services Incorporated",
+                "phone": "415.555.2468",
+                "address": "789 Third Street, San Francisco, CA 94107",
+                "city": "San Francisco",
+                "state": "CA",
+                "zip": "94107",
             },
             {
-                'id': 'integration_biz_004',
-                'name': 'StartupCo',
-                'phone': '4155553721',
-                'address': '321 Startup Way, SF, CA 94110'
+                "id": "integration_biz_004",
+                "name": "StartupCo",
+                "phone": "4155553721",
+                "address": "321 Startup Way, SF, CA 94110",
             },
             {
-                'id': 'integration_biz_005',
-                'name': 'Enterprise Solutions',
-                'business_name': 'Enterprise Solutions Corp',
-                'phone': '+14155559999',
-                'address': '555 Enterprise Blvd, San Francisco, California',
-                'website': 'https://enterprise-solutions.biz'
-            }
+                "id": "integration_biz_005",
+                "name": "Enterprise Solutions",
+                "business_name": "Enterprise Solutions Corp",
+                "phone": "+14155559999",
+                "address": "555 Enterprise Blvd, San Francisco, California",
+                "website": "https://enterprise-solutions.biz",
+            },
         ]
 
     @pytest.fixture
@@ -100,12 +100,14 @@ class TestTask044AcceptanceCriteria:
         """Large dataset for performance testing"""
         businesses = []
         for i in range(50):  # 50 businesses for performance test
-            businesses.append({
-                'id': f'perf_test_biz_{i:03d}',
-                'name': f'Test Company {i}',
-                'phone': f'555-{i:04d}',
-                'address': f'{i} Test Street, Test City, TC {10000 + i}'
-            })
+            businesses.append(
+                {
+                    "id": f"perf_test_biz_{i:03d}",
+                    "name": f"Test Company {i}",
+                    "phone": f"555-{i:04d}",
+                    "address": f"{i} Test Street, Test City, TC {10000 + i}",
+                }
+            )
         return businesses
 
     def test_full_enrichment_flow(self, sample_businesses):
@@ -114,6 +116,7 @@ class TestTask044AcceptanceCriteria:
 
         Acceptance Criteria: Full enrichment flow
         """
+
         async def run_test():
             print("🔄 Testing full enrichment flow...")
 
@@ -128,24 +131,23 @@ class TestTask044AcceptanceCriteria:
             # Step 2: Test single business enrichment flow
             single_business = sample_businesses[0]
             single_result = await enrich_business(
-                business=single_business,
-                sources=[EnrichmentSource.INTERNAL]
+                business=single_business, sources=[EnrichmentSource.INTERNAL]
             )
 
             # Verify single enrichment result
             if single_result:
                 assert isinstance(single_result, EnrichmentResult)
-                assert single_result.business_id == single_business['id']
+                assert single_result.business_id == single_business["id"]
                 assert single_result.source == EnrichmentSource.INTERNAL.value
-                assert hasattr(single_result, 'match_confidence')
-                assert hasattr(single_result, 'match_score')
+                assert hasattr(single_result, "match_confidence")
+                assert hasattr(single_result, "match_score")
 
             # Step 3: Test batch enrichment flow
             batch_result = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses,
                 sources=[EnrichmentSource.INTERNAL],
                 priority=EnrichmentPriority.HIGH,
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Verify batch enrichment results
@@ -160,15 +162,16 @@ class TestTask044AcceptanceCriteria:
             assert progress.completion_percentage == 100.0
 
             # Verify at least some enrichments succeeded
-            total_success = batch_result.successful_enrichments + batch_result.skipped_enrichments
+            total_success = (
+                batch_result.successful_enrichments + batch_result.skipped_enrichments
+            )
             assert total_success >= 0  # At least no negative results
 
             # Step 4: Test error recovery in enrichment flow
             # This verifies the flow handles errors gracefully
-            empty_business = {'id': 'empty_test'}
+            empty_business = {"id": "empty_test"}
             empty_result = await enrich_business(
-                business=empty_business,
-                sources=[EnrichmentSource.INTERNAL]
+                business=empty_business, sources=[EnrichmentSource.INTERNAL]
             )
             # Should not crash, may return None or low-confidence result
 
@@ -182,6 +185,7 @@ class TestTask044AcceptanceCriteria:
 
         Acceptance Criteria: Matching accuracy verified
         """
+
         async def run_test():
             print("🎯 Testing matching accuracy...")
 
@@ -190,13 +194,13 @@ class TestTask044AcceptanceCriteria:
 
             # Test exact phone matches
             exact_match = phone_matcher.calculate_similarity(
-                '+1-415-555-1234', '(415) 555-1234'
+                "+1-415-555-1234", "(415) 555-1234"
             )
             assert exact_match.score >= 0.9  # Should be high similarity
 
             # Test different formats
             format_match = phone_matcher.calculate_similarity(
-                '4155551234', '415-555-1234'
+                "4155551234", "415-555-1234"
             )
             assert format_match.score >= 0.8  # Should recognize same number
 
@@ -205,12 +209,12 @@ class TestTask044AcceptanceCriteria:
 
             # Test business name variations
             name_match = name_matcher.calculate_similarity(
-                'Acme Corporation', 'ACME CORP'
+                "Acme Corporation", "ACME CORP"
             )
             assert name_match.score >= 0.7  # Should match variations
 
             legal_match = name_matcher.calculate_similarity(
-                'Tech Innovations LLC', 'Tech Innovations Limited Liability Company'
+                "Tech Innovations LLC", "Tech Innovations Limited Liability Company"
             )
             assert legal_match.score >= 0.6  # Should match legal entity variations
 
@@ -218,8 +222,8 @@ class TestTask044AcceptanceCriteria:
             address_matcher = AddressSimilarity()
 
             address_match = address_matcher.calculate_similarity(
-                '123 Market Street, San Francisco, CA 94105',
-                '123 Market St, San Francisco, California 94105'
+                "123 Market Street, San Francisco, CA 94105",
+                "123 Market St, San Francisco, California 94105",
             )
             assert address_match.score >= 0.8  # Should match address abbreviations
 
@@ -227,15 +231,15 @@ class TestTask044AcceptanceCriteria:
             business_matcher = BusinessMatcher()
 
             business1 = {
-                'business_name': 'Acme Corporation',
-                'phone': '+1-415-555-1234',
-                'address': '123 Market Street, San Francisco, CA 94105'
+                "business_name": "Acme Corporation",
+                "phone": "+1-415-555-1234",
+                "address": "123 Market Street, San Francisco, CA 94105",
             }
 
             business2 = {
-                'business_name': 'ACME CORP',
-                'phone': '(415) 555-1234',
-                'address': '123 Market St, San Francisco, CA 94105'
+                "business_name": "ACME CORP",
+                "phone": "(415) 555-1234",
+                "address": "123 Market St, San Francisco, CA 94105",
             }
 
             match_result = business_matcher.match_records(business1, business2)
@@ -252,9 +256,13 @@ class TestTask044AcceptanceCriteria:
             gbp_results = await enricher._search_gbp_data(business_data)
 
             if gbp_results:
-                best_match = await enricher._select_best_match(business_data, gbp_results)
+                best_match = await enricher._select_best_match(
+                    business_data, gbp_results
+                )
                 if best_match:
-                    assert best_match.search_confidence >= 0.5  # Should find reasonable matches
+                    assert (
+                        best_match.search_confidence >= 0.5
+                    )  # Should find reasonable matches
 
             print("✓ Matching accuracy verified")
 
@@ -266,6 +274,7 @@ class TestTask044AcceptanceCriteria:
 
         Acceptance Criteria: Data merge correct
         """
+
         async def run_test():
             print("🔀 Testing data merge correctness...")
 
@@ -275,24 +284,24 @@ class TestTask044AcceptanceCriteria:
 
             # Create original business data with some fields
             original_data = {
-                'id': 'merge_test_001',
-                'name': 'Original Company Name',
-                'phone': '555-1234',
-                'address': '123 Original St',
-                'website': 'http://original.com'
+                "id": "merge_test_001",
+                "name": "Original Company Name",
+                "phone": "555-1234",
+                "address": "123 Original St",
+                "website": "http://original.com",
             }
 
             # Create mock GBP result with overlapping and new fields
             mock_gbp = GBPSearchResult(
-                place_id='test_place_merge',
-                name='Enhanced Company Name',
-                formatted_address='123 Enhanced Street, City, ST 12345',
-                phone_number='+1-555-123-4567',
-                website='https://enhanced.com',
+                place_id="test_place_merge",
+                name="Enhanced Company Name",
+                formatted_address="123 Enhanced Street, City, ST 12345",
+                phone_number="+1-555-123-4567",
+                website="https://enhanced.com",
                 rating=4.5,
                 user_ratings_total=150,
-                business_status='OPERATIONAL',
-                types=['business', 'professional_services']
+                business_status="OPERATIONAL",
+                types=["business", "professional_services"],
             )
 
             # Test data merge
@@ -300,30 +309,34 @@ class TestTask044AcceptanceCriteria:
 
             # Verify merge correctness
             assert isinstance(merged_data, dict)
-            assert len(merged_data) >= len(original_data)  # Should have at least original fields
+            assert len(merged_data) >= len(
+                original_data
+            )  # Should have at least original fields
 
             # Verify original data preservation where appropriate
-            assert 'name' in merged_data or 'business_name' in merged_data
+            assert "name" in merged_data or "business_name" in merged_data
 
             # Verify GBP data enhancement
-            assert merged_data.get('rating') == mock_gbp.rating
-            assert merged_data.get('user_ratings_total') == mock_gbp.user_ratings_total
-            assert merged_data.get('business_status') == mock_gbp.business_status
-            assert merged_data.get('types') == mock_gbp.types
+            assert merged_data.get("rating") == mock_gbp.rating
+            assert merged_data.get("user_ratings_total") == mock_gbp.user_ratings_total
+            assert merged_data.get("business_status") == mock_gbp.business_status
+            assert merged_data.get("types") == mock_gbp.types
 
             # Step 2: Test merge with incomplete original data
             incomplete_data = {
-                'id': 'merge_test_002',
-                'name': 'Incomplete Company'
+                "id": "merge_test_002",
+                "name": "Incomplete Company"
                 # Missing phone, address, website
             }
 
             merged_incomplete = enricher._merge_business_data(incomplete_data, mock_gbp)
 
             # Should use GBP data for missing fields
-            assert merged_incomplete.get('phone') == mock_gbp.phone_number
-            assert merged_incomplete.get('formatted_address') == mock_gbp.formatted_address
-            assert merged_incomplete.get('website') == mock_gbp.website
+            assert merged_incomplete.get("phone") == mock_gbp.phone_number
+            assert (
+                merged_incomplete.get("formatted_address") == mock_gbp.formatted_address
+            )
+            assert merged_incomplete.get("website") == mock_gbp.website
 
             # Step 3: Test end-to-end data merge in enrichment
             test_business = sample_businesses[0].copy()
@@ -331,11 +344,11 @@ class TestTask044AcceptanceCriteria:
 
             if enrichment_result:
                 # Verify enrichment result has proper data structure
-                assert hasattr(enrichment_result, 'processed_data')
+                assert hasattr(enrichment_result, "processed_data")
                 assert isinstance(enrichment_result.processed_data, dict)
 
                 # Verify original business ID is preserved
-                assert enrichment_result.business_id == test_business['id']
+                assert enrichment_result.business_id == test_business["id"]
 
                 # Verify data fields are properly mapped
                 if enrichment_result.company_name:
@@ -347,14 +360,14 @@ class TestTask044AcceptanceCriteria:
             batch_result = await coordinator.enrich_businesses_batch(
                 businesses=sample_businesses[:2],  # Test with 2 businesses
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Verify all results have proper structure
             for result in batch_result.results:
                 assert isinstance(result, EnrichmentResult)
-                assert hasattr(result, 'business_id')
-                assert hasattr(result, 'processed_data')
+                assert hasattr(result, "business_id")
+                assert hasattr(result, "processed_data")
                 assert isinstance(result.processed_data, dict)
 
             print("✓ Data merge correctness verified")
@@ -367,6 +380,7 @@ class TestTask044AcceptanceCriteria:
 
         Acceptance Criteria: Performance acceptable
         """
+
         async def run_test():
             print("⚡ Testing enrichment performance...")
 
@@ -375,8 +389,7 @@ class TestTask044AcceptanceCriteria:
 
             single_business = performance_test_businesses[0]
             single_result = await enrich_business(
-                business=single_business,
-                sources=[EnrichmentSource.INTERNAL]
+                business=single_business, sources=[EnrichmentSource.INTERNAL]
             )
 
             single_duration = time.time() - start_time
@@ -395,7 +408,7 @@ class TestTask044AcceptanceCriteria:
             batch_result = await coordinator.enrich_businesses_batch(
                 businesses=test_batch,
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=False
+                skip_existing=False,
             )
 
             batch_duration = time.time() - start_time
@@ -408,7 +421,9 @@ class TestTask044AcceptanceCriteria:
             throughput = len(test_batch) / batch_duration
             assert throughput > 0.5  # At least 0.5 businesses per second
 
-            print(f"✓ Batch enrichment: {batch_duration:.2f}s for {batch_size} businesses")
+            print(
+                f"✓ Batch enrichment: {batch_duration:.2f}s for {batch_size} businesses"
+            )
             print(f"✓ Throughput: {throughput:.2f} businesses/second")
 
             # Step 3: Test concurrent processing performance
@@ -416,10 +431,12 @@ class TestTask044AcceptanceCriteria:
 
             # Test with higher concurrency
             high_concurrency_coordinator = EnrichmentCoordinator(max_concurrent=5)
-            concurrent_result = await high_concurrency_coordinator.enrich_businesses_batch(
-                businesses=test_batch,
-                sources=[EnrichmentSource.INTERNAL],
-                skip_existing=False
+            concurrent_result = (
+                await high_concurrency_coordinator.enrich_businesses_batch(
+                    businesses=test_batch,
+                    sources=[EnrichmentSource.INTERNAL],
+                    skip_existing=False,
+                )
             )
 
             concurrent_duration = time.time() - start_time
@@ -433,9 +450,9 @@ class TestTask044AcceptanceCriteria:
             # Check that coordinator stats track properly
             stats = coordinator.get_statistics()
             assert isinstance(stats, dict)
-            assert 'total_requests' in stats
-            assert 'total_businesses_processed' in stats
-            assert stats['total_businesses_processed'] >= len(test_batch)
+            assert "total_requests" in stats
+            assert "total_businesses_processed" in stats
+            assert stats["total_businesses_processed"] >= len(test_batch)
 
             # Step 5: Test performance with skip logic
             start_time = time.time()
@@ -447,7 +464,7 @@ class TestTask044AcceptanceCriteria:
             skip_result = await coordinator.enrich_businesses_batch(
                 businesses=test_batch,
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=True
+                skip_existing=True,
             )
 
             skip_duration = time.time() - start_time
@@ -466,6 +483,7 @@ class TestTask044AcceptanceCriteria:
 
     def test_integration_error_handling(self, sample_businesses):
         """Test error handling across the full integration"""
+
         async def run_test():
             print("🛡️ Testing integration error handling...")
 
@@ -474,16 +492,16 @@ class TestTask044AcceptanceCriteria:
             # Test with invalid business data
             invalid_businesses = [
                 {},  # Empty business
-                {'id': None},  # None ID
-                {'name': ''},  # Empty name
-                {'id': 'test', 'invalid_field': 'should_not_break_system'}
+                {"id": None},  # None ID
+                {"name": ""},  # Empty name
+                {"id": "test", "invalid_field": "should_not_break_system"},
             ]
 
             # Should handle invalid data gracefully
             result = await coordinator.enrich_businesses_batch(
                 businesses=invalid_businesses,
                 sources=[EnrichmentSource.INTERNAL],
-                skip_existing=False
+                skip_existing=False,
             )
 
             # Should complete without crashing
@@ -495,7 +513,7 @@ class TestTask044AcceptanceCriteria:
                 await coordinator.enrich_businesses_batch(
                     businesses=sample_businesses[:1],
                     sources=[EnrichmentSource.CLEARBIT],  # Not configured
-                    skip_existing=False
+                    skip_existing=False,
                 )
             except Exception:
                 pass  # Expected to handle gracefully
@@ -506,6 +524,7 @@ class TestTask044AcceptanceCriteria:
 
     def test_comprehensive_integration(self, sample_businesses):
         """Comprehensive test covering all acceptance criteria together"""
+
         async def run_test():
             print("🎯 Running comprehensive integration test...")
 
@@ -520,42 +539,58 @@ class TestTask044AcceptanceCriteria:
                 businesses=sample_businesses,
                 sources=[EnrichmentSource.INTERNAL],
                 priority=EnrichmentPriority.HIGH,
-                skip_existing=False
+                skip_existing=False,
             )
 
             execution_time = time.time() - start_time
 
             # Verify full flow completion
-            assert isinstance(batch_result, BatchEnrichmentResult), "Full enrichment flow failed"
-            assert batch_result.total_processed == len(sample_businesses), "Not all businesses processed"
+            assert isinstance(
+                batch_result, BatchEnrichmentResult
+            ), "Full enrichment flow failed"
+            assert batch_result.total_processed == len(
+                sample_businesses
+            ), "Not all businesses processed"
 
             # 2. Matching accuracy verified - check result quality
             successful_results = [r for r in batch_result.results if r]
             if successful_results:
                 for result in successful_results:
-                    assert hasattr(result, 'match_confidence'), "Matching confidence missing"
-                    assert hasattr(result, 'match_score'), "Match score missing"
+                    assert hasattr(
+                        result, "match_confidence"
+                    ), "Matching confidence missing"
+                    assert hasattr(result, "match_score"), "Match score missing"
                     assert result.match_score >= 0.0, "Invalid match score"
 
             # 3. Data merge correct - verify merged data structure
             for result in batch_result.results:
                 if result and result.processed_data:
-                    assert isinstance(result.processed_data, dict), "Data merge structure incorrect"
+                    assert isinstance(
+                        result.processed_data, dict
+                    ), "Data merge structure incorrect"
                     # Should have business ID preserved
-                    original_business = next(b for b in sample_businesses if b['id'] == result.business_id)
+                    original_business = next(
+                        b for b in sample_businesses if b["id"] == result.business_id
+                    )
                     assert original_business, "Business ID not preserved in merge"
 
             # 4. Performance acceptable - verify timing and throughput
-            assert execution_time < 60.0, f"Performance unacceptable: {execution_time:.2f}s"
+            assert (
+                execution_time < 60.0
+            ), f"Performance unacceptable: {execution_time:.2f}s"
 
             if len(sample_businesses) > 0:
                 throughput = len(sample_businesses) / execution_time
-                assert throughput > 0.1, f"Throughput too low: {throughput:.2f} businesses/second"
+                assert (
+                    throughput > 0.1
+                ), f"Throughput too low: {throughput:.2f} businesses/second"
 
             # Verify progress tracking worked throughout
             progress = batch_result.progress
             assert progress.completion_percentage == 100.0, "Progress tracking failed"
-            assert progress.total_businesses == len(sample_businesses), "Progress total incorrect"
+            assert progress.total_businesses == len(
+                sample_businesses
+            ), "Progress total incorrect"
 
             print(f"✓ Comprehensive integration test passed in {execution_time:.2f}s")
             print(f"   - Processed {batch_result.total_processed} businesses")
@@ -580,21 +615,21 @@ if __name__ == "__main__":
             # Sample data
             sample_businesses = [
                 {
-                    'id': 'integration_test_001',
-                    'name': 'Test Corporation',
-                    'phone': '555-1234',
-                    'address': '123 Test St, Test City, TC 12345'
+                    "id": "integration_test_001",
+                    "name": "Test Corporation",
+                    "phone": "555-1234",
+                    "address": "123 Test St, Test City, TC 12345",
                 },
                 {
-                    'id': 'integration_test_002',
-                    'name': 'Sample LLC',
-                    'phone': '555-5678',
-                    'address': '456 Sample Ave, Sample City, SC 67890'
-                }
+                    "id": "integration_test_002",
+                    "name": "Sample LLC",
+                    "phone": "555-5678",
+                    "address": "456 Sample Ave, Sample City, SC 67890",
+                },
             ]
 
             performance_businesses = [
-                {'id': f'perf_{i}', 'name': f'Perf Test {i}', 'phone': f'555-{i:04d}'}
+                {"id": f"perf_{i}", "name": f"Perf Test {i}", "phone": f"555-{i:04d}"}
                 for i in range(20)
             ]
 
@@ -616,6 +651,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run tests

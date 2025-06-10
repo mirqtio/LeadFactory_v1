@@ -5,41 +5,36 @@ Manages geographic and vertical market segmentation for lead generation campaign
 Provides target universe definition and batch scheduling capabilities.
 """
 
-from database.models import Target, Batch
-from .models import TargetUniverse, Campaign, GeographicBoundary
-from .target_universe import TargetUniverseManager
-from .geo_validator import GeoValidator, GeoConflict
-from .batch_scheduler import BatchScheduler
-from .quota_tracker import QuotaTracker
+from database.models import Batch, Target
+
 from .api import router as api_router
-from .types import (
-    VerticalMarket,
-    GeographyLevel,
-    TargetingCriteria,
-    CampaignStatus,
-    BatchSchedule,
-    TargetMetrics
-)
+from .batch_scheduler import BatchScheduler
+from .geo_validator import GeoConflict, GeoValidator
+from .models import Campaign, GeographicBoundary, TargetUniverse
+from .quota_tracker import QuotaTracker
+from .target_universe import TargetUniverseManager
+from .types import (BatchSchedule, CampaignStatus, GeographyLevel,
+                    TargetingCriteria, TargetMetrics, VerticalMarket)
 
 __all__ = [
     # Models
-    'Target',
-    'TargetUniverse',
-    'Campaign',
-    'GeographicBoundary',
+    "Target",
+    "TargetUniverse",
+    "Campaign",
+    "GeographicBoundary",
     # Managers and Validators
-    'TargetUniverseManager',
-    'GeoValidator',
-    'GeoConflict',
-    'BatchScheduler',
-    'QuotaTracker',
+    "TargetUniverseManager",
+    "GeoValidator",
+    "GeoConflict",
+    "BatchScheduler",
+    "QuotaTracker",
     # API
-    'api_router',
+    "api_router",
     # Types
-    'VerticalMarket',
-    'GeographyLevel',
-    'TargetingCriteria',
-    'CampaignStatus',
-    'BatchSchedule',
-    'TargetMetrics'
+    "VerticalMarket",
+    "GeographyLevel",
+    "TargetingCriteria",
+    "CampaignStatus",
+    "BatchSchedule",
+    "TargetMetrics",
 ]

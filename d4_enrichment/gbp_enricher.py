@@ -11,19 +11,18 @@ Acceptance Criteria:
 - Confidence scoring
 """
 
-import logging
 import asyncio
-from typing import Dict, Any, List, Optional, Tuple
+import hashlib
+import json
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-import json
-import hashlib
-import uuid
+from typing import Any, Dict, List, Optional, Tuple
 
 from .matchers import BusinessMatcher, MatchConfidence
 from .models import EnrichmentResult, EnrichmentSource
-
 
 logger = logging.getLogger(__name__)
 

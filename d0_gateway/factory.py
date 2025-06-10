@@ -1,18 +1,18 @@
 """
 Factory for creating D0 Gateway API clients
 """
-from typing import Dict, Type, Optional, Any
 import threading
+from typing import Any, Dict, Optional, Type
 
-from core.logging import get_logger
 from core.config import get_settings
+from core.logging import get_logger
 
 from .base import BaseAPIClient
-from .providers.yelp import YelpClient
-from .providers.pagespeed import PageSpeedClient
 from .providers.openai import OpenAIClient
+from .providers.pagespeed import PageSpeedClient
 from .providers.sendgrid import SendGridClient
 from .providers.stripe import StripeClient
+from .providers.yelp import YelpClient
 
 
 class GatewayClientFactory:
@@ -40,11 +40,11 @@ class GatewayClientFactory:
 
                     # Registry of available providers
                     self._providers: Dict[str, Type[BaseAPIClient]] = {
-                        'yelp': YelpClient,
-                        'pagespeed': PageSpeedClient,
-                        'openai': OpenAIClient,
-                        'sendgrid': SendGridClient,
-                        'stripe': StripeClient
+                        "yelp": YelpClient,
+                        "pagespeed": PageSpeedClient,
+                        "openai": OpenAIClient,
+                        "sendgrid": SendGridClient,
+                        "stripe": StripeClient,
                     }
 
                     # Cache for created instances
@@ -55,9 +55,7 @@ class GatewayClientFactory:
                     self.logger.info("Gateway client factory initialized")
 
     def register_provider(
-        self,
-        provider_name: str,
-        client_class: Type[BaseAPIClient]
+        self, provider_name: str, client_class: Type[BaseAPIClient]
     ) -> None:
         """
         Register a new provider with the factory
@@ -80,10 +78,7 @@ class GatewayClientFactory:
         return list(self._providers.keys())
 
     def create_client(
-        self,
-        provider: str,
-        use_cache: bool = True,
-        **kwargs
+        self, provider: str, use_cache: bool = True, **kwargs
     ) -> BaseAPIClient:
         """
         Create or retrieve a client for the specified provider
@@ -101,9 +96,7 @@ class GatewayClientFactory:
         """
         if provider not in self._providers:
             available = ", ".join(self._providers.keys())
-            raise ValueError(
-                f"Unknown provider '{provider}'. Available: {available}"
-            )
+            raise ValueError(f"Unknown provider '{provider}'. Available: {available}")
 
         # Check cache first if enabled
         if use_cache:
@@ -122,9 +115,7 @@ class GatewayClientFactory:
 
             # Only pass api_key to client constructor
             # Other config is handled by BaseAPIClient
-            client_kwargs = {
-                'api_key': config.get('api_key')
-            }
+            client_kwargs = {"api_key": config.get("api_key")}
 
             client = client_class(**client_kwargs)
 
@@ -153,27 +144,29 @@ class GatewayClientFactory:
         config = {}
 
         # Provider-specific configuration
-        if provider == 'yelp':
-            config['api_key'] = getattr(self.settings, 'yelp_api_key', None)
+        if provider == "yelp":
+            config["api_key"] = getattr(self.settings, "yelp_api_key", None)
 
-        elif provider == 'pagespeed':
-            config['api_key'] = getattr(self.settings, 'pagespeed_api_key', None)
+        elif provider == "pagespeed":
+            config["api_key"] = getattr(self.settings, "pagespeed_api_key", None)
 
-        elif provider == 'openai':
-            config['api_key'] = getattr(self.settings, 'openai_api_key', None)
+        elif provider == "openai":
+            config["api_key"] = getattr(self.settings, "openai_api_key", None)
 
-        elif provider == 'sendgrid':
-            config['api_key'] = getattr(self.settings, 'sendgrid_api_key', None)
+        elif provider == "sendgrid":
+            config["api_key"] = getattr(self.settings, "sendgrid_api_key", None)
 
-        elif provider == 'stripe':
-            config['api_key'] = getattr(self.settings, 'stripe_api_key', None)
+        elif provider == "stripe":
+            config["api_key"] = getattr(self.settings, "stripe_api_key", None)
 
         # Common configuration
-        config.update({
-            'timeout': getattr(self.settings, 'api_timeout', 30),
-            'max_retries': getattr(self.settings, 'api_max_retries', 3),
-            'debug': getattr(self.settings, 'debug', False)
-        })
+        config.update(
+            {
+                "timeout": getattr(self.settings, "api_timeout", 30),
+                "max_retries": getattr(self.settings, "api_max_retries", 3),
+                "debug": getattr(self.settings, "debug", False),
+            }
+        )
 
         return config
 
@@ -204,11 +197,11 @@ class GatewayClientFactory:
             cached_providers = list(self._client_cache.keys())
 
         return {
-            'registered_providers': list(self._providers.keys()),
-            'cached_clients': cached_providers,
-            'total_providers': len(self._providers),
-            'cached_count': len(cached_providers),
-            'factory_initialized': self._initialized
+            "registered_providers": list(self._providers.keys()),
+            "cached_clients": cached_providers,
+            "total_providers": len(self._providers),
+            "cached_count": len(cached_providers),
+            "factory_initialized": self._initialized,
         }
 
     def health_check(self) -> Dict[str, Any]:
@@ -219,9 +212,9 @@ class GatewayClientFactory:
             Health check results
         """
         results = {
-            'factory_healthy': True,
-            'providers': {},
-            'overall_status': 'healthy'
+            "factory_healthy": True,
+            "providers": {},
+            "overall_status": "healthy",
         }
 
         # Check each provider
@@ -232,22 +225,22 @@ class GatewayClientFactory:
 
                 # Basic connectivity check
                 provider_status = {
-                    'status': 'healthy',
-                    'client_created': True,
-                    'error': None
+                    "status": "healthy",
+                    "client_created": True,
+                    "error": None,
                 }
 
                 # Provider-specific health checks could be added here
 
             except Exception as e:
                 provider_status = {
-                    'status': 'unhealthy',
-                    'client_created': False,
-                    'error': str(e)
+                    "status": "unhealthy",
+                    "client_created": False,
+                    "error": str(e),
                 }
-                results['overall_status'] = 'degraded'
+                results["overall_status"] = "degraded"
 
-            results['providers'][provider_name] = provider_status
+            results["providers"][provider_name] = provider_status
 
         return results
 

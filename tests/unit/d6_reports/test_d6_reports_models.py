@@ -11,24 +11,27 @@ Acceptance Criteria:
 - Print-optimized CSS ✓
 """
 
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 # Add the project root to Python path
-if '/app' not in sys.path:
-    sys.path.insert(0, '/app')
+if "/app" not in sys.path:
+    sys.path.insert(0, "/app")
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
+# Import models directly from the file since module import issues persist
+import importlib.util
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy.exc import IntegrityError
 
-# Import models directly from the file since module import issues persist
-import importlib.util
-spec = importlib.util.spec_from_file_location("d6_reports.models", "/app/d6_reports/models.py")
+spec = importlib.util.spec_from_file_location(
+    "d6_reports.models", "/app/d6_reports/models.py"
+)
 d6_models = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(d6_models)
 
@@ -54,7 +57,7 @@ class TestReportGeneration:
             user_id="user-456",
             order_id="order-789",
             report_type=ReportType.BUSINESS_AUDIT,
-            template_id="template-001"
+            template_id="template-001",
         )
         db_session.add(report)
         db_session.commit()
@@ -74,8 +77,7 @@ class TestReportGeneration:
     def test_report_generation_defaults(self, db_session):
         """Test default values for report generation"""
         report = ReportGeneration(
-            business_id="business-123",
-            template_id="template-001"
+            business_id="business-123", template_id="template-001"
         )
         db_session.add(report)
         db_session.commit()
@@ -94,7 +96,7 @@ class TestReportGeneration:
             template_id="template-001",
             status=ReportStatus.COMPLETED,
             started_at=datetime.utcnow() - timedelta(minutes=5),
-            completed_at=datetime.utcnow()
+            completed_at=datetime.utcnow(),
         )
         db_session.add(report)
         db_session.commit()
@@ -112,7 +114,7 @@ class TestReportGeneration:
             template_id="template-001",
             status=ReportStatus.FAILED,
             failed_at=datetime.utcnow(),
-            error_message="Test error"
+            error_message="Test error",
         )
         db_session.add(report)
         db_session.commit()
@@ -124,13 +126,13 @@ class TestReportGeneration:
         """Test report generation with complex data"""
         report_data = {
             "business": {"name": "Test Business", "score": 85},
-            "metrics": {"performance": 90, "seo": 80}
+            "metrics": {"performance": 90, "seo": 80},
         }
 
         configuration = {
             "include_charts": True,
             "color_scheme": "blue",
-            "page_size": "A4"
+            "page_size": "A4",
         }
 
         report = ReportGeneration(
@@ -140,7 +142,7 @@ class TestReportGeneration:
             configuration=configuration,
             sections_included=["summary", "metrics", "recommendations"],
             generation_time_seconds=45.2,
-            quality_score=Decimal("95.50")
+            quality_score=Decimal("95.50"),
         )
         db_session.add(report)
         db_session.commit()
@@ -157,9 +159,7 @@ class TestReportGeneration:
         # Test retry count constraint
         with pytest.raises(IntegrityError):
             report = ReportGeneration(
-                business_id="business-123",
-                template_id="template-001",
-                retry_count=-1
+                business_id="business-123", template_id="template-001", retry_count=-1
             )
             db_session.add(report)
             db_session.commit()
@@ -171,7 +171,7 @@ class TestReportGeneration:
             report = ReportGeneration(
                 business_id="business-123",
                 template_id="template-001",
-                quality_score=Decimal("150.00")
+                quality_score=Decimal("150.00"),
             )
             db_session.add(report)
             db_session.commit()
@@ -181,7 +181,7 @@ class TestReportGeneration:
         report = ReportGeneration(
             business_id="business-123",
             template_id="template-001",
-            status=ReportStatus.COMPLETED
+            status=ReportStatus.COMPLETED,
         )
         db_session.add(report)
         db_session.commit()
@@ -204,7 +204,7 @@ class TestReportTemplate:
             description="Comprehensive business analysis template",
             template_type=ReportType.BUSINESS_AUDIT,
             format=TemplateFormat.HTML,
-            version="1.0.0"
+            version="1.0.0",
         )
         db_session.add(template)
         db_session.commit()
@@ -235,7 +235,7 @@ class TestReportTemplate:
             html_template=html_content,
             css_styles=css_content,
             mobile_css=mobile_css,
-            print_css=print_css
+            print_css=print_css,
         )
         db_session.add(template)
         db_session.commit()
@@ -251,7 +251,10 @@ class TestReportTemplate:
         default_sections = ["header", "summary", "metrics", "footer"]
         required_fields = ["business_name", "overall_score"]
         optional_fields = ["industry", "revenue"]
-        customizations = {"color_themes": ["blue", "green"], "layouts": ["standard", "compact"]}
+        customizations = {
+            "color_themes": ["blue", "green"],
+            "layouts": ["standard", "compact"],
+        }
 
         template = ReportTemplate(
             name="config_template",
@@ -262,7 +265,7 @@ class TestReportTemplate:
             optional_data_fields=optional_fields,
             customization_options=customizations,
             max_pages=20,
-            estimated_generation_time=30.5
+            estimated_generation_time=30.5,
         )
         db_session.add(template)
         db_session.commit()
@@ -283,7 +286,7 @@ class TestReportTemplate:
             display_name="Basic Template",
             template_type=ReportType.BUSINESS_AUDIT,
             supports_mobile=True,
-            supports_print=True
+            supports_print=True,
         )
         db_session.add(template1)
 
@@ -295,16 +298,16 @@ class TestReportTemplate:
             supports_mobile=True,
             supports_print=True,
             mobile_css="@media (max-width: 768px) {}",
-            print_css="@media print {}"
+            print_css="@media print {}",
         )
         db_session.add(template2)
         db_session.commit()
 
         # Test properties
         assert template1.is_mobile_responsive is False  # No mobile CSS
-        assert template1.is_print_optimized is False    # No print CSS
-        assert template2.is_mobile_responsive is True   # Has mobile CSS
-        assert template2.is_print_optimized is True     # Has print CSS
+        assert template1.is_print_optimized is False  # No print CSS
+        assert template2.is_mobile_responsive is True  # Has mobile CSS
+        assert template2.is_print_optimized is True  # Has print CSS
 
     def test_template_constraints(self, db_session):
         """Test template unique constraints"""
@@ -313,7 +316,7 @@ class TestReportTemplate:
             name="duplicate_test",
             display_name="Template 1",
             template_type=ReportType.BUSINESS_AUDIT,
-            version="1.0.0"
+            version="1.0.0",
         )
         db_session.add(template1)
         db_session.commit()
@@ -324,7 +327,7 @@ class TestReportTemplate:
                 name="duplicate_test",
                 display_name="Template 2",
                 template_type=ReportType.BUSINESS_AUDIT,
-                version="1.0.0"  # Same name+version
+                version="1.0.0",  # Same name+version
             )
             db_session.add(template2)
             db_session.commit()
@@ -334,7 +337,7 @@ class TestReportTemplate:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.commit()
@@ -355,7 +358,7 @@ class TestReportSection:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.flush()  # Get template ID
@@ -366,7 +369,7 @@ class TestReportSection:
             name="executive_summary",
             display_name="Executive Summary",
             description="High-level business overview",
-            section_order=1
+            section_order=1,
         )
         db_session.add(section)
         db_session.commit()
@@ -387,7 +390,7 @@ class TestReportSection:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.flush()
@@ -405,7 +408,7 @@ class TestReportSection:
             css_styles=css_styles,
             data_query=data_query,
             is_required=True,
-            page_break_after=True
+            page_break_after=True,
         )
         db_session.add(section)
         db_session.commit()
@@ -422,7 +425,7 @@ class TestReportSection:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.flush()
@@ -437,7 +440,7 @@ class TestReportSection:
             section_order=2,
             data_requirements=data_requirements,
             conditional_logic=conditional_logic,
-            max_content_length=5000
+            max_content_length=5000,
         )
         db_session.add(section)
         db_session.commit()
@@ -452,7 +455,7 @@ class TestReportSection:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.flush()
@@ -462,7 +465,7 @@ class TestReportSection:
             template_id=template.id,
             name="duplicate_section",
             display_name="Section 1",
-            section_order=1
+            section_order=1,
         )
         db_session.add(section1)
         db_session.commit()
@@ -473,7 +476,7 @@ class TestReportSection:
                 template_id=template.id,
                 name="duplicate_section",  # Same template+name
                 display_name="Section 2",
-                section_order=2
+                section_order=2,
             )
             db_session.add(section2)
             db_session.commit()
@@ -483,7 +486,7 @@ class TestReportSection:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.flush()
@@ -492,7 +495,7 @@ class TestReportSection:
             template_id=template.id,
             name="test_section",
             display_name="Test Section",
-            section_order=3
+            section_order=3,
         )
         db_session.add(section)
         db_session.commit()
@@ -511,8 +514,7 @@ class TestReportDelivery:
         """Test creating a new report delivery"""
         # Create report generation first
         report = ReportGeneration(
-            business_id="business-123",
-            template_id="template-001"
+            business_id="business-123", template_id="template-001"
         )
         db_session.add(report)
         db_session.flush()
@@ -522,7 +524,7 @@ class TestReportDelivery:
             report_generation_id=report.id,
             delivery_method=DeliveryMethod.EMAIL,
             recipient_email="customer@example.com",
-            recipient_name="John Doe"
+            recipient_name="John Doe",
         )
         db_session.add(delivery)
         db_session.commit()
@@ -541,8 +543,7 @@ class TestReportDelivery:
     def test_delivery_with_tracking(self, db_session):
         """Test delivery with tracking information"""
         report = ReportGeneration(
-            business_id="business-123",
-            template_id="template-001"
+            business_id="business-123", template_id="template-001"
         )
         db_session.add(report)
         db_session.flush()
@@ -560,7 +561,7 @@ class TestReportDelivery:
             opened_at=now + timedelta(minutes=5),
             open_count=2,
             user_agent="Mozilla/5.0...",
-            ip_address="192.168.1.1"
+            ip_address="192.168.1.1",
         )
         db_session.add(delivery)
         db_session.commit()
@@ -578,8 +579,7 @@ class TestReportDelivery:
     def test_delivery_properties(self, db_session):
         """Test delivery computed properties"""
         report = ReportGeneration(
-            business_id="business-123",
-            template_id="template-001"
+            business_id="business-123", template_id="template-001"
         )
         db_session.add(report)
         db_session.flush()
@@ -591,14 +591,14 @@ class TestReportDelivery:
             report_generation_id=report.id,
             delivery_method=DeliveryMethod.EMAIL,
             delivery_status="delivered",
-            delivered_at=now
+            delivered_at=now,
         )
 
         # Expired delivery
         delivery2 = ReportDelivery(
             report_generation_id=report.id,
             delivery_method=DeliveryMethod.DOWNLOAD,
-            download_expires_at=now - timedelta(hours=1)  # Expired
+            download_expires_at=now - timedelta(hours=1),  # Expired
         )
 
         db_session.add_all([delivery1, delivery2])
@@ -613,8 +613,7 @@ class TestReportDelivery:
     def test_delivery_constraints(self, db_session):
         """Test delivery constraints"""
         report = ReportGeneration(
-            business_id="business-123",
-            template_id="template-001"
+            business_id="business-123", template_id="template-001"
         )
         db_session.add(report)
         db_session.flush()
@@ -624,7 +623,7 @@ class TestReportDelivery:
             delivery = ReportDelivery(
                 report_generation_id=report.id,
                 delivery_method=DeliveryMethod.EMAIL,
-                retry_count=-1
+                retry_count=-1,
             )
             db_session.add(delivery)
             db_session.commit()
@@ -636,7 +635,7 @@ class TestReportDelivery:
             delivery = ReportDelivery(
                 report_generation_id=report.id,
                 delivery_method=DeliveryMethod.EMAIL,
-                download_count=-1
+                download_count=-1,
             )
             db_session.add(delivery)
             db_session.commit()
@@ -644,8 +643,7 @@ class TestReportDelivery:
     def test_delivery_repr(self, db_session):
         """Test delivery string representation"""
         report = ReportGeneration(
-            business_id="business-123",
-            template_id="template-001"
+            business_id="business-123", template_id="template-001"
         )
         db_session.add(report)
         db_session.flush()
@@ -653,7 +651,7 @@ class TestReportDelivery:
         delivery = ReportDelivery(
             report_generation_id=report.id,
             delivery_method=DeliveryMethod.EMAIL,
-            delivery_status="delivered"
+            delivery_status="delivered",
         )
         db_session.add(delivery)
         db_session.commit()
@@ -695,7 +693,7 @@ class TestModelRelationships:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.flush()
@@ -705,13 +703,13 @@ class TestModelRelationships:
             template_id=template.id,
             name="section1",
             display_name="Section 1",
-            section_order=1
+            section_order=1,
         )
         section2 = ReportSection(
             template_id=template.id,
             name="section2",
             display_name="Section 2",
-            section_order=2
+            section_order=2,
         )
 
         db_session.add_all([section1, section2])
@@ -729,26 +727,21 @@ class TestModelRelationships:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.flush()
 
-        report = ReportGeneration(
-            business_id="business-123",
-            template_id=template.id
-        )
+        report = ReportGeneration(business_id="business-123", template_id=template.id)
         db_session.add(report)
         db_session.flush()
 
         # Add deliveries
         delivery1 = ReportDelivery(
-            report_generation_id=report.id,
-            delivery_method=DeliveryMethod.EMAIL
+            report_generation_id=report.id, delivery_method=DeliveryMethod.EMAIL
         )
         delivery2 = ReportDelivery(
-            report_generation_id=report.id,
-            delivery_method=DeliveryMethod.DOWNLOAD
+            report_generation_id=report.id, delivery_method=DeliveryMethod.DOWNLOAD
         )
 
         db_session.add_all([delivery1, delivery2])
@@ -767,20 +760,14 @@ class TestModelRelationships:
         template = ReportTemplate(
             name="test_template",
             display_name="Test Template",
-            template_type=ReportType.BUSINESS_AUDIT
+            template_type=ReportType.BUSINESS_AUDIT,
         )
         db_session.add(template)
         db_session.flush()
 
         # Add report generations
-        report1 = ReportGeneration(
-            business_id="business-123",
-            template_id=template.id
-        )
-        report2 = ReportGeneration(
-            business_id="business-456",
-            template_id=template.id
-        )
+        report1 = ReportGeneration(business_id="business-123", template_id=template.id)
+        report2 = ReportGeneration(business_id="business-456", template_id=template.id)
 
         db_session.add_all([report1, report2])
         db_session.commit()

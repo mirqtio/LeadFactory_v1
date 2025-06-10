@@ -10,13 +10,14 @@ Acceptance Criteria:
 - Fallback values used
 """
 
-import yaml
+import logging
 import os
 import re
-from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass, field
 from pathlib import Path
-import logging
+from typing import Any, Dict, List, Optional, Union
+
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ScoringRule:
     """Individual scoring rule with condition and points"""
+
     condition: str
     points: float
     description: str
@@ -65,22 +67,34 @@ class ScoringRule:
                 safe_condition = safe_condition.replace(key, str(value))
 
         # Handle common operators
-        safe_condition = safe_condition.replace(' in [', ' in [')
-        safe_condition = safe_condition.replace(' not in [', ' not in [')
+        safe_condition = safe_condition.replace(" in [", " in [")
+        safe_condition = safe_condition.replace(" not in [", " not in [")
 
         # Basic safety check - only allow certain operations
-        allowed_operations = ['==', '!=', '>=', '<=', '>', '<', 'in', 'not in', 'and', 'or', 'len(']
+        allowed_operations = [
+            "==",
+            "!=",
+            ">=",
+            "<=",
+            ">",
+            "<",
+            "in",
+            "not in",
+            "and",
+            "or",
+            "len(",
+        ]
 
         try:
             # Use eval with restricted globals for safety
             # In production, would use a proper expression evaluator
             restricted_globals = {
-                '__builtins__': {},
-                'len': len,
-                'str': str,
-                'int': int,
-                'float': float,
-                'bool': bool
+                "__builtins__": {},
+                "len": len,
+                "str": str,
+                "int": int,
+                "float": float,
+                "bool": bool,
             }
 
             return bool(eval(safe_condition, restricted_globals, {}))
@@ -92,6 +106,7 @@ class ScoringRule:
 @dataclass
 class ComponentRules:
     """Collection of rules for a scoring component"""
+
     name: str
     weight: float
     description: str
@@ -112,28 +127,31 @@ class ComponentRules:
             points_awarded = rule.evaluate(data)
             total_points += points_awarded
 
-            rule_results.append({
-                'condition': rule.condition,
-                'description': rule.description,
-                'points_possible': rule.points,
-                'points_awarded': points_awarded,
-                'passed': points_awarded > 0
-            })
+            rule_results.append(
+                {
+                    "condition": rule.condition,
+                    "description": rule.description,
+                    "points_possible": rule.points,
+                    "points_awarded": points_awarded,
+                    "passed": points_awarded > 0,
+                }
+            )
 
         return {
-            'component': self.name,
-            'total_points': total_points,
-            'max_points': max_points,
-            'percentage': (total_points / max_points * 100) if max_points > 0 else 0.0,
-            'weight': self.weight,
-            'weighted_score': total_points * self.weight,
-            'rule_results': rule_results
+            "component": self.name,
+            "total_points": total_points,
+            "max_points": max_points,
+            "percentage": (total_points / max_points * 100) if max_points > 0 else 0.0,
+            "weight": self.weight,
+            "weighted_score": total_points * self.weight,
+            "rule_results": rule_results,
         }
 
 
 @dataclass
 class TierRule:
     """Tier assignment rule"""
+
     name: str
     min_score: float
     max_score: float
@@ -148,11 +166,14 @@ class TierRule:
 @dataclass
 class QualityControlRules:
     """Quality control and validation rules"""
+
     min_data_completeness: float = 0.3
     confidence_threshold: float = 0.6
     manual_review_triggers: List[str] = field(default_factory=list)
 
-    def requires_manual_review(self, data: Dict[str, Any], score_result: Dict[str, Any]) -> bool:
+    def requires_manual_review(
+        self, data: Dict[str, Any], score_result: Dict[str, Any]
+    ) -> bool:
         """
         Check if scoring result requires manual review
 
@@ -165,11 +186,15 @@ class QualityControlRules:
                 if self._evaluate_trigger(trigger, data, score_result):
                     return True
             except Exception as e:
-                logger.warning(f"Failed to evaluate manual review trigger '{trigger}': {e}")
+                logger.warning(
+                    f"Failed to evaluate manual review trigger '{trigger}': {e}"
+                )
 
         return False
 
-    def _evaluate_trigger(self, trigger: str, data: Dict[str, Any], score_result: Dict[str, Any]) -> bool:
+    def _evaluate_trigger(
+        self, trigger: str, data: Dict[str, Any], score_result: Dict[str, Any]
+    ) -> bool:
         """Evaluate manual review trigger condition"""
         # Combine data and score_result for evaluation
         evaluation_data = {**data, **score_result}
@@ -184,7 +209,7 @@ class QualityControlRules:
                 else:
                     condition = condition.replace(key, str(value))
 
-            restricted_globals = {'__builtins__': {}}
+            restricted_globals = {"__builtins__": {}}
             return bool(eval(condition, restricted_globals, {}))
         except Exception:
             return False
@@ -230,7 +255,7 @@ class ScoringRulesParser:
                 logger.error(f"Rules file not found: {self.rules_file}")
                 return False
 
-            with open(rules_path, 'r', encoding='utf-8') as f:
+            with open(rules_path, "r", encoding="utf-8") as f:
                 self.config = yaml.safe_load(f)
 
             # Parse configuration sections
@@ -249,17 +274,17 @@ class ScoringRulesParser:
 
     def _parse_engine_config(self):
         """Parse engine configuration section"""
-        self.engine_config = self.config.get('engine_config', {})
+        self.engine_config = self.config.get("engine_config", {})
 
         # Set defaults
-        self.engine_config.setdefault('max_score', 100.0)
-        self.engine_config.setdefault('default_weight', 1.0)
-        self.engine_config.setdefault('fallback_enabled', True)
-        self.engine_config.setdefault('logging_enabled', True)
+        self.engine_config.setdefault("max_score", 100.0)
+        self.engine_config.setdefault("default_weight", 1.0)
+        self.engine_config.setdefault("fallback_enabled", True)
+        self.engine_config.setdefault("logging_enabled", True)
 
     def _parse_fallbacks(self):
         """Parse fallback values section"""
-        self.fallbacks = self.config.get('fallbacks', {})
+        self.fallbacks = self.config.get("fallbacks", {})
 
         # Flatten nested fallbacks for easier access
         flattened = {}
@@ -274,53 +299,56 @@ class ScoringRulesParser:
 
     def _parse_component_rules(self):
         """Parse scoring components section"""
-        components = self.config.get('scoring_components', {})
+        components = self.config.get("scoring_components", {})
 
         for component_name, component_config in components.items():
-            weight = component_config.get('weight', self.engine_config['default_weight'])
-            description = component_config.get('description', f"{component_name} scoring")
+            weight = component_config.get(
+                "weight", self.engine_config["default_weight"]
+            )
+            description = component_config.get(
+                "description", f"{component_name} scoring"
+            )
 
             rules = []
-            for rule_config in component_config.get('rules', []):
+            for rule_config in component_config.get("rules", []):
                 rule = ScoringRule(
-                    condition=rule_config['condition'],
-                    points=rule_config['points'],
-                    description=rule_config['description'],
-                    weight=weight
+                    condition=rule_config["condition"],
+                    points=rule_config["points"],
+                    description=rule_config["description"],
+                    weight=weight,
                 )
                 rules.append(rule)
 
             self.component_rules[component_name] = ComponentRules(
-                name=component_name,
-                weight=weight,
-                description=description,
-                rules=rules
+                name=component_name, weight=weight, description=description, rules=rules
             )
 
     def _parse_tier_rules(self):
         """Parse tier assignment rules"""
-        tiers = self.config.get('tier_rules', {})
+        tiers = self.config.get("tier_rules", {})
 
         for tier_name, tier_config in tiers.items():
             self.tier_rules[tier_name] = TierRule(
                 name=tier_name,
-                min_score=tier_config['min_score'],
-                max_score=tier_config['max_score'],
-                description=tier_config['description'],
-                priority=tier_config.get('priority', 'medium')
+                min_score=tier_config["min_score"],
+                max_score=tier_config["max_score"],
+                description=tier_config["description"],
+                priority=tier_config.get("priority", "medium"),
             )
 
     def _parse_quality_control(self):
         """Parse quality control rules"""
-        qc_config = self.config.get('quality_control', {})
+        qc_config = self.config.get("quality_control", {})
 
         self.quality_control = QualityControlRules(
-            min_data_completeness=qc_config.get('min_data_completeness', 0.3),
-            confidence_threshold=qc_config.get('confidence_threshold', 0.6),
-            manual_review_triggers=qc_config.get('manual_review_triggers', [])
+            min_data_completeness=qc_config.get("min_data_completeness", 0.3),
+            confidence_threshold=qc_config.get("confidence_threshold", 0.6),
+            manual_review_triggers=qc_config.get("manual_review_triggers", []),
         )
 
-    def get_component_rules(self, component_name: Optional[str] = None) -> Union[ComponentRules, Dict[str, ComponentRules]]:
+    def get_component_rules(
+        self, component_name: Optional[str] = None
+    ) -> Union[ComponentRules, Dict[str, ComponentRules]]:
         """
         Get component rules by name or all components
 
@@ -361,13 +389,13 @@ class ScoringRulesParser:
         Returns:
             Data with fallbacks applied
         """
-        if not self.engine_config.get('fallback_enabled', True):
+        if not self.engine_config.get("fallback_enabled", True):
             return data
 
         result = data.copy()
 
         for key, fallback_value in self.fallbacks.items():
-            if key not in result or result[key] is None or result[key] == '':
+            if key not in result or result[key] is None or result[key] == "":
                 result[key] = fallback_value
                 logger.debug(f"Applied fallback for '{key}': {fallback_value}")
 
@@ -396,7 +424,9 @@ class ScoringRulesParser:
                 errors.append(f"Component '{name}' has no rules defined")
 
             if component.weight <= 0:
-                errors.append(f"Component '{name}' has invalid weight: {component.weight}")
+                errors.append(
+                    f"Component '{name}' has invalid weight: {component.weight}"
+                )
 
         # Validate tier rules
         if not self.tier_rules:
@@ -413,10 +443,14 @@ class ScoringRulesParser:
         # Validate quality control
         if self.quality_control:
             if not (0 <= self.quality_control.min_data_completeness <= 1):
-                errors.append(f"Invalid min_data_completeness: {self.quality_control.min_data_completeness}")
+                errors.append(
+                    f"Invalid min_data_completeness: {self.quality_control.min_data_completeness}"
+                )
 
             if not (0 <= self.quality_control.confidence_threshold <= 1):
-                errors.append(f"Invalid confidence_threshold: {self.quality_control.confidence_threshold}")
+                errors.append(
+                    f"Invalid confidence_threshold: {self.quality_control.confidence_threshold}"
+                )
 
         return errors
 
@@ -428,13 +462,15 @@ class ScoringRulesParser:
             Dictionary with rules summary information
         """
         return {
-            'version': self.config.get('version', 'unknown'),
-            'components_count': len(self.component_rules),
-            'component_names': list(self.component_rules.keys()),
-            'total_rules': sum(len(comp.rules) for comp in self.component_rules.values()),
-            'tiers_count': len(self.tier_rules),
-            'tier_names': list(self.tier_rules.keys()),
-            'fallbacks_count': len(self.fallbacks),
-            'engine_config': self.engine_config,
-            'has_quality_control': self.quality_control is not None
+            "version": self.config.get("version", "unknown"),
+            "components_count": len(self.component_rules),
+            "component_names": list(self.component_rules.keys()),
+            "total_rules": sum(
+                len(comp.rules) for comp in self.component_rules.values()
+            ),
+            "tiers_count": len(self.tier_rules),
+            "tier_names": list(self.tier_rules.keys()),
+            "fallbacks_count": len(self.fallbacks),
+            "engine_config": self.engine_config,
+            "has_quality_control": self.quality_control is not None,
         }

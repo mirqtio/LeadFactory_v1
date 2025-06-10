@@ -1,12 +1,13 @@
 """
 Response caching for external API calls with Redis backing
 """
-import json
 import hashlib
-from typing import Dict, Any, Optional
+import json
 from datetime import timedelta
+from typing import Any, Dict, Optional
 
 import redis.asyncio as aioredis
+
 from core.config import get_settings
 from core.logging import get_logger
 
@@ -16,12 +17,12 @@ class ResponseCache:
 
     # Provider-specific cache TTL (time to live) in seconds
     CACHE_TTL = {
-        'yelp': 3600,         # 1 hour for business data
-        'pagespeed': 7200,    # 2 hours for performance data
-        'openai': 86400,      # 24 hours for AI insights
-        'sendgrid': 300,      # 5 minutes for email status
-        'stripe': 300,        # 5 minutes for payment data
-        'places': 3600,       # 1 hour for place data
+        "yelp": 3600,  # 1 hour for business data
+        "pagespeed": 7200,  # 2 hours for performance data
+        "openai": 86400,  # 24 hours for AI insights
+        "sendgrid": 300,  # 5 minutes for email status
+        "stripe": 300,  # 5 minutes for payment data
+        "places": 3600,  # 1 hour for place data
     }
 
     def __init__(self, provider: str):
@@ -43,8 +44,7 @@ class ResponseCache:
         """Get Redis connection"""
         if self._redis is None:
             self._redis = aioredis.from_url(
-                self.settings.redis_url,
-                decode_responses=True
+                self.settings.redis_url, decode_responses=True
             )
         return self._redis
 
@@ -60,7 +60,7 @@ class ResponseCache:
             Cache key string
         """
         # Create a deterministic hash from endpoint and sorted params
-        params_str = json.dumps(params, sort_keys=True, separators=(',', ':'))
+        params_str = json.dumps(params, sort_keys=True, separators=(",", ":"))
         content = f"{self.provider}:{endpoint}:{params_str}"
 
         # Use SHA-256 hash for consistent key length
@@ -102,10 +102,7 @@ class ResponseCache:
             return None
 
     async def set(
-        self,
-        cache_key: str,
-        response_data: Dict[str, Any],
-        ttl: Optional[int] = None
+        self, cache_key: str, response_data: Dict[str, Any], ttl: Optional[int] = None
     ) -> None:
         """
         Cache response data
@@ -123,7 +120,7 @@ class ResponseCache:
             redis = await self._get_redis()
 
             # Serialize response data
-            cached_data = json.dumps(response_data, separators=(',', ':'))
+            cached_data = json.dumps(response_data, separators=(",", ":"))
 
             # Use provided TTL or provider default
             cache_ttl = ttl or self.ttl
@@ -194,36 +191,36 @@ class ResponseCache:
             keys = await redis.keys(pattern)
 
             # Get memory usage info
-            info = await redis.info('memory')
+            info = await redis.info("memory")
 
             # Calculate hit rate
             total_requests = self._hits + self._misses
             hit_rate = (self._hits / total_requests) if total_requests > 0 else 0
 
             return {
-                'provider': self.provider,
-                'cached_keys': len(keys),
-                'ttl_seconds': self.ttl,
-                'redis_memory_used': info.get('used_memory_human', 'unknown'),
-                'redis_connected': True,
-                'hits': self._hits,
-                'misses': self._misses,
-                'hit_rate': round(hit_rate, 3),
-                'total_requests': total_requests
+                "provider": self.provider,
+                "cached_keys": len(keys),
+                "ttl_seconds": self.ttl,
+                "redis_memory_used": info.get("used_memory_human", "unknown"),
+                "redis_connected": True,
+                "hits": self._hits,
+                "misses": self._misses,
+                "hit_rate": round(hit_rate, 3),
+                "total_requests": total_requests,
             }
 
         except Exception as e:
             self.logger.error(f"Cache stats error: {e}")
             return {
-                'provider': self.provider,
-                'cached_keys': 0,
-                'ttl_seconds': self.ttl,
-                'redis_connected': False,
-                'hits': self._hits,
-                'misses': self._misses,
-                'hit_rate': 0,
-                'total_requests': self._hits + self._misses,
-                'error': str(e)
+                "provider": self.provider,
+                "cached_keys": 0,
+                "ttl_seconds": self.ttl,
+                "redis_connected": False,
+                "hits": self._hits,
+                "misses": self._misses,
+                "hit_rate": 0,
+                "total_requests": self._hits + self._misses,
+                "error": str(e),
             }
 
     def reset_stats(self) -> None:

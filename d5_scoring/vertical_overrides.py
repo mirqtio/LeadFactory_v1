@@ -11,14 +11,14 @@ Acceptance Criteria:
 - Base rules inherited
 """
 
-import logging
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass
 import copy
+import logging
+from dataclasses import dataclass
 from decimal import Decimal
+from typing import Any, Dict, List, Optional
 
+from .models import ScoreBreakdown, ScoringResult
 from .rules_parser import ScoringRulesParser
-from .models import ScoringResult, ScoreBreakdown
 from .types import ScoringVersion
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,11 @@ class VerticalScoringEngine:
         ),
     }
 
-    def __init__(self, vertical: Optional[str] = None, base_rules_file: str = "scoring_rules.yaml"):
+    def __init__(
+        self,
+        vertical: Optional[str] = None,
+        base_rules_file: str = "scoring_rules.yaml",
+    ):
         """
         Initialize vertical scoring engine
 
@@ -96,12 +100,16 @@ class VerticalScoringEngine:
         if self.vertical and self.vertical in self.SUPPORTED_VERTICALS:
             self._load_vertical_rules()
         elif self.vertical:
-            logger.warning(f"Unsupported vertical '{self.vertical}', using base rules only")
+            logger.warning(
+                f"Unsupported vertical '{self.vertical}', using base rules only"
+            )
 
         # Create merged rules
         self._create_merged_rules()
 
-        logger.info(f"Initialized vertical scoring engine for '{self.vertical or 'base'}' vertical")
+        logger.info(
+            f"Initialized vertical scoring engine for '{self.vertical or 'base'}' vertical"
+        )
 
     def _load_vertical_rules(self):
         """Load vertical-specific rules"""
@@ -113,7 +121,9 @@ class VerticalScoringEngine:
                 logger.error(f"Failed to load vertical rules for {self.vertical}")
                 self.vertical_parser = None
             else:
-                logger.info(f"Loaded {self.vertical} vertical rules from {vertical_config.rules_file}")
+                logger.info(
+                    f"Loaded {self.vertical} vertical rules from {vertical_config.rules_file}"
+                )
 
         except Exception as e:
             logger.error(f"Error loading vertical rules for {self.vertical}: {e}")
@@ -136,7 +146,9 @@ class VerticalScoringEngine:
         if self.vertical_parser.engine_config:
             vertical_config = self.SUPPORTED_VERTICALS[self.vertical]
             self.merged_parser.engine_config.update(self.vertical_parser.engine_config)
-            self.merged_parser.engine_config["vertical_multiplier"] = vertical_config.multiplier
+            self.merged_parser.engine_config[
+                "vertical_multiplier"
+            ] = vertical_config.multiplier
 
         # Merge fallbacks (vertical fallbacks take precedence)
         if self.vertical_parser.fallbacks:
@@ -144,9 +156,14 @@ class VerticalScoringEngine:
 
         # Override component rules (vertical rules replace base rules for same components)
         if self.vertical_parser.component_rules:
-            for component_name, vertical_component in self.vertical_parser.component_rules.items():
+            for (
+                component_name,
+                vertical_component,
+            ) in self.vertical_parser.component_rules.items():
                 self.merged_parser.component_rules[component_name] = vertical_component
-                logger.debug(f"Overrode component '{component_name}' with vertical rules")
+                logger.debug(
+                    f"Overrode component '{component_name}' with vertical rules"
+                )
 
         # Override tier rules
         if self.vertical_parser.tier_rules:
@@ -161,7 +178,9 @@ class VerticalScoringEngine:
             f"({len(self.vertical_parser.component_rules) if self.vertical_parser else 0} vertical overrides)"
         )
 
-    def calculate_score(self, business_data: Dict[str, Any], version: Optional[ScoringVersion] = None) -> ScoringResult:
+    def calculate_score(
+        self, business_data: Dict[str, Any], version: Optional[ScoringVersion] = None
+    ) -> ScoringResult:
         """
         Calculate score using vertical-specific rules with base rule inheritance
 
@@ -191,7 +210,10 @@ class VerticalScoringEngine:
             total_weighted_score = 0.0
             total_weight = 0.0
 
-            for component_name, component_rules in self.merged_parser.get_component_rules().items():
+            for (
+                component_name,
+                component_rules,
+            ) in self.merged_parser.get_component_rules().items():
                 component_result = component_rules.calculate_score(enriched_data)
                 component_results[component_name] = component_result
 
@@ -204,14 +226,23 @@ class VerticalScoringEngine:
                 ):
                     multiplier = self.merged_parser.engine_config["vertical_multiplier"]
 
-                weighted_score = component_result["total_points"] * component_result["weight"] * multiplier
+                weighted_score = (
+                    component_result["total_points"]
+                    * component_result["weight"]
+                    * multiplier
+                )
                 total_weighted_score += weighted_score
                 total_weight += component_result["weight"]
 
             # Calculate overall score
-            max_possible_score = self.merged_parser.engine_config.get("max_score", 100.0)
+            max_possible_score = self.merged_parser.engine_config.get(
+                "max_score", 100.0
+            )
             overall_score = (
-                min(max_possible_score, max(0.0, total_weighted_score / total_weight * max_possible_score))
+                min(
+                    max_possible_score,
+                    max(0.0, total_weighted_score / total_weight * max_possible_score),
+                )
                 if total_weight > 0
                 else 0.0
             )
@@ -233,18 +264,24 @@ class VerticalScoringEngine:
                 "vertical": self.vertical or "base",
             }
             requires_manual_review = (
-                self.merged_parser.quality_control.requires_manual_review(enriched_data, score_result_data)
+                self.merged_parser.quality_control.requires_manual_review(
+                    enriched_data, score_result_data
+                )
                 if self.merged_parser.quality_control
                 else False
             )
 
             # Create scoring result
             scoring_result = ScoringResult(
-                business_id=business_data.get("id", business_data.get("business_id", "unknown")),
+                business_id=business_data.get(
+                    "id", business_data.get("business_id", "unknown")
+                ),
                 overall_score=Decimal(str(round(overall_score, 2))),
                 tier=tier,
                 confidence=Decimal(str(round(confidence, 2))),
-                scoring_version=version.version if version else f"vertical_{self.vertical or 'base'}_v1.0.0",
+                scoring_version=version.version
+                if version
+                else f"vertical_{self.vertical or 'base'}_v1.0.0",
                 algorithm_version=f"vertical_override_{self.vertical or 'base'}_v1.0.0",
                 data_version=business_data.get("data_version", "unknown"),
                 status="completed",
@@ -266,7 +303,9 @@ class VerticalScoringEngine:
             logger.error(f"Error calculating vertical score: {e}")
             raise
 
-    def calculate_detailed_score(self, business_data: Dict[str, Any]) -> tuple[ScoringResult, List[ScoreBreakdown]]:
+    def calculate_detailed_score(
+        self, business_data: Dict[str, Any]
+    ) -> tuple[ScoringResult, List[ScoreBreakdown]]:
         """
         Calculate detailed score with component breakdowns
 
@@ -279,22 +318,34 @@ class VerticalScoringEngine:
         enriched_data = self.merged_parser.apply_fallbacks(business_data)
 
         breakdowns = []
-        for component_name, component_rules in self.merged_parser.get_component_rules().items():
+        for (
+            component_name,
+            component_rules,
+        ) in self.merged_parser.get_component_rules().items():
             component_result = component_rules.calculate_score(enriched_data)
 
             # Determine if this component was overridden
-            is_override = self.vertical_parser and component_name in self.vertical_parser.component_rules
+            is_override = (
+                self.vertical_parser
+                and component_name in self.vertical_parser.component_rules
+            )
 
             breakdown = ScoreBreakdown(
                 scoring_result_id=scoring_result.id,
                 component=component_name,
-                component_score=Decimal(str(round(component_result["total_points"], 2))),
-                max_possible_score=Decimal(str(round(component_result["max_points"], 2))),
+                component_score=Decimal(
+                    str(round(component_result["total_points"], 2))
+                ),
+                max_possible_score=Decimal(
+                    str(round(component_result["max_points"], 2))
+                ),
                 weight=Decimal(str(round(component_result["weight"], 2))),
                 raw_value=enriched_data,
                 calculation_method=f"vertical_{self.vertical or 'base'}_rules",
                 confidence=Decimal(str(round(component_result["percentage"] / 100, 2))),
-                data_quality=self._assess_component_data_quality(enriched_data, component_name),
+                data_quality=self._assess_component_data_quality(
+                    enriched_data, component_name
+                ),
                 calculation_notes=(
                     f"{'Override' if is_override else 'Inherited'} rules for {self.vertical or 'base'} vertical"
                 ),
@@ -366,7 +417,9 @@ class VerticalScoringEngine:
 
         return None
 
-    def _calculate_confidence(self, data: Dict[str, Any], component_results: Dict[str, Any]) -> float:
+    def _calculate_confidence(
+        self, data: Dict[str, Any], component_results: Dict[str, Any]
+    ) -> float:
         """Calculate overall confidence in the scoring result"""
         # Base confidence on data completeness and component performance
         data_completeness = self._calculate_data_completeness(data)
@@ -379,13 +432,19 @@ class VerticalScoringEngine:
                 component_performances.append(performance)
 
         avg_component_performance = (
-            sum(component_performances) / len(component_performances) if component_performances else 0.0
+            sum(component_performances) / len(component_performances)
+            if component_performances
+            else 0.0
         )
 
         # Boost confidence if using vertical-specific rules
         vertical_boost = 0.05 if self.vertical else 0.0
 
-        confidence = (data_completeness * 0.7) + (avg_component_performance * 0.3) + vertical_boost
+        confidence = (
+            (data_completeness * 0.7)
+            + (avg_component_performance * 0.3)
+            + vertical_boost
+        )
         return min(1.0, max(0.0, confidence))
 
     def _calculate_data_completeness(self, data: Dict[str, Any]) -> float:
@@ -397,9 +456,20 @@ class VerticalScoringEngine:
                 # Extract field names from rule conditions (simplified)
                 import re
 
-                field_matches = re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b", rule.condition)
+                field_matches = re.findall(
+                    r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b", rule.condition
+                )
                 for match in field_matches:
-                    if match not in ["len", "str", "int", "float", "and", "or", "in", "not"]:
+                    if match not in [
+                        "len",
+                        "str",
+                        "int",
+                        "float",
+                        "and",
+                        "or",
+                        "in",
+                        "not",
+                    ]:
                         expected_fields.add(match)
 
         if not expected_fields:
@@ -414,7 +484,9 @@ class VerticalScoringEngine:
 
         return filled_fields / len(expected_fields)
 
-    def _assess_component_data_quality(self, data: Dict[str, Any], component_name: str) -> str:
+    def _assess_component_data_quality(
+        self, data: Dict[str, Any], component_name: str
+    ) -> str:
         """Assess data quality for a specific component"""
         component_rules = self.merged_parser.get_component_rules(component_name)
         if not component_rules:
@@ -433,7 +505,16 @@ class VerticalScoringEngine:
             has_needed_data = True
 
             for field in field_matches:
-                if field not in ["len", "str", "int", "float", "and", "or", "in", "not"]:
+                if field not in [
+                    "len",
+                    "str",
+                    "int",
+                    "float",
+                    "and",
+                    "or",
+                    "in",
+                    "not",
+                ]:
                     if field not in data or data[field] in [None, "", 0]:
                         has_needed_data = False
                         break
@@ -467,14 +548,21 @@ class VerticalScoringEngine:
         config = self.SUPPORTED_VERTICALS.get(self.vertical, {})
         return {
             "vertical": self.vertical,
-            "description": config.description if hasattr(config, "description") else "Unknown vertical",
+            "description": config.description
+            if hasattr(config, "description")
+            else "Unknown vertical",
             "multiplier": config.multiplier if hasattr(config, "multiplier") else 1.0,
-            "rules_file": config.rules_file if hasattr(config, "rules_file") else "unknown",
-            "override_components": list(self.vertical_parser.component_rules.keys()) if self.vertical_parser else [],
+            "rules_file": config.rules_file
+            if hasattr(config, "rules_file")
+            else "unknown",
+            "override_components": list(self.vertical_parser.component_rules.keys())
+            if self.vertical_parser
+            else [],
             "inherited_components": [
                 name
                 for name in self.merged_parser.component_rules.keys()
-                if self.vertical_parser and name not in self.vertical_parser.component_rules
+                if self.vertical_parser
+                and name not in self.vertical_parser.component_rules
             ],
             "supported_verticals": list(self.SUPPORTED_VERTICALS.keys()),
         }
@@ -515,11 +603,17 @@ class VerticalScoringEngine:
         total_weighted_score = 0.0
         total_weight = 0.0
 
-        for component_name, component_rules in self.merged_parser.get_component_rules().items():
+        for (
+            component_name,
+            component_rules,
+        ) in self.merged_parser.get_component_rules().items():
             component_result = component_rules.calculate_score(enriched_data)
 
             # Determine override status
-            is_override = self.vertical_parser and component_name in self.vertical_parser.component_rules
+            is_override = (
+                self.vertical_parser
+                and component_name in self.vertical_parser.component_rules
+            )
             is_vertical_specific = (
                 self.vertical_parser
                 and component_name in self.vertical_parser.component_rules
@@ -527,11 +621,17 @@ class VerticalScoringEngine:
             )
 
             if is_vertical_specific:
-                explanation["override_summary"]["vertical_specific_components"].append(component_name)
+                explanation["override_summary"]["vertical_specific_components"].append(
+                    component_name
+                )
             elif is_override:
-                explanation["override_summary"]["overridden_components"].append(component_name)
+                explanation["override_summary"]["overridden_components"].append(
+                    component_name
+                )
             else:
-                explanation["override_summary"]["inherited_components"].append(component_name)
+                explanation["override_summary"]["inherited_components"].append(
+                    component_name
+                )
 
             explanation["component_explanations"][component_name] = {
                 "description": component_rules.description,
@@ -542,7 +642,11 @@ class VerticalScoringEngine:
                 "weighted_score": component_result["weighted_score"],
                 "rule_details": component_result["rule_results"],
                 "override_status": (
-                    "vertical_specific" if is_vertical_specific else "overridden" if is_override else "inherited"
+                    "vertical_specific"
+                    if is_vertical_specific
+                    else "overridden"
+                    if is_override
+                    else "inherited"
                 ),
             }
 
@@ -552,7 +656,10 @@ class VerticalScoringEngine:
         # Overall calculation
         max_possible_score = self.merged_parser.engine_config.get("max_score", 100.0)
         overall_score = (
-            min(max_possible_score, max(0.0, total_weighted_score / total_weight * max_possible_score))
+            min(
+                max_possible_score,
+                max(0.0, total_weighted_score / total_weight * max_possible_score),
+            )
             if total_weight > 0
             else 0.0
         )
@@ -562,7 +669,9 @@ class VerticalScoringEngine:
             "total_weight": total_weight,
             "normalized_score": overall_score,
             "max_possible_score": max_possible_score,
-            "vertical_multiplier": self.merged_parser.engine_config.get("vertical_multiplier", 1.0),
+            "vertical_multiplier": self.merged_parser.engine_config.get(
+                "vertical_multiplier", 1.0
+            ),
         }
 
         # Tier assignment
@@ -570,9 +679,13 @@ class VerticalScoringEngine:
         explanation["tier_assignment"] = {
             "score": overall_score,
             "assigned_tier": tier_rule.name if tier_rule else "unqualified",
-            "tier_range": f"{tier_rule.min_score}-{tier_rule.max_score}" if tier_rule else "0-49.9",
+            "tier_range": f"{tier_rule.min_score}-{tier_rule.max_score}"
+            if tier_rule
+            else "0-49.9",
             "tier_description": tier_rule.description if tier_rule else "Not qualified",
-            "tier_rules_source": "vertical" if self.vertical_parser and self.vertical_parser.tier_rules else "base",
+            "tier_rules_source": "vertical"
+            if self.vertical_parser and self.vertical_parser.tier_rules
+            else "base",
         }
 
         return explanation
@@ -583,7 +696,9 @@ class VerticalScoringEngine:
         return cls.SUPPORTED_VERTICALS.copy()
 
     @classmethod
-    def create_for_vertical(cls, vertical: str, base_rules_file: str = "scoring_rules.yaml") -> "VerticalScoringEngine":
+    def create_for_vertical(
+        cls, vertical: str, base_rules_file: str = "scoring_rules.yaml"
+    ) -> "VerticalScoringEngine":
         """
         Factory method to create engine for specific vertical
 
@@ -600,7 +715,9 @@ class VerticalScoringEngine:
 # Convenience functions for specific verticals
 
 
-def create_restaurant_scoring_engine(base_rules_file: str = "scoring_rules.yaml") -> VerticalScoringEngine:
+def create_restaurant_scoring_engine(
+    base_rules_file: str = "scoring_rules.yaml",
+) -> VerticalScoringEngine:
     """
     Create scoring engine optimized for restaurants
 
@@ -609,7 +726,9 @@ def create_restaurant_scoring_engine(base_rules_file: str = "scoring_rules.yaml"
     return VerticalScoringEngine.create_for_vertical("restaurant", base_rules_file)
 
 
-def create_medical_scoring_engine(base_rules_file: str = "scoring_rules.yaml") -> VerticalScoringEngine:
+def create_medical_scoring_engine(
+    base_rules_file: str = "scoring_rules.yaml",
+) -> VerticalScoringEngine:
     """
     Create scoring engine optimized for medical practices
 

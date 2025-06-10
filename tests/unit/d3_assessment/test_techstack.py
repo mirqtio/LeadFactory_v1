@@ -8,17 +8,17 @@ Tests all acceptance criteria:
 - Analytics tools found
 - Pattern matching efficient
 """
-import pytest
 import sys
-from unittest.mock import AsyncMock, patch, mock_open
 from decimal import Decimal
+from unittest.mock import AsyncMock, mock_open, patch
 
-sys.path.insert(0, '/app')  # noqa: E402
+import pytest
 
-from d3_assessment.techstack import (  # noqa: E402
-    TechStackDetector, TechStackBatchDetector, TechStackAnalyzer
-)
+sys.path.insert(0, "/app")  # noqa: E402
+
 from d3_assessment.models import TechStackDetection  # noqa: E402
+from d3_assessment.techstack import TechStackAnalyzer  # noqa: E402
+from d3_assessment.techstack import TechStackBatchDetector, TechStackDetector
 from d3_assessment.types import TechCategory  # noqa: E402
 
 
@@ -75,7 +75,10 @@ class TestTask032AcceptanceCriteria:
     @pytest.fixture
     def detector(self):
         """Create TechStackDetector instance"""
-        with patch('builtins.open', mock_open(read_data='{"cms": {}, "frontend": {}, "analytics": {}}')):
+        with patch(
+            "builtins.open",
+            mock_open(read_data='{"cms": {}, "frontend": {}, "analytics": {}}'),
+        ):
             return TechStackDetector()
 
     @pytest.mark.asyncio
@@ -89,54 +92,56 @@ class TestTask032AcceptanceCriteria:
         detector.patterns = {
             "frontend": {
                 "react": {
-                    "patterns": ["react", "__REACT_DEVTOOLS_GLOBAL_HOOK__", "react-dom"],
+                    "patterns": [
+                        "react",
+                        "__REACT_DEVTOOLS_GLOBAL_HOOK__",
+                        "react-dom",
+                    ],
                     "confidence_weights": {
                         "__REACT_DEVTOOLS_GLOBAL_HOOK__": 0.95,
                         "react": 0.80,
-                        "react-dom": 0.90
+                        "react-dom": 0.90,
                     },
                     "description": "React JavaScript library",
-                    "website": "https://react.dev"
+                    "website": "https://react.dev",
                 },
                 "vue": {
                     "patterns": ["vue.js", "data-v-", "__VUE__"],
                     "confidence_weights": {
                         "data-v-": 0.80,
                         "vue.js": 0.90,
-                        "__VUE__": 0.95
+                        "__VUE__": 0.95,
                     },
                     "description": "Vue.js JavaScript framework",
-                    "website": "https://vuejs.org"
+                    "website": "https://vuejs.org",
                 },
                 "jquery": {
                     "patterns": ["jquery", "\\$.fn.jquery"],
-                    "confidence_weights": {
-                        "jquery": 0.85,
-                        "\\$.fn.jquery": 0.95
-                    },
+                    "confidence_weights": {"jquery": 0.85, "\\$.fn.jquery": 0.95},
                     "description": "jQuery JavaScript library",
-                    "website": "https://jquery.com"
+                    "website": "https://jquery.com",
                 },
                 "bootstrap": {
                     "patterns": ["bootstrap", "bs-", "bootstrap.min.css"],
                     "confidence_weights": {
                         "bootstrap": 0.80,
                         "bootstrap.min.css": 0.90,
-                        "bs-": 0.75
+                        "bs-": 0.75,
                     },
                     "description": "Bootstrap CSS framework",
-                    "website": "https://getbootstrap.com"
-                }
+                    "website": "https://getbootstrap.com",
+                },
             }
         }
 
         # Mock content fetching
-        with patch.object(detector, '_fetch_website_content', new_callable=AsyncMock) as mock_fetch:
+        with patch.object(
+            detector, "_fetch_website_content", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = mock_html_content
 
             detections = await detector.detect_technologies(
-                assessment_id="test-assessment",
-                url="https://example.com"
+                assessment_id="test-assessment", url="https://example.com"
             )
 
             # Should detect multiple frameworks
@@ -158,7 +163,7 @@ class TestTask032AcceptanceCriteria:
             frameworks = await detector.analyze_frameworks_specifically(
                 assessment_id="test-assessment",
                 url="https://example.com",
-                content=mock_html_content
+                content=mock_html_content,
             )
 
             assert len(frameworks) >= 3  # React, Vue, jQuery, Bootstrap
@@ -180,38 +185,45 @@ class TestTask032AcceptanceCriteria:
         detector.patterns = {
             "cms": {
                 "wordpress": {
-                    "patterns": ["/wp-content/", "/wp-includes/", "generator.*wordpress"],
+                    "patterns": [
+                        "/wp-content/",
+                        "/wp-includes/",
+                        "generator.*wordpress",
+                    ],
                     "confidence_weights": {
                         "/wp-content/": 0.95,
                         "/wp-includes/": 0.95,
-                        "generator.*wordpress": 0.80
+                        "generator.*wordpress": 0.80,
                     },
                     "description": "WordPress content management system",
-                    "website": "https://wordpress.org"
+                    "website": "https://wordpress.org",
                 },
                 "drupal": {
                     "patterns": ["/sites/default/files/", "generator.*drupal"],
                     "confidence_weights": {
                         "/sites/default/files/": 0.95,
-                        "generator.*drupal": 0.80
+                        "generator.*drupal": 0.80,
                     },
                     "description": "Drupal content management system",
-                    "website": "https://drupal.org"
-                }
+                    "website": "https://drupal.org",
+                },
             }
         }
 
         # Mock content fetching
-        with patch.object(detector, '_fetch_website_content', new_callable=AsyncMock) as mock_fetch:
+        with patch.object(
+            detector, "_fetch_website_content", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = mock_html_content
 
             detections = await detector.detect_technologies(
-                assessment_id="test-assessment",
-                url="https://example.com"
+                assessment_id="test-assessment", url="https://example.com"
             )
 
             # Should detect WordPress (generator meta tag and /wp-content/)
-            wordpress_detection = next((d for d in detections if "Wordpress" in d.technology_name), None)
+            wordpress_detection = next(
+                (d for d in detections if "Wordpress" in d.technology_name), None
+            )
             assert wordpress_detection is not None
             assert wordpress_detection.category == TechCategory.CMS
             assert wordpress_detection.confidence > 0.5
@@ -220,7 +232,7 @@ class TestTask032AcceptanceCriteria:
             cms_detections = await detector.analyze_cms_specifically(
                 assessment_id="test-assessment",
                 url="https://example.com",
-                content=mock_html_content
+                content=mock_html_content,
             )
 
             assert len(cms_detections) >= 1
@@ -230,7 +242,10 @@ class TestTask032AcceptanceCriteria:
             # Verify detection method and metadata
             assert wordpress_detection.detection_method == "pattern_matching"
             assert "patterns_matched" in wordpress_detection.technology_data
-            assert wordpress_detection.technology_data["detection_method"] == "pattern_matching"
+            assert (
+                wordpress_detection.technology_data["detection_method"]
+                == "pattern_matching"
+            )
 
             print("✓ CMS identification works correctly")
 
@@ -245,46 +260,58 @@ class TestTask032AcceptanceCriteria:
         detector.patterns = {
             "analytics": {
                 "google_analytics": {
-                    "patterns": ["google-analytics.com", "gtag\\(", "googletagmanager.com", "G-"],
+                    "patterns": [
+                        "google-analytics.com",
+                        "gtag\\(",
+                        "googletagmanager.com",
+                        "G-",
+                    ],
                     "confidence_weights": {
                         "google-analytics.com": 0.95,
                         "gtag\\(": 0.90,
                         "googletagmanager.com": 0.90,
-                        "G-": 0.80
+                        "G-": 0.80,
                     },
                     "description": "Google Analytics web analytics",
-                    "website": "https://analytics.google.com"
+                    "website": "https://analytics.google.com",
                 },
                 "facebook_pixel": {
                     "patterns": ["facebook.net/tr", "fbq\\(", "connect.facebook.net"],
                     "confidence_weights": {
                         "facebook.net/tr": 0.95,
                         "fbq\\(": 0.90,
-                        "connect.facebook.net": 0.85
+                        "connect.facebook.net": 0.85,
                     },
                     "description": "Facebook Pixel tracking",
-                    "website": "https://facebook.com/business/tools/facebook-pixel"
-                }
+                    "website": "https://facebook.com/business/tools/facebook-pixel",
+                },
             }
         }
 
         # Mock content fetching
-        with patch.object(detector, '_fetch_website_content', new_callable=AsyncMock) as mock_fetch:
+        with patch.object(
+            detector, "_fetch_website_content", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = mock_html_content
 
             detections = await detector.detect_technologies(
-                assessment_id="test-assessment",
-                url="https://example.com"
+                assessment_id="test-assessment", url="https://example.com"
             )
 
             # Should detect Google Analytics
-            ga_detection = next((d for d in detections if "Google Analytics" in d.technology_name), None)
+            ga_detection = next(
+                (d for d in detections if "Google Analytics" in d.technology_name), None
+            )
             assert ga_detection is not None
             assert ga_detection.category == TechCategory.ANALYTICS
-            assert ga_detection.confidence > 0.8  # High confidence due to multiple patterns
+            assert (
+                ga_detection.confidence > 0.8
+            )  # High confidence due to multiple patterns
 
             # Should detect Facebook Pixel
-            fb_detection = next((d for d in detections if "Facebook Pixel" in d.technology_name), None)
+            fb_detection = next(
+                (d for d in detections if "Facebook Pixel" in d.technology_name), None
+            )
             assert fb_detection is not None
             assert fb_detection.category == TechCategory.ANALYTICS
 
@@ -292,7 +319,7 @@ class TestTask032AcceptanceCriteria:
             analytics_detections = await detector.analyze_analytics_specifically(
                 assessment_id="test-assessment",
                 url="https://example.com",
-                content=mock_html_content
+                content=mock_html_content,
             )
 
             assert len(analytics_detections) >= 2  # Google Analytics + Facebook Pixel
@@ -358,7 +385,9 @@ class TestTask032AcceptanceCriteria:
         jquery_version = detector._extract_version(content_with_versions, "jquery")
         assert jquery_version == "3.6.0"
 
-        wordpress_version = detector._extract_version(content_with_versions, "WordPress")
+        wordpress_version = detector._extract_version(
+            content_with_versions, "WordPress"
+        )
         assert wordpress_version == "6.0.1"
 
         react_version = detector._extract_version(content_with_versions, "React")
@@ -387,7 +416,7 @@ class TestTask032AcceptanceCriteria:
         # Mock the fetch method directly to test content size limiting
         large_content = "a" * 600000  # 600KB content
 
-        with patch.object(detector, '_fetch_website_content') as mock_fetch:
+        with patch.object(detector, "_fetch_website_content") as mock_fetch:
             # Simulate the content size limiting behavior
             mock_fetch.return_value = large_content[:500000]  # Limit to 500KB
 
@@ -407,18 +436,20 @@ class TestTask032AcceptanceCriteria:
 
         websites = [
             {"assessment_id": "test1", "url": "https://example1.com"},
-            {"assessment_id": "test2", "url": "https://example2.com"}
+            {"assessment_id": "test2", "url": "https://example2.com"},
         ]
 
         # Mock single detector
-        with patch.object(batch_detector.detector, 'detect_technologies', new_callable=AsyncMock) as mock_detect:
+        with patch.object(
+            batch_detector.detector, "detect_technologies", new_callable=AsyncMock
+        ) as mock_detect:
             mock_detect.return_value = [
                 TechStackDetection(
                     assessment_id="test",
                     technology_name="React",
                     category=TechCategory.FRONTEND,
                     confidence=0.95,
-                    detection_method="pattern_matching"
+                    detection_method="pattern_matching",
                 )
             ]
 
@@ -442,22 +473,22 @@ class TestTask032AcceptanceCriteria:
                 category=TechCategory.CMS,
                 confidence=0.95,
                 detection_method="pattern_matching",
-                version="6.0"
+                version="6.0",
             ),
             TechStackDetection(
                 assessment_id="test",
                 technology_name="React",
                 category=TechCategory.FRONTEND,
                 confidence=0.85,
-                detection_method="pattern_matching"
+                detection_method="pattern_matching",
             ),
             TechStackDetection(
                 assessment_id="test",
                 technology_name="Google Analytics",
                 category=TechCategory.ANALYTICS,
                 confidence=0.90,
-                detection_method="pattern_matching"
-            )
+                detection_method="pattern_matching",
+            ),
         ]
 
         summary = detector.get_technology_summary(detections)
@@ -472,7 +503,9 @@ class TestTask032AcceptanceCriteria:
         assert "Google Analytics" in summary["analytics_tools"]
 
         # Check confidence distribution (all our test detections are high confidence)
-        assert summary["confidence_distribution"]["high"] == 3  # WordPress (0.95), React (0.85), Google Analytics (0.90)
+        assert (
+            summary["confidence_distribution"]["high"] == 3
+        )  # WordPress (0.95), React (0.85), Google Analytics (0.90)
         assert summary["confidence_distribution"]["medium"] == 0
         assert summary["confidence_distribution"]["low"] == 0
 
@@ -491,15 +524,15 @@ class TestTask032AcceptanceCriteria:
                     category=TechCategory.CMS,
                     confidence=0.95,
                     detection_method="pattern_matching",
-                    version="6.0"
+                    version="6.0",
                 ),
                 TechStackDetection(
                     assessment_id="test1",
                     technology_name="React",
                     category=TechCategory.FRONTEND,
                     confidence=0.85,
-                    detection_method="pattern_matching"
-                )
+                    detection_method="pattern_matching",
+                ),
             ],
             [  # Website 2
                 TechStackDetection(
@@ -508,16 +541,16 @@ class TestTask032AcceptanceCriteria:
                     category=TechCategory.CMS,
                     confidence=0.90,
                     detection_method="pattern_matching",
-                    version="5.9"
+                    version="5.9",
                 ),
                 TechStackDetection(
                     assessment_id="test2",
                     technology_name="Vue",
                     category=TechCategory.FRONTEND,
                     confidence=0.80,
-                    detection_method="pattern_matching"
-                )
-            ]
+                    detection_method="pattern_matching",
+                ),
+            ],
         ]
 
         trends = analyzer.analyze_technology_trends(detections_list)
@@ -528,7 +561,9 @@ class TestTask032AcceptanceCriteria:
 
         # Test recommendations
         current_stack = detections_list[0]  # First website's stack
-        recommendations = analyzer.generate_technology_recommendations(current_stack, trends)
+        recommendations = analyzer.generate_technology_recommendations(
+            current_stack, trends
+        )
 
         assert len(recommendations) > 0
         # Should recommend missing categories or popular technologies
@@ -548,32 +583,42 @@ class TestTask032AcceptanceCriteria:
             "cms": {
                 "wordpress": {
                     "patterns": ["/wp-content/", "generator.*wordpress"],
-                    "confidence_weights": {"/wp-content/": 0.95, "generator.*wordpress": 0.80},
-                    "description": "WordPress CMS"
+                    "confidence_weights": {
+                        "/wp-content/": 0.95,
+                        "generator.*wordpress": 0.80,
+                    },
+                    "description": "WordPress CMS",
                 }
             },
             "frontend": {
                 "react": {
                     "patterns": ["__REACT_DEVTOOLS_GLOBAL_HOOK__", "react"],
-                    "confidence_weights": {"__REACT_DEVTOOLS_GLOBAL_HOOK__": 0.95, "react": 0.80},
-                    "description": "React framework"
+                    "confidence_weights": {
+                        "__REACT_DEVTOOLS_GLOBAL_HOOK__": 0.95,
+                        "react": 0.80,
+                    },
+                    "description": "React framework",
                 }
             },
             "analytics": {
                 "google_analytics": {
                     "patterns": ["gtag\\(", "googletagmanager.com"],
-                    "confidence_weights": {"gtag\\(": 0.90, "googletagmanager.com": 0.90},
-                    "description": "Google Analytics"
+                    "confidence_weights": {
+                        "gtag\\(": 0.90,
+                        "googletagmanager.com": 0.90,
+                    },
+                    "description": "Google Analytics",
                 }
-            }
+            },
         }
 
-        with patch.object(detector, '_fetch_website_content', new_callable=AsyncMock) as mock_fetch:
+        with patch.object(
+            detector, "_fetch_website_content", new_callable=AsyncMock
+        ) as mock_fetch:
             mock_fetch.return_value = mock_html_content
 
             detections = await detector.detect_technologies(
-                assessment_id="test-assessment",
-                url="https://example.com"
+                assessment_id="test-assessment", url="https://example.com"
             )
 
             # Should detect technologies from all categories
@@ -589,9 +634,7 @@ class TestTask032AcceptanceCriteria:
             # Test cost calculation
             batch_detector = TechStackBatchDetector()
             cost = await batch_detector.calculate_detection_cost(
-                assessment_id="test",
-                url="https://example.com",
-                detections=detections
+                assessment_id="test", url="https://example.com", detections=detections
             )
             assert cost > Decimal("0")
 
@@ -624,7 +667,9 @@ if __name__ == "__main__":
             await test_instance.test_batch_detection()
             test_instance.test_technology_summary(detector)
             test_instance.test_technology_analyzer()
-            await test_instance.test_comprehensive_detection_flow(detector, mock_content)
+            await test_instance.test_comprehensive_detection_flow(
+                detector, mock_content
+            )
 
             print()
             print("🎉 All Task 032 acceptance criteria tests pass!")
@@ -636,6 +681,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run async tests

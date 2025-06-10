@@ -6,18 +6,24 @@ from core.exceptions import LeadFactoryError
 
 class GatewayError(LeadFactoryError):
     """Base exception for gateway domain"""
+
     pass
 
 
 class APIProviderError(GatewayError):
     """Error from external API provider"""
 
-    def __init__(self, provider: str, message: str, status_code: int = None, response_data: dict = None):
+    def __init__(
+        self,
+        provider: str,
+        message: str,
+        status_code: int = None,
+        response_data: dict = None,
+    ):
         self.provider = provider
         self.response_data = response_data
         super().__init__(
-            message=f"{provider}: {message}",
-            status_code=status_code or 500
+            message=f"{provider}: {message}", status_code=status_code or 500
         )
 
 
@@ -40,7 +46,9 @@ class CircuitBreakerOpenError(GatewayError):
     def __init__(self, provider: str, failure_count: int):
         self.provider = provider
         self.failure_count = failure_count
-        super().__init__(f"Circuit breaker open for {provider} after {failure_count} failures")
+        super().__init__(
+            f"Circuit breaker open for {provider} after {failure_count} failures"
+        )
 
 
 class AuthenticationError(APIProviderError):

@@ -8,24 +8,18 @@ Tests for tier assignment system ensuring all acceptance criteria are met:
 - Distribution tracking
 """
 
-import sys
 import json
+import sys
 import tempfile
 import unittest
 from datetime import datetime
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.tiers import (
-    LeadTier,
-    TierBoundary,
-    TierConfiguration,
-    TierAssignment,
-    TierDistribution,
-    TierAssignmentEngine,
-    assign_lead_tier,
-    create_standard_configuration
-)
+from d5_scoring.tiers import (LeadTier, TierAssignment, TierAssignmentEngine,
+                              TierBoundary, TierConfiguration,
+                              TierDistribution, assign_lead_tier,
+                              create_standard_configuration)
 
 
 class TestTask048AcceptanceCriteria(unittest.TestCase):
@@ -41,23 +35,33 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
 
         # Test each tier assignment
         test_cases = [
-            ("lead_a_001", 90.0, LeadTier.A),   # Tier A (80-100)
-            ("lead_b_001", 75.0, LeadTier.B),   # Tier B (65-80)
-            ("lead_c_001", 55.0, LeadTier.C),   # Tier C (50-65)
-            ("lead_d_001", 35.0, LeadTier.D),   # Tier D (30-50)
-            ("lead_fail_001", 25.0, LeadTier.FAILED)  # Below gate threshold
+            ("lead_a_001", 90.0, LeadTier.A),  # Tier A (80-100)
+            ("lead_b_001", 75.0, LeadTier.B),  # Tier B (65-80)
+            ("lead_c_001", 55.0, LeadTier.C),  # Tier C (50-65)
+            ("lead_d_001", 35.0, LeadTier.D),  # Tier D (30-50)
+            ("lead_fail_001", 25.0, LeadTier.FAILED),  # Below gate threshold
         ]
 
         for lead_id, score, expected_tier in test_cases:
             assignment = engine.assign_tier(lead_id, score)
-            assert assignment.tier == expected_tier, f"Score {score} should assign to tier {expected_tier}, got {assignment.tier}"
+            assert (
+                assignment.tier == expected_tier
+            ), f"Score {score} should assign to tier {expected_tier}, got {assignment.tier}"
             assert assignment.lead_id == lead_id, "Lead ID should match"
             assert assignment.score == score, "Score should match"
 
         # Verify all tiers are represented
         assigned_tiers = {assignment.tier for assignment in engine.assignments}
-        expected_tiers = {LeadTier.A, LeadTier.B, LeadTier.C, LeadTier.D, LeadTier.FAILED}
-        assert assigned_tiers == expected_tiers, "All A/B/C/D tiers plus FAILED should be assigned"
+        expected_tiers = {
+            LeadTier.A,
+            LeadTier.B,
+            LeadTier.C,
+            LeadTier.D,
+            LeadTier.FAILED,
+        }
+        assert (
+            assigned_tiers == expected_tiers
+        ), "All A/B/C/D tiers plus FAILED should be assigned"
 
         print("✓ A/B/C/D tiers correctly assigned")
 
@@ -76,24 +80,26 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
                 TierBoundary(LeadTier.A, 85.0, 100.0, "Custom Tier A"),
                 TierBoundary(LeadTier.B, 70.0, 84.9, "Custom Tier B"),
                 TierBoundary(LeadTier.C, 55.0, 69.9, "Custom Tier C"),
-                TierBoundary(LeadTier.D, 25.0, 54.9, "Custom Tier D")
-            ]
+                TierBoundary(LeadTier.D, 25.0, 54.9, "Custom Tier D"),
+            ],
         )
 
         engine = TierAssignmentEngine(custom_config)
 
         # Test that same scores assign to different tiers with custom boundaries
         test_cases = [
-            (82.0, LeadTier.B),   # Would be A in default, B in custom
-            (67.0, LeadTier.C),   # Would be B in default, C in custom
-            (52.0, LeadTier.D),   # Would be C in default, D in custom
-            (27.0, LeadTier.D),   # Would be FAILED in default, D in custom
-            (20.0, LeadTier.FAILED)  # Below custom gate threshold
+            (82.0, LeadTier.B),  # Would be A in default, B in custom
+            (67.0, LeadTier.C),  # Would be B in default, C in custom
+            (52.0, LeadTier.D),  # Would be C in default, D in custom
+            (27.0, LeadTier.D),  # Would be FAILED in default, D in custom
+            (20.0, LeadTier.FAILED),  # Below custom gate threshold
         ]
 
         for score, expected_tier in test_cases:
             assignment = engine.assign_tier(f"test_{score}", score)
-            assert assignment.tier == expected_tier, f"Custom config: score {score} should be {expected_tier}, got {assignment.tier}"
+            assert (
+                assignment.tier == expected_tier
+            ), f"Custom config: score {score} should be {expected_tier}, got {assignment.tier}"
 
         # Test boundary validation
         with self.assertRaises(ValueError):
@@ -107,7 +113,9 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
         engine.update_configuration(new_config)
 
         assignment = engine.assign_tier("update_test", 35.0)
-        assert assignment.tier == LeadTier.FAILED, "Updated gate threshold should cause failure"
+        assert (
+            assignment.tier == LeadTier.FAILED
+        ), "Updated gate threshold should cause failure"
 
         print("✓ Configurable boundaries work correctly")
 
@@ -119,17 +127,27 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
         """
         # Test with different gate thresholds
         gate_configs = [
-            (30.0, [
-                (50.0, True, LeadTier.C),   # Pass gate, get tier
-                (25.0, False, LeadTier.FAILED),  # Fail gate
-                (30.0, True, LeadTier.D),   # Exactly at threshold - pass
-                (29.9, False, LeadTier.FAILED)   # Just below threshold - fail
-            ]),
-            (50.0, [
-                (60.0, True, LeadTier.C),   # Pass higher gate
-                (45.0, False, LeadTier.FAILED),  # Fail higher gate
-                (50.0, True, LeadTier.D),   # Exactly at threshold - pass (Tier D for gate=50.0)
-            ])
+            (
+                30.0,
+                [
+                    (50.0, True, LeadTier.C),  # Pass gate, get tier
+                    (25.0, False, LeadTier.FAILED),  # Fail gate
+                    (30.0, True, LeadTier.D),  # Exactly at threshold - pass
+                    (29.9, False, LeadTier.FAILED),  # Just below threshold - fail
+                ],
+            ),
+            (
+                50.0,
+                [
+                    (60.0, True, LeadTier.C),  # Pass higher gate
+                    (45.0, False, LeadTier.FAILED),  # Fail higher gate
+                    (
+                        50.0,
+                        True,
+                        LeadTier.D,
+                    ),  # Exactly at threshold - pass (Tier D for gate=50.0)
+                ],
+            ),
         ]
 
         for gate_threshold, test_cases in gate_configs:
@@ -137,18 +155,24 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             engine = TierAssignmentEngine(config)
 
             for i, (score, should_pass, expected_tier) in enumerate(test_cases):
-                assignment = engine.assign_tier(f"gate_test_{gate_threshold}_{i}", score)
+                assignment = engine.assign_tier(
+                    f"gate_test_{gate_threshold}_{i}", score
+                )
 
-                assert assignment.passed_gate == should_pass, f"Score {score} with gate {gate_threshold}: expected pass={should_pass}, got {assignment.passed_gate}"
-                assert assignment.tier == expected_tier, f"Score {score} should assign to {expected_tier}, got {assignment.tier}"
+                assert (
+                    assignment.passed_gate == should_pass
+                ), f"Score {score} with gate {gate_threshold}: expected pass={should_pass}, got {assignment.passed_gate}"
+                assert (
+                    assignment.tier == expected_tier
+                ), f"Score {score} should assign to {expected_tier}, got {assignment.tier}"
 
         # Test gate pass/fail counts in distribution
         engine = TierAssignmentEngine()  # Default gate threshold 30.0
 
         scores_and_expected = [
-            (80.0, True),   # Pass
-            (60.0, True),   # Pass
-            (40.0, True),   # Pass
+            (80.0, True),  # Pass
+            (60.0, True),  # Pass
+            (40.0, True),  # Pass
             (25.0, False),  # Fail
             (15.0, False),  # Fail
         ]
@@ -174,15 +198,22 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
         # Create diverse set of assignments
         assignments_data = [
             # Tier A leads (2)
-            ("a1", 95.0), ("a2", 85.0),
+            ("a1", 95.0),
+            ("a2", 85.0),
             # Tier B leads (3)
-            ("b1", 75.0), ("b2", 70.0), ("b3", 65.0),
+            ("b1", 75.0),
+            ("b2", 70.0),
+            ("b3", 65.0),
             # Tier C leads (4)
-            ("c1", 60.0), ("c2", 55.0), ("c3", 52.0), ("c4", 50.0),
+            ("c1", 60.0),
+            ("c2", 55.0),
+            ("c3", 52.0),
+            ("c4", 50.0),
             # Tier D leads (1)
             ("d1", 40.0),
             # Failed leads (2)
-            ("f1", 25.0), ("f2", 15.0)
+            ("f1", 25.0),
+            ("f2", 15.0),
         ]
 
         # Assign all leads
@@ -201,25 +232,37 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             LeadTier.B: 3,
             LeadTier.C: 4,
             LeadTier.D: 1,
-            LeadTier.FAILED: 2
+            LeadTier.FAILED: 2,
         }
 
         for tier, expected_count in expected_counts.items():
             actual_count = distribution.tier_counts[tier]
-            assert actual_count == expected_count, f"Tier {tier} should have {expected_count} leads, got {actual_count}"
+            assert (
+                actual_count == expected_count
+            ), f"Tier {tier} should have {expected_count} leads, got {actual_count}"
 
         # Verify percentages
         tier_percentages = distribution.tier_percentages
-        self.assertAlmostEqual(tier_percentages[LeadTier.A], 16.67, places=1)  # "Tier A should be ~16.67%"
+        self.assertAlmostEqual(
+            tier_percentages[LeadTier.A], 16.67, places=1
+        )  # "Tier A should be ~16.67%"
         assert tier_percentages[LeadTier.B] == 25.0, "Tier B should be 25%"
-        self.assertAlmostEqual(tier_percentages[LeadTier.C], 33.33, places=1)  # "Tier C should be ~33.33%"
-        self.assertAlmostEqual(tier_percentages[LeadTier.D], 8.33, places=1)  # "Tier D should be ~8.33%"
-        self.assertAlmostEqual(tier_percentages[LeadTier.FAILED], 16.67, places=1)  # "Failed should be ~16.67%"
+        self.assertAlmostEqual(
+            tier_percentages[LeadTier.C], 33.33, places=1
+        )  # "Tier C should be ~33.33%"
+        self.assertAlmostEqual(
+            tier_percentages[LeadTier.D], 8.33, places=1
+        )  # "Tier D should be ~8.33%"
+        self.assertAlmostEqual(
+            tier_percentages[LeadTier.FAILED], 16.67, places=1
+        )  # "Failed should be ~16.67%"
 
         # Verify gate statistics
         assert distribution.gate_pass_count == 10, "Should have 10 passed leads"
         assert distribution.gate_fail_count == 2, "Should have 2 failed leads"
-        self.assertAlmostEqual(distribution.gate_pass_rate, 83.33, places=1)  # "Pass rate should be ~83.33%"
+        self.assertAlmostEqual(
+            distribution.gate_pass_rate, 83.33, places=1
+        )  # "Pass rate should be ~83.33%"
 
         # Test filtering by tier
         tier_a_assignments = engine.get_assignments_by_tier(LeadTier.A)
@@ -243,7 +286,7 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             "batch_2": 70.0,
             "batch_3": 45.0,
             "batch_4": 20.0,
-            "batch_5": 85.0
+            "batch_5": 85.0,
         }
 
         assignments = engine.batch_assign_tiers(lead_scores)
@@ -256,28 +299,42 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             "batch_2": LeadTier.B,
             "batch_3": LeadTier.D,
             "batch_4": LeadTier.FAILED,
-            "batch_5": LeadTier.A
+            "batch_5": LeadTier.A,
         }
 
         for assignment in assignments:
             expected_tier = expected_tiers[assignment.lead_id]
-            assert assignment.tier == expected_tier, f"Batch assignment: {assignment.lead_id} should be {expected_tier}"
+            assert (
+                assignment.tier == expected_tier
+            ), f"Batch assignment: {assignment.lead_id} should be {expected_tier}"
 
         print("✓ Batch assignment works correctly")
 
     def test_tier_enum_properties(self):
         """Test LeadTier enum properties and methods"""
         # Test priority ordering
-        assert LeadTier.A.priority_order < LeadTier.B.priority_order, "A should have higher priority than B"
-        assert LeadTier.B.priority_order < LeadTier.C.priority_order, "B should have higher priority than C"
-        assert LeadTier.C.priority_order < LeadTier.D.priority_order, "C should have higher priority than D"
-        assert LeadTier.D.priority_order < LeadTier.FAILED.priority_order, "D should have higher priority than FAILED"
+        assert (
+            LeadTier.A.priority_order < LeadTier.B.priority_order
+        ), "A should have higher priority than B"
+        assert (
+            LeadTier.B.priority_order < LeadTier.C.priority_order
+        ), "B should have higher priority than C"
+        assert (
+            LeadTier.C.priority_order < LeadTier.D.priority_order
+        ), "C should have higher priority than D"
+        assert (
+            LeadTier.D.priority_order < LeadTier.FAILED.priority_order
+        ), "D should have higher priority than FAILED"
 
         # Test descriptions
         for tier in LeadTier:
             description = tier.description
-            assert isinstance(description, str), f"Tier {tier} should have string description"
-            assert len(description) > 10, f"Tier {tier} description should be meaningful"
+            assert isinstance(
+                description, str
+            ), f"Tier {tier} should have string description"
+            assert (
+                len(description) > 10
+            ), f"Tier {tier} description should be meaningful"
 
         print("✓ LeadTier enum properties work correctly")
 
@@ -290,7 +347,7 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             tier_a_min=85.0,
             tier_b_min=70.0,
             tier_c_min=55.0,
-            tier_d_min=35.0
+            tier_d_min=35.0,
         )
 
         assert config.name == "test_custom", "Custom config should have correct name"
@@ -316,7 +373,7 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             ("export_2", 75.0),
             ("export_3", 55.0),
             ("export_4", 35.0),
-            ("export_5", 20.0)
+            ("export_5", 20.0),
         ]
 
         for lead_id, score in test_assignments:
@@ -366,30 +423,30 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
                     "tier": "A",
                     "min_score": 85.0,
                     "max_score": 100.0,
-                    "description": "File Tier A"
+                    "description": "File Tier A",
                 },
                 {
                     "tier": "B",
                     "min_score": 70.0,
                     "max_score": 84.9,
-                    "description": "File Tier B"
+                    "description": "File Tier B",
                 },
                 {
                     "tier": "C",
                     "min_score": 55.0,
                     "max_score": 69.9,
-                    "description": "File Tier C"
+                    "description": "File Tier C",
                 },
                 {
                     "tier": "D",
                     "min_score": 40.0,
                     "max_score": 54.9,
-                    "description": "File Tier D"
-                }
-            ]
+                    "description": "File Tier D",
+                },
+            ],
         }
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(config_data, f)
             config_file = f.name
 
@@ -397,10 +454,16 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             # Load configuration from file
             engine = TierAssignmentEngine.from_configuration_file(config_file)
 
-            assert engine.configuration.name == "file_test_config", "Should load config name"
+            assert (
+                engine.configuration.name == "file_test_config"
+            ), "Should load config name"
             assert engine.configuration.version == "2.0.0", "Should load config version"
-            assert engine.configuration.gate_threshold == 40.0, "Should load gate threshold"
-            assert len(engine.configuration.boundaries) == 4, "Should load all boundaries"
+            assert (
+                engine.configuration.gate_threshold == 40.0
+            ), "Should load gate threshold"
+            assert (
+                len(engine.configuration.boundaries) == 4
+            ), "Should load all boundaries"
 
             # Test assignment with loaded config
             assignment = engine.assign_tier("file_test", 72.0)
@@ -408,6 +471,7 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
 
         finally:
             import os
+
             os.unlink(config_file)
 
         print("✓ Configuration file loading works correctly")
@@ -454,7 +518,7 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             tier_a_min=80.0,
             tier_b_min=65.0,
             tier_c_min=50.0,
-            tier_d_min=25.0
+            tier_d_min=25.0,
         )
         engine = TierAssignmentEngine(custom_config)
 
@@ -468,36 +532,60 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
             ("comp_d1", 40.0, LeadTier.D),
             ("comp_d2", 30.0, LeadTier.D),
             ("comp_f1", 20.0, LeadTier.FAILED),
-            ("comp_f2", 10.0, LeadTier.FAILED)
+            ("comp_f2", 10.0, LeadTier.FAILED),
         ]
 
         for lead_id, score, expected_tier in comprehensive_leads:
             assignment = engine.assign_tier(lead_id, score)
-            assert assignment.tier == expected_tier, f"A/B/C/D assignment failed for {lead_id}"
+            assert (
+                assignment.tier == expected_tier
+            ), f"A/B/C/D assignment failed for {lead_id}"
 
         # 2. Configurable boundaries - verify custom boundaries are being used
-        assert engine.configuration.gate_threshold == 25.0, "Custom gate threshold should be used"
-        boundary_a = next(b for b in engine.configuration.boundaries if b.tier == LeadTier.A)
+        assert (
+            engine.configuration.gate_threshold == 25.0
+        ), "Custom gate threshold should be used"
+        boundary_a = next(
+            b for b in engine.configuration.boundaries if b.tier == LeadTier.A
+        )
         assert boundary_a.min_score == 80.0, "Custom Tier A boundary should be used"
 
         # 3. Gate pass/fail logic - verify gate logic works with custom threshold
         distribution = engine.get_tier_distribution()
         assert distribution.gate_pass_count == 8, "Should have 8 passes with gate=25.0"
-        assert distribution.gate_fail_count == 2, "Should have 2 failures with gate=25.0"
+        assert (
+            distribution.gate_fail_count == 2
+        ), "Should have 2 failures with gate=25.0"
 
         # 4. Distribution tracking - verify comprehensive tracking
         assert distribution.total_assignments == 10, "Should track all 10 assignments"
-        assert distribution.tier_counts[LeadTier.A] == 2, "Should track 2 A-tier assignments"
-        assert distribution.tier_counts[LeadTier.B] == 2, "Should track 2 B-tier assignments"
-        assert distribution.tier_counts[LeadTier.C] == 2, "Should track 2 C-tier assignments"
-        assert distribution.tier_counts[LeadTier.D] == 2, "Should track 2 D-tier assignments"
-        assert distribution.tier_counts[LeadTier.FAILED] == 2, "Should track 2 failed assignments"
+        assert (
+            distribution.tier_counts[LeadTier.A] == 2
+        ), "Should track 2 A-tier assignments"
+        assert (
+            distribution.tier_counts[LeadTier.B] == 2
+        ), "Should track 2 B-tier assignments"
+        assert (
+            distribution.tier_counts[LeadTier.C] == 2
+        ), "Should track 2 C-tier assignments"
+        assert (
+            distribution.tier_counts[LeadTier.D] == 2
+        ), "Should track 2 D-tier assignments"
+        assert (
+            distribution.tier_counts[LeadTier.FAILED] == 2
+        ), "Should track 2 failed assignments"
 
         # Export and verify summary integrates all features
         summary = engine.export_distribution_summary()
-        assert summary["configuration"]["name"] == "comprehensive_test", "Should export config info"
-        assert summary["distribution"]["gate_pass_rate"] == 80.0, "Should calculate pass rate correctly"
-        assert len(summary["distribution"]["tier_counts"]) == 5, "Should include all tier counts"
+        assert (
+            summary["configuration"]["name"] == "comprehensive_test"
+        ), "Should export config info"
+        assert (
+            summary["distribution"]["gate_pass_rate"] == 80.0
+        ), "Should calculate pass rate correctly"
+        assert (
+            len(summary["distribution"]["tier_counts"]) == 5
+        ), "Should include all tier counts"
 
         print("✓ All acceptance criteria working together successfully")
 
@@ -526,7 +614,9 @@ class TestConvenienceFunctions(unittest.TestCase):
 
         # Verify Tier D uses the gate threshold
         tier_d_boundary = next(b for b in config.boundaries if b.tier == LeadTier.D)
-        assert tier_d_boundary.min_score == 45.0, "Tier D should start at gate threshold"
+        assert (
+            tier_d_boundary.min_score == 45.0
+        ), "Tier D should start at gate threshold"
 
         print("✓ Standard configuration function works correctly")
 

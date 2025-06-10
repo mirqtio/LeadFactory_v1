@@ -11,32 +11,44 @@ Acceptance Criteria:
 - Error handling proper ✓
 """
 
-from typing import Dict, Any, Optional, List
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, EmailStr, validator, root_validator
+from pydantic import BaseModel, EmailStr, Field, root_validator, validator
+
 from .models import ProductType, PurchaseStatus
 
 
 class CheckoutItemRequest(BaseModel):
     """Schema for checkout item in API request"""
-    product_name: str = Field(..., min_length=1, max_length=200, description="Name of the product")
+
+    product_name: str = Field(
+        ..., min_length=1, max_length=200, description="Name of the product"
+    )
     amount_usd: Decimal = Field(..., gt=0, le=10000, description="Price in USD")
     quantity: int = Field(default=1, ge=1, le=100, description="Quantity of items")
-    description: Optional[str] = Field(None, max_length=500, description="Product description")
-    product_type: ProductType = Field(default=ProductType.AUDIT_REPORT, description="Type of product")
-    business_id: Optional[str] = Field(None, max_length=100, description="Associated business ID")
-    metadata: Optional[Dict[str, str]] = Field(default_factory=dict, description="Additional metadata")
-    
-    @validator('amount_usd')
+    description: Optional[str] = Field(
+        None, max_length=500, description="Product description"
+    )
+    product_type: ProductType = Field(
+        default=ProductType.AUDIT_REPORT, description="Type of product"
+    )
+    business_id: Optional[str] = Field(
+        None, max_length=100, description="Associated business ID"
+    )
+    metadata: Optional[Dict[str, str]] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
+
+    @validator("amount_usd")
     def validate_amount(cls, v):
         """Validate amount has maximum 2 decimal places"""
         if v.as_tuple().exponent < -2:
-            raise ValueError('Amount cannot have more than 2 decimal places')
+            raise ValueError("Amount cannot have more than 2 decimal places")
         return v
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -46,28 +58,35 @@ class CheckoutItemRequest(BaseModel):
                 "description": "Comprehensive website audit",
                 "product_type": "audit_report",
                 "business_id": "biz_123",
-                "metadata": {"business_url": "https://example.com"}
+                "metadata": {"business_url": "https://example.com"},
             }
         }
 
 
 class CheckoutInitiationRequest(BaseModel):
     """Schema for checkout initiation API request - Acceptance Criteria"""
+
     customer_email: EmailStr = Field(..., description="Customer email address")
-    items: List[CheckoutItemRequest] = Field(..., min_items=1, max_items=50, description="Items to purchase")
-    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Marketing attribution data")
-    additional_metadata: Optional[Dict[str, str]] = Field(default_factory=dict, description="Additional metadata")
+    items: List[CheckoutItemRequest] = Field(
+        ..., min_items=1, max_items=50, description="Items to purchase"
+    )
+    attribution_data: Optional[Dict[str, str]] = Field(
+        default_factory=dict, description="Marketing attribution data"
+    )
+    additional_metadata: Optional[Dict[str, str]] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
     success_url: Optional[str] = Field(None, description="Custom success URL")
     cancel_url: Optional[str] = Field(None, description="Custom cancel URL")
-    
-    @validator('items')
+
+    @validator("items")
     def validate_items_not_empty(cls, v):
         """Ensure at least one item is provided"""
         if not v:
-            raise ValueError('At least one item is required')
+            raise ValueError("At least one item is required")
         return v
-    
-    @validator('attribution_data', 'additional_metadata')
+
+    @validator("attribution_data", "additional_metadata")
     def validate_metadata_keys(cls, v):
         """Validate metadata keys and values"""
         if v:
@@ -75,9 +94,11 @@ class CheckoutInitiationRequest(BaseModel):
                 if len(key) > 100:
                     raise ValueError(f'Metadata key "{key}" too long (max 100 chars)')
                 if len(str(value)) > 500:
-                    raise ValueError(f'Metadata value for "{key}" too long (max 500 chars)')
+                    raise ValueError(
+                        f'Metadata value for "{key}" too long (max 500 chars)'
+                    )
         return v
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -89,20 +110,21 @@ class CheckoutInitiationRequest(BaseModel):
                         "quantity": 1,
                         "description": "Comprehensive website audit",
                         "product_type": "audit_report",
-                        "metadata": {"business_url": "https://example.com"}
+                        "metadata": {"business_url": "https://example.com"},
                     }
                 ],
                 "attribution_data": {
                     "utm_source": "google",
                     "utm_medium": "cpc",
-                    "utm_campaign": "website_audit"
-                }
+                    "utm_campaign": "website_audit",
+                },
             }
         }
 
 
 class CheckoutInitiationResponse(BaseModel):
     """Schema for checkout initiation API response"""
+
     success: bool = Field(..., description="Whether the operation was successful")
     purchase_id: Optional[str] = Field(None, description="Generated purchase ID")
     checkout_url: Optional[str] = Field(None, description="Stripe checkout URL")
@@ -115,7 +137,7 @@ class CheckoutInitiationResponse(BaseModel):
     items: Optional[List[Dict[str, Any]]] = Field(None, description="Item summary")
     error: Optional[str] = Field(None, description="Error message if failed")
     error_type: Optional[str] = Field(None, description="Error type if failed")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -133,21 +155,22 @@ class CheckoutInitiationResponse(BaseModel):
                         "name": "Website Audit Report",
                         "amount_usd": 29.99,
                         "quantity": 1,
-                        "type": "audit_report"
+                        "type": "audit_report",
                     }
-                ]
+                ],
             }
         }
 
 
 class WebhookEventRequest(BaseModel):
     """Schema for webhook event processing - Acceptance Criteria"""
+
     event_type: str = Field(..., description="Stripe webhook event type")
     event_id: str = Field(..., description="Stripe event ID")
     data: Dict[str, Any] = Field(..., description="Event data payload")
     created: int = Field(..., description="Event creation timestamp")
     livemode: bool = Field(..., description="Whether event is from live mode")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -157,24 +180,25 @@ class WebhookEventRequest(BaseModel):
                     "object": {
                         "id": "cs_test_123",
                         "payment_status": "paid",
-                        "customer_email": "customer@example.com"
+                        "customer_email": "customer@example.com",
                     }
                 },
                 "created": 1640995200,
-                "livemode": False
+                "livemode": False,
             }
         }
 
 
 class WebhookEventResponse(BaseModel):
     """Schema for webhook event processing response"""
+
     success: bool = Field(..., description="Whether webhook processing was successful")
     event_id: Optional[str] = Field(None, description="Processed event ID")
     event_type: Optional[str] = Field(None, description="Event type that was processed")
     processing_status: Optional[str] = Field(None, description="Processing status")
     data: Optional[Dict[str, Any]] = Field(None, description="Processing result data")
     error: Optional[str] = Field(None, description="Error message if failed")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -187,27 +211,25 @@ class WebhookEventResponse(BaseModel):
                     "session_id": "cs_test_123",
                     "report_generation": {
                         "status": "triggered",
-                        "job_id": "report_job_123"
-                    }
-                }
+                        "job_id": "report_job_123",
+                    },
+                },
             }
         }
 
 
 class CheckoutSessionStatusRequest(BaseModel):
     """Schema for checkout session status request"""
+
     session_id: str = Field(..., min_length=1, description="Stripe checkout session ID")
-    
+
     class Config:
-        json_schema_extra = {
-            "example": {
-                "session_id": "cs_test_1234567890"
-            }
-        }
+        json_schema_extra = {"example": {"session_id": "cs_test_1234567890"}}
 
 
 class CheckoutSessionStatusResponse(BaseModel):
     """Schema for checkout session status response"""
+
     success: bool = Field(..., description="Whether the operation was successful")
     session_id: Optional[str] = Field(None, description="Checkout session ID")
     payment_status: Optional[str] = Field(None, description="Payment status")
@@ -219,7 +241,7 @@ class CheckoutSessionStatusResponse(BaseModel):
     metadata: Optional[Dict[str, str]] = Field(None, description="Session metadata")
     error: Optional[str] = Field(None, description="Error message if failed")
     error_type: Optional[str] = Field(None, description="Error type if failed")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -231,29 +253,29 @@ class CheckoutSessionStatusResponse(BaseModel):
                 "currency": "usd",
                 "customer": "cus_test_123",
                 "payment_intent": "pi_test_123",
-                "metadata": {
-                    "purchase_id": "purchase_123456"
-                }
+                "metadata": {"purchase_id": "purchase_123456"},
             }
         }
 
 
 class SuccessPageRequest(BaseModel):
     """Schema for success page request - Acceptance Criteria"""
+
     session_id: str = Field(..., description="Stripe checkout session ID")
     purchase_id: Optional[str] = Field(None, description="Purchase ID from metadata")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
                 "session_id": "cs_test_1234567890",
-                "purchase_id": "purchase_123456"
+                "purchase_id": "purchase_123456",
             }
         }
 
 
 class SuccessPageResponse(BaseModel):
     """Schema for success page response"""
+
     success: bool = Field(..., description="Whether payment was successful")
     purchase_id: Optional[str] = Field(None, description="Purchase ID")
     session_id: Optional[str] = Field(None, description="Session ID")
@@ -262,9 +284,11 @@ class SuccessPageResponse(BaseModel):
     payment_status: Optional[str] = Field(None, description="Payment status")
     items: Optional[List[Dict[str, Any]]] = Field(None, description="Purchased items")
     report_status: Optional[str] = Field(None, description="Report generation status")
-    estimated_delivery: Optional[str] = Field(None, description="Estimated delivery time")
+    estimated_delivery: Optional[str] = Field(
+        None, description="Estimated delivery time"
+    )
     error: Optional[str] = Field(None, description="Error message if failed")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -278,24 +302,29 @@ class SuccessPageResponse(BaseModel):
                     {
                         "name": "Website Audit Report",
                         "type": "audit_report",
-                        "business_url": "https://example.com"
+                        "business_url": "https://example.com",
                     }
                 ],
                 "report_status": "generating",
-                "estimated_delivery": "within 24 hours"
+                "estimated_delivery": "within 24 hours",
             }
         }
 
 
 class ErrorResponse(BaseModel):
     """Schema for API error responses - Acceptance Criteria"""
+
     success: bool = Field(default=False, description="Always false for error responses")
     error: str = Field(..., description="Error message")
     error_type: str = Field(..., description="Error type/category")
     error_code: Optional[str] = Field(None, description="Specific error code")
-    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
-    
+    details: Optional[Dict[str, Any]] = Field(
+        None, description="Additional error details"
+    )
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="Error timestamp"
+    )
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -305,30 +334,37 @@ class ErrorResponse(BaseModel):
                 "error_code": "INVALID_EMAIL",
                 "details": {
                     "field": "customer_email",
-                    "provided_value": "invalid-email"
+                    "provided_value": "invalid-email",
                 },
-                "timestamp": "2023-12-01T12:00:00Z"
+                "timestamp": "2023-12-01T12:00:00Z",
             }
         }
 
 
 class AuditReportCheckoutRequest(BaseModel):
     """Schema for audit report checkout convenience endpoint"""
+
     customer_email: EmailStr = Field(..., description="Customer email address")
     business_url: str = Field(..., description="Business website URL to audit")
-    business_name: Optional[str] = Field(None, max_length=200, description="Business name")
-    amount_usd: Optional[Decimal] = Field(default=Decimal("29.99"), description="Custom amount")
-    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Attribution data")
-    
-    @validator('business_url')
+    business_name: Optional[str] = Field(
+        None, max_length=200, description="Business name"
+    )
+    amount_usd: Optional[Decimal] = Field(
+        default=Decimal("29.99"), description="Custom amount"
+    )
+    attribution_data: Optional[Dict[str, str]] = Field(
+        default_factory=dict, description="Attribution data"
+    )
+
+    @validator("business_url")
     def validate_business_url(cls, v):
         """Validate business URL format"""
-        if not v.startswith(('http://', 'https://')):
-            raise ValueError('Business URL must start with http:// or https://')
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("Business URL must start with http:// or https://")
         if len(v) > 500:
-            raise ValueError('Business URL too long (max 500 chars)')
+            raise ValueError("Business URL too long (max 500 chars)")
         return v
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -338,48 +374,55 @@ class AuditReportCheckoutRequest(BaseModel):
                 "amount_usd": 29.99,
                 "attribution_data": {
                     "utm_source": "google",
-                    "utm_campaign": "audit_reports"
-                }
+                    "utm_campaign": "audit_reports",
+                },
             }
         }
 
 
 class BulkReportsCheckoutRequest(BaseModel):
     """Schema for bulk reports checkout convenience endpoint"""
+
     customer_email: EmailStr = Field(..., description="Customer email address")
-    business_urls: List[str] = Field(..., min_items=2, max_items=50, description="List of business URLs")
-    amount_per_report_usd: Optional[Decimal] = Field(default=Decimal("24.99"), description="Price per report")
-    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Attribution data")
-    
-    @validator('business_urls')
+    business_urls: List[str] = Field(
+        ..., min_items=2, max_items=50, description="List of business URLs"
+    )
+    amount_per_report_usd: Optional[Decimal] = Field(
+        default=Decimal("24.99"), description="Price per report"
+    )
+    attribution_data: Optional[Dict[str, str]] = Field(
+        default_factory=dict, description="Attribution data"
+    )
+
+    @validator("business_urls")
     def validate_business_urls(cls, v):
         """Validate business URLs"""
         for url in v:
-            if not url.startswith(('http://', 'https://')):
+            if not url.startswith(("http://", "https://")):
                 raise ValueError(f'URL "{url}" must start with http:// or https://')
             if len(url) > 500:
                 raise ValueError(f'URL "{url}" too long (max 500 chars)')
-        
+
         # Check for duplicates
         if len(v) != len(set(v)):
-            raise ValueError('Duplicate URLs are not allowed')
-        
+            raise ValueError("Duplicate URLs are not allowed")
+
         return v
-    
+
     class Config:
         json_schema_extra = {
             "example": {
                 "customer_email": "customer@example.com",
                 "business_urls": [
                     "https://example1.com",
-                    "https://example2.com", 
-                    "https://example3.com"
+                    "https://example2.com",
+                    "https://example3.com",
                 ],
                 "amount_per_report_usd": 24.99,
                 "attribution_data": {
                     "utm_source": "google",
-                    "utm_campaign": "bulk_audits"
-                }
+                    "utm_campaign": "bulk_audits",
+                },
             }
         }
 
@@ -387,11 +430,14 @@ class BulkReportsCheckoutRequest(BaseModel):
 # Utility schemas for common patterns
 class APIStatusResponse(BaseModel):
     """Schema for API status/health check response"""
+
     status: str = Field(..., description="API status")
     version: str = Field(..., description="API version")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Current timestamp")
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="Current timestamp"
+    )
     services: Dict[str, str] = Field(..., description="Service status")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -401,8 +447,8 @@ class APIStatusResponse(BaseModel):
                 "services": {
                     "stripe": "connected",
                     "database": "connected",
-                    "webhook_processor": "active"
-                }
+                    "webhook_processor": "active",
+                },
             }
         }
 
@@ -410,7 +456,7 @@ class APIStatusResponse(BaseModel):
 # Schema validation helpers
 def validate_stripe_session_id(session_id: str) -> bool:
     """Validate Stripe session ID format"""
-    return session_id.startswith(('cs_test_', 'cs_live_')) and len(session_id) > 10
+    return session_id.startswith(("cs_test_", "cs_live_")) and len(session_id) > 10
 
 
 def validate_purchase_id_format(purchase_id: str) -> bool:

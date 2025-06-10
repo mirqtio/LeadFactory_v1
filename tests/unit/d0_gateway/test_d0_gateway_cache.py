@@ -1,16 +1,16 @@
 """
 Test response cache system
 """
-import pytest
 import json
 import time
 from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 from d0_gateway.cache import ResponseCache
 
 
 class TestResponseCache:
-
     @pytest.fixture
     def cache(self):
         """Create cache for testing"""
@@ -19,12 +19,12 @@ class TestResponseCache:
     def test_redis_based_caching_config(self, cache):
         """Test that Redis-based caching is configured"""
         # Should have Redis connection capability
-        assert hasattr(cache, '_redis')
-        assert hasattr(cache, '_get_redis')
+        assert hasattr(cache, "_redis")
+        assert hasattr(cache, "_get_redis")
 
         # Should have provider-specific configuration
         assert cache.provider == "test_provider"
-        assert hasattr(cache, 'ttl')
+        assert hasattr(cache, "ttl")
         assert cache.ttl > 0
 
     def test_ttl_configuration_per_provider(self):
@@ -78,7 +78,7 @@ class TestResponseCache:
     async def test_hit_miss_tracking_cache_get(self, cache):
         """Test cache get operation and hit/miss tracking"""
         # Mock settings to disable stubs
-        with patch.object(cache.settings, 'use_stubs', False):
+        with patch.object(cache.settings, "use_stubs", False):
             # Mock Redis
             mock_redis = AsyncMock()
             cache._redis = mock_redis
@@ -106,7 +106,7 @@ class TestResponseCache:
     async def test_cache_set_operation(self, cache):
         """Test cache set operation"""
         # Mock settings to disable stubs
-        with patch.object(cache.settings, 'use_stubs', False):
+        with patch.object(cache.settings, "use_stubs", False):
             # Mock Redis
             mock_redis = AsyncMock()
             cache._redis = mock_redis
@@ -173,16 +173,16 @@ class TestResponseCache:
         stats = await cache.get_cache_stats()
 
         # Verify stats structure
-        assert stats['provider'] == "test_provider"
-        assert stats['cached_keys'] == 2
-        assert stats['ttl_seconds'] == cache.ttl
-        assert stats['redis_memory_used'] == "1.5M"
-        assert stats['redis_connected'] is True
+        assert stats["provider"] == "test_provider"
+        assert stats["cached_keys"] == 2
+        assert stats["ttl_seconds"] == cache.ttl
+        assert stats["redis_memory_used"] == "1.5M"
+        assert stats["redis_connected"] is True
 
     @pytest.mark.asyncio
     async def test_stub_mode_bypass(self):
         """Test that stub mode bypasses caching"""
-        with patch('core.config.get_settings') as mock_get_settings:
+        with patch("core.config.get_settings") as mock_get_settings:
             mock_settings = Mock()
             mock_settings.use_stubs = True
             mock_get_settings.return_value = mock_settings
@@ -214,8 +214,8 @@ class TestResponseCache:
         # Stats should handle error and include error info
         mock_redis.info.side_effect = Exception("Redis connection failed")
         stats = await cache.get_cache_stats()
-        assert stats['redis_connected'] is False
-        assert 'error' in stats
+        assert stats["redis_connected"] is False
+        assert "error" in stats
 
     @pytest.mark.asyncio
     async def test_redis_connection_lifecycle(self, cache):
@@ -224,7 +224,7 @@ class TestResponseCache:
         assert cache._redis is None
 
         # Mock Redis connection
-        with patch('d0_gateway.cache.aioredis.from_url') as mock_from_url:
+        with patch("d0_gateway.cache.aioredis.from_url") as mock_from_url:
             mock_redis = AsyncMock()
             mock_from_url.return_value = mock_redis
 
@@ -263,7 +263,6 @@ class TestResponseCache:
 
 
 class TestCacheKeyGeneration:
-
     @pytest.fixture
     def cache(self):
         return ResponseCache("test_provider")
@@ -338,14 +337,13 @@ class TestCacheKeyGeneration:
 
 
 class TestCacheIntegration:
-
     @pytest.mark.asyncio
     async def test_full_cache_workflow(self):
         """Test complete cache workflow"""
         cache = ResponseCache("test_provider")
 
         # Mock settings to disable stubs
-        with patch.object(cache.settings, 'use_stubs', False):
+        with patch.object(cache.settings, "use_stubs", False):
             # Mock Redis for full workflow
             mock_redis = AsyncMock()
             cache._redis = mock_redis
@@ -373,8 +371,8 @@ class TestCacheIntegration:
             mock_redis.keys.return_value = [cache_key]
             mock_redis.info.return_value = {"used_memory_human": "1M"}
             stats = await cache.get_cache_stats()
-            assert stats['cached_keys'] == 1
-            assert stats['provider'] == "test_provider"
+            assert stats["cached_keys"] == 1
+            assert stats["provider"] == "test_provider"
 
             # 6. Clear cache
             mock_redis.delete.return_value = 1
@@ -389,7 +387,7 @@ class TestCacheIntegration:
         cache = ResponseCache("test_provider")
 
         # Mock settings to disable stubs
-        with patch.object(cache.settings, 'use_stubs', False):
+        with patch.object(cache.settings, "use_stubs", False):
             mock_redis = AsyncMock()
             cache._redis = mock_redis
 
@@ -415,7 +413,7 @@ class TestCacheIntegration:
         cache = ResponseCache("test_provider")
 
         # Mock settings to disable stubs
-        with patch.object(cache.settings, 'use_stubs', False):
+        with patch.object(cache.settings, "use_stubs", False):
             mock_redis = AsyncMock()
             cache._redis = mock_redis
 
@@ -429,18 +427,16 @@ class TestCacheIntegration:
                         "categories": ["restaurant", "italian"],
                         "location": {
                             "address": "123 Main St",
-                            "coordinates": {"lat": 34.0522, "lng": -118.2437}
+                            "coordinates": {"lat": 34.0522, "lng": -118.2437},
                         },
                         "reviews": [
                             {"text": "Great food!", "rating": 5},
-                            {"text": "Good service", "rating": 4}
-                        ]
+                            {"text": "Good service", "rating": 4},
+                        ],
                     }
                 ],
                 "total": 1,
-                "region": {
-                    "center": {"lat": 34.0522, "lng": -118.2437}
-                }
+                "region": {"center": {"lat": 34.0522, "lng": -118.2437}},
             }
 
             # Set complex data

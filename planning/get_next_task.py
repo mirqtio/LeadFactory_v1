@@ -2,12 +2,12 @@
 """
 Get next task to work on based on dependencies and current progress
 """
+import argparse
 import json
 import sys
-import argparse
-from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 
 class TaskManager:
@@ -17,12 +17,12 @@ class TaskManager:
         self.status_file = self.base_dir / "planning" / "task_status.json"
 
         # Load task plan
-        with open(self.plan_file, 'r') as f:
+        with open(self.plan_file, "r") as f:
             self.plan = json.load(f)
 
         # Load or initialize task status
         if self.status_file.exists():
-            with open(self.status_file, 'r') as f:
+            with open(self.status_file, "r") as f:
                 self.status = json.load(f)
         else:
             self.status = self._initialize_status()
@@ -30,10 +30,7 @@ class TaskManager:
 
     def _initialize_status(self) -> Dict:
         """Initialize task status from plan"""
-        status = {
-            "last_updated": datetime.now().isoformat(),
-            "tasks": {}
-        }
+        status = {"last_updated": datetime.now().isoformat(), "tasks": {}}
 
         for phase in self.plan["phases"]:
             for task in phase["tasks"]:
@@ -41,7 +38,7 @@ class TaskManager:
                     "status": "pending",
                     "started_at": None,
                     "completed_at": None,
-                    "actual_hours": None
+                    "actual_hours": None,
                 }
 
         return status
@@ -49,7 +46,7 @@ class TaskManager:
     def _save_status(self):
         """Save status to file"""
         self.status["last_updated"] = datetime.now().isoformat()
-        with open(self.status_file, 'w') as f:
+        with open(self.status_file, "w") as f:
             json.dump(self.status, f, indent=2)
 
     def get_task_by_id(self, task_id: str) -> Optional[Dict]:
@@ -123,7 +120,7 @@ class TaskManager:
             "pending": 0,
             "blocked": 0,
             "by_phase": {},
-            "by_domain": {}
+            "by_domain": {},
         }
 
         for phase in self.plan["phases"]:
@@ -153,8 +150,9 @@ class TaskManager:
         ready_count = 0
         for phase in self.plan["phases"]:
             for task in phase["tasks"]:
-                if (self.get_task_status(task["id"]) == "pending" and
-                    self.check_dependencies_met(task)):
+                if self.get_task_status(
+                    task["id"]
+                ) == "pending" and self.check_dependencies_met(task):
                     ready_count += 1
         stats["ready"] = ready_count
         stats["pending"] -= ready_count
@@ -176,7 +174,9 @@ class TaskManager:
             for task in phase["tasks"]:
                 for dep_id in task.get("dependencies", []):
                     if dep_id not in all_task_ids:
-                        issues.append(f"Task {task['id']} has invalid dependency: {dep_id}")
+                        issues.append(
+                            f"Task {task['id']} has invalid dependency: {dep_id}"
+                        )
 
         return issues
 
@@ -190,8 +190,12 @@ class TaskManager:
         report.append("")
 
         # Overall progress
-        completion_pct = (stats["completed"] / stats["total"] * 100) if stats["total"] > 0 else 0
-        report.append(f"Overall Progress: {stats['completed']}/{stats['total']} ({completion_pct:.1f}%)")
+        completion_pct = (
+            (stats["completed"] / stats["total"] * 100) if stats["total"] > 0 else 0
+        )
+        report.append(
+            f"Overall Progress: {stats['completed']}/{stats['total']} ({completion_pct:.1f}%)"
+        )
         report.append("")
 
         # Status breakdown
@@ -206,33 +210,50 @@ class TaskManager:
         # Phase progress
         report.append("Progress by Phase:")
         for phase_name, phase_stats in stats["by_phase"].items():
-            phase_pct = (phase_stats["completed"] / phase_stats["total"] * 100) if phase_stats["total"] > 0 else 0
+            phase_pct = (
+                (phase_stats["completed"] / phase_stats["total"] * 100)
+                if phase_stats["total"] > 0
+                else 0
+            )
             status = "✓" if phase_pct == 100 else "◯" if phase_pct == 0 else "◐"
-            report.append(f"  {status} {phase_name:30s} {phase_stats['completed']:2d}/{phase_stats['total']:2d} ({phase_pct:5.1f}%)")
+            report.append(
+                f"  {status} {phase_name:30s} {phase_stats['completed']:2d}/{phase_stats['total']:2d} ({phase_pct:5.1f}%)"
+            )
 
         report.append("")
 
         # Domain progress
         report.append("Progress by Domain:")
         for domain, domain_stats in sorted(stats["by_domain"].items()):
-            domain_pct = (domain_stats["completed"] / domain_stats["total"] * 100) if domain_stats["total"] > 0 else 0
-            report.append(f"  {domain:15s} {domain_stats['completed']:2d}/{domain_stats['total']:2d} ({domain_pct:5.1f}%)")
+            domain_pct = (
+                (domain_stats["completed"] / domain_stats["total"] * 100)
+                if domain_stats["total"] > 0
+                else 0
+            )
+            report.append(
+                f"  {domain:15s} {domain_stats['completed']:2d}/{domain_stats['total']:2d} ({domain_pct:5.1f}%)"
+            )
 
         return "\n".join(report)
 
 
 def main():
     parser = argparse.ArgumentParser(description="LeadFactory task management tool")
-    parser.add_argument("--update", nargs=2, metavar=("TASK_ID", "STATUS"),
-                       help="Update task status")
-    parser.add_argument("--progress", action="store_true",
-                       help="Show progress statistics")
-    parser.add_argument("--verify", action="store_true",
-                       help="Verify task dependencies")
-    parser.add_argument("--report", action="store_true",
-                       help="Generate progress report")
-    parser.add_argument("--task", metavar="TASK_ID",
-                       help="Show details for specific task")
+    parser.add_argument(
+        "--update", nargs=2, metavar=("TASK_ID", "STATUS"), help="Update task status"
+    )
+    parser.add_argument(
+        "--progress", action="store_true", help="Show progress statistics"
+    )
+    parser.add_argument(
+        "--verify", action="store_true", help="Verify task dependencies"
+    )
+    parser.add_argument(
+        "--report", action="store_true", help="Generate progress report"
+    )
+    parser.add_argument(
+        "--task", metavar="TASK_ID", help="Show details for specific task"
+    )
 
     args = parser.parse_args()
 
@@ -244,7 +265,9 @@ def main():
 
     elif args.progress:
         stats = manager.get_progress_stats()
-        print(f"\nLeadFactory Progress: {stats['completed']}/{stats['total']} tasks completed ({stats['completed']/stats['total']*100:.1f}%)")
+        print(
+            f"\nLeadFactory Progress: {stats['completed']}/{stats['total']} tasks completed ({stats['completed']/stats['total']*100:.1f}%)"
+        )
         print(f"In Progress: {stats['in_progress']}")
         print(f"Ready to Start: {stats['ready']}")
 
@@ -270,7 +293,7 @@ def main():
             print(f"Dependencies: {', '.join(task.get('dependencies', ['none']))}")
             print(f"Estimated Hours: {task['estimated_hours']}")
             print("\nAcceptance Criteria:")
-            for criterion in task.get('acceptance_criteria', []):
+            for criterion in task.get("acceptance_criteria", []):
                 print(f"  - {criterion}")
         else:
             print(f"Task {args.task} not found")
@@ -282,7 +305,7 @@ def main():
         if not next_tasks:
             print("\nNo tasks ready to work on!")
             stats = manager.get_progress_stats()
-            if stats['completed'] == stats['total']:
+            if stats["completed"] == stats["total"]:
                 print("🎉 All tasks completed! 🎉")
             else:
                 print("Check task dependencies or blocked tasks.")
@@ -291,22 +314,24 @@ def main():
             print("-" * 80)
 
             for i, task in enumerate(next_tasks, 1):
-                status = manager.get_task_status(task['id'])
+                status = manager.get_task_status(task["id"])
                 status_icon = "🔄" if status == "in_progress" else "📋"
 
                 print(f"\n{status_icon} {i}. Task {task['id']}: {task['title']}")
-                print(f"   Domain: {task['domain']} | Complexity: {task['complexity']} | Est. Hours: {task['estimated_hours']}")
+                print(
+                    f"   Domain: {task['domain']} | Complexity: {task['complexity']} | Est. Hours: {task['estimated_hours']}"
+                )
 
                 if status == "in_progress":
                     print("   STATUS: IN PROGRESS")
 
-                if task.get('dependencies'):
+                if task.get("dependencies"):
                     print(f"   Dependencies: {', '.join(task['dependencies'])} ✓")
 
                 print("   Files to create:")
-                for file in task.get('files_to_create', [])[:3]:
+                for file in task.get("files_to_create", [])[:3]:
                     print(f"     - {file}")
-                if len(task.get('files_to_create', [])) > 3:
+                if len(task.get("files_to_create", [])) > 3:
                     print(f"     ... and {len(task['files_to_create']) - 3} more")
 
 

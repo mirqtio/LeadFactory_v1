@@ -8,21 +8,22 @@ Tests all acceptance criteria:
 - Cost tracking accurate
 - Success/failure rates
 """
-import pytest
 import asyncio
-import time
-from decimal import Decimal
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
-
 import sys
-sys.path.insert(0, '/app')  # noqa: E402
+import time
+from datetime import datetime, timedelta
+from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
-from d3_assessment.metrics import (  # noqa: E402
-    AssessmentMetrics, metrics, track_assessment_duration,
-    track_processing_step, track_assessment, AssessmentMetricsCollector
-)
-from d3_assessment.types import AssessmentType, AssessmentStatus  # noqa: E402
+import pytest
+
+sys.path.insert(0, "/app")  # noqa: E402
+
+from d3_assessment.metrics import AssessmentMetrics  # noqa: E402
+from d3_assessment.metrics import (AssessmentMetricsCollector, metrics,
+                                   track_assessment, track_assessment_duration,
+                                   track_processing_step)
+from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
 
 
 class TestTask037AcceptanceCriteria:
@@ -72,12 +73,14 @@ class TestTask037AcceptanceCriteria:
             business_id=business_id,
             assessment_type=assessment_type,
             industry=industry,
-            status=AssessmentStatus.COMPLETED
+            status=AssessmentStatus.COMPLETED,
         )
 
         # Verify success window updated
         assert len(assessment_metrics._success_window) == 1
-        assert assessment_metrics._success_window[0]["assessment_type"] == assessment_type
+        assert (
+            assessment_metrics._success_window[0]["assessment_type"] == assessment_type
+        )
 
         # Track another assessment that fails
         tracking_id2 = assessment_metrics.track_assessment_start(
@@ -89,12 +92,15 @@ class TestTask037AcceptanceCriteria:
             business_id=business_id,
             assessment_type=AssessmentType.TECH_STACK,
             industry=industry,
-            status=AssessmentStatus.FAILED
+            status=AssessmentStatus.FAILED,
         )
 
         # Verify error window updated
         assert len(assessment_metrics._error_window) == 1
-        assert assessment_metrics._error_window[0]["assessment_type"] == AssessmentType.TECH_STACK
+        assert (
+            assessment_metrics._error_window[0]["assessment_type"]
+            == AssessmentType.TECH_STACK
+        )
 
         print("✓ Assessment counts tracked correctly")
 
@@ -141,7 +147,7 @@ class TestTask037AcceptanceCriteria:
             (AssessmentType.PAGESPEED, Decimal("0.05"), "api_call"),
             (AssessmentType.AI_INSIGHTS, Decimal("0.35"), "llm_api"),
             (AssessmentType.TECH_STACK, Decimal("0.00"), "internal"),
-            (AssessmentType.FULL_AUDIT, Decimal("1.25"), "combined")
+            (AssessmentType.FULL_AUDIT, Decimal("1.25"), "combined"),
         ]
 
         for assessment_type, cost, category in test_costs:
@@ -149,16 +155,12 @@ class TestTask037AcceptanceCriteria:
 
         # Test cost tracking with very small amounts
         assessment_metrics.track_cost(
-            AssessmentType.PAGESPEED,
-            Decimal("0.001"),
-            "minimal_api"
+            AssessmentType.PAGESPEED, Decimal("0.001"), "minimal_api"
         )
 
         # Test cost tracking with larger amounts
         assessment_metrics.track_cost(
-            AssessmentType.AI_INSIGHTS,
-            Decimal("5.50"),
-            "premium_llm"
+            AssessmentType.AI_INSIGHTS, Decimal("5.50"), "premium_llm"
         )
 
         # Verify cost is tracked in assessment completion
@@ -173,7 +175,7 @@ class TestTask037AcceptanceCriteria:
             industry="retail",
             duration_seconds=2.5,
             cost_usd=Decimal("0.15"),
-            status=AssessmentStatus.COMPLETED
+            status=AssessmentStatus.COMPLETED,
         )
 
         print("✓ Cost tracking is accurate")
@@ -205,7 +207,7 @@ class TestTask037AcceptanceCriteria:
                 business_id="test_biz",
                 assessment_type=assessment_type,
                 industry="technology",
-                status=status
+                status=status,
             )
 
         # Get metrics summary
@@ -222,7 +224,7 @@ class TestTask037AcceptanceCriteria:
         assert summary["total_in_window"] == 6
         assert summary["success_in_window"] == 4
         assert summary["errors_in_window"] == 2
-        assert summary["overall_success_rate"] == 4/6
+        assert summary["overall_success_rate"] == 4 / 6
 
         # Verify per-type metrics
         pagespeed_stats = summary["assessment_types"][AssessmentType.PAGESPEED.value]
@@ -233,7 +235,9 @@ class TestTask037AcceptanceCriteria:
         assert tech_stack_stats["success"] == 1
         assert tech_stack_stats["errors"] == 1
 
-        ai_insights_stats = summary["assessment_types"][AssessmentType.AI_INSIGHTS.value]
+        ai_insights_stats = summary["assessment_types"][
+            AssessmentType.AI_INSIGHTS.value
+        ]
         assert ai_insights_stats["success"] == 1
         assert ai_insights_stats["errors"] == 0
 
@@ -277,12 +281,10 @@ class TestTask037AcceptanceCriteria:
 
         # Update memory usage
         assessment_metrics.update_memory_usage(
-            AssessmentType.PAGESPEED,
-            1024 * 1024 * 50  # 50MB
+            AssessmentType.PAGESPEED, 1024 * 1024 * 50  # 50MB
         )
         assessment_metrics.update_memory_usage(
-            AssessmentType.AI_INSIGHTS,
-            1024 * 1024 * 150  # 150MB
+            AssessmentType.AI_INSIGHTS, 1024 * 1024 * 150  # 150MB
         )
 
         print("✓ Queue and resource metrics work correctly")
@@ -291,21 +293,18 @@ class TestTask037AcceptanceCriteria:
         """Test rolling window cleanup functionality"""
         # Add old entries that should be cleaned up
         old_time = datetime.utcnow() - timedelta(minutes=20)
-        assessment_metrics._success_window.append({
-            "timestamp": old_time,
-            "assessment_type": AssessmentType.PAGESPEED
-        })
-        assessment_metrics._error_window.append({
-            "timestamp": old_time,
-            "assessment_type": AssessmentType.TECH_STACK
-        })
+        assessment_metrics._success_window.append(
+            {"timestamp": old_time, "assessment_type": AssessmentType.PAGESPEED}
+        )
+        assessment_metrics._error_window.append(
+            {"timestamp": old_time, "assessment_type": AssessmentType.TECH_STACK}
+        )
 
         # Add recent entries that should be kept
         recent_time = datetime.utcnow() - timedelta(minutes=5)
-        assessment_metrics._success_window.append({
-            "timestamp": recent_time,
-            "assessment_type": AssessmentType.AI_INSIGHTS
-        })
+        assessment_metrics._success_window.append(
+            {"timestamp": recent_time, "assessment_type": AssessmentType.AI_INSIGHTS}
+        )
 
         # Initial counts
         assert len(assessment_metrics._success_window) == 2
@@ -317,7 +316,10 @@ class TestTask037AcceptanceCriteria:
         # Verify old entries removed
         assert len(assessment_metrics._success_window) == 1
         assert len(assessment_metrics._error_window) == 0
-        assert assessment_metrics._success_window[0]["assessment_type"] == AssessmentType.AI_INSIGHTS
+        assert (
+            assessment_metrics._success_window[0]["assessment_type"]
+            == AssessmentType.AI_INSIGHTS
+        )
 
         print("✓ Window cleanup works correctly")
 
@@ -360,7 +362,7 @@ class TestTask037AcceptanceCriteria:
             "track_1",
             "biz_1",
             AssessmentType.PAGESPEED,
-            status=AssessmentStatus.COMPLETED
+            status=AssessmentStatus.COMPLETED,
         )
 
         # Export to JSON
@@ -413,7 +415,7 @@ class TestTask037AcceptanceCriteria:
             industry=industry,
             duration_seconds=5.5,
             cost_usd=Decimal("1.50"),
-            status=AssessmentStatus.COMPLETED
+            status=AssessmentStatus.COMPLETED,
         )
 
         # 7. Verify metrics summary
@@ -467,6 +469,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run async tests

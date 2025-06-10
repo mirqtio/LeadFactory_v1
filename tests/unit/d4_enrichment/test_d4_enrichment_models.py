@@ -7,22 +7,25 @@ Tests for enrichment models ensuring all acceptance criteria are met:
 - Source attribution
 - Data versioning
 """
-import pytest
 import json
+import sys
+import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-import uuid
 
-import sys
-sys.path.insert(0, '/app')
+import pytest
 
-from d4_enrichment.models import (
-    EnrichmentResult, EnrichmentRequest, EnrichmentAuditLog,
-    EnrichmentSource, MatchConfidence, EnrichmentStatus,
-    DataVersion, validate_enrichment_data, calculate_completeness_score
-)
+sys.path.insert(0, "/app")
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from d4_enrichment.models import (DataVersion, EnrichmentAuditLog,
+                                  EnrichmentRequest, EnrichmentResult,
+                                  EnrichmentSource, EnrichmentStatus,
+                                  MatchConfidence,
+                                  calculate_completeness_score,
+                                  validate_enrichment_data)
 from database.models import Base
 
 
@@ -55,30 +58,30 @@ class TestTask040AcceptanceCriteria:
     def sample_enrichment_data(self):
         """Sample enrichment data for testing"""
         return {
-            'company_name': 'Acme Corporation',
-            'legal_name': 'Acme Corporation LLC',
-            'domain': 'acme.com',
-            'website': 'https://www.acme.com',
-            'description': 'Leading provider of enterprise software solutions',
-            'industry': 'Software',
-            'employee_count': 150,
-            'employee_range': '100-200',
-            'founded_year': 2010,
-            'headquarters_address': {
-                'street': '123 Main St',
-                'city': 'San Francisco',
-                'state': 'CA',
-                'postal_code': '94105',
-                'country': 'United States'
+            "company_name": "Acme Corporation",
+            "legal_name": "Acme Corporation LLC",
+            "domain": "acme.com",
+            "website": "https://www.acme.com",
+            "description": "Leading provider of enterprise software solutions",
+            "industry": "Software",
+            "employee_count": 150,
+            "employee_range": "100-200",
+            "founded_year": 2010,
+            "headquarters_address": {
+                "street": "123 Main St",
+                "city": "San Francisco",
+                "state": "CA",
+                "postal_code": "94105",
+                "country": "United States",
             },
-            'headquarters_city': 'San Francisco',
-            'headquarters_state': 'CA',
-            'headquarters_country': 'United States',
-            'phone': '+1-555-123-4567',
-            'email_domain': 'acme.com',
-            'annual_revenue': Decimal('5000000.00'),
-            'technologies': ['Python', 'React', 'PostgreSQL'],
-            'logo_url': 'https://logo.acme.com/logo.png'
+            "headquarters_city": "San Francisco",
+            "headquarters_state": "CA",
+            "headquarters_country": "United States",
+            "phone": "+1-555-123-4567",
+            "email_domain": "acme.com",
+            "annual_revenue": Decimal("5000000.00"),
+            "technologies": ["Python", "React", "PostgreSQL"],
+            "logo_url": "https://logo.acme.com/logo.png",
         }
 
     def test_enrichment_result_model(self, test_session, sample_enrichment_data):
@@ -91,7 +94,7 @@ class TestTask040AcceptanceCriteria:
         request = EnrichmentRequest(
             business_id="biz_test_001",
             requested_sources=["clearbit", "apollo"],
-            status=EnrichmentStatus.IN_PROGRESS.value
+            status=EnrichmentStatus.IN_PROGRESS.value,
         )
         test_session.add(request)
         test_session.commit()
@@ -102,9 +105,9 @@ class TestTask040AcceptanceCriteria:
             business_id="biz_test_001",
             source=EnrichmentSource.CLEARBIT.value,
             match_confidence=MatchConfidence.HIGH.value,
-            match_score=Decimal('0.95'),
+            match_score=Decimal("0.95"),
             data_version="20240101_abc123",
-            **sample_enrichment_data
+            **sample_enrichment_data,
         )
 
         test_session.add(result)
@@ -117,7 +120,7 @@ class TestTask040AcceptanceCriteria:
         assert result.company_name == "Acme Corporation"
         assert result.domain == "acme.com"
         assert result.employee_count == 150
-        assert result.annual_revenue == Decimal('5000000.00')
+        assert result.annual_revenue == Decimal("5000000.00")
         assert result.enriched_at is not None
 
         # Test relationships
@@ -130,12 +133,12 @@ class TestTask040AcceptanceCriteria:
         assert not result.is_expired  # No expiry set
 
         contact_info = result.get_contact_info()
-        assert contact_info['phone'] == '+1-555-123-4567'
-        assert contact_info['website'] == 'https://www.acme.com'
+        assert contact_info["phone"] == "+1-555-123-4567"
+        assert contact_info["website"] == "https://www.acme.com"
 
         metrics = result.get_company_metrics()
-        assert metrics['employee_count'] == 150
-        assert metrics['annual_revenue'] == 5000000.00
+        assert metrics["employee_count"] == 150
+        assert metrics["annual_revenue"] == 5000000.00
 
         print("✓ Enrichment result model works correctly")
 
@@ -148,22 +151,22 @@ class TestTask040AcceptanceCriteria:
         result = EnrichmentResult(
             business_id="biz_test_002",
             source=EnrichmentSource.APOLLO.value,
-            match_score=Decimal('0.85'),
-            data_version="20240101_def456"
+            match_score=Decimal("0.85"),
+            data_version="20240101_def456",
         )
 
         # Test match confidence calculation
         input_data = {
-            'company_name': 'Test Company Inc',
-            'domain': 'testcompany.com',
-            'phone': '+1-555-999-8888'
+            "company_name": "Test Company Inc",
+            "domain": "testcompany.com",
+            "phone": "+1-555-999-8888",
         }
 
         matched_data = {
-            'company_name': 'Test Company Inc.',
-            'domain': 'testcompany.com',
-            'phone': '+1-555-999-8888',
-            'address': '456 Test St'
+            "company_name": "Test Company Inc.",
+            "domain": "testcompany.com",
+            "phone": "+1-555-999-8888",
+            "address": "456 Test St",
         }
 
         score = result.calculate_match_score(input_data, matched_data)
@@ -176,16 +179,16 @@ class TestTask040AcceptanceCriteria:
         assert result.match_confidence in [
             MatchConfidence.EXACT.value,
             MatchConfidence.HIGH.value,
-            MatchConfidence.MEDIUM.value
+            MatchConfidence.MEDIUM.value,
         ]
 
         # Test different confidence levels
         test_scores = [
-            (Decimal('1.0'), MatchConfidence.EXACT),
-            (Decimal('0.95'), MatchConfidence.HIGH),
-            (Decimal('0.75'), MatchConfidence.MEDIUM),
-            (Decimal('0.55'), MatchConfidence.LOW),
-            (Decimal('0.30'), MatchConfidence.UNCERTAIN)
+            (Decimal("1.0"), MatchConfidence.EXACT),
+            (Decimal("0.95"), MatchConfidence.HIGH),
+            (Decimal("0.75"), MatchConfidence.MEDIUM),
+            (Decimal("0.55"), MatchConfidence.LOW),
+            (Decimal("0.30"), MatchConfidence.UNCERTAIN),
         ]
 
         for score, expected_confidence in test_scores:
@@ -194,15 +197,15 @@ class TestTask040AcceptanceCriteria:
             assert result.match_confidence == expected_confidence.value
 
         # Test data quality metrics
-        result.data_quality_score = Decimal('0.92')
-        result.completeness_score = Decimal('0.88')
+        result.data_quality_score = Decimal("0.92")
+        result.completeness_score = Decimal("0.88")
         result.freshness_days = 5
 
         quality_metrics = result.get_data_quality_metrics()
-        assert quality_metrics['match_score'] == 0.30  # Last score set
-        assert quality_metrics['data_quality_score'] == 0.92
-        assert quality_metrics['completeness_score'] == 0.88
-        assert quality_metrics['freshness_days'] == 5
+        assert quality_metrics["match_score"] == 0.30  # Last score set
+        assert quality_metrics["data_quality_score"] == 0.92
+        assert quality_metrics["completeness_score"] == 0.88
+        assert quality_metrics["freshness_days"] == 5
 
         print("✓ Match confidence tracking works correctly")
 
@@ -215,20 +218,20 @@ class TestTask040AcceptanceCriteria:
         # Test different enrichment sources
         sources_data = [
             {
-                'source': EnrichmentSource.CLEARBIT.value,
-                'source_record_id': 'clearbit_123456',
-                'source_url': 'https://clearbit.com/companies/123456'
+                "source": EnrichmentSource.CLEARBIT.value,
+                "source_record_id": "clearbit_123456",
+                "source_url": "https://clearbit.com/companies/123456",
             },
             {
-                'source': EnrichmentSource.APOLLO.value,
-                'source_record_id': 'apollo_789012',
-                'source_url': 'https://apollo.io/companies/789012'
+                "source": EnrichmentSource.APOLLO.value,
+                "source_record_id": "apollo_789012",
+                "source_url": "https://apollo.io/companies/789012",
             },
             {
-                'source': EnrichmentSource.LINKEDIN.value,
-                'source_record_id': 'linkedin_345678',
-                'source_url': 'https://linkedin.com/company/test-company'
-            }
+                "source": EnrichmentSource.LINKEDIN.value,
+                "source_record_id": "linkedin_345678",
+                "source_url": "https://linkedin.com/company/test-company",
+            },
         ]
 
         results = []
@@ -236,7 +239,7 @@ class TestTask040AcceptanceCriteria:
             result = EnrichmentResult(
                 business_id=f"biz_test_00{i+3}",
                 data_version=f"20240101_{i+1:06d}",
-                **source_data
+                **source_data,
             )
             results.append(result)
             test_session.add(result)
@@ -246,16 +249,18 @@ class TestTask040AcceptanceCriteria:
         # Verify source attribution is properly stored
         for i, result in enumerate(results):
             source_data = sources_data[i]
-            assert result.source == source_data['source']
-            assert result.source_record_id == source_data['source_record_id']
-            assert result.source_url == source_data['source_url']
+            assert result.source == source_data["source"]
+            assert result.source_record_id == source_data["source_record_id"]
+            assert result.source_url == source_data["source_url"]
 
         # Test querying by source
-        clearbit_results = test_session.query(EnrichmentResult).filter_by(
-            source=EnrichmentSource.CLEARBIT.value
-        ).all()
+        clearbit_results = (
+            test_session.query(EnrichmentResult)
+            .filter_by(source=EnrichmentSource.CLEARBIT.value)
+            .all()
+        )
         assert len(clearbit_results) == 1
-        assert clearbit_results[0].source_record_id == 'clearbit_123456'
+        assert clearbit_results[0].source_record_id == "clearbit_123456"
 
         print("✓ Source attribution works correctly")
 
@@ -269,7 +274,7 @@ class TestTask040AcceptanceCriteria:
             business_id="biz_test_006",
             source=EnrichmentSource.CLEARBIT.value,
             data_version="initial_version",
-            company_name="Original Company Name"
+            company_name="Original Company Name",
         )
 
         test_session.add(result)
@@ -277,9 +282,9 @@ class TestTask040AcceptanceCriteria:
 
         # Test version update with new data
         new_data = {
-            'company_name': 'Updated Company Name',
-            'employee_count': 200,
-            'annual_revenue': Decimal('10000000.00')
+            "company_name": "Updated Company Name",
+            "employee_count": 200,
+            "annual_revenue": Decimal("10000000.00"),
         }
 
         old_version = result.data_version
@@ -297,7 +302,7 @@ class TestTask040AcceptanceCriteria:
             created_at=datetime.utcnow(),
             source=EnrichmentSource.CLEARBIT,
             checksum=result.data_checksum,
-            schema_version="1.0"
+            schema_version="1.0",
         )
 
         assert data_version_obj.version == new_version
@@ -305,10 +310,7 @@ class TestTask040AcceptanceCriteria:
         assert data_version_obj.schema_version == "1.0"
 
         # Test versioning with different data produces different checksums
-        new_data_2 = {
-            'company_name': 'Another Company Name',
-            'employee_count': 300
-        }
+        new_data_2 = {"company_name": "Another Company Name", "employee_count": 300}
 
         old_checksum = result.data_checksum
         result.update_data_version(new_data_2)
@@ -326,7 +328,7 @@ class TestTask040AcceptanceCriteria:
             requested_by="user_123",
             timeout_seconds=600,
             include_contacts=True,
-            include_financial_data=True
+            include_financial_data=True,
         )
 
         test_session.add(request)
@@ -349,9 +351,9 @@ class TestTask040AcceptanceCriteria:
 
         test_session.commit()
 
-        updated_request = test_session.query(EnrichmentRequest).filter_by(
-            id=request.id
-        ).first()
+        updated_request = (
+            test_session.query(EnrichmentRequest).filter_by(id=request.id).first()
+        )
         assert updated_request.status == EnrichmentStatus.IN_PROGRESS.value
         assert updated_request.started_at is not None
         assert updated_request.total_sources == 3
@@ -362,12 +364,12 @@ class TestTask040AcceptanceCriteria:
         """Test data validation functions"""
         # Test valid data
         valid_data = {
-            'company_name': 'Valid Company',
-            'domain': 'valid.com',
-            'email_domain': 'valid.com',
-            'phone': '+1-555-123-4567',
-            'employee_count': 100,
-            'annual_revenue': 1000000
+            "company_name": "Valid Company",
+            "domain": "valid.com",
+            "email_domain": "valid.com",
+            "phone": "+1-555-123-4567",
+            "employee_count": 100,
+            "annual_revenue": 1000000,
         }
 
         errors = validate_enrichment_data(valid_data)
@@ -375,20 +377,20 @@ class TestTask040AcceptanceCriteria:
 
         # Test invalid data
         invalid_data = {
-            'domain': 'invalid_domain',
-            'email_domain': 'invalid_email_domain',
-            'phone': '123',
-            'employee_count': -10,
-            'annual_revenue': -1000
+            "domain": "invalid_domain",
+            "email_domain": "invalid_email_domain",
+            "phone": "123",
+            "employee_count": -10,
+            "annual_revenue": -1000,
         }
 
         errors = validate_enrichment_data(invalid_data)
         assert len(errors) > 0
-        assert any('Company name is required' in error for error in errors)
-        assert any('Invalid domain format' in error for error in errors)
-        assert any('Invalid phone format' in error for error in errors)
-        assert any('Invalid employee count' in error for error in errors)
-        assert any('Invalid annual revenue' in error for error in errors)
+        assert any("Company name is required" in error for error in errors)
+        assert any("Invalid domain format" in error for error in errors)
+        assert any("Invalid phone format" in error for error in errors)
+        assert any("Invalid employee count" in error for error in errors)
+        assert any("Invalid annual revenue" in error for error in errors)
 
         print("✓ Data validation works correctly")
 
@@ -396,18 +398,18 @@ class TestTask040AcceptanceCriteria:
         """Test completeness score calculation"""
         # Test complete data
         complete_data = {
-            'company_name': 'Complete Company',
-            'domain': 'complete.com',
-            'industry': 'Technology',
-            'employee_count': 100,
-            'headquarters_city': 'San Francisco',
-            'headquarters_state': 'CA',
-            'headquarters_country': 'US',
-            'phone': '+1-555-123-4567',
-            'description': 'A complete company description',
-            'founded_year': 2020,
-            'website': 'https://complete.com',
-            'annual_revenue': 5000000
+            "company_name": "Complete Company",
+            "domain": "complete.com",
+            "industry": "Technology",
+            "employee_count": 100,
+            "headquarters_city": "San Francisco",
+            "headquarters_state": "CA",
+            "headquarters_country": "US",
+            "phone": "+1-555-123-4567",
+            "description": "A complete company description",
+            "founded_year": 2020,
+            "website": "https://complete.com",
+            "annual_revenue": 5000000,
         }
 
         score = calculate_completeness_score(complete_data)
@@ -415,9 +417,9 @@ class TestTask040AcceptanceCriteria:
 
         # Test partial data
         partial_data = {
-            'company_name': 'Partial Company',
-            'domain': 'partial.com',
-            'industry': 'Technology'
+            "company_name": "Partial Company",
+            "domain": "partial.com",
+            "industry": "Technology",
         }
 
         score = calculate_completeness_score(partial_data)
@@ -437,10 +439,10 @@ class TestTask040AcceptanceCriteria:
             action="enrich",
             source=EnrichmentSource.CLEARBIT.value,
             user_id="user_123",
-            old_values={'company_name': 'Old Name'},
-            new_values={'company_name': 'New Name'},
-            changes={'company_name': {'old': 'Old Name', 'new': 'New Name'}},
-            api_cost_usd=Decimal('0.50')
+            old_values={"company_name": "Old Name"},
+            new_values={"company_name": "New Name"},
+            changes={"company_name": {"old": "Old Name", "new": "New Name"}},
+            api_cost_usd=Decimal("0.50"),
         )
 
         test_session.add(audit_log)
@@ -451,7 +453,7 @@ class TestTask040AcceptanceCriteria:
         assert audit_log.business_id == "biz_test_008"
         assert audit_log.action == "enrich"
         assert audit_log.timestamp is not None
-        assert audit_log.api_cost_usd == Decimal('0.50')
+        assert audit_log.api_cost_usd == Decimal("0.50")
 
         print("✓ Audit logging works correctly")
 
@@ -462,14 +464,14 @@ class TestTask040AcceptanceCriteria:
             business_id="biz_test_009",
             source=EnrichmentSource.CLEARBIT.value,
             data_version="v1.0",
-            company_name="Test Company"
+            company_name="Test Company",
         )
 
         result2 = EnrichmentResult(
             business_id="biz_test_009",
             source=EnrichmentSource.CLEARBIT.value,
             data_version="v1.0",  # Same version - should violate constraint
-            company_name="Test Company 2"
+            company_name="Test Company 2",
         )
 
         test_session.add(result1)
@@ -488,7 +490,7 @@ class TestTask040AcceptanceCriteria:
             business_id="biz_test_009",
             source=EnrichmentSource.CLEARBIT.value,
             data_version="v2.0",  # Different version - should work
-            company_name="Test Company 3"
+            company_name="Test Company 3",
         )
 
         test_session.add(result3)
@@ -496,7 +498,9 @@ class TestTask040AcceptanceCriteria:
 
         print("✓ Model indexing and constraints work correctly")
 
-    def test_enrichment_comprehensive_workflow(self, test_session, sample_enrichment_data):
+    def test_enrichment_comprehensive_workflow(
+        self, test_session, sample_enrichment_data
+    ):
         """Test comprehensive enrichment workflow"""
         # Step 1: Create enrichment request
         request = EnrichmentRequest(
@@ -504,7 +508,7 @@ class TestTask040AcceptanceCriteria:
             requested_sources=["clearbit", "apollo"],
             priority="high",
             include_contacts=True,
-            include_financial_data=True
+            include_financial_data=True,
         )
         test_session.add(request)
         test_session.commit()
@@ -521,17 +525,19 @@ class TestTask040AcceptanceCriteria:
             source=EnrichmentSource.CLEARBIT.value,
             source_record_id="clearbit_999",
             match_confidence=MatchConfidence.HIGH.value,
-            match_score=Decimal('0.95'),
+            match_score=Decimal("0.95"),
             data_version="20240101_clearbit",
-            enrichment_cost_usd=Decimal('2.50'),
-            **sample_enrichment_data
+            enrichment_cost_usd=Decimal("2.50"),
+            **sample_enrichment_data,
         )
 
         apollo_data = sample_enrichment_data.copy()
-        apollo_data.update({
-            'employee_count': 155,  # Slightly different data
-            'technologies': ['Python', 'React', 'MongoDB']  # Different tech stack
-        })
+        apollo_data.update(
+            {
+                "employee_count": 155,  # Slightly different data
+                "technologies": ["Python", "React", "MongoDB"],  # Different tech stack
+            }
+        )
 
         apollo_result = EnrichmentResult(
             request_id=request.id,
@@ -539,10 +545,10 @@ class TestTask040AcceptanceCriteria:
             source=EnrichmentSource.APOLLO.value,
             source_record_id="apollo_888",
             match_confidence=MatchConfidence.MEDIUM.value,
-            match_score=Decimal('0.80'),
+            match_score=Decimal("0.80"),
             data_version="20240101_apollo",
-            enrichment_cost_usd=Decimal('1.50'),
-            **apollo_data
+            enrichment_cost_usd=Decimal("1.50"),
+            **apollo_data,
         )
 
         test_session.add_all([clearbit_result, apollo_result])
@@ -555,9 +561,9 @@ class TestTask040AcceptanceCriteria:
         test_session.commit()
 
         # Step 5: Verify complete workflow
-        final_request = test_session.query(EnrichmentRequest).filter_by(
-            id=request.id
-        ).first()
+        final_request = (
+            test_session.query(EnrichmentRequest).filter_by(id=request.id).first()
+        )
 
         assert final_request.status == EnrichmentStatus.COMPLETED.value
         assert len(final_request.results) == 2
@@ -576,7 +582,7 @@ class TestTask040AcceptanceCriteria:
 
         # Test cost tracking
         total_cost = sum(r.enrichment_cost_usd for r in final_request.results)
-        assert total_cost == Decimal('4.00')
+        assert total_cost == Decimal("4.00")
 
         print("✓ Comprehensive enrichment workflow works correctly")
 
@@ -604,10 +610,10 @@ if __name__ == "__main__":
 
             # Sample data
             sample_data = {
-                'company_name': 'Test Corporation',
-                'domain': 'test.com',
-                'employee_count': 100,
-                'annual_revenue': Decimal('1000000.00')
+                "company_name": "Test Corporation",
+                "domain": "test.com",
+                "employee_count": 100,
+                "annual_revenue": Decimal("1000000.00"),
             }
 
             # Run all acceptance criteria tests
@@ -633,6 +639,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run tests

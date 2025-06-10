@@ -4,52 +4,39 @@ FastAPI endpoints for D1 Targeting Domain
 Provides REST API for target universe management, campaign operations,
 batch scheduling, and targeting analytics.
 """
-from typing import List, Optional, Dict, Any
-from datetime import datetime, date
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from pydantic import ValidationError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import Session
 
-from database.session import SessionLocal
+from core.exceptions import LeadFactoryError
+from core.exceptions import ValidationError as CoreValidationError
 from core.logging import get_logger
-from core.exceptions import LeadFactoryError, ValidationError as CoreValidationError
 from core.metrics import metrics
+from database.session import SessionLocal
 
-from .models import TargetUniverse, Campaign, CampaignBatch, GeographicBoundary
-from .target_universe import TargetUniverseManager
 from .batch_scheduler import BatchScheduler
+from .models import Campaign, CampaignBatch, GeographicBoundary, TargetUniverse
 from .quota_tracker import QuotaTracker
-from .schemas import (
-    # Request schemas
-    CreateTargetUniverseSchema,
-    UpdateTargetUniverseSchema,
-    CreateCampaignSchema,
-    UpdateCampaignSchema,
-    CreateBatchesSchema,
-    BatchStatusUpdateSchema,
-    RefreshUniverseSchema,
-    CreateGeographicBoundarySchema,
-    TargetUniverseFilterSchema,
-    CampaignFilterSchema,
-    BatchFilterSchema,
-    PaginationSchema,
-
-    # Response schemas
-    BaseResponseSchema,
-    ErrorResponseSchema,
-    TargetUniverseResponseSchema,
-    CampaignResponseSchema,
-    BatchResponseSchema,
-    UniversePriorityResponseSchema,
-    QuotaAllocationResponseSchema,
-    TargetingMetricsResponseSchema,
-    CampaignMetricsResponseSchema,
-    GeographicBoundaryResponseSchema,
-    PaginatedResponseSchema,
-    BulkOperationResponseSchema
-)
+from .schemas import BaseResponseSchema  # Request schemas; Response schemas
+from .schemas import (BatchFilterSchema, BatchResponseSchema,
+                      BatchStatusUpdateSchema, BulkOperationResponseSchema,
+                      CampaignFilterSchema, CampaignMetricsResponseSchema,
+                      CampaignResponseSchema, CreateBatchesSchema,
+                      CreateCampaignSchema, CreateGeographicBoundarySchema,
+                      CreateTargetUniverseSchema, ErrorResponseSchema,
+                      GeographicBoundaryResponseSchema,
+                      PaginatedResponseSchema, PaginationSchema,
+                      QuotaAllocationResponseSchema, RefreshUniverseSchema,
+                      TargetingMetricsResponseSchema,
+                      TargetUniverseFilterSchema, TargetUniverseResponseSchema,
+                      UniversePriorityResponseSchema, UpdateCampaignSchema,
+                      UpdateTargetUniverseSchema)
+from .target_universe import TargetUniverseManager
 
 # Initialize logger
 logger = get_logger("d1_targeting_api", domain="d1")
@@ -71,6 +58,7 @@ def get_db() -> Session:
 # Exception handler decorator
 def handle_api_errors(func):
     """Decorator to handle common API errors"""
+
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
@@ -82,7 +70,9 @@ def handle_api_errors(func):
             raise HTTPException(status_code=400, detail=str(e))
         except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {str(e)}")
-            raise HTTPException(status_code=409, detail="Resource conflict or constraint violation")
+            raise HTTPException(
+                status_code=409, detail="Resource conflict or constraint violation"
+            )
         except SQLAlchemyError as e:
             logger.error(f"Database error in {func.__name__}: {str(e)}")
             raise HTTPException(status_code=500, detail="Database operation failed")
@@ -92,6 +82,7 @@ def handle_api_errors(func):
         except Exception as e:
             logger.exception(f"Unexpected error in {func.__name__}: {str(e)}")
             raise HTTPException(status_code=500, detail="Internal server error")
+
     return wrapper
 
 
@@ -99,8 +90,7 @@ def handle_api_errors(func):
 @router.post("/universes", response_model=TargetUniverseResponseSchema, status_code=201)
 @handle_api_errors
 async def create_target_universe(
-    request: CreateTargetUniverseSchema,
-    db: Session = Depends(get_db)
+    request: CreateTargetUniverseSchema, db: Session = Depends(get_db)
 ):
     """
     Create a new target universe with specified targeting criteria.
@@ -117,13 +107,13 @@ async def create_target_universe(
 
     # Convert targeting criteria to the format expected by manager
     geography_config = {
-        'constraints': [
+        "constraints": [
             {
-                'level': constraint.level.value,
-                'values': constraint.values,
-                'radius_miles': constraint.radius_miles,
-                'center_lat': constraint.center_lat,
-                'center_lng': constraint.center_lng
+                "level": constraint.level.value,
+                "values": constraint.values,
+                "radius_miles": constraint.radius_miles,
+                "center_lat": constraint.center_lat,
+                "center_lng": constraint.center_lng,
             }
             for constraint in request.targeting_criteria.geographic_constraints
         ]
@@ -134,7 +124,7 @@ async def create_target_universe(
         description=request.description,
         verticals=[v.value for v in request.targeting_criteria.verticals],
         geography_config=geography_config,
-        estimated_size=request.estimated_size
+        estimated_size=request.estimated_size,
     )
 
     metrics.increment_counter("targeting_universes_created")
@@ -148,7 +138,7 @@ async def create_target_universe(
 async def list_target_universes(
     filters: TargetUniverseFilterSchema = Depends(),
     pagination: PaginationSchema = Depends(),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     List target universes with optional filtering and pagination.
@@ -163,7 +153,7 @@ async def list_target_universes(
     if filters.verticals:
         # Filter by any of the specified verticals
         vertical_values = [v.value for v in filters.verticals]
-        query = query.filter(TargetUniverse.verticals.op('?|')(vertical_values))
+        query = query.filter(TargetUniverse.verticals.op("?|")(vertical_values))
     if filters.is_active is not None:
         query = query.filter(TargetUniverse.is_active == filters.is_active)
     if filters.min_size is not None:
@@ -183,10 +173,7 @@ async def list_target_universes(
 
 @router.get("/universes/{universe_id}", response_model=TargetUniverseResponseSchema)
 @handle_api_errors
-async def get_target_universe(
-    universe_id: str,
-    db: Session = Depends(get_db)
-):
+async def get_target_universe(universe_id: str, db: Session = Depends(get_db)):
     """
     Get a specific target universe by ID.
     """
@@ -204,9 +191,7 @@ async def get_target_universe(
 @router.put("/universes/{universe_id}", response_model=TargetUniverseResponseSchema)
 @handle_api_errors
 async def update_target_universe(
-    universe_id: str,
-    request: UpdateTargetUniverseSchema,
-    db: Session = Depends(get_db)
+    universe_id: str, request: UpdateTargetUniverseSchema, db: Session = Depends(get_db)
 ):
     """
     Update a target universe.
@@ -231,10 +216,7 @@ async def update_target_universe(
 
 @router.delete("/universes/{universe_id}", response_model=BaseResponseSchema)
 @handle_api_errors
-async def delete_target_universe(
-    universe_id: str,
-    db: Session = Depends(get_db)
-):
+async def delete_target_universe(universe_id: str, db: Session = Depends(get_db)):
     """
     Delete (soft delete) a target universe.
     """
@@ -258,7 +240,7 @@ async def refresh_target_universe(
     universe_id: str,
     request: RefreshUniverseSchema,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Refresh target universe data (background task).
@@ -280,10 +262,7 @@ async def refresh_target_universe(
 # Campaign endpoints
 @router.post("/campaigns", response_model=CampaignResponseSchema, status_code=201)
 @handle_api_errors
-async def create_campaign(
-    request: CreateCampaignSchema,
-    db: Session = Depends(get_db)
-):
+async def create_campaign(request: CreateCampaignSchema, db: Session = Depends(get_db)):
     """
     Create a new campaign.
     """
@@ -296,8 +275,8 @@ async def create_campaign(
 
     # Create campaign
     campaign_data = request.dict()
-    if campaign_data.get('batch_settings'):
-        campaign_data['batch_settings'] = campaign_data['batch_settings'].dict()
+    if campaign_data.get("batch_settings"):
+        campaign_data["batch_settings"] = campaign_data["batch_settings"].dict()
 
     campaign = Campaign(**campaign_data)
     db.add(campaign)
@@ -315,7 +294,7 @@ async def create_campaign(
 async def list_campaigns(
     filters: CampaignFilterSchema = Depends(),
     pagination: PaginationSchema = Depends(),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     List campaigns with optional filtering and pagination.
@@ -347,10 +326,7 @@ async def list_campaigns(
 
 @router.get("/campaigns/{campaign_id}", response_model=CampaignResponseSchema)
 @handle_api_errors
-async def get_campaign(
-    campaign_id: str,
-    db: Session = Depends(get_db)
-):
+async def get_campaign(campaign_id: str, db: Session = Depends(get_db)):
     """
     Get a specific campaign by ID.
     """
@@ -367,9 +343,7 @@ async def get_campaign(
 @router.put("/campaigns/{campaign_id}", response_model=CampaignResponseSchema)
 @handle_api_errors
 async def update_campaign(
-    campaign_id: str,
-    request: UpdateCampaignSchema,
-    db: Session = Depends(get_db)
+    campaign_id: str, request: UpdateCampaignSchema, db: Session = Depends(get_db)
 ):
     """
     Update a campaign.
@@ -383,8 +357,8 @@ async def update_campaign(
 
     # Update fields
     update_data = request.dict(exclude_unset=True)
-    if 'batch_settings' in update_data and update_data['batch_settings']:
-        update_data['batch_settings'] = update_data['batch_settings'].dict()
+    if "batch_settings" in update_data and update_data["batch_settings"]:
+        update_data["batch_settings"] = update_data["batch_settings"].dict()
 
     for field, value in update_data.items():
         setattr(campaign, field, value)
@@ -402,10 +376,7 @@ async def update_campaign(
 # Batch endpoints
 @router.post("/batches", response_model=Dict[str, Any])
 @handle_api_errors
-async def create_batches(
-    request: CreateBatchesSchema,
-    db: Session = Depends(get_db)
-):
+async def create_batches(request: CreateBatchesSchema, db: Session = Depends(get_db)):
     """
     Create daily batches for campaigns.
 
@@ -418,7 +389,9 @@ async def create_batches(
     scheduler = BatchScheduler(session=db)
 
     target_date = request.target_date or date.today()
-    batch_ids = scheduler.create_daily_batches(datetime.combine(target_date, datetime.min.time()))
+    batch_ids = scheduler.create_daily_batches(
+        datetime.combine(target_date, datetime.min.time())
+    )
 
     metrics.increment_counter("targeting_batches_created", len(batch_ids))
     logger.info(f"Successfully created {len(batch_ids)} batches")
@@ -427,7 +400,7 @@ async def create_batches(
         "success": True,
         "message": f"Created {len(batch_ids)} batches",
         "batch_ids": batch_ids,
-        "target_date": target_date.isoformat()
+        "target_date": target_date.isoformat(),
     }
 
 
@@ -436,7 +409,7 @@ async def create_batches(
 async def list_batches(
     filters: BatchFilterSchema = Depends(),
     pagination: PaginationSchema = Depends(),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     List campaign batches with optional filtering and pagination.
@@ -470,8 +443,7 @@ async def list_batches(
 @router.get("/batches/pending", response_model=List[BatchResponseSchema])
 @handle_api_errors
 async def get_pending_batches(
-    limit: Optional[int] = Query(None, ge=1, le=100),
-    db: Session = Depends(get_db)
+    limit: Optional[int] = Query(None, ge=1, le=100), db: Session = Depends(get_db)
 ):
     """
     Get batches ready for processing.
@@ -487,9 +459,7 @@ async def get_pending_batches(
 @router.put("/batches/{batch_id}/status", response_model=BaseResponseSchema)
 @handle_api_errors
 async def update_batch_status(
-    batch_id: str,
-    request: BatchStatusUpdateSchema,
-    db: Session = Depends(get_db)
+    batch_id: str, request: BatchStatusUpdateSchema, db: Session = Depends(get_db)
 ):
     """
     Update batch processing status.
@@ -505,10 +475,12 @@ async def update_batch_status(
             batch_id,
             request.targets_processed or 0,
             request.targets_contacted or 0,
-            request.targets_failed or 0
+            request.targets_failed or 0,
         )
     elif request.status.value == "failed":
-        success = scheduler.mark_batch_failed(batch_id, request.error_message or "Unknown error")
+        success = scheduler.mark_batch_failed(
+            batch_id, request.error_message or "Unknown error"
+        )
     else:
         raise HTTPException(status_code=400, detail="Invalid status update")
 
@@ -525,8 +497,7 @@ async def update_batch_status(
 @router.get("/analytics/quota", response_model=QuotaAllocationResponseSchema)
 @handle_api_errors
 async def get_quota_allocation(
-    target_date: Optional[date] = Query(None),
-    db: Session = Depends(get_db)
+    target_date: Optional[date] = Query(None), db: Session = Depends(get_db)
 ):
     """
     Get current quota allocation and usage.
@@ -549,10 +520,12 @@ async def get_quota_allocation(
     campaign_allocations = {}
 
     for campaign in active_campaigns:
-        allocation = quota_tracker.get_campaign_quota_allocation(campaign.id, target_date)
+        allocation = quota_tracker.get_campaign_quota_allocation(
+            campaign.id, target_date
+        )
         campaign_allocations[campaign.id] = {
             "campaign_name": campaign.name,
-            **allocation
+            **allocation,
         }
 
     utilization_rate = (used_quota / total_quota * 100) if total_quota > 0 else 0
@@ -562,15 +535,16 @@ async def get_quota_allocation(
         used_quota=used_quota,
         remaining_quota=remaining_quota,
         campaign_allocations=campaign_allocations,
-        utilization_rate=utilization_rate
+        utilization_rate=utilization_rate,
     )
 
 
-@router.get("/analytics/priorities", response_model=List[UniversePriorityResponseSchema])
+@router.get(
+    "/analytics/priorities", response_model=List[UniversePriorityResponseSchema]
+)
 @handle_api_errors
 async def get_universe_priorities(
-    limit: Optional[int] = Query(10, ge=1, le=50),
-    db: Session = Depends(get_db)
+    limit: Optional[int] = Query(10, ge=1, le=50), db: Session = Depends(get_db)
 ):
     """
     Get target universe priorities for scheduling.
@@ -588,25 +562,30 @@ async def get_universe_priorities(
         freshness_score = manager.calculate_freshness_score(universe)
         total_score = (priority_score + freshness_score) / 2
 
-        result.append(UniversePriorityResponseSchema(
-            universe_id=universe.id,
-            universe_name=universe.name,
-            priority_score=priority_score,
-            freshness_score=freshness_score,
-            total_score=total_score,
-            last_refresh=universe.last_refresh,
-            estimated_refresh_time=None  # Could be calculated based on priority
-        ))
+        result.append(
+            UniversePriorityResponseSchema(
+                universe_id=universe.id,
+                universe_name=universe.name,
+                priority_score=priority_score,
+                freshness_score=freshness_score,
+                total_score=total_score,
+                last_refresh=universe.last_refresh,
+                estimated_refresh_time=None,  # Could be calculated based on priority
+            )
+        )
 
     return result
 
 
 # Geographic boundary endpoints
-@router.post("/geographic-boundaries", response_model=GeographicBoundaryResponseSchema, status_code=201)
+@router.post(
+    "/geographic-boundaries",
+    response_model=GeographicBoundaryResponseSchema,
+    status_code=201,
+)
 @handle_api_errors
 async def create_geographic_boundary(
-    request: CreateGeographicBoundarySchema,
-    db: Session = Depends(get_db)
+    request: CreateGeographicBoundarySchema, db: Session = Depends(get_db)
 ):
     """
     Create a new geographic boundary.
@@ -624,13 +603,15 @@ async def create_geographic_boundary(
     return boundary
 
 
-@router.get("/geographic-boundaries", response_model=List[GeographicBoundaryResponseSchema])
+@router.get(
+    "/geographic-boundaries", response_model=List[GeographicBoundaryResponseSchema]
+)
 @handle_api_errors
 async def list_geographic_boundaries(
     level: Optional[str] = Query(None, description="Filter by geography level"),
     country: Optional[str] = Query("US", description="Filter by country"),
     pagination: PaginationSchema = Depends(),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     List geographic boundaries with optional filtering.
@@ -662,7 +643,9 @@ async def targeting_health_check(db: Session = Depends(get_db)):
         db.execute("SELECT 1")
 
         # Get basic stats
-        universe_count = db.query(TargetUniverse).filter(TargetUniverse.is_active == True).count()
+        universe_count = (
+            db.query(TargetUniverse).filter(TargetUniverse.is_active == True).count()
+        )
         campaign_count = db.query(Campaign).filter(Campaign.status == "running").count()
 
         return {
@@ -670,7 +653,7 @@ async def targeting_health_check(db: Session = Depends(get_db)):
             "database": "connected",
             "active_universes": universe_count,
             "running_campaigns": campaign_count,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")

@@ -10,16 +10,17 @@ Acceptance Criteria:
 - Address similarity scoring
 - Weighted combination logic
 """
+import math
 import re
 import unicodedata
-from typing import Optional, Dict, Any, List, Tuple, Set
 from dataclasses import dataclass
 from enum import Enum
-import math
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 class SimilarityAlgorithm(Enum):
     """Available similarity algorithms"""
+
     EXACT = "exact"
     JACCARD = "jaccard"
     JARO_WINKLER = "jaro_winkler"
@@ -32,6 +33,7 @@ class SimilarityAlgorithm(Enum):
 @dataclass
 class SimilarityResult:
     """Result of similarity comparison"""
+
     score: float
     algorithm: SimilarityAlgorithm
     normalized_input: str
@@ -53,10 +55,10 @@ class PhoneSimilarity:
             return ""
 
         # Remove all non-digit characters
-        digits = re.sub(r'[^\d]', '', phone)
+        digits = re.sub(r"[^\d]", "", phone)
 
         # Handle US numbers - remove leading 1 if 11 digits
-        if len(digits) == 11 and digits.startswith('1'):
+        if len(digits) == 11 and digits.startswith("1"):
             digits = digits[1:]
 
         return digits
@@ -68,28 +70,28 @@ class PhoneSimilarity:
 
         if len(normalized) == 10:
             return {
-                'normalized': normalized,
-                'area_code': normalized[:3],
-                'exchange': normalized[3:6],
-                'number': normalized[6:],
-                'formatted': f"({normalized[:3]}) {normalized[3:6]}-{normalized[6:]}"
+                "normalized": normalized,
+                "area_code": normalized[:3],
+                "exchange": normalized[3:6],
+                "number": normalized[6:],
+                "formatted": f"({normalized[:3]}) {normalized[3:6]}-{normalized[6:]}",
             }
         elif len(normalized) >= 7:
             # Handle shorter numbers
             return {
-                'normalized': normalized,
-                'area_code': '',
-                'exchange': normalized[:3] if len(normalized) >= 7 else '',
-                'number': normalized[3:] if len(normalized) >= 7 else normalized,
-                'formatted': normalized
+                "normalized": normalized,
+                "area_code": "",
+                "exchange": normalized[:3] if len(normalized) >= 7 else "",
+                "number": normalized[3:] if len(normalized) >= 7 else normalized,
+                "formatted": normalized,
             }
         else:
             return {
-                'normalized': normalized,
-                'area_code': '',
-                'exchange': '',
-                'number': normalized,
-                'formatted': normalized
+                "normalized": normalized,
+                "area_code": "",
+                "exchange": "",
+                "number": normalized,
+                "formatted": normalized,
             }
 
     @classmethod
@@ -101,7 +103,7 @@ class PhoneSimilarity:
                 algorithm=SimilarityAlgorithm.EXACT,
                 normalized_input=phone1 or "",
                 normalized_target=phone2 or "",
-                metadata={"reason": "empty_input"}
+                metadata={"reason": "empty_input"},
             )
 
         norm1 = cls.normalize_phone(phone1)
@@ -114,7 +116,7 @@ class PhoneSimilarity:
                 algorithm=SimilarityAlgorithm.EXACT,
                 normalized_input=norm1,
                 normalized_target=norm2,
-                metadata={"match_type": "exact"}
+                metadata={"match_type": "exact"},
             )
 
         # Extract formats for partial matching
@@ -131,26 +133,30 @@ class PhoneSimilarity:
                 algorithm=SimilarityAlgorithm.EXACT,
                 normalized_input=norm1,
                 normalized_target=norm2,
-                metadata={"match_type": "substring", "longer": longer, "shorter": shorter}
+                metadata={
+                    "match_type": "substring",
+                    "longer": longer,
+                    "shorter": shorter,
+                },
             )
 
         # Partial matching on components
         matches = 0
         total_components = 0
 
-        if fmt1['area_code'] and fmt2['area_code']:
+        if fmt1["area_code"] and fmt2["area_code"]:
             total_components += 1
-            if fmt1['area_code'] == fmt2['area_code']:
+            if fmt1["area_code"] == fmt2["area_code"]:
                 matches += 1
 
-        if fmt1['exchange'] and fmt2['exchange']:
+        if fmt1["exchange"] and fmt2["exchange"]:
             total_components += 1
-            if fmt1['exchange'] == fmt2['exchange']:
+            if fmt1["exchange"] == fmt2["exchange"]:
                 matches += 1
 
-        if fmt1['number'] and fmt2['number']:
+        if fmt1["number"] and fmt2["number"]:
             total_components += 1
-            if fmt1['number'] == fmt2['number']:
+            if fmt1["number"] == fmt2["number"]:
                 matches += 1
 
         if total_components > 0:
@@ -164,8 +170,8 @@ class PhoneSimilarity:
                     "match_type": "partial",
                     "matches": matches,
                     "total_components": total_components,
-                    "components": {"phone1": fmt1, "phone2": fmt2}
-                }
+                    "components": {"phone1": fmt1, "phone2": fmt2},
+                },
             )
 
         # No similarity
@@ -174,7 +180,7 @@ class PhoneSimilarity:
             algorithm=SimilarityAlgorithm.EXACT,
             normalized_input=norm1,
             normalized_target=norm2,
-            metadata={"match_type": "no_match"}
+            metadata={"match_type": "no_match"},
         )
 
 
@@ -187,29 +193,45 @@ class NameSimilarity:
 
     # Common business suffix patterns
     BUSINESS_SUFFIXES = {
-        'inc', 'inc.', 'incorporated',
-        'llc', 'l.l.c.', 'l.l.c',
-        'corp', 'corp.', 'corporation',
-        'ltd', 'ltd.', 'limited',
-        'co', 'co.', 'company',
-        'plc', 'p.l.c.', 'public limited company',
-        'lp', 'l.p.', 'limited partnership',
-        'pllc', 'p.l.l.c.', 'professional limited liability company'
+        "inc",
+        "inc.",
+        "incorporated",
+        "llc",
+        "l.l.c.",
+        "l.l.c",
+        "corp",
+        "corp.",
+        "corporation",
+        "ltd",
+        "ltd.",
+        "limited",
+        "co",
+        "co.",
+        "company",
+        "plc",
+        "p.l.c.",
+        "public limited company",
+        "lp",
+        "l.p.",
+        "limited partnership",
+        "pllc",
+        "p.l.l.c.",
+        "professional limited liability company",
     }
 
     # Common business words that can be normalized
     BUSINESS_WORD_MAPPINGS = {
-        'and': '&',
-        'restaurant': 'rest',
-        'company': 'co',
-        'corporation': 'corp',
-        'incorporated': 'inc',
-        'limited': 'ltd',
-        'professional': 'prof',
-        'services': 'svc',
-        'service': 'svc',
-        'consulting': 'consulting',
-        'solutions': 'sol'
+        "and": "&",
+        "restaurant": "rest",
+        "company": "co",
+        "corporation": "corp",
+        "incorporated": "inc",
+        "limited": "ltd",
+        "professional": "prof",
+        "services": "svc",
+        "service": "svc",
+        "consulting": "consulting",
+        "solutions": "sol",
     }
 
     @classmethod
@@ -219,14 +241,14 @@ class NameSimilarity:
             return ""
 
         # Convert to lowercase and remove extra whitespace
-        name = ' '.join(name.lower().split())
+        name = " ".join(name.lower().split())
 
         # Remove unicode accents
-        name = unicodedata.normalize('NFKD', name)
-        name = ''.join(c for c in name if not unicodedata.combining(c))
+        name = unicodedata.normalize("NFKD", name)
+        name = "".join(c for c in name if not unicodedata.combining(c))
 
         # Remove common punctuation but keep alphanumeric and spaces
-        name = re.sub(r'[^\w\s&]', ' ', name)
+        name = re.sub(r"[^\w\s&]", " ", name)
 
         # Split into words
         words = name.split()
@@ -240,8 +262,8 @@ class NameSimilarity:
                 filtered_words.append(word)
 
         # Rejoin and clean up
-        normalized = ' '.join(filtered_words)
-        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        normalized = " ".join(filtered_words)
+        normalized = re.sub(r"\s+", " ", normalized).strip()
 
         return normalized
 
@@ -260,7 +282,7 @@ class NameSimilarity:
 
         # Add bigrams for better matching
         for i in range(len(words) - 1):
-            if len(words[i]) > 1 and len(words[i+1]) > 1:
+            if len(words[i]) > 1 and len(words[i + 1]) > 1:
                 bigram = f"{words[i]} {words[i+1]}"
                 tokens.add(bigram)
 
@@ -275,7 +297,7 @@ class NameSimilarity:
                 algorithm=SimilarityAlgorithm.EXACT,
                 normalized_input=name1 or "",
                 normalized_target=name2 or "",
-                metadata={"reason": "empty_input"}
+                metadata={"reason": "empty_input"},
             )
 
         norm1 = cls.normalize_name(name1)
@@ -288,7 +310,7 @@ class NameSimilarity:
                 algorithm=SimilarityAlgorithm.EXACT,
                 normalized_input=norm1,
                 normalized_target=norm2,
-                metadata={"match_type": "exact_normalized"}
+                metadata={"match_type": "exact_normalized"},
             )
 
         # Token-based Jaccard similarity
@@ -311,8 +333,8 @@ class NameSimilarity:
                     "tokens2": list(tokens2),
                     "intersection": list(intersection),
                     "union_size": len(union),
-                    "intersection_size": len(intersection)
-                }
+                    "intersection_size": len(intersection),
+                },
             )
 
         # Fallback to character-level similarity
@@ -322,7 +344,7 @@ class NameSimilarity:
             algorithm=SimilarityAlgorithm.LEVENSHTEIN,
             normalized_input=norm1,
             normalized_target=norm2,
-            metadata={"match_type": "character_similarity"}
+            metadata={"match_type": "character_similarity"},
         )
 
     @staticmethod
@@ -367,41 +389,43 @@ class AddressSimilarity:
 
     # Address component weights
     COMPONENT_WEIGHTS = {
-        'street_number': 0.15,
-        'street_name': 0.35,
-        'city': 0.25,
-        'state': 0.15,
-        'zip': 0.10
+        "street_number": 0.15,
+        "street_name": 0.35,
+        "city": 0.25,
+        "state": 0.15,
+        "zip": 0.10,
     }
 
     # Common street suffixes and their abbreviations
     STREET_SUFFIXES = {
-        'street': ['st', 'str'],
-        'avenue': ['ave', 'av'],
-        'boulevard': ['blvd', 'boul'],
-        'drive': ['dr'],
-        'lane': ['ln'],
-        'road': ['rd'],
-        'court': ['ct'],
-        'place': ['pl'],
-        'way': ['wy'],
-        'circle': ['cir'],
-        'square': ['sq'],
-        'parkway': ['pkwy', 'pky']
+        "street": ["st", "str"],
+        "avenue": ["ave", "av"],
+        "boulevard": ["blvd", "boul"],
+        "drive": ["dr"],
+        "lane": ["ln"],
+        "road": ["rd"],
+        "court": ["ct"],
+        "place": ["pl"],
+        "way": ["wy"],
+        "circle": ["cir"],
+        "square": ["sq"],
+        "parkway": ["pkwy", "pky"],
     }
 
     @classmethod
-    def normalize_address_component(cls, component: str, component_type: str = 'general') -> str:
+    def normalize_address_component(
+        cls, component: str, component_type: str = "general"
+    ) -> str:
         """Normalize address component"""
         if not component:
             return ""
 
         # Basic normalization
         component = component.lower().strip()
-        component = re.sub(r'[^\w\s]', ' ', component)
-        component = re.sub(r'\s+', ' ', component)
+        component = re.sub(r"[^\w\s]", " ", component)
+        component = re.sub(r"\s+", " ", component)
 
-        if component_type == 'street':
+        if component_type == "street":
             # Normalize street suffixes
             words = component.split()
             if words:
@@ -410,7 +434,7 @@ class AddressSimilarity:
                     if last_word == full_suffix or last_word in abbreviations:
                         words[-1] = full_suffix
                         break
-                component = ' '.join(words)
+                component = " ".join(words)
 
         return component
 
@@ -424,7 +448,7 @@ class AddressSimilarity:
         address = address.strip()
 
         # Extract ZIP code (last 5 digits)
-        zip_match = re.search(r'\b(\d{5}(?:-\d{4})?)\b', address)
+        zip_match = re.search(r"\b(\d{5}(?:-\d{4})?)\b", address)
         zip_code = zip_match.group(1) if zip_match else ""
 
         # Remove ZIP from address for further parsing
@@ -432,15 +456,17 @@ class AddressSimilarity:
             address = address.replace(zip_code, "").strip()
 
         # Extract state (2-letter code before ZIP)
-        state_match = re.search(r'\b([A-Z]{2})\s*$', address.upper())
+        state_match = re.search(r"\b([A-Z]{2})\s*$", address.upper())
         state = state_match.group(1) if state_match else ""
 
         # Remove state from address
         if state:
-            address = re.sub(r'\b' + re.escape(state) + r'\s*$', '', address, flags=re.IGNORECASE).strip()
+            address = re.sub(
+                r"\b" + re.escape(state) + r"\s*$", "", address, flags=re.IGNORECASE
+            ).strip()
 
         # Split remaining into parts (very basic parsing)
-        parts = [p.strip() for p in address.split(',')]
+        parts = [p.strip() for p in address.split(",")]
 
         if len(parts) >= 2:
             street = parts[0]
@@ -454,7 +480,7 @@ class AddressSimilarity:
             city = ""
 
         # Extract street number from street
-        street_num_match = re.match(r'^(\d+)\s+(.+)', street)
+        street_num_match = re.match(r"^(\d+)\s+(.+)", street)
         if street_num_match:
             street_number = street_num_match.group(1)
             street_name = street_num_match.group(2)
@@ -463,11 +489,11 @@ class AddressSimilarity:
             street_name = street
 
         return {
-            'street_number': street_number,
-            'street_name': cls.normalize_address_component(street_name, 'street'),
-            'city': cls.normalize_address_component(city),
-            'state': state.upper() if state else "",
-            'zip': zip_code
+            "street_number": street_number,
+            "street_name": cls.normalize_address_component(street_name, "street"),
+            "city": cls.normalize_address_component(city),
+            "state": state.upper() if state else "",
+            "zip": zip_code,
         }
 
     @classmethod
@@ -479,7 +505,7 @@ class AddressSimilarity:
                 algorithm=SimilarityAlgorithm.EXACT,
                 normalized_input=address1 or "",
                 normalized_target=address2 or "",
-                metadata={"reason": "empty_input"}
+                metadata={"reason": "empty_input"},
             )
 
         parsed1 = cls.parse_address(address1)
@@ -500,8 +526,10 @@ class AddressSimilarity:
                     component_score = 1.0
                 elif val1 and val2:
                     # Use string similarity for non-exact matches
-                    if component == 'street_name' or component == 'city':
-                        component_score = NameSimilarity._character_similarity(val1, val2)
+                    if component == "street_name" or component == "city":
+                        component_score = NameSimilarity._character_similarity(
+                            val1, val2
+                        )
                     else:
                         component_score = 1.0 if val1 == val2 else 0.0
                 else:
@@ -523,8 +551,8 @@ class AddressSimilarity:
                 "parsed2": parsed2,
                 "component_scores": component_scores,
                 "total_weight": total_weight,
-                "weighted_score": weighted_score
-            }
+                "weighted_score": weighted_score,
+            },
         )
 
 
@@ -542,7 +570,7 @@ class ZipSimilarity:
             return ""
 
         # Extract digits only
-        digits = re.sub(r'[^\d]', '', zip_code)
+        digits = re.sub(r"[^\d]", "", zip_code)
 
         # Return first 5 digits for US ZIP codes
         return digits[:5] if len(digits) >= 5 else digits
@@ -556,7 +584,7 @@ class ZipSimilarity:
                 algorithm=SimilarityAlgorithm.EXACT,
                 normalized_input=zip1 or "",
                 normalized_target=zip2 or "",
-                metadata={"reason": "empty_input"}
+                metadata={"reason": "empty_input"},
             )
 
         norm1 = cls.normalize_zip(zip1)
@@ -568,7 +596,7 @@ class ZipSimilarity:
                 algorithm=SimilarityAlgorithm.EXACT,
                 normalized_input=norm1,
                 normalized_target=norm2,
-                metadata={"match_type": "exact"}
+                metadata={"match_type": "exact"},
             )
 
         # Check for partial matches (first 3 digits = same area)
@@ -579,7 +607,7 @@ class ZipSimilarity:
                     algorithm=SimilarityAlgorithm.EXACT,
                     normalized_input=norm1,
                     normalized_target=norm2,
-                    metadata={"match_type": "area_match", "area": norm1[:3]}
+                    metadata={"match_type": "area_match", "area": norm1[:3]},
                 )
 
         return SimilarityResult(
@@ -587,7 +615,7 @@ class ZipSimilarity:
             algorithm=SimilarityAlgorithm.EXACT,
             normalized_input=norm1,
             normalized_target=norm2,
-            metadata={"match_type": "no_match"}
+            metadata={"match_type": "no_match"},
         )
 
 
@@ -600,11 +628,11 @@ class WeightedSimilarity:
 
     # Default weights for different attributes
     DEFAULT_WEIGHTS = {
-        'business_name': 0.40,
-        'phone': 0.25,
-        'address': 0.20,
-        'zip': 0.10,
-        'domain': 0.05
+        "business_name": 0.40,
+        "phone": 0.25,
+        "address": 0.20,
+        "zip": 0.10,
+        "domain": 0.05,
     }
 
     @classmethod
@@ -612,7 +640,7 @@ class WeightedSimilarity:
         cls,
         data1: Dict[str, Any],
         data2: Dict[str, Any],
-        weights: Optional[Dict[str, float]] = None
+        weights: Optional[Dict[str, float]] = None,
     ) -> SimilarityResult:
         """
         Calculate weighted combination of multiple similarity scores
@@ -627,57 +655,57 @@ class WeightedSimilarity:
         weighted_score = 0.0
 
         # Business name similarity
-        if 'business_name' in weights and weights['business_name'] > 0:
-            name1 = data1.get('business_name', '') or data1.get('name', '')
-            name2 = data2.get('business_name', '') or data2.get('name', '')
+        if "business_name" in weights and weights["business_name"] > 0:
+            name1 = data1.get("business_name", "") or data1.get("name", "")
+            name2 = data2.get("business_name", "") or data2.get("name", "")
 
             if name1 or name2:
                 name_result = NameSimilarity.calculate_similarity(name1, name2)
-                component_results['business_name'] = name_result
-                weight = weights['business_name']
+                component_results["business_name"] = name_result
+                weight = weights["business_name"]
                 total_weight += weight
                 weighted_score += name_result.score * weight
 
         # Phone similarity
-        if 'phone' in weights and weights['phone'] > 0:
-            phone1 = data1.get('phone', '')
-            phone2 = data2.get('phone', '')
+        if "phone" in weights and weights["phone"] > 0:
+            phone1 = data1.get("phone", "")
+            phone2 = data2.get("phone", "")
 
             if phone1 or phone2:
                 phone_result = PhoneSimilarity.calculate_similarity(phone1, phone2)
-                component_results['phone'] = phone_result
-                weight = weights['phone']
+                component_results["phone"] = phone_result
+                weight = weights["phone"]
                 total_weight += weight
                 weighted_score += phone_result.score * weight
 
         # Address similarity
-        if 'address' in weights and weights['address'] > 0:
-            addr1 = data1.get('address', '') or data1.get('full_address', '')
-            addr2 = data2.get('address', '') or data2.get('full_address', '')
+        if "address" in weights and weights["address"] > 0:
+            addr1 = data1.get("address", "") or data1.get("full_address", "")
+            addr2 = data2.get("address", "") or data2.get("full_address", "")
 
             if addr1 or addr2:
                 addr_result = AddressSimilarity.calculate_similarity(addr1, addr2)
-                component_results['address'] = addr_result
-                weight = weights['address']
+                component_results["address"] = addr_result
+                weight = weights["address"]
                 total_weight += weight
                 weighted_score += addr_result.score * weight
 
         # ZIP code similarity
-        if 'zip' in weights and weights['zip'] > 0:
-            zip1 = data1.get('zip', '') or data1.get('postal_code', '')
-            zip2 = data2.get('zip', '') or data2.get('postal_code', '')
+        if "zip" in weights and weights["zip"] > 0:
+            zip1 = data1.get("zip", "") or data1.get("postal_code", "")
+            zip2 = data2.get("zip", "") or data2.get("postal_code", "")
 
             if zip1 or zip2:
                 zip_result = ZipSimilarity.calculate_similarity(zip1, zip2)
-                component_results['zip'] = zip_result
-                weight = weights['zip']
+                component_results["zip"] = zip_result
+                weight = weights["zip"]
                 total_weight += weight
                 weighted_score += zip_result.score * weight
 
         # Domain similarity (simple exact match for now)
-        if 'domain' in weights and weights['domain'] > 0:
-            domain1 = data1.get('domain', '') or data1.get('website', '')
-            domain2 = data2.get('domain', '') or data2.get('website', '')
+        if "domain" in weights and weights["domain"] > 0:
+            domain1 = data1.get("domain", "") or data1.get("website", "")
+            domain2 = data2.get("domain", "") or data2.get("website", "")
 
             if domain1 or domain2:
                 # Extract domain from URL if needed
@@ -690,10 +718,10 @@ class WeightedSimilarity:
                     algorithm=SimilarityAlgorithm.EXACT,
                     normalized_input=domain1,
                     normalized_target=domain2,
-                    metadata={"match_type": "domain_exact"}
+                    metadata={"match_type": "domain_exact"},
                 )
-                component_results['domain'] = domain_result
-                weight = weights['domain']
+                component_results["domain"] = domain_result
+                weight = weights["domain"]
                 total_weight += weight
                 weighted_score += domain_score * weight
 
@@ -711,8 +739,8 @@ class WeightedSimilarity:
                 "weights": weights,
                 "total_weight": total_weight,
                 "weighted_score": weighted_score,
-                "component_details": component_results
-            }
+                "component_details": component_results,
+            },
         )
 
     @staticmethod
@@ -722,12 +750,12 @@ class WeightedSimilarity:
             return ""
 
         # Remove protocol
-        domain = re.sub(r'^https?://', '', url_or_domain.lower())
+        domain = re.sub(r"^https?://", "", url_or_domain.lower())
 
         # Remove www
-        domain = re.sub(r'^www\.', '', domain)
+        domain = re.sub(r"^www\.", "", domain)
 
         # Remove path and query parameters
-        domain = domain.split('/')[0].split('?')[0]
+        domain = domain.split("/")[0].split("?")[0]
 
         return domain.strip()

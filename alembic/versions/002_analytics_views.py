@@ -14,14 +14,16 @@ Revises: e3ab105c6555
 Create Date: 2025-06-09 18:12:00.000000
 
 """
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy import text
 import os
 
+import sqlalchemy as sa
+from sqlalchemy import text
+
+from alembic import op
+
 # revision identifiers, used by Alembic.
-revision = '002_analytics_views'
-down_revision = 'e3ab105c6555'
+revision = "002_analytics_views"
+down_revision = "e3ab105c6555"
 branch_labels = None
 depends_on = None
 
@@ -29,10 +31,10 @@ depends_on = None
 def get_views_sql():
     """Load the views SQL from the external file"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    views_sql_path = os.path.join(current_dir, '..', '..', 'd10_analytics', 'views.sql')
-    
+    views_sql_path = os.path.join(current_dir, "..", "..", "d10_analytics", "views.sql")
+
     try:
-        with open(views_sql_path, 'r') as f:
+        with open(views_sql_path, "r") as f:
             return f.read()
     except FileNotFoundError:
         # Fallback SQL if file not found (for testing)
@@ -118,46 +120,48 @@ def get_views_sql():
 
 def upgrade():
     """Create analytics materialized views and supporting infrastructure"""
-    
+
     # Get the SQL for creating materialized views
     views_sql = get_views_sql()
-    
+
     # Execute the SQL to create materialized views
     # Split on semicolons and execute each statement separately
-    statements = [stmt.strip() for stmt in views_sql.split(';') if stmt.strip()]
-    
+    statements = [stmt.strip() for stmt in views_sql.split(";") if stmt.strip()]
+
     for statement in statements:
         # Skip comments and empty statements
-        if statement.startswith('--') or not statement.strip():
+        if statement.startswith("--") or not statement.strip():
             continue
-            
+
         try:
             op.execute(text(statement))
         except Exception as e:
-            print(f"Warning: Could not execute statement: {statement[:100]}... Error: {e}")
+            print(
+                f"Warning: Could not execute statement: {statement[:100]}... Error: {e}"
+            )
             # Continue with other statements
             continue
-    
+
     print("Analytics materialized views created successfully")
 
 
 def downgrade():
     """Drop analytics materialized views and supporting infrastructure"""
-    
+
     # Drop materialized views
     op.execute(text("DROP MATERIALIZED VIEW IF EXISTS funnel_analysis_mv CASCADE"))
     op.execute(text("DROP MATERIALIZED VIEW IF EXISTS cohort_retention_mv CASCADE"))
-    
+
     # Drop refresh functions
     op.execute(text("DROP FUNCTION IF EXISTS refresh_funnel_analysis_mv() CASCADE"))
     op.execute(text("DROP FUNCTION IF EXISTS refresh_cohort_retention_mv() CASCADE"))
     op.execute(text("DROP FUNCTION IF EXISTS refresh_all_analytics_views() CASCADE"))
-    
+
     # Drop supporting views
     op.execute(text("DROP VIEW IF EXISTS materialized_view_stats CASCADE"))
     op.execute(text("DROP VIEW IF EXISTS recent_refresh_history CASCADE"))
-    
+
     # Drop refresh log table
     op.execute(text("DROP TABLE IF EXISTS materialized_view_refresh_log CASCADE"))
-    
+
     print("Analytics materialized views dropped successfully")

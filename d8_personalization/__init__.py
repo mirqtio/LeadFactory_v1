@@ -11,34 +11,24 @@ Acceptance Criteria:
 - Spam score tracking ✓
 """
 
-from .models import (
-    EmailContent,
-    SubjectLineVariant,
-    PersonalizationToken,
-    SpamScoreTracking,
-    EmailTemplate,
-    PersonalizationVariable,
-    EmailGenerationLog,
-    ContentVariant,
-    ContentStrategy,
-    EmailContentType,
-    PersonalizationStrategy,
-    SpamCategory,
-    VariantStatus
-)
+from .models import (ContentStrategy, ContentVariant, EmailContent,
+                     EmailContentType, EmailGenerationLog, EmailTemplate,
+                     PersonalizationStrategy, PersonalizationToken,
+                     PersonalizationVariable, SpamCategory, SpamScoreTracking,
+                     SubjectLineVariant, VariantStatus)
 
 __all__ = [
     "EmailContent",
-    "SubjectLineVariant", 
+    "SubjectLineVariant",
     "PersonalizationToken",
     "SpamScoreTracking",
     "EmailTemplate",
     "PersonalizationVariable",
     "EmailGenerationLog",
-    "ContentVariant", 
+    "ContentVariant",
     "ContentStrategy",
     "EmailContentType",
     "PersonalizationStrategy",
     "SpamCategory",
-    "VariantStatus"
+    "VariantStatus",
 ]

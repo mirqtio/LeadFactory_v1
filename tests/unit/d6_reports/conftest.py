@@ -3,7 +3,8 @@ Shared test configuration for D6 Reports tests
 """
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
+
 from database.base import Base
 
 

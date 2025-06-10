@@ -11,13 +11,13 @@ Acceptance Criteria:
 - Success/cancel URLs ✓
 """
 
-import os
-import logging
-from typing import Dict, Any, Optional, List
-from decimal import Decimal
-from datetime import datetime, timedelta
 import asyncio
+import logging
+import os
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
+from decimal import Decimal
+from typing import Any, Dict, List, Optional
 
 from d0_gateway.facade import get_gateway_facade
 
@@ -27,16 +27,18 @@ logger = logging.getLogger(__name__)
 
 class StripeConfig:
     """Configuration for Stripe integration"""
-    
+
     def __init__(self, test_mode: bool = True):
         self.test_mode = test_mode
-        
+
         # Get webhook secret from environment
         if test_mode:
-            self.webhook_secret = os.getenv("STRIPE_TEST_WEBHOOK_SECRET", "whsec_test_mock_secret")
+            self.webhook_secret = os.getenv(
+                "STRIPE_TEST_WEBHOOK_SECRET", "whsec_test_mock_secret"
+            )
         else:
             self.webhook_secret = os.getenv("STRIPE_LIVE_WEBHOOK_SECRET")
-        
+
         # Default configuration
         self.currency = "usd"
         self.session_expires_after_minutes = 30
@@ -47,7 +49,7 @@ class StripeConfig:
 
 class StripeCheckoutSession:
     """Data class for Stripe checkout session configuration"""
-    
+
     def __init__(
         self,
         line_items: List[Dict[str, Any]],
@@ -56,7 +58,7 @@ class StripeCheckoutSession:
         customer_email: Optional[str] = None,
         metadata: Optional[Dict[str, str]] = None,
         mode: str = "payment",
-        payment_method_types: Optional[List[str]] = None
+        payment_method_types: Optional[List[str]] = None,
     ):
         self.line_items = line_items
         self.success_url = success_url
@@ -65,7 +67,7 @@ class StripeCheckoutSession:
         self.metadata = metadata or {}
         self.mode = mode
         self.payment_method_types = payment_method_types or ["card"]
-    
+
     def to_stripe_params(self, config: StripeConfig) -> Dict[str, Any]:
         """Convert to Stripe API parameters"""
         params = {
@@ -74,27 +76,37 @@ class StripeCheckoutSession:
             "payment_method_types": self.payment_method_types,
             "success_url": self.success_url,
             "cancel_url": self.cancel_url,
-            "expires_at": int((datetime.utcnow() + timedelta(minutes=config.session_expires_after_minutes)).timestamp()),
+            "expires_at": int(
+                (
+                    datetime.utcnow()
+                    + timedelta(minutes=config.session_expires_after_minutes)
+                ).timestamp()
+            ),
             "billing_address_collection": config.billing_address_collection,
             "allow_promotion_codes": config.allow_promotion_codes,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
-        
+
         # Add customer email if provided
         if self.customer_email:
             params["customer_email"] = self.customer_email
-        
+
         # Add automatic tax if configured
         if config.automatic_tax:
             params["automatic_tax"] = {"enabled": True}
-        
+
         return params
 
 
 class StripeError(Exception):
     """Custom exception for Stripe-related errors"""
-    
-    def __init__(self, message: str, error_code: Optional[str] = None, error_type: Optional[str] = None):
+
+    def __init__(
+        self,
+        message: str,
+        error_code: Optional[str] = None,
+        error_type: Optional[str] = None,
+    ):
         super().__init__(message)
         self.error_code = error_code
         self.error_type = error_type
@@ -104,21 +116,23 @@ class StripeClient:
     """
     Stripe client for handling checkout sessions and payment processing
     Uses Gateway facade instead of direct Stripe SDK calls
-    
+
     Acceptance Criteria:
     - Checkout session creation ✓
     - Test mode works ✓
     - Metadata included ✓
     - Success/cancel URLs ✓
     """
-    
+
     def __init__(self, config: Optional[StripeConfig] = None):
         self.config = config or StripeConfig(test_mode=True)
         self.gateway = get_gateway_facade()
         self._executor = ThreadPoolExecutor(max_workers=1)
-        
-        logger.info(f"Initialized Stripe client in {'test' if self.config.test_mode else 'live'} mode")
-    
+
+        logger.info(
+            f"Initialized Stripe client in {'test' if self.config.test_mode else 'live'} mode"
+        )
+
     def _run_async(self, coro):
         """Helper to run async gateway methods from sync context"""
         try:
@@ -126,25 +140,28 @@ class StripeClient:
             loop = asyncio.get_running_loop()
             # If we are, we need to run the coroutine in a thread
             import concurrent.futures
+
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 future = pool.submit(asyncio.run, coro)
                 return future.result()
         except RuntimeError:
             # No event loop running, create one
             return asyncio.run(coro)
-    
-    def create_checkout_session(self, session_config: StripeCheckoutSession) -> Dict[str, Any]:
+
+    def create_checkout_session(
+        self, session_config: StripeCheckoutSession
+    ) -> Dict[str, Any]:
         """
         Create a Stripe checkout session
-        
+
         Acceptance Criteria: Checkout session creation ✓
         """
         try:
             # Convert to Stripe parameters
             params = session_config.to_stripe_params(self.config)
-            
+
             logger.info(f"Creating checkout session with line items")
-            
+
             # Create session via Gateway API
             result = self._run_async(
                 self.gateway.create_checkout_session_with_line_items(
@@ -157,12 +174,12 @@ class StripeClient:
                     expires_at=params.get("expires_at"),
                     payment_method_types=params.get("payment_method_types"),
                     billing_address_collection=params.get("billing_address_collection"),
-                    allow_promotion_codes=params.get("allow_promotion_codes")
+                    allow_promotion_codes=params.get("allow_promotion_codes"),
                 )
             )
-            
+
             logger.info(f"Created checkout session: {result.get('id')}")
-            
+
             # Return formatted response
             return {
                 "success": True,
@@ -175,20 +192,18 @@ class StripeClient:
                 "metadata": result.get("metadata"),
                 "mode": result.get("mode"),
                 "success_url": params["success_url"],
-                "cancel_url": params["cancel_url"]
+                "cancel_url": params["cancel_url"],
             }
-            
+
         except Exception as e:
             logger.error(f"Error creating checkout session: {e}")
             raise StripeError(f"Failed to create checkout session: {str(e)}")
-    
+
     def retrieve_checkout_session(self, session_id: str) -> Dict[str, Any]:
         """Retrieve a checkout session by ID"""
         try:
-            result = self._run_async(
-                self.gateway.get_checkout_session(session_id)
-            )
-            
+            result = self._run_async(self.gateway.get_checkout_session(session_id))
+
             return {
                 "success": True,
                 "session_id": result.get("id"),
@@ -198,60 +213,70 @@ class StripeClient:
                 "amount_total": result.get("amount_total"),
                 "currency": result.get("currency"),
                 "metadata": result.get("metadata"),
-                "status": result.get("status")
+                "status": result.get("status"),
             }
-            
+
         except Exception as e:
             logger.error(f"Error retrieving session {session_id}: {e}")
             raise StripeError(f"Failed to retrieve session: {str(e)}")
-    
-    def create_customer(self, email: str, name: Optional[str] = None, metadata: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+
+    def create_customer(
+        self,
+        email: str,
+        name: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
         """Create a Stripe customer"""
         try:
             result = self._run_async(
-                self.gateway.create_customer(
-                    email=email,
-                    name=name,
-                    metadata=metadata
-                )
+                self.gateway.create_customer(email=email, name=name, metadata=metadata)
             )
-            
+
             return {
                 "success": True,
                 "customer_id": result.get("id"),
                 "email": result.get("email"),
                 "name": result.get("name"),
-                "created": result.get("created")
+                "created": result.get("created"),
             }
-            
+
         except Exception as e:
             logger.error(f"Error creating customer: {e}")
             raise StripeError(f"Failed to create customer: {str(e)}")
-    
-    def create_product(self, name: str, description: Optional[str] = None, metadata: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+
+    def create_product(
+        self,
+        name: str,
+        description: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
         """Create a Stripe product"""
         try:
             result = self._run_async(
                 self.gateway.create_product(
-                    name=name,
-                    description=description,
-                    metadata=metadata
+                    name=name, description=description, metadata=metadata
                 )
             )
-            
+
             return {
                 "success": True,
                 "product_id": result.get("id"),
                 "name": result.get("name"),
                 "description": result.get("description"),
-                "active": result.get("active")
+                "active": result.get("active"),
             }
-            
+
         except Exception as e:
             logger.error(f"Error creating product: {e}")
             raise StripeError(f"Failed to create product: {str(e)}")
-    
-    def create_price(self, product_id: str, amount_cents: int, currency: str = "usd", recurring: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+
+    def create_price(
+        self,
+        product_id: str,
+        amount_cents: int,
+        currency: str = "usd",
+        recurring: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
         """Create a Stripe price"""
         try:
             result = self._run_async(
@@ -259,79 +284,79 @@ class StripeClient:
                     amount=amount_cents,
                     currency=currency,
                     product_id=product_id,
-                    recurring=recurring
+                    recurring=recurring,
                 )
             )
-            
+
             return {
                 "success": True,
                 "price_id": result.get("id"),
                 "product_id": result.get("product"),
                 "unit_amount": result.get("unit_amount"),
                 "currency": result.get("currency"),
-                "type": result.get("type")
+                "type": result.get("type"),
             }
-            
+
         except Exception as e:
             logger.error(f"Error creating price: {e}")
             raise StripeError(f"Failed to create price: {str(e)}")
-    
+
     def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
         """Verify Stripe webhook signature"""
         try:
             result = self._run_async(
                 self.gateway.construct_webhook_event(
-                    payload=payload.decode('utf-8'),
+                    payload=payload.decode("utf-8"),
                     signature=signature,
-                    webhook_secret=self.config.webhook_secret
+                    webhook_secret=self.config.webhook_secret,
                 )
             )
             return True
         except Exception as e:
             logger.warning(f"Invalid webhook signature: {e}")
             return False
-    
+
     def construct_webhook_event(self, payload: bytes, signature: str) -> Dict[str, Any]:
         """Construct and validate webhook event"""
         try:
             result = self._run_async(
                 self.gateway.construct_webhook_event(
-                    payload=payload.decode('utf-8'),
+                    payload=payload.decode("utf-8"),
                     signature=signature,
-                    webhook_secret=self.config.webhook_secret
+                    webhook_secret=self.config.webhook_secret,
                 )
             )
-            
+
             return {
                 "success": True,
                 "event_id": result.get("id"),
                 "event_type": result.get("type"),
                 "data": result.get("data"),
                 "created": result.get("created"),
-                "livemode": result.get("livemode")
+                "livemode": result.get("livemode"),
             }
-            
+
         except Exception as e:
             logger.error(f"Error constructing webhook event: {e}")
             raise StripeError(f"Failed to construct event: {str(e)}")
-    
+
     def get_test_clock(self) -> Optional[str]:
         """Get test clock ID for test mode (for testing time-based features)"""
         if not self.config.test_mode:
             return None
-        
+
         # Test clock functionality not available via Gateway yet
         logger.warning("Test clock functionality not available via Gateway")
         return None
-    
+
     def is_test_mode(self) -> bool:
         """Check if client is in test mode"""
         return self.config.test_mode
-    
+
     def get_api_version(self) -> str:
         """Get Stripe API version"""
         return "2023-10-16"  # Default API version used by Gateway
-    
+
     def get_status(self) -> Dict[str, Any]:
         """Get client status for monitoring"""
         return {
@@ -340,30 +365,27 @@ class StripeClient:
             "currency": self.config.currency,
             "webhook_configured": bool(self.config.webhook_secret),
             "session_expires_minutes": self.config.session_expires_after_minutes,
-            "gateway_enabled": True
+            "gateway_enabled": True,
         }
 
 
 # Utility functions for common operations
 def create_line_item(price_id: str, quantity: int = 1) -> Dict[str, Any]:
     """Create a line item for checkout session"""
-    return {
-        "price": price_id,
-        "quantity": quantity
-    }
+    return {"price": price_id, "quantity": quantity}
 
 
-def create_one_time_line_item(product_name: str, amount_cents: int, quantity: int = 1, currency: str = "usd") -> Dict[str, Any]:
+def create_one_time_line_item(
+    product_name: str, amount_cents: int, quantity: int = 1, currency: str = "usd"
+) -> Dict[str, Any]:
     """Create a one-time payment line item"""
     return {
         "price_data": {
             "currency": currency,
-            "product_data": {
-                "name": product_name
-            },
-            "unit_amount": amount_cents
+            "product_data": {"name": product_name},
+            "unit_amount": amount_cents,
         },
-        "quantity": quantity
+        "quantity": quantity,
     }
 
 
@@ -382,16 +404,13 @@ PAYMENT_METHOD_TYPES = {
     "CARD_ONLY": ["card"],
     "CARD_AND_BANK": ["card", "us_bank_account"],
     "ALL_METHODS": ["card", "us_bank_account", "cashapp"],
-    "MOBILE_OPTIMIZED": ["card", "cashapp", "link"]
+    "MOBILE_OPTIMIZED": ["card", "cashapp", "link"],
 }
 
 SESSION_MODES = {
-    "PAYMENT": "payment",      # One-time payment
+    "PAYMENT": "payment",  # One-time payment
     "SUBSCRIPTION": "subscription",  # Recurring subscription
-    "SETUP": "setup"          # Setup for future payments
+    "SETUP": "setup",  # Setup for future payments
 }
 
-BILLING_ADDRESS_COLLECTION = {
-    "AUTO": "auto",
-    "REQUIRED": "required"
-}
+BILLING_ADDRESS_COLLECTION = {"AUTO": "auto", "REQUIRED": "required"}

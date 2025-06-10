@@ -1,24 +1,23 @@
 """
 Test core utilities, config, and exceptions
 """
-import pytest
-import os
 import logging
+import os
+from datetime import date, datetime, timedelta
 from decimal import Decimal
-from datetime import datetime, timedelta, date
+
+import pytest
 
 from core.config import Settings, get_settings
+from core.exceptions import (ConfigurationError, ExternalAPIError,
+                             LeadFactoryError, NotFoundError, RateLimitError,
+                             ValidationError)
 from core.logging import get_logger, setup_logging
-from core.exceptions import (
-    LeadFactoryError, ValidationError, NotFoundError,
-    ExternalAPIError, RateLimitError, ConfigurationError
-)
-from core.utils import (
-    generate_token, hash_email, normalize_phone, clean_url,
-    truncate_text, calculate_percentage, format_currency,
-    parse_currency, chunk_list, deep_merge, get_date_range,
-    safe_divide, extract_domain, generate_slug, mask_sensitive_data
-)
+from core.utils import (calculate_percentage, chunk_list, clean_url,
+                        deep_merge, extract_domain, format_currency,
+                        generate_slug, generate_token, get_date_range,
+                        hash_email, mask_sensitive_data, normalize_phone,
+                        parse_currency, safe_divide, truncate_text)
 
 
 class TestConfig:
@@ -112,7 +111,7 @@ class TestExceptions:
             "Test error",
             error_code="TEST_ERROR",
             details={"key": "value"},
-            status_code=500
+            status_code=500,
         )
 
         assert str(error) == "Test error"
@@ -145,7 +144,7 @@ class TestExceptions:
             provider="yelp",
             message="Service unavailable",
             status_code=503,
-            response_body="Error response"
+            response_body="Error response",
         )
 
         assert error.status_code == 503  # Uses provided status_code
@@ -154,19 +153,13 @@ class TestExceptions:
         assert error.details["api_status_code"] == 503
 
         # Test default status code when none provided
-        error_default = ExternalAPIError(
-            provider="stripe",
-            message="API down"
-        )
+        error_default = ExternalAPIError(provider="stripe", message="API down")
         assert error_default.status_code == 502  # Default Bad Gateway
 
     def test_rate_limit_error(self):
         """Test rate limit error"""
         error = RateLimitError(
-            provider="yelp",
-            retry_after=60,
-            daily_limit=5000,
-            daily_used=5000
+            provider="yelp", retry_after=60, daily_limit=5000, daily_used=5000
         )
 
         assert error.status_code == 429

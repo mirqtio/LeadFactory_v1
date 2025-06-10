@@ -7,21 +7,21 @@ Tests for fuzzy matching system ensuring all acceptance criteria are met:
 - Address similarity scoring
 - Weighted combination logic
 """
-import pytest
 import sys
 from decimal import Decimal
-from typing import Dict, Any
+from typing import Any, Dict
 
-sys.path.insert(0, '/app')
+import pytest
 
-from d4_enrichment.matchers import (
-    BusinessMatcher, MatchConfig, MatchResult, MatchConfidence, MatchType,
-    BatchMatcher
-)
-from d4_enrichment.similarity import (
-    PhoneSimilarity, NameSimilarity, AddressSimilarity, ZipSimilarity,
-    WeightedSimilarity, SimilarityResult, SimilarityAlgorithm
-)
+sys.path.insert(0, "/app")
+
+from d4_enrichment.matchers import (BatchMatcher, BusinessMatcher,
+                                    MatchConfidence, MatchConfig, MatchResult,
+                                    MatchType)
+from d4_enrichment.similarity import (AddressSimilarity, NameSimilarity,
+                                      PhoneSimilarity, SimilarityAlgorithm,
+                                      SimilarityResult, WeightedSimilarity,
+                                      ZipSimilarity)
 
 
 class TestTask041AcceptanceCriteria:
@@ -32,37 +32,37 @@ class TestTask041AcceptanceCriteria:
         """Sample business records for testing"""
         return [
             {
-                'id': 'biz_001',
-                'business_name': 'Acme Corporation',
-                'phone': '+1-555-123-4567',
-                'address': '123 Main Street, San Francisco, CA 94105',
-                'zip': '94105',
-                'domain': 'acme.com'
+                "id": "biz_001",
+                "business_name": "Acme Corporation",
+                "phone": "+1-555-123-4567",
+                "address": "123 Main Street, San Francisco, CA 94105",
+                "zip": "94105",
+                "domain": "acme.com",
             },
             {
-                'id': 'biz_002',
-                'business_name': 'ACME Corp.',
-                'phone': '(555) 123-4567',
-                'address': '123 Main St, San Francisco, CA 94105',
-                'zip': '94105',
-                'domain': 'acme.com'
+                "id": "biz_002",
+                "business_name": "ACME Corp.",
+                "phone": "(555) 123-4567",
+                "address": "123 Main St, San Francisco, CA 94105",
+                "zip": "94105",
+                "domain": "acme.com",
             },
             {
-                'id': 'biz_003',
-                'business_name': 'Beta Industries LLC',
-                'phone': '+1-555-987-6543',
-                'address': '456 Oak Avenue, Los Angeles, CA 90210',
-                'zip': '90210',
-                'domain': 'beta.com'
+                "id": "biz_003",
+                "business_name": "Beta Industries LLC",
+                "phone": "+1-555-987-6543",
+                "address": "456 Oak Avenue, Los Angeles, CA 90210",
+                "zip": "90210",
+                "domain": "beta.com",
             },
             {
-                'id': 'biz_004',
-                'business_name': 'Gamma Services Inc',
-                'phone': '555-111-2222',
-                'address': '789 Pine Road, New York, NY 10001',
-                'zip': '10001',
-                'domain': 'gamma.net'
-            }
+                "id": "biz_004",
+                "business_name": "Gamma Services Inc",
+                "phone": "555-111-2222",
+                "address": "789 Pine Road, New York, NY 10001",
+                "zip": "10001",
+                "domain": "gamma.net",
+            },
         ]
 
     def test_phone_matching_works(self):
@@ -113,24 +113,21 @@ class TestTask041AcceptanceCriteria:
 
         # Test exact name and ZIP match
         result1 = matcher.match_names_and_zips(
-            "Acme Corporation", "94105",
-            "Acme Corporation", "94105"
+            "Acme Corporation", "94105", "Acme Corporation", "94105"
         )
         assert result1.overall_score >= 0.9
         assert result1.confidence in [MatchConfidence.HIGH, MatchConfidence.EXACT]
 
         # Test name variations with same ZIP
         result2 = matcher.match_names_and_zips(
-            "Acme Corporation", "94105",
-            "ACME Corp.", "94105"
+            "Acme Corporation", "94105", "ACME Corp.", "94105"
         )
         assert result2.overall_score >= 0.7
         assert result2.confidence in [MatchConfidence.MEDIUM, MatchConfidence.HIGH]
 
         # Test same name with similar ZIP (same area)
         result3 = matcher.match_names_and_zips(
-            "Test Company", "94105",
-            "Test Company", "94102"  # Same area (941xx)
+            "Test Company", "94105", "Test Company", "94102"  # Same area (941xx)
         )
         assert result3.overall_score >= 0.7
 
@@ -163,7 +160,7 @@ class TestTask041AcceptanceCriteria:
         # Test exact address match
         result1 = matcher.match_addresses(
             "123 Main Street, San Francisco, CA 94105",
-            "123 Main Street, San Francisco, CA 94105"
+            "123 Main Street, San Francisco, CA 94105",
         )
         assert result1.overall_score == 1.0
         assert result1.confidence == MatchConfidence.EXACT
@@ -171,21 +168,21 @@ class TestTask041AcceptanceCriteria:
         # Test address variations
         result2 = matcher.match_addresses(
             "123 Main Street, San Francisco, CA 94105",
-            "123 Main St, San Francisco, CA 94105"
+            "123 Main St, San Francisco, CA 94105",
         )
         assert result2.overall_score >= 0.8  # Should handle street suffix normalization
 
         # Test partial address match
         result3 = matcher.match_addresses(
             "123 Main Street, San Francisco, CA",
-            "123 Main Street, San Francisco, CA 94105"
+            "123 Main Street, San Francisco, CA 94105",
         )
         assert result3.overall_score >= 0.7  # Missing ZIP shouldn't kill the match
 
         # Test different addresses
         result4 = matcher.match_addresses(
             "123 Main Street, San Francisco, CA 94105",
-            "456 Oak Avenue, Los Angeles, CA 90210"
+            "456 Oak Avenue, Los Angeles, CA 90210",
         )
         assert result4.overall_score < 0.3
 
@@ -196,10 +193,10 @@ class TestTask041AcceptanceCriteria:
         parsed1 = addr_sim.parse_address("123 Main St, San Francisco, CA 94105")
         parsed2 = addr_sim.parse_address("123 Main Street, San Francisco, CA 94105")
 
-        assert parsed1['street_number'] == "123"
-        assert parsed2['street_number'] == "123"
-        assert 'main' in parsed1['street_name']
-        assert 'main' in parsed2['street_name']
+        assert parsed1["street_number"] == "123"
+        assert parsed2["street_number"] == "123"
+        assert "main" in parsed1["street_name"]
+        assert "main" in parsed2["street_name"]
 
         print("✓ Address similarity scoring works correctly")
 
@@ -211,28 +208,23 @@ class TestTask041AcceptanceCriteria:
         """
         # Test with custom weights
         config = MatchConfig(
-            weights={
-                'business_name': 0.5,
-                'phone': 0.3,
-                'address': 0.15,
-                'zip': 0.05
-            }
+            weights={"business_name": 0.5, "phone": 0.3, "address": 0.15, "zip": 0.05}
         )
         matcher = BusinessMatcher(config)
 
         # Create test records
         record1 = {
-            'business_name': 'Test Company',
-            'phone': '555-123-4567',
-            'address': '123 Main St, City, ST 12345',
-            'zip': '12345'
+            "business_name": "Test Company",
+            "phone": "555-123-4567",
+            "address": "123 Main St, City, ST 12345",
+            "zip": "12345",
         }
 
         record2 = {
-            'business_name': 'Test Company',  # Exact match
-            'phone': '555-123-4567',         # Exact match
-            'address': '124 Main St, City, ST 12345',  # Similar
-            'zip': '12346'                   # Similar area
+            "business_name": "Test Company",  # Exact match
+            "phone": "555-123-4567",  # Exact match
+            "address": "124 Main St, City, ST 12345",  # Similar
+            "zip": "12346",  # Similar area
         }
 
         result = matcher.match_records(record1, record2)
@@ -242,10 +234,10 @@ class TestTask041AcceptanceCriteria:
         assert result.confidence in [MatchConfidence.HIGH, MatchConfidence.EXACT]
 
         # Check component scores
-        assert 'business_name' in result.component_scores
-        assert 'phone' in result.component_scores
-        assert result.component_scores['business_name'] >= 0.9
-        assert result.component_scores['phone'] == 1.0
+        assert "business_name" in result.component_scores
+        assert "phone" in result.component_scores
+        assert result.component_scores["business_name"] >= 0.9
+        assert result.component_scores["phone"] == 1.0
 
         # Test weighted similarity directly
         weighted_result = WeightedSimilarity.calculate_combined_similarity(
@@ -253,8 +245,8 @@ class TestTask041AcceptanceCriteria:
         )
 
         assert weighted_result.score >= 0.7
-        assert 'component_results' in weighted_result.metadata
-        assert 'weights' in weighted_result.metadata
+        assert "component_results" in weighted_result.metadata
+        assert "weights" in weighted_result.metadata
 
         # Test weight validation
         total_weight = sum(config.weights.values())
@@ -312,7 +304,7 @@ class TestTask041AcceptanceCriteria:
             sample_business_records[0],
             sample_business_records[1],  # Similar to [0]
             sample_business_records[2],
-            sample_business_records[3]
+            sample_business_records[3],
         ]
 
         unique_records, duplicates = batch_matcher.deduplicate_dataset(
@@ -320,7 +312,7 @@ class TestTask041AcceptanceCriteria:
         )
 
         assert len(unique_records) >= 2  # Should have at least 2 unique records
-        assert len(duplicates) >= 1     # Should find at least 1 duplicate
+        assert len(duplicates) >= 1  # Should find at least 1 duplicate
 
         print("✓ Batch matching capabilities work")
 
@@ -333,7 +325,7 @@ class TestTask041AcceptanceCriteria:
             medium_threshold=0.80,
             low_threshold=0.60,
             require_name_similarity=True,
-            min_components=3
+            min_components=3,
         )
 
         strict_matcher = BusinessMatcher(strict_config)
@@ -345,22 +337,22 @@ class TestTask041AcceptanceCriteria:
             medium_threshold=0.60,
             low_threshold=0.40,
             require_name_similarity=False,
-            min_components=1
+            min_components=1,
         )
 
         lenient_matcher = BusinessMatcher(lenient_config)
 
         # Test same records with both matchers
         record1 = {
-            'business_name': 'Test Corp',
-            'phone': '555-123-4567',
-            'zip': '12345'
+            "business_name": "Test Corp",
+            "phone": "555-123-4567",
+            "zip": "12345",
         }
 
         record2 = {
-            'business_name': 'Test Corporation',
-            'phone': '555-123-4567',
-            'zip': '12345'
+            "business_name": "Test Corporation",
+            "phone": "555-123-4567",
+            "zip": "12345",
         }
 
         strict_result = strict_matcher.match_records(record1, record2)
@@ -369,8 +361,10 @@ class TestTask041AcceptanceCriteria:
         # Same underlying score, but different confidence levels
         assert abs(strict_result.overall_score - lenient_result.overall_score) < 0.1
         # Lenient matcher should give higher confidence
-        assert lenient_result.confidence.value >= strict_result.confidence.value or \
-               lenient_result.overall_score >= strict_result.overall_score
+        assert (
+            lenient_result.confidence.value >= strict_result.confidence.value
+            or lenient_result.overall_score >= strict_result.overall_score
+        )
 
         print("✓ Match configuration and tuning works")
 
@@ -381,13 +375,25 @@ class TestTask041AcceptanceCriteria:
         # Perform various matches
         test_cases = [
             # High confidence matches
-            ({'name': 'ABC Inc', 'phone': '555-1234'}, {'name': 'ABC Inc', 'phone': '555-1234'}),
+            (
+                {"name": "ABC Inc", "phone": "555-1234"},
+                {"name": "ABC Inc", "phone": "555-1234"},
+            ),
             # Medium confidence
-            ({'name': 'XYZ Corp', 'phone': '555-5678'}, {'name': 'XYZ Corporation', 'phone': '555-5678'}),
+            (
+                {"name": "XYZ Corp", "phone": "555-5678"},
+                {"name": "XYZ Corporation", "phone": "555-5678"},
+            ),
             # Low confidence
-            ({'name': 'DEF LLC', 'address': '123 Main St'}, {'name': 'DEF Limited', 'address': '124 Main St'}),
+            (
+                {"name": "DEF LLC", "address": "123 Main St"},
+                {"name": "DEF Limited", "address": "124 Main St"},
+            ),
             # No match
-            ({'name': 'Company A', 'phone': '555-1111'}, {'name': 'Company B', 'phone': '555-2222'})
+            (
+                {"name": "Company A", "phone": "555-1111"},
+                {"name": "Company B", "phone": "555-2222"},
+            ),
         ]
 
         for record1, record2 in test_cases:
@@ -395,11 +401,11 @@ class TestTask041AcceptanceCriteria:
 
         stats = matcher.get_statistics()
 
-        assert stats['total_matches'] == 4
-        assert 'success_rate' in stats
-        assert 'high_confidence_rate' in stats
-        assert 'cache_size' in stats
-        assert stats['cache_size'] > 0  # Should have cached results
+        assert stats["total_matches"] == 4
+        assert "success_rate" in stats
+        assert "high_confidence_rate" in stats
+        assert "cache_size" in stats
+        assert stats["cache_size"] > 0  # Should have cached results
 
         # Test cache functionality
         cache_size_before = len(matcher.match_cache)
@@ -427,30 +433,28 @@ class TestTask041AcceptanceCriteria:
 
         # Test records with missing fields
         result2 = matcher.match_records(
-            {'business_name': 'Test'},
-            {'phone': '555-1234'}
+            {"business_name": "Test"}, {"phone": "555-1234"}
         )
         assert result2.overall_score >= 0.0  # Should handle gracefully
 
         # Test None values
         result3 = matcher.match_records(
-            {'business_name': None, 'phone': '555-1234'},
-            {'business_name': 'Test', 'phone': None}
+            {"business_name": None, "phone": "555-1234"},
+            {"business_name": "Test", "phone": None},
         )
         assert result3.overall_score >= 0.0
 
         # Test very long strings
-        long_name = 'A' * 1000
+        long_name = "A" * 1000
         result4 = matcher.match_records(
-            {'business_name': long_name},
-            {'business_name': long_name}
+            {"business_name": long_name}, {"business_name": long_name}
         )
         assert result4.overall_score > 0.8  # Should still match
 
         # Test special characters
         result5 = matcher.match_records(
-            {'business_name': 'Café & Restaurant Inc.'},
-            {'business_name': 'Cafe & Restaurant Inc'}
+            {"business_name": "Café & Restaurant Inc."},
+            {"business_name": "Cafe & Restaurant Inc"},
         )
         assert result5.overall_score > 0.7  # Should handle accents and punctuation
 
@@ -473,12 +477,16 @@ class TestTask041AcceptanceCriteria:
         name_sim = NameSimilarity()
 
         # Abbreviations
-        result3 = name_sim.calculate_similarity("International Business Machines", "IBM")
+        result3 = name_sim.calculate_similarity(
+            "International Business Machines", "IBM"
+        )
         # Might be low due to token mismatch, but should handle gracefully
         assert result3.score >= 0.0
 
         # Reordered words
-        result4 = name_sim.calculate_similarity("ABC Marketing Services", "Marketing Services ABC")
+        result4 = name_sim.calculate_similarity(
+            "ABC Marketing Services", "Marketing Services ABC"
+        )
         assert result4.score > 0.5  # Should detect common tokens
 
         # Test address parsing edge cases
@@ -486,15 +494,13 @@ class TestTask041AcceptanceCriteria:
 
         # Apartment numbers
         result5 = addr_sim.calculate_similarity(
-            "123 Main St Apt 4B, City, ST 12345",
-            "123 Main St, City, ST 12345"
+            "123 Main St Apt 4B, City, ST 12345", "123 Main St, City, ST 12345"
         )
         assert result5.score > 0.8  # Should still be high match
 
         # PO Boxes
         result6 = addr_sim.calculate_similarity(
-            "PO Box 123, City, ST 12345",
-            "P.O. Box 123, City, ST 12345"
+            "PO Box 123, City, ST 12345", "P.O. Box 123, City, ST 12345"
         )
         assert result6.score > 0.8
 
@@ -515,19 +521,19 @@ if __name__ == "__main__":
             # Sample data
             sample_records = [
                 {
-                    'id': 'test_001',
-                    'business_name': 'Acme Corporation',
-                    'phone': '555-123-4567',
-                    'address': '123 Main St, City, ST 12345',
-                    'zip': '12345'
+                    "id": "test_001",
+                    "business_name": "Acme Corporation",
+                    "phone": "555-123-4567",
+                    "address": "123 Main St, City, ST 12345",
+                    "zip": "12345",
                 },
                 {
-                    'id': 'test_002',
-                    'business_name': 'ACME Corp.',
-                    'phone': '(555) 123-4567',
-                    'address': '123 Main Street, City, ST 12345',
-                    'zip': '12345'
-                }
+                    "id": "test_002",
+                    "business_name": "ACME Corp.",
+                    "phone": "(555) 123-4567",
+                    "address": "123 Main Street, City, ST 12345",
+                    "zip": "12345",
+                },
             ]
 
             # Run all acceptance criteria tests
@@ -552,6 +558,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run tests

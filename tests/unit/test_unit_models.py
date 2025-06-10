@@ -1,21 +1,21 @@
 """
 Test database models and relationships
 """
-import pytest
 from datetime import datetime
 from decimal import Decimal
+
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from database.base import Base
-from database.models import (
-    Business, Target, Batch, ScoringResult,
-    Purchase, Email, EmailClick, GatewayUsage,
-    GeoType, BatchStatus, EmailStatus, PurchaseStatus
-)
 from d3_assessment.models import AssessmentResult
 from d3_assessment.types import AssessmentType
-from d11_orchestration.models import Experiment, ExperimentStatus, ExperimentVariant
+from d11_orchestration.models import (Experiment, ExperimentStatus,
+                                      ExperimentVariant)
+from database.base import Base
+from database.models import (Batch, BatchStatus, Business, Email, EmailClick,
+                             EmailStatus, GatewayUsage, GeoType, Purchase,
+                             PurchaseStatus, ScoringResult, Target)
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ class TestBusinessModel:
             city="New York",
             state="NY",
             vertical="restaurant",
-            rating=Decimal("4.5")
+            rating=Decimal("4.5"),
         )
 
         test_session.add(business)
@@ -59,9 +59,7 @@ class TestBusinessModel:
         """Test business relationships with other models"""
         # Create business
         business = Business(
-            yelp_id="test-yelp-456",
-            name="Test Business",
-            vertical="medical"
+            yelp_id="test-yelp-456", name="Test Business", vertical="medical"
         )
         test_session.add(business)
         test_session.commit()
@@ -73,7 +71,7 @@ class TestBusinessModel:
             url="https://test-business.com",
             domain="test-business.com",
             performance_score=75,
-            seo_score=85
+            seo_score=85,
         )
         test_session.add(assessment)
 
@@ -84,7 +82,7 @@ class TestBusinessModel:
             tier="A",
             confidence=Decimal("0.95"),
             scoring_version=1,
-            passed_gate=True
+            passed_gate=True,
         )
         test_session.add(score)
         test_session.commit()
@@ -104,7 +102,7 @@ class TestTargetingModels:
             geo_value="New York",
             vertical="restaurant",
             estimated_businesses=5000,
-            priority_score=Decimal("0.8")
+            priority_score=Decimal("0.8"),
         )
 
         test_session.add(target)
@@ -116,11 +114,7 @@ class TestTargetingModels:
     def test_batch_creation(self, test_session):
         """Test batch creation with target"""
         # Create target
-        target = Target(
-            geo_type=GeoType.ZIP,
-            geo_value="10001",
-            vertical="medical"
-        )
+        target = Target(geo_type=GeoType.ZIP, geo_value="10001", vertical="medical")
         test_session.add(target)
         test_session.commit()
 
@@ -129,7 +123,7 @@ class TestTargetingModels:
             target_id=target.id,
             batch_date=datetime.now().date(),
             planned_size=100,
-            status=BatchStatus.PENDING
+            status=BatchStatus.PENDING,
         )
         test_session.add(batch)
         test_session.commit()
@@ -152,7 +146,7 @@ class TestEmailModels:
             subject="Your Website Audit",
             preview_text="We found issues...",
             html_body="<html>...</html>",
-            status=EmailStatus.PENDING
+            status=EmailStatus.PENDING,
         )
         test_session.add(email)
         test_session.commit()
@@ -167,7 +161,7 @@ class TestEmailModels:
             email_id=email.id,
             url="https://leadfactory.com/report/123",
             ip_address="192.168.1.1",
-            user_agent="Mozilla/5.0..."
+            user_agent="Mozilla/5.0...",
         )
         test_session.add(click)
         test_session.commit()
@@ -192,7 +186,7 @@ class TestPurchaseModel:
             customer_email="customer@test.com",
             source="email",
             campaign="launch",
-            status=PurchaseStatus.PENDING
+            status=PurchaseStatus.PENDING,
         )
         test_session.add(purchase)
         test_session.commit()
@@ -217,7 +211,7 @@ class TestGatewayModels:
             cost_usd=Decimal("0.001"),
             cache_hit=False,
             response_time_ms=250,
-            status_code=200
+            status_code=200,
         )
 
         test_session.add(usage)
@@ -234,7 +228,7 @@ class TestExperimentModels:
             name="email_subject_test",
             description="Test urgency vs question subject lines",
             created_by="test_user",
-            primary_metric="conversion_rate"
+            primary_metric="conversion_rate",
         )
 
         test_session.add(experiment)
@@ -247,23 +241,23 @@ class TestExperimentModels:
             name="control",
             description="Control variant",
             weight=50.0,
-            is_control=True
+            is_control=True,
         )
-        
+
         urgency_variant = ExperimentVariant(
             experiment_id=experiment.experiment_id,
-            variant_key="urgency", 
+            variant_key="urgency",
             name="urgency",
             description="Urgency variant",
-            weight=25.0
+            weight=25.0,
         )
-        
+
         question_variant = ExperimentVariant(
             experiment_id=experiment.experiment_id,
             variant_key="question",
             name="question",
-            description="Question variant", 
-            weight=25.0
+            description="Question variant",
+            weight=25.0,
         )
 
         test_session.add_all([control_variant, urgency_variant, question_variant])

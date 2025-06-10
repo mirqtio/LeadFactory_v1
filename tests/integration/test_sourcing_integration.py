@@ -10,32 +10,29 @@ Acceptance Criteria:
 - Quota limits respected
 - Database state correct
 """
-import pytest
 import asyncio
 import os
 import sys
-from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, timedelta
 import uuid
-from typing import List, Dict, Any
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
-from d2_sourcing import (
-    YelpScraper, ScrapingResult, ScrapingStatus,
-    BusinessDeduplicator, DuplicateMatch, MergeResult, MatchConfidence,
-    SourcingCoordinator, SourcingBatch, BatchStatus, CoordinatorStatus,
-    process_location_batch, process_multiple_locations
-)
-from d2_sourcing.exceptions import (
-    YelpQuotaExceededException,
-    BatchQuotaException,
-    SourcingException
-)
-from database.session import SessionLocal
+from d2_sourcing import (BatchStatus, BusinessDeduplicator, CoordinatorStatus,
+                         DuplicateMatch, MatchConfidence, MergeResult,
+                         ScrapingResult, ScrapingStatus, SourcingBatch,
+                         SourcingCoordinator, YelpScraper,
+                         process_location_batch, process_multiple_locations)
+from d2_sourcing.exceptions import (BatchQuotaException, SourcingException,
+                                    YelpQuotaExceededException)
+from d2_sourcing.models import SourcedLocation, YelpMetadata
 from database.models import Business
-from d2_sourcing.models import YelpMetadata, SourcedLocation
+from database.session import SessionLocal
 
 
 class TestTask029AcceptanceCriteria:
@@ -48,9 +45,9 @@ class TestTask029AcceptanceCriteria:
         yield session
         # Cleanup any test data
         try:
-            test_businesses = session.query(Business).filter(
-                Business.name.like("TEST_%")
-            ).all()
+            test_businesses = (
+                session.query(Business).filter(Business.name.like("TEST_%")).all()
+            )
             for business in test_businesses:
                 session.delete(business)
             session.commit()
@@ -80,11 +77,11 @@ class TestTask029AcceptanceCriteria:
                     "state": "CA",
                     "zip_code": "94105",
                     "country": "US",
-                    "display_address": ["123 Main St", "San Francisco, CA 94105"]
+                    "display_address": ["123 Main St", "San Francisco, CA 94105"],
                 },
                 "price": "$$",
                 "hours": [{"open": [{"start": "1100", "end": "2200", "day": 0}]}],
-                "transactions": ["delivery", "pickup"]
+                "transactions": ["delivery", "pickup"],
             },
             {
                 "id": "test_business_2",
@@ -94,20 +91,26 @@ class TestTask029AcceptanceCriteria:
                 "image_url": "https://example.com/image2.jpg",
                 "url": "https://www.yelp.com/biz/marios-pizza-restaurant-sf",
                 "review_count": 200,
-                "categories": [{"alias": "pizza", "title": "Pizza"}, {"alias": "italian", "title": "Italian"}],
+                "categories": [
+                    {"alias": "pizza", "title": "Pizza"},
+                    {"alias": "italian", "title": "Italian"},
+                ],
                 "rating": 4.6,
-                "coordinates": {"latitude": 37.7750, "longitude": -122.4195},  # Very close
+                "coordinates": {
+                    "latitude": 37.7750,
+                    "longitude": -122.4195,
+                },  # Very close
                 "location": {
                     "address1": "123 Main Street",  # Slightly different address
                     "city": "San Francisco",
                     "state": "CA",
                     "zip_code": "94105",
                     "country": "US",
-                    "display_address": ["123 Main Street", "San Francisco, CA 94105"]
+                    "display_address": ["123 Main Street", "San Francisco, CA 94105"],
                 },
                 "price": "$$",
                 "hours": [{"open": [{"start": "1100", "end": "2300", "day": 0}]}],
-                "transactions": ["delivery"]
+                "transactions": ["delivery"],
             },
             {
                 "id": "test_business_3",
@@ -126,16 +129,18 @@ class TestTask029AcceptanceCriteria:
                     "state": "CA",
                     "zip_code": "94110",
                     "country": "US",
-                    "display_address": ["456 Oak Ave", "San Francisco, CA 94110"]
+                    "display_address": ["456 Oak Ave", "San Francisco, CA 94110"],
                 },
                 "price": "$",
                 "hours": [{"open": [{"start": "1000", "end": "2100", "day": 0}]}],
-                "transactions": ["pickup"]
-            }
+                "transactions": ["pickup"],
+            },
         ]
 
     @pytest.mark.asyncio
-    async def test_full_scrape_flow_works(self, integration_session, sample_yelp_businesses):
+    async def test_full_scrape_flow_works(
+        self, integration_session, sample_yelp_businesses
+    ):
         """
         Test that the full scrape flow works end-to-end
 
@@ -143,9 +148,11 @@ class TestTask029AcceptanceCriteria:
         """
 
         # Mock the Gateway facade
-        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
-             patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
-
+        with patch(
+            "d2_sourcing.yelp_scraper.get_gateway_facade"
+        ) as mock_get_facade, patch(
+            "d2_sourcing.yelp_scraper.get_settings"
+        ) as mock_settings:
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
@@ -156,22 +163,22 @@ class TestTask029AcceptanceCriteria:
             # Mock the gateway facade
             mock_facade = Mock()
             mock_get_facade.return_value = mock_facade
-            
+
             # Mock successful Yelp API response
-            mock_facade.search_businesses = AsyncMock(return_value={
-                "businesses": sample_yelp_businesses,
-                "total": len(sample_yelp_businesses),
-                "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}}
-            })
+            mock_facade.search_businesses = AsyncMock(
+                return_value={
+                    "businesses": sample_yelp_businesses,
+                    "total": len(sample_yelp_businesses),
+                    "region": {"center": {"latitude": 37.7749, "longitude": -122.4194}},
+                }
+            )
 
             # Create and initialize scraper
             scraper = YelpScraper(session=integration_session)
 
             # Test the full scraping flow
             result = await scraper.search_businesses(
-                location="San Francisco, CA",
-                term="pizza",
-                max_results=10
+                location="San Francisco, CA", term="pizza", max_results=10
             )
 
             # Verify scraping result
@@ -182,9 +189,11 @@ class TestTask029AcceptanceCriteria:
             assert len(result.businesses) == len(sample_yelp_businesses)
 
             # Verify businesses were saved to database
-            saved_businesses = integration_session.query(Business).filter(
-                Business.name.like("TEST_%")
-            ).all()
+            saved_businesses = (
+                integration_session.query(Business)
+                .filter(Business.name.like("TEST_%"))
+                .all()
+            )
 
             # Should have at least the scraped businesses
             assert len(saved_businesses) >= len(sample_yelp_businesses)
@@ -195,15 +204,19 @@ class TestTask029AcceptanceCriteria:
             assert "TEST_Joe's Burgers" in business_names
 
             # Verify metadata was created
-            metadata_records = integration_session.query(YelpMetadata).filter(
-                YelpMetadata.yelp_id.like("test_business_%")
-            ).all()
+            metadata_records = (
+                integration_session.query(YelpMetadata)
+                .filter(YelpMetadata.yelp_id.like("test_business_%"))
+                .all()
+            )
             assert len(metadata_records) >= len(sample_yelp_businesses)
 
             print("✓ Full scrape flow works")
 
     @pytest.mark.asyncio
-    async def test_deduplication_verified(self, integration_session, sample_yelp_businesses):
+    async def test_deduplication_verified(
+        self, integration_session, sample_yelp_businesses
+    ):
         """
         Test that deduplication logic works correctly in integration
 
@@ -228,7 +241,7 @@ class TestTask029AcceptanceCriteria:
                 review_count=yelp_data["review_count"],
                 is_active=True,
                 created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                updated_at=datetime.utcnow(),
             )
             integration_session.add(business)
             test_businesses.append(business)
@@ -241,8 +254,7 @@ class TestTask029AcceptanceCriteria:
 
             # Find duplicates
             duplicates = deduplicator.find_duplicates(
-                business_ids=[b.id for b in test_businesses],
-                confidence_threshold=0.7
+                business_ids=[b.id for b in test_businesses], confidence_threshold=0.7
             )
 
             # Should find Mario's Pizza duplicates
@@ -251,15 +263,29 @@ class TestTask029AcceptanceCriteria:
             # Verify duplicate detection between Mario's Pizza businesses
             mario_duplicate = None
             for dup in duplicates:
-                business1 = integration_session.query(Business).filter_by(id=dup.business_1_id).first()
-                business2 = integration_session.query(Business).filter_by(id=dup.business_2_id).first()
+                business1 = (
+                    integration_session.query(Business)
+                    .filter_by(id=dup.business_1_id)
+                    .first()
+                )
+                business2 = (
+                    integration_session.query(Business)
+                    .filter_by(id=dup.business_2_id)
+                    .first()
+                )
 
-                if ("Mario's Pizza" in business1.name and "Mario's Pizza" in business2.name):
+                if (
+                    "Mario's Pizza" in business1.name
+                    and "Mario's Pizza" in business2.name
+                ):
                     mario_duplicate = dup
                     break
 
             assert mario_duplicate is not None
-            assert mario_duplicate.confidence in [MatchConfidence.HIGH, MatchConfidence.MEDIUM]
+            assert mario_duplicate.confidence in [
+                MatchConfidence.HIGH,
+                MatchConfidence.MEDIUM,
+            ]
             assert mario_duplicate.confidence_score >= 0.7
 
             # Test merging duplicates
@@ -274,12 +300,16 @@ class TestTask029AcceptanceCriteria:
             assert isinstance(merge_result.merge_timestamp, datetime)
 
             # Verify database state after merge
-            primary_business = integration_session.query(Business).filter_by(
-                id=merge_result.primary_business_id
-            ).first()
-            merged_business = integration_session.query(Business).filter_by(
-                id=merge_result.merged_business_ids[0]
-            ).first()
+            primary_business = (
+                integration_session.query(Business)
+                .filter_by(id=merge_result.primary_business_id)
+                .first()
+            )
+            merged_business = (
+                integration_session.query(Business)
+                .filter_by(id=merge_result.merged_business_ids[0])
+                .first()
+            )
 
             assert primary_business.is_active == True
             assert merged_business.is_active == False
@@ -302,9 +332,11 @@ class TestTask029AcceptanceCriteria:
         """
 
         # Mock quota exceeded response
-        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
-             patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
-
+        with patch(
+            "d2_sourcing.yelp_scraper.get_gateway_facade"
+        ) as mock_get_facade, patch(
+            "d2_sourcing.yelp_scraper.get_settings"
+        ) as mock_settings:
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
@@ -315,29 +347,35 @@ class TestTask029AcceptanceCriteria:
             # Mock the gateway facade
             mock_facade = Mock()
             mock_get_facade.return_value = mock_facade
-            
+
             # Mock quota exceeded response
-            mock_facade.search_businesses = AsyncMock(side_effect=Exception("Rate limit exceeded"))
+            mock_facade.search_businesses = AsyncMock(
+                side_effect=Exception("Rate limit exceeded")
+            )
 
             # Create scraper
             scraper = YelpScraper(session=integration_session)
 
             # Should handle quota exceeded gracefully
             result = await scraper.search_businesses(
-                location="San Francisco, CA",
-                max_results=10
+                location="San Francisco, CA", max_results=10
             )
 
             # Verify quota handling
             assert result.status == ScrapingStatus.QUOTA_EXCEEDED
             assert result.error_count > 0
             assert result.fetched_count == 0
-            assert "rate limit" in result.error_message.lower() or "quota" in result.error_message.lower()
+            assert (
+                "rate limit" in result.error_message.lower()
+                or "quota" in result.error_message.lower()
+            )
 
         # Test quota handling in coordinator
-        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
-             patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
-
+        with patch(
+            "d2_sourcing.yelp_scraper.get_gateway_facade"
+        ) as mock_get_facade, patch(
+            "d2_sourcing.yelp_scraper.get_settings"
+        ) as mock_settings:
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
@@ -348,9 +386,11 @@ class TestTask029AcceptanceCriteria:
             # Mock the gateway facade
             mock_facade = Mock()
             mock_get_facade.return_value = mock_facade
-            
+
             # Mock quota exceeded response
-            mock_facade.search_businesses = AsyncMock(side_effect=Exception("Daily quota exceeded"))
+            mock_facade.search_businesses = AsyncMock(
+                side_effect=Exception("Daily quota exceeded")
+            )
 
             # Test with coordinator
             coordinator = SourcingCoordinator(session=integration_session)
@@ -358,8 +398,7 @@ class TestTask029AcceptanceCriteria:
 
             try:
                 batch_id = coordinator.create_batch(
-                    location="San Francisco, CA",
-                    max_results=10
+                    location="San Francisco, CA", max_results=10
                 )
 
                 # Should raise BatchQuotaException when quota exceeded
@@ -367,7 +406,10 @@ class TestTask029AcceptanceCriteria:
                     await coordinator.process_batch(batch_id)
 
                 # Verify it's a quota-related exception
-                assert "quota" in str(exc_info.value).lower() or "rate limit" in str(exc_info.value).lower()
+                assert (
+                    "quota" in str(exc_info.value).lower()
+                    or "rate limit" in str(exc_info.value).lower()
+                )
 
                 # Verify quota metrics were updated
                 assert coordinator.metrics.quota_exceeded_count > 0
@@ -378,7 +420,9 @@ class TestTask029AcceptanceCriteria:
         print("✓ Quota limits respected")
 
     @pytest.mark.asyncio
-    async def test_database_state_correct(self, integration_session, sample_yelp_businesses):
+    async def test_database_state_correct(
+        self, integration_session, sample_yelp_businesses
+    ):
         """
         Test that database state remains correct after sourcing operations
 
@@ -386,9 +430,11 @@ class TestTask029AcceptanceCriteria:
         """
 
         # Mock successful Yelp API response
-        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
-             patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
-
+        with patch(
+            "d2_sourcing.yelp_scraper.get_gateway_facade"
+        ) as mock_get_facade, patch(
+            "d2_sourcing.yelp_scraper.get_settings"
+        ) as mock_settings:
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
@@ -399,12 +445,14 @@ class TestTask029AcceptanceCriteria:
             # Mock the gateway facade
             mock_facade = Mock()
             mock_get_facade.return_value = mock_facade
-            
+
             # Mock successful response
-            mock_facade.search_businesses = AsyncMock(return_value={
-                "businesses": sample_yelp_businesses,
-                "total": len(sample_yelp_businesses)
-            })
+            mock_facade.search_businesses = AsyncMock(
+                return_value={
+                    "businesses": sample_yelp_businesses,
+                    "total": len(sample_yelp_businesses),
+                }
+            )
 
             # Use coordinator for full pipeline test
             coordinator = SourcingCoordinator(session=integration_session)
@@ -412,38 +460,53 @@ class TestTask029AcceptanceCriteria:
 
             try:
                 # Get initial database counts
-                initial_business_count = integration_session.query(Business).filter(
-                    Business.name.like("TEST_%")
-                ).count()
-                initial_metadata_count = integration_session.query(YelpMetadata).filter(
-                    YelpMetadata.yelp_id.like("test_business_%")
-                ).count()
+                initial_business_count = (
+                    integration_session.query(Business)
+                    .filter(Business.name.like("TEST_%"))
+                    .count()
+                )
+                initial_metadata_count = (
+                    integration_session.query(YelpMetadata)
+                    .filter(YelpMetadata.yelp_id.like("test_business_%"))
+                    .count()
+                )
 
                 # Process a batch
                 batch_id = coordinator.create_batch(
-                    location="San Francisco, CA",
-                    categories=["pizza"],
-                    max_results=10
+                    location="San Francisco, CA", categories=["pizza"], max_results=10
                 )
 
                 # Mock the scraper to save data properly
-                with patch.object(coordinator.scraper, 'save_business_data') as mock_save:
+                with patch.object(
+                    coordinator.scraper, "save_business_data"
+                ) as mock_save:
+
                     async def mock_save_business(business_data):
                         # Create actual business record
                         business = Business(
                             id=str(uuid.uuid4()),
                             name=business_data["name"],
                             phone=business_data.get("phone"),
-                            address=business_data["location"]["display_address"][0] if business_data.get("location") else None,
-                            city=business_data["location"]["city"] if business_data.get("location") else None,
-                            state=business_data["location"]["state"] if business_data.get("location") else None,
-                            latitude=business_data["coordinates"]["latitude"] if business_data.get("coordinates") else None,
-                            longitude=business_data["coordinates"]["longitude"] if business_data.get("coordinates") else None,
+                            address=business_data["location"]["display_address"][0]
+                            if business_data.get("location")
+                            else None,
+                            city=business_data["location"]["city"]
+                            if business_data.get("location")
+                            else None,
+                            state=business_data["location"]["state"]
+                            if business_data.get("location")
+                            else None,
+                            latitude=business_data["coordinates"]["latitude"]
+                            if business_data.get("coordinates")
+                            else None,
+                            longitude=business_data["coordinates"]["longitude"]
+                            if business_data.get("coordinates")
+                            else None,
                             rating=business_data.get("rating"),
                             review_count=business_data.get("review_count", 0),
                             is_active=True,
                             created_at=datetime.utcnow(),
-                            updated_at=datetime.utcnow()
+                            updated_at=datetime.utcnow(),
                         )
                         integration_session.add(business)
                         integration_session.flush()
@@ -455,7 +518,7 @@ class TestTask029AcceptanceCriteria:
                             yelp_id=business_data["id"],
                             yelp_url=business_data.get("url"),
                             image_url=business_data.get("image_url"),
-                            last_updated=datetime.utcnow()
+                            last_updated=datetime.utcnow(),
                         )
                         integration_session.add(metadata)
                         integration_session.commit()
@@ -472,21 +535,27 @@ class TestTask029AcceptanceCriteria:
                     assert result_batch.scraped_count > 0
 
                 # Verify database state after processing
-                final_business_count = integration_session.query(Business).filter(
-                    Business.name.like("TEST_%")
-                ).count()
-                final_metadata_count = integration_session.query(YelpMetadata).filter(
-                    YelpMetadata.yelp_id.like("test_business_%")
-                ).count()
+                final_business_count = (
+                    integration_session.query(Business)
+                    .filter(Business.name.like("TEST_%"))
+                    .count()
+                )
+                final_metadata_count = (
+                    integration_session.query(YelpMetadata)
+                    .filter(YelpMetadata.yelp_id.like("test_business_%"))
+                    .count()
+                )
 
                 # Should have new businesses
                 assert final_business_count > initial_business_count
                 assert final_metadata_count > initial_metadata_count
 
                 # Verify business data integrity
-                test_businesses = integration_session.query(Business).filter(
-                    Business.name.like("TEST_%")
-                ).all()
+                test_businesses = (
+                    integration_session.query(Business)
+                    .filter(Business.name.like("TEST_%"))
+                    .all()
+                )
 
                 for business in test_businesses:
                     # Basic data integrity checks
@@ -503,22 +572,28 @@ class TestTask029AcceptanceCriteria:
                         assert -180 <= business.longitude <= 180
 
                 # Verify metadata relationships
-                metadata_records = integration_session.query(YelpMetadata).filter(
-                    YelpMetadata.yelp_id.like("test_business_%")
-                ).all()
+                metadata_records = (
+                    integration_session.query(YelpMetadata)
+                    .filter(YelpMetadata.yelp_id.like("test_business_%"))
+                    .all()
+                )
 
                 for metadata in metadata_records:
                     # Should have valid business relationship
-                    business = integration_session.query(Business).filter_by(
-                        id=metadata.business_id
-                    ).first()
+                    business = (
+                        integration_session.query(Business)
+                        .filter_by(id=metadata.business_id)
+                        .first()
+                    )
                     assert business is not None
                     assert business.name.startswith("TEST_")
 
                 # Verify sourced location tracking
-                sourced_locations = integration_session.query(SourcedLocation).filter(
-                    SourcedLocation.location.like("%San Francisco%")
-                ).all()
+                sourced_locations = (
+                    integration_session.query(SourcedLocation)
+                    .filter(SourcedLocation.location.like("%San Francisco%"))
+                    .all()
+                )
 
                 # Should have location record
                 assert len(sourced_locations) >= 1
@@ -534,30 +609,38 @@ class TestTask029AcceptanceCriteria:
                 await coordinator.shutdown()
 
                 # Cleanup test data
-                test_businesses = integration_session.query(Business).filter(
-                    Business.name.like("TEST_%")
-                ).all()
+                test_businesses = (
+                    integration_session.query(Business)
+                    .filter(Business.name.like("TEST_%"))
+                    .all()
+                )
                 for business in test_businesses:
                     integration_session.delete(business)
 
-                test_metadata = integration_session.query(YelpMetadata).filter(
-                    YelpMetadata.yelp_id.like("test_business_%")
-                ).all()
+                test_metadata = (
+                    integration_session.query(YelpMetadata)
+                    .filter(YelpMetadata.yelp_id.like("test_business_%"))
+                    .all()
+                )
                 for metadata in test_metadata:
                     integration_session.delete(metadata)
 
                 integration_session.commit()
 
     @pytest.mark.asyncio
-    async def test_end_to_end_sourcing_pipeline(self, integration_session, sample_yelp_businesses):
+    async def test_end_to_end_sourcing_pipeline(
+        self, integration_session, sample_yelp_businesses
+    ):
         """
         Test the complete end-to-end sourcing pipeline including all components
         """
 
         # Mock Yelp API response
-        with patch('d2_sourcing.yelp_scraper.get_gateway_facade') as mock_get_facade, \
-             patch('d2_sourcing.yelp_scraper.get_settings') as mock_settings:
-
+        with patch(
+            "d2_sourcing.yelp_scraper.get_gateway_facade"
+        ) as mock_get_facade, patch(
+            "d2_sourcing.yelp_scraper.get_settings"
+        ) as mock_settings:
             # Mock settings
             settings = Mock()
             settings.YELP_API_KEY = "test-api-key"
@@ -568,17 +651,21 @@ class TestTask029AcceptanceCriteria:
             # Mock the gateway facade
             mock_facade = Mock()
             mock_get_facade.return_value = mock_facade
-            
+
             # Mock successful response
-            mock_facade.search_businesses = AsyncMock(return_value={
-                "businesses": sample_yelp_businesses,
-                "total": len(sample_yelp_businesses)
-            })
+            mock_facade.search_businesses = AsyncMock(
+                return_value={
+                    "businesses": sample_yelp_businesses,
+                    "total": len(sample_yelp_businesses),
+                }
+            )
 
             # Test using convenience function
             try:
                 # Mock the business saving to actually create records
-                with patch('d2_sourcing.yelp_scraper.YelpScraper.save_business_data') as mock_save:
+                with patch(
+                    "d2_sourcing.yelp_scraper.YelpScraper.save_business_data"
+                ) as mock_save:
                     saved_business_ids = []
 
                     async def mock_save_business(business_data):
@@ -587,16 +674,26 @@ class TestTask029AcceptanceCriteria:
                             id=business_id,
                             name=business_data["name"],
                             phone=business_data.get("phone"),
-                            address=business_data["location"]["display_address"][0] if business_data.get("location") else None,
-                            city=business_data["location"]["city"] if business_data.get("location") else None,
-                            state=business_data["location"]["state"] if business_data.get("location") else None,
-                            latitude=business_data["coordinates"]["latitude"] if business_data.get("coordinates") else None,
-                            longitude=business_data["coordinates"]["longitude"] if business_data.get("coordinates") else None,
+                            address=business_data["location"]["display_address"][0]
+                            if business_data.get("location")
+                            else None,
+                            city=business_data["location"]["city"]
+                            if business_data.get("location")
+                            else None,
+                            state=business_data["location"]["state"]
+                            if business_data.get("location")
+                            else None,
+                            latitude=business_data["coordinates"]["latitude"]
+                            if business_data.get("coordinates")
+                            else None,
+                            longitude=business_data["coordinates"]["longitude"]
+                            if business_data.get("coordinates")
+                            else None,
                             rating=business_data.get("rating"),
                             review_count=business_data.get("review_count", 0),
                             is_active=True,
                             created_at=datetime.utcnow(),
-                            updated_at=datetime.utcnow()
+                            updated_at=datetime.utcnow(),
                         )
                         integration_session.add(business)
                         integration_session.flush()
@@ -609,7 +706,7 @@ class TestTask029AcceptanceCriteria:
                     result = await process_location_batch(
                         location="San Francisco, CA",
                         categories=["pizza"],
-                        max_results=50
+                        max_results=50,
                     )
 
                     # Verify result structure
@@ -624,9 +721,11 @@ class TestTask029AcceptanceCriteria:
 
             finally:
                 # Cleanup
-                test_businesses = integration_session.query(Business).filter(
-                    Business.name.like("TEST_%")
-                ).all()
+                test_businesses = (
+                    integration_session.query(Business)
+                    .filter(Business.name.like("TEST_%"))
+                    .all()
+                )
                 for business in test_businesses:
                     integration_session.delete(business)
                 integration_session.commit()
@@ -642,6 +741,7 @@ if __name__ == "__main__":
 
         # Mock session for direct testing
         from unittest.mock import Mock
+
         mock_session = Mock()
         mock_session.query.return_value.filter.return_value.all.return_value = []
         mock_session.add = Mock()
@@ -667,8 +767,8 @@ if __name__ == "__main__":
                     "state": "CA",
                     "zip_code": "94105",
                     "country": "US",
-                    "display_address": ["123 Main St", "San Francisco, CA 94105"]
-                }
+                    "display_address": ["123 Main St", "San Francisco, CA 94105"],
+                },
             }
         ]
 

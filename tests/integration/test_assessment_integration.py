@@ -6,36 +6,35 @@ Acceptance Criteria:
 - Timeouts handled properly
 - Results stored correctly
 """
-import pytest
-import sys
-import os
 import asyncio
 import json
-from typing import Dict, Any, List
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+import os
+import sys
 from datetime import datetime, timedelta
 from decimal import Decimal
-from fastapi.testclient import TestClient
+from typing import Any, Dict, List
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Ensure we can import our modules
-sys.path.insert(0, '/app')
+sys.path.insert(0, "/app")
 
-from database.session import SessionLocal
-from database.models import Base
 from d3_assessment.api import router
-from d3_assessment.coordinator import (
-    AssessmentCoordinator, CoordinatorResult, AssessmentRequest,
-    AssessmentPriority, CoordinatorError
-)
-from d3_assessment.models import AssessmentSession
-from d3_assessment.types import AssessmentType, AssessmentStatus
-from d3_assessment.formatter import AssessmentReportFormatter, ReportFormat
 from d3_assessment.cache import AssessmentCache
+from d3_assessment.coordinator import (AssessmentCoordinator,
+                                       AssessmentPriority, AssessmentRequest,
+                                       CoordinatorError, CoordinatorResult)
+from d3_assessment.formatter import AssessmentReportFormatter, ReportFormat
 from d3_assessment.metrics import AssessmentMetrics
-
+from d3_assessment.models import AssessmentSession
+from d3_assessment.types import AssessmentStatus, AssessmentType
+from database.models import Base
+from database.session import SessionLocal
 
 
 class TestAssessmentIntegrationTask039:
@@ -112,7 +111,7 @@ class TestAssessmentIntegrationTask039:
                     "technology_name": "React",
                     "category": "JavaScript Frameworks",
                     "confidence": 0.95,
-                    "version": "18.2.0"
+                    "version": "18.2.0",
                 }
             ]
         }
@@ -132,11 +131,11 @@ class TestAssessmentIntegrationTask039:
                         "title": "Optimize Images",
                         "description": "Use WebP format and lazy loading",
                         "priority": "Medium",
-                        "effort": "Low"
+                        "effort": "Low",
                     }
                 ]
             },
-            "total_cost_usd": 0.15
+            "total_cost_usd": 0.15,
         }
         ai_result.total_cost_usd = Decimal("0.15")
 
@@ -150,13 +149,13 @@ class TestAssessmentIntegrationTask039:
             partial_results={
                 AssessmentType.PAGESPEED: pagespeed_result,
                 AssessmentType.TECH_STACK: techstack_result,
-                AssessmentType.AI_INSIGHTS: ai_result
+                AssessmentType.AI_INSIGHTS: ai_result,
             },
             errors={},
             total_cost_usd=Decimal("0.25"),
             execution_time_ms=12500,
             started_at=datetime.utcnow() - timedelta(seconds=15),
-            completed_at=datetime.utcnow()
+            completed_at=datetime.utcnow(),
         )
 
         # Configure mock
@@ -190,17 +189,17 @@ class TestAssessmentIntegrationTask039:
                     domain="timeout-site.com",
                     performance_score=45,
                     accessibility_score=60,
-                    seo_score=55
+                    seo_score=55,
                 )
             },
             errors={
                 AssessmentType.TECH_STACK: "Connection timeout after 300 seconds",
-                AssessmentType.AI_INSIGHTS: "API rate limit exceeded"
+                AssessmentType.AI_INSIGHTS: "API rate limit exceeded",
             },
             total_cost_usd=Decimal("0.05"),
             execution_time_ms=305000,  # Over 5 minutes
             started_at=datetime.utcnow() - timedelta(minutes=6),
-            completed_at=datetime.utcnow()
+            completed_at=datetime.utcnow(),
         )
 
         coordinator.assess_business = AsyncMock(return_value=mock_result)
@@ -275,7 +274,7 @@ class TestAssessmentIntegrationTask039:
         assessor_types = [
             AssessmentType.PAGESPEED,
             AssessmentType.TECH_STACK,
-            AssessmentType.AI_INSIGHTS
+            AssessmentType.AI_INSIGHTS,
         ]
 
         for assessment_type in assessor_types:
@@ -283,7 +282,7 @@ class TestAssessmentIntegrationTask039:
             request = AssessmentRequest(
                 assessment_type=assessment_type,
                 url="https://example.com",
-                priority=AssessmentPriority.MEDIUM
+                priority=AssessmentPriority.MEDIUM,
             )
 
             # Verify request can be created successfully
@@ -339,7 +338,9 @@ class TestAssessmentIntegrationTask039:
         # Verify the completed assessment has proper data
         pagespeed_result = result.partial_results[AssessmentType.PAGESPEED]
         assert pagespeed_result.status == AssessmentStatus.COMPLETED
-        assert pagespeed_result.performance_score == 45  # Poor performance from timeout site
+        assert (
+            pagespeed_result.performance_score == 45
+        )  # Poor performance from timeout site
         assert pagespeed_result.url == "https://timeout-site.com"
 
         # Verify that failed assessments are not in partial_results
@@ -347,7 +348,9 @@ class TestAssessmentIntegrationTask039:
         assert AssessmentType.AI_INSIGHTS not in result.partial_results
 
         # Verify cost is lower due to partial completion
-        assert result.total_cost_usd == Decimal("0.05")  # Only cost from completed PageSpeed
+        assert result.total_cost_usd == Decimal(
+            "0.05"
+        )  # Only cost from completed PageSpeed
 
         print("✓ Timeouts handled properly")
 
@@ -389,7 +392,10 @@ class TestAssessmentIntegrationTask039:
         assert techstack_result.tech_stack_data is not None
         assert "technologies" in techstack_result.tech_stack_data
         assert len(techstack_result.tech_stack_data["technologies"]) == 1
-        assert techstack_result.tech_stack_data["technologies"][0]["technology_name"] == "React"
+        assert (
+            techstack_result.tech_stack_data["technologies"][0]["technology_name"]
+            == "React"
+        )
 
         # Check AI Insights result structure
         ai_result = mock_result.partial_results[AssessmentType.AI_INSIGHTS]
@@ -424,7 +430,7 @@ class TestAssessmentIntegrationTask039:
             request = AssessmentRequest(
                 assessment_type=AssessmentType.PAGESPEED,
                 url=url,
-                priority=AssessmentPriority.HIGH
+                priority=AssessmentPriority.HIGH,
             )
 
             # Verify request structure for batch processing
@@ -449,7 +455,7 @@ class TestAssessmentIntegrationTask039:
             (ReportFormat.TEXT, "WEBSITE ASSESSMENT REPORT"),
             (ReportFormat.JSON, '"session_id"'),
             (ReportFormat.MARKDOWN, "# Website Assessment Report"),
-            (ReportFormat.HTML, "<!DOCTYPE html>")
+            (ReportFormat.HTML, "<!DOCTYPE html>"),
         ]
 
         for format_type, expected_content in formats_to_test:
@@ -472,16 +478,16 @@ class TestAssessmentIntegrationTask039:
 
         # Test cache instantiation and basic functionality
         assert cache is not None
-        assert hasattr(cache, 'get')
-        assert hasattr(cache, 'put')
-        assert hasattr(cache, 'invalidate')
+        assert hasattr(cache, "get")
+        assert hasattr(cache, "put")
+        assert hasattr(cache, "invalidate")
 
         # Test cache stats (empty initially)
         stats = cache.get_stats()
-        assert hasattr(stats, 'hits')
-        assert hasattr(stats, 'misses')
-        assert hasattr(stats, 'evictions')
-        assert hasattr(stats, 'entry_count')
+        assert hasattr(stats, "hits")
+        assert hasattr(stats, "misses")
+        assert hasattr(stats, "evictions")
+        assert hasattr(stats, "entry_count")
 
         # Test cache configuration
         cache.configure_ttl(AssessmentType.PAGESPEED, 3600)
@@ -503,7 +509,7 @@ class TestAssessmentIntegrationTask039:
         metrics.track_assessment_start(
             business_id="biz_test123",
             assessment_type=AssessmentType.PAGESPEED,
-            industry="ecommerce"
+            industry="ecommerce",
         )
 
         metrics.track_assessment_complete(
@@ -511,12 +517,11 @@ class TestAssessmentIntegrationTask039:
             assessment_type=AssessmentType.PAGESPEED,
             duration_ms=1500,
             success=True,
-            industry="ecommerce"
+            industry="ecommerce",
         )
 
         metrics.track_cost(
-            assessment_type=AssessmentType.AI_INSIGHTS,
-            cost_usd=Decimal("0.15")
+            assessment_type=AssessmentType.AI_INSIGHTS, cost_usd=Decimal("0.15")
         )
 
         # Test metrics retrieval
@@ -566,7 +571,7 @@ class TestAssessmentIntegrationTask039:
             AssessmentRequest(
                 assessment_type=AssessmentType.PAGESPEED,
                 url=f"https://example{i}.com",
-                priority=AssessmentPriority.HIGH
+                priority=AssessmentPriority.HIGH,
             )
             for i in range(5)
         ]
@@ -617,6 +622,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run async tests

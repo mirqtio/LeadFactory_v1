@@ -11,16 +11,7 @@ Key Components:
 - Compliance and webhook handling
 """
 
-from .models import (
-    EmailDelivery,
-    BounceTracking,
-    SuppressionList,
-    DeliveryEvent
-)
+from .models import (BounceTracking, DeliveryEvent, EmailDelivery,
+                     SuppressionList)
 
-__all__ = [
-    'EmailDelivery',
-    'BounceTracking', 
-    'SuppressionList',
-    'DeliveryEvent'
-]
+__all__ = ["EmailDelivery", "BounceTracking", "SuppressionList", "DeliveryEvent"]

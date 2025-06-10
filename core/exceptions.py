@@ -2,7 +2,7 @@
 Custom exceptions for LeadFactory
 Provides structured error handling across all domains
 """
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 class LeadFactoryError(Exception):
@@ -13,7 +13,7 @@ class LeadFactoryError(Exception):
         message: str,
         error_code: Optional[str] = None,
         details: Optional[Dict[str, Any]] = None,
-        status_code: int = 500
+        status_code: int = 500,
     ):
         super().__init__(message)
         self.message = message
@@ -26,7 +26,7 @@ class LeadFactoryError(Exception):
         return {
             "error": self.error_code,
             "message": self.message,
-            "details": self.details
+            "details": self.details,
         }
 
 
@@ -38,7 +38,7 @@ class ValidationError(LeadFactoryError):
             message=message,
             error_code="VALIDATION_ERROR",
             details={"field": field, **details} if field else details,
-            status_code=400
+            status_code=400,
         )
 
 
@@ -50,7 +50,7 @@ class NotFoundError(LeadFactoryError):
             message=f"{resource} not found: {identifier}",
             error_code="NOT_FOUND",
             details={"resource": resource, "identifier": str(identifier)},
-            status_code=404
+            status_code=404,
         )
 
 
@@ -62,7 +62,7 @@ class DuplicateError(LeadFactoryError):
             message=f"{resource} already exists: {identifier}",
             error_code="DUPLICATE",
             details={"resource": resource, "identifier": str(identifier)},
-            status_code=409
+            status_code=409,
         )
 
 
@@ -75,7 +75,7 @@ class ExternalAPIError(LeadFactoryError):
         message: str,
         status_code: Optional[int] = None,
         response_body: Optional[str] = None,
-        **details
+        **details,
     ):
         super().__init__(
             message=f"{provider} API error: {message}",
@@ -84,9 +84,10 @@ class ExternalAPIError(LeadFactoryError):
                 "provider": provider,
                 "api_status_code": status_code,
                 "response_body": response_body,
-                **details
+                **details,
             },
-            status_code=status_code or 502  # Use provided status_code or default to Bad Gateway
+            status_code=status_code
+            or 502,  # Use provided status_code or default to Bad Gateway
         )
 
 
@@ -98,7 +99,7 @@ class RateLimitError(ExternalAPIError):
         provider: str,
         retry_after: Optional[int] = None,
         daily_limit: Optional[int] = None,
-        daily_used: Optional[int] = None
+        daily_used: Optional[int] = None,
     ):
         message = f"Rate limit exceeded"
         if retry_after:
@@ -110,7 +111,7 @@ class RateLimitError(ExternalAPIError):
             status_code=429,
             retry_after=retry_after,
             daily_limit=daily_limit,
-            daily_used=daily_used
+            daily_used=daily_used,
         )
         self.status_code = 429  # Too Many Requests
 
@@ -123,7 +124,7 @@ class ConfigurationError(LeadFactoryError):
             message=message,
             error_code="CONFIGURATION_ERROR",
             details={"setting": setting} if setting else {},
-            status_code=500
+            status_code=500,
         )
 
 
@@ -135,7 +136,7 @@ class DatabaseError(LeadFactoryError):
             message=message,
             error_code="DATABASE_ERROR",
             details={"operation": operation, **details} if operation else details,
-            status_code=500
+            status_code=500,
         )
 
 
@@ -147,7 +148,7 @@ class PaymentError(LeadFactoryError):
         message: str,
         payment_intent_id: Optional[str] = None,
         stripe_error_code: Optional[str] = None,
-        **details
+        **details,
     ):
         super().__init__(
             message=message,
@@ -155,9 +156,9 @@ class PaymentError(LeadFactoryError):
             details={
                 "payment_intent_id": payment_intent_id,
                 "stripe_error_code": stripe_error_code,
-                **details
+                **details,
             },
-            status_code=402  # Payment Required
+            status_code=402,  # Payment Required
         )
 
 
@@ -169,17 +170,13 @@ class EmailDeliveryError(LeadFactoryError):
         message: str,
         email: Optional[str] = None,
         reason: Optional[str] = None,
-        **details
+        **details,
     ):
         super().__init__(
             message=message,
             error_code="EMAIL_DELIVERY_ERROR",
-            details={
-                "email": email,
-                "reason": reason,
-                **details
-            },
-            status_code=500
+            details={"email": email, "reason": reason, **details},
+            status_code=500,
         )
 
 
@@ -187,19 +184,11 @@ class AssessmentError(LeadFactoryError):
     """Raised when website assessment fails"""
 
     def __init__(
-        self,
-        message: str,
-        assessment_type: str,
-        url: Optional[str] = None,
-        **details
+        self, message: str, assessment_type: str, url: Optional[str] = None, **details
     ):
         super().__init__(
             message=message,
             error_code="ASSESSMENT_ERROR",
-            details={
-                "assessment_type": assessment_type,
-                "url": url,
-                **details
-            },
-            status_code=500
+            details={"assessment_type": assessment_type, "url": url, **details},
+            status_code=500,
         )

@@ -11,26 +11,26 @@ Acceptance Criteria:
 - Progress tracking
 """
 
-import logging
 import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, Set, Tuple, Union
-from dataclasses import dataclass, field
-from enum import Enum
+import logging
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
-from .models import (
-    EnrichmentRequest, EnrichmentResult, EnrichmentSource,
-    EnrichmentStatus, MatchConfidence
-)
-from .gbp_enricher import GBPEnricher
 from database.session import get_db
+
+from .gbp_enricher import GBPEnricher
+from .models import (EnrichmentRequest, EnrichmentResult, EnrichmentSource,
+                     EnrichmentStatus, MatchConfidence)
 
 logger = logging.getLogger(__name__)
 
 
 class EnrichmentPriority(Enum):
     """Priority levels for enrichment requests"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -44,6 +44,7 @@ class EnrichmentProgress:
 
     Acceptance Criteria: Progress tracking
     """
+
     request_id: str
     total_businesses: int
     processed_businesses: int = 0
@@ -73,6 +74,7 @@ class EnrichmentProgress:
 @dataclass
 class BatchEnrichmentResult:
     """Result of batch enrichment operation"""
+
     request_id: str
     total_processed: int
     successful_enrichments: int
@@ -99,7 +101,7 @@ class EnrichmentCoordinator:
         self,
         max_concurrent: int = 5,
         default_cache_ttl_hours: int = 24,
-        skip_recent_enrichments: bool = True
+        skip_recent_enrichments: bool = True,
     ):
         """Initialize enrichment coordinator"""
         self.max_concurrent = max_concurrent
@@ -117,12 +119,12 @@ class EnrichmentCoordinator:
 
         # Statistics
         self.stats = {
-            'total_requests': 0,
-            'total_businesses_processed': 0,
-            'total_enrichments_created': 0,
-            'total_skipped': 0,
-            'total_errors': 0,
-            'average_processing_time': 0.0
+            "total_requests": 0,
+            "total_businesses_processed": 0,
+            "total_enrichments_created": 0,
+            "total_skipped": 0,
+            "total_errors": 0,
+            "average_processing_time": 0.0,
         }
 
         # Concurrency control
@@ -134,7 +136,7 @@ class EnrichmentCoordinator:
         sources: Optional[List[EnrichmentSource]] = None,
         priority: EnrichmentPriority = EnrichmentPriority.MEDIUM,
         skip_existing: bool = True,
-        timeout_seconds: int = 300
+        timeout_seconds: int = 300,
     ) -> BatchEnrichmentResult:
         """
         Enrich multiple businesses in batch
@@ -153,14 +155,14 @@ class EnrichmentCoordinator:
             timeout_seconds=timeout_seconds,
             status=EnrichmentStatus.IN_PROGRESS.value,
             requested_at=datetime.utcnow(),
-            started_at=datetime.utcnow()
+            started_at=datetime.utcnow(),
         )
 
         # Initialize progress tracking
         progress = EnrichmentProgress(
             request_id=request.id,
             total_businesses=len(businesses),
-            started_at=datetime.utcnow()
+            started_at=datetime.utcnow(),
         )
         self.active_requests[request.id] = progress
 
@@ -189,7 +191,7 @@ class EnrichmentCoordinator:
                 progress=progress,
                 results=[r for r in enrichment_results if r],
                 errors=progress.errors,
-                execution_time_seconds=execution_time
+                execution_time_seconds=execution_time,
             )
 
             # Update request status
@@ -202,11 +204,11 @@ class EnrichmentCoordinator:
             del self.active_requests[request.id]
 
             # Update global statistics
-            self.stats['total_requests'] += 1
-            self.stats['total_businesses_processed'] += len(businesses)
-            self.stats['total_enrichments_created'] += successful
-            self.stats['total_skipped'] += progress.skipped_businesses
-            self.stats['total_errors'] += failed
+            self.stats["total_requests"] += 1
+            self.stats["total_businesses_processed"] += len(businesses)
+            self.stats["total_enrichments_created"] += successful
+            self.stats["total_skipped"] += progress.skipped_businesses
+            self.stats["total_errors"] += failed
 
             logger.info(
                 f"Batch enrichment completed: {successful} successful, "
@@ -236,7 +238,7 @@ class EnrichmentCoordinator:
                 progress=progress,
                 results=[],
                 errors=[error_msg],
-                execution_time_seconds=execution_time
+                execution_time_seconds=execution_time,
             )
 
             self.completed_requests[request.id] = batch_result
@@ -250,11 +252,13 @@ class EnrichmentCoordinator:
         businesses: List[Dict[str, Any]],
         sources: List[EnrichmentSource],
         request_id: str,
-        skip_existing: bool
+        skip_existing: bool,
     ) -> List[Optional[EnrichmentResult]]:
         """Process batch with concurrency control"""
 
-        async def process_single_business(business: Dict[str, Any]) -> Optional[EnrichmentResult]:
+        async def process_single_business(
+            business: Dict[str, Any]
+        ) -> Optional[EnrichmentResult]:
             """Process a single business with error handling"""
             async with self._semaphore:
                 try:
@@ -262,7 +266,7 @@ class EnrichmentCoordinator:
                         business, sources, request_id, skip_existing
                     )
                 except Exception as e:
-                    business_id = business.get('id', 'unknown')
+                    business_id = business.get("id", "unknown")
                     error_msg = f"Failed to enrich business {business_id}: {e}"
                     logger.error(error_msg)
 
@@ -297,14 +301,14 @@ class EnrichmentCoordinator:
         business: Dict[str, Any],
         sources: List[EnrichmentSource],
         request_id: str,
-        skip_existing: bool
+        skip_existing: bool,
     ) -> Optional[EnrichmentResult]:
         """
         Enrich a single business with skip logic and error handling
 
         Acceptance Criteria: Skip already enriched, Error handling proper
         """
-        business_id = business.get('id', str(uuid.uuid4()))
+        business_id = business.get("id", str(uuid.uuid4()))
         progress = self.active_requests.get(request_id)
 
         try:
@@ -333,13 +337,18 @@ class EnrichmentCoordinator:
                     # Perform enrichment
                     result = await enricher.enrich_business(business, business_id)
 
-                    if result and result.match_confidence != MatchConfidence.UNCERTAIN.value:
+                    if (
+                        result
+                        and result.match_confidence != MatchConfidence.UNCERTAIN.value
+                    ):
                         # Successful enrichment
                         if progress:
                             progress.enriched_businesses += 1
                             progress.processed_businesses += 1
 
-                        logger.debug(f"Successfully enriched business {business_id} using {source.value}")
+                        logger.debug(
+                            f"Successfully enriched business {business_id} using {source.value}"
+                        )
                         return result
                     else:
                         last_error = f"Low confidence result from {source.value}"
@@ -410,9 +419,9 @@ class EnrichmentCoordinator:
         """Get coordinator statistics"""
         return {
             **self.stats,
-            'active_requests': len(self.active_requests),
-            'completed_requests': len(self.completed_requests),
-            'available_sources': list(self.enrichers.keys())
+            "active_requests": len(self.active_requests),
+            "completed_requests": len(self.completed_requests),
+            "available_sources": list(self.enrichers.keys()),
         }
 
     async def add_enricher(self, source: EnrichmentSource, enricher):
@@ -443,7 +452,7 @@ class EnrichmentCoordinator:
                 progress=progress,
                 results=[],
                 errors=progress.errors + ["Request cancelled"],
-                execution_time_seconds=0.0
+                execution_time_seconds=0.0,
             )
 
             self.completed_requests[request_id] = batch_result
@@ -472,7 +481,7 @@ class EnrichmentCoordinator:
 async def enrich_business(
     business: Dict[str, Any],
     sources: Optional[List[EnrichmentSource]] = None,
-    coordinator: Optional[EnrichmentCoordinator] = None
+    coordinator: Optional[EnrichmentCoordinator] = None,
 ) -> Optional[EnrichmentResult]:
     """
     Convenience function to enrich a single business
@@ -483,7 +492,7 @@ async def enrich_business(
     batch_result = await coordinator.enrich_businesses_batch(
         businesses=[business],
         sources=sources,
-        skip_existing=False  # Don't skip for single business
+        skip_existing=False,  # Don't skip for single business
     )
 
     if batch_result.results:
@@ -496,14 +505,12 @@ async def enrich_businesses(
     businesses: List[Dict[str, Any]],
     sources: Optional[List[EnrichmentSource]] = None,
     max_concurrent: int = 5,
-    skip_existing: bool = True
+    skip_existing: bool = True,
 ) -> BatchEnrichmentResult:
     """
     Convenience function to enrich multiple businesses
     """
     coordinator = EnrichmentCoordinator(max_concurrent=max_concurrent)
     return await coordinator.enrich_businesses_batch(
-        businesses=businesses,
-        sources=sources,
-        skip_existing=skip_existing
+        businesses=businesses, sources=sources, skip_existing=skip_existing
     )

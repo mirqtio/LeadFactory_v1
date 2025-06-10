@@ -10,18 +10,18 @@ Acceptance Criteria:
 - Custom args included ✓
 """
 
+import html
+import logging
 import os
 import re
-import logging
 import uuid
-from typing import Dict, List, Any, Optional, Union
-from datetime import datetime, timezone
 from dataclasses import dataclass, field
-from jinja2 import Template, Environment, BaseLoader
-import html
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Union
+
+from jinja2 import BaseLoader, Environment, Template
 
 from .sendgrid_client import EmailData
-
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EmailTemplate:
     """Email template data structure"""
+
     name: str
     subject_template: str
     html_template: str
@@ -40,6 +41,7 @@ class EmailTemplate:
 @dataclass
 class PersonalizationData:
     """Personalization data for email templates"""
+
     business_name: str
     contact_name: Optional[str] = None
     contact_first_name: Optional[str] = None
@@ -53,31 +55,33 @@ class PersonalizationData:
 class EmailBuilder:
     """
     Email builder for creating formatted emails with templates and personalization
-    
+
     Handles template rendering, personalization, compliance,
     and proper formatting for SendGrid delivery.
     """
-    
+
     def __init__(self):
         """Initialize email builder"""
         self.jinja_env = Environment(loader=BaseLoader())
         self.templates = {}
-        self.default_from_email = os.getenv('SENDGRID_FROM_EMAIL', 'noreply@leadfactory.com')
-        self.default_from_name = os.getenv('SENDGRID_FROM_NAME', 'LeadFactory')
-        
+        self.default_from_email = os.getenv(
+            "SENDGRID_FROM_EMAIL", "noreply@leadfactory.com"
+        )
+        self.default_from_name = os.getenv("SENDGRID_FROM_NAME", "LeadFactory")
+
         # Load default templates
         self._load_default_templates()
-        
+
         logger.info("Email builder initialized")
-    
+
     def _load_default_templates(self):
         """Load default email templates"""
-        
+
         # Cold outreach template
-        self.templates['cold_outreach'] = EmailTemplate(
-            name='cold_outreach',
-            subject_template='Website Performance Insights for {{ business_name }}',
-            html_template='''
+        self.templates["cold_outreach"] = EmailTemplate(
+            name="cold_outreach",
+            subject_template="Website Performance Insights for {{ business_name }}",
+            html_template="""
 <!DOCTYPE html>
 <html>
 <head>
@@ -134,8 +138,8 @@ class EmailBuilder:
     </div>
 </body>
 </html>
-            ''',
-            text_template='''
+            """,
+            text_template="""
 Hi {% if contact_first_name %}{{ contact_first_name }}{% else %}there{% endif %},
 
 I was analyzing {{ business_name }}'s website and found several areas for improvement that could help you attract more customers and increase conversions.
@@ -159,19 +163,19 @@ To schedule, simply reply to this email or contact us at {{ reply_to_email }}.
 
 Best regards,
 The Website Performance Team
-            ''',
-            default_categories=['cold_outreach', 'website_audit', 'leadfactory'],
+            """,
+            default_categories=["cold_outreach", "website_audit", "leadfactory"],
             default_custom_args={
-                'template': 'cold_outreach',
-                'campaign_type': 'website_audit'
-            }
+                "template": "cold_outreach",
+                "campaign_type": "website_audit",
+            },
         )
-        
+
         # Follow-up template
-        self.templates['follow_up'] = EmailTemplate(
-            name='follow_up',
-            subject_template='Following up on {{ business_name }} website insights',
-            html_template='''
+        self.templates["follow_up"] = EmailTemplate(
+            name="follow_up",
+            subject_template="Following up on {{ business_name }} website insights",
+            html_template="""
 <!DOCTYPE html>
 <html>
 <head>
@@ -207,8 +211,8 @@ The Website Performance Team
     </div>
 </body>
 </html>
-            ''',
-            text_template='''
+            """,
+            text_template="""
 Hi {% if contact_first_name %}{{ contact_first_name }}{% else %}there{% endif %},
 
 I wanted to follow up on the website performance insights I shared for {{ business_name }}.
@@ -221,14 +225,11 @@ To schedule, simply reply to this email or contact us at {{ reply_to_email }}.
 
 Best regards,
 The Website Performance Team
-            ''',
-            default_categories=['follow_up', 'website_audit', 'leadfactory'],
-            default_custom_args={
-                'template': 'follow_up',
-                'campaign_type': 'follow_up'
-            }
+            """,
+            default_categories=["follow_up", "website_audit", "leadfactory"],
+            default_custom_args={"template": "follow_up", "campaign_type": "follow_up"},
         )
-    
+
     def build_email(
         self,
         template_name: str,
@@ -240,11 +241,11 @@ The Website Performance Team
         additional_categories: Optional[List[str]] = None,
         additional_custom_args: Optional[Dict[str, Any]] = None,
         reply_to_email: Optional[str] = None,
-        reply_to_name: Optional[str] = None
+        reply_to_name: Optional[str] = None,
     ) -> EmailData:
         """
         Build an email using a template and personalization data
-        
+
         Args:
             template_name: Name of template to use
             personalization: Personalization data
@@ -256,61 +257,64 @@ The Website Performance Team
             additional_custom_args: Extra custom args to add
             reply_to_email: Reply-to email (optional)
             reply_to_name: Reply-to name (optional)
-            
+
         Returns:
             EmailData object ready for SendGrid
         """
         if template_name not in self.templates:
             raise ValueError(f"Template '{template_name}' not found")
-        
+
         template = self.templates[template_name]
-        
+
         # Prepare template context
         context = {
-            'business_name': personalization.business_name,
-            'contact_name': personalization.contact_name,
-            'contact_first_name': personalization.contact_first_name or self._extract_first_name(personalization.contact_name),
-            'business_category': personalization.business_category,
-            'business_location': personalization.business_location,
-            'issues_found': personalization.issues_found,
-            'assessment_score': personalization.assessment_score,
-            'reply_to_email': reply_to_email or self.default_from_email,
-            **personalization.custom_data
+            "business_name": personalization.business_name,
+            "contact_name": personalization.contact_name,
+            "contact_first_name": personalization.contact_first_name
+            or self._extract_first_name(personalization.contact_name),
+            "business_category": personalization.business_category,
+            "business_location": personalization.business_location,
+            "issues_found": personalization.issues_found,
+            "assessment_score": personalization.assessment_score,
+            "reply_to_email": reply_to_email or self.default_from_email,
+            **personalization.custom_data,
         }
-        
+
         # Render templates
         subject = self._render_template(template.subject_template, context)
         html_content = self._render_template(template.html_template, context)
         text_content = None
-        
+
         if template.text_template:
             text_content = self._render_template(template.text_template, context)
-        
+
         # Add subject to context for HTML template
-        context['subject'] = subject
+        context["subject"] = subject
         html_content = self._render_template(template.html_template, context)
-        
+
         # Build categories
         categories = template.default_categories.copy()
         if additional_categories:
             categories.extend(additional_categories)
-        
+
         # Remove duplicates and limit to 10 (SendGrid limit)
         categories = list(set(categories))[:10]
-        
+
         # Build custom args
         custom_args = template.default_custom_args.copy()
         if additional_custom_args:
             custom_args.update(additional_custom_args)
-        
+
         # Add tracking data
-        custom_args.update({
-            'business_name': personalization.business_name,
-            'template_name': template_name,
-            'generated_at': datetime.now(timezone.utc).isoformat(),
-            'personalization_id': str(uuid.uuid4())
-        })
-        
+        custom_args.update(
+            {
+                "business_name": personalization.business_name,
+                "template_name": template_name,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "personalization_id": str(uuid.uuid4()),
+            }
+        )
+
         # Create EmailData
         return EmailData(
             to_email=to_email,
@@ -323,81 +327,85 @@ The Website Performance Team
             categories=categories,
             custom_args=custom_args,
             reply_to_email=reply_to_email,
-            reply_to_name=reply_to_name
+            reply_to_name=reply_to_name,
         )
-    
+
     def _render_template(self, template_str: str, context: Dict[str, Any]) -> str:
         """
         Render a Jinja2 template with context
-        
+
         Args:
             template_str: Template string
             context: Template context
-            
+
         Returns:
             Rendered template string
         """
         try:
             template = self.jinja_env.from_string(template_str)
             rendered = template.render(**context)
-            
+
             # Clean up whitespace
-            rendered = re.sub(r'\n\s*\n\s*\n', '\n\n', rendered)  # Remove excessive newlines
+            rendered = re.sub(
+                r"\n\s*\n\s*\n", "\n\n", rendered
+            )  # Remove excessive newlines
             rendered = rendered.strip()
-            
+
             return rendered
-            
+
         except Exception as e:
             logger.error(f"Template rendering error: {e}")
             raise ValueError(f"Template rendering failed: {str(e)}")
-    
+
     def _extract_first_name(self, full_name: Optional[str]) -> Optional[str]:
         """
         Extract first name from full name
-        
+
         Args:
             full_name: Full name string
-            
+
         Returns:
             First name or None
         """
         if not full_name:
             return None
-        
+
         # Split on whitespace and take first part
         parts = full_name.strip().split()
         if parts:
             return parts[0].title()
-        
+
         return None
-    
+
     def add_template(self, template: EmailTemplate):
         """
         Add a custom email template
-        
+
         Args:
             template: EmailTemplate object to add
         """
         self.templates[template.name] = template
         logger.info(f"Added email template: {template.name}")
-    
+
     def get_template_names(self) -> List[str]:
         """
         Get list of available template names
-        
+
         Returns:
             List of template names
         """
         return list(self.templates.keys())
-    
-    def validate_template(self, template_name: str, sample_data: PersonalizationData) -> Dict[str, Any]:
+
+    def validate_template(
+        self, template_name: str, sample_data: PersonalizationData
+    ) -> Dict[str, Any]:
         """
         Validate a template by rendering it with sample data
-        
+
         Args:
             template_name: Name of template to validate
             sample_data: Sample personalization data
-            
+
         Returns:
             Validation results dict
         """
@@ -405,47 +413,41 @@ The Website Performance Team
             email = self.build_email(
                 template_name=template_name,
                 personalization=sample_data,
-                to_email="test@example.com"
+                to_email="test@example.com",
             )
-            
+
             return {
-                'valid': True,
-                'subject_length': len(email.subject),
-                'html_length': len(email.html_content) if email.html_content else 0,
-                'text_length': len(email.text_content) if email.text_content else 0,
-                'categories_count': len(email.categories) if email.categories else 0,
-                'custom_args_count': len(email.custom_args) if email.custom_args else 0
+                "valid": True,
+                "subject_length": len(email.subject),
+                "html_length": len(email.html_content) if email.html_content else 0,
+                "text_length": len(email.text_content) if email.text_content else 0,
+                "categories_count": len(email.categories) if email.categories else 0,
+                "custom_args_count": len(email.custom_args) if email.custom_args else 0,
             }
-            
+
         except Exception as e:
-            return {
-                'valid': False,
-                'error': str(e)
-            }
+            return {"valid": False, "error": str(e)}
 
 
 # Utility functions
 
+
 def create_personalization_data(
-    business_name: str,
-    contact_name: Optional[str] = None,
-    **kwargs
+    business_name: str, contact_name: Optional[str] = None, **kwargs
 ) -> PersonalizationData:
     """
     Factory function to create PersonalizationData objects
-    
+
     Args:
         business_name: Business name (required)
         contact_name: Contact name (optional)
         **kwargs: Additional PersonalizationData fields
-        
+
     Returns:
         PersonalizationData object
     """
     return PersonalizationData(
-        business_name=business_name,
-        contact_name=contact_name,
-        **kwargs
+        business_name=business_name, contact_name=contact_name, **kwargs
     )
 
 
@@ -455,12 +457,12 @@ def build_audit_email(
     contact_name: Optional[str] = None,
     issues: Optional[List[Dict[str, str]]] = None,
     score: Optional[float] = None,
-    template: str = 'cold_outreach',
-    **kwargs
+    template: str = "cold_outreach",
+    **kwargs,
 ) -> EmailData:
     """
     Convenience function to build a website audit email
-    
+
     Args:
         business_name: Business name
         to_email: Recipient email
@@ -469,34 +471,34 @@ def build_audit_email(
         score: Assessment score (optional)
         template: Template name to use
         **kwargs: Additional arguments
-        
+
     Returns:
         EmailData object ready for SendGrid
     """
     builder = EmailBuilder()
-    
+
     personalization = PersonalizationData(
         business_name=business_name,
         contact_name=contact_name,
         issues_found=issues or [],
-        assessment_score=score
+        assessment_score=score,
     )
-    
+
     return builder.build_email(
         template_name=template,
         personalization=personalization,
         to_email=to_email,
-        **kwargs
+        **kwargs,
     )
 
 
 def escape_html_content(content: str) -> str:
     """
     Escape HTML content for safe inclusion in emails
-    
+
     Args:
         content: Raw content to escape
-        
+
     Returns:
         HTML-escaped content
     """
@@ -506,22 +508,22 @@ def escape_html_content(content: str) -> str:
 def extract_email_preview(html_content: str, max_length: int = 150) -> str:
     """
     Extract preview text from HTML email content
-    
+
     Args:
         html_content: HTML email content
         max_length: Maximum preview length
-        
+
     Returns:
         Plain text preview
     """
     # Remove HTML tags
-    text = re.sub(r'<[^>]+>', ' ', html_content)
-    
+    text = re.sub(r"<[^>]+>", " ", html_content)
+
     # Clean up whitespace
-    text = re.sub(r'\s+', ' ', text).strip()
-    
+    text = re.sub(r"\s+", " ", text).strip()
+
     # Truncate to max length
     if len(text) > max_length:
-        text = text[:max_length].rsplit(' ', 1)[0] + '...'
-    
+        text = text[:max_length].rsplit(" ", 1)[0] + "..."
+
     return text

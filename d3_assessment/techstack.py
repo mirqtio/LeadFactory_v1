@@ -11,16 +11,17 @@ Acceptance Criteria:
 - Analytics tools found
 - Pattern matching efficient
 """
-import re
+import asyncio
 import json
-from typing import Dict, Any, List, Optional
+import re
 from decimal import Decimal
 from pathlib import Path
-import asyncio
+from typing import Any, Dict, List, Optional
+
 import aiohttp
 
-from .models import TechStackDetection, AssessmentCost
-from .types import TechCategory, CostType
+from .models import AssessmentCost, TechStackDetection
+from .types import CostType, TechCategory
 
 
 class TechStackDetector:
@@ -43,7 +44,7 @@ class TechStackDetector:
         Acceptance Criteria: Pattern matching efficient
         """
         patterns_file = Path(__file__).parent / "patterns.json"
-        with open(patterns_file, 'r') as f:
+        with open(patterns_file, "r") as f:
             return json.load(f)
 
     async def detect_technologies(
@@ -51,7 +52,7 @@ class TechStackDetector:
         assessment_id: str,
         url: str,
         html_content: Optional[str] = None,
-        fetch_content: bool = True
+        fetch_content: bool = True,
     ) -> List[TechStackDetection]:
         """
         Detect all technologies used on a website
@@ -79,8 +80,7 @@ class TechStackDetector:
 
             for tech_name, tech_data in technologies.items():
                 detection = await self._analyze_technology(
-                    assessment_id, url, category, tech_name, tech_data,
-                    html_content
+                    assessment_id, url, category, tech_name, tech_data, html_content
                 )
                 if detection:
                     detected_techs.append(detection)
@@ -97,7 +97,7 @@ class TechStackDetector:
         category: TechCategory,
         tech_name: str,
         tech_data: Dict[str, Any],
-        content: str
+        content: str,
     ) -> Optional[TechStackDetection]:
         """
         Analyze if a specific technology is present
@@ -114,11 +114,9 @@ class TechStackDetector:
         for pattern in patterns:
             if self._pattern_matches(pattern, content):
                 weight = confidence_weights.get(pattern, 0.5)  # Default confidence
-                matches.append({
-                    "pattern": pattern,
-                    "confidence": weight,
-                    "matched": True
-                })
+                matches.append(
+                    {"pattern": pattern, "confidence": weight, "matched": True}
+                )
                 total_confidence += weight
 
         # Require at least one match with minimum confidence
@@ -137,8 +135,8 @@ class TechStackDetector:
             "confidence_calculation": {
                 "total_weight": total_confidence,
                 "pattern_count": len(patterns),
-                "normalized_confidence": final_confidence
-            }
+                "normalized_confidence": final_confidence,
+            },
         }
 
         return TechStackDetection(
@@ -150,7 +148,7 @@ class TechStackDetector:
             technology_data=technology_data,
             detection_method="pattern_matching",
             website_url=tech_data.get("website", ""),
-            description=tech_data.get("description", "")
+            description=tech_data.get("description", ""),
         )
 
     def _pattern_matches(self, pattern: str, content: str) -> bool:
@@ -172,7 +170,7 @@ class TechStackDetector:
             r"{0}[\s\-_/]?v?(\d+\.\d+\.\d+)".format(tech_name),
             r"{0}[\s\-_/]?v?(\d+\.\d+)".format(tech_name),
             r"version[\s\-_:=]?(\d+\.\d+\.\d+)",
-            r"ver[\s\-_:=]?(\d+\.\d+)"
+            r"ver[\s\-_:=]?(\d+\.\d+)",
         ]
 
         for pattern in version_patterns:
@@ -202,7 +200,7 @@ class TechStackDetector:
             "social": TechCategory.SOCIAL,
             "email": TechCategory.EMAIL,
             "monitoring": TechCategory.MONITORING,
-            "development": TechCategory.DEVELOPMENT
+            "development": TechCategory.DEVELOPMENT,
         }
         return mapping.get(category_name, TechCategory.OTHER)
 
@@ -225,10 +223,7 @@ class TechStackDetector:
             return None
 
     async def analyze_cms_specifically(
-        self,
-        assessment_id: str,
-        url: str,
-        content: str
+        self, assessment_id: str, url: str, content: str
     ) -> List[TechStackDetection]:
         """
         Focused CMS detection with higher accuracy
@@ -248,10 +243,7 @@ class TechStackDetector:
         return cms_detections
 
     async def analyze_frameworks_specifically(
-        self,
-        assessment_id: str,
-        url: str,
-        content: str
+        self, assessment_id: str, url: str, content: str
     ) -> List[TechStackDetection]:
         """
         Focused framework detection
@@ -263,8 +255,12 @@ class TechStackDetector:
 
         for framework_name, framework_data in frontend_patterns.items():
             detection = await self._analyze_technology(
-                assessment_id, url, TechCategory.FRONTEND, framework_name,
-                framework_data, content
+                assessment_id,
+                url,
+                TechCategory.FRONTEND,
+                framework_name,
+                framework_data,
+                content,
             )
             if detection:
                 framework_detections.append(detection)
@@ -272,10 +268,7 @@ class TechStackDetector:
         return framework_detections
 
     async def analyze_analytics_specifically(
-        self,
-        assessment_id: str,
-        url: str,
-        content: str
+        self, assessment_id: str, url: str, content: str
     ) -> List[TechStackDetection]:
         """
         Focused analytics tools detection
@@ -287,8 +280,12 @@ class TechStackDetector:
 
         for analytics_name, analytics_data in analytics_patterns.items():
             detection = await self._analyze_technology(
-                assessment_id, url, TechCategory.ANALYTICS, analytics_name,
-                analytics_data, content
+                assessment_id,
+                url,
+                TechCategory.ANALYTICS,
+                analytics_name,
+                analytics_data,
+                content,
             )
             if detection:
                 analytics_detections.append(detection)
@@ -296,8 +293,7 @@ class TechStackDetector:
         return analytics_detections
 
     def get_technology_summary(
-        self,
-        detections: List[TechStackDetection]
+        self, detections: List[TechStackDetection]
     ) -> Dict[str, Any]:
         """
         Generate summary of detected technologies
@@ -314,8 +310,8 @@ class TechStackDetector:
             "confidence_distribution": {
                 "high": 0,  # >= 0.8
                 "medium": 0,  # 0.5 - 0.8
-                "low": 0   # < 0.5
-            }
+                "low": 0,  # < 0.5
+            },
         }
 
         # Group by category
@@ -323,11 +319,13 @@ class TechStackDetector:
             category = detection.category.value
             if category not in summary["categories"]:
                 summary["categories"][category] = []
-            summary["categories"][category].append({
-                "name": detection.technology_name,
-                "confidence": detection.confidence,
-                "version": detection.version
-            })
+            summary["categories"][category].append(
+                {
+                    "name": detection.technology_name,
+                    "confidence": detection.confidence,
+                    "version": detection.version,
+                }
+            )
 
             # Track confidence distribution
             if detection.confidence >= 0.8:
@@ -342,9 +340,11 @@ class TechStackDetector:
             if detection.category == TechCategory.CMS and not summary["cms_detected"]:
                 summary["cms_detected"] = detection.technology_name
 
-            if (detection.category == TechCategory.FRONTEND and
-                not summary["primary_framework"] and
-                detection.confidence > 0.7):
+            if (
+                detection.category == TechCategory.FRONTEND
+                and not summary["primary_framework"]
+                and detection.confidence > 0.7
+            ):
                 summary["primary_framework"] = detection.technology_name
 
             if detection.category == TechCategory.ANALYTICS:
@@ -373,7 +373,7 @@ class TechStackBatchDetector:
     async def detect_multiple_websites(
         self,
         websites: List[Dict[str, str]],  # [{"assessment_id": "...", "url": "..."}]
-        include_content_fetch: bool = True
+        include_content_fetch: bool = True,
     ) -> Dict[str, List[TechStackDetection]]:
         """
         Detect technologies for multiple websites efficiently
@@ -393,7 +393,7 @@ class TechStackBatchDetector:
                     detections = await self.detector.detect_technologies(
                         assessment_id=website_data["assessment_id"],
                         url=website_data["url"],
-                        fetch_content=include_content_fetch
+                        fetch_content=include_content_fetch,
                     )
                     return website_data["url"], detections
                 except Exception as e:
@@ -413,10 +413,7 @@ class TechStackBatchDetector:
         return detection_results
 
     async def calculate_detection_cost(
-        self,
-        assessment_id: str,
-        url: str,
-        detections: List[TechStackDetection]
+        self, assessment_id: str, url: str, detections: List[TechStackDetection]
     ) -> Decimal:
         """Calculate cost for technology detection"""
         # Base cost for content fetching and analysis
@@ -437,7 +434,7 @@ class TechStackBatchDetector:
             description=f"Technology detection for {url}",
             units_consumed=1.0,
             unit_type="analysis",
-            rate_per_unit=total_cost
+            rate_per_unit=total_cost,
         )
 
         return total_cost
@@ -455,8 +452,7 @@ class TechStackAnalyzer:
         self.detector = TechStackDetector()
 
     def analyze_technology_trends(
-        self,
-        detections_list: List[List[TechStackDetection]]
+        self, detections_list: List[List[TechStackDetection]]
     ) -> Dict[str, Any]:
         """Analyze technology trends across multiple websites"""
         tech_counts = {}
@@ -485,13 +481,11 @@ class TechStackAnalyzer:
             )[:10],
             "category_distribution": category_counts,
             "version_distribution": version_analysis,
-            "total_websites_analyzed": len(detections_list)
+            "total_websites_analyzed": len(detections_list),
         }
 
     def generate_technology_recommendations(
-        self,
-        current_stack: List[TechStackDetection],
-        industry_trends: Dict[str, Any]
+        self, current_stack: List[TechStackDetection], industry_trends: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Generate technology recommendations based on current stack and trends"""
         recommendations = []
@@ -503,62 +497,71 @@ class TechStackAnalyzer:
         essential_categories = {
             TechCategory.ANALYTICS: "Consider adding web analytics for user insights",
             TechCategory.SECURITY: "Security tools can improve website protection",
-            TechCategory.PERFORMANCE: "Performance tools can improve user experience"
+            TechCategory.PERFORMANCE: "Performance tools can improve user experience",
         }
 
         for category, reason in essential_categories.items():
             if category not in current_categories:
-                recommendations.append({
-                    "type": "missing_category",
-                    "category": category.value,
-                    "recommendation": reason,
-                    "priority": "medium"
-                })
+                recommendations.append(
+                    {
+                        "type": "missing_category",
+                        "category": category.value,
+                        "recommendation": reason,
+                        "priority": "medium",
+                    }
+                )
 
         # Suggest popular technologies not currently used
         popular_techs = industry_trends.get("popular_technologies", [])
         for tech_name, usage_count in popular_techs[:5]:
             if tech_name.lower() not in current_techs:
-                recommendations.append({
-                    "type": "popular_technology",
-                    "technology": tech_name,
-                    "recommendation": f"Consider {tech_name} - used by {usage_count} similar websites",
-                    "priority": "low"
-                })
+                recommendations.append(
+                    {
+                        "type": "popular_technology",
+                        "technology": tech_name,
+                        "recommendation": f"Consider {tech_name} - used by {usage_count} similar websites",
+                        "priority": "low",
+                    }
+                )
 
         return recommendations
 
     def assess_technology_compatibility(
-        self,
-        detections: List[TechStackDetection]
+        self, detections: List[TechStackDetection]
     ) -> Dict[str, Any]:
         """Assess compatibility and potential conflicts between technologies"""
         compatibility_report = {
             "potential_conflicts": [],
             "redundant_technologies": [],
-            "compatibility_score": 1.0
+            "compatibility_score": 1.0,
         }
 
         # Check for multiple CMS (potential conflict)
         cms_techs = [d for d in detections if d.category == TechCategory.CMS]
         if len(cms_techs) > 1:
-            compatibility_report["potential_conflicts"].append({
-                "type": "multiple_cms",
-                "technologies": [d.technology_name for d in cms_techs],
-                "severity": "high",
-                "description": "Multiple CMS detected - may indicate migration or conflict"
-            })
+            compatibility_report["potential_conflicts"].append(
+                {
+                    "type": "multiple_cms",
+                    "technologies": [d.technology_name for d in cms_techs],
+                    "severity": "high",
+                    "description": "Multiple CMS detected - may indicate migration or conflict",
+                }
+            )
             compatibility_report["compatibility_score"] -= 0.3
 
         # Check for multiple analytics tools (potentially redundant)
-        analytics_techs = [d for d in detections if d.category == TechCategory.ANALYTICS]
+        analytics_techs = [
+            d for d in detections if d.category == TechCategory.ANALYTICS
+        ]
         if len(analytics_techs) > 3:
-            compatibility_report["redundant_technologies"].append({
-                "type": "excessive_analytics",
-                "technologies": [d.technology_name for d in analytics_techs],
-                "severity": "medium",
-                "description": "Many analytics tools may impact performance"
-            })
+            compatibility_report["redundant_technologies"].append(
+                {
+                    "type": "excessive_analytics",
+                    "technologies": [d.technology_name for d in analytics_techs],
+                    "severity": "medium",
+                    "description": "Many analytics tools may impact performance",
+                }
+            )
             compatibility_report["compatibility_score"] -= 0.1
 
         return compatibility_report

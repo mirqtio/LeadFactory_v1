@@ -8,22 +8,21 @@ Tests all acceptance criteria:
 - Cost tracking works
 - Structured output parsing
 """
-import pytest
-import sys
 import json
-from unittest.mock import AsyncMock, patch, MagicMock
+import sys
 from decimal import Decimal
+from unittest.mock import AsyncMock, MagicMock, patch
 
-sys.path.insert(0, '/app')  # noqa: E402
+import pytest
 
-from d3_assessment.llm_insights import (  # noqa: E402
-    LLMInsightGenerator, LLMInsightBatchGenerator, LLMInsightResult
-)
+sys.path.insert(0, "/app")  # noqa: E402
+
+from d3_assessment.llm_insights import LLMInsightBatchGenerator  # noqa: E402
+from d3_assessment.llm_insights import LLMInsightGenerator, LLMInsightResult
 from d3_assessment.models import AssessmentResult  # noqa: E402
-from d3_assessment.types import (  # noqa: E402
-    AssessmentType, AssessmentStatus, InsightType
-)
 from d3_assessment.prompts import InsightPrompts  # noqa: E402
+from d3_assessment.types import AssessmentStatus  # noqa: E402
+from d3_assessment.types import AssessmentType, InsightType
 
 
 class TestTask033AcceptanceCriteria:
@@ -36,65 +35,67 @@ class TestTask033AcceptanceCriteria:
 
         # Mock recommendation response
         client.generate_completion.return_value = MagicMock(
-            content=json.dumps({
-                "recommendations": [
-                    {
-                        "title": "Optimize Image Loading",
-                        "description": "Implement lazy loading and WebP format for faster page loads",
-                        "priority": "High",
-                        "effort": "Medium",
-                        "impact": "Reduce LCP by 30-40%",
-                        "implementation_steps": [
-                            "Convert images to WebP format",
-                            "Implement lazy loading for below-fold images"
-                        ],
-                        "industry_context": "E-commerce sites benefit greatly from fast image loading"
+            content=json.dumps(
+                {
+                    "recommendations": [
+                        {
+                            "title": "Optimize Image Loading",
+                            "description": "Implement lazy loading and WebP format for faster page loads",
+                            "priority": "High",
+                            "effort": "Medium",
+                            "impact": "Reduce LCP by 30-40%",
+                            "implementation_steps": [
+                                "Convert images to WebP format",
+                                "Implement lazy loading for below-fold images",
+                            ],
+                            "industry_context": "E-commerce sites benefit greatly from fast image loading",
+                        },
+                        {
+                            "title": "Improve Mobile Navigation",
+                            "description": "Enhance mobile menu design and touch targets",
+                            "priority": "Medium",
+                            "effort": "Low",
+                            "impact": "Better mobile user experience",
+                            "implementation_steps": [
+                                "Increase touch target sizes to 44px minimum",
+                                "Simplify navigation hierarchy",
+                            ],
+                            "industry_context": "Mobile optimization is crucial for e-commerce conversion",
+                        },
+                        {
+                            "title": "Enable Compression",
+                            "description": "Configure Gzip/Brotli compression for text resources",
+                            "priority": "Medium",
+                            "effort": "Low",
+                            "impact": "Reduce file sizes by 60-80%",
+                            "implementation_steps": [
+                                "Enable Gzip compression on server",
+                                "Configure Brotli for modern browsers",
+                            ],
+                            "industry_context": "Essential for all industries to reduce bandwidth costs",
+                        },
+                    ],
+                    "industry_insights": {
+                        "industry": "ecommerce",
+                        "benchmarks": {
+                            "performance_percentile": "Your site is in the bottom 40% for e-commerce",
+                            "key_metrics": "Focus on conversion-critical metrics",
+                        },
+                        "competitive_advantage": "Fast loading drives higher conversion rates",
+                        "compliance_notes": "Consider accessibility guidelines for inclusive shopping",
                     },
-                    {
-                        "title": "Improve Mobile Navigation",
-                        "description": "Enhance mobile menu design and touch targets",
-                        "priority": "Medium",
-                        "effort": "Low",
-                        "impact": "Better mobile user experience",
-                        "implementation_steps": [
-                            "Increase touch target sizes to 44px minimum",
-                            "Simplify navigation hierarchy"
-                        ],
-                        "industry_context": "Mobile optimization is crucial for e-commerce conversion"
+                    "summary": {
+                        "overall_health": "Moderate with clear improvement opportunities",
+                        "quick_wins": "Image optimization and compression",
+                        "long_term_strategy": "Comprehensive performance and UX overhaul",
                     },
-                    {
-                        "title": "Enable Compression",
-                        "description": "Configure Gzip/Brotli compression for text resources",
-                        "priority": "Medium",
-                        "effort": "Low",
-                        "impact": "Reduce file sizes by 60-80%",
-                        "implementation_steps": [
-                            "Enable Gzip compression on server",
-                            "Configure Brotli for modern browsers"
-                        ],
-                        "industry_context": "Essential for all industries to reduce bandwidth costs"
-                    }
-                ],
-                "industry_insights": {
-                    "industry": "ecommerce",
-                    "benchmarks": {
-                        "performance_percentile": "Your site is in the bottom 40% for e-commerce",
-                        "key_metrics": "Focus on conversion-critical metrics"
-                    },
-                    "competitive_advantage": "Fast loading drives higher conversion rates",
-                    "compliance_notes": "Consider accessibility guidelines for inclusive shopping"
-                },
-                "summary": {
-                    "overall_health": "Moderate with clear improvement opportunities",
-                    "quick_wins": "Image optimization and compression",
-                    "long_term_strategy": "Comprehensive performance and UX overhaul"
                 }
-            }),
+            ),
             usage={
                 "prompt_tokens": 1500,
                 "completion_tokens": 800,
-                "total_tokens": 2300
-            }
+                "total_tokens": 2300,
+            },
         )
 
         client.get_model_version.return_value = "gpt-4-0125-preview"
@@ -123,23 +124,21 @@ class TestTask033AcceptanceCriteria:
             pagespeed_data={
                 "mobile": {
                     "lighthouseResult": {
-                        "categories": {
-                            "performance": {"score": 0.65}
-                        },
+                        "categories": {"performance": {"score": 0.65}},
                         "audits": {
                             "unused-css-rules": {
                                 "score": 0.3,
                                 "title": "Remove unused CSS",
                                 "description": "Remove dead rules from stylesheets",
-                                "details": {"overallSavingsMs": 1200}
+                                "details": {"overallSavingsMs": 1200},
                             },
                             "render-blocking-resources": {
                                 "score": 0.4,
                                 "title": "Eliminate render-blocking resources",
                                 "description": "Resources are blocking the first paint",
-                                "details": {"overallSavingsMs": 800}
-                            }
-                        }
+                                "details": {"overallSavingsMs": 800},
+                            },
+                        },
                     }
                 }
             },
@@ -148,15 +147,15 @@ class TestTask033AcceptanceCriteria:
                     {
                         "technology_name": "WordPress",
                         "category": "cms",
-                        "confidence": 0.95
+                        "confidence": 0.95,
                     },
                     {
                         "technology_name": "WooCommerce",
                         "category": "ecommerce",
-                        "confidence": 0.90
-                    }
+                        "confidence": 0.90,
+                    },
                 ]
-            }
+            },
         )
 
     @pytest.fixture
@@ -165,15 +164,16 @@ class TestTask033AcceptanceCriteria:
         return LLMInsightGenerator(llm_client=mock_llm_client)
 
     @pytest.mark.asyncio
-    async def test_three_recommendations_generated(self, insight_generator, sample_assessment):
+    async def test_three_recommendations_generated(
+        self, insight_generator, sample_assessment
+    ):
         """
         Test that exactly 3 recommendations are generated
 
         Acceptance Criteria: 3 recommendations generated
         """
         result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment,
-            industry="ecommerce"
+            assessment=sample_assessment, industry="ecommerce"
         )
 
         # Verify result structure
@@ -192,8 +192,12 @@ class TestTask033AcceptanceCriteria:
             assert "priority" in rec, f"Recommendation {i+1} missing priority"
             assert "effort" in rec, f"Recommendation {i+1} missing effort"
             assert "impact" in rec, f"Recommendation {i+1} missing impact"
-            assert "implementation_steps" in rec, f"Recommendation {i+1} missing implementation_steps"
-            assert "industry_context" in rec, f"Recommendation {i+1} missing industry_context"
+            assert (
+                "implementation_steps" in rec
+            ), f"Recommendation {i+1} missing implementation_steps"
+            assert (
+                "industry_context" in rec
+            ), f"Recommendation {i+1} missing industry_context"
 
         # Verify recommendation quality
         titles = [rec["title"] for rec in recommendations]
@@ -203,12 +207,16 @@ class TestTask033AcceptanceCriteria:
         for rec in recommendations:
             assert len(rec["title"]) > 5, "Title should be descriptive"
             assert len(rec["description"]) > 20, "Description should be detailed"
-            assert len(rec["implementation_steps"]) > 0, "Should have implementation steps"
+            assert (
+                len(rec["implementation_steps"]) > 0
+            ), "Should have implementation steps"
 
         print("✓ 3 recommendations generated correctly")
 
     @pytest.mark.asyncio
-    async def test_industry_specific_insights(self, insight_generator, sample_assessment):
+    async def test_industry_specific_insights(
+        self, insight_generator, sample_assessment
+    ):
         """
         Test that industry-specific insights are provided
 
@@ -216,8 +224,7 @@ class TestTask033AcceptanceCriteria:
         """
         # Test e-commerce specific insights
         result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment,
-            industry="ecommerce"
+            assessment=sample_assessment, industry="ecommerce"
         )
 
         # Verify industry context in recommendations
@@ -225,9 +232,20 @@ class TestTask033AcceptanceCriteria:
         industry_contexts = [rec["industry_context"] for rec in recommendations]
 
         # Should mention e-commerce or related terms
-        ecommerce_mentions = sum(1 for context in industry_contexts
-                               if any(term in context.lower() for term in
-                                    ["ecommerce", "e-commerce", "conversion", "shopping", "commerce"]))
+        ecommerce_mentions = sum(
+            1
+            for context in industry_contexts
+            if any(
+                term in context.lower()
+                for term in [
+                    "ecommerce",
+                    "e-commerce",
+                    "conversion",
+                    "shopping",
+                    "commerce",
+                ]
+            )
+        )
         assert ecommerce_mentions > 0, "Should have e-commerce specific context"
 
         # Verify industry insights section
@@ -238,8 +256,7 @@ class TestTask033AcceptanceCriteria:
 
         # Test different industry
         healthcare_result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment,
-            industry="healthcare"
+            assessment=sample_assessment, industry="healthcare"
         )
 
         assert healthcare_result.industry == "healthcare"
@@ -258,10 +275,9 @@ class TestTask033AcceptanceCriteria:
 
         Acceptance Criteria: Cost tracking works
         """
-        with patch('d3_assessment.llm_insights.AssessmentCost') as mock_cost:
+        with patch("d3_assessment.llm_insights.AssessmentCost") as mock_cost:
             result = await insight_generator.generate_comprehensive_insights(
-                assessment=sample_assessment,
-                industry="ecommerce"
+                assessment=sample_assessment, industry="ecommerce"
             )
 
             # Verify cost tracking was called
@@ -269,12 +285,15 @@ class TestTask033AcceptanceCriteria:
 
             # Verify cost in result
             assert result.total_cost_usd > Decimal("0"), "Should track non-zero cost"
-            assert isinstance(result.total_cost_usd, Decimal), "Cost should be Decimal type"
+            assert isinstance(
+                result.total_cost_usd, Decimal
+            ), "Cost should be Decimal type"
 
             # Verify cost calculation based on token usage
             expected_cost = (1500 * Decimal("0.00003")) + (800 * Decimal("0.00006"))
-            assert abs(result.total_cost_usd - expected_cost) < Decimal("0.001"), \
-                f"Cost calculation should be accurate: expected {expected_cost}, got {result.total_cost_usd}"
+            assert abs(result.total_cost_usd - expected_cost) < Decimal(
+                "0.001"
+            ), f"Cost calculation should be accurate: expected {expected_cost}, got {result.total_cost_usd}"
 
             # Verify cost tracking call structure
             cost_calls = mock_cost.call_args_list
@@ -288,7 +307,9 @@ class TestTask033AcceptanceCriteria:
         print("✓ Cost tracking works correctly")
 
     @pytest.mark.asyncio
-    async def test_structured_output_parsing(self, insight_generator, sample_assessment):
+    async def test_structured_output_parsing(
+        self, insight_generator, sample_assessment
+    ):
         """
         Test that structured output parsing works correctly
 
@@ -296,36 +317,52 @@ class TestTask033AcceptanceCriteria:
         """
         # Test successful JSON parsing
         result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment,
-            industry="ecommerce"
+            assessment=sample_assessment, industry="ecommerce"
         )
 
         # Verify structured output
         assert isinstance(result.insights, dict), "Insights should be dictionary"
-        assert "recommendations" in result.insights, "Should have recommendations section"
+        assert (
+            "recommendations" in result.insights
+        ), "Should have recommendations section"
 
         recommendations_data = result.insights["recommendations"]
-        assert isinstance(recommendations_data, dict), "Recommendations should be structured dict"
-        assert "recommendations" in recommendations_data, "Should have recommendations array"
-        assert "industry_insights" in recommendations_data, "Should have industry insights"
+        assert isinstance(
+            recommendations_data, dict
+        ), "Recommendations should be structured dict"
+        assert (
+            "recommendations" in recommendations_data
+        ), "Should have recommendations array"
+        assert (
+            "industry_insights" in recommendations_data
+        ), "Should have industry insights"
         assert "summary" in recommendations_data, "Should have summary"
 
         # Test fallback parsing with invalid JSON
-        with patch.object(insight_generator.llm_client, 'generate_completion') as mock_llm:
+        with patch.object(
+            insight_generator.llm_client, "generate_completion"
+        ) as mock_llm:
             mock_llm.return_value = MagicMock(
                 content="This is not valid JSON but contains some recommendations to improve performance",
-                usage={"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
+                usage={
+                    "prompt_tokens": 100,
+                    "completion_tokens": 50,
+                    "total_tokens": 150,
+                },
             )
 
             fallback_result = await insight_generator.generate_comprehensive_insights(
-                assessment=sample_assessment,
-                industry="ecommerce"
+                assessment=sample_assessment, industry="ecommerce"
             )
 
             # Should still produce structured output via fallback
             assert fallback_result.insights is not None, "Should have fallback insights"
-            fallback_recs = fallback_result.insights["recommendations"]["recommendations"]
-            assert len(fallback_recs) == 3, "Fallback should still produce 3 recommendations"
+            fallback_recs = fallback_result.insights["recommendations"][
+                "recommendations"
+            ]
+            assert (
+                len(fallback_recs) == 3
+            ), "Fallback should still produce 3 recommendations"
 
         # Test validation of structured output
         valid_result = result
@@ -346,8 +383,8 @@ class TestTask033AcceptanceCriteria:
             insight_types=[
                 InsightType.RECOMMENDATIONS,
                 InsightType.TECHNICAL_ANALYSIS,
-                InsightType.INDUSTRY_BENCHMARK
-            ]
+                InsightType.INDUSTRY_BENCHMARK,
+            ],
         )
 
         # Should have multiple insight types
@@ -403,8 +440,16 @@ class TestTask033AcceptanceCriteria:
         """Test technology stack formatting for prompts"""
         tech_stack = [
             {"technology_name": "WordPress", "category": "CMS", "confidence": 0.95},
-            {"technology_name": "WooCommerce", "category": "E-commerce", "confidence": 0.90},
-            {"technology_name": "Google Analytics", "category": "Analytics", "confidence": 0.85}
+            {
+                "technology_name": "WooCommerce",
+                "category": "E-commerce",
+                "confidence": 0.90,
+            },
+            {
+                "technology_name": "Google Analytics",
+                "category": "Analytics",
+                "confidence": 0.85,
+            },
         ]
 
         formatted = InsightPrompts.format_technologies(tech_stack)
@@ -421,21 +466,20 @@ class TestTask033AcceptanceCriteria:
     def test_performance_issue_formatting(self):
         """Test performance issue formatting for prompts"""
         issues = [
-            {
-                "title": "Remove unused CSS",
-                "impact": "high",
-                "savings_ms": 1200
-            },
+            {"title": "Remove unused CSS", "impact": "high", "savings_ms": 1200},
             {
                 "title": "Eliminate render-blocking resources",
                 "impact": "medium",
-                "savings_ms": 800
-            }
+                "savings_ms": 800,
+            },
         ]
 
         formatted = InsightPrompts.format_issues(issues)
         assert "Remove unused CSS (Impact: high, Saves: 1200ms)" in formatted
-        assert "Eliminate render-blocking resources (Impact: medium, Saves: 800ms)" in formatted
+        assert (
+            "Eliminate render-blocking resources (Impact: medium, Saves: 800ms)"
+            in formatted
+        )
 
         print("✓ Performance issue formatting works correctly")
 
@@ -452,7 +496,7 @@ class TestTask033AcceptanceCriteria:
                 status=AssessmentStatus.COMPLETED,
                 url=f"https://example{i}.com",
                 domain=f"example{i}.com",
-                performance_score=70 + i * 5
+                performance_score=70 + i * 5,
             )
             assessments.append(assessment)
 
@@ -464,13 +508,11 @@ class TestTask033AcceptanceCriteria:
         industry_mapping = {
             "test-assessment-0": "ecommerce",
             "test-assessment-1": "healthcare",
-            "test-assessment-2": "technology"
+            "test-assessment-2": "technology",
         }
 
         results = await batch_generator.generate_batch_insights(
-            assessments=assessments,
-            industry_mapping=industry_mapping,
-            max_concurrent=2
+            assessments=assessments, industry_mapping=industry_mapping, max_concurrent=2
         )
 
         # Verify batch results
@@ -498,8 +540,7 @@ class TestTask033AcceptanceCriteria:
         generator = LLMInsightGenerator(llm_client=failing_client)
 
         result = await generator.generate_comprehensive_insights(
-            assessment=sample_assessment,
-            industry="ecommerce"
+            assessment=sample_assessment, industry="ecommerce"
         )
 
         # Should return failed result, not raise exception
@@ -510,7 +551,9 @@ class TestTask033AcceptanceCriteria:
         print("✓ Error handling works correctly")
 
     @pytest.mark.asyncio
-    async def test_comprehensive_insight_flow(self, insight_generator, sample_assessment):
+    async def test_comprehensive_insight_flow(
+        self, insight_generator, sample_assessment
+    ):
         """Test complete insight generation flow with all components"""
         result = await insight_generator.generate_comprehensive_insights(
             assessment=sample_assessment,
@@ -519,8 +562,8 @@ class TestTask033AcceptanceCriteria:
                 InsightType.RECOMMENDATIONS,
                 InsightType.TECHNICAL_ANALYSIS,
                 InsightType.INDUSTRY_BENCHMARK,
-                InsightType.QUICK_WINS
-            ]
+                InsightType.QUICK_WINS,
+            ],
         )
 
         # Verify comprehensive result structure
@@ -568,18 +611,28 @@ if __name__ == "__main__":
             generator = test_instance.insight_generator(mock_client)
 
             # Run all tests
-            await test_instance.test_three_recommendations_generated(generator, sample_assessment)
-            await test_instance.test_industry_specific_insights(generator, sample_assessment)
+            await test_instance.test_three_recommendations_generated(
+                generator, sample_assessment
+            )
+            await test_instance.test_industry_specific_insights(
+                generator, sample_assessment
+            )
             await test_instance.test_cost_tracking_works(generator, sample_assessment)
-            await test_instance.test_structured_output_parsing(generator, sample_assessment)
-            await test_instance.test_multiple_insight_types(generator, sample_assessment)
+            await test_instance.test_structured_output_parsing(
+                generator, sample_assessment
+            )
+            await test_instance.test_multiple_insight_types(
+                generator, sample_assessment
+            )
             test_instance.test_prompt_variable_extraction(sample_assessment)
             test_instance.test_industry_context_mapping()
             test_instance.test_technology_formatting()
             test_instance.test_performance_issue_formatting()
             await test_instance.test_batch_insight_generation(mock_client)
             await test_instance.test_error_handling(sample_assessment)
-            await test_instance.test_comprehensive_insight_flow(generator, sample_assessment)
+            await test_instance.test_comprehensive_insight_flow(
+                generator, sample_assessment
+            )
 
             print()
             print("🎉 All Task 033 acceptance criteria tests pass!")
@@ -591,6 +644,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Test failed: {e}")
             import traceback
+
             traceback.print_exc()
 
     # Run async tests

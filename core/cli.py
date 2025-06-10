@@ -1,15 +1,15 @@
 """
 Command-line interface for LeadFactory
 """
-import click
 import asyncio
 from datetime import date
 
+import click
+
 from core.config import settings
 from core.logging import get_logger
-from database.session import engine
 from database.base import Base
-
+from database.session import engine
 
 logger = get_logger(__name__)
 
@@ -30,9 +30,9 @@ def init_db():
 
 
 @cli.command()
-@click.option('--host', default='0.0.0.0', help='Host to bind to')
-@click.option('--port', default=8000, help='Port to bind to')
-@click.option('--reload', is_flag=True, help='Enable auto-reload')
+@click.option("--host", default="0.0.0.0", help="Host to bind to")
+@click.option("--port", default=8000, help="Port to bind to")
+@click.option("--reload", is_flag=True, help="Enable auto-reload")
 def runserver(host: str, port: int, reload: bool):
     """Run the FastAPI development server"""
     import uvicorn
@@ -46,16 +46,19 @@ def runserver(host: str, port: int, reload: bool):
         host=host,
         port=port,
         reload=reload,
-        log_level=settings.log_level.lower()
+        log_level=settings.log_level.lower(),
     )
 
 
 @cli.command()
-@click.option('--location', required=True, help='Location to search (e.g., "New York, NY")')
-@click.option('--vertical', default='restaurant', help='Business vertical')
-@click.option('--limit', default=10, help='Number of businesses to process')
+@click.option(
+    "--location", required=True, help='Location to search (e.g., "New York, NY")'
+)
+@click.option("--vertical", default="restaurant", help="Business vertical")
+@click.option("--limit", default=10, help="Number of businesses to process")
 def test_pipeline(location: str, vertical: str, limit: int):
     """Test the pipeline with a small batch"""
+
     async def run_test():
         # This will be implemented when we have the pipeline
         click.echo(f"Testing pipeline for {location} - {vertical}")
@@ -67,7 +70,11 @@ def test_pipeline(location: str, vertical: str, limit: int):
 
 
 @cli.command()
-@click.option('--date', type=click.DateTime(formats=['%Y-%m-%d']), help='Date to generate report for')
+@click.option(
+    "--date",
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="Date to generate report for",
+)
 def daily_report(date):
     """Generate daily metrics report"""
     report_date = date.date() if date else date.today()
@@ -86,16 +93,15 @@ def run_stubs():
     import uvicorn
 
     click.echo("Starting stub server on port 5010")
-    uvicorn.run(
-        "stubs.server:app",
-        host="0.0.0.0",
-        port=5010,
-        log_level="info"
-    )
+    uvicorn.run("stubs.server:app", host="0.0.0.0", port=5010, log_level="info")
 
 
 @cli.command()
-@click.option('--provider', type=click.Choice(['yelp', 'pagespeed', 'stripe', 'sendgrid', 'openai']), help='Provider to check')
+@click.option(
+    "--provider",
+    type=click.Choice(["yelp", "pagespeed", "stripe", "sendgrid", "openai"]),
+    help="Provider to check",
+)
 def check_api(provider: str):
     """Check API connectivity and configuration"""
     click.echo(f"Checking {provider} API configuration...")
