@@ -11,16 +11,54 @@ Acceptance Criteria:
 - Print-optimized CSS ✓
 """
 
+import os
+import sys
 from datetime import datetime, timedelta
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from d6_reports.models import (DeliveryMethod, ReportDelivery,
-                               ReportGeneration, ReportSection, ReportStatus,
-                               ReportTemplate, ReportType, TemplateFormat,
-                               generate_uuid)
+# Debug: Add comprehensive path setup for pytest collection issues
+project_root = Path(__file__).parent.parent.parent.parent
+current_dir = os.getcwd()
+app_dir = "/app"
+
+# Add all possible paths
+paths_to_add = [str(project_root), current_dir, app_dir]
+for path in paths_to_add:
+    if path and path not in sys.path:
+        sys.path.insert(0, path)
+
+try:
+    from d6_reports.models import (DeliveryMethod, ReportDelivery,
+                                   ReportGeneration, ReportSection, ReportStatus,
+                                   ReportTemplate, ReportType, TemplateFormat,
+                                   generate_uuid)
+except ImportError as e:
+    # If import fails, try direct file import as fallback
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "d6_reports.models", 
+        os.path.join(app_dir, "d6_reports", "models.py")
+    )
+    if spec and spec.loader:
+        d6_models = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(d6_models)
+        
+        # Extract the classes we need
+        DeliveryMethod = d6_models.DeliveryMethod
+        ReportDelivery = d6_models.ReportDelivery
+        ReportGeneration = d6_models.ReportGeneration
+        ReportSection = d6_models.ReportSection
+        ReportStatus = d6_models.ReportStatus
+        ReportTemplate = d6_models.ReportTemplate
+        ReportType = d6_models.ReportType
+        TemplateFormat = d6_models.TemplateFormat
+        generate_uuid = d6_models.generate_uuid
+    else:
+        raise e
 
 
 class TestReportGeneration:
