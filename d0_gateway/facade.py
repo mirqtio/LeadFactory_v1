@@ -488,7 +488,7 @@ class GatewayFacade:
         mode: str = "payment"
     ) -> Dict[str, Any]:
         """
-        Create a Stripe checkout session
+        Create a Stripe checkout session with a single price ID
         
         Args:
             price_id: Stripe price ID
@@ -522,6 +522,63 @@ class GatewayFacade:
             
         except Exception as e:
             self.logger.error(f"Failed to create checkout session: {e}")
+            raise
+    
+    async def create_checkout_session_with_line_items(
+        self,
+        line_items: List[Dict[str, Any]],
+        success_url: str,
+        cancel_url: str,
+        customer_email: Optional[str] = None,
+        client_reference_id: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        mode: str = "payment",
+        expires_at: Optional[int] = None,
+        payment_method_types: Optional[List[str]] = None,
+        billing_address_collection: Optional[str] = None,
+        allow_promotion_codes: Optional[bool] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a Stripe checkout session with line items (supports dynamic pricing)
+        
+        Args:
+            line_items: List of line items with price_data or price
+            success_url: URL to redirect after successful payment
+            cancel_url: URL to redirect after cancelled payment
+            customer_email: Pre-fill customer email
+            client_reference_id: Reference ID for tracking
+            metadata: Additional metadata
+            mode: Payment mode (payment, subscription, setup)
+            expires_at: Unix timestamp when session expires
+            payment_method_types: List of payment methods to accept
+            billing_address_collection: How to collect billing address
+            allow_promotion_codes: Whether to allow promo codes
+            
+        Returns:
+            Checkout session data including session ID and URL
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.create_checkout_session_with_line_items(
+                line_items=line_items,
+                success_url=success_url,
+                cancel_url=cancel_url,
+                customer_email=customer_email,
+                client_reference_id=client_reference_id,
+                metadata=metadata,
+                mode=mode,
+                expires_at=expires_at,
+                payment_method_types=payment_method_types,
+                billing_address_collection=billing_address_collection,
+                allow_promotion_codes=allow_promotion_codes
+            )
+            
+            self.logger.info(f"Checkout session created: {result.get('id')}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create checkout session with line items: {e}")
             raise
 
     async def create_payment_intent(
@@ -672,6 +729,42 @@ class GatewayFacade:
             
         except Exception as e:
             self.logger.error(f"Failed to get customer: {e}")
+            raise
+    
+    async def create_product(
+        self,
+        name: str,
+        description: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        active: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Create a Stripe product
+        
+        Args:
+            name: Product name
+            description: Product description
+            metadata: Additional metadata
+            active: Whether product is active
+            
+        Returns:
+            Product data including product ID
+        """
+        try:
+            client = self.factory.create_client('stripe')
+            
+            result = await client.create_product(
+                name=name,
+                description=description,
+                metadata=metadata,
+                active=active
+            )
+            
+            self.logger.info(f"Product created: {result.get('id')}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create product: {e}")
             raise
 
     async def list_charges(

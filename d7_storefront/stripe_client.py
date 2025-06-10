@@ -2,6 +2,7 @@
 D7 Storefront Stripe Client - Task 056
 
 Stripe integration for handling checkout sessions and payment processing.
+Refactored to use Gateway facade instead of direct Stripe SDK usage.
 
 Acceptance Criteria:
 - Checkout session creation ✓
@@ -14,8 +15,11 @@ import os
 import logging
 from typing import Dict, Any, Optional, List
 from decimal import Decimal
-import stripe
 from datetime import datetime, timedelta
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+from d0_gateway.facade import get_gateway_facade
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -27,22 +31,11 @@ class StripeConfig:
     def __init__(self, test_mode: bool = True):
         self.test_mode = test_mode
         
-        # Get API keys from environment
+        # Get webhook secret from environment
         if test_mode:
-            self.api_key = os.getenv("STRIPE_TEST_SECRET_KEY", "sk_test_mock_key_for_testing")
-            self.publishable_key = os.getenv("STRIPE_TEST_PUBLISHABLE_KEY", "pk_test_mock_key_for_testing")
             self.webhook_secret = os.getenv("STRIPE_TEST_WEBHOOK_SECRET", "whsec_test_mock_secret")
         else:
-            self.api_key = os.getenv("STRIPE_LIVE_SECRET_KEY")
-            self.publishable_key = os.getenv("STRIPE_LIVE_PUBLISHABLE_KEY") 
             self.webhook_secret = os.getenv("STRIPE_LIVE_WEBHOOK_SECRET")
-        
-        # Validate required keys
-        if not self.api_key:
-            raise ValueError(f"Missing Stripe API key for {'test' if test_mode else 'live'} mode")
-        
-        # Configure Stripe
-        stripe.api_key = self.api_key
         
         # Default configuration
         self.currency = "usd"
@@ -101,16 +94,16 @@ class StripeCheckoutSession:
 class StripeError(Exception):
     """Custom exception for Stripe-related errors"""
     
-    def __init__(self, message: str, stripe_error: Optional[stripe.error.StripeError] = None):
+    def __init__(self, message: str, error_code: Optional[str] = None, error_type: Optional[str] = None):
         super().__init__(message)
-        self.stripe_error = stripe_error
-        self.error_code = stripe_error.code if stripe_error else None
-        self.error_type = stripe_error.type if stripe_error else None
+        self.error_code = error_code
+        self.error_type = error_type
 
 
 class StripeClient:
     """
     Stripe client for handling checkout sessions and payment processing
+    Uses Gateway facade instead of direct Stripe SDK calls
     
     Acceptance Criteria:
     - Checkout session creation ✓
@@ -121,9 +114,24 @@ class StripeClient:
     
     def __init__(self, config: Optional[StripeConfig] = None):
         self.config = config or StripeConfig(test_mode=True)
-        self.stripe = stripe
+        self.gateway = get_gateway_facade()
+        self._executor = ThreadPoolExecutor(max_workers=1)
         
         logger.info(f"Initialized Stripe client in {'test' if self.config.test_mode else 'live'} mode")
+    
+    def _run_async(self, coro):
+        """Helper to run async gateway methods from sync context"""
+        try:
+            # Check if we're already in an event loop
+            loop = asyncio.get_running_loop()
+            # If we are, we need to run the coroutine in a thread
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(asyncio.run, coro)
+                return future.result()
+        except RuntimeError:
+            # No event loop running, create one
+            return asyncio.run(coro)
     
     def create_checkout_session(self, session_config: StripeCheckoutSession) -> Dict[str, Any]:
         """
@@ -135,166 +143,174 @@ class StripeClient:
             # Convert to Stripe parameters
             params = session_config.to_stripe_params(self.config)
             
-            logger.info(f"Creating checkout session with params: {params}")
+            logger.info(f"Creating checkout session with line items")
             
-            # Create session via Stripe API
-            session = stripe.checkout.Session.create(**params)
+            # Create session via Gateway API
+            result = self._run_async(
+                self.gateway.create_checkout_session_with_line_items(
+                    line_items=params["line_items"],
+                    success_url=params["success_url"],
+                    cancel_url=params["cancel_url"],
+                    customer_email=params.get("customer_email"),
+                    metadata=params.get("metadata"),
+                    mode=params["mode"],
+                    expires_at=params.get("expires_at"),
+                    payment_method_types=params.get("payment_method_types"),
+                    billing_address_collection=params.get("billing_address_collection"),
+                    allow_promotion_codes=params.get("allow_promotion_codes")
+                )
+            )
             
-            logger.info(f"Created checkout session: {session.id}")
+            logger.info(f"Created checkout session: {result.get('id')}")
             
             # Return formatted response
             return {
                 "success": True,
-                "session_id": session.id,
-                "session_url": session.url,
-                "payment_status": session.payment_status,
-                "amount_total": session.amount_total,
-                "currency": session.currency,
-                "expires_at": session.expires_at,
-                "metadata": session.metadata,
-                "mode": session.mode,
-                "success_url": session.success_url,
-                "cancel_url": session.cancel_url
+                "session_id": result.get("id"),
+                "session_url": result.get("url"),
+                "payment_status": result.get("payment_status"),
+                "amount_total": result.get("amount_total"),
+                "currency": result.get("currency"),
+                "expires_at": result.get("expires_at"),
+                "metadata": result.get("metadata"),
+                "mode": result.get("mode"),
+                "success_url": params["success_url"],
+                "cancel_url": params["cancel_url"]
             }
             
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe error creating checkout session: {e}")
-            raise StripeError(f"Failed to create checkout session: {e.user_message}", e)
         except Exception as e:
-            logger.error(f"Unexpected error creating checkout session: {e}")
-            raise StripeError(f"Unexpected error: {str(e)}")
+            logger.error(f"Error creating checkout session: {e}")
+            raise StripeError(f"Failed to create checkout session: {str(e)}")
     
     def retrieve_checkout_session(self, session_id: str) -> Dict[str, Any]:
         """Retrieve a checkout session by ID"""
         try:
-            session = stripe.checkout.Session.retrieve(session_id)
+            result = self._run_async(
+                self.gateway.get_checkout_session(session_id)
+            )
             
             return {
                 "success": True,
-                "session_id": session.id,
-                "payment_status": session.payment_status,
-                "payment_intent": session.payment_intent,
-                "customer": session.customer,
-                "amount_total": session.amount_total,
-                "currency": session.currency,
-                "metadata": session.metadata,
-                "status": session.status
+                "session_id": result.get("id"),
+                "payment_status": result.get("payment_status"),
+                "payment_intent": result.get("payment_intent"),
+                "customer": result.get("customer"),
+                "amount_total": result.get("amount_total"),
+                "currency": result.get("currency"),
+                "metadata": result.get("metadata"),
+                "status": result.get("status")
             }
             
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe error retrieving session {session_id}: {e}")
-            raise StripeError(f"Failed to retrieve session: {e.user_message}", e)
+        except Exception as e:
+            logger.error(f"Error retrieving session {session_id}: {e}")
+            raise StripeError(f"Failed to retrieve session: {str(e)}")
     
     def create_customer(self, email: str, name: Optional[str] = None, metadata: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """Create a Stripe customer"""
         try:
-            params = {
-                "email": email,
-                "metadata": metadata or {}
-            }
-            
-            if name:
-                params["name"] = name
-            
-            customer = stripe.Customer.create(**params)
+            result = self._run_async(
+                self.gateway.create_customer(
+                    email=email,
+                    name=name,
+                    metadata=metadata
+                )
+            )
             
             return {
                 "success": True,
-                "customer_id": customer.id,
-                "email": customer.email,
-                "name": customer.name,
-                "created": customer.created
+                "customer_id": result.get("id"),
+                "email": result.get("email"),
+                "name": result.get("name"),
+                "created": result.get("created")
             }
             
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe error creating customer: {e}")
-            raise StripeError(f"Failed to create customer: {e.user_message}", e)
+        except Exception as e:
+            logger.error(f"Error creating customer: {e}")
+            raise StripeError(f"Failed to create customer: {str(e)}")
     
     def create_product(self, name: str, description: Optional[str] = None, metadata: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """Create a Stripe product"""
         try:
-            params = {
-                "name": name,
-                "metadata": metadata or {}
-            }
-            
-            if description:
-                params["description"] = description
-            
-            product = stripe.Product.create(**params)
+            result = self._run_async(
+                self.gateway.create_product(
+                    name=name,
+                    description=description,
+                    metadata=metadata
+                )
+            )
             
             return {
                 "success": True,
-                "product_id": product.id,
-                "name": product.name,
-                "description": product.description,
-                "active": product.active
+                "product_id": result.get("id"),
+                "name": result.get("name"),
+                "description": result.get("description"),
+                "active": result.get("active")
             }
             
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe error creating product: {e}")
-            raise StripeError(f"Failed to create product: {e.user_message}", e)
+        except Exception as e:
+            logger.error(f"Error creating product: {e}")
+            raise StripeError(f"Failed to create product: {str(e)}")
     
     def create_price(self, product_id: str, amount_cents: int, currency: str = "usd", recurring: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """Create a Stripe price"""
         try:
-            params = {
-                "product": product_id,
-                "unit_amount": amount_cents,
-                "currency": currency
-            }
-            
-            if recurring:
-                params["recurring"] = recurring
-            
-            price = stripe.Price.create(**params)
+            result = self._run_async(
+                self.gateway.create_price(
+                    amount=amount_cents,
+                    currency=currency,
+                    product_id=product_id,
+                    recurring=recurring
+                )
+            )
             
             return {
                 "success": True,
-                "price_id": price.id,
-                "product_id": price.product,
-                "unit_amount": price.unit_amount,
-                "currency": price.currency,
-                "type": price.type
+                "price_id": result.get("id"),
+                "product_id": result.get("product"),
+                "unit_amount": result.get("unit_amount"),
+                "currency": result.get("currency"),
+                "type": result.get("type")
             }
             
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe error creating price: {e}")
-            raise StripeError(f"Failed to create price: {e.user_message}", e)
+        except Exception as e:
+            logger.error(f"Error creating price: {e}")
+            raise StripeError(f"Failed to create price: {str(e)}")
     
     def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
         """Verify Stripe webhook signature"""
         try:
-            stripe.Webhook.construct_event(
-                payload, signature, self.config.webhook_secret
+            result = self._run_async(
+                self.gateway.construct_webhook_event(
+                    payload=payload.decode('utf-8'),
+                    signature=signature,
+                    webhook_secret=self.config.webhook_secret
+                )
             )
             return True
-        except stripe.error.SignatureVerificationError:
-            logger.warning("Invalid webhook signature")
-            return False
         except Exception as e:
-            logger.error(f"Error verifying webhook signature: {e}")
+            logger.warning(f"Invalid webhook signature: {e}")
             return False
     
     def construct_webhook_event(self, payload: bytes, signature: str) -> Dict[str, Any]:
         """Construct and validate webhook event"""
         try:
-            event = stripe.Webhook.construct_event(
-                payload, signature, self.config.webhook_secret
+            result = self._run_async(
+                self.gateway.construct_webhook_event(
+                    payload=payload.decode('utf-8'),
+                    signature=signature,
+                    webhook_secret=self.config.webhook_secret
+                )
             )
             
             return {
                 "success": True,
-                "event_id": event.id,
-                "event_type": event.type,
-                "data": event.data,
-                "created": event.created,
-                "livemode": event.livemode
+                "event_id": result.get("id"),
+                "event_type": result.get("type"),
+                "data": result.get("data"),
+                "created": result.get("created"),
+                "livemode": result.get("livemode")
             }
             
-        except stripe.error.SignatureVerificationError as e:
-            logger.warning(f"Invalid webhook signature: {e}")
-            raise StripeError("Invalid webhook signature", e)
         except Exception as e:
             logger.error(f"Error constructing webhook event: {e}")
             raise StripeError(f"Failed to construct event: {str(e)}")
@@ -304,14 +320,9 @@ class StripeClient:
         if not self.config.test_mode:
             return None
         
-        try:
-            clocks = stripe.test_helpers.TestClock.list(limit=1)
-            if clocks.data:
-                return clocks.data[0].id
-            return None
-        except Exception as e:
-            logger.warning(f"Could not retrieve test clock: {e}")
-            return None
+        # Test clock functionality not available via Gateway yet
+        logger.warning("Test clock functionality not available via Gateway")
+        return None
     
     def is_test_mode(self) -> bool:
         """Check if client is in test mode"""
@@ -319,16 +330,17 @@ class StripeClient:
     
     def get_api_version(self) -> str:
         """Get Stripe API version"""
-        return stripe.api_version
+        return "2023-10-16"  # Default API version used by Gateway
     
     def get_status(self) -> Dict[str, Any]:
         """Get client status for monitoring"""
         return {
             "test_mode": self.config.test_mode,
-            "api_version": stripe.api_version,
+            "api_version": self.get_api_version(),
             "currency": self.config.currency,
             "webhook_configured": bool(self.config.webhook_secret),
-            "session_expires_minutes": self.config.session_expires_after_minutes
+            "session_expires_minutes": self.config.session_expires_after_minutes,
+            "gateway_enabled": True
         }
 
 

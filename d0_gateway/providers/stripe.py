@@ -64,7 +64,7 @@ class StripeClient(BaseAPIClient):
         mode: str = "payment"
     ) -> Dict[str, Any]:
         """
-        Create a Stripe Checkout session
+        Create a Stripe Checkout session with a single price ID
 
         Args:
             price_id: Stripe price ID
@@ -98,6 +98,101 @@ class StripeClient(BaseAPIClient):
         if metadata:
             for key, value in metadata.items():
                 payload[f'metadata[{key}]'] = value
+
+        return await self.make_request(
+            'POST',
+            '/v1/checkout/sessions',
+            data=payload
+        )
+    
+    async def create_checkout_session_with_line_items(
+        self,
+        line_items: List[Dict[str, Any]],
+        success_url: str,
+        cancel_url: str,
+        customer_email: Optional[str] = None,
+        client_reference_id: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        mode: str = "payment",
+        expires_at: Optional[int] = None,
+        payment_method_types: Optional[List[str]] = None,
+        billing_address_collection: Optional[str] = None,
+        allow_promotion_codes: Optional[bool] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a Stripe Checkout session with line items (supports dynamic pricing)
+
+        Args:
+            line_items: List of line items with price_data or price
+            success_url: URL to redirect after successful payment
+            cancel_url: URL to redirect after cancelled payment
+            customer_email: Pre-fill customer email
+            client_reference_id: Reference ID for tracking
+            metadata: Additional metadata
+            mode: Payment mode (payment, subscription, setup)
+            expires_at: Unix timestamp when session expires
+            payment_method_types: List of payment methods to accept
+            billing_address_collection: How to collect billing address
+            allow_promotion_codes: Whether to allow promo codes
+
+        Returns:
+            Dict containing checkout session data
+        """
+        # Stripe expects form-encoded data
+        payload = {
+            'mode': mode,
+            'success_url': success_url,
+            'cancel_url': cancel_url
+        }
+
+        # Add payment method types
+        if payment_method_types:
+            for i, method in enumerate(payment_method_types):
+                payload[f'payment_method_types[{i}]'] = method
+        else:
+            payload['payment_method_types[]'] = 'card'
+
+        # Add line items
+        for i, item in enumerate(line_items):
+            if 'price' in item:
+                # Using existing price ID
+                payload[f'line_items[{i}][price]'] = item['price']
+                payload[f'line_items[{i}][quantity]'] = str(item.get('quantity', 1))
+            elif 'price_data' in item:
+                # Using inline pricing
+                price_data = item['price_data']
+                payload[f'line_items[{i}][price_data][currency]'] = price_data.get('currency', 'usd')
+                payload[f'line_items[{i}][price_data][unit_amount]'] = str(price_data['unit_amount'])
+                
+                if 'product_data' in price_data:
+                    product_data = price_data['product_data']
+                    payload[f'line_items[{i}][price_data][product_data][name]'] = product_data['name']
+                    if 'description' in product_data:
+                        payload[f'line_items[{i}][price_data][product_data][description]'] = product_data['description']
+                    if 'metadata' in product_data:
+                        for key, value in product_data['metadata'].items():
+                            payload[f'line_items[{i}][price_data][product_data][metadata][{key}]'] = value
+                
+                payload[f'line_items[{i}][quantity]'] = str(item.get('quantity', 1))
+
+        if customer_email:
+            payload['customer_email'] = customer_email
+
+        if client_reference_id:
+            payload['client_reference_id'] = client_reference_id
+
+        if metadata:
+            for key, value in metadata.items():
+                payload[f'metadata[{key}]'] = value
+                
+        if expires_at:
+            payload['expires_at'] = str(expires_at)
+            
+        if billing_address_collection:
+            payload['billing_address_collection'] = billing_address_collection
+            
+        if allow_promotion_codes is not None:
+            payload['allow_promotion_codes'] = 'true' if allow_promotion_codes else 'false'
 
         return await self.make_request(
             'POST',
@@ -230,6 +325,42 @@ class StripeClient(BaseAPIClient):
         return await self.make_request(
             'GET',
             f'/v1/customers/{customer_id}'
+        )
+    
+    async def create_product(
+        self,
+        name: str,
+        description: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
+        active: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Create a product
+
+        Args:
+            name: Product name
+            description: Product description
+            metadata: Additional metadata
+            active: Whether product is active
+
+        Returns:
+            Dict containing product data
+        """
+        payload = {
+            'name': name,
+            'active': 'true' if active else 'false'
+        }
+
+        if description:
+            payload['description'] = description
+        if metadata:
+            for key, value in metadata.items():
+                payload[f'metadata[{key}]'] = value
+
+        return await self.make_request(
+            'POST',
+            '/v1/products',
+            data=payload
         )
 
     async def list_charges(
