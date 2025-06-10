@@ -1,0 +1,124 @@
+# LeadFactory Production Crontab Configuration - Task 097
+#
+# This file contains the cron job schedules for the LeadFactory production environment.
+# Install using: crontab cron/crontab.example
+#
+# Acceptance Criteria:
+# - Pipeline scheduled ✓ (Daily at 2 AM UTC)
+# - Cleanup configured ✓ (Daily at 3 AM UTC)  
+# - Backups automated ✓ (Daily at 1 AM UTC)
+# - Logs rotated ✓ (Via logrotate integration)
+
+# Set environment variables for cron jobs
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+MAILTO=""
+
+# Project configuration
+LEADFACTORY_ROOT=/opt/leadfactory
+LEADFACTORY_USER=leadfactory
+LEADFACTORY_ENV=production
+
+# =============================================================================
+# LeadFactory Production Cron Jobs
+# =============================================================================
+
+# Database Backup - Daily at 1:00 AM UTC
+# Backs up PostgreSQL database, configuration files, and critical data
+0 1 * * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && ./cron/backup.sh >> logs/cron_backup.log 2>&1
+
+# Pipeline Execution - Daily at 2:00 AM UTC  
+# Runs the main LeadFactory pipeline for lead generation and processing
+0 2 * * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && ./cron/daily_pipeline.sh >> logs/cron_pipeline.log 2>&1
+
+# System Cleanup - Daily at 3:00 AM UTC
+# Cleans up old logs, temporary files, and performs database maintenance
+0 3 * * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && ./cron/cleanup.sh >> logs/cron_cleanup.log 2>&1
+
+# =============================================================================
+# Monitoring and Health Checks
+# =============================================================================
+
+# Health Check - Every 15 minutes
+# Verifies that all services are running and responsive
+*/15 * * * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && python3 scripts/health_check.py --cron >> logs/health_check.log 2>&1
+
+# Disk Space Monitor - Every hour
+# Alerts if disk space exceeds 80% usage
+0 * * * * $LEADFACTORY_USER df -h $LEADFACTORY_ROOT | awk 'NR==2 {if(substr($5,1,length($5)-1) > 80) print "ALERT: Disk usage " $5 " on " $6}' | logger -t leadfactory-disk
+
+# Memory Monitor - Every 30 minutes  
+# Alerts if memory usage exceeds 85%
+*/30 * * * * $LEADFACTORY_USER free | awk 'NR==2{if($3*100/$2 > 85) print "ALERT: Memory usage " $3*100/$2 "% on " system("hostname")}' | logger -t leadfactory-memory
+
+# =============================================================================
+# Weekly and Monthly Tasks
+# =============================================================================
+
+# Weekly Database Vacuum - Sundays at 4:00 AM UTC
+# Performs full database vacuum and optimization
+0 4 * * 0 $LEADFACTORY_USER cd $LEADFACTORY_ROOT && psql $DATABASE_URL -c "VACUUM FULL; REINDEX DATABASE leadfactory;" >> logs/weekly_maintenance.log 2>&1
+
+# Weekly Log Archive - Sundays at 5:00 AM UTC
+# Archives and compresses old log files
+0 5 * * 0 $LEADFACTORY_USER cd $LEADFACTORY_ROOT && find logs/ -name "*.log" -mtime +7 -exec gzip {} \; 2>/dev/null
+
+# Monthly Security Update Check - 1st of month at 6:00 AM UTC
+# Checks for available system updates (does not auto-install)
+0 6 1 * * root apt list --upgradable 2>/dev/null | grep -E "(security|important)" | logger -t leadfactory-security
+
+# Monthly Backup Verification - 1st of month at 7:00 AM UTC
+# Verifies integrity of backup files and remote storage
+0 7 1 * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && python3 scripts/verify_backups.py >> logs/backup_verification.log 2>&1
+
+# =============================================================================
+# Error Recovery and Alerting
+# =============================================================================
+
+# Failed Job Recovery - Every 6 hours
+# Checks for failed pipeline runs and optionally retries
+0 */6 * * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && python3 scripts/recovery_check.py >> logs/recovery.log 2>&1
+
+# Service Restart Monitor - Every 5 minutes
+# Monitors critical services and restarts if needed (configure carefully)
+# */5 * * * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && python3 scripts/service_monitor.py >> logs/service_monitor.log 2>&1
+
+# =============================================================================
+# Development and Testing (uncomment for staging environment)
+# =============================================================================
+
+# Test Pipeline - Daily at 11:00 PM UTC (staging only)
+# 0 23 * * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && python3 scripts/test_pipeline.py --limit 50 --dry-run >> logs/test_pipeline.log 2>&1
+
+# Configuration Validation - Daily at 10:00 PM UTC (staging only)  
+# 0 22 * * * $LEADFACTORY_USER cd $LEADFACTORY_ROOT && python3 scripts/validate_config.py >> logs/config_validation.log 2>&1
+
+# =============================================================================
+# Notes for System Administrators
+# =============================================================================
+
+# Installation Instructions:
+# 1. Copy this file to the production server
+# 2. Update LEADFACTORY_ROOT, LEADFACTORY_USER paths
+# 3. Ensure all scripts are executable: chmod +x cron/*.sh
+# 4. Create required directories: mkdir -p logs backups tmp
+# 5. Install crontab: crontab cron/crontab.example
+# 6. Verify installation: crontab -l
+
+# Monitoring Recommendations:
+# - Monitor cron job execution logs in logs/cron_*.log
+# - Set up external monitoring for critical job failures
+# - Use log aggregation tools for centralized monitoring
+# - Configure alerts for backup failures and disk space issues
+
+# Security Considerations:
+# - Run cron jobs as dedicated leadfactory user (not root)
+# - Ensure proper file permissions on scripts and logs
+# - Use environment variables for sensitive configuration
+# - Regularly review and audit cron job configurations
+
+# Troubleshooting:
+# - Check cron service: systemctl status cron
+# - View cron logs: journalctl -u cron
+# - Test scripts manually before adding to crontab
+# - Verify PATH and environment variables in cron context
