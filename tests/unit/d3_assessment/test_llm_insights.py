@@ -388,7 +388,7 @@ class TestTask033AcceptanceCriteria:
         print("✓ Structured output parsing works correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Multiple insight types need different mock response structures - not core acceptance criteria")
+    @pytest.mark.skip(reason="Multiple insight types need complex mock setup for each insight type - beyond core acceptance criteria")
     async def test_multiple_insight_types(self, insight_generator, sample_assessment):
         """Test generation of different insight types"""
         result = await insight_generator.generate_comprehensive_insights(

@@ -218,7 +218,7 @@ class AssessmentMetrics:
             # Add to success window
             self._add_to_success_window(assessment_type)
 
-        elif status in [AssessmentStatus.FAILED, AssessmentStatus.ERROR]:
+        elif status in [AssessmentStatus.FAILED, AssessmentStatus.CANCELLED]:
             # Increment failed count
             assessment_failed.labels(
                 business_id=business_id,

@@ -173,7 +173,6 @@ class TestTask036AcceptanceCriteria:
         print("✓ TTL configuration works correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Cache invalidation count assertion - minor test logic issue")
     async def test_cache_invalidation_logic(self, cache, sample_coordinator_result):
         """
         Test that cache invalidation logic works correctly
@@ -185,9 +184,34 @@ class TestTask036AcceptanceCriteria:
         url2 = "https://test.com"
         assessment_types = [AssessmentType.PAGESPEED]
 
+        # Create a second coordinator result with the correct domain for test.com
+        test_com_result = CoordinatorResult(
+            session_id="sess_test456",
+            business_id="biz_test123", 
+            total_assessments=1,
+            completed_assessments=1,
+            failed_assessments=0,
+            partial_results={
+                AssessmentType.PAGESPEED: AssessmentResult(
+                    id=str(uuid.uuid4()),
+                    business_id="biz_test123",
+                    assessment_type=AssessmentType.PAGESPEED,
+                    status=AssessmentStatus.COMPLETED,
+                    url="https://test.com",
+                    domain="test.com",  # Correct domain for test.com
+                    performance_score=75,
+                )
+            },
+            errors={},
+            total_cost_usd=Decimal("0.15"),
+            execution_time_ms=90000,
+            started_at=datetime.utcnow() - timedelta(minutes=1),
+            completed_at=datetime.utcnow(),
+        )
+
         # Store multiple entries
         await cache.put(business_id, url1, assessment_types, sample_coordinator_result)
-        await cache.put(business_id, url2, assessment_types, sample_coordinator_result)
+        await cache.put(business_id, url2, assessment_types, test_com_result)
 
         # Store entry with tags
         await cache.put(
@@ -220,7 +244,6 @@ class TestTask036AcceptanceCriteria:
         print("✓ Cache invalidation logic works correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Cache hit rate assertion - minor test logic issue") 
     async def test_hit_rate_tracking(self, cache, sample_coordinator_result):
         """
         Test that hit rate tracking works correctly
@@ -268,8 +291,8 @@ class TestTask036AcceptanceCriteria:
         stats = cache.get_stats()
         assert stats.hits == 2
         assert stats.misses == 1
-        assert stats.hit_rate == 2 / 3
-        assert stats.miss_rate == 1 / 3
+        assert abs(stats.hit_rate - 2 / 3) < 1e-10
+        assert abs(stats.miss_rate - 1 / 3) < 1e-10
 
         # Access count tracking
         cache_key = cache._generate_cache_key(business_id, url, assessment_types)
@@ -413,7 +436,6 @@ class TestTask036AcceptanceCriteria:
         print("✓ Cache key generation works correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Cache cleanup async task management - minor test logic issue")
     async def test_cache_cleanup_and_expiration(self, sample_coordinator_result):
         """Test background cleanup and expiration handling"""
         # Create cache with short cleanup interval
@@ -429,12 +451,19 @@ class TestTask036AcceptanceCriteria:
             "https://expire.com",
             [AssessmentType.PAGESPEED],
             sample_coordinator_result,
+            ttl_override=1,  # Force 1 second TTL
         )
 
         assert cleanup_cache.get_stats().entry_count == 1
 
-        # Wait for expiration
-        await asyncio.sleep(1.5)
+        # Wait for expiration (increase time to ensure expiry)
+        await asyncio.sleep(2.1)
+
+        # Check if entry is expired before cleanup
+        cache_entries = list(cleanup_cache._cache.values())
+        if cache_entries:
+            entry = cache_entries[0]
+            assert entry.is_expired, f"Entry should be expired: age={entry.age_seconds}s, ttl={entry.ttl_seconds}s"
 
         # Manual cleanup check
         await cleanup_cache._cleanup_expired()
@@ -591,7 +620,6 @@ class TestTask036AcceptanceCriteria:
         print("✓ Cache clear functionality works correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Comprehensive cache flow - minor test logic issue")
     async def test_comprehensive_cache_flow(self, cache, sample_coordinator_result):
         """Test comprehensive cache workflow"""
         business_id = "biz_comprehensive"
@@ -603,13 +631,56 @@ class TestTask036AcceptanceCriteria:
         ]
         industry = "technology"
 
+        # Create comprehensive coordinator result with correct business_id
+        comprehensive_result = CoordinatorResult(
+            session_id="sess_comprehensive",
+            business_id=business_id,  # Use the correct business_id
+            total_assessments=3,
+            completed_assessments=3,
+            failed_assessments=0,
+            partial_results={
+                AssessmentType.PAGESPEED: AssessmentResult(
+                    id=str(uuid.uuid4()),
+                    business_id=business_id,
+                    assessment_type=AssessmentType.PAGESPEED,
+                    status=AssessmentStatus.COMPLETED,
+                    url=url,
+                    domain="comprehensive-test.com",
+                    performance_score=88,
+                ),
+                AssessmentType.TECH_STACK: AssessmentResult(
+                    id=str(uuid.uuid4()),
+                    business_id=business_id,
+                    assessment_type=AssessmentType.TECH_STACK,
+                    status=AssessmentStatus.COMPLETED,
+                    url=url,
+                    domain="comprehensive-test.com",
+                    tech_stack_data={"technologies": []},
+                ),
+                AssessmentType.AI_INSIGHTS: AssessmentResult(
+                    id=str(uuid.uuid4()),
+                    business_id=business_id,
+                    assessment_type=AssessmentType.AI_INSIGHTS,
+                    status=AssessmentStatus.COMPLETED,
+                    url=url,
+                    domain="comprehensive-test.com",
+                    ai_insights_data={"insights": {}},
+                ),
+            },
+            errors={},
+            total_cost_usd=Decimal("0.50"),
+            execution_time_ms=180000,
+            started_at=datetime.utcnow() - timedelta(minutes=3),
+            completed_at=datetime.utcnow(),
+        )
+
         # 1. Initial miss
         result = await cache.get(business_id, url, assessment_types, industry)
         assert result is None
 
         # 2. Store result
         cache_key = await cache.put(
-            business_id, url, assessment_types, sample_coordinator_result, industry
+            business_id, url, assessment_types, comprehensive_result, industry
         )
         assert cache_key is not None
 
@@ -624,7 +695,7 @@ class TestTask036AcceptanceCriteria:
 
         # 5. Test invalidation
         removed = await cache.invalidate(
-            business_id=business_id, url=url, assessment_types=assessment_types
+            business_id=business_id, url=url, assessment_types=assessment_types, industry=industry
         )
         assert removed == 1
 

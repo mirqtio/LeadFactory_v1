@@ -41,7 +41,6 @@ class TestTask037AcceptanceCriteria:
         """Create fresh metrics instance for testing"""
         return AssessmentMetrics()
 
-    @pytest.mark.skip(reason="Assessment count tracking - minor test logic issue")
     def test_assessment_counts_tracked(self, assessment_metrics):
         """
         Test that assessment counts are tracked correctly
@@ -181,7 +180,6 @@ class TestTask037AcceptanceCriteria:
 
         print("✓ Cost tracking is accurate")
 
-    @pytest.mark.skip(reason="Success failure rate tracking - minor test logic issue")
     def test_success_failure_rates(self, assessment_metrics):
         """
         Test that success/failure rates are calculated correctly
@@ -194,7 +192,7 @@ class TestTask037AcceptanceCriteria:
             (AssessmentType.PAGESPEED, AssessmentStatus.COMPLETED),
             (AssessmentType.PAGESPEED, AssessmentStatus.FAILED),
             (AssessmentType.TECH_STACK, AssessmentStatus.COMPLETED),
-            (AssessmentType.TECH_STACK, AssessmentStatus.ERROR),
+            (AssessmentType.TECH_STACK, AssessmentStatus.FAILED),
             (AssessmentType.AI_INSIGHTS, AssessmentStatus.COMPLETED),
         ]
 
@@ -326,7 +324,6 @@ class TestTask037AcceptanceCriteria:
         print("✓ Window cleanup works correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Assessment decorator tracking - minor test logic issue")
     async def test_track_assessment_decorator(self):
         """Test the track_assessment decorator"""
         call_count = 0
