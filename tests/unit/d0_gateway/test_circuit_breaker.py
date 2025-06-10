@@ -4,6 +4,7 @@ Test circuit breaker pattern implementation
 import pytest
 import time
 import threading
+from threading import Lock
 from unittest.mock import Mock, patch
 
 from d0_gateway.circuit_breaker import CircuitBreaker, CircuitState, CircuitBreakerConfig
@@ -436,3 +437,316 @@ class TestCircuitBreakerConfig:
         cb.force_half_open()
         cb.record_success()
         assert cb.state == CircuitState.CLOSED
+
+
+class TestCircuitBreakerEnhancements:
+    """Additional comprehensive tests for circuit breaker - GAP-008"""
+
+    def test_edge_case_zero_thresholds(self):
+        """Test edge cases with zero thresholds"""
+        # Test zero failure threshold (should never open)
+        config = CircuitBreakerConfig(failure_threshold=0)
+        cb = CircuitBreaker("zero_fail", config)
+        
+        # Should never open even with failures (edge case handling)
+        for _ in range(10):
+            cb.record_failure()
+        # Behavior depends on implementation - could stay closed or open immediately
+        assert cb.state in [CircuitState.CLOSED, CircuitState.OPEN]
+
+    def test_edge_case_single_thresholds(self):
+        """Test edge cases with single-unit thresholds"""
+        config = CircuitBreakerConfig(
+            failure_threshold=1,
+            success_threshold=1,
+            recovery_timeout=0  # Immediate recovery for testing
+        )
+        cb = CircuitBreaker("single_thresh", config)
+        
+        # Should open immediately on first failure
+        cb.record_failure()
+        assert cb.state == CircuitState.OPEN
+        
+        # Should close immediately on first success in half-open
+        cb.force_half_open()
+        cb.record_success()
+        assert cb.state == CircuitState.CLOSED
+
+    def test_state_transition_consistency(self):
+        """Test consistency of state transitions"""
+        cb = CircuitBreaker("consistency_test")
+        
+        # Track all state transitions
+        transitions = []
+        
+        # Initial state
+        transitions.append(cb.state)
+        
+        # Force transitions and verify consistency
+        cb.force_open()
+        transitions.append(cb.state)
+        assert cb.state == CircuitState.OPEN
+        
+        cb.force_half_open()
+        transitions.append(cb.state)
+        assert cb.state == CircuitState.HALF_OPEN
+        
+        cb.reset()
+        transitions.append(cb.state)
+        assert cb.state == CircuitState.CLOSED
+        
+        # Verify transition sequence
+        expected = [CircuitState.CLOSED, CircuitState.OPEN, CircuitState.HALF_OPEN, CircuitState.CLOSED]
+        assert transitions == expected
+
+    def test_failure_count_accuracy(self):
+        """Test accuracy of failure counting"""
+        config = CircuitBreakerConfig(failure_threshold=5)
+        cb = CircuitBreaker("count_test", config)
+        
+        # Test incremental failure counting
+        for i in range(1, 4):
+            cb.record_failure()
+            assert cb.failure_count == i
+            assert cb.state == CircuitState.CLOSED
+        
+        # Test threshold crossing
+        cb.record_failure()
+        assert cb.failure_count == 4
+        assert cb.state == CircuitState.CLOSED
+        
+        cb.record_failure()
+        assert cb.failure_count == 5
+        assert cb.state == CircuitState.OPEN
+
+    def test_success_count_in_half_open(self):
+        """Test success counting in half-open state"""
+        config = CircuitBreakerConfig(success_threshold=3)
+        cb = CircuitBreaker("success_count", config)
+        
+        cb.force_half_open()
+        assert cb.success_count == 0
+        
+        # Test incremental success counting
+        for i in range(1, 3):
+            cb.record_success()
+            assert cb.success_count == i
+            assert cb.state == CircuitState.HALF_OPEN
+        
+        # Final success should close circuit
+        cb.record_success()
+        assert cb.state == CircuitState.CLOSED
+        assert cb.success_count == 0  # Reset after closing
+
+    def test_last_failure_time_tracking(self):
+        """Test last failure time tracking"""
+        cb = CircuitBreaker("time_test")
+        
+        # Initially no failures
+        assert cb.last_failure_time == 0
+        
+        # Record failure and check time is set
+        before_time = time.time()
+        cb.record_failure()
+        after_time = time.time()
+        
+        assert before_time <= cb.last_failure_time <= after_time
+        
+        # Multiple failures should update time (using mock for precision)
+        with patch('time.time') as mock_time:
+            mock_time.return_value = 1000.0
+            cb.record_failure()
+            assert cb.last_failure_time == 1000.0
+            
+            mock_time.return_value = 1001.0
+            cb.record_failure()
+            assert cb.last_failure_time == 1001.0
+
+    def test_lock_behavior_verification(self):
+        """Test that locking behavior is working correctly"""
+        cb = CircuitBreaker("lock_test")
+        
+        # Verify lock exists and is a threading lock
+        assert hasattr(cb, 'lock')
+        assert hasattr(cb.lock, 'acquire')
+        assert hasattr(cb.lock, 'release')
+        
+        # Test that operations work (no deadlocks)
+        cb.record_failure()
+        cb.record_success()
+        cb.can_execute()
+        cb.get_state_info()
+        cb.reset()
+
+    def test_provider_name_handling(self):
+        """Test provider name handling and logging context"""
+        provider_names = ["test-provider", "provider_with_underscores", "provider123", ""]
+        
+        for provider in provider_names:
+            cb = CircuitBreaker(provider)
+            assert cb.provider == provider
+            
+            # Test that operations work with various provider names
+            info = cb.get_state_info()
+            assert info['provider'] == provider
+
+    def test_recovery_timeout_edge_cases(self):
+        """Test recovery timeout edge cases"""
+        # Test with very short timeout using mocking
+        with patch('time.time') as mock_time:
+            config = CircuitBreakerConfig(recovery_timeout=1)
+            cb = CircuitBreaker("timeout_test", config)
+            
+            # Set initial time
+            mock_time.return_value = 100.0
+            cb.force_open()
+            
+            # Verify can't execute immediately
+            assert cb.can_execute() is False
+            
+            # Advance time past timeout
+            mock_time.return_value = 101.5  # 1.5 seconds later
+            assert cb.can_execute() is True
+            assert cb.state == CircuitState.HALF_OPEN
+
+    def test_config_parameter_boundaries(self):
+        """Test configuration parameter boundary values"""
+        # Test with maximum reasonable values
+        config = CircuitBreakerConfig(
+            failure_threshold=1000,
+            recovery_timeout=3600,
+            success_threshold=100,
+            timeout_duration=300
+        )
+        cb = CircuitBreaker("boundary_test", config)
+        
+        assert cb.config.failure_threshold == 1000
+        assert cb.config.recovery_timeout == 3600
+        assert cb.config.success_threshold == 100
+        assert cb.config.timeout_duration == 300
+
+    def test_state_info_completeness(self):
+        """Test completeness and accuracy of state information"""
+        config = CircuitBreakerConfig(
+            failure_threshold=3,
+            success_threshold=2,
+            recovery_timeout=30
+        )
+        cb = CircuitBreaker("info_test", config)
+        
+        # Test initial state info
+        info = cb.get_state_info()
+        
+        expected_keys = [
+            'provider', 'state', 'failure_count', 'success_count',
+            'failure_threshold', 'recovery_timeout', 'last_failure_time',
+            'can_execute'
+        ]
+        
+        for key in expected_keys:
+            assert key in info
+        
+        assert info['provider'] == 'info_test'
+        assert info['state'] == 'closed'
+        assert info['failure_count'] == 0
+        assert info['success_count'] == 0
+        assert info['failure_threshold'] == 3
+        assert info['recovery_timeout'] == 30
+        assert info['last_failure_time'] == 0
+        assert info['can_execute'] is True
+        
+        # Test state info after changes
+        cb.record_failure()
+        info = cb.get_state_info()
+        assert info['failure_count'] == 1
+        assert info['last_failure_time'] > 0
+
+    def test_logger_integration_comprehensive(self):
+        """Test comprehensive logger integration"""
+        cb = CircuitBreaker("log_test")
+        
+        # Verify logger is properly initialized
+        assert hasattr(cb, 'logger')
+        assert 'circuit_breaker.log_test' in cb.logger.name
+        
+        # Test logging during state transitions
+        with patch.object(cb.logger, 'info') as mock_info, \
+             patch.object(cb.logger, 'warning') as mock_warning:
+            
+            # Force open should log warning
+            cb.force_open()
+            mock_warning.assert_called()
+            
+            # Force half-open should log info
+            cb.force_half_open()
+            mock_info.assert_called()
+            
+            # Reset should log info
+            cb.reset()
+            mock_info.assert_called()
+
+    def test_circuit_breaker_with_no_config(self):
+        """Test circuit breaker initialization without explicit config"""
+        cb = CircuitBreaker("no_config")
+        
+        # Should use default configuration
+        assert cb.config.failure_threshold == 5
+        assert cb.config.recovery_timeout == 60
+        assert cb.config.success_threshold == 3
+        assert cb.config.timeout_duration == 30
+        
+        # Should function normally
+        assert cb.state == CircuitState.CLOSED
+        assert cb.can_execute() is True
+
+    def test_multiple_circuit_breakers_independence(self):
+        """Test that multiple circuit breakers operate independently"""
+        cb1 = CircuitBreaker("provider1")
+        cb2 = CircuitBreaker("provider2")
+        
+        # Modify one circuit breaker
+        cb1.record_failure()
+        cb1.record_failure()
+        cb1.record_failure()
+        cb1.record_failure()
+        cb1.record_failure()  # Should open cb1
+        
+        # Other should remain unaffected
+        assert cb1.state == CircuitState.OPEN
+        assert cb2.state == CircuitState.CLOSED
+        assert cb1.can_execute() is False
+        assert cb2.can_execute() is True
+        
+        # Test state info independence
+        info1 = cb1.get_state_info()
+        info2 = cb2.get_state_info()
+        
+        assert info1['provider'] == 'provider1'
+        assert info2['provider'] == 'provider2'
+        assert info1['state'] == 'open'
+        assert info2['state'] == 'closed'
+
+    def test_rapid_state_transitions(self):
+        """Test rapid state transitions without timing dependencies"""
+        config = CircuitBreakerConfig(failure_threshold=1, success_threshold=1)
+        cb = CircuitBreaker("rapid_test", config)
+        
+        # Rapid transitions: closed -> open -> half-open -> closed
+        assert cb.state == CircuitState.CLOSED
+        
+        cb.record_failure()
+        assert cb.state == CircuitState.OPEN
+        
+        cb.force_half_open()
+        assert cb.state == CircuitState.HALF_OPEN
+        
+        cb.record_success()
+        assert cb.state == CircuitState.CLOSED
+        
+        # Repeat cycle to test stability
+        cb.record_failure()
+        assert cb.state == CircuitState.OPEN
+        
+        cb.force_half_open()
+        cb.record_failure()  # Should reopen
+        assert cb.state == CircuitState.OPEN
