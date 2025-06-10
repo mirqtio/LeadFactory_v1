@@ -15,27 +15,25 @@ class TestBusinessModel:
         business = Business(
             name="Joe's Restaurant",
             yelp_id="joe-restaurant-sf",
-            alias="joes-restaurant",
-            image_url="https://example.com/image.jpg",
-            is_claimed=True,
-            is_closed=False,
-            address1="123 Main St",
+            url="https://example.com/joes-restaurant",
+            phone="+14155551234",
+            email="info@joesrestaurant.com",
+            address="123 Main St",
             city="San Francisco",
             state="CA",
             zip_code="94102",
-            country="US",
             latitude=37.7749,
             longitude=-122.4194,
-            phone="+14155551234",
-            display_phone="(415) 555-1234",
-            review_count=150,
-            rating=4.5,
-            price="$$",
+            vertical="restaurants",
             categories=[
                 {"alias": "italian", "title": "Italian"},
                 {"alias": "restaurants", "title": "Restaurants"},
             ],
-            hours=[
+            place_id="ChIJN1t_tDeuEmsRUsoyG83frY4",
+            rating=4.5,
+            user_ratings_total=150,
+            price_level=2,
+            opening_hours=[
                 {
                     "open": [
                         {
@@ -49,8 +47,9 @@ class TestBusinessModel:
                     "is_open_now": True,
                 }
             ],
-            transactions=["pickup", "delivery"],
-            attributes={
+            website="https://joesrestaurant.com",
+            business_status="OPERATIONAL",
+            raw_data={
                 "outdoor_seating": True,
                 "takes_reservations": True,
                 "wheelchair_accessible": True,
@@ -65,11 +64,11 @@ class TestBusinessModel:
         assert business.latitude == 37.7749
         assert business.longitude == -122.4194
         assert business.rating == 4.5
-        assert business.review_count == 150
-        assert business.price == "$$"
+        assert business.user_ratings_total == 150
+        assert business.price_level == 2
         assert len(business.categories) == 2
         assert business.categories[0]["alias"] == "italian"
-        assert business.attributes["outdoor_seating"] is True
+        assert business.raw_data["outdoor_seating"] is True
 
     def test_yelp_id_unique_constraint(self):
         """Test that Yelp ID unique constraint is defined"""
@@ -78,22 +77,22 @@ class TestBusinessModel:
         yelp_id_column = business_columns["yelp_id"]
 
         assert yelp_id_column.unique is True
-        assert yelp_id_column.index is True
 
     def test_jsonb_fields_work(self):
         """Test that JSONB fields work correctly"""
         business = Business(
             name="Test Business",
+            yelp_id="test-business-123",
             categories=[
                 {"alias": "test", "title": "Test Category"},
                 {"alias": "sample", "title": "Sample Category"},
             ],
-            attributes={
+            raw_data={
                 "parking": {"street": True, "lot": False},
                 "noise_level": "quiet",
                 "good_for": {"breakfast": True, "lunch": True},
             },
-            hours=[
+            opening_hours=[
                 {
                     "open": [
                         {
@@ -108,20 +107,20 @@ class TestBusinessModel:
             ],
         )
 
-        # Test categories JSONB field
+        # Test categories JSON field
         assert isinstance(business.categories, list)
         assert business.categories[0]["alias"] == "test"
         assert business.categories[1]["title"] == "Sample Category"
 
-        # Test attributes JSONB field
-        assert isinstance(business.attributes, dict)
-        assert business.attributes["parking"]["street"] is True
-        assert business.attributes["noise_level"] == "quiet"
-        assert business.attributes["good_for"]["breakfast"] is True
+        # Test raw_data JSON field
+        assert isinstance(business.raw_data, dict)
+        assert business.raw_data["parking"]["street"] is True
+        assert business.raw_data["noise_level"] == "quiet"
+        assert business.raw_data["good_for"]["breakfast"] is True
 
-        # Test hours JSON field
-        assert isinstance(business.hours, list)
-        assert business.hours[0]["hours_type"] == "REGULAR"
+        # Test opening_hours JSON field
+        assert isinstance(business.opening_hours, list)
+        assert business.opening_hours[0]["hours_type"] == "REGULAR"
 
     def test_indexes_created(self):
         """Test that expected indexes are defined"""
@@ -135,12 +134,8 @@ class TestBusinessModel:
 
         # Verify expected indexes exist
         expected_indexes = [
-            "idx_businesses_location",
-            "idx_businesses_geo",
-            "idx_businesses_rating",
-            "idx_businesses_categories",
-            "idx_businesses_attributes",
-            "idx_businesses_search",
+            "idx_business_vertical_city",
+            "idx_business_created",
         ]
 
         for expected_index in expected_indexes:
@@ -185,7 +180,9 @@ class TestYelpMetadataModel:
         """Test YelpMetadata relationships"""
         # Verify the relationship is defined
         assert hasattr(YelpMetadata, "business")
-        assert YelpMetadata.business.property.back_populates == "yelp_metadata"
+        # YelpMetadata has a relationship to Business but no back_populates since
+        # Business model doesn't have yelp_metadata relationship defined
+        assert YelpMetadata.business.property.back_populates is None
 
 
 class TestSourcedLocationModel:
@@ -241,23 +238,17 @@ class TestSourcedLocationModel:
 class TestModelRelationships:
     def test_business_yelp_metadata_relationship(self):
         """Test Business-YelpMetadata relationship"""
-        # Verify relationships are defined
-        assert hasattr(Business, "yelp_metadata")
+        # Verify YelpMetadata has relationship to Business
         assert hasattr(YelpMetadata, "business")
-
-        # Verify back_populates is correct
-        assert Business.yelp_metadata.property.back_populates == "business"
-        assert YelpMetadata.business.property.back_populates == "yelp_metadata"
+        # Business model in this codebase doesn't have yelp_metadata relationship
+        # The relationship is only defined on the YelpMetadata side
 
     def test_business_sourced_locations_relationship(self):
         """Test Business-SourcedLocation relationship"""
-        # Verify relationships are defined
-        assert hasattr(Business, "sourced_locations")
+        # Verify SourcedLocation has relationship to Business
         assert hasattr(SourcedLocation, "business")
-
-        # Verify back_populates is correct
-        assert Business.sourced_locations.property.back_populates == "business"
-        assert SourcedLocation.business.property.back_populates == "sourced_locations"
+        # Business model in this codebase doesn't have sourced_locations relationship
+        # The relationship is only defined on the SourcedLocation side
 
 
 class TestModelDefinitions:

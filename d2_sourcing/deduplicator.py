@@ -188,10 +188,9 @@ class BusinessDeduplicator:
         if business_ids:
             query = query.filter(Business.id.in_(business_ids))
 
-        # Only process active businesses with sufficient data
+        # Only process businesses with sufficient data
         query = query.filter(
             and_(
-                Business.is_active == True,
                 Business.name.isnot(None),
                 or_(Business.address.isnot(None), Business.phone.isnot(None)),
             )
