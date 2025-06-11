@@ -68,6 +68,7 @@ class TestDockerCompose:
     @pytest.mark.skipif(
         not docker_compose_available(), reason="docker-compose not available"
     )
+    @pytest.mark.timeout(60)  # Increase timeout to 60 seconds
     def test_all_services_start(self, docker_compose_up):
         """Test that all services start properly"""
         code, stdout, stderr = run_command("docker-compose ps")

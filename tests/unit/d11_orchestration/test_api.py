@@ -43,16 +43,21 @@ def test_db():
         "sqlite:///:memory:", connect_args={"check_same_thread": False}
     )
 
-    # Import all models to ensure tables are created
-    from d11_orchestration.models import (Experiment, ExperimentVariant,
-                                          PipelineRun, VariantAssignment)
-    from database.models import Business  # Import other models as needed
+    # Import all model modules to register tables
+    import database.models
+    import d1_targeting.models
+    import d2_sourcing.models
+    import d3_assessment.models
+    import d4_enrichment.models
+    import d5_scoring.models
+    import d6_reports.models
+    import d7_storefront.models
+    import d8_personalization.models
+    import d9_delivery.models
+    import d10_analytics.models
+    import d11_orchestration.models
     
-    # Ensure all models are imported for table creation
-    import database.models  # This will import all model classes
-    import d11_orchestration.models  # This will import all orchestration models
-    
-    # Force explicit model registration
+    # Import Base after all models are loaded
     from database.base import Base
     
     # Explicitly add all table definitions to metadata
@@ -92,7 +97,6 @@ class TestHealthEndpoint:
         assert data["components"]["database"] == "healthy"
 
 
-@pytest.mark.skip(reason="Complex integration tests requiring proper database setup - these work in production but need SQLite table creation fixes for isolated unit testing")
 class TestPipelineAPI:
     """Test pipeline API endpoints - Pipeline trigger API, Status checking works, Run history API"""
 
@@ -118,7 +122,6 @@ class TestPipelineAPI:
         assert data["environment"] == "test"
         assert "run_id" in data
 
-    @pytest.mark.skip(reason="Database table creation issues in test environment - functionality works in production")
     def test_get_pipeline_status(self, client, test_db):
         """Test status checking works"""
         # Create a test pipeline run
@@ -140,13 +143,11 @@ class TestPipelineAPI:
         assert data["tasks_completed"] == 0
         assert data["tasks_total"] == 0
 
-    @pytest.mark.skip(reason="Database table creation issues in test environment - functionality works in production")
     def test_get_pipeline_status_not_found(self, client):
         """Test status checking with non-existent pipeline"""
         response = client.get("/orchestration/pipelines/non-existent/status")
         assert response.status_code == 404
 
-    @pytest.mark.skip(reason="Database table creation issues in test environment - functionality works in production")
     def test_get_pipeline_run(self, client, test_db):
         """Test getting pipeline run details"""
         # Create a test pipeline run
@@ -171,7 +172,6 @@ class TestPipelineAPI:
         assert data["records_processed"] == 100
         assert data["success_rate"] == 1.0
 
-    @pytest.mark.skip(reason="Database table creation issues in test environment - functionality works in production")
     def test_get_pipeline_history(self, client, test_db):
         """Test run history API"""
         # Create test pipeline runs
@@ -202,7 +202,6 @@ class TestPipelineAPI:
         assert not data["has_next"]
         assert not data["has_previous"]
 
-    @pytest.mark.skip(reason="Database table creation issues in test environment - functionality works in production")
     def test_get_pipeline_history_with_filters(self, client, test_db):
         """Test run history API with filters"""
         # Create test pipeline runs with different statuses
@@ -230,7 +229,6 @@ class TestPipelineAPI:
         assert data["runs"][0]["status"] == "success"
 
 
-@pytest.mark.skip(reason="Complex integration tests requiring proper database setup - these work in production but need SQLite table creation fixes for isolated unit testing")
 class TestExperimentAPI:
     """Test experiment API endpoints - Experiment management"""
 
@@ -443,7 +441,6 @@ class TestExperimentAPI:
         assert "Cannot delete a running experiment" in response.json()["detail"]
 
 
-@pytest.mark.skip(reason="Complex integration tests requiring proper database setup - these work in production but need SQLite table creation fixes for isolated unit testing")
 class TestExperimentVariantAPI:
     """Test experiment variant API endpoints"""
 
@@ -557,7 +554,6 @@ class TestExperimentVariantAPI:
         assert "treatment" in variant_keys
 
 
-@pytest.mark.skip(reason="Complex integration tests requiring proper database setup - these work in production but need SQLite table creation fixes for isolated unit testing")
 class TestVariantAssignmentAPI:
     """Test variant assignment API endpoints"""
 

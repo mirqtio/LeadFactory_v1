@@ -158,10 +158,21 @@ class TestAssessmentIntegrationTask039:
             completed_at=datetime.utcnow(),
         )
         
-        # Add attributes that the formatter expects
-        mock_result.pagespeed_data = pagespeed_result
-        mock_result.techstack_data = techstack_result  
-        mock_result.ai_insights_data = ai_result
+        # Add attributes that the formatter expects as dictionaries
+        mock_result.pagespeed_data = {
+            "performance_score": 85,
+            "core_vitals": {
+                "lcp": 2100,
+                "fid": 80,
+                "cls": 0.05
+            },
+            "issues": []
+        }
+        mock_result.tech_stack_data = techstack_result.tech_stack_data
+        mock_result.ai_insights_data = {
+            "insights": ai_result.insights,
+            "issues": []
+        }
 
         # Configure mock
         coordinator.assess_business = AsyncMock(return_value=mock_result)

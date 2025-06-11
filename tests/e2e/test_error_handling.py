@@ -421,14 +421,16 @@ def test_partial_results_saved(test_db_session):
                 elif "pipeline" in scenario["name"]:
                     # Create pipeline run record
                     pipeline_run = PipelineRun(
-                        id=item_id,
-                        pipeline_type="lead_generation",
+                        run_id=item_id,
+                        pipeline_name="lead_generation",
+                        pipeline_type=PipelineType.LEAD_GENERATION,
                         status=PipelineRunStatus.SUCCESS,
+                        triggered_by="e2e_test",
                         started_at=scenario_start_time,
                         completed_at=datetime.utcnow(),
-                        total_businesses=1,
-                        successful_businesses=1,
-                        failed_businesses=0,
+                        records_processed=1,
+                        records_succeeded=1,
+                        records_failed=0,
                     )
                     test_db_session.add(pipeline_run)
                     processed_items.append(pipeline_run)
