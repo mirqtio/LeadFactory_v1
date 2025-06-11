@@ -16,11 +16,14 @@ from pydantic import BaseModel
 
 # Import Data Axle and Hunter stub routers
 from stubs.dataaxle import router as dataaxle_router
+from stubs.hunter import router as hunter_router
 
 app = FastAPI(title="LeadFactory Stub Server", version="1.0.0")
 
 # Include Data Axle routes
 app.include_router(dataaxle_router, prefix="")
+# Include Hunter routes
+app.include_router(hunter_router, prefix="")
 
 # Configuration
 USE_STUBS = os.getenv("USE_STUBS", "true").lower() == "true"

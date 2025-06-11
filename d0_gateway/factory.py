@@ -9,6 +9,7 @@ from core.logging import get_logger
 
 from .base import BaseAPIClient
 from .providers.dataaxle import DataAxleClient
+from .providers.hunter import HunterClient
 from .providers.openai import OpenAIClient
 from .providers.pagespeed import PageSpeedClient
 from .providers.sendgrid import SendGridClient
@@ -47,6 +48,7 @@ class GatewayClientFactory:
                         "sendgrid": SendGridClient,
                         "stripe": StripeClient,
                         "dataaxle": DataAxleClient,
+                        "hunter": HunterClient,
                     }
 
                     # Cache for created instances
@@ -163,6 +165,9 @@ class GatewayClientFactory:
             
         elif provider == "dataaxle":
             config["api_key"] = getattr(self.settings, "data_axle_api_key", None)
+            
+        elif provider == "hunter":
+            config["api_key"] = getattr(self.settings, "hunter_api_key", None)
 
         # Common configuration
         config.update(
