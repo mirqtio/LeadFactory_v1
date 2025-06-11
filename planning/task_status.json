@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-06-11T11:35:09.889397",
+  "last_updated": "2025-06-11T11:49:06.657060",
   "tasks": {
     "001": {
       "status": "completed",
@@ -602,9 +602,9 @@
       "actual_hours": 2.0
     },
     "DX-01": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2025-06-11T11:35:09.889177",
-      "completed_at": null,
+      "completed_at": "2025-06-11T11:48:08.957240",
       "actual_hours": null,
       "phase": "0.5",
       "title": "Add env keys & config blocks",
@@ -612,8 +612,8 @@
       "estimated_hours": 0.3
     },
     "GW-02": {
-      "status": "pending",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2025-06-11T11:49:06.656948",
       "completed_at": null,
       "actual_hours": null,
       "phase": "0.5",

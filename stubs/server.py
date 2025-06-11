@@ -1,6 +1,6 @@
 """
 Stub server to mock external APIs for testing
-Implements Yelp, Google PageSpeed, Stripe, SendGrid, and OpenAI endpoints
+Implements Yelp, Google PageSpeed, Stripe, SendGrid, OpenAI, Data Axle, and Hunter endpoints
 """
 import json
 import os
@@ -14,7 +14,13 @@ from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+# Import Data Axle and Hunter stub routers
+from stubs.dataaxle import router as dataaxle_router
+
 app = FastAPI(title="LeadFactory Stub Server", version="1.0.0")
+
+# Include Data Axle routes
+app.include_router(dataaxle_router, prefix="")
 
 # Configuration
 USE_STUBS = os.getenv("USE_STUBS", "true").lower() == "true"

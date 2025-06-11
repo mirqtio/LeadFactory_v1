@@ -8,6 +8,7 @@ from core.config import get_settings
 from core.logging import get_logger
 
 from .base import BaseAPIClient
+from .providers.dataaxle import DataAxleClient
 from .providers.openai import OpenAIClient
 from .providers.pagespeed import PageSpeedClient
 from .providers.sendgrid import SendGridClient
@@ -45,6 +46,7 @@ class GatewayClientFactory:
                         "openai": OpenAIClient,
                         "sendgrid": SendGridClient,
                         "stripe": StripeClient,
+                        "dataaxle": DataAxleClient,
                     }
 
                     # Cache for created instances
@@ -157,7 +159,10 @@ class GatewayClientFactory:
             config["api_key"] = getattr(self.settings, "sendgrid_api_key", None)
 
         elif provider == "stripe":
-            config["api_key"] = getattr(self.settings, "stripe_api_key", None)
+            config["api_key"] = getattr(self.settings, "stripe_secret_key", None)
+            
+        elif provider == "dataaxle":
+            config["api_key"] = getattr(self.settings, "data_axle_api_key", None)
 
         # Common configuration
         config.update(
