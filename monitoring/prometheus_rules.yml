@@ -1,0 +1,47 @@
+groups:
+  - name: leadfactory_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(leadfactory_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High error rate detected
+          description: "Error rate is {{ $value }} errors per second"
+      
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(leadfactory_request_duration_seconds_bucket[5m])) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: High response time
+          description: "95th percentile response time is {{ $value }} seconds"
+      
+      - alert: DatabaseConnectionFailure
+        expr: leadfactory_database_connections_failed_total > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Database connection failures
+          description: "{{ $value }} database connection failures"
+      
+      - alert: LowAvailableWorkers
+        expr: leadfactory_workers_available < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Low number of available workers
+          description: "Only {{ $value }} workers available"
+      
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes > 1e9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: High memory usage
+          description: "Process using {{ $value | humanize }} of memory"

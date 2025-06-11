@@ -162,3 +162,16 @@ secrets/
 *.pem
 *.key
 *.crt# CI test fixes applied
+
+# Production files
+.env.production
+nginx.conf
+leadfactory.service
+docker-compose.secrets.yml
+production_readiness_report.json
+.env.backup
+
+# Deployment artifacts
+deploy/
+dist/
+*.tar.gz

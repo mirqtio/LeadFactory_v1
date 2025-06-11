@@ -1,0 +1,307 @@
+{
+  "project": "leadfactory-phase-0.5",
+  "version": "0.5",
+  "created_at": "2025-06-11",
+  "total_tasks": 12,
+  "development_approach": "Incremental enhancement with cost tracking and new providers",
+  "timeline": "8 hours",
+  "phases": [
+    {
+      "phase": "0.5",
+      "name": "Delta Enhancements",
+      "description": "Close functional gaps with new providers, cost tracking, and bucket intelligence",
+      "tasks": [
+        {
+          "id": "DX-01",
+          "title": "Add env keys & config blocks",
+          "domain": "core",
+          "complexity": 1,
+          "dependencies": [],
+          "estimated_hours": 0.3,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/test_config_phase05.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/test_config_phase05.py"]
+          },
+          "files_to_update": [
+            "core/config.py",
+            ".env.example"
+          ],
+          "acceptance_criteria": [
+            "DATA_AXLE_API_KEY configurable",
+            "HUNTER_API_KEY configurable", 
+            "COST_BUDGET_USD configurable",
+            "Feature flags for providers work"
+          ]
+        },
+        {
+          "id": "GW-02",
+          "title": "Implement Data Axle client, register factory",
+          "domain": "d0_gateway",
+          "complexity": 3,
+          "dependencies": ["DX-01"],
+          "estimated_hours": 1.0,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_dataaxle_client.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_dataaxle_client.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/providers/dataaxle.py",
+            "stubs/dataaxle.py"
+          ],
+          "acceptance_criteria": [
+            "POST /v2/business/match endpoint works",
+            "Retry logic with 3 attempts",
+            "Rate limiting configurable",
+            "Cost tracking emits $0.05 per match"
+          ]
+        },
+        {
+          "id": "GW-03",
+          "title": "Implement Hunter client (fallback)",
+          "domain": "d0_gateway",
+          "complexity": 2,
+          "dependencies": ["DX-01"],
+          "estimated_hours": 0.7,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d0_gateway/test_hunter_client.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d0_gateway/test_hunter_client.py"]
+          },
+          "files_to_create": [
+            "d0_gateway/providers/hunter.py",
+            "stubs/hunter.py"
+          ],
+          "acceptance_criteria": [
+            "GET /v2/email-finder endpoint works",
+            "25/day rate limit enforced",
+            "Cost tracking emits $0.01 per email",
+            "Only used when Data Axle returns no email"
+          ]
+        },
+        {
+          "id": "GW-04",
+          "title": "Cost ledger table + helper",
+          "domain": "d0_gateway",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 0.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/test_cost_ledger.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/test_cost_ledger.py"]
+          },
+          "files_to_create": [
+            "alembic/versions/003_cost_tracking.py"
+          ],
+          "files_to_update": [
+            "database/models.py",
+            "d0_gateway/base.py"
+          ],
+          "acceptance_criteria": [
+            "fct_api_cost table created",
+            "emit_cost() method in base client",
+            "All providers retrofit with cost tracking",
+            "Cost aggregation queries work"
+          ]
+        },
+        {
+          "id": "EN-05",
+          "title": "Modify enrichment flow (fan-out + cost)",
+          "domain": "d4_enrichment",
+          "complexity": 3,
+          "dependencies": ["GW-02", "GW-03", "GW-04"],
+          "estimated_hours": 0.8,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/integration/test_enrichment_fanout.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/integration/test_enrichment_fanout.py"]
+          },
+          "files_to_update": [
+            "d4_enrichment/coordinator.py",
+            "d4_enrichment/models.py"
+          ],
+          "acceptance_criteria": [
+            "Try Data Axle first if enabled",
+            "Fall back to Hunter if no email and enabled",
+            "Merge emails and phones correctly",
+            "Cost tracking for each API call"
+          ]
+        },
+        {
+          "id": "TG-06",
+          "title": "Bucket columns migration + CSV seeds",
+          "domain": "d1_targeting",
+          "complexity": 2,
+          "dependencies": ["002"],
+          "estimated_hours": 0.7,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d1_targeting/test_buckets.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d1_targeting/test_buckets.py"]
+          },
+          "files_to_create": [
+            "alembic/versions/004_bucket_columns.py",
+            "data/seed/geo_features.csv",
+            "data/seed/vertical_features.csv"
+          ],
+          "files_to_update": [
+            "database/models.py",
+            "d1_targeting/models.py"
+          ],
+          "acceptance_criteria": [
+            "geo_bucket and vert_bucket columns added",
+            "CSV files with lookup data",
+            "12 geo bucket combinations possible",
+            "8 vertical bucket combinations possible"
+          ]
+        },
+        {
+          "id": "ET-07",
+          "title": "Nightly bucket_enrichment Prefect flow",
+          "domain": "d11_orchestration",
+          "complexity": 3,
+          "dependencies": ["TG-06"],
+          "estimated_hours": 0.8,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d11_orchestration/test_bucket_flow.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d11_orchestration/test_bucket_flow.py"]
+          },
+          "files_to_create": [
+            "d11_orchestration/flows/bucket_enrichment.py"
+          ],
+          "acceptance_criteria": [
+            "Joins ZIP and vertical CSV data",
+            "Updates all leads with buckets",
+            "Logs missing ZIPs/categories",
+            "Runs at 02:00 UTC daily"
+          ]
+        },
+        {
+          "id": "AN-08",
+          "title": "Views unit_economics_day, bucket_performance",
+          "domain": "d10_analytics",
+          "complexity": 2,
+          "dependencies": ["GW-04", "TG-06"],
+          "estimated_hours": 0.6,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d10_analytics/test_cost_views.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d10_analytics/test_cost_views.py"]
+          },
+          "files_to_create": [
+            "d10_analytics/views_phase05.sql"
+          ],
+          "files_to_update": [
+            "d10_analytics/views.sql"
+          ],
+          "acceptance_criteria": [
+            "unit_economics_day shows daily profit",
+            "bucket_performance shows per-bucket metrics",
+            "Views handle NULL costs gracefully",
+            "Profit calculation matches PRD formula"
+          ]
+        },
+        {
+          "id": "OR-09",
+          "title": "Prefect cost_guardrail & profit_snapshot flows",
+          "domain": "d11_orchestration",
+          "complexity": 2,
+          "dependencies": ["GW-04", "AN-08"],
+          "estimated_hours": 0.5,
+          "test_requirements": {
+            "docker_test": true,
+            "files": ["tests/unit/d11_orchestration/test_guardrails.py"],
+            "commands": ["docker run --rm leadfactory-test pytest tests/unit/d11_orchestration/test_guardrails.py"]
+          },
+          "files_to_create": [
+            "d11_orchestration/flows/cost_guardrail.py",
+            "d11_orchestration/flows/profit_snapshot.py"
+          ],
+          "acceptance_criteria": [
+            "Hourly check of 24h spend vs budget",
+            "Pipeline aborts if over budget",
+            "Daily profit printed to logs/Slack",
+            "Configurable via COST_BUDGET_USD"
+          ]
+        },
+        {
+          "id": "TS-10",
+          "title": "Unit & integration tests",
+          "domain": "tests",
+          "complexity": 3,
+          "dependencies": ["EN-05", "ET-07", "OR-09"],
+          "estimated_hours": 1.0,
+          "test_requirements": {
+            "docker_test": true,
+            "files": [
+              "tests/providers/test_dataaxle.py",
+              "tests/providers/test_hunter.py",
+              "tests/integration/test_cost_tracking.py"
+            ],
+            "commands": ["docker run --rm leadfactory-test pytest tests/providers/ tests/integration/test_cost_tracking.py"]
+          },
+          "acceptance_criteria": [
+            "Provider happy path + 429 tests",
+            "Bucket enrichment population tests",
+            "End-to-end with stubs asserts email",
+            "Cost guard rail trigger test"
+          ]
+        },
+        {
+          "id": "DOC-11",
+          "title": "README & provider docs",
+          "domain": "docs",
+          "complexity": 1,
+          "dependencies": ["TS-10"],
+          "estimated_hours": 0.4,
+          "files_to_create": [
+            "docs/providers/dataaxle.md",
+            "docs/providers/hunter.md"
+          ],
+          "files_to_update": [
+            "README.md"
+          ],
+          "acceptance_criteria": [
+            "Provider setup documented",
+            "Feature flags explained",
+            "Cost tracking queries shown",
+            "Deployment one-liner included"
+          ]
+        },
+        {
+          "id": "NB-12",
+          "title": "Jupyter notebook for hierarchical model (template)",
+          "domain": "analytics",
+          "complexity": 2,
+          "dependencies": ["AN-08"],
+          "estimated_hours": 0.5,
+          "files_to_create": [
+            "analytics/notebooks/bucket_profit.ipynb"
+          ],
+          "acceptance_criteria": [
+            "Connects to analytics views",
+            "Basic hierarchical model template",
+            "Visualizes bucket performance",
+            "Optional pymc install noted"
+          ]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_estimated_hours": 7.8,
+    "new_providers": ["Data Axle", "Hunter"],
+    "new_tables": ["fct_api_cost"],
+    "new_columns": ["geo_bucket", "vert_bucket"],
+    "key_features": [
+      "Email coverage increase 38-45%",
+      "Cost tracking at API level",
+      "Bucket-based performance analysis",
+      "Spend safety guardrail at $1000/day",
+      "Feature flag control"
+    ]
+  }
+}
