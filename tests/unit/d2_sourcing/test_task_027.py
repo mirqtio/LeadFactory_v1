@@ -61,6 +61,7 @@ class TestTask027AcceptanceCriteria:
         business1.is_active = True
         business1.merged_into = None
         business1.needs_review = False
+        business1.description = "Authentic Italian pizza restaurant"
         businesses.append(business1)
 
         # Business 2 - Same pizza place (potential duplicate)
@@ -80,6 +81,7 @@ class TestTask027AcceptanceCriteria:
         business2.is_active = True
         business2.merged_into = None
         business2.needs_review = False
+        business2.description = "Family-owned pizza place with fresh ingredients"
         businesses.append(business2)
 
         # Business 3 - Different business
@@ -99,6 +101,7 @@ class TestTask027AcceptanceCriteria:
         business3.is_active = True
         business3.merged_into = None
         business3.needs_review = False
+        business3.description = "Classic American burger joint with fries and shakes"
         businesses.append(business3)
 
         return businesses
@@ -160,7 +163,6 @@ class TestTask027AcceptanceCriteria:
 
         print("✓ Duplicate detection works")
 
-    @pytest.mark.skip(reason="Merge logic requires complex database setup - covered in integration tests")
     def test_merge_logic_correct(self, deduplicator, sample_businesses, mock_session):
         """Test that merge logic correctly combines duplicate businesses"""
 
@@ -240,7 +242,6 @@ class TestTask027AcceptanceCriteria:
 
         print("✓ Merge logic correct")
 
-    @pytest.mark.skip(reason="Merge logic requires complex database setup - covered in integration tests")
     def test_update_timestamps_properly(
         self, deduplicator, sample_businesses, mock_session
     ):
@@ -302,7 +303,6 @@ class TestTask027AcceptanceCriteria:
 
         print("✓ Update timestamps properly")
 
-    @pytest.mark.skip(reason="Performance tests require complex mocking - covered in integration tests")
     def test_performance_optimized(self, deduplicator, mock_session):
         """Test that performance optimizations are in place"""
 
@@ -320,6 +320,9 @@ class TestTask027AcceptanceCriteria:
             business.longitude = -122.4194 + (i * 0.001)
             business.address = f"{i} Test St"
             business.phone = f"(415) 555-{i:04d}"
+            business.website = f"https://business{i}.com"
+            business.email = f"contact@business{i}.com"
+            business.description = f"Business {i} description"
             business.is_active = True
             businesses.append(business)
 
@@ -624,6 +627,7 @@ if __name__ == "__main__":
     business1.created_at = datetime(2023, 1, 1)
     business1.updated_at = datetime(2023, 1, 1)
     business1.is_active = True
+    business1.description = "Authentic Italian pizza restaurant"
     sample_businesses.append(business1)
 
     business2 = Mock(spec=Business)
@@ -638,6 +642,7 @@ if __name__ == "__main__":
     business2.created_at = datetime(2023, 2, 1)
     business2.updated_at = datetime(2023, 2, 1)
     business2.is_active = True
+    business2.description = "Family-owned pizza place with fresh ingredients"
     sample_businesses.append(business2)
 
     # Run tests

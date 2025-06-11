@@ -153,6 +153,7 @@ class TestTask040AcceptanceCriteria:
             source=EnrichmentSource.APOLLO.value,
             match_score=Decimal("0.85"),
             data_version="20240101_def456",
+            enriched_at=datetime.utcnow(),  # Set enriched_at to current time
         )
 
         # Test match confidence calculation
@@ -238,7 +239,10 @@ class TestTask040AcceptanceCriteria:
         for i, source_data in enumerate(sources_data):
             result = EnrichmentResult(
                 business_id=f"biz_test_00{i+3}",
+                request_id=f"req_test_00{i+3}",  # Add required request_id
                 data_version=f"20240101_{i+1:06d}",
+                enriched_at=datetime.utcnow(),  # Add required enriched_at
+                match_confidence=MatchConfidence.HIGH.value,  # Add required match_confidence
                 **source_data,
             )
             results.append(result)

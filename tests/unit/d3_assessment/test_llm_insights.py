@@ -33,71 +33,140 @@ class TestTask033AcceptanceCriteria:
         """Mock LLM client with realistic responses"""
         client = AsyncMock()
 
-        # Mock recommendation response
-        client.generate_completion.return_value = MagicMock(
-            content=json.dumps(
-                {
-                    "recommendations": [
+        # Define different responses for different insight types
+        call_count = 0
+        def mock_generate_completion(**kwargs):
+            nonlocal call_count
+            call_count += 1
+            
+            # Return different responses based on call order
+            # 1st call: recommendations, 2nd call: technical_analysis, 3rd call: industry_benchmark
+            if call_count == 1:
+                # Recommendations response
+                return MagicMock(
+                    content=json.dumps(
                         {
-                            "title": "Optimize Image Loading",
-                            "description": "Implement lazy loading and WebP format for faster page loads",
-                            "priority": "High",
-                            "effort": "Medium",
-                            "impact": "Reduce LCP by 30-40%",
-                            "implementation_steps": [
-                                "Convert images to WebP format",
-                                "Implement lazy loading for below-fold images",
+                            "recommendations": [
+                                {
+                                    "title": "Optimize Image Loading",
+                                    "description": "Implement lazy loading and WebP format for faster page loads",
+                                    "priority": "High",
+                                    "effort": "Medium",
+                                    "impact": "Reduce LCP by 30-40%",
+                                    "implementation_steps": [
+                                        "Convert images to WebP format",
+                                        "Implement lazy loading for below-fold images",
+                                    ],
+                                    "industry_context": "E-commerce sites benefit greatly from fast image loading",
+                                },
+                                {
+                                    "title": "Improve Mobile Navigation",
+                                    "description": "Enhance mobile menu design and touch targets",
+                                    "priority": "Medium",
+                                    "effort": "Low",
+                                    "impact": "Better mobile user experience",
+                                    "implementation_steps": [
+                                        "Increase touch target sizes to 44px minimum",
+                                        "Simplify navigation hierarchy",
+                                    ],
+                                    "industry_context": "Mobile optimization is crucial for e-commerce conversion",
+                                },
+                                {
+                                    "title": "Enable Compression",
+                                    "description": "Configure Gzip/Brotli compression for text resources",
+                                    "priority": "Medium",
+                                    "effort": "Low",
+                                    "impact": "Reduce file sizes by 60-80%",
+                                    "implementation_steps": [
+                                        "Enable Gzip compression on server",
+                                        "Configure Brotli for modern browsers",
+                                    ],
+                                    "industry_context": "Essential for all industries to reduce bandwidth costs",
+                                },
                             ],
-                            "industry_context": "E-commerce sites benefit greatly from fast image loading",
-                        },
-                        {
-                            "title": "Improve Mobile Navigation",
-                            "description": "Enhance mobile menu design and touch targets",
-                            "priority": "Medium",
-                            "effort": "Low",
-                            "impact": "Better mobile user experience",
-                            "implementation_steps": [
-                                "Increase touch target sizes to 44px minimum",
-                                "Simplify navigation hierarchy",
-                            ],
-                            "industry_context": "Mobile optimization is crucial for e-commerce conversion",
-                        },
-                        {
-                            "title": "Enable Compression",
-                            "description": "Configure Gzip/Brotli compression for text resources",
-                            "priority": "Medium",
-                            "effort": "Low",
-                            "impact": "Reduce file sizes by 60-80%",
-                            "implementation_steps": [
-                                "Enable Gzip compression on server",
-                                "Configure Brotli for modern browsers",
-                            ],
-                            "industry_context": "Essential for all industries to reduce bandwidth costs",
-                        },
-                    ],
-                    "industry_insights": {
-                        "industry": "ecommerce",
-                        "benchmarks": {
-                            "performance_percentile": "Your site is in the bottom 40% for e-commerce",
-                            "key_metrics": "Focus on conversion-critical metrics",
-                        },
-                        "competitive_advantage": "Fast loading drives higher conversion rates",
-                        "compliance_notes": "Consider accessibility guidelines for inclusive shopping",
+                            "industry_insights": {
+                                "industry": "ecommerce",
+                                "benchmarks": {
+                                    "performance_percentile": "Your site is in the bottom 40% for e-commerce",
+                                    "key_metrics": "Focus on conversion-critical metrics",
+                                },
+                                "competitive_advantage": "Fast loading drives higher conversion rates",
+                                "compliance_notes": "Consider accessibility guidelines for inclusive shopping",
+                            },
+                            "summary": {
+                                "overall_health": "Moderate with clear improvement opportunities",
+                                "quick_wins": "Image optimization and compression",
+                                "long_term_strategy": "Comprehensive performance and UX overhaul",
+                            },
+                        }
+                    ),
+                    usage={
+                        "prompt_tokens": 1500,
+                        "completion_tokens": 800,
+                        "total_tokens": 2300,
                     },
-                    "summary": {
-                        "overall_health": "Moderate with clear improvement opportunities",
-                        "quick_wins": "Image optimization and compression",
-                        "long_term_strategy": "Comprehensive performance and UX overhaul",
-                    },
-                }
-            ),
-            usage={
-                "prompt_tokens": 1500,
-                "completion_tokens": 800,
-                "total_tokens": 2300,
-            },
-        )
+                )
+            elif call_count == 2:
+                # Technical analysis response
+                return MagicMock(
+                    content=json.dumps({
+                        "technical_recommendations": [
+                            {
+                                "category": "Performance",
+                                "title": "Optimize Critical Rendering Path",
+                                "description": "Eliminate render-blocking resources to improve LCP",
+                                "implementation": "Inline critical CSS and defer non-critical resources",
+                                "expected_improvement": "30% reduction in LCP"
+                            }
+                        ],
+                        "infrastructure_insights": {
+                            "current_setup": "WordPress with WooCommerce on shared hosting",
+                            "optimization_opportunities": "CDN implementation, database caching",
+                            "modernization_path": "Consider managed WordPress hosting"
+                        }
+                    }),
+                    usage={"prompt_tokens": 1200, "completion_tokens": 600, "total_tokens": 1800}
+                )
+            elif call_count == 3:
+                # Industry benchmark response
+                return MagicMock(
+                    content=json.dumps({
+                        "benchmark_analysis": {
+                            "industry": "technology",
+                            "performance_vs_industry": {
+                                "percentile": "Bottom 40%",
+                                "key_strengths": ["Good SEO structure"],
+                                "improvement_areas": ["Page speed", "Mobile experience"]
+                            },
+                            "industry_specific_insights": [
+                                {
+                                    "insight": "Tech sites require faster loading for user retention",
+                                    "implication": "Current speed impacts conversion rates",
+                                    "action": "Prioritize Core Web Vitals optimization"
+                                }
+                            ],
+                            "competitive_analysis": {
+                                "advantages": "Strong content structure",
+                                "gaps": "Performance lags behind competitors",
+                                "differentiation_opportunities": "Focus on mobile-first experience"
+                            }
+                        }
+                    }),
+                    usage={"prompt_tokens": 1000, "completion_tokens": 400, "total_tokens": 1400}
+                )
+            else:
+                # Quick wins or other responses
+                return MagicMock(
+                    content=json.dumps({
+                        "quick_wins": [
+                            {"action": "Enable compression", "effort": "Low", "impact": "High"},
+                            {"action": "Optimize images", "effort": "Medium", "impact": "High"}
+                        ]
+                    }),
+                    usage={"prompt_tokens": 800, "completion_tokens": 300, "total_tokens": 1100}
+                )
 
+        client.generate_completion.side_effect = mock_generate_completion
         client.get_model_version.return_value = "gpt-4-0125-preview"
         return client
 
@@ -388,7 +457,6 @@ class TestTask033AcceptanceCriteria:
         print("✓ Structured output parsing works correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Multiple insight types need complex mock setup for each insight type - beyond core acceptance criteria")
     async def test_multiple_insight_types(self, insight_generator, sample_assessment):
         """Test generation of different insight types"""
         result = await insight_generator.generate_comprehensive_insights(
@@ -565,7 +633,6 @@ class TestTask033AcceptanceCriteria:
         print("✓ Error handling works correctly")
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Comprehensive flow with multiple insight types needs complex mock setup - not core acceptance criteria")
     async def test_comprehensive_insight_flow(
         self, insight_generator, sample_assessment
     ):

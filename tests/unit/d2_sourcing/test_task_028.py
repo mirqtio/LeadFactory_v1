@@ -532,7 +532,6 @@ class TestTask028AcceptanceCriteria:
 
         print("✓ Coordinator lifecycle works")
 
-    @pytest.mark.skip(reason="Complex async coordination test - covered in integration tests")
     @pytest.mark.asyncio
     async def test_convenience_functions(self, mock_session, mock_settings):
         """Test convenience functions for common operations"""
@@ -544,26 +543,28 @@ class TestTask028AcceptanceCriteria:
         ), patch(
             "d2_sourcing.coordinator.SourcingCoordinator"
         ) as mock_coordinator_class:
-            # Mock coordinator
-            mock_coordinator = AsyncMock()
+            # Mock coordinator - use Mock for sync methods, AsyncMock for async methods
+            mock_coordinator = Mock()
             mock_coordinator.initialize = AsyncMock()
             mock_coordinator.shutdown = AsyncMock()
             mock_coordinator.create_batch.return_value = "test-batch-id"
             mock_coordinator.process_batch = AsyncMock()
-            mock_coordinator.get_batch_status.return_value = {
+            # get_batch_status is NOT async, so use Mock and return dict directly
+            mock_coordinator.get_batch_status = Mock(return_value={
                 "batch_id": "test-batch-id",
                 "status": "completed",
                 "metrics": {"scraped_count": 50},
-            }
+            })
             mock_coordinator.process_multiple_batches = AsyncMock()
             mock_coordinator.process_multiple_batches.return_value = [
                 "batch-1",
                 "batch-2",
             ]
-            mock_coordinator.get_coordinator_status.return_value = {
+            # get_coordinator_status is also NOT async
+            mock_coordinator.get_coordinator_status = Mock(return_value={
                 "status": "completed",
                 "metrics": {"total_batches": 2},
-            }
+            })
             mock_coordinator_class.return_value = mock_coordinator
 
             # Test single location processing

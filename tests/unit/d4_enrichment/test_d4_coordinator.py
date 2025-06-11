@@ -182,6 +182,15 @@ class TestTask043AcceptanceCriteria:
         """
 
         async def run_test():
+            # Add a delay to the enricher to make progress tracking testable
+            original_enrich = coordinator.enrichers[EnrichmentSource.INTERNAL].enrich_business
+            
+            async def slow_enrich_business(*args, **kwargs):
+                await asyncio.sleep(0.2)  # Add delay to allow progress tracking
+                return await original_enrich(*args, **kwargs)
+            
+            coordinator.enrichers[EnrichmentSource.INTERNAL].enrich_business = slow_enrich_business
+            
             # Start batch enrichment (don't await yet)
             task = asyncio.create_task(
                 coordinator.enrich_businesses_batch(
