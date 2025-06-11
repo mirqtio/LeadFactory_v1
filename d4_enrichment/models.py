@@ -49,6 +49,7 @@ class EnrichmentSource(Enum):
     FULLCONTACT = "fullcontact"
     INTERNAL = "internal"
     MANUAL = "manual"
+    DATA_AXLE = "data_axle"  # Phase 0.5 addition
 
 
 class MatchConfidence(Enum):

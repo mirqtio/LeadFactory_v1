@@ -112,6 +112,9 @@ class EnrichmentCoordinator:
         self.enrichers = {
             EnrichmentSource.INTERNAL: GBPEnricher(api_key=None)  # Mock for now
         }
+        
+        # Phase 0.5: Add Data Axle and Hunter enrichers dynamically
+        self._initialize_phase05_enrichers()
 
         # Progress tracking
         self.active_requests: Dict[str, EnrichmentProgress] = {}
@@ -129,6 +132,32 @@ class EnrichmentCoordinator:
 
         # Concurrency control
         self._semaphore = asyncio.Semaphore(max_concurrent)
+        
+    def _initialize_phase05_enrichers(self):
+        """Initialize Phase 0.5 enrichers (Data Axle and Hunter)"""
+        try:
+            # Import here to avoid circular dependencies
+            from d0_gateway.factory import GatewayClientFactory
+            from .dataaxle_enricher import DataAxleEnricher
+            from .hunter_enricher import HunterEnricher
+            
+            # Get gateway clients
+            gateway = GatewayClientFactory()
+            
+            # Initialize Data Axle if configured
+            if gateway._is_provider_enabled("dataaxle"):
+                dataaxle_client = gateway.get_dataaxle_client()
+                self.enrichers[EnrichmentSource.DATA_AXLE] = DataAxleEnricher(dataaxle_client)
+                logger.info("Data Axle enricher initialized")
+                
+            # Initialize Hunter if configured
+            if gateway._is_provider_enabled("hunter"):
+                hunter_client = gateway.get_hunter_client()
+                self.enrichers[EnrichmentSource.HUNTER_IO] = HunterEnricher(hunter_client)
+                logger.info("Hunter enricher initialized")
+                
+        except Exception as e:
+            logger.warning(f"Failed to initialize Phase 0.5 enrichers: {e}")
 
     async def enrich_businesses_batch(
         self,
