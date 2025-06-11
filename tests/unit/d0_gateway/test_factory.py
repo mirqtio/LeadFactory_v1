@@ -35,6 +35,9 @@ class TestGatewayClientFactory:
                 openai_api_key="test-openai-key",
                 sendgrid_api_key="test-sendgrid-key",
                 stripe_api_key="test-stripe-key",
+                stripe_secret_key="test-stripe-key",  # Stripe uses both
+                data_axle_api_key="test-dataaxle-key",
+                hunter_api_key="test-hunter-key",
                 api_timeout=30,
                 api_max_retries=3,
                 debug=False,
@@ -76,11 +79,11 @@ class TestGatewayClientFactory:
         providers = factory.get_provider_names()
 
         # Check all expected providers are registered
-        expected_providers = ["yelp", "pagespeed", "openai", "sendgrid", "stripe"]
+        expected_providers = ["yelp", "pagespeed", "openai", "sendgrid", "stripe", "dataaxle", "hunter"]
         for provider in expected_providers:
             assert provider in providers
 
-        assert len(providers) == 5
+        assert len(providers) == 7
 
     def test_create_sendgrid_client(self, factory):
         """Test creating SendGrid client through factory"""
@@ -135,7 +138,7 @@ class TestGatewayClientFactory:
             factory.create_client("invalid_provider")
 
         assert "Unknown provider 'invalid_provider'" in str(exc_info.value)
-        assert "Available: yelp, pagespeed, openai, sendgrid, stripe" in str(
+        assert "Available: yelp, pagespeed, openai, sendgrid, stripe, dataaxle, hunter" in str(
             exc_info.value
         )
 
@@ -195,8 +198,10 @@ class TestGatewayClientFactory:
 
         status = factory.get_client_status()
 
-        assert status["total_providers"] == 5
+        assert status["total_providers"] == 7
         assert sorted(status["registered_providers"]) == [
+            "dataaxle",
+            "hunter",
             "openai",
             "pagespeed",
             "sendgrid",
@@ -220,8 +225,8 @@ class TestGatewayClientFactory:
             assert health["overall_status"] == "healthy"
 
             # Should check all providers
-            assert len(health["providers"]) == 5
-            for provider in ["yelp", "pagespeed", "openai", "sendgrid", "stripe"]:
+            assert len(health["providers"]) == 7
+            for provider in ["yelp", "pagespeed", "openai", "sendgrid", "stripe", "dataaxle", "hunter"]:
                 assert provider in health["providers"]
                 assert health["providers"][provider]["status"] == "healthy"
 

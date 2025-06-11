@@ -366,5 +366,11 @@ class TestHunterClient:
         # Verify cost emission
         hunter_client.emit_cost.assert_called_once_with(
             lead_id="lead_789",
-            cost_usd=0.01
+            cost_usd=0.01,
+            operation="find_email",
+            metadata={
+                "confidence": 90,
+                "email": "test@example.com",
+                "domain": None
+            }
         )
