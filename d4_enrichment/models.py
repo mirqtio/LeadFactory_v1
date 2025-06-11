@@ -342,10 +342,16 @@ class EnrichmentResult(Base):
         import hashlib
         import json
 
+        def decimal_converter(obj):
+            """Convert Decimal objects to float for JSON serialization"""
+            if isinstance(obj, Decimal):
+                return float(obj)
+            raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
         # Generate new version based on timestamp and content
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         content_hash = hashlib.md5(
-            json.dumps(new_data, sort_keys=True).encode()
+            json.dumps(new_data, sort_keys=True, default=decimal_converter).encode()
         ).hexdigest()[:8]
 
         new_version = f"{timestamp}_{content_hash}"
@@ -353,7 +359,7 @@ class EnrichmentResult(Base):
         # Update version and checksum
         self.data_version = new_version
         self.data_checksum = hashlib.sha256(
-            json.dumps(new_data, sort_keys=True).encode()
+            json.dumps(new_data, sort_keys=True, default=decimal_converter).encode()
         ).hexdigest()
 
         return new_version

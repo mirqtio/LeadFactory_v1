@@ -52,6 +52,12 @@ class TestTask040AcceptanceCriteria:
         try:
             yield session
         finally:
+            # Clean up by rolling back any uncommitted changes
+            session.rollback()
+            # Clear all data from all tables to ensure test isolation
+            for table in reversed(Base.metadata.sorted_tables):
+                session.execute(table.delete())
+            session.commit()
             session.close()
 
     @pytest.fixture
@@ -276,9 +282,12 @@ class TestTask040AcceptanceCriteria:
         """
         result = EnrichmentResult(
             business_id="biz_test_006",
+            request_id="req_test_006",
             source=EnrichmentSource.CLEARBIT.value,
             data_version="initial_version",
             company_name="Original Company Name",
+            match_confidence=MatchConfidence.HIGH.value,
+            enriched_at=datetime.utcnow(),
         )
 
         test_session.add(result)
@@ -466,16 +475,22 @@ class TestTask040AcceptanceCriteria:
         # Test unique constraint on business_id + source + data_version
         result1 = EnrichmentResult(
             business_id="biz_test_009",
+            request_id="req_test_009",
             source=EnrichmentSource.CLEARBIT.value,
             data_version="v1.0",
             company_name="Test Company",
+            match_confidence=MatchConfidence.HIGH.value,
+            enriched_at=datetime.utcnow(),
         )
 
         result2 = EnrichmentResult(
             business_id="biz_test_009",
+            request_id="req_test_009_2",
             source=EnrichmentSource.CLEARBIT.value,
             data_version="v1.0",  # Same version - should violate constraint
             company_name="Test Company 2",
+            match_confidence=MatchConfidence.HIGH.value,
+            enriched_at=datetime.utcnow(),
         )
 
         test_session.add(result1)
@@ -492,9 +507,12 @@ class TestTask040AcceptanceCriteria:
         # Test that different versions work fine
         result3 = EnrichmentResult(
             business_id="biz_test_009",
+            request_id="req_test_009_3",
             source=EnrichmentSource.CLEARBIT.value,
             data_version="v2.0",  # Different version - should work
             company_name="Test Company 3",
+            match_confidence=MatchConfidence.HIGH.value,
+            enriched_at=datetime.utcnow(),
         )
 
         test_session.add(result3)

@@ -466,7 +466,7 @@ class TestTask042AcceptanceCriteria:
 
         assert custom_mock.name == "Custom Business"
         assert custom_mock.search_confidence == 0.95
-        assert "Custom Business" in custom_mock.website
+        assert custom_mock.website == "https://custombusiness.com"
 
         print("✓ Mock data generation works correctly")
 
