@@ -87,6 +87,9 @@ class TestDockerCompose:
             assert service in stdout, f"Service {service} not found in running services"
 
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_database_connection(self, docker_compose_up):
         """Test PostgreSQL database connection"""
         try:
@@ -108,6 +111,9 @@ class TestDockerCompose:
             pytest.fail(f"Failed to connect to PostgreSQL: {e}")
 
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_redis_connection(self, docker_compose_up):
         """Test Redis connection"""
         try:
@@ -122,6 +128,9 @@ class TestDockerCompose:
             pytest.fail(f"Failed to connect to Redis: {e}")
 
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_stub_server_health(self, docker_compose_up):
         """Test stub server health endpoint"""
         try:
@@ -134,6 +143,9 @@ class TestDockerCompose:
             pytest.fail(f"Failed to connect to stub server: {e}")
 
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_app_health(self, docker_compose_up):
         """Test main application health endpoint"""
         # Wait a bit more for app to start
@@ -149,6 +161,9 @@ class TestDockerCompose:
             pytest.fail(f"Failed to connect to app: {e}")
 
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_prometheus_health(self, docker_compose_up):
         """Test Prometheus is running"""
         try:
@@ -158,6 +173,9 @@ class TestDockerCompose:
             pytest.fail(f"Failed to connect to Prometheus: {e}")
 
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_grafana_health(self, docker_compose_up):
         """Test Grafana is running"""
         try:
@@ -169,6 +187,9 @@ class TestDockerCompose:
             pytest.fail(f"Failed to connect to Grafana: {e}")
 
     @pytest.mark.integration
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_mailhog_health(self, docker_compose_up):
         """Test Mailhog is running"""
         try:
@@ -186,6 +207,9 @@ class TestDockerCompose:
         except Exception as e:
             pytest.fail(f"Failed to connect to Mailhog: {e}")
 
+    @pytest.mark.skipif(
+        not docker_compose_available(), reason="docker-compose not available"
+    )
     def test_volumes_created(self):
         """Test that Docker volumes are created"""
         code, stdout, stderr = run_command("docker volume ls --format '{{.Name}}'")
