@@ -343,17 +343,17 @@ class APICost(Base):
     id = Column(Integer, primary_key=True)
     provider = Column(String(50), nullable=False)  # dataaxle, hunter, openai, etc.
     operation = Column(String(100), nullable=False)  # match_business, find_email, etc.
-    lead_id = Column(Integer, ForeignKey("dim_lead.id", ondelete="CASCADE"))
-    campaign_id = Column(Integer, ForeignKey("dim_campaign.id", ondelete="CASCADE"))
+    lead_id = Column(Integer, nullable=True)  # ForeignKey("dim_lead.id", ondelete="CASCADE") when lead table exists
+    campaign_id = Column(Integer, nullable=True)  # ForeignKey("dim_campaign.id", ondelete="CASCADE") when campaign table exists
     cost_usd = Column(Numeric(10, 4), nullable=False)
     timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     request_id = Column(String(100))  # For correlation with provider logs
-    metadata = Column(JSON)  # Additional context (e.g., match confidence)
+    meta_data = Column(JSON)  # Additional context (e.g., match confidence)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     
-    # Relationships
-    lead = relationship("Lead", backref="api_costs")
-    campaign = relationship("Campaign", backref="api_costs")
+    # Relationships (commented out until Lead and Campaign models exist)
+    # lead = relationship("Lead", backref="api_costs")
+    # campaign = relationship("Campaign", backref="api_costs")
     
     __table_args__ = (
         Index("idx_api_cost_provider", "provider"),
@@ -372,14 +372,14 @@ class DailyCostAggregate(Base):
     date = Column(Date, nullable=False)
     provider = Column(String(50), nullable=False)
     operation = Column(String(100))
-    campaign_id = Column(Integer, ForeignKey("dim_campaign.id", ondelete="CASCADE"))
+    campaign_id = Column(Integer, nullable=True)  # ForeignKey("dim_campaign.id", ondelete="CASCADE") when campaign table exists
     total_cost_usd = Column(Numeric(10, 4), nullable=False)
     request_count = Column(Integer, nullable=False, default=0)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relationships
-    campaign = relationship("Campaign", backref="daily_costs")
+    # Relationships (commented out until Campaign model exists)
+    # campaign = relationship("Campaign", backref="daily_costs")
     
     __table_args__ = (
         Index("idx_daily_cost_unique", "date", "provider", "operation", "campaign_id", unique=True),

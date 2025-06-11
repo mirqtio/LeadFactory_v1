@@ -152,11 +152,16 @@ class DataAxleClient(BaseAPIClient):
             )
             
             # Emit cost for successful match (Phase 0.5 requirement)
-            if hasattr(self, "emit_cost"):
-                self.emit_cost(
-                    lead_id=business_data.get("lead_id"),
-                    cost_usd=0.05  # $0.05 per successful match
-                )
+            self.emit_cost(
+                lead_id=business_data.get("lead_id"),
+                cost_usd=0.05,  # $0.05 per successful match
+                operation="match_business",
+                metadata={
+                    "match_confidence": response.get("match_confidence", 0),
+                    "has_email": bool(matched_data.get("emails")),
+                    "has_phone": bool(matched_data.get("phones")),
+                }
+            )
             
             # Transform to standard format
             return self._transform_response(matched_data)

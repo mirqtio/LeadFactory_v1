@@ -143,11 +143,16 @@ class HunterClient(BaseAPIClient):
             )
             
             # Emit cost for successful email find (Phase 0.5 requirement)
-            if hasattr(self, "emit_cost"):
-                self.emit_cost(
-                    lead_id=company_data.get("lead_id"),
-                    cost_usd=0.01  # $0.01 per email found
-                )
+            self.emit_cost(
+                lead_id=company_data.get("lead_id"),
+                cost_usd=0.01,  # $0.01 per email found
+                operation="find_email",
+                metadata={
+                    "confidence": data.get("score", 0),
+                    "email": data.get("email"),
+                    "domain": data.get("domain"),
+                }
+            )
             
             # Transform to standard format
             return self._transform_response(data)
