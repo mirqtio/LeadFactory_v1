@@ -9,6 +9,7 @@ from database.models import Batch, Target
 
 from .api import router as api_router
 from .batch_scheduler import BatchScheduler
+from .bucket_loader import BucketFeatureLoader
 from .geo_validator import GeoConflict, GeoValidator
 from .models import Campaign, GeographicBoundary, TargetUniverse
 from .quota_tracker import QuotaTracker
@@ -28,6 +29,7 @@ __all__ = [
     "GeoConflict",
     "BatchScheduler",
     "QuotaTracker",
+    "BucketFeatureLoader",
     # API
     "api_router",
     # Types

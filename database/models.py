@@ -103,6 +103,10 @@ class Target(Base):
     priority_score = Column(DECIMAL(3, 2), default=0.5)
     is_active = Column(Boolean, default=True)
     created_at = Column(TIMESTAMP, server_default=func.now())
+    
+    # Bucket columns for targeting intelligence (Phase 0.5)
+    geo_bucket = Column(String(80), nullable=True, index=True)  # {affluence}-{density}-{broadband}
+    vert_bucket = Column(String(80), nullable=True, index=True)  # {urgency}-{ticket}-{maturity}
 
     # Relationships
     batches = relationship("Batch", back_populates="target")
@@ -157,6 +161,10 @@ class Business(Base):
     # Business info
     vertical = Column(String(50))
     categories = Column(JSON)
+    
+    # Bucket columns for targeting intelligence (Phase 0.5)
+    geo_bucket = Column(String(80), nullable=True, index=True)  # {affluence}-{density}-{broadband}
+    vert_bucket = Column(String(80), nullable=True, index=True)  # {urgency}-{ticket}-{maturity}
 
     # Enrichment data
     place_id = Column(String(100))  # Google Place ID

@@ -1,0 +1,80 @@
+zip_code,city,state,affluence,agency_density,broadband_quality
+94105,San Francisco,CA,high,high,high
+94107,San Francisco,CA,high,high,high
+94108,San Francisco,CA,high,high,high
+94111,San Francisco,CA,high,high,high
+94133,San Francisco,CA,high,medium,high
+94114,San Francisco,CA,high,medium,high
+94117,San Francisco,CA,high,medium,high
+94118,San Francisco,CA,high,medium,high
+94121,San Francisco,CA,medium,medium,high
+94122,San Francisco,CA,medium,medium,high
+10001,New York,NY,high,high,high
+10003,New York,NY,high,high,high
+10004,New York,NY,high,high,high
+10011,New York,NY,high,high,high
+10013,New York,NY,high,high,high
+10014,New York,NY,high,high,high
+10016,New York,NY,high,high,high
+10017,New York,NY,high,high,high
+10018,New York,NY,high,high,high
+10019,New York,NY,high,high,high
+10022,New York,NY,high,high,high
+10023,New York,NY,high,high,high
+10024,New York,NY,high,medium,high
+10025,New York,NY,medium,medium,high
+10027,New York,NY,medium,low,medium
+10029,New York,NY,low,low,medium
+10031,New York,NY,medium,low,medium
+10032,New York,NY,low,low,medium
+10033,New York,NY,medium,low,medium
+10034,New York,NY,low,low,medium
+90210,Beverly Hills,CA,high,high,high
+90212,Beverly Hills,CA,high,high,high
+90401,Santa Monica,CA,high,high,high
+90402,Santa Monica,CA,high,high,high
+90403,Santa Monica,CA,high,medium,high
+90404,Santa Monica,CA,high,medium,high
+90405,Santa Monica,CA,high,medium,high
+90025,Los Angeles,CA,high,medium,high
+90024,Los Angeles,CA,high,high,high
+90049,Los Angeles,CA,high,medium,high
+90064,Los Angeles,CA,high,medium,high
+90066,Los Angeles,CA,medium,medium,high
+90067,Los Angeles,CA,high,high,high
+90068,Los Angeles,CA,medium,medium,high
+90069,Los Angeles,CA,high,medium,high
+60601,Chicago,IL,high,high,high
+60602,Chicago,IL,high,high,high
+60603,Chicago,IL,high,high,high
+60604,Chicago,IL,high,high,high
+60605,Chicago,IL,medium,medium,high
+60606,Chicago,IL,high,high,high
+60607,Chicago,IL,medium,medium,high
+60608,Chicago,IL,low,low,medium
+60609,Chicago,IL,low,low,medium
+60610,Chicago,IL,high,high,high
+60611,Chicago,IL,high,high,high
+60612,Chicago,IL,low,low,medium
+60613,Chicago,IL,medium,medium,high
+60614,Chicago,IL,high,medium,high
+75201,Dallas,TX,high,high,high
+75202,Dallas,TX,high,high,high
+75203,Dallas,TX,medium,medium,high
+75204,Dallas,TX,high,medium,high
+75205,Dallas,TX,high,high,high
+75206,Dallas,TX,medium,medium,high
+30301,Atlanta,GA,medium,medium,high
+30302,Atlanta,GA,high,high,high
+30303,Atlanta,GA,high,high,high
+30304,Atlanta,GA,medium,medium,high
+30305,Atlanta,GA,high,high,high
+30306,Atlanta,GA,high,medium,high
+30307,Atlanta,GA,medium,medium,high
+30308,Atlanta,GA,high,high,high
+30309,Atlanta,GA,high,high,high
+85001,Phoenix,AZ,medium,medium,medium
+85003,Phoenix,AZ,high,high,high
+85004,Phoenix,AZ,high,high,high
+85006,Phoenix,AZ,low,low,medium
+85007,Phoenix,AZ,low,low,medium
