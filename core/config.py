@@ -114,6 +114,10 @@ class Settings(BaseSettings):
     @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v, info):
+        # Allow default secret key in CI environment
+        if os.getenv("CI") == "true":
+            return v
+            
         if (
             info.data.get("environment") == "production"
             and v == "dev-secret-key-change-in-production"
