@@ -1,35 +1,35 @@
 {
-  "last_updated": "2025-06-11T15:32:23.598639",
+  "last_updated": "2025-06-11T15:49:56.466189",
   "tasks": {
     "GAP-001": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2025-06-11T15:32:23.598633",
-      "completed_at": null,
-      "actual_hours": null
+      "completed_at": "2025-06-11T15:40:15.303551",
+      "actual_hours": 0.13102914555555556
     },
     "GAP-002": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "actual_hours": null
+      "status": "completed",
+      "started_at": "2025-06-11T15:40:37.057176",
+      "completed_at": "2025-06-11T15:43:57.550690",
+      "actual_hours": 0.05569264555555556
     },
     "GAP-003": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "actual_hours": null
+      "status": "completed",
+      "started_at": "2025-06-11T15:44:19.655104",
+      "completed_at": "2025-06-11T15:46:13.157581",
+      "actual_hours": 0.03152846777777778
     },
     "GAP-004": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "actual_hours": null
+      "status": "completed",
+      "started_at": "2025-06-11T15:46:53.160464",
+      "completed_at": "2025-06-11T15:48:18.285773",
+      "actual_hours": 0.023645920555555557
     },
     "GAP-005": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
-      "actual_hours": null
+      "status": "completed",
+      "started_at": "2025-06-11T15:48:39.449382",
+      "completed_at": "2025-06-11T15:49:56.466182",
+      "actual_hours": 0.021393556944444447
     },
     "GAP-006": {
       "status": "pending",
