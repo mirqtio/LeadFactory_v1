@@ -449,12 +449,21 @@ class DeliveryManager:
         """
         try:
             with SessionLocal() as session:
+                # First get the email delivery record
+                delivery = session.query(EmailDelivery).filter(
+                    EmailDelivery.delivery_id == delivery_id
+                ).first()
+                
+                if not delivery:
+                    logger.error(f"Delivery {delivery_id} not found")
+                    return False
+                
                 event = DeliveryEvent(
-                    delivery_id=delivery_id,
+                    email_delivery_id=delivery.id,
                     event_type=event_type.value,
                     sendgrid_message_id=sendgrid_message_id,
-                    error_message=error_message,
-                    event_data=event_data or {},
+                    event_timestamp=datetime.now(timezone.utc),
+                    event_data={"error_message": error_message} if error_message else event_data or {},
                 )
 
                 session.add(event)
@@ -493,8 +502,8 @@ class DeliveryManager:
                 # Get events
                 events = (
                     session.query(DeliveryEvent)
-                    .filter(DeliveryEvent.delivery_id == delivery_id)
-                    .order_by(DeliveryEvent.created_at)
+                    .filter(DeliveryEvent.email_delivery_id == delivery.id)
+                    .order_by(DeliveryEvent.event_timestamp)
                     .all()
                 )
 
@@ -518,11 +527,11 @@ class DeliveryManager:
                     "events": [
                         {
                             "event_type": event.event_type,
-                            "created_at": event.created_at.isoformat()
-                            if event.created_at
+                            "created_at": event.event_timestamp.isoformat()
+                            if event.event_timestamp
                             else None,
                             "sendgrid_message_id": event.sendgrid_message_id,
-                            "error_message": event.error_message,
+                            "error_message": event.event_data.get("error_message") if event.event_data else None,
                             "event_data": event.event_data,
                         }
                         for event in events
@@ -548,7 +557,7 @@ class DeliveryManager:
 
             cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
-            with get_session() as session:
+            with SessionLocal() as session:
                 # Total deliveries
                 total_deliveries = (
                     session.query(EmailDelivery)

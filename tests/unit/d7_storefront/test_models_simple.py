@@ -207,6 +207,7 @@ def test_purchase_item_model():
         unit_price_cents=2999,
         quantity=1,
         total_price_cents=2999,
+        delivered=False,  # Set default value explicitly for test
     )
 
     # Verify item creation

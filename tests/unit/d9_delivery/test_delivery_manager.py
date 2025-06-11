@@ -317,22 +317,24 @@ class TestDeliveryManager:
             success=False, error_message="SendGrid API error", status_code=400
         )
 
-        with patch("d9_delivery.delivery_manager.SendGridClient") as mock_client_class:
-            mock_client = AsyncMock()
-            mock_client.send_email.return_value = mock_response
-            mock_client_class.return_value.__aenter__.return_value = mock_client
+        # Mock suppression check to return False so we test SendGrid failure path
+        with patch.object(delivery_manager.compliance_manager, 'check_suppression', return_value=False):
+            with patch("d9_delivery.delivery_manager.SendGridClient") as mock_client_class:
+                mock_client = AsyncMock()
+                mock_client.send_email.return_value = mock_response
+                mock_client_class.return_value.__aenter__.return_value = mock_client
 
-            result = await delivery_manager.send_email(sample_delivery_request)
+                result = await delivery_manager.send_email(sample_delivery_request)
 
-            assert result.success is False
-            assert result.delivery_id is not None
-            assert result.error_message == "SendGrid API error"
+                assert result.success is False
+                assert result.delivery_id is not None
+                assert result.error_message == "SendGrid API error"
 
-            # Verify failed delivery was recorded
-            delivery_status = delivery_manager.get_delivery_status(result.delivery_id)
-            assert delivery_status is not None
-            assert delivery_status["status"] == DeliveryStatus.FAILED.value
-            assert delivery_status["error_message"] == "SendGrid API error"
+                # Verify failed delivery was recorded
+                delivery_status = delivery_manager.get_delivery_status(result.delivery_id)
+                assert delivery_status is not None
+                assert delivery_status["status"] == DeliveryStatus.FAILED.value
+                assert delivery_status["error_message"] == "SendGrid API error"
 
         print("✓ SendGrid failure handling works")
 
@@ -518,7 +520,9 @@ class TestUtilityFunctions:
         assert isinstance(link, str)
         assert "unsubscribe" in link
         assert "token=" in link
-        assert f"email={email}" in link
+        # Email will be URL encoded in the link
+        assert "email=" in link
+        assert "link%40example.com" in link or "link@example.com" in link
         assert link.startswith("http")
 
         print("✓ generate_unsubscribe_link utility works")

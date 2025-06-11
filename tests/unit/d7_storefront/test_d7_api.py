@@ -233,17 +233,14 @@ class TestWebhookAPI:
         assert response.status_code == 401
         assert "Missing Stripe signature" in response.json()["detail"]
 
-    @patch("d7_storefront.api.get_webhook_processor")
-    def test_webhook_processing_failure(self, mock_get_processor):
+    def test_webhook_processing_failure(self, mock_webhook_processor):
         """Test webhook processing failure"""
         # Mock failed webhook processing
-        mock_processor = Mock()
-        mock_processor.process_webhook.return_value = {
+        mock_webhook_processor.process_webhook.return_value = {
             "success": False,
             "error": "Invalid signature",
             "status": WebhookStatus.FAILED.value,
         }
-        mock_get_processor.return_value = mock_processor
 
         webhook_payload = {"id": "evt_test_123"}
 
@@ -339,16 +336,13 @@ class TestSuccessPageAPI:
             # Clean up dependency override
             app.dependency_overrides.clear()
 
-    @patch("d7_storefront.api.get_checkout_manager")
-    def test_success_page_invalid_session(self, mock_get_manager):
+    def test_success_page_invalid_session(self, mock_checkout_manager):
         """Test success page for invalid session"""
         # Mock failed session retrieval
-        mock_manager = Mock()
-        mock_manager.retrieve_session_status.return_value = {
+        mock_checkout_manager.retrieve_session_status.return_value = {
             "success": False,
             "error": "Session not found",
         }
-        mock_get_manager.return_value = mock_manager
 
         response = client.get(
             "/api/v1/checkout/success", params={"session_id": "cs_invalid_123"}
@@ -455,18 +449,15 @@ class TestConvenienceEndpoints:
         # Verify manager was called correctly
         mock_checkout_manager.create_audit_report_checkout.assert_called_once()
 
-    @patch("d7_storefront.api.get_checkout_manager")
-    def test_bulk_reports_checkout(self, mock_get_manager):
+    def test_bulk_reports_checkout(self, mock_checkout_manager):
         """Test bulk reports convenience endpoint"""
         # Mock successful bulk reports checkout
-        mock_manager = Mock()
-        mock_manager.create_bulk_reports_checkout.return_value = {
+        mock_checkout_manager.create_bulk_reports_checkout.return_value = {
             "success": True,
             "purchase_id": "bulk_purchase_123",
             "checkout_url": "https://checkout.stripe.com/pay/cs_bulk_123",
             "session_id": "cs_bulk_123",
         }
-        mock_get_manager.return_value = mock_manager
 
         request_data = {
             "customer_email": "test@example.com",
@@ -486,18 +477,13 @@ class TestConvenienceEndpoints:
         assert data["purchase_id"] == "bulk_purchase_123"
 
         # Verify manager was called correctly
-        mock_manager.create_bulk_reports_checkout.assert_called_once()
+        mock_checkout_manager.create_bulk_reports_checkout.assert_called_once()
 
 
 class TestAPIStatus:
     """Test API status endpoint"""
 
-    @patch("d7_storefront.api.get_checkout_manager")
-    @patch("d7_storefront.api.get_webhook_processor")
-    @patch("d7_storefront.api.get_stripe_client")
-    def test_api_status_healthy(
-        self, mock_get_stripe, mock_get_processor, mock_get_manager
-    ):
+    def test_api_status_healthy(self):
         """Test API status when all services are healthy"""
         # Mock healthy services
         mock_manager = Mock()
@@ -509,20 +495,26 @@ class TestAPIStatus:
         mock_stripe = Mock()
         mock_stripe.get_status.return_value = {"webhook_configured": True}
 
-        mock_get_manager.return_value = mock_manager
-        mock_get_processor.return_value = mock_processor
-        mock_get_stripe.return_value = mock_stripe
+        # Override all dependencies
+        from d7_storefront.api import get_checkout_manager, get_webhook_processor, get_stripe_client
+        app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
+        app.dependency_overrides[get_webhook_processor] = lambda: mock_processor
+        app.dependency_overrides[get_stripe_client] = lambda: mock_stripe
 
-        response = client.get("/api/v1/checkout/status")
+        try:
+            response = client.get("/api/v1/checkout/status")
 
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
-        assert data["version"] == "1.0.0"
-        assert "services" in data
-        assert data["services"]["stripe"] == "connected"
-        assert data["services"]["checkout_manager"] == "active"
-        assert data["services"]["webhook_processor"] == "active"
+            assert response.status_code == 200
+            data = response.json()
+            assert data["status"] == "healthy"
+            assert data["version"] == "1.0.0"
+            assert "services" in data
+            assert data["services"]["stripe"] == "connected"
+            assert data["services"]["checkout_manager"] == "active"
+            assert data["services"]["webhook_processor"] == "active"
+        finally:
+            # Clean up dependency overrides
+            app.dependency_overrides.clear()
 
 
 class TestErrorHandling:
@@ -546,15 +538,12 @@ class TestErrorHandling:
         assert response.status_code == 422
         # FastAPI validation errors have a specific format
 
-    @patch("d7_storefront.api.get_checkout_manager")
-    def test_checkout_error_handling(self, mock_get_manager):
+    def test_checkout_error_handling(self, mock_checkout_manager):
         """Test checkout error handling"""
         # Mock CheckoutError
-        mock_manager = Mock()
-        mock_manager.initiate_checkout.side_effect = CheckoutError(
+        mock_checkout_manager.initiate_checkout.side_effect = CheckoutError(
             "Test checkout error"
         )
-        mock_get_manager.return_value = mock_manager
 
         request_data = {
             "customer_email": "test@example.com",
@@ -568,13 +557,10 @@ class TestErrorHandling:
         assert data["success"] is False
         assert data["error_type"] == "CheckoutError"
 
-    @patch("d7_storefront.api.get_webhook_processor")
-    def test_webhook_error_handling(self, mock_get_processor):
+    def test_webhook_error_handling(self, mock_webhook_processor):
         """Test webhook error handling"""
         # Mock WebhookError
-        mock_processor = Mock()
-        mock_processor.process_webhook.side_effect = WebhookError("Test webhook error")
-        mock_get_processor.return_value = mock_processor
+        mock_webhook_processor.process_webhook.side_effect = WebhookError("Test webhook error")
 
         response = client.post(
             "/api/v1/checkout/webhook",
@@ -591,16 +577,13 @@ class TestErrorHandling:
 class TestAcceptanceCriteria:
     """Test all acceptance criteria for Task 058"""
 
-    @patch("d7_storefront.api.get_checkout_manager")
-    def test_checkout_initiation_api_acceptance_criteria(self, mock_get_manager):
+    def test_checkout_initiation_api_acceptance_criteria(self, mock_checkout_manager):
         """Test: Checkout initiation API ✓"""
-        mock_manager = Mock()
-        mock_manager.initiate_checkout.return_value = {
+        mock_checkout_manager.initiate_checkout.return_value = {
             "success": True,
             "purchase_id": "purchase_123",
             "checkout_url": "https://checkout.stripe.com/pay/cs_test_123",
         }
-        mock_get_manager.return_value = mock_manager
 
         request_data = {
             "customer_email": "test@example.com",
@@ -635,11 +618,9 @@ class TestAcceptanceCriteria:
 
         print("✓ Webhook endpoint secure")
 
-    @patch("d7_storefront.api.get_checkout_manager")
-    def test_success_page_works_acceptance_criteria(self, mock_get_manager):
+    def test_success_page_works_acceptance_criteria(self, mock_checkout_manager):
         """Test: Success page works ✓"""
-        mock_manager = Mock()
-        mock_manager.retrieve_session_status.return_value = {
+        mock_checkout_manager.retrieve_session_status.return_value = {
             "success": True,
             "session_id": "cs_test_123",
             "payment_status": "paid",
@@ -651,7 +632,6 @@ class TestAcceptanceCriteria:
                 "item_0_name": "Website Audit Report",
             },
         }
-        mock_get_manager.return_value = mock_manager
 
         response = client.get(
             "/api/v1/checkout/success", params={"session_id": "cs_test_123"}
