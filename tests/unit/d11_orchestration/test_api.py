@@ -39,11 +39,19 @@ app.include_router(router)
 @pytest.fixture
 def test_db():
     """Create test database session"""
+    # Use a single shared engine for the whole test
+    from sqlalchemy.pool import StaticPool
+    
     engine = create_engine(
-        "sqlite:///:memory:", connect_args={"check_same_thread": False}
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool
     )
 
-    # Import all model modules to register tables
+    # Import Base first
+    from database.base import Base
+    
+    # Import all model modules to register tables with Base
     import database.models
     import d1_targeting.models
     import d2_sourcing.models
@@ -57,23 +65,29 @@ def test_db():
     import d10_analytics.models
     import d11_orchestration.models
     
-    # Import Base after all models are loaded
-    from database.base import Base
+    # Create all tables
+    Base.metadata.create_all(bind=engine)
     
-    # Explicitly add all table definitions to metadata
-    Base.metadata.create_all(engine, checkfirst=True)
+    # Create session factory
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     def override_get_db():
+        db = TestingSessionLocal()
         try:
-            db = TestingSessionLocal()
             yield db
         finally:
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
-    yield TestingSessionLocal()
-    Base.metadata.drop_all(engine)
+    
+    # Yield a session instance for the test
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+        app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -113,6 +127,9 @@ class TestPipelineAPI:
         }
 
         response = client.post("/orchestration/pipelines/trigger", json=request_data)
+        if response.status_code != 200:
+            print(f"Response status: {response.status_code}")
+            print(f"Response body: {response.text}")
         assert response.status_code == 200
 
         data = response.json()

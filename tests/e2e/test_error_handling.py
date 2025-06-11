@@ -423,13 +423,12 @@ def test_partial_results_saved(test_db_session):
                     pipeline_run = PipelineRun(
                         run_id=item_id,
                         pipeline_name="lead_generation",
-                        pipeline_type=PipelineType.LEAD_GENERATION,
+                        pipeline_type=PipelineType.DAILY_BATCH,
                         status=PipelineRunStatus.SUCCESS,
                         triggered_by="e2e_test",
                         started_at=scenario_start_time,
                         completed_at=datetime.utcnow(),
                         records_processed=1,
-                        records_succeeded=1,
                         records_failed=0,
                     )
                     test_db_session.add(pipeline_run)
@@ -500,7 +499,7 @@ def test_partial_results_saved(test_db_session):
         elif "pipeline" in scenario["name"]:
             saved_count = (
                 test_db_session.query(PipelineRun)
-                .filter(PipelineRun.id.like(f"{scenario['name']}_item_%"))
+                .filter(PipelineRun.run_id.like(f"{scenario['name']}_item_%"))
                 .count()
             )
         else:
