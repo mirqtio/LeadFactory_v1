@@ -109,12 +109,16 @@ class TestHunterClientSimple:
 class TestCostEmission:
     """Test cost tracking functionality"""
     
-    @patch('d0_gateway.base.SessionLocal')
-    def test_emit_cost(self, mock_session):
+    @patch('database.session.get_db_sync')
+    @patch('d0_gateway.base.get_settings')
+    def test_emit_cost(self, mock_settings, mock_get_db):
         """Test cost emission works"""
+        # Mock settings to disable stub mode
+        mock_settings.return_value.use_stubs = False
+        
         # Mock database session
         mock_db = MagicMock()
-        mock_session.return_value.__enter__.return_value = mock_db
+        mock_get_db.return_value.__enter__.return_value = mock_db
         
         # Create client and emit cost
         client = DataAxleClient(api_key='test-key')
