@@ -19,6 +19,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
+import stripe
+
 from d0_gateway.facade import get_gateway_facade
 
 # Configure logging
@@ -31,13 +33,25 @@ class StripeConfig:
     def __init__(self, test_mode: bool = True):
         self.test_mode = test_mode
 
-        # Get webhook secret from environment
+        # Set API keys based on mode
         if test_mode:
+            self.api_key = os.getenv("STRIPE_TEST_SECRET_KEY", "sk_test_mock_key_for_testing")
+            self.publishable_key = os.getenv("STRIPE_TEST_PUBLISHABLE_KEY", "pk_test_mock_key_for_testing")
             self.webhook_secret = os.getenv(
                 "STRIPE_TEST_WEBHOOK_SECRET", "whsec_test_mock_secret"
             )
         else:
+            self.api_key = os.getenv("STRIPE_LIVE_SECRET_KEY")
+            self.publishable_key = os.getenv("STRIPE_LIVE_PUBLISHABLE_KEY")
             self.webhook_secret = os.getenv("STRIPE_LIVE_WEBHOOK_SECRET")
+            
+            # Validate required keys for live mode
+            if not self.api_key:
+                raise ValueError("Missing Stripe API key for live mode. Set STRIPE_LIVE_SECRET_KEY environment variable.")
+            if not self.publishable_key:
+                raise ValueError("Missing Stripe publishable key for live mode. Set STRIPE_LIVE_PUBLISHABLE_KEY environment variable.")
+            if not self.webhook_secret:
+                raise ValueError("Missing Stripe webhook secret for live mode. Set STRIPE_LIVE_WEBHOOK_SECRET environment variable.")
 
         # Default configuration
         self.currency = "usd"
@@ -128,6 +142,9 @@ class StripeClient:
         self.config = config or StripeConfig(test_mode=True)
         self.gateway = get_gateway_facade()
         self._executor = ThreadPoolExecutor(max_workers=1)
+        
+        # For compatibility with tests that expect direct Stripe SDK access
+        self.stripe = stripe
 
         logger.info(
             f"Initialized Stripe client in {'test' if self.config.test_mode else 'live'} mode"

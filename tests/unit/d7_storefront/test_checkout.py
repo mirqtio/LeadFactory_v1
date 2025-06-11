@@ -10,16 +10,18 @@ Acceptance Criteria:
 - Success/cancel URLs ✓
 """
 
+import asyncio
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 import stripe
 
-from d7_storefront.checkout import (CheckoutConfig, CheckoutError,
-                                    CheckoutItem, CheckoutManager,
-                                    CheckoutSession,
+from d7_storefront.checkout import (CHECKOUT_URLS, CheckoutConfig,
+                                    CheckoutError, CheckoutItem,
+                                    CheckoutManager, CheckoutSession,
+                                    DEFAULT_PRICING,
                                     create_test_checkout_items,
                                     format_checkout_response_for_api)
 from d7_storefront.models import ProductType
@@ -138,23 +140,27 @@ class TestStripeClient:
 
         assert client.config.test_mode is True
 
-    @patch("stripe.checkout.Session.create")
+    @patch("d0_gateway.facade.GatewayFacade.create_checkout_session_with_line_items")
     def test_create_checkout_session_success(self, mock_create):
         """Test successful checkout session creation - Acceptance Criteria"""
-        # Mock successful Stripe response
-        mock_session = Mock()
-        mock_session.id = "cs_test_123"
-        mock_session.url = "https://checkout.stripe.com/pay/cs_test_123"
-        mock_session.payment_status = "unpaid"
-        mock_session.amount_total = 2999
-        mock_session.currency = "usd"
-        mock_session.expires_at = 1234567890
-        mock_session.metadata = {"test": "data"}
-        mock_session.mode = "payment"
-        mock_session.success_url = "https://example.com/success"
-        mock_session.cancel_url = "https://example.com/cancel"
+        # Mock successful gateway response 
+        mock_response = {
+            "id": "cs_test_123",
+            "url": "https://checkout.stripe.com/pay/cs_test_123",
+            "payment_status": "unpaid",
+            "amount_total": 2999,
+            "currency": "usd",
+            "expires_at": 1234567890,
+            "metadata": {"test": "data"},
+            "mode": "payment",
+            "success_url": "https://example.com/success",
+            "cancel_url": "https://example.com/cancel"
+        }
 
-        mock_create.return_value = mock_session
+        # Use AsyncMock for proper async function mocking
+        async def mock_async_response(*args, **kwargs):
+            return mock_response
+        mock_create.side_effect = mock_async_response
 
         client = StripeClient()
         session_config = StripeCheckoutSession(
@@ -179,15 +185,13 @@ class TestStripeClient:
         # Verify Stripe was called
         mock_create.assert_called_once()
 
-    @patch("stripe.checkout.Session.create")
+    @patch("d0_gateway.facade.GatewayFacade.create_checkout_session_with_line_items")
     def test_create_checkout_session_stripe_error(self, mock_create):
         """Test checkout session creation with Stripe error"""
-        # Mock Stripe error
-        stripe_error = stripe.error.CardError(
-            message="Your card was declined.", param="card", code="card_declined"
-        )
-        stripe_error.user_message = "Your card was declined."
-        mock_create.side_effect = stripe_error
+        # Mock gateway error (async)
+        async def mock_error(*args, **kwargs):
+            raise Exception("Stripe API error: Your card was declined.")
+        mock_create.side_effect = mock_error
 
         client = StripeClient()
         session_config = StripeCheckoutSession(
@@ -200,23 +204,26 @@ class TestStripeClient:
             client.create_checkout_session(session_config)
 
         assert "Failed to create checkout session" in str(exc_info.value)
-        assert exc_info.value.stripe_error == stripe_error
+        assert "Stripe API error" in str(exc_info.value)
 
-    @patch("stripe.checkout.Session.retrieve")
+    @patch("d0_gateway.facade.GatewayFacade.get_checkout_session")
     def test_retrieve_checkout_session(self, mock_retrieve):
         """Test retrieving checkout session"""
         # Mock session data
-        mock_session = Mock()
-        mock_session.id = "cs_test_123"
-        mock_session.payment_status = "paid"
-        mock_session.payment_intent = "pi_test_123"
-        mock_session.customer = "cus_test_123"
-        mock_session.amount_total = 2999
-        mock_session.currency = "usd"
-        mock_session.metadata = {"test": "data"}
-        mock_session.status = "complete"
+        mock_session_data = {
+            "id": "cs_test_123",
+            "payment_status": "paid",
+            "payment_intent": "pi_test_123",
+            "customer": "cus_test_123",
+            "amount_total": 2999,
+            "currency": "usd",
+            "metadata": {"test": "data"},
+            "status": "complete"
+        }
 
-        mock_retrieve.return_value = mock_session
+        async def mock_async_retrieve(*args, **kwargs):
+            return mock_session_data
+        mock_retrieve.side_effect = mock_async_retrieve
 
         client = StripeClient()
         result = client.retrieve_checkout_session("cs_test_123")
@@ -233,10 +240,15 @@ class TestStripeClient:
         test_client = StripeClient(StripeConfig(test_mode=True))
         assert test_client.is_test_mode() is True
 
-        live_config = StripeConfig(test_mode=False)
-        live_config.api_key = "sk_live_mock"  # Mock live key
-        live_client = StripeClient(live_config)
-        assert live_client.is_test_mode() is False
+        # Mock environment variables for live mode
+        with patch.dict("os.environ", {
+            "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
+            "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
+            "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock"
+        }):
+            live_config = StripeConfig(test_mode=False)
+            live_client = StripeClient(live_config)
+            assert live_client.is_test_mode() is False
 
     def test_get_status(self):
         """Test client status reporting"""
@@ -655,6 +667,8 @@ class TestAcceptanceCriteria:
             "session_id": "cs_test_123",
             "session_url": "https://checkout.stripe.com/pay/cs_test_123",
             "payment_status": "unpaid",
+            "currency": "usd",
+            "expires_at": 1234567890,
         }
 
         manager = CheckoutManager()
@@ -902,11 +916,16 @@ class TestCheckoutManagerEnhancements:
         assert manager1.config.test_mode is True
         assert manager1.stripe_client is not None
 
-        # Test with custom config
-        config = CheckoutConfig(test_mode=False, default_currency="eur")
-        manager2 = CheckoutManager(config=config)
-        assert manager2.config.test_mode is False
-        assert manager2.config.default_currency == "eur"
+        # Test with custom config (with mocked environment for live mode)
+        with patch.dict("os.environ", {
+            "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
+            "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
+            "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock"
+        }):
+            config = CheckoutConfig(test_mode=False, default_currency="eur")
+            manager2 = CheckoutManager(config=config)
+            assert manager2.config.test_mode is False
+            assert manager2.config.default_currency == "eur"
 
         # Test with custom Stripe client
         stripe_client = StripeClient(StripeConfig(test_mode=True))
@@ -947,9 +966,12 @@ class TestCheckoutManagerEnhancements:
 
         # Verify create_stripe_session was called with correct metadata
         mock_create_session.assert_called_once()
-        call_args = mock_create_session.call_args[1]
-        assert call_args["additional_metadata"]["promo_code"] == "SAVE10"
-        assert call_args["additional_metadata"]["experiment_id"] == "exp_123"
+        call_args = mock_create_session.call_args
+        # The additional_metadata is passed as the first positional argument
+        additional_metadata_arg = call_args[0][0] if call_args[0] else None
+        assert additional_metadata_arg is not None
+        assert additional_metadata_arg["promo_code"] == "SAVE10"
+        assert additional_metadata_arg["experiment_id"] == "exp_123"
 
     @patch.object(StripeClient, "retrieve_checkout_session")
     def test_checkout_manager_session_retrieval_error_handling(self, mock_retrieve):
@@ -1055,25 +1077,31 @@ class TestCheckoutManagerEnhancements:
 
     def test_checkout_manager_status_comprehensive(self):
         """Test comprehensive status reporting"""
-        config = CheckoutConfig(
-            base_success_url="https://custom.com/success",
-            base_cancel_url="https://custom.com/cancel",
-            webhook_url="https://custom.com/webhook",
-            session_expires_minutes=45,
-            default_currency="eur",
-            test_mode=False,
-        )
+        # Mock environment variables for live mode
+        with patch.dict("os.environ", {
+            "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
+            "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
+            "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock"
+        }):
+            config = CheckoutConfig(
+                base_success_url="https://custom.com/success",
+                base_cancel_url="https://custom.com/cancel",
+                webhook_url="https://custom.com/webhook",
+                session_expires_minutes=45,
+                default_currency="eur",
+                test_mode=False,
+            )
 
-        manager = CheckoutManager(config=config)
-        status = manager.get_status()
+            manager = CheckoutManager(config=config)
+            status = manager.get_status()
 
-        assert status["test_mode"] is False
-        assert status["success_url"] == "https://custom.com/success"
-        assert status["cancel_url"] == "https://custom.com/cancel"
-        assert status["webhook_url"] == "https://custom.com/webhook"
-        assert status["currency"] == "eur"
-        assert status["session_expires_minutes"] == 45
-        assert "stripe_status" in status
+            assert status["test_mode"] is False
+            assert status["success_url"] == "https://custom.com/success"
+            assert status["cancel_url"] == "https://custom.com/cancel"
+            assert status["webhook_url"] == "https://custom.com/webhook"
+            assert status["currency"] == "eur"
+            assert status["session_expires_minutes"] == 45
+            assert "stripe_status" in status
 
     def test_utility_functions_edge_cases(self):
         """Test utility functions with edge cases"""
