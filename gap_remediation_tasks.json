@@ -1,0 +1,794 @@
+{
+  "project": "leadfactory-gap-remediation",
+  "version": "1.0",
+  "created_at": "2025-01-11T00:00:00Z",
+  "total_tasks": 28,
+  "estimated_hours": 230,
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Critical API & Infrastructure Fixes",
+      "tasks": [
+        {
+          "id": "GAP-001",
+          "title": "Wire up API routers in main.py",
+          "domain": "core",
+          "priority": "critical",
+          "estimated_hours": 1,
+          "gap_description": "All API endpoints exist but are commented out in main.py, making the entire API inaccessible. Router imports are present but not registered with the FastAPI app.",
+          "current_state": "Router imports commented out, endpoints unreachable",
+          "success_criteria": [
+            "All domain routers imported and registered in main.py",
+            "API endpoints accessible via HTTP requests",
+            "Swagger docs show all endpoints at /docs",
+            "Integration tests can call all API endpoints",
+            "No import errors or circular dependencies"
+          ],
+          "implementation_notes": "Uncomment router imports, register with proper prefixes and tags",
+          "files_to_modify": ["main.py"],
+          "test_commands": [
+            "python3 -m pytest tests/integration/test_api_endpoints.py",
+            "curl http://localhost:8000/docs"
+          ]
+        },
+        {
+          "id": "GAP-002",
+          "title": "Implement D2 Sourcing module",
+          "domain": "d2_sourcing",
+          "priority": "critical",
+          "estimated_hours": 8,
+          "gap_description": "No d2_sourcing directory exists. Missing YelpScraper class, BusinessDeduplicator logic, and batch processing coordinator. This is core functionality for data acquisition.",
+          "current_state": "Module doesn't exist, sourcing logic scattered or missing",
+          "success_criteria": [
+            "d2_sourcing module created with proper structure",
+            "YelpScraper class handles pagination up to 1000 results",
+            "BusinessDeduplicator prevents duplicate entries",
+            "Batch coordinator processes targets efficiently",
+            "Integration with D0 gateway for API calls",
+            "Unit and integration tests pass"
+          ],
+          "implementation_notes": "Create module following PRD specifications, integrate with existing models",
+          "files_to_create": [
+            "d2_sourcing/__init__.py",
+            "d2_sourcing/yelp_scraper.py",
+            "d2_sourcing/deduplicator.py",
+            "d2_sourcing/coordinator.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d2_sourcing/",
+            "python3 -m pytest tests/integration/test_sourcing_integration.py"
+          ]
+        },
+        {
+          "id": "GAP-003",
+          "title": "Complete D5 Scoring Engine with YAML rules",
+          "domain": "d5_scoring",
+          "priority": "critical",
+          "estimated_hours": 6,
+          "gap_description": "YAML-based rules engine not implemented. No scoring_rules.yaml file. Missing weighted calculations, vertical overrides, and confidence scoring.",
+          "current_state": "Basic scoring structure exists but no rules engine",
+          "success_criteria": [
+            "scoring_rules.yaml created with base and vertical rules",
+            "Rules parser can load and validate YAML configuration",
+            "Scoring engine calculates weighted scores correctly",
+            "Vertical overrides apply properly",
+            "Confidence calculation based on data completeness",
+            "Tier assignment matches PRD boundaries"
+          ],
+          "implementation_notes": "Implement YAML parser, weighted scoring logic, support hot-reload of rules",
+          "files_to_create": [
+            "scoring_rules.yaml",
+            "scoring_rules_restaurant.yaml",
+            "scoring_rules_medical.yaml",
+            "d5_scoring/rules_parser.py"
+          ],
+          "files_to_modify": [
+            "d5_scoring/engine.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d5_scoring/test_engine.py",
+            "python3 -m pytest tests/unit/d5_scoring/test_rules_parser.py"
+          ]
+        },
+        {
+          "id": "GAP-004",
+          "title": "Implement D8 Email Personalization",
+          "domain": "d8_personalization",
+          "priority": "critical",
+          "estimated_hours": 8,
+          "gap_description": "Email personalizer module missing. No subject line generator, spam checker, or LLM-powered personalization. Templates YAML not found.",
+          "current_state": "Basic structure exists but no implementation",
+          "success_criteria": [
+            "EmailPersonalizer generates personalized content",
+            "SubjectLineGenerator creates pattern-based subjects",
+            "SpamChecker validates content score < 5",
+            "LLM integration for dynamic content generation",
+            "Templates YAML with email patterns",
+            "A/B testing variants supported"
+          ],
+          "implementation_notes": "Integrate with OpenAI via D0 gateway, implement spam rules",
+          "files_to_create": [
+            "d8_personalization/personalizer.py",
+            "d8_personalization/subject_lines.py",
+            "d8_personalization/spam_checker.py",
+            "d8_personalization/templates.yaml"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d8_personalization/",
+            "python3 -m pytest tests/integration/test_personalization_integration.py"
+          ]
+        },
+        {
+          "id": "GAP-005",
+          "title": "Implement D11 Prefect Pipeline Orchestration",
+          "domain": "d11_orchestration",
+          "priority": "critical",
+          "estimated_hours": 10,
+          "gap_description": "Prefect models exist but no actual workflows. Daily pipeline not implemented. No automated orchestration for the complete flow.",
+          "current_state": "Models and structure exist but no Prefect flows",
+          "success_criteria": [
+            "Daily pipeline flow processes all batches",
+            "Individual task flows for each domain",
+            "Error handling and retry logic",
+            "Pipeline monitoring and notifications",
+            "Experiment variant assignment integrated",
+            "Cost guardrails enforced"
+          ],
+          "implementation_notes": "Use Prefect 2.x, implement flows as async tasks",
+          "files_to_modify": [
+            "d11_orchestration/pipeline.py",
+            "d11_orchestration/tasks.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d11_orchestration/test_pipeline.py",
+            "prefect server start",
+            "python3 -m d11_orchestration.pipeline"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "High Priority Feature Completion",
+      "tasks": [
+        {
+          "id": "GAP-006",
+          "title": "Add Google Places API client to D0 Gateway",
+          "domain": "d0_gateway",
+          "priority": "high",
+          "estimated_hours": 4,
+          "gap_description": "Google Places API client not found in providers directory. This is critical for D4 enrichment functionality.",
+          "current_state": "No Google Places integration",
+          "success_criteria": [
+            "GooglePlacesClient implemented in d0_gateway/providers",
+            "Rate limiting and caching configured",
+            "Circuit breaker protection enabled",
+            "Cost tracking via emit_cost",
+            "Integration tests with stub server"
+          ],
+          "implementation_notes": "Follow pattern of other providers, use Places API v2",
+          "files_to_create": [
+            "d0_gateway/providers/google_places.py"
+          ],
+          "files_to_modify": [
+            "d0_gateway/factory.py",
+            "stubs/server.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d0_gateway/test_google_places_client.py",
+            "python3 -m pytest tests/integration/test_gateway_integration.py"
+          ]
+        },
+        {
+          "id": "GAP-007",
+          "title": "Implement D4 GBP Enrichment with fuzzy matching",
+          "domain": "d4_enrichment",
+          "priority": "high",
+          "estimated_hours": 8,
+          "gap_description": "GBP Enricher module missing. No fuzzy matching system. Similarity scoring and confidence calculation not implemented.",
+          "current_state": "Basic enrichment structure but no implementation",
+          "success_criteria": [
+            "GBPEnricher finds and matches Google Business Profile data",
+            "Fuzzy matching uses multiple signals (phone, name, address)",
+            "Similarity scoring with configurable weights",
+            "Confidence threshold for accepting matches",
+            "Enrichment updates business records",
+            "Handles missing or partial data gracefully"
+          ],
+          "implementation_notes": "Use fuzzywuzzy for string matching, implement weighted scoring",
+          "files_to_create": [
+            "d4_enrichment/gbp_enricher.py",
+            "d4_enrichment/matchers.py",
+            "d4_enrichment/similarity.py"
+          ],
+          "files_to_modify": [
+            "d4_enrichment/coordinator.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d4_enrichment/",
+            "python3 -m pytest tests/integration/test_enrichment_integration.py"
+          ]
+        },
+        {
+          "id": "GAP-008",
+          "title": "Complete D9 SendGrid Delivery Manager",
+          "domain": "d9_delivery",
+          "priority": "high",
+          "estimated_hours": 6,
+          "gap_description": "SendGrid integration incomplete. Missing webhook handlers, compliance headers, and bounce/complaint handling logic.",
+          "current_state": "Basic SendGrid client exists but full delivery system missing",
+          "success_criteria": [
+            "EmailDeliveryManager sends emails via SendGrid",
+            "Compliance headers (List-Unsubscribe) included",
+            "Webhook handler processes all SendGrid events",
+            "Bounce and complaint handling updates suppression list",
+            "Click tracking records all interactions",
+            "Integration with personalization output"
+          ],
+          "implementation_notes": "Use SendGrid Python SDK, implement async webhook processing",
+          "files_to_create": [
+            "d9_delivery/delivery_manager.py",
+            "d9_delivery/webhook_handler.py",
+            "d9_delivery/compliance.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d9_delivery/",
+            "python3 -m pytest tests/integration/test_delivery_integration.py"
+          ]
+        },
+        {
+          "id": "GAP-009",
+          "title": "Implement Stripe webhook processing",
+          "domain": "d7_storefront",
+          "priority": "high",
+          "estimated_hours": 4,
+          "gap_description": "Stripe webhook processor implementation missing. Models exist but handler not implemented. Purchase completion doesn't trigger report generation.",
+          "current_state": "Webhook models exist but no processing logic",
+          "success_criteria": [
+            "Webhook endpoint validates Stripe signatures",
+            "checkout.session.completed creates purchase record",
+            "payment_intent.succeeded updates status",
+            "Idempotent processing prevents duplicates",
+            "Report generation triggered on purchase",
+            "Error handling for failed webhooks"
+          ],
+          "implementation_notes": "Use Stripe webhook SDK, implement async processing",
+          "files_to_modify": [
+            "d7_storefront/webhook_handlers.py",
+            "d7_storefront/api.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d7_storefront/test_webhooks.py",
+            "python3 -m pytest tests/integration/test_payment_flow.py"
+          ]
+        },
+        {
+          "id": "GAP-010",
+          "title": "Implement Lua rate limiting script",
+          "domain": "d0_gateway",
+          "priority": "high",
+          "estimated_hours": 3,
+          "gap_description": "Lua script directory exists but rate limiting script not implemented. This is needed for atomic Redis operations.",
+          "current_state": "Directory exists but script missing",
+          "success_criteria": [
+            "Lua script implements token bucket algorithm",
+            "Atomic check-and-consume operation",
+            "Configurable capacity and refill rate",
+            "Redis integration tested",
+            "Performance better than Python implementation"
+          ],
+          "implementation_notes": "Implement token bucket in Lua for Redis atomicity",
+          "files_to_create": [
+            "d0_gateway/lua_scripts/rate_limit.lua"
+          ],
+          "files_to_modify": [
+            "d0_gateway/rate_limiter.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d0_gateway/test_rate_limiter.py",
+            "redis-cli --eval d0_gateway/lua_scripts/rate_limit.lua"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Medium Priority Enhancements",
+      "tasks": [
+        {
+          "id": "GAP-011",
+          "title": "Implement PDF report generation with Playwright",
+          "domain": "d6_reports",
+          "priority": "medium",
+          "estimated_hours": 5,
+          "gap_description": "PDF converter using Playwright not implemented. HTML templates missing. Finding prioritizer logic not implemented.",
+          "current_state": "Models exist but generation logic missing",
+          "success_criteria": [
+            "PDFConverter generates reports from HTML",
+            "Playwright handles headless Chrome",
+            "PDF compression for files > 2MB",
+            "HTML templates for audit reports",
+            "Finding prioritizer selects top issues",
+            "Mobile and print CSS optimized"
+          ],
+          "implementation_notes": "Use Playwright async API, implement template engine",
+          "files_to_create": [
+            "d6_reports/pdf_converter.py",
+            "d6_reports/finding_scorer.py",
+            "templates/audit_report.html"
+          ],
+          "files_to_modify": [
+            "d6_reports/generator.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d6_reports/test_pdf_converter.py",
+            "python3 -m pytest tests/integration/test_reports_integration.py"
+          ]
+        },
+        {
+          "id": "GAP-012",
+          "title": "Implement TechStack detection logic",
+          "domain": "d3_assessment",
+          "priority": "medium",
+          "estimated_hours": 4,
+          "gap_description": "TechStackDetector model exists but detection logic missing. No pattern matching for technologies.",
+          "current_state": "Model exists but no implementation",
+          "success_criteria": [
+            "Detects common web technologies",
+            "Pattern matching for frameworks",
+            "JavaScript library detection",
+            "CMS identification",
+            "Analytics tool detection",
+            "Confidence scoring for detections"
+          ],
+          "implementation_notes": "Use regex patterns and DOM analysis",
+          "files_to_create": [
+            "d3_assessment/patterns.json"
+          ],
+          "files_to_modify": [
+            "d3_assessment/techstack.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d3_assessment/test_techstack.py"
+          ]
+        },
+        {
+          "id": "GAP-013",
+          "title": "Create industry-specific assessment prompts",
+          "domain": "d3_assessment",
+          "priority": "medium",
+          "estimated_hours": 3,
+          "gap_description": "Industry-specific prompts for LLM insights not found. Generic prompts don't leverage vertical context.",
+          "current_state": "Generic prompts only",
+          "success_criteria": [
+            "Vertical-specific prompt templates",
+            "Restaurant focus on reservations/menus",
+            "Medical focus on HIPAA/accessibility",
+            "Retail focus on e-commerce features",
+            "Dynamic prompt generation",
+            "Consistent formatting"
+          ],
+          "implementation_notes": "Create prompt library by vertical",
+          "files_to_create": [
+            "d3_assessment/prompts.py"
+          ],
+          "files_to_modify": [
+            "d3_assessment/llm_insights.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d3_assessment/test_llm_insights.py"
+          ]
+        },
+        {
+          "id": "GAP-014",
+          "title": "Implement assessment caching strategy",
+          "domain": "d3_assessment",
+          "priority": "medium",
+          "estimated_hours": 3,
+          "gap_description": "Assessment cache model exists but caching strategy not integrated. Redundant API calls possible.",
+          "current_state": "Cache infrastructure exists but not used",
+          "success_criteria": [
+            "Cache key generation for assessments",
+            "TTL configuration by assessment type",
+            "Cache invalidation on business updates",
+            "Hit/miss metrics tracked",
+            "Fallback on cache errors"
+          ],
+          "implementation_notes": "Integrate with Redis cache in D0",
+          "files_to_modify": [
+            "d3_assessment/coordinator.py",
+            "d3_assessment/cache.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d3_assessment/test_assessment_cache.py"
+          ]
+        },
+        {
+          "id": "GAP-015",
+          "title": "Create analytics materialized views",
+          "domain": "d10_analytics",
+          "priority": "medium",
+          "estimated_hours": 3,
+          "gap_description": "Analytics view SQL exists but materialized views not deployed. Manual aggregation impacts performance.",
+          "current_state": "SQL exists but views not created",
+          "success_criteria": [
+            "Materialized views created in database",
+            "Refresh strategy implemented",
+            "Indexes optimized for queries",
+            "View dependencies managed",
+            "Migration scripts created"
+          ],
+          "implementation_notes": "Add to Alembic migrations, schedule refresh",
+          "files_to_create": [
+            "alembic/versions/004_analytics_views.py"
+          ],
+          "files_to_modify": [
+            "d10_analytics/warehouse.py"
+          ],
+          "test_commands": [
+            "alembic upgrade head",
+            "python3 -m pytest tests/unit/d10_analytics/test_views.py"
+          ]
+        },
+        {
+          "id": "GAP-016",
+          "title": "Implement cost analysis aggregations",
+          "domain": "d10_analytics",
+          "priority": "medium",
+          "estimated_hours": 3,
+          "gap_description": "Cost tracking exists but aggregation for analytics missing. Can't calculate cost per lead or CAC.",
+          "current_state": "Raw cost data exists but not aggregated",
+          "success_criteria": [
+            "Cost per lead calculated accurately",
+            "Customer acquisition cost (CAC) tracked",
+            "API cost breakdown by provider",
+            "Daily cost aggregation",
+            "Cost trends visualization data"
+          ],
+          "implementation_notes": "Build on fct_api_cost table",
+          "files_to_modify": [
+            "d10_analytics/aggregators.py",
+            "d10_analytics/api.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d10_analytics/test_cost_analysis.py"
+          ]
+        },
+        {
+          "id": "GAP-017",
+          "title": "Implement background task processing",
+          "domain": "core",
+          "priority": "medium",
+          "estimated_hours": 6,
+          "gap_description": "No task queue implementation. Long-running tasks block API responses. No async processing.",
+          "current_state": "All processing is synchronous",
+          "success_criteria": [
+            "Celery or similar task queue configured",
+            "Redis as message broker",
+            "Worker processes configured",
+            "Task monitoring dashboard",
+            "Error handling and retries",
+            "Task result storage"
+          ],
+          "implementation_notes": "Use Celery with Redis backend",
+          "files_to_create": [
+            "core/celery.py",
+            "core/tasks.py"
+          ],
+          "files_to_modify": [
+            "requirements.txt"
+          ],
+          "test_commands": [
+            "celery -A core.celery worker --loglevel=info",
+            "python3 -m pytest tests/unit/test_background_tasks.py"
+          ]
+        },
+        {
+          "id": "GAP-018",
+          "title": "Set up comprehensive monitoring",
+          "domain": "monitoring",
+          "priority": "medium",
+          "estimated_hours": 5,
+          "gap_description": "Prometheus metrics defined but not comprehensive. No Grafana dashboards. No alerting rules.",
+          "current_state": "Basic metrics exist but no monitoring system",
+          "success_criteria": [
+            "All domains export Prometheus metrics",
+            "Grafana dashboards for key metrics",
+            "Alerting rules for critical events",
+            "Log aggregation configured",
+            "Performance metrics tracked",
+            "Business metrics visible"
+          ],
+          "implementation_notes": "Use Prometheus + Grafana stack",
+          "files_to_create": [
+            "monitoring/prometheus.yml",
+            "monitoring/alerts.yaml",
+            "monitoring/dashboards/production.json"
+          ],
+          "test_commands": [
+            "prometheus --config.file=monitoring/prometheus.yml",
+            "python3 -m pytest tests/integration/test_metrics_endpoint.py"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Production Readiness",
+      "tasks": [
+        {
+          "id": "GAP-019",
+          "title": "Create production deployment configuration",
+          "domain": "deployment",
+          "priority": "medium",
+          "estimated_hours": 4,
+          "gap_description": "No production deployment configuration. Missing nginx config, systemd services, and production settings.",
+          "current_state": "Development configuration only",
+          "success_criteria": [
+            "Production Docker compose file",
+            "Nginx reverse proxy configuration",
+            "SSL/TLS certificate automation",
+            "Systemd service files",
+            "Environment variable management",
+            "Health check endpoints"
+          ],
+          "implementation_notes": "Use Docker Swarm or Kubernetes",
+          "files_to_create": [
+            "docker-compose.production.yml",
+            "nginx/leadfactory.conf",
+            "systemd/leadfactory.service"
+          ],
+          "test_commands": [
+            "docker-compose -f docker-compose.production.yml config",
+            "nginx -t -c nginx/leadfactory.conf"
+          ]
+        },
+        {
+          "id": "GAP-020",
+          "title": "Implement database backup automation",
+          "domain": "operations",
+          "priority": "medium",
+          "estimated_hours": 3,
+          "gap_description": "Backup scripts exist but not automated. No backup verification or restore testing.",
+          "current_state": "Manual backup scripts only",
+          "success_criteria": [
+            "Automated daily backups",
+            "Backup retention policy",
+            "Backup verification",
+            "Restore testing procedure",
+            "S3 or similar offsite storage",
+            "Monitoring of backup status"
+          ],
+          "implementation_notes": "Use cron and pg_dump, verify with restore test",
+          "files_to_create": [
+            "scripts/backup_automation.sh",
+            "cron/backup.cron"
+          ],
+          "test_commands": [
+            "bash scripts/backup_automation.sh",
+            "bash scripts/restore_test.sh"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Operational Tools",
+      "tasks": [
+        {
+          "id": "GAP-021",
+          "title": "Create admin interface for campaign management",
+          "domain": "admin",
+          "priority": "low",
+          "estimated_hours": 8,
+          "gap_description": "No admin UI for managing campaigns, viewing metrics, or controlling experiments.",
+          "current_state": "API-only interface",
+          "success_criteria": [
+            "Web-based admin interface",
+            "Campaign CRUD operations",
+            "Real-time metrics dashboard",
+            "Experiment management",
+            "User authentication",
+            "Audit logging"
+          ],
+          "implementation_notes": "Use FastAPI + Jinja2 or separate React app",
+          "files_to_create": [
+            "admin/__init__.py",
+            "admin/views.py",
+            "templates/admin/"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/admin/",
+            "python3 -m pytest tests/e2e/test_admin_interface.py"
+          ]
+        },
+        {
+          "id": "GAP-022",
+          "title": "Create API documentation and user guide",
+          "domain": "docs",
+          "priority": "low",
+          "estimated_hours": 4,
+          "gap_description": "FastAPI generates automatic docs but no user guide or integration examples.",
+          "current_state": "Auto-generated docs only",
+          "success_criteria": [
+            "Comprehensive API documentation",
+            "Integration guide with examples",
+            "Authentication documentation",
+            "Rate limiting explained",
+            "Webhook integration guide",
+            "Postman collection"
+          ],
+          "implementation_notes": "Use MkDocs or similar",
+          "files_to_create": [
+            "docs/api_guide.md",
+            "docs/integration_examples.md",
+            "docs/postman_collection.json"
+          ],
+          "test_commands": [
+            "mkdocs serve",
+            "python3 scripts/validate_api_examples.py"
+          ]
+        },
+        {
+          "id": "GAP-023",
+          "title": "Implement log aggregation system",
+          "domain": "logging",
+          "priority": "low",
+          "estimated_hours": 4,
+          "gap_description": "Logging exists but no centralized aggregation. Difficult to debug distributed issues.",
+          "current_state": "File-based logging only",
+          "success_criteria": [
+            "Centralized log collection",
+            "Log parsing and indexing",
+            "Search interface",
+            "Log retention policy",
+            "Alert on error patterns",
+            "Performance impact minimal"
+          ],
+          "implementation_notes": "Use ELK stack or similar",
+          "files_to_create": [
+            "logging/logstash.conf",
+            "logging/filebeat.yml"
+          ],
+          "test_commands": [
+            "filebeat test config",
+            "curl -X GET 'localhost:9200/_cat/indices?v'"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "Performance Optimization",
+      "tasks": [
+        {
+          "id": "GAP-024",
+          "title": "Implement parallel assessment coordination",
+          "domain": "d3_assessment",
+          "priority": "low",
+          "estimated_hours": 3,
+          "gap_description": "Basic assessment coordination exists but not the sophisticated parallel execution described in PRD.",
+          "current_state": "Sequential assessment execution",
+          "success_criteria": [
+            "Parallel execution of assessments",
+            "Configurable concurrency limits",
+            "Timeout handling per assessment",
+            "Error isolation",
+            "Performance improvement > 50%"
+          ],
+          "implementation_notes": "Use asyncio.gather with semaphores",
+          "files_to_modify": [
+            "d3_assessment/coordinator.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d3_assessment/test_coordinator.py",
+            "python3 -m pytest tests/performance/test_assessment_performance.py"
+          ]
+        },
+        {
+          "id": "GAP-025",
+          "title": "Optimize database queries with indexes",
+          "domain": "database",
+          "priority": "low",
+          "estimated_hours": 3,
+          "gap_description": "Database schema exists but performance indexes not comprehensively implemented.",
+          "current_state": "Basic indexes only",
+          "success_criteria": [
+            "Query analysis completed",
+            "Indexes for common queries",
+            "Composite indexes where needed",
+            "Foreign key indexes",
+            "Query performance improved",
+            "Migration scripts created"
+          ],
+          "implementation_notes": "Use EXPLAIN ANALYZE to identify slow queries",
+          "files_to_create": [
+            "alembic/versions/005_performance_indexes.py"
+          ],
+          "test_commands": [
+            "alembic upgrade head",
+            "python3 scripts/analyze_query_performance.py"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 7,
+      "name": "Security Hardening",
+      "tasks": [
+        {
+          "id": "GAP-026",
+          "title": "Implement security headers and CORS",
+          "domain": "security",
+          "priority": "low",
+          "estimated_hours": 2,
+          "gap_description": "Basic security exists but comprehensive headers and CORS not configured.",
+          "current_state": "Minimal security configuration",
+          "success_criteria": [
+            "Security headers configured",
+            "CORS properly restricted",
+            "CSP headers implemented",
+            "Rate limiting by IP",
+            "Request validation enhanced"
+          ],
+          "implementation_notes": "Use FastAPI middleware",
+          "files_to_modify": [
+            "main.py",
+            "core/security.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/security/test_headers.py"
+          ]
+        },
+        {
+          "id": "GAP-027",
+          "title": "Add S3 integration for report storage",
+          "domain": "d6_reports",
+          "priority": "low",
+          "estimated_hours": 3,
+          "gap_description": "Reports stored locally. S3 integration mentioned but not implemented.",
+          "current_state": "Local file storage only",
+          "success_criteria": [
+            "S3 bucket configured",
+            "Report upload on generation",
+            "Signed URLs for access",
+            "Lifecycle policies",
+            "CDN integration optional"
+          ],
+          "implementation_notes": "Use boto3 for S3 operations",
+          "files_to_create": [
+            "d6_reports/s3_storage.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d6_reports/test_s3_storage.py"
+          ]
+        },
+        {
+          "id": "GAP-028",
+          "title": "Implement comprehensive error recovery",
+          "domain": "d11_orchestration",
+          "priority": "low",
+          "estimated_hours": 3,
+          "gap_description": "Basic retry exists but not sophisticated error recovery mechanisms described in PRD.",
+          "current_state": "Simple retry logic only",
+          "success_criteria": [
+            "Dead letter queue for failed tasks",
+            "Exponential backoff",
+            "Error categorization",
+            "Recovery strategies by error type",
+            "Manual intervention interface",
+            "Error metrics and alerting"
+          ],
+          "implementation_notes": "Enhance Prefect error handling",
+          "files_to_modify": [
+            "d11_orchestration/pipeline.py",
+            "d11_orchestration/error_handler.py"
+          ],
+          "test_commands": [
+            "python3 -m pytest tests/unit/d11_orchestration/test_error_recovery.py"
+          ]
+        }
+      ]
+    }
+  ]
+}

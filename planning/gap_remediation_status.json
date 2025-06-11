@@ -1,141 +1,173 @@
 {
-  "last_updated": "2025-06-10T15:25:00.000000",
-  "remediation_started": true,
-  "total_gaps": 15,
+  "last_updated": "2025-06-11T15:32:23.598639",
   "tasks": {
     "GAP-001": {
-      "status": "completed",
-      "title": "Register SendGrid and Stripe providers in Gateway Factory",
-      "priority": "P0",
-      "started_at": "2025-06-10T11:22:15.656348",
-      "completed_at": "2025-06-10T11:31:42.577557",
+      "status": "in_progress",
+      "started_at": "2025-06-11T15:32:23.598633",
+      "completed_at": null,
       "actual_hours": null
     },
     "GAP-002": {
-      "status": "completed",
-      "title": "Add SendGrid methods to Gateway Facade",
-      "priority": "P0",
-      "started_at": "2025-06-10T11:32:04.895932",
-      "completed_at": "2025-06-10T11:44:00.000000",
-      "actual_hours": 0.2
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-003": {
-      "status": "completed",
-      "title": "Add Stripe methods to Gateway Facade",
-      "priority": "P0",
-      "started_at": "2025-06-10T11:44:30.000000",
-      "completed_at": "2025-06-10T11:50:00.000000",
-      "actual_hours": 0.1
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-004": {
-      "status": "completed",
-      "title": "Refactor D2 Sourcing to use Gateway",
-      "priority": "P0",
-      "started_at": "2025-06-10T11:50:25.745152",
-      "completed_at": "2025-06-10T12:02:18.297899",
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
       "actual_hours": null
     },
     "GAP-005": {
-      "status": "completed",
-      "title": "Refactor D7 Storefront to use Gateway",
-      "priority": "P0",
-      "started_at": "2025-06-10T12:02:40.317028",
-      "completed_at": "2025-06-10T12:12:35.927616",
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
       "actual_hours": null
     },
     "GAP-006": {
-      "status": "completed",
-      "title": "Refactor D9 Delivery to use Gateway",
-      "priority": "P0",
-      "started_at": "2025-06-10T12:12:57.522675",
-      "completed_at": "2025-06-10T12:23:30.000000",
-      "actual_hours": 0.18
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-007": {
-      "status": "completed",
-      "title": "Add tests for Gateway base components",
-      "priority": "P1",
-      "started_at": "2025-06-10T12:25:00.000000",
-      "completed_at": "2025-06-10T14:10:00.000000",
-      "actual_hours": 1.75
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-008": {
-      "status": "completed",
-      "title": "Add tests for Circuit Breaker",
-      "priority": "P1",
-      "started_at": "2025-06-10T14:12:00.000000",
-      "completed_at": "2025-06-10T14:30:00.000000",
-      "actual_hours": 0.3
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-009": {
-      "status": "completed",
-      "title": "Add tests for Rate Limiter",
-      "priority": "P1",
-      "started_at": "2025-06-10T14:30:00.000000",
-      "completed_at": "2025-06-10T15:00:00.000000",
-      "actual_hours": 0.5
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-010": {
-      "status": "completed",
-      "title": "Add tests for D7 Checkout Manager",
-      "priority": "P1",
-      "started_at": "2025-06-10T15:00:00.000000",
-      "completed_at": "2025-06-10T15:30:00.000000",
-      "actual_hours": 0.5
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-011": {
-      "status": "completed",
-      "title": "Add tests for D7 Webhook Processing",
-      "priority": "P1",
-      "started_at": "2025-06-10T14:35:00.000000",
-      "completed_at": "2025-06-10T14:45:00.000000",
-      "actual_hours": 0.17
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-012": {
-      "status": "completed",
-      "title": "Add tests for D9 Compliance module",
-      "priority": "P1",
-      "started_at": "2025-06-10T14:48:00.000000",
-      "completed_at": "2025-06-10T14:55:00.000000",
-      "actual_hours": 0.12
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-013": {
-      "status": "completed",
-      "title": "Create missing email template",
-      "priority": "P2",
-      "started_at": "2025-06-10T15:08:14.675145",
-      "completed_at": "2025-06-10T15:15:00.000000",
-      "actual_hours": 0.12
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     },
     "GAP-014": {
-      "status": "completed",
-      "title": "Fix CI linting and type checking",
-      "priority": "P1",
+      "status": "pending",
       "started_at": null,
-      "completed_at": "2025-06-10T15:08:00.412078",
+      "completed_at": null,
       "actual_hours": null
     },
     "GAP-015": {
-      "status": "completed",
-      "title": "Enable integration tests in CI with timeouts",
-      "priority": "P2",
-      "started_at": "2025-06-10T15:15:30.000000",
-      "completed_at": "2025-06-10T15:25:00.000000",
-      "actual_hours": 0.16
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-016": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-017": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-018": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-019": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-020": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-021": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-022": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-023": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-024": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-025": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-026": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-027": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
+    },
+    "GAP-028": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "actual_hours": null
     }
-  },
-  "summary": {
-    "P0_tasks": 6,
-    "P1_tasks": 7,
-    "P2_tasks": 2,
-    "estimated_total_hours": 32.5,
-    "domains_affected": [
-      "d0_gateway",
-      "d2_sourcing",
-      "d7_storefront",
-      "d8_personalization",
-      "d9_delivery",
-      "core"
-    ]
   }
 }

@@ -108,10 +108,7 @@ async def prometheus_metrics():
 async def startup_event():
     """Initialize application on startup"""
     logger.info(
-        "Starting LeadFactory",
-        version=settings.app_version,
-        environment=settings.environment,
-        use_stubs=settings.use_stubs,
+        f"Starting LeadFactory version={settings.app_version} environment={settings.environment} use_stubs={settings.use_stubs}"
     )
 
 
@@ -122,9 +119,23 @@ async def shutdown_event():
     logger.info("Shutting down LeadFactory")
 
 
-# Import and register routers (will be added as we implement domains)
-# from d0_gateway.router import router as gateway_router
-# app.include_router(gateway_router, prefix="/api/v1/gateway", tags=["gateway"])
+# Import and register routers
+from d1_targeting.api import router as targeting_router
+from d3_assessment.api import router as assessment_router
+from d7_storefront.api import router as storefront_router
+from d10_analytics.api import router as analytics_router
+from d11_orchestration.api import router as orchestration_router
+
+# Register domain routers
+app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])
+# Note: d3_assessment already includes prefix in router definition
+app.include_router(assessment_router)
+# Note: d7_storefront already includes prefix in router definition
+app.include_router(storefront_router)
+# Note: d10_analytics already includes prefix in router definition
+app.include_router(analytics_router)
+# Note: d11_orchestration already includes prefix in router definition
+app.include_router(orchestration_router)
 
 
 if __name__ == "__main__":
