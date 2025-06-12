@@ -175,3 +175,15 @@ production_readiness_report.json
 deploy/
 dist/
 *.tar.gz
+
+# Test results
+test-results/
+*.test.json
+*_test_*.json
+deployment_test_*.json
+api_smoke_test_*.json
+
+# Temporary test files
+test_*.py
+verify_*.py
+check_*.py

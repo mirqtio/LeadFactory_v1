@@ -146,7 +146,14 @@ class BaseAPIClient(ABC):
                 )
 
             # Parse successful response
-            response_data = response.json()
+            # SendGrid returns empty body for 202 status
+            if response.status_code == 202 and not response.text:
+                response_data = {
+                    "status": "accepted",
+                    "message_id": response.headers.get("x-message-id", ""),
+                }
+            else:
+                response_data = response.json()
 
             # Record successful request
             self.circuit_breaker.record_success()

@@ -17,7 +17,7 @@ import pytest
 
 sys.path.insert(0, "/app")
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from d4_enrichment.models import (DataVersion, EnrichmentAuditLog,
@@ -56,7 +56,7 @@ class TestTask040AcceptanceCriteria:
             session.rollback()
             # Clear all data from all tables to ensure test isolation
             for table in reversed(Base.metadata.sorted_tables):
-                session.execute(table.delete())
+                session.execute(text(f"DELETE FROM {table.name}"))
             session.commit()
             session.close()
 

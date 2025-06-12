@@ -2,8 +2,6 @@
 Stub server to mock external APIs for testing
 Implements Yelp, Google PageSpeed, Stripe, SendGrid, OpenAI, Data Axle, and Hunter endpoints
 """
-import core.observability  # noqa: F401  (must be first import)
-
 import json
 import os
 import random
@@ -16,16 +14,7 @@ from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-# Import Data Axle and Hunter stub routers
-from stubs.dataaxle import router as dataaxle_router
-from stubs.hunter import router as hunter_router
-
 app = FastAPI(title="LeadFactory Stub Server", version="1.0.0")
-
-# Include Data Axle routes
-app.include_router(dataaxle_router, prefix="")
-# Include Hunter routes
-app.include_router(hunter_router, prefix="")
 
 # Configuration
 USE_STUBS = os.getenv("USE_STUBS", "true").lower() == "true"
@@ -312,6 +301,90 @@ async def stripe_create_checkout(
     }
 
 
+@app.get("/v1/charges")
+async def stripe_list_charges(
+    limit: int = 10,
+    starting_after: Optional[str] = None,
+    ending_before: Optional[str] = None,
+    authorization: str = Header(None),
+):
+    """Mock Stripe charges list"""
+    if not USE_STUBS:
+        raise HTTPException(status_code=503, detail="Stub server disabled")
+
+    charges = []
+    for i in range(min(limit, 5)):
+        charges.append(
+            {
+                "id": f"ch_test_stub_{i}",
+                "object": "charge",
+                "amount": random.randint(1000, 50000),
+                "amount_captured": random.randint(1000, 50000),
+                "amount_refunded": 0,
+                "application": None,
+                "application_fee": None,
+                "application_fee_amount": None,
+                "balance_transaction": f"txn_test_stub_{i}",
+                "billing_details": {
+                    "address": {
+                        "city": "Austin",
+                        "country": "US",
+                        "line1": "123 Main St",
+                        "line2": None,
+                        "postal_code": "78701",
+                        "state": "TX",
+                    },
+                    "email": f"customer{i}@example.com",
+                    "name": f"Test Customer {i}",
+                    "phone": None,
+                },
+                "captured": True,
+                "created": int(datetime.utcnow().timestamp()) - (i * 86400),
+                "currency": "usd",
+                "customer": f"cus_test_stub_{i}",
+                "description": f"Charge for order #{i}",
+                "disputed": False,
+                "failure_code": None,
+                "failure_message": None,
+                "fraud_details": {},
+                "invoice": None,
+                "livemode": False,
+                "metadata": {"order_id": f"order_{i}"},
+                "outcome": {
+                    "network_status": "approved_by_network",
+                    "reason": None,
+                    "risk_level": "normal",
+                    "risk_score": 32,
+                    "seller_message": "Payment complete.",
+                    "type": "authorized",
+                },
+                "paid": True,
+                "payment_intent": f"pi_test_stub_{i}",
+                "payment_method": f"pm_test_stub_{i}",
+                "receipt_email": f"customer{i}@example.com",
+                "receipt_number": None,
+                "receipt_url": f"https://pay.stripe.com/receipts/stub_{i}",
+                "refunded": False,
+                "refunds": {"object": "list", "data": [], "has_more": False, "url": "/v1/charges/ch_test_stub_{i}/refunds"},
+                "review": None,
+                "shipping": None,
+                "source_transfer": None,
+                "statement_descriptor": None,
+                "statement_descriptor_suffix": None,
+                "status": "succeeded",
+                "transfer_data": None,
+                "transfer_group": None,
+            }
+        )
+
+    return {
+        "object": "list",
+        "data": charges,
+        "has_more": len(charges) == limit,
+        "url": "/v1/charges",
+    }
+
+
 # SendGrid endpoints
 class SendGridMail(BaseModel):
     personalizations: List[Dict[str, Any]]
@@ -336,6 +409,61 @@ async def sendgrid_send(mail: SendGridMail, authorization: str = Header(None)):
         status_code=202,
         headers={"X-Message-Id": f"stub-msg-{datetime.utcnow().timestamp()}"},
     )
+
+
+@app.get("/v3/stats")
+async def sendgrid_stats(
+    start_date: str,
+    end_date: Optional[str] = None,
+    aggregated_by: str = "day",
+    authorization: str = Header(None),
+):
+    """Mock SendGrid stats endpoint"""
+    if not USE_STUBS:
+        raise HTTPException(status_code=503, detail="Stub server disabled")
+
+    # Generate mock stats
+    stats = []
+    current = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d") if end_date else datetime.now()
+
+    while current <= end:
+        stats.append(
+            {
+                "date": current.strftime("%Y-%m-%d"),
+                "stats": [
+                    {
+                        "metrics": {
+                            "blocks": random.randint(0, 5),
+                            "bounce_drops": random.randint(0, 3),
+                            "bounces": random.randint(0, 10),
+                            "clicks": random.randint(50, 200),
+                            "deferred": random.randint(0, 5),
+                            "delivered": random.randint(900, 1000),
+                            "invalid_emails": random.randint(0, 2),
+                            "opens": random.randint(200, 400),
+                            "processed": random.randint(950, 1000),
+                            "requests": random.randint(950, 1000),
+                            "spam_report_drops": random.randint(0, 1),
+                            "spam_reports": random.randint(0, 3),
+                            "unique_clicks": random.randint(40, 150),
+                            "unique_opens": random.randint(150, 300),
+                            "unsubscribe_drops": random.randint(0, 2),
+                            "unsubscribes": random.randint(0, 5),
+                        }
+                    }
+                ],
+            }
+        )
+        # Move to next period
+        if aggregated_by == "day":
+            current += timedelta(days=1)
+        elif aggregated_by == "week":
+            current += timedelta(days=7)
+        elif aggregated_by == "month":
+            current += timedelta(days=30)
+
+    return {"stats": stats}
 
 
 # OpenAI endpoints

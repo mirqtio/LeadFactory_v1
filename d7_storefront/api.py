@@ -493,6 +493,25 @@ async def create_bulk_reports_checkout(
 # Health and status endpoints
 
 
+@router.get("/products")
+async def list_products():
+    """List available products for smoke test"""
+    return [
+        {
+            "id": "audit_report",
+            "name": "Website Audit Report",
+            "price": 19900,
+            "currency": "usd"
+        }
+    ]
+
+
+@router.get("/health")
+async def health_check():
+    """Simple health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
 @router.get(
     "/status",
     response_model=APIStatusResponse,

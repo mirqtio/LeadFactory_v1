@@ -66,7 +66,7 @@ services:
     volumes:
       - ./stubs:/app/stubs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5010/health"]
+      test: ["CMD", "python", "-c", "import httpx; r = httpx.get('http://localhost:5010/health'); exit(0 if r.status_code == 200 else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -85,10 +85,19 @@ services:
       ENVIRONMENT: development
       DATABASE_URL: postgresql://leadfactory:leadfactory_dev@db:5432/leadfactory_dev
       REDIS_URL: redis://redis:6379/0
-      USE_STUBS: true
+      USE_STUBS: false
       STUB_BASE_URL: http://stub-server:5010
       SECRET_KEY: dev-secret-key-change-in-production
       LOG_LEVEL: INFO
+      # Real API Keys
+      YELP_API_KEY: ${YELP_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRICE_ID: ${STRIPE_PRICE_ID}
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_TRACE_RATE: ${SENTRY_TRACE_RATE:-0.20}
       LF_ENV: ${LF_ENV:-local}

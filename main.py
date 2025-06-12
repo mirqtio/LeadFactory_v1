@@ -128,6 +128,7 @@ from d3_assessment.api import router as assessment_router
 from d7_storefront.api import router as storefront_router
 from d10_analytics.api import router as analytics_router
 from d11_orchestration.api import router as orchestration_router
+from d11_orchestration.campaign_api import router as campaign_router
 
 # Register domain routers
 app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])
@@ -139,6 +140,8 @@ app.include_router(storefront_router)
 app.include_router(analytics_router)
 # Note: d11_orchestration already includes prefix in router definition
 app.include_router(orchestration_router)
+# Campaign management endpoints
+app.include_router(campaign_router)
 
 
 if __name__ == "__main__":

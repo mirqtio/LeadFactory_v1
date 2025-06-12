@@ -57,8 +57,8 @@ class Settings(BaseSettings):
     hunter_rate_limit_per_min: int = Field(default=30)
 
     # Email settings
-    from_email: str = Field(default="noreply@leadfactory.com")
-    from_name: str = Field(default="LeadFactory")
+    from_email: str = Field(default="hello@anthrasite.io")
+    from_name: str = Field(default="Anthrasite")
 
     # API Limits
     max_daily_emails: int = Field(default=100)
@@ -165,6 +165,7 @@ class Settings(BaseSettings):
         keys = {
             "yelp": self.yelp_api_key,
             "google": self.google_api_key,
+            "pagespeed": self.google_api_key,  # PageSpeed uses Google API key
             "stripe": self.stripe_secret_key,
             "sendgrid": self.sendgrid_api_key,
             "openai": self.openai_api_key,

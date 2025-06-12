@@ -225,6 +225,19 @@ class TemplateEngine:
 
     def _load_default_templates(self) -> None:
         """Load default report templates"""
+        
+        # Try to load audit_report.html from templates directory
+        templates_dir = Path(__file__).parent.parent / "templates"
+        audit_report_path = templates_dir / "audit_report.html"
+        
+        if audit_report_path.exists():
+            try:
+                with open(audit_report_path, 'r', encoding='utf-8') as f:
+                    audit_report_content = f.read()
+                self.loader.add_template("audit_report", audit_report_content)
+                logger.info(f"Loaded audit_report.html from {audit_report_path}")
+            except Exception as e:
+                logger.error(f"Failed to load audit_report.html: {e}")
 
         # Basic report template
         basic_template = """

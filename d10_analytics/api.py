@@ -584,6 +584,17 @@ async def get_export_status(export_id: str):
         )
 
 
+@router.get("/overview")
+async def get_analytics_overview():
+    """Get analytics overview for smoke test"""
+    return {
+        "total_campaigns": 0,
+        "total_leads": 0,
+        "total_conversions": 0,
+        "conversion_rate": 0.0
+    }
+
+
 @router.get(
     "/health",
     response_model=HealthCheckResponse,

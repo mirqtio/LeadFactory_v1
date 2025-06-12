@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field, validator
 
 from .models import (ExperimentStatus, PipelineRunStatus, PipelineType,
                      VariantType)
+from d1_targeting.types import CampaignStatus
 
 # Request/Response schemas for Pipeline API
 
@@ -491,3 +492,45 @@ class HealthResponse(BaseModel):
         default_factory=datetime.utcnow, description="Health check timestamp"
     )
     components: Dict[str, str] = Field(..., description="Component health status")
+
+
+
+# Campaign Management Schemas
+class CampaignCreate(BaseModel):
+    """Schema for creating a campaign"""
+    name: str = Field(..., min_length=1, max_length=255)
+    vertical: str = Field(..., min_length=1, max_length=50)
+    geo_targets: List[str] = Field(..., min_items=1)
+    daily_quota: int = Field(..., ge=1, le=1000)
+    status: Optional[CampaignStatus] = Field(default=CampaignStatus.DRAFT)
+
+
+class CampaignUpdate(BaseModel):
+    """Schema for updating a campaign"""
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    vertical: Optional[str] = Field(None, min_length=1, max_length=50)
+    geo_targets: Optional[List[str]] = Field(None, min_items=1)
+    daily_quota: Optional[int] = Field(None, ge=1, le=1000)
+    status: Optional[CampaignStatus] = None
+
+
+class CampaignResponse(BaseModel):
+    """Schema for campaign response"""
+    id: str
+    name: str
+    vertical: str
+    geo_targets: List[str]
+    daily_quota: int
+    status: CampaignStatus
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class CampaignListResponse(BaseModel):
+    """Schema for campaign list response"""
+    campaigns: List[CampaignResponse]
+    total: int
+    limit: int
+    offset: int

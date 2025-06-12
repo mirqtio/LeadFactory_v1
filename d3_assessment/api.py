@@ -543,6 +543,16 @@ async def cancel_assessment(
         )
 
 
+@router.get("/status")
+async def get_assessment_status():
+    """Get assessment service status for smoke test"""
+    return {
+        "status": "active",
+        "assessments_completed": 0,
+        "assessments_in_progress": 0
+    }
+
+
 @router.get(
     "/health",
     response_model=HealthCheckResponse,

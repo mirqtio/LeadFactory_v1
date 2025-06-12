@@ -15,6 +15,9 @@ class YelpClient(BaseAPIClient):
 
     def _get_base_url(self) -> str:
         """Get Yelp API base URL"""
+        # BaseAPIClient already handles stub URL, only return real URL if not using stubs
+        if hasattr(self, 'base_url') and self.base_url:
+            return self.base_url
         return "https://api.yelp.com"
 
     def _get_headers(self) -> Dict[str, str]:
