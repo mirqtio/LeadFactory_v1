@@ -39,3 +39,6 @@ pre-commit==3.5.0
 
 # Load testing
 locust==2.19.1
+
+# Additional dependencies for Prefect
+griffe==0.38.1

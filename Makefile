@@ -1,8 +1,11 @@
-.PHONY: help install test lint format clean docker-build docker-test run-stubs
+.PHONY: help install test lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test
 
 # Default target
 help:
-	@echo "LeadFactory Development Commands:"
+	@echo "LeadFactory Commands"
+	@echo "===================="
+	@echo ""
+	@echo "Development:"
 	@echo "  make install      - Install dependencies"
 	@echo "  make test         - Run tests locally"
 	@echo "  make docker-test  - Run tests in Docker"
@@ -11,7 +14,21 @@ help:
 	@echo "  make clean        - Clean temporary files"
 	@echo "  make run-stubs    - Run stub server"
 	@echo "  make run          - Run development server"
+	@echo ""
+	@echo "Production Testing:"
+	@echo "  make smoke        - Run smoke tests only"
+	@echo "  make heartbeat    - Run heartbeat checks only"
+	@echo "  make prod-test    - Run full production readiness suite"
+	@echo ""
+	@echo "Database:"
 	@echo "  make db-upgrade   - Run database migrations"
+	@echo "  make db-downgrade - Rollback last migration"
+	@echo "  make db-history   - Show migration history"
+	@echo ""
+	@echo "Deployment:"
+	@echo "  make check-env    - Validate environment configuration"
+	@echo "  make deploy-local - Deploy to local production (with tests)"
+	@echo "  make schedule-tests - Schedule Prefect test flows"
 
 # Install dependencies
 install:
@@ -86,3 +103,48 @@ ci-local:
 	make lint
 	make docker-test
 	@echo "CI pipeline passed!"
+
+# Production testing commands
+smoke:
+	@echo "Running smoke tests..."
+	python scripts/run_production_tests.py --smoke-only
+
+heartbeat:
+	@echo "Running heartbeat checks..."
+	python scripts/run_production_tests.py --heartbeat-only
+
+prod-test:
+	@echo "Running full production readiness tests..."
+	python scripts/run_production_tests.py
+
+# Environment validation
+check-env:
+	@echo "Checking environment configuration..."
+	@python scripts/validate_config.py || echo "Config validation script not found"
+
+# Local production deployment
+deploy-local: prod-test
+	@echo "Tests passed! Starting production services..."
+	docker-compose -f docker-compose.production.yml up -d
+	@echo "Production services started!"
+	@echo "Access the app at http://localhost:8000"
+
+# Prefect scheduling
+schedule-tests:
+	@echo "Setting up Prefect scheduled tests..."
+	python scripts/prefect_schedule_tests.py
+
+start-agent:
+	@echo "Starting Prefect agent..."
+	prefect agent start -q leadfactory
+
+# Production monitoring
+prod-logs:
+	@echo "Tailing production logs..."
+	docker-compose -f docker-compose.production.yml logs -f app
+
+prod-status:
+	@echo "Checking production status..."
+	@curl -s http://localhost:8000/health || echo "Service not responding"
+	@echo ""
+	@docker-compose -f docker-compose.production.yml ps
