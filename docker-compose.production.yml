@@ -285,6 +285,31 @@ services:
     networks:
       - leadfactory-network
 
+  # Smoke test runner
+  smoke-tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: leadfactory-smoke-tester
+    environment:
+      <<: *dd_env
+      ENVIRONMENT: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      API_BASE_URL: http://leadfactory-api:8000
+      DATADOG_API_KEY: ${DATADOG_API_KEY}
+      DATADOG_APP_KEY: ${DATADOG_APP_KEY}
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./smoke_test_results.xml:/app/smoke_test_results.xml
+    depends_on:
+      leadfactory-api:
+        condition: service_healthy
+    networks:
+      - leadfactory-network
+    profiles:
+      - smoke
+
 # Named volumes for persistent data
 volumes:
   postgres_data:

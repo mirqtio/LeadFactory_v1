@@ -1,0 +1,91 @@
+name: Production Smoke Tests
+
+on:
+  schedule:
+    # Run daily at 8:30 PM UTC (before nightly batch)
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Deploy to Production"]
+    types:
+      - completed
+
+env:
+  DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+  DATADOG_APP_KEY: ${{ secrets.DATADOG_APP_KEY }}
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install httpx pytest pytest-asyncio
+        
+    - name: Run smoke tests
+      env:
+        API_BASE_URL: ${{ secrets.PRODUCTION_API_URL }}
+        DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        REDIS_URL: ${{ secrets.PRODUCTION_REDIS_URL }}
+        YELP_API_KEY: ${{ secrets.YELP_API_KEY }}
+        GOOGLE_PAGESPEED_API_KEY: ${{ secrets.GOOGLE_PAGESPEED_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      run: |
+        cd tests/smoke_prod
+        python runner.py
+        
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: smoke-test-results
+        path: tests/smoke_prod/smoke_test_results.xml
+        
+    - name: Publish test results
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: tests/smoke_prod/smoke_test_results.xml
+        
+    - name: Notify on failure
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: 'Production smoke tests failed! Check the results.'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  docker-smoke-test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run smoke tests in Docker
+      env:
+        DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+        DATADOG_APP_KEY: ${{ secrets.DATADOG_APP_KEY }}
+      run: |
+        # Run smoke tests using docker compose
+        docker compose -f docker-compose.production.yml --profile smoke run --rm smoke-tester python3 tests/smoke_prod/runner.py
+        
+    - name: Upload Docker test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: docker-smoke-test-results
+        path: smoke_test_results.xml
