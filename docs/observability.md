@@ -20,9 +20,10 @@
    ```
 
 4. **View your data**
-   - Open [Datadog Infrastructure → Containers](https://app.datadoghq.com/containers)
+   - Open [Datadog Infrastructure → Containers](https://us5.datadoghq.com/containers)
    - All LeadFactory services should appear within ~30 seconds
    - Container metrics, logs, and traces are automatically collected
+   - Note: If using a different Datadog site (EU, US3, etc.), update DD_SITE in docker-compose.yml
 
 ## What's Monitored
 
