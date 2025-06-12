@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<testsuites>
+  <testsuite name="LeadFactory Smoke Tests" timestamp="2025-06-12T07:21:01.901859" tests="12" failures="11" errors="0">
+    <testcase classname="SmokeTest" name="d0_gateway">
+      <failure message="yelp API error: All connection attempts failed">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;yelp API error: All connection attempts failed&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d1_targeting">
+      <failure message="'Settings' object has no attribute 'API_BASE_URL'">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;'Settings' object has no attribute 'API_BASE_URL'&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d2_sourcing">
+      <failure message="cannot import name 'SourcingResult' from 'd2_sourcing.models' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d2_sourcing/models.py)">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;cannot import name 'SourcingResult' from 'd2_sourcing.models' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d2_sourcing/models.py)&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d3_assessment">
+      <failure message="'Settings' object has no attribute 'API_BASE_URL'">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;'Settings' object has no attribute 'API_BASE_URL'&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d4_enrichment"/>
+    <testcase classname="SmokeTest" name="d5_scoring">
+      <failure message="cannot import name 'ScoringEngine' from 'd5_scoring.engine' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d5_scoring/engine.py)">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;cannot import name 'ScoringEngine' from 'd5_scoring.engine' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d5_scoring/engine.py)&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d6_reports">
+      <failure message="cannot import name 'ReportRequest' from 'd6_reports.models' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d6_reports/models.py)">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;cannot import name 'ReportRequest' from 'd6_reports.models' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d6_reports/models.py)&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d7_storefront">
+      <failure message="'Settings' object has no attribute 'API_BASE_URL'">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;'Settings' object has no attribute 'API_BASE_URL'&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d8_personalization">
+      <failure message="cannot import name 'PersonalizationRequest' from 'd8_personalization.models' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d8_personalization/models.py)">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;cannot import name 'PersonalizationRequest' from 'd8_personalization.models' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d8_personalization/models.py)&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d9_delivery">
+      <failure message="cannot import name 'ComplianceChecker' from 'd9_delivery.compliance' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d9_delivery/compliance.py)">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;cannot import name 'ComplianceChecker' from 'd9_delivery.compliance' (/Users/charlieirwin/Documents/GitHub/Anthrasite_LeadFactory_v1/d9_delivery/compliance.py)&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d10_analytics">
+      <failure message="'Settings' object has no attribute 'API_BASE_URL'">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;'Settings' object has no attribute 'API_BASE_URL'&quot;
+}</failure>
+    </testcase>
+    <testcase classname="SmokeTest" name="d11_orchestration">
+      <failure message="'Settings' object has no attribute 'API_BASE_URL'">{
+  &quot;status&quot;: &quot;FAIL&quot;,
+  &quot;error&quot;: &quot;'Settings' object has no attribute 'API_BASE_URL'&quot;
+}</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

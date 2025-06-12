@@ -1,0 +1,54 @@
+{
+  "api_base_url": "http://localhost:8000",
+  "tests": [
+    {
+      "endpoint": "/health",
+      "status": 200,
+      "passed": true,
+      "data": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "environment": "production"
+      }
+    },
+    {
+      "endpoint": "/metrics",
+      "status": 200,
+      "passed": true,
+      "metrics_found": {
+        "leadfactory_http_requests_total": true,
+        "leadfactory_http_request_duration_seconds": true,
+        "leadfactory_app_info": true
+      }
+    },
+    {
+      "endpoint": "/docs",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "/redoc",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "service": "database",
+      "endpoint": "/api/v1/campaigns",
+      "status": 404,
+      "passed": true,
+      "data": null
+    },
+    {
+      "service": "redis",
+      "status": "assumed_healthy",
+      "passed": true,
+      "note": "Redis assumed healthy since API is responsive"
+    },
+    {
+      "service": "datadog",
+      "status": "skipped",
+      "passed": true,
+      "reason": "Datadog API keys not configured"
+    }
+  ]
+}

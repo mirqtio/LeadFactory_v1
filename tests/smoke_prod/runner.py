@@ -17,6 +17,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 from core.logging import get_logger
 from core.config import get_settings
+import os
+
+# Set default API base URL
+os.environ.setdefault("API_BASE_URL", "http://localhost:8000")
 from database.session import get_db
 from d0_gateway.facade import get_gateway_facade
 
@@ -171,10 +175,11 @@ class SmokeTestRunner:
         logger.info("Testing D1 Targeting...")
         
         try:
+            api_base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
             async with httpx.AsyncClient() as client:
                 # List targets
                 response = await client.get(
-                    f"{settings.API_BASE_URL}/api/v1/targets",
+                    f"{api_base_url}/api/v1/targets",
                     params={"limit": 1}
                 )
                 
@@ -218,10 +223,11 @@ class SmokeTestRunner:
         logger.info("Testing D3 Assessment...")
         
         try:
+            api_base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
             async with httpx.AsyncClient() as client:
                 # Get assessment status
                 response = await client.get(
-                    f"{settings.API_BASE_URL}/api/v1/assessments/status"
+                    f"{api_base_url}/api/v1/assessments/status"
                 )
                 
                 self.results["domains"]["d3_assessment"] = {
@@ -258,7 +264,7 @@ class SmokeTestRunner:
         logger.info("Testing D5 Scoring...")
         
         try:
-            from d5_scoring.engine import ScoringEngine
+            from d5_scoring.engine import ScoreEngine as ScoringEngine
             from d5_scoring.types import BusinessData, AssessmentData
             
             engine = ScoringEngine()
@@ -325,10 +331,11 @@ class SmokeTestRunner:
         logger.info("Testing D7 Storefront...")
         
         try:
+            api_base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
             async with httpx.AsyncClient() as client:
                 # Get products
                 response = await client.get(
-                    f"{settings.API_BASE_URL}/api/v1/storefront/products"
+                    f"{api_base_url}/api/v1/storefront/products"
                 )
                 
                 self.results["domains"]["d7_storefront"] = {
@@ -379,7 +386,7 @@ class SmokeTestRunner:
         
         try:
             from d9_delivery.models import EmailDelivery
-            from d9_delivery.compliance import ComplianceChecker
+            from d9_delivery.compliance import EmailComplianceChecker as ComplianceChecker
             
             # Test compliance checker
             checker = ComplianceChecker()
@@ -401,10 +408,11 @@ class SmokeTestRunner:
         logger.info("Testing D10 Analytics...")
         
         try:
+            api_base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
             async with httpx.AsyncClient() as client:
                 # Get analytics overview
                 response = await client.get(
-                    f"{settings.API_BASE_URL}/api/v1/analytics/overview"
+                    f"{api_base_url}/api/v1/analytics/overview"
                 )
                 
                 self.results["domains"]["d10_analytics"] = {
@@ -423,10 +431,11 @@ class SmokeTestRunner:
         logger.info("Testing D11 Orchestration...")
         
         try:
+            api_base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
             async with httpx.AsyncClient() as client:
                 # Get campaigns
                 response = await client.get(
-                    f"{settings.API_BASE_URL}/api/v1/campaigns",
+                    f"{api_base_url}/api/v1/campaigns",
                     params={"limit": 1}
                 )
                 
@@ -446,9 +455,10 @@ class SmokeTestRunner:
         logger.info("Verifying metrics...")
         
         try:
+            api_base_url = os.getenv("API_BASE_URL", "http://localhost:8000")
             async with httpx.AsyncClient() as client:
                 # Check metrics endpoint
-                response = await client.get(f"{settings.API_BASE_URL}/metrics")
+                response = await client.get(f"{api_base_url}/metrics")
                 
                 if response.status_code == 200:
                     metrics_text = response.text
