@@ -40,6 +40,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      com.datadoghq.ad.check_names: '["redisdb"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: |
+        [
+          {"host":"%%host%%","port":"6379"}
+        ]
 
   # Stub server for mocking external APIs
   stub-server:
@@ -146,7 +153,7 @@ services:
       - DD_LOGS_ENABLED=true
       - DD_APM_ENABLED=true
       - DD_PROCESS_AGENT_ENABLED=true
-      - DD_CONTAINER_EXCLUDE="name:datadog"
+      - DD_CONTAINER_EXCLUDE=name:datadog
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /proc:/host/proc:ro
