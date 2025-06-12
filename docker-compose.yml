@@ -1,11 +1,17 @@
 version: '3.8'
 
+# Common Datadog environment variables
+x-dd-env: &dd_env
+  DD_AGENT_HOST: datadog
+  DD_ENV: ${LF_ENV:-local}
+
 services:
   # PostgreSQL database for development
   db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
+      <<: *dd_env
       POSTGRES_USER: leadfactory
       POSTGRES_PASSWORD: leadfactory_dev
       POSTGRES_DB: leadfactory_dev
@@ -23,6 +29,8 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    environment:
+      <<: *dd_env
     ports:
       - "6379:6379"
     volumes:
@@ -42,8 +50,9 @@ services:
     ports:
       - "5010:5010"
     environment:
-      - USE_STUBS=true
-      - STUB_DELAY_MS=50
+      <<: *dd_env
+      USE_STUBS: true
+      STUB_DELAY_MS: 50
     volumes:
       - ./stubs:/app/stubs
     healthcheck:
@@ -62,13 +71,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://leadfactory:leadfactory_dev@db:5432/leadfactory_dev
-      - REDIS_URL=redis://redis:6379/0
-      - USE_STUBS=true
-      - STUB_BASE_URL=http://stub-server:5010
-      - SECRET_KEY=dev-secret-key-change-in-production
-      - LOG_LEVEL=INFO
+      <<: *dd_env
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql://leadfactory:leadfactory_dev@db:5432/leadfactory_dev
+      REDIS_URL: redis://redis:6379/0
+      USE_STUBS: true
+      STUB_BASE_URL: http://stub-server:5010
+      SECRET_KEY: dev-secret-key-change-in-production
+      LOG_LEVEL: INFO
     depends_on:
       db:
         condition: service_healthy
@@ -103,8 +113,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
+      <<: *dd_env
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
     volumes:
       - grafana-data:/var/lib/grafana
     depends_on:
@@ -117,6 +128,26 @@ services:
     ports:
       - "1025:1025"  # SMTP server
       - "8025:8025"  # Web UI
+
+  # Datadog Agent
+  datadog:
+    image: gcr.io/datadoghq/agent:7
+    container_name: datadog
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_SITE=datadoghq.com
+      - DD_ENV=${LF_ENV:-local}
+      - DD_LOGS_ENABLED=true
+      - DD_APM_ENABLED=true
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_CONTAINER_EXCLUDE="name:datadog"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+    ports:
+      - "8126:8126"
+    restart: unless-stopped
 
 volumes:
   postgres-data:

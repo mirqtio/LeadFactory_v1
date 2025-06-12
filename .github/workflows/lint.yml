@@ -18,6 +18,11 @@ jobs:
       with:
         python-version: "3.11.0"
     
+    - name: Validate docker-compose files
+      run: |
+        docker compose -f docker-compose.yml config > /dev/null
+        docker compose -f docker-compose.production.yml config > /dev/null
+    
     - name: Cache dependencies
       uses: actions/cache@v3
       with:
