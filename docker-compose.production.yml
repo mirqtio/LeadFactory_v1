@@ -38,7 +38,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python3", "/app/scripts/health_check.py", "--endpoint", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -68,7 +68,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-leadfactory}
       - POSTGRES_USER=${POSTGRES_USER:-leadfactory}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     ports:
       - "5432:5432"
     volumes:
@@ -180,7 +180,7 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     ports:
-      - "3001:3000"  # Avoid conflict with app Grafana port
+      - "3002:3000"  # Changed to avoid port conflict
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/dashboards:/var/lib/grafana/dashboards:ro
@@ -261,4 +261,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.25.0.0/16

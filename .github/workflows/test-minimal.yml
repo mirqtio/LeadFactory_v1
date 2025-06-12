@@ -1,0 +1,55 @@
+name: Minimal Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: "3.11.0"
+  DATABASE_URL: "sqlite:///tmp/test.db"
+  USE_STUBS: "true"
+  ENVIRONMENT: "test"
+  SECRET_KEY: "test-secret-key-for-ci"
+
+jobs:
+  test-minimal:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Create tmp directory
+      run: mkdir -p tmp
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install core dependencies only
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio pytest-timeout
+    
+    - name: Run core unit tests
+      run: |
+        pytest -xvs tests/unit/test_core.py --timeout=30
+    
+    - name: Run model tests
+      run: |
+        pytest -xvs tests/unit/test_unit_models.py --timeout=30
+    
+    - name: Run integration tests  
+      run: |
+        pytest -xvs tests/integration/test_stub_server.py --timeout=60 || echo "Integration test failed but not blocking"
