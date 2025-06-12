@@ -55,6 +55,7 @@ services:
       STUB_DELAY_MS: 50
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_TRACE_RATE: ${SENTRY_TRACE_RATE:-0.20}
+      LF_ENV: ${LF_ENV:-local}
     volumes:
       - ./stubs:/app/stubs
     healthcheck:
@@ -83,6 +84,7 @@ services:
       LOG_LEVEL: INFO
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_TRACE_RATE: ${SENTRY_TRACE_RATE:-0.20}
+      LF_ENV: ${LF_ENV:-local}
     depends_on:
       db:
         condition: service_healthy

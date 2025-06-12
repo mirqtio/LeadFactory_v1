@@ -33,6 +33,7 @@ services:
       GRAFANA_PORT: 3000
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_TRACE_RATE: ${SENTRY_TRACE_RATE:-0.20}
+      LF_ENV: ${LF_ENV:-production}
     ports:
       - "8000:8000"
       - "9090:9090"  # Prometheus metrics
