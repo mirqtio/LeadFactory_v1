@@ -53,6 +53,8 @@ services:
       <<: *dd_env
       USE_STUBS: true
       STUB_DELAY_MS: 50
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACE_RATE: ${SENTRY_TRACE_RATE:-0.20}
     volumes:
       - ./stubs:/app/stubs
     healthcheck:
@@ -79,6 +81,8 @@ services:
       STUB_BASE_URL: http://stub-server:5010
       SECRET_KEY: dev-secret-key-change-in-production
       LOG_LEVEL: INFO
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACE_RATE: ${SENTRY_TRACE_RATE:-0.20}
     depends_on:
       db:
         condition: service_healthy

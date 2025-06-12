@@ -1,6 +1,9 @@
 """
 Main FastAPI application entry point
 """
+# Initialize Sentry before anything else
+import core.observability  # noqa: F401  (must be first import)
+
 import time
 
 import uvicorn

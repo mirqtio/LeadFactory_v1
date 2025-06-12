@@ -85,3 +85,46 @@ This tags all metrics, logs, and traces with the environment for easy filtering.
 - **Missing containers?** Ensure Docker socket is mounted correctly
 - **No logs?** Verify `DD_LOGS_ENABLED=true` is set
 - **APM not working?** Applications need instrumentation libraries installed
+
+## Sentry Error Tracking
+
+### Quick Start
+
+1. **Get your Sentry DSN**
+   - Sign in to [Sentry](https://sentry.io)
+   - Navigate to Settings → Projects → Your Project → Client Keys (DSN)
+   - Copy the DSN (format: `https://xxx@yyy.ingest.sentry.io/zzz`)
+
+2. **Configure your environment**
+   ```bash
+   echo "SENTRY_DSN=your-dsn-here" >> .env
+   # Optional: adjust trace sampling rate (default: 20%)
+   echo "SENTRY_TRACE_RATE=0.20" >> .env  # 0.0 to 1.0
+   ```
+
+3. **Restart services**
+   ```bash
+   docker compose down
+   docker compose up -d --build
+   ```
+
+### What's Captured
+
+- **Errors**: All unhandled exceptions and logs ≥ ERROR level
+- **Performance**: 20% of transactions sampled by default
+- **Context**: Environment (local/staging/production), release version
+- **Integrations**: FastAPI routes, async tasks, database queries
+
+### Environment Variables
+
+- `SENTRY_DSN`: Your project DSN (required for Sentry to work)
+- `SENTRY_TRACE_RATE`: Performance trace sampling rate 0.0-1.0 (default: 0.20 = 20%)
+- `LF_ENV`: Environment name shown in Sentry (default: local)
+- `GIT_SHA`: Release version for tracking deployments (default: dev)
+
+### Sentry Dashboards
+
+Once configured, view your data at:
+- **[Issues](https://sentry.io/organizations/<org-slug>/issues/)**: Real-time error tracking
+- **[Performance](https://sentry.io/organizations/<org-slug>/performance/)**: Transaction monitoring
+- **[Releases](https://sentry.io/organizations/<org-slug>/releases/)**: Deployment tracking

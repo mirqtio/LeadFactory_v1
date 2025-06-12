@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import core.observability  # noqa: F401  (must be first import)
+
 """
 Campaign Launch Script - Task 099
 

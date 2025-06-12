@@ -34,6 +34,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install black isort flake8 mypy bandit
     
+    - name: Check pip dependencies
+      run: |
+        pip install -r requirements.txt
+        pip check
+    
     - name: Run Black
       run: black --check --diff .
       continue-on-error: true

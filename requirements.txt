@@ -56,3 +56,6 @@ passlib[bcrypt]==1.7.4
 
 # Email validation
 email-validator==2.1.0
+
+# Error tracking
+sentry-sdk[fastapi]==1.*
