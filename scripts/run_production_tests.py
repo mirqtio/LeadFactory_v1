@@ -23,8 +23,8 @@ import json
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from tests.e2e.test_production_smoke import daily_smoke_flow
-from tests.e2e.test_heartbeat import heartbeat_flow, quick_health_check
+from tests.e2e.production_smoke import daily_smoke_flow
+from tests.e2e.heartbeat import heartbeat_flow, quick_health_check
 from core.logging import get_logger
 
 logger = get_logger(__name__)
