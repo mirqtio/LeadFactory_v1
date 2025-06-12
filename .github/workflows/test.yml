@@ -68,7 +68,7 @@ jobs:
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
           leadfactory-test \
-          pytest -x --tb=short --timeout=30 tests/test_setup.py tests/unit/ --ignore=tests/test_docker_compose.py
+          pytest -x --tb=short --timeout=30 tests/test_setup.py tests/unit/ --ignore=tests/test_docker_compose.py --ignore=tests/e2e/
     
     - name: Run integration tests with timeouts
       run: |
@@ -78,7 +78,7 @@ jobs:
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
           leadfactory-test \
-          pytest -x --tb=short --timeout=60 tests/integration/ || echo "Integration tests failed but not blocking"
+          pytest -x --tb=short --timeout=60 tests/integration/ --ignore=tests/e2e/ || echo "Integration tests failed but not blocking"
     
     - name: Run docker-compose config validation
       run: |
