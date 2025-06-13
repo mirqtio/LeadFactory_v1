@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-06-13T05:13:04.523627",
+  "last_updated": "2025-06-13T05:13:48.393174",
   "tasks": {
     "001": {
       "status": "completed",
@@ -622,9 +622,9 @@
       "estimated_hours": 1.0
     },
     "GW-03": {
-      "status": "pending",
+      "status": "completed",
       "started_at": null,
-      "completed_at": null,
+      "completed_at": "2025-06-13T05:13:48.393168",
       "actual_hours": null,
       "phase": "0.5",
       "title": "Implement Hunter client (fallback)",
