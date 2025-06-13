@@ -2,8 +2,6 @@
 Stub server to mock external APIs for testing
 Implements Yelp, Google PageSpeed, Stripe, SendGrid, OpenAI, Data Axle, and Hunter endpoints
 """
-import core.observability  # noqa: F401  (must be first import)
-
 import json
 import os
 import random

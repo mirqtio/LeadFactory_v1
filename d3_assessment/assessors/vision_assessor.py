@@ -15,7 +15,7 @@ from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType
 from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
 from d0_gateway.providers.openai import OpenAIClient
-from d0_gateway.factory import get_provider
+from d0_gateway.factory import create_client
 from core.logging import get_logger
 from core.config import settings
 
@@ -60,10 +60,10 @@ class VisionAssessor(BaseAssessor):
     def assessment_type(self) -> AssessmentType:
         return AssessmentType.AI_INSIGHTS
         
-    async def _get_client(self) -> OpenAIClient:
+    def _get_client(self) -> OpenAIClient:
         """Get or create OpenAI client"""
         if not self._client:
-            self._client = await get_provider("openai")
+            self._client = create_client("openai")
         return self._client
         
     async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
@@ -92,7 +92,7 @@ class VisionAssessor(BaseAssessor):
                 )
             
             # Get OpenAI client
-            client = await self._get_client()
+            client = self._get_client()
             
             # Prepare vision request
             messages = [

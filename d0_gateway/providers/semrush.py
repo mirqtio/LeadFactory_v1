@@ -215,6 +215,34 @@ class SEMrushClient(BaseAPIClient):
             # Other errors might just mean the domain has no data
             return True
             
+    async def make_request(self, method: str, endpoint: str, **kwargs) -> Any:
+        """
+        Override to handle SEMrush CSV response format
+        """
+        # For SEMrush we need the raw text response, not JSON
+        url = f"{self.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+        
+        # Use httpx directly to get text response
+        import httpx
+        async with httpx.AsyncClient() as client:
+            response = await client.request(method, url, **kwargs)
+            
+            if response.status_code >= 400:
+                error_msg = f"HTTP {response.status_code}: {response.text}"
+                if response.status_code == 401:
+                    raise AuthenticationError(f"Invalid SEMrush API key: {error_msg}")
+                elif response.status_code == 429:
+                    raise RateLimitExceededError(
+                        provider="semrush",
+                        retry_after=3600,
+                        daily_limit=self._daily_quota
+                    )
+                else:
+                    raise APIProviderError(f"SEMrush API error: {error_msg}")
+                    
+            # Return text for CSV parsing
+            return response.text
+    
     async def _get(self, endpoint: str, **kwargs) -> Any:
         """Make GET request using base client or test client"""
         if self._client:
@@ -222,5 +250,5 @@ class SEMrushClient(BaseAPIClient):
             response = await self._client.get(endpoint, headers=self._get_headers(), **kwargs)
             return response.text if hasattr(response, 'text') else response.json()
         else:
-            # Production mode - use base client's make_request
+            # Production mode - use our custom make_request
             return await self.make_request("GET", endpoint, **kwargs)

@@ -25,7 +25,7 @@ class TestSEMrushSmoke:
         client = SEMrushClient(api_key=settings.semrush_api_key)
         
         # Test with a known domain
-        result = await client.domain_overview("example.com")
+        result = await client.get_domain_overview("example.com")
         
         assert result is not None
         assert 'domain' in result
@@ -47,7 +47,7 @@ class TestSEMrushSmoke:
         client = SEMrushClient(api_key=settings.semrush_api_key)
         
         # Test with a popular domain
-        result = await client.domain_overview("nytimes.com")
+        result = await client.get_domain_overview("nytimes.com")
         
         assert result is not None
         assert result.get('organic_keywords', 0) > 0

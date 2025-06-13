@@ -62,8 +62,12 @@ DATASETS: Dict[str, Dict[str, str | list[str]]] = {
         "filename": "cbp22co.zip",
     },
     "zip_to_cbsa": {
-        "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2022_Gaz_zcta_national.txt",
-        "filename": "2022_Gaz_zcta_national.txt",
+        "url": [
+            "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2023_Gazetteer/2023_Gaz_zcta_national.zip",
+            "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2022_Gazetteer/2022_Gaz_zcta_national.zip",
+            "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2020_Gaz_zcta_national.zip",
+        ],
+        "filename": "gaz_zcta_national.zip",
     },
 }
 
@@ -162,13 +166,18 @@ def main(argv: List[str] | None = None) -> None:
     # -------------------------------------------------------------------
     geo_df = pd.read_csv(DATA_DIR / "geo_features.csv", dtype={"zip": "string"})
 
-    vert_df = pd.read_csv(DATA_DIR / "seed" / "vertical_features.csv")
-    # Extract naics3 from naics6 column (assume column named "naics")
-    naics_col = [c for c in vert_df.columns if "naics" in c.lower()][0]
-    vert_df["naics3"] = (vert_df[naics_col] // 100).astype("int32")
-    naics3_unique = vert_df.naics3.unique()
-
+    # Try to load optional vertical_features mapping to extract additional NAICS codes.
     digital_share_df = ensure_digital_share_table().set_index("naics3")
+    try:
+        vert_df = pd.read_csv(DATA_DIR / "seed" / "vertical_features.csv")
+        naics_cols = [c for c in vert_df.columns if "naics" in c.lower()]
+        if naics_cols:
+            vert_df["naics3"] = (vert_df[naics_cols[0]] // 100).astype("int32")
+            naics3_unique = vert_df.naics3.unique()
+        else:
+            naics3_unique = digital_share_df.index.to_numpy()
+    except FileNotFoundError:
+        naics3_unique = digital_share_df.index.to_numpy()
 
     rows = []
     score_buckets = [(0, 39), (40, 59), (60, 79), (80, 100)]

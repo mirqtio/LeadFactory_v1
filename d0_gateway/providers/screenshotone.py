@@ -50,6 +50,13 @@ class ScreenshotOneClient(BaseAPIClient):
         """Get the base URL for ScreenshotOne API"""
         return self.base_url
         
+    def _get_headers(self) -> Dict[str, str]:
+        """Get headers for ScreenshotOne API"""
+        return {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        
     def get_rate_limit(self) -> Dict[str, int]:
         """Get rate limit configuration"""
         return {

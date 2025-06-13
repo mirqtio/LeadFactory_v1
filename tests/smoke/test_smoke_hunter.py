@@ -5,6 +5,7 @@ PRD v1.2 - Verify Hunter.io domain search with confidence threshold
 import asyncio
 import os
 import pytest
+from decimal import Decimal
 
 from d0_gateway.providers.hunter import HunterClient
 from core.config import settings
@@ -66,8 +67,8 @@ class TestHunterSmoke:
         client = HunterClient(api_key=settings.hunter_api_key)
         
         # Cost should be $0.003 per search
-        cost = await client.calculate_cost()
-        assert cost == 0.003, f"Expected cost $0.003, got ${cost}"
+        cost = client.calculate_cost("GET:/v2/domain-search")
+        assert cost == Decimal("0.003"), f"Expected cost $0.003, got ${cost}"
         
         print(f"✓ Hunter.io cost tracking correct: ${cost} per search")
     

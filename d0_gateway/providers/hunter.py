@@ -70,10 +70,11 @@ class HunterClient(BaseAPIClient):
         
     def calculate_cost(self, operation: str, **kwargs) -> Decimal:
         """Calculate cost for Hunter operations"""
-        if operation in ["find_email", "domain_search"]:
+        # Check if it's a domain search or email find operation
+        if "domain-search" in operation or "email-finder" in operation or operation in ["find_email", "domain_search"]:
             # $0.003 per search as per PRD v1.2
             return Decimal("0.003")
-        return Decimal("0.00")
+        return Decimal("0.000")
         
     def _get_headers(self) -> Dict[str, str]:
         """Get headers for Hunter API requests"""

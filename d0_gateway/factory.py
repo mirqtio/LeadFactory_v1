@@ -9,9 +9,12 @@ from core.logging import get_logger
 
 from .base import BaseAPIClient
 from .providers.dataaxle import DataAxleClient
+from .providers.google_places import GooglePlacesClient
 from .providers.hunter import HunterClient
 from .providers.openai import OpenAIClient
 from .providers.pagespeed import PageSpeedClient
+from .providers.screenshotone import ScreenshotOneClient
+from .providers.semrush import SEMrushClient
 from .providers.sendgrid import SendGridClient
 from .providers.stripe import StripeClient
 from .providers.yelp import YelpClient
@@ -49,6 +52,9 @@ class GatewayClientFactory:
                         "stripe": StripeClient,
                         "dataaxle": DataAxleClient,
                         "hunter": HunterClient,
+                        "semrush": SEMrushClient,
+                        "screenshotone": ScreenshotOneClient,
+                        "google_places": GooglePlacesClient,
                     }
 
                     # Cache for created instances
@@ -120,6 +126,10 @@ class GatewayClientFactory:
             # Only pass api_key to client constructor
             # Other config is handled by BaseAPIClient
             client_kwargs = {"api_key": config.get("api_key")}
+            
+            # Special handling for ScreenshotOne which needs secret_key
+            if provider == "screenshotone" and "api_secret" in config:
+                client_kwargs["secret_key"] = config["api_secret"]
 
             client = client_class(**client_kwargs)
 
@@ -168,6 +178,13 @@ class GatewayClientFactory:
             
         elif provider == "hunter":
             config["api_key"] = getattr(self.settings, "hunter_api_key", None)
+        elif provider == "semrush":
+            config["api_key"] = getattr(self.settings, "semrush_api_key", None)
+        elif provider == "screenshotone":
+            config["api_key"] = getattr(self.settings, "screenshotone_key", None)
+            config["api_secret"] = getattr(self.settings, "screenshotone_secret", None)
+        elif provider == "google_places":
+            config["api_key"] = getattr(self.settings, "google_api_key", None)
 
         # Common configuration
         config.update(

@@ -12,7 +12,7 @@ from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType
 from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
 from d0_gateway.providers.screenshotone import ScreenshotOneClient
-from d0_gateway.factory import get_provider
+from d0_gateway.factory import create_client
 from core.logging import get_logger
 from core.config import settings
 
@@ -31,10 +31,10 @@ class ScreenshotAssessor(BaseAssessor):
     def assessment_type(self) -> AssessmentType:
         return AssessmentType.VISUAL_ANALYSIS
         
-    async def _get_client(self) -> ScreenshotOneClient:
+    def _get_client(self) -> ScreenshotOneClient:
         """Get or create ScreenshotOne client"""
         if not self._client:
-            self._client = await get_provider("screenshotone")
+            self._client = create_client("screenshotone")
         return self._client
         
     async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
@@ -50,7 +50,7 @@ class ScreenshotAssessor(BaseAssessor):
         """
         try:
             # Get ScreenshotOne client
-            client = await self._get_client()
+            client = self._get_client()
             
             # Take full page screenshot
             screenshot_result = await client.take_screenshot(

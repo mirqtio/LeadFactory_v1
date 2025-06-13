@@ -13,7 +13,7 @@ from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType
 from d3_assessment.exceptions import AssessmentError
 from d0_gateway.providers.google_places import GooglePlacesClient
-from d0_gateway.factory import get_provider
+from d0_gateway.factory import create_client
 from core.logging import get_logger
 from core.config import settings
 
@@ -32,10 +32,10 @@ class GBPProfileAssessor(BaseAssessor):
     def assessment_type(self) -> AssessmentType:
         return AssessmentType.BUSINESS_INFO
         
-    async def _get_client(self) -> GooglePlacesClient:
+    def _get_client(self) -> GooglePlacesClient:
         """Get or create Google Places client"""
         if not self._client:
-            self._client = await get_provider("google_places")
+            self._client = create_client("google_places")
         return self._client
         
     async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
@@ -51,7 +51,7 @@ class GBPProfileAssessor(BaseAssessor):
         """
         try:
             # Get Google Places client
-            client = await self._get_client()
+            client = self._get_client()
             
             # Check if we already have a place_id
             place_id = business_data.get('place_id')

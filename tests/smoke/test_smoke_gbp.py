@@ -31,13 +31,12 @@ class TestGBPSmoke:
         )
         
         assert results is not None
-        assert len(results) > 0
-        assert results[0].get('place_id')
-        assert results[0].get('name')
+        assert results.get('place_id')
+        assert results.get('name')
         
         print(f"✓ GBP find place successful:")
-        print(f"  Found: {results[0]['name']}")
-        print(f"  Place ID: {results[0]['place_id']}")
+        print(f"  Found: {results['name']}")
+        print(f"  Place ID: {results['place_id']}")
     
     @pytest.mark.asyncio
     async def test_gbp_place_details(self):
@@ -51,7 +50,7 @@ class TestGBPSmoke:
         )
         
         if results:
-            place_id = results[0]['place_id']
+            place_id = results['place_id']
             
             # Get details including opening hours
             details = await client.get_place_details(

@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     
     # PRD v1.2 - ScreenshotOne  
     screenshotone_key: Optional[str] = Field(default=None)
+    screenshotone_secret: Optional[str] = Field(default=None)
     screenshotone_rate_limit_per_sec: int = Field(default=2)
 
     # Email settings

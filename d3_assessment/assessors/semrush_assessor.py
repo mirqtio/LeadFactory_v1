@@ -13,7 +13,7 @@ from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType
 from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
 from d0_gateway.providers.semrush import SEMrushClient
-from d0_gateway.factory import get_provider
+from d0_gateway.factory import create_client
 from core.logging import get_logger
 from core.config import settings
 
@@ -35,7 +35,7 @@ class SEMrushAssessor(BaseAssessor):
     async def _get_client(self) -> SEMrushClient:
         """Get or create SEMrush client"""
         if not self._client:
-            self._client = await get_provider("semrush")
+            self._client = create_client("semrush")
         return self._client
         
     async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
