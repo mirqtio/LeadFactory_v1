@@ -325,6 +325,91 @@ scoring_components:
         points: 1.5
         description: "Modern technology stack"
 
+  # PRD v1.2 New Rules
+  
+  # Visual Design Quality (7 points max)
+  visual_design_quality:
+    weight: 7.0
+    description: "Visual design and readability assessment from GPT-4o Vision"
+    rules:
+      - condition: "visual_scores_json.get('readability', 0) < 3"
+        points: -2.0
+        description: "Low visual readability (visual_readability_low)"
+        
+      - condition: "visual_scores_json.get('modernity', 0) < 3"
+        points: -1.5
+        description: "Outdated visual design (visual_outdated)"
+        
+      - condition: "visual_scores_json.get('visual_appeal', 0) >= 4"
+        points: 2.0
+        description: "High visual appeal"
+        
+      - condition: "visual_scores_json.get('brand_consistency', 0) >= 4"
+        points: 1.5
+        description: "Strong brand consistency"
+        
+      - condition: "visual_scores_json.get('accessibility', 0) >= 4"
+        points: 1.5
+        description: "Good accessibility"
+        
+      - condition: "len(visual_quickwins) > 0"
+        points: 1.5
+        description: "Visual quick wins identified"
+        
+  # SEO Performance (15 points max)
+  seo_performance:
+    weight: 15.0
+    description: "SEO metrics from SEMrush and PageSpeed"
+    rules:
+      - condition: "semrush_json.get('organic_keywords', 0) < 10"
+        points: -4.5
+        description: "Low organic keywords count (seo_low_keywords)"
+        
+      - condition: "semrush_json.get('organic_keywords', 0) >= 50"
+        points: 3.0
+        description: "Good keyword coverage (50+)"
+        
+      - condition: "semrush_json.get('organic_keywords', 0) >= 100"
+        points: 2.0
+        description: "Excellent keyword coverage (100+)"
+        
+      - condition: "semrush_json.get('domain_authority', 0) >= 30"
+        points: 2.5
+        description: "Good domain authority"
+        
+      - condition: "pagespeed_json.get('scores', {}).get('seo', 0) >= 80"
+        points: 2.5
+        description: "High PageSpeed SEO score"
+        
+      - condition: "bsoup_json.get('meta_description') != ''"
+        points: 1.0
+        description: "Meta description present"
+        
+      - condition: "bsoup_json.get('structured_data', []) != []"
+        points: 1.5
+        description: "Structured data implemented"
+        
+  # Business Listing Gaps (5 points max)
+  listing_gaps:
+    weight: 5.0
+    description: "Missing or incomplete business listing information"
+    rules:
+      - condition: "gbp_json.get('missing_hours', False) == True or yelp_json.get('hours', {}) == {}"
+        points: -1.5
+        description: "Missing business hours (listing_gap)"
+        
+      - condition: "yelp_json.get('review_count', 0) < 5"
+        points: -1.0
+        description: "Low Yelp reviews (listing_gap)"
+        
+      - condition: "gbp_json.get('place_id') != '' and gbp_json.get('verified', False)"
+        points: 2.0
+        description: "Verified Google Business Profile"
+        
+      - condition: "yelp_json.get('review_count', 0) >= 50"
+        points: 1.5
+        description: "Strong Yelp presence"
+
   # Decision Maker Access (8 points max)
   decision_maker_access:
     weight: 8.0
@@ -366,6 +451,14 @@ scoring_components:
       - condition: "pain_points_identified >= 2"
         points: 1.0
         description: "Multiple pain points identified"
+
+# Weight Normalization
+# PRD v1.2 requires re-normalization after adding new rules
+# Total weights should sum to 100 for proper scoring
+weight_normalization:
+  enabled: true
+  target_sum: 100.0
+  auto_adjust: true
 
 # Tier Assignment Rules
 # Based on final calculated scores

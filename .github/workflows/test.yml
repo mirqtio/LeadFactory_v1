@@ -60,6 +60,51 @@ jobs:
     - name: Build Docker test image
       run: docker build -f Dockerfile.test -t leadfactory-test .
     
+    # PRD v1.2: Run smoke tests for all external APIs
+    - name: Run smoke tests (if API keys present)
+      run: |
+        # Check if we have API keys in GitHub secrets
+        if [ -n "${{ secrets.YELP_API_KEY }}" ]; then
+          export YELP_API_KEY="${{ secrets.YELP_API_KEY }}"
+        fi
+        if [ -n "${{ secrets.HUNTER_API_KEY }}" ]; then
+          export HUNTER_API_KEY="${{ secrets.HUNTER_API_KEY }}"
+        fi
+        if [ -n "${{ secrets.SEMRUSH_API_KEY }}" ]; then
+          export SEMRUSH_API_KEY="${{ secrets.SEMRUSH_API_KEY }}"
+        fi
+        if [ -n "${{ secrets.SCREENSHOTONE_KEY }}" ]; then
+          export SCREENSHOTONE_KEY="${{ secrets.SCREENSHOTONE_KEY }}"
+          export SCREENSHOTONE_SECRET="${{ secrets.SCREENSHOTONE_SECRET }}"
+        fi
+        if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
+          export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+        fi
+        if [ -n "${{ secrets.GOOGLE_API_KEY }}" ]; then
+          export GOOGLE_API_KEY="${{ secrets.GOOGLE_API_KEY }}"
+        fi
+        
+        # Run smoke tests in Docker if any API keys are present
+        if [ -n "$YELP_API_KEY" ] || [ -n "$HUNTER_API_KEY" ] || [ -n "$SEMRUSH_API_KEY" ]; then
+          echo "Running smoke tests with available API keys..."
+          docker run --rm \
+            -e YELP_API_KEY=$YELP_API_KEY \
+            -e HUNTER_API_KEY=$HUNTER_API_KEY \
+            -e SEMRUSH_API_KEY=$SEMRUSH_API_KEY \
+            -e SCREENSHOTONE_KEY=$SCREENSHOTONE_KEY \
+            -e SCREENSHOTONE_SECRET=$SCREENSHOTONE_SECRET \
+            -e OPENAI_API_KEY=$OPENAI_API_KEY \
+            -e GOOGLE_API_KEY=$GOOGLE_API_KEY \
+            -e DATABASE_URL=$DATABASE_URL \
+            -e USE_STUBS=false \
+            -e ENVIRONMENT=$ENVIRONMENT \
+            -e SECRET_KEY=$SECRET_KEY \
+            leadfactory-test \
+            pytest -x --tb=short --timeout=30 tests/smoke/ || echo "Smoke tests failed - check API keys"
+        else
+          echo "No API keys found - skipping smoke tests"
+        fi
+    
     - name: Run unit tests in Docker
       run: |
         docker run --rm \

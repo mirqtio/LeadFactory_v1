@@ -23,6 +23,7 @@ from .models import AssessmentResult, AssessmentSession
 from .pagespeed import PageSpeedAssessor
 from .techstack import TechStackDetector
 from .types import AssessmentStatus, AssessmentType
+from d4_enrichment.email_enrichment import get_email_enricher
 
 
 class CoordinatorError(Exception):
@@ -91,6 +92,7 @@ class AssessmentCoordinator:
         self.pagespeed_assessor = PageSpeedAssessor()
         self.techstack_detector = TechStackDetector()
         self.llm_generator = LLMInsightGenerator()
+        self.email_enricher = get_email_enricher()
 
     async def execute_comprehensive_assessment(
         self,
@@ -99,6 +101,7 @@ class AssessmentCoordinator:
         assessment_types: List[AssessmentType] = None,
         industry: str = "default",
         session_config: Optional[Dict[str, Any]] = None,
+        business_data: Optional[Dict[str, Any]] = None,
     ) -> CoordinatorResult:
         """
         Execute comprehensive assessment with multiple types
@@ -149,8 +152,28 @@ class AssessmentCoordinator:
 
         # Execute assessments in parallel
         results = await self._execute_parallel_assessments(
-            business_id, session_id, requests, industry
+            business_id, session_id, requests, industry, business_data
         )
+        
+        # PRD v1.2: Perform email enrichment if business data provided
+        email_result = None
+        if business_data:
+            try:
+                email, source = await self.email_enricher.enrich_email(business_data)
+                if email:
+                    email_result = {
+                        'email': email,
+                        'source': source,
+                        'enriched_at': datetime.utcnow().isoformat()
+                    }
+                    # Store email in business data for downstream use
+                    business_data['email'] = email
+                    business_data['email_source'] = source
+            except Exception as e:
+                # Log but don't fail assessment for email enrichment
+                # Email enrichment is supplementary
+                import logging
+                logging.getLogger(__name__).warning(f"Email enrichment failed: {e}")
 
         # Calculate totals
         completed_at = datetime.utcnow()
@@ -191,7 +214,7 @@ class AssessmentCoordinator:
         session.total_cost_usd = total_cost
         session.completed_at = completed_at
 
-        return CoordinatorResult(
+        result = CoordinatorResult(
             session_id=session_id,
             business_id=business_id,
             total_assessments=len(assessment_types),
@@ -204,6 +227,12 @@ class AssessmentCoordinator:
             started_at=started_at,
             completed_at=completed_at,
         )
+        
+        # Add email enrichment result if available
+        if email_result:
+            result.email_enrichment = email_result
+            
+        return result
 
     async def _execute_parallel_assessments(
         self,
@@ -211,6 +240,7 @@ class AssessmentCoordinator:
         session_id: str,
         requests: List[AssessmentRequest],
         industry: str,
+        business_data: Optional[Dict[str, Any]] = None,
     ) -> Dict[AssessmentType, Optional[AssessmentResult]]:
         """
         Execute multiple assessments in parallel with timeout and error handling
@@ -231,7 +261,7 @@ class AssessmentCoordinator:
                         # Execute with timeout
                         result = await asyncio.wait_for(
                             self._run_assessment(
-                                business_id, session_id, request, industry
+                                business_id, session_id, request, industry, business_data
                             ),
                             timeout=request.timeout_seconds,
                         )
@@ -294,6 +324,7 @@ class AssessmentCoordinator:
         session_id: str,
         request: AssessmentRequest,
         industry: str,
+        business_data: Optional[Dict[str, Any]] = None,
     ) -> AssessmentResult:
         """Run a specific assessment type"""
         assessment_type = request.assessment_type

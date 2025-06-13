@@ -27,6 +27,8 @@ from core.exceptions import LeadFactoryError
 from core.metrics import MetricsCollector
 from d2_sourcing.coordinator import SourcingCoordinator
 from d3_assessment.coordinator import AssessmentCoordinator
+from d3_assessment.coordinator_v2 import AssessmentCoordinatorV2
+from d4_enrichment.email_enrichment import get_email_enricher
 
 # Mock imports for modules not yet implemented or incompatible with task interface
 try:
@@ -311,7 +313,9 @@ class AssessmentTask(BaseTask):
 
     def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
         super().__init__(metrics_collector)
-        self.assessment_coordinator = AssessmentCoordinator()
+        # Use new PRD v1.2 coordinator
+        self.assessment_coordinator = AssessmentCoordinatorV2()
+        self.email_enricher = get_email_enricher()
 
     async def execute(
         self,
@@ -339,10 +343,23 @@ class AssessmentTask(BaseTask):
             ) -> Optional[Dict[str, Any]]:
                 async with semaphore:
                     try:
-                        assessment = await self.assessment_coordinator.assess_business(
+                        # PRD v1.2: Enrich email first
+                        email, email_source = await self.email_enricher.enrich_email(business)
+                        if email:
+                            business['email'] = email
+                            business['email_source'] = email_source
+                            
+                        # PRD v1.2: Use new assessment coordinator
+                        result = await self.assessment_coordinator.assess_business(
                             business_data=business
                         )
-                        return assessment
+                        
+                        # Add business and email info to result
+                        result['business'] = business
+                        result['email'] = business.get('email')
+                        result['email_source'] = business.get('email_source')
+                        
+                        return result
 
                     except Exception as e:
                         self.logger.warning(
