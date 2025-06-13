@@ -66,6 +66,17 @@ class AssessmentResult(Base):
     tech_stack_data = Column(JsonColumn)  # Technology detection results
     ai_insights_data = Column(JsonColumn)  # AI-generated insights
     assessment_metadata = Column(JsonColumn)  # Additional metadata
+    
+    # PRD v1.2 new assessment data columns
+    bsoup_json = Column(JsonColumn)  # BeautifulSoup extracted data
+    semrush_json = Column(JsonColumn)  # SEMrush domain overview
+    yelp_json = Column(JsonColumn)  # Yelp search fields (no extra API call)
+    gbp_profile_json = Column(JsonColumn)  # Google Business Profile data
+    screenshot_url = Column(Text)  # Full page screenshot URL
+    screenshot_thumb_url = Column(Text)  # Thumbnail screenshot URL
+    visual_scores_json = Column(JsonColumn)  # GPT-4o Vision scores
+    visual_warnings = Column(JsonColumn)  # GPT-4o Vision warnings list
+    visual_quickwins = Column(JsonColumn)  # GPT-4o Vision quick wins list
 
     # Extracted key metrics for quick querying
     performance_score = Column(Integer)

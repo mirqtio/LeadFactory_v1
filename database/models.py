@@ -166,6 +166,10 @@ class Business(Base):
     geo_bucket = Column(String(80), nullable=True, index=True)  # {affluence}-{density}-{broadband}
     vert_bucket = Column(String(80), nullable=True, index=True)  # {urgency}-{ticket}-{maturity}
 
+    # PRD v1.2 additions
+    domain_hash = Column(Text, nullable=True, index=True)
+    phone_hash = Column(Text, nullable=True)
+    
     # Enrichment data
     place_id = Column(String(100))  # Google Place ID
     rating = Column(DECIMAL(2, 1))

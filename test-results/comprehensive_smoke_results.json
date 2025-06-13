@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-06-12T08:10:57.456569",
+  "tests": {
+    "external_apis": {
+      "yelp": {
+        "status": "FAIL",
+        "error": "yelp API error: All connection attempts failed"
+      },
+      "pagespeed": {
+        "status": "FAIL",
+        "error": "pagespeed API error: All connection attempts failed"
+      },
+      "openai": {
+        "status": "FAIL",
+        "error": "openai API error: All connection attempts failed"
+      },
+      "sendgrid": {
+        "status": "FAIL",
+        "error": "sendgrid API error: All connection attempts failed"
+      },
+      "stripe": {
+        "status": "FAIL",
+        "error": "stripe API error: All connection attempts failed"
+      }
+    },
+    "database": {
+      "error": "'generator' object does not support the asynchronous context manager protocol"
+    },
+    "pipeline": {
+      "error": "No test business created"
+    },
+    "analytics": {
+      "prometheus": {
+        "status": "PASS",
+        "metrics_found": {
+          "requests": true,
+          "duration": true,
+          "gateway": true
+        }
+      },
+      "analytics_api": {
+        "status": "PASS",
+        "data_available": false
+      }
+    },
+    "datadog": {
+      "status": "PASS",
+      "metric": "system.cpu.user",
+      "datapoints": 180,
+      "last_value": 7.720229387283325
+    }
+  },
+  "data_flow": {},
+  "cleanup": [],
+  "cleanup_results": [],
+  "summary": {
+    "all_passed": false,
+    "status": "FAIL"
+  }
+}

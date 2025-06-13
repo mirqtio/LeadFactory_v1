@@ -1,0 +1,42 @@
+{
+  "run_id": "smoke_1749690994",
+  "started_at": "2025-06-12T01:16:34.247076",
+  "base_url": "http://localhost:8000",
+  "tests": {
+    "health": {
+      "status": "PASSED",
+      "duration": 0.018787145614624023,
+      "response": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "environment": "production"
+      }
+    },
+    "api_docs": {
+      "status": "FAILED",
+      "error": "Docs endpoint failed with status 404"
+    },
+    "targeting_search": {
+      "status": "FAILED",
+      "error": "Targeting search failed with status 404"
+    },
+    "assessment": {
+      "status": "FAILED",
+      "error": "Assessment failed with status 404"
+    },
+    "analytics_funnel": {
+      "status": "FAILED",
+      "error": "Analytics funnel failed with status 405"
+    },
+    "orchestration_status": {
+      "status": "FAILED",
+      "error": "Orchestration status failed with status 404"
+    }
+  },
+  "summary": {
+    "total_tests": 6,
+    "passed": 1,
+    "failed": 5,
+    "completed_at": "2025-06-12T01:16:34.274395"
+  }
+}

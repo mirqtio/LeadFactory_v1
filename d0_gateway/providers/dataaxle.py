@@ -1,8 +1,10 @@
 """
-Data Axle Business Match API client
-Phase 0.5 - Task GW-02
+Data Axle API client for business enrichment
+PRD v1.2 - Trial mode email enrichment (fallback)
 
-Provides business data enrichment through Data Axle's Match API
+Endpoint: GET /v1/companies/enrich?domain=
+Cost: Free (trial credits)
+Used only when Hunter.io doesn't return email
 """
 import logging
 from decimal import Decimal
@@ -36,7 +38,7 @@ class DataAxleClient(BaseAPIClient):
             **kwargs: Additional configuration
         """
         # Store base_url before calling parent init
-        self.base_url = kwargs.get("base_url", "https://api.data-axle.com/v2")
+        self.base_url = kwargs.get("base_url", "https://api.data-axle.com/v1")
         self.timeout = kwargs.get("timeout", 30)
         self.max_retries = kwargs.get("max_retries", 3)
         
@@ -212,6 +214,46 @@ class DataAxleClient(BaseAPIClient):
             "data_axle_id": data.get("business_id"),
             "match_confidence": data.get("match_confidence", 0),
         }
+    
+    async def enrich(self, domain: str) -> Optional[Dict[str, Any]]:
+        """
+        Enrich company data by domain (PRD v1.2 requirement)
+        
+        Args:
+            domain: Company domain (e.g. example.com)
+            
+        Returns:
+            Enrichment data with email if available
+        """
+        if not domain:
+            return None
+            
+        params = {
+            "domain": domain,
+            "fields": "email,phone,employees,revenue"
+        }
+        
+        try:
+            # Use GET /v1/companies/enrich endpoint
+            response = await self._get("/companies/enrich", params=params)
+            
+            if not response or 'data' not in response:
+                return None
+                
+            data = response.get('data', {})
+            
+            # Transform to match expected format
+            return {
+                'email': data.get('primary_email') or data.get('email'),
+                'phone': data.get('primary_phone') or data.get('phone'),
+                'employee_count': data.get('employees'),
+                'annual_revenue': data.get('revenue'),
+                'data_axle_id': data.get('id')
+            }
+            
+        except Exception as e:
+            logger.error(f"Data Axle enrichment failed for {domain}: {e}")
+            return None
         
     async def verify_api_key(self) -> bool:
         """

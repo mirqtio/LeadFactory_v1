@@ -1,8 +1,10 @@
 """
 Hunter.io Email Finder API client
-Phase 0.5 - Task GW-03
+PRD v1.2 - Primary email enrichment source
 
-Provides email finding as a fallback when Data Axle returns no email addresses
+Provides domain-based email finding with confidence threshold
+Endpoint: /v2/domain-search
+Cost: $0.003 per search
 """
 import logging
 from decimal import Decimal
@@ -68,9 +70,9 @@ class HunterClient(BaseAPIClient):
         
     def calculate_cost(self, operation: str, **kwargs) -> Decimal:
         """Calculate cost for Hunter operations"""
-        if operation == "find_email":
-            # $0.01 per email found
-            return Decimal("0.01")
+        if operation in ["find_email", "domain_search"]:
+            # $0.003 per search as per PRD v1.2
+            return Decimal("0.003")
         return Decimal("0.00")
         
     def _get_headers(self) -> Dict[str, str]:
@@ -142,10 +144,10 @@ class HunterClient(BaseAPIClient):
                 f"confidence: {data.get('score', 0)}"
             )
             
-            # Emit cost for successful email find (Phase 0.5 requirement)
+            # Emit cost for successful email find (PRD v1.2)
             self.emit_cost(
                 lead_id=company_data.get("lead_id"),
-                cost_usd=0.01,  # $0.01 per email found
+                cost_usd=0.003,  # $0.003 per search
                 operation="find_email",
                 metadata={
                     "confidence": data.get("score", 0),
@@ -164,6 +166,64 @@ class HunterClient(BaseAPIClient):
                 raise AuthenticationError("hunter", str(e))
             else:
                 raise APIProviderError("hunter", str(e))
+    
+    async def domain_search(self, domain: str) -> tuple[Optional[str], float]:
+        """
+        Search for emails at a domain (PRD v1.2 requirement)
+        
+        Args:
+            domain: Domain to search (e.g. example.com)
+            
+        Returns:
+            Tuple of (email, confidence) where confidence is 0-1 scale
+            Returns (None, 0.0) if no email found
+        """
+        params = {
+            "api_key": self.api_key,
+            "domain": domain,
+            "limit": 10  # Get top 10 results
+        }
+        
+        try:
+            # Make API call to domain-search endpoint
+            response = await self._get("/domain-search", params=params)
+            
+            if not response or not response.get("data"):
+                return None, 0.0
+                
+            data = response.get("data", {})
+            emails = data.get("emails", [])
+            
+            if not emails:
+                return None, 0.0
+            
+            # Find highest confidence email
+            best_email = None
+            best_confidence = 0.0
+            
+            for email_data in emails:
+                confidence = email_data.get("confidence", 0) / 100.0  # Convert to 0-1
+                if confidence > best_confidence:
+                    best_email = email_data.get("value")
+                    best_confidence = confidence
+            
+            # Only track cost if we found an email
+            if best_email:
+                self.emit_cost(
+                    cost_usd=0.003,
+                    operation="domain_search",
+                    metadata={
+                        "domain": domain,
+                        "confidence": best_confidence,
+                        "email": best_email
+                    }
+                )
+            
+            return best_email, best_confidence
+            
+        except Exception as e:
+            logger.error(f"Hunter domain search failed for {domain}: {e}")
+            return None, 0.0
                 
     def _transform_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """

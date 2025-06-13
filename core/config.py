@@ -46,23 +46,32 @@ class Settings(BaseSettings):
     stripe_price_id: Optional[str] = Field(default=None)
     sendgrid_api_key: Optional[str] = Field(default=None)
     openai_api_key: Optional[str] = Field(default=None)
+    openai_model: str = Field(default="gpt-4o-mini")
     
-    # Phase 0.5 - Data Axle
+    # PRD v1.2 - Data Axle (trial)
     data_axle_api_key: Optional[str] = Field(default=None)
-    data_axle_base_url: str = Field(default="https://api.data-axle.com/v2")
+    data_axle_base_url: str = Field(default="https://api.data-axle.com/v1")
     data_axle_rate_limit_per_min: int = Field(default=200)
     
-    # Phase 0.5 - Hunter.io
+    # PRD v1.2 - Hunter.io
     hunter_api_key: Optional[str] = Field(default=None)
     hunter_rate_limit_per_min: int = Field(default=30)
+    
+    # PRD v1.2 - SEMrush
+    semrush_api_key: Optional[str] = Field(default=None)
+    semrush_daily_quota: int = Field(default=1000)
+    
+    # PRD v1.2 - ScreenshotOne  
+    screenshotone_key: Optional[str] = Field(default=None)
+    screenshotone_rate_limit_per_sec: int = Field(default=2)
 
     # Email settings
     from_email: str = Field(default="noreply@leadfactory.com")
     from_name: str = Field(default="LeadFactory")
 
-    # API Limits
-    max_daily_emails: int = Field(default=100)
-    max_daily_yelp_calls: int = Field(default=5000)
+    # PRD v1.2 - API Limits
+    max_daily_emails: int = Field(default=100000)
+    max_daily_yelp_calls: int = Field(default=300)
     max_businesses_per_batch: int = Field(default=50)
 
     # Performance
@@ -145,6 +154,8 @@ class Settings(BaseSettings):
                 "openai": self.stub_base_url,
                 "dataaxle": self.stub_base_url,
                 "hunter": self.stub_base_url,
+                "semrush": self.stub_base_url,
+                "screenshotone": self.stub_base_url,
             }
         else:
             return {
@@ -155,6 +166,8 @@ class Settings(BaseSettings):
                 "openai": "https://api.openai.com",
                 "dataaxle": self.data_axle_base_url,
                 "hunter": "https://api.hunter.io",
+                "semrush": "https://api.semrush.com",
+                "screenshotone": "https://api.screenshotone.com",
             }
 
     def get_api_key(self, service: str) -> str:
@@ -170,6 +183,8 @@ class Settings(BaseSettings):
             "openai": self.openai_api_key,
             "dataaxle": self.data_axle_api_key,
             "hunter": self.hunter_api_key,
+            "semrush": self.semrush_api_key,
+            "screenshotone": self.screenshotone_key,
         }
 
         key = keys.get(service)
