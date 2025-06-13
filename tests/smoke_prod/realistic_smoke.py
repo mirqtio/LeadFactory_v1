@@ -57,17 +57,23 @@ async def run_realistic_smoke_test():
         print("\n2. Analytics Endpoints")
         print("-" * 40)
         
-        # Get metrics
+        # Get metrics - POST request with date range
         try:
-            response = await client.get("/api/v1/analytics/metrics")
+            metrics_data = {
+                "date_range": {
+                    "start_date": "2025-06-01",
+                    "end_date": "2025-06-12"
+                }
+            }
+            response = await client.post("/api/v1/analytics/metrics", json=metrics_data)
             if response.status_code == 200:
                 metrics = response.json()
                 results["tests"].append({
                     "endpoint": "/api/v1/analytics/metrics",
                     "status": "PASS",
-                    "data": {"metrics_count": len(metrics)}
+                    "data": {"metrics_count": len(metrics) if isinstance(metrics, list) else 1}
                 })
-                print(f"  Metrics API: ✓ ({len(metrics)} metrics)")
+                print(f"  Metrics API: ✓ (response received)")
             else:
                 results["tests"].append({
                     "endpoint": "/api/v1/analytics/metrics",
@@ -123,11 +129,19 @@ async def run_realistic_smoke_test():
         # Initiate checkout
         try:
             checkout_data = {
-                "product_type": "audit_report",
-                "business_info": {
-                    "name": "Smoke Test Business",
-                    "email": "smoke@test.com",
-                    "website": "https://example.com"
+                "customer_email": "smoke@test.com",
+                "items": [{
+                    "product_name": "Website Audit Report",
+                    "amount_usd": 29.99,
+                    "quantity": 1,
+                    "product_type": "audit_report",
+                    "metadata": {
+                        "business_url": "https://example.com"
+                    }
+                }],
+                "attribution_data": {
+                    "utm_source": "smoke_test",
+                    "utm_medium": "automated"
                 }
             }
             
@@ -161,8 +175,8 @@ async def run_realistic_smoke_test():
                 key_metrics = [
                     "leadfactory_http_requests_total",
                     "leadfactory_http_request_duration_seconds",
-                    "leadfactory_assessments_total",
-                    "leadfactory_checkouts_total"
+                    "leadfactory_assessments_total",  # Counter automatically adds _total
+                    "leadfactory_checkouts_total"      # Counter automatically adds _total
                 ]
                 
                 found_metrics = {m: m in metrics_text for m in key_metrics}

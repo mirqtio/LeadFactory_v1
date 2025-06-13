@@ -1,0 +1,61 @@
+{
+  "business_id": "07a80cdc-3c94-48df-9351-5ba097026806",
+  "timestamp": "2025-06-12T21:34:44.748224",
+  "assessment_data": {
+    "pagespeed": {
+      "performance_score": 53,
+      "mobile_friendly": true,
+      "largest_contentful_paint": 8555,
+      "issues_found": 7
+    },
+    "tech_stack": {
+      "cms": "WordPress",
+      "hosting": "WP Engine",
+      "analytics": [
+        "Google Analytics",
+        "Google Tag Manager"
+      ],
+      "frameworks": [
+        "jQuery",
+        "Bootstrap"
+      ]
+    },
+    "ai_insights": {
+      "summary": "Economic development organization website with moderate performance",
+      "recommendations": [
+        "Optimize images",
+        "Implement caching",
+        "Minify resources"
+      ]
+    }
+  },
+  "enrichment_data": {
+    "screenshot": {
+      "screenshot_url": "screenshots/07a80cdc-3c94-48df-9351-5ba097026806_homepage.png",
+      "captured_at": "2025-06-12T21:34:45.750394",
+      "page_title": "Invest in Yakima - Economic Development",
+      "meta_description": "Yakima County Development Association promotes economic growth and business development in Yakima County, Washington.",
+      "visible_text_preview": "Welcome to Yakima County - A great place to live, work, and do business..."
+    }
+  },
+  "ai_analysis": {
+    "personalized_insights": {
+      "business_overview": "Yakima County Development Association is a well-established economic development organization with a strong digital presence. Their website shows good technical implementation but has room for performance improvements.",
+      "key_opportunities": [
+        "Website performance optimization could improve user experience and SEO rankings",
+        "Mobile experience needs attention - current performance score is below industry standards",
+        "Email marketing integration appears limited - opportunity for lead generation improvement"
+      ],
+      "recommended_approach": "Focus on website performance optimization and mobile experience enhancement. Their mission aligns with digital transformation initiatives.",
+      "personalization_hooks": [
+        "Economic development focus aligns with digital growth strategies",
+        "Non-profit status may qualify for special pricing or grants",
+        "Community impact angle for case studies"
+      ]
+    },
+    "lead_score": 78,
+    "engagement_strategy": "Educational approach highlighting ROI of digital improvements for economic development initiatives",
+    "estimated_project_value": "$15,000 - $25,000",
+    "ai_confidence": 0.85
+  }
+}

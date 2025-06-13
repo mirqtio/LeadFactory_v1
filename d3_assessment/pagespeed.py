@@ -64,6 +64,7 @@ class PageSpeedAssessor:
         """
         assessment_id = str(uuid.uuid4())
         started_at = datetime.utcnow()
+        assessment = None
 
         try:
             # Create assessment record
@@ -116,9 +117,10 @@ class PageSpeedAssessor:
 
         except Exception as e:
             # Mark as failed with error details
-            assessment.status = AssessmentStatus.FAILED
-            assessment.error_message = str(e)
-            assessment.completed_at = datetime.utcnow()
+            if assessment:
+                assessment.status = AssessmentStatus.FAILED
+                assessment.error_message = str(e)
+                assessment.completed_at = datetime.utcnow()
             raise
 
     async def _analyze_mobile(self, assessment_id: str, url: str) -> Dict[str, Any]:
@@ -155,6 +157,8 @@ class PageSpeedAssessor:
             return result
 
         except Exception as e:
+            import traceback
+            self.logger.error(f"Mobile analysis error: {traceback.format_exc()}")
             raise Exception(f"Mobile analysis failed: {str(e)}")
 
     async def _analyze_desktop(self, assessment_id: str, url: str) -> Dict[str, Any]:
@@ -191,6 +195,8 @@ class PageSpeedAssessor:
             return result
 
         except Exception as e:
+            import traceback
+            self.logger.error(f"Desktop analysis error: {traceback.format_exc()}")
             raise Exception(f"Desktop analysis failed: {str(e)}")
 
     def _populate_core_metrics(
@@ -244,12 +250,16 @@ class PageSpeedAssessor:
         # Largest Contentful Paint (LCP)
         if "largest-contentful-paint" in audits:
             lcp = audits["largest-contentful-paint"]
-            assessment.largest_contentful_paint = lcp.get("numericValue")
+            value = lcp.get("numericValue")
+            if value is not None:
+                assessment.largest_contentful_paint = int(value)
 
         # First Input Delay (FID) - using max-potential-fid as proxy
         if "max-potential-fid" in audits:
             fid = audits["max-potential-fid"]
-            assessment.first_input_delay = fid.get("numericValue")
+            value = fid.get("numericValue")
+            if value is not None:
+                assessment.first_input_delay = int(value)
 
         # Cumulative Layout Shift (CLS)
         if "cumulative-layout-shift" in audits:
@@ -259,22 +269,30 @@ class PageSpeedAssessor:
         # First Contentful Paint (FCP)
         if "first-contentful-paint" in audits:
             fcp = audits["first-contentful-paint"]
-            assessment.first_contentful_paint = fcp.get("numericValue")
+            value = fcp.get("numericValue")
+            if value is not None:
+                assessment.first_contentful_paint = int(value)
 
         # Speed Index
         if "speed-index" in audits:
             si = audits["speed-index"]
-            assessment.speed_index = si.get("numericValue")
+            value = si.get("numericValue")
+            if value is not None:
+                assessment.speed_index = int(value)
 
         # Time to Interactive
         if "interactive" in audits:
             tti = audits["interactive"]
-            assessment.time_to_interactive = tti.get("numericValue")
+            value = tti.get("numericValue")
+            if value is not None:
+                assessment.time_to_interactive = int(value)
 
         # Total Blocking Time
         if "total-blocking-time" in audits:
             tbt = audits["total-blocking-time"]
-            assessment.total_blocking_time = tbt.get("numericValue")
+            value = tbt.get("numericValue")
+            if value is not None:
+                assessment.total_blocking_time = int(value)
 
     def _extract_lighthouse_scores(
         self, pagespeed_assessment: PageSpeedAssessment, result: Dict[str, Any]
@@ -354,9 +372,11 @@ class PageSpeedAssessor:
 
         # Look for audits with savings potential
         for audit_id, audit in audits.items():
+            score = audit.get("score", 1)
             if (
-                audit.get("score", 1) < 1
-                and "details" in audit  # Failed or improved
+                score is not None 
+                and score < 1
+                and "details" in audit
                 and audit.get("details", {}).get("overallSavingsMs", 0) > 0
             ):
                 opportunities.append(
@@ -395,12 +415,14 @@ class PageSpeedAssessor:
 
         # Look for failed audits without savings (diagnostic issues)
         for audit_id, audit in audits.items():
+            score = audit.get("score", 1)
             if (
                 audit_id not in core_metrics
-                and audit.get("score", 1) < 1  # Skip core metrics
-                and not audit.get("details", {}).get("overallSavingsMs", 0)  # Failed
-                and audit.get("title")  # No savings
-            ):  # Has title (is an actual audit)
+                and score is not None 
+                and score < 1
+                and not audit.get("details", {}).get("overallSavingsMs", 0)
+                and audit.get("title")
+            ):
                 diagnostics.append(
                     {
                         "id": audit_id,
@@ -493,7 +515,7 @@ class PageSpeedAssessor:
         total_cost = Decimal("0.00")
 
         # Cost for mobile analysis
-        mobile_cost = await self.client.calculate_cost(
+        mobile_cost = self.client.calculate_cost(
             "GET:/pagespeedonline/v5/runPagespeed"
         )
         total_cost += mobile_cost
@@ -514,7 +536,7 @@ class PageSpeedAssessor:
 
         # Cost for desktop analysis if performed
         if desktop_result:
-            desktop_cost = await self.client.calculate_cost(
+            desktop_cost = self.client.calculate_cost(
                 "GET:/pagespeedonline/v5/runPagespeed"
             )
             total_cost += desktop_cost

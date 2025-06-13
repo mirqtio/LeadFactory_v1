@@ -18,6 +18,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
+from core.metrics import metrics
 from .llm_insights import LLMInsightGenerator
 from .models import AssessmentResult, AssessmentSession
 from .pagespeed import PageSpeedAssessor
@@ -380,6 +381,14 @@ class AssessmentCoordinator:
         # In a real implementation, this would save to database
         # For now, we'll just preserve the actual status
         if result:
+            # Track metrics for assessment
+            status = "success" if result.status == AssessmentStatus.COMPLETED else "failed"
+            duration = result.processing_time_ms / 1000.0 if result.processing_time_ms else 0.0
+            metrics.track_assessment_created(
+                assessment_type=result.assessment_type.value,
+                duration=duration,
+                status=status
+            )
             # Don't override the status - preserve whether it's COMPLETED, FAILED, etc.
             # TODO: Save to database
             pass

@@ -292,11 +292,55 @@ class GBPEnricher:
         if not name:
             return []
 
-        # Simulate API call (would use actual Google Places API)
+        # Use real Google Places API if we have a key
+        if self.api_key and not self.use_mock_data:
+            try:
+                from d0_gateway.providers.google_places import GooglePlacesClient
+                
+                client = GooglePlacesClient(api_key=self.api_key)
+                
+                # Build search query
+                query = name
+                if location:
+                    query = f"{name} {location}"
+                
+                # Search for the business
+                places = await client.search_businesses(query=query)
+                
+                results = []
+                for place in places[:3]:  # Top 3 results
+                    # Get detailed info
+                    details = await client.get_place_details(place["place_id"])
+                    
+                    # Convert to GBPSearchResult
+                    result = GBPSearchResult(
+                        place_id=place["place_id"],
+                        name=details.get("name", ""),
+                        formatted_address=details.get("formatted_address"),
+                        phone_number=details.get("formatted_phone_number"),
+                        website=details.get("website"),
+                        rating=details.get("rating"),
+                        user_ratings_total=details.get("user_ratings_total"),
+                        business_status=details.get("business_status"),
+                        opening_hours=details.get("opening_hours"),
+                        geometry=place.get("geometry"),
+                        types=details.get("types", []),
+                        raw_data=details,
+                        search_confidence=0.8,  # Base confidence
+                        data_quality=self._assess_data_quality(details)
+                    )
+                    results.append(result)
+                
+                self.stats["api_calls"] += len(places) + 1  # Search + details
+                return results
+                
+            except Exception as e:
+                logger.error(f"Google Places API error: {e}")
+                # Fall back to mock data
+        
+        # Mock result fallback
         self.stats["api_calls"] += 1
         await asyncio.sleep(0.1)  # Simulate network delay
-
-        # Mock result
         return [self._create_mock_result(name, location, confidence=0.8)]
 
     async def _search_by_phone(
@@ -667,6 +711,40 @@ class GBPEnricher:
         domain = domain.split("/")[0]
 
         return domain if domain else None
+    
+    def _assess_data_quality(self, data: Dict[str, Any]) -> GBPDataQuality:
+        """Assess the quality of GBP data"""
+        score = 0
+        max_score = 0
+        
+        # Check key fields
+        fields = {
+            "name": 10,
+            "formatted_address": 10,
+            "formatted_phone_number": 8,
+            "website": 8,
+            "rating": 5,
+            "user_ratings_total": 5,
+            "business_status": 5,
+            "opening_hours": 4,
+            "types": 3,
+        }
+        
+        for field, weight in fields.items():
+            max_score += weight
+            if data.get(field):
+                score += weight
+                
+        quality_ratio = score / max_score
+        
+        if quality_ratio >= 0.8:
+            return GBPDataQuality.EXCELLENT
+        elif quality_ratio >= 0.6:
+            return GBPDataQuality.GOOD
+        elif quality_ratio >= 0.4:
+            return GBPDataQuality.FAIR
+        else:
+            return GBPDataQuality.POOR
 
     def _generate_cache_key(self, business_data: Dict[str, Any]) -> str:
         """Generate cache key for business data"""

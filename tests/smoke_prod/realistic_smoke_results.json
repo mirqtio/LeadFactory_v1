@@ -1,0 +1,64 @@
+{
+  "timestamp": "2025-06-12T21:19:28.935182",
+  "api_url": "http://localhost:8000",
+  "tests": [
+    {
+      "endpoint": "/health",
+      "status": "PASS",
+      "http_code": 200
+    },
+    {
+      "endpoint": "/api/v1/analytics/health",
+      "status": "PASS",
+      "http_code": 200
+    },
+    {
+      "endpoint": "/api/v1/assessments/health",
+      "status": "PASS",
+      "http_code": 200
+    },
+    {
+      "endpoint": "/api/v1/checkout/status",
+      "status": "PASS",
+      "http_code": 200
+    },
+    {
+      "endpoint": "/api/v1/analytics/metrics",
+      "status": "PASS",
+      "data": {
+        "metrics_count": 1
+      }
+    },
+    {
+      "endpoint": "/api/v1/assessments/trigger",
+      "status": "PASS",
+      "data": {
+        "session_id": "sess_15dfe3c22fb1"
+      }
+    },
+    {
+      "endpoint": "/api/v1/checkout/initiate",
+      "status": "PASS",
+      "data": {
+        "session_id": null
+      }
+    },
+    {
+      "endpoint": "/metrics",
+      "status": "PASS",
+      "data": {
+        "metrics_found": {
+          "leadfactory_http_requests_total": true,
+          "leadfactory_http_request_duration_seconds": true,
+          "leadfactory_assessments_total": true,
+          "leadfactory_checkouts_total": true
+        }
+      }
+    },
+    {
+      "service": "datadog",
+      "status": "SKIP",
+      "reason": "API keys not configured"
+    }
+  ]
+}

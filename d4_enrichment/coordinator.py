@@ -137,22 +137,30 @@ class EnrichmentCoordinator:
         """Initialize Phase 0.5 enrichers (Data Axle and Hunter)"""
         try:
             # Import here to avoid circular dependencies
-            from d0_gateway.factory import GatewayClientFactory
+            import os
             from .dataaxle_enricher import DataAxleEnricher
             from .hunter_enricher import HunterEnricher
+            from .gbp_enricher import GBPEnricher
+            from d0_gateway.providers.dataaxle import DataAxleClient
+            from d0_gateway.providers.hunter import HunterClient
             
-            # Get gateway clients
-            gateway = GatewayClientFactory()
+            # Initialize GBP with Google API key
+            google_api_key = os.getenv("GOOGLE_API_KEY")
+            if google_api_key:
+                self.enrichers[EnrichmentSource.INTERNAL] = GBPEnricher(api_key=google_api_key)
+                logger.info("Initialized GBP enricher with real API")
             
-            # Initialize Data Axle if configured
-            if gateway._is_provider_enabled("dataaxle"):
-                dataaxle_client = gateway.get_dataaxle_client()
+            # Initialize Data Axle if API key available
+            dataaxle_api_key = os.getenv("DATA_AXLE_API_KEY") or os.getenv("DATAAXLE_API_KEY")
+            if dataaxle_api_key:
+                dataaxle_client = DataAxleClient(api_key=dataaxle_api_key)
                 self.enrichers[EnrichmentSource.DATA_AXLE] = DataAxleEnricher(dataaxle_client)
                 logger.info("Data Axle enricher initialized")
                 
-            # Initialize Hunter if configured
-            if gateway._is_provider_enabled("hunter"):
-                hunter_client = gateway.get_hunter_client()
+            # Initialize Hunter if API key available
+            hunter_api_key = os.getenv("HUNTER_API_KEY")
+            if hunter_api_key:
+                hunter_client = HunterClient(api_key=hunter_api_key)
                 self.enrichers[EnrichmentSource.HUNTER_IO] = HunterEnricher(hunter_client)
                 logger.info("Hunter enricher initialized")
                 

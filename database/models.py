@@ -181,11 +181,12 @@ class Business(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    assessments = relationship(
-        "AssessmentResult",
-        back_populates="business",
-        foreign_keys="AssessmentResult.business_id",
-    )
+    # Commented out to avoid circular dependency with d3_assessment
+    # assessments = relationship(
+    #     "AssessmentResult",
+    #     back_populates="business",
+    #     foreign_keys="AssessmentResult.business_id",
+    # )
     scores = relationship("ScoringResult", back_populates="business")
     emails = relationship("Email", back_populates="business")
     purchases = relationship("Purchase", back_populates="business")

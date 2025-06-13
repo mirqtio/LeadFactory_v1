@@ -4,15 +4,25 @@ OpenAI API client implementation for LLM-powered insights
 import json
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
+import logging
 
 from ..base import BaseAPIClient
 
+logger = logging.getLogger(__name__)
+
 
 class OpenAIClient(BaseAPIClient):
-    """OpenAI API client for GPT-4o-mini"""
+    """OpenAI API client for GPT-4 and GPT-4o"""
 
-    def __init__(self, api_key: Optional[str] = None):
-        super().__init__(provider="openai", api_key=api_key)
+    def __init__(self, api_key: Optional[str] = None, **kwargs):
+        base_url = kwargs.get("base_url", "https://api.openai.com/v1")
+        super().__init__(
+            provider="openai", 
+            api_key=api_key,
+            base_url=base_url
+        )
+        self.default_model = kwargs.get("model", "gpt-4")
+        self.timeout = kwargs.get("timeout", 60)
 
     def _get_base_url(self) -> str:
         """Get OpenAI API base URL"""
@@ -90,7 +100,23 @@ class OpenAIClient(BaseAPIClient):
         if response_format:
             payload["response_format"] = response_format
 
-        return await self.make_request("POST", "/v1/chat/completions", json=payload)
+        try:
+            response = await self.make_request(
+                method="POST", 
+                endpoint="/chat/completions", 
+                json=payload,
+                timeout=self.timeout
+            )
+            
+            # Log usage for cost tracking
+            if "usage" in response:
+                logger.info(f"OpenAI usage: {response['usage']}")
+                
+            return response
+            
+        except Exception as e:
+            logger.error(f"OpenAI chat completion failed: {str(e)}")
+            raise
 
     async def analyze_website_performance(
         self,

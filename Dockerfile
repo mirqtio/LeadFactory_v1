@@ -31,6 +31,7 @@ ENV ENVIRONMENT=production
 ENV PYTHONPATH=/app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV TMPDIR=/app/tmp
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
@@ -42,8 +43,9 @@ EXPOSE 8000
 # Run with gunicorn in production
 CMD ["gunicorn", "main:app", \
      "--bind", "0.0.0.0:8000", \
-     "--workers", "4", \
+     "--workers", "1", \
      "--worker-class", "uvicorn.workers.UvicornWorker", \
      "--access-logfile", "-", \
      "--error-logfile", "-", \
-     "--log-level", "info"]
+     "--log-level", "info", \
+     "--pid", "/app/tmp/gunicorn.pid"]

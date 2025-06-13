@@ -1,0 +1,9 @@
+{
+  "detail": {
+    "error": "validation_error",
+    "message": "3 validation errors for PageSpeedMetrics\nlargest_contentful_paint\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=8555.04964559324, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.5/v/int_from_float\nspeed_index\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=7096.025996408019, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.5/v/int_from_float\ntime_to_interactive\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=14095.542018161897, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.5/v/int_from_float",
+    "details": null,
+    "request_id": "b5fab1e3-c8ea-4ddc-8382-54af583ba024",
+    "timestamp": "2025-06-13T01:25:09.224090"
+  }
+}

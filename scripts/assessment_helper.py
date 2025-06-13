@@ -76,18 +76,36 @@ def save_assessment_to_db(result: CoordinatorResult) -> List[str]:
     Returns:
         List of assessment IDs created
     """
+    from d3_assessment.models import AssessmentSession
+    from d3_assessment.types import AssessmentStatus, AssessmentType
+    
     session = SessionLocal()
     assessment_ids = []
     
     try:
+        # First create and save the session
+        assessment_session = AssessmentSession(
+            id=result.session_id,
+            assessment_type=AssessmentType.FULL_AUDIT,
+            status=AssessmentStatus.COMPLETED if result.failed_assessments == 0 else AssessmentStatus.PARTIAL,
+            total_assessments=result.total_assessments,
+            completed_assessments=result.completed_assessments,
+            failed_assessments=result.failed_assessments,
+            total_cost_usd=result.total_cost_usd,
+            started_at=result.started_at,
+            completed_at=result.completed_at
+        )
+        session.add(assessment_session)
+        session.flush()  # Ensure session is saved before results
+        
         # Save each assessment result
         for assessment_type, assessment in result.partial_results.items():
             if assessment:
                 # Ensure we have proper fields
                 if not hasattr(assessment, 'url'):
-                    assessment.url = assessment.website_url
+                    assessment.url = assessment.website_url if hasattr(assessment, 'website_url') else None
                 if not hasattr(assessment, 'domain'):
-                    assessment.domain = assessment.website_domain
+                    assessment.domain = assessment.website_domain if hasattr(assessment, 'website_domain') else None
                     
                 session.add(assessment)
                 assessment_ids.append(assessment.id)

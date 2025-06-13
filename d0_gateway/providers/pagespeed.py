@@ -260,9 +260,11 @@ class PageSpeedClient(BaseAPIClient):
 
         # Look for failed audits that have savings
         for audit_id, audit in audits.items():
+            score = audit.get("score", 1)
             if (
-                audit.get("score", 1) < 1
-                and "details" in audit  # Failed or partially failed
+                score is not None
+                and score < 1
+                and "details" in audit
                 and audit.get("details", {}).get("overallSavingsMs", 0) > 0
             ):
                 opportunities.append(

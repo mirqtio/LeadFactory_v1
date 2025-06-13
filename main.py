@@ -125,6 +125,7 @@ async def shutdown_event():
 # Import and register routers
 from d1_targeting.api import router as targeting_router
 from d3_assessment.api import router as assessment_router
+from d4_enrichment.api import router as enrichment_router
 from d7_storefront.api import router as storefront_router
 from d10_analytics.api import router as analytics_router
 from d11_orchestration.api import router as orchestration_router
@@ -134,6 +135,8 @@ from d11_orchestration.campaign_api import router as campaign_router
 app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])
 # Note: d3_assessment already includes prefix in router definition
 app.include_router(assessment_router)
+# Note: d4_enrichment already includes prefix in router definition
+app.include_router(enrichment_router)
 # Note: d7_storefront already includes prefix in router definition
 app.include_router(storefront_router)
 # Note: d10_analytics already includes prefix in router definition

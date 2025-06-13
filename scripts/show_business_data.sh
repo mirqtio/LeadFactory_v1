@@ -6,14 +6,14 @@ if [ -z "$1" ]; then
     echo "Usage: $0 <business_id>"
     echo ""
     echo "To find business IDs, run:"
-    echo "docker exec anthrasite_leadfactory_v1-db-1 psql -U leadfactory -d leadfactory_dev -c \"SELECT id, name, website FROM businesses ORDER BY created_at DESC LIMIT 10\""
+    echo "docker exec leadfactory-postgres psql -U leadfactory -d leadfactory -c \"SELECT id, name, website FROM businesses ORDER BY created_at DESC LIMIT 10\""
     exit 1
 fi
 
 BUSINESS_ID=$1
-DB_CONTAINER="anthrasite_leadfactory_v1-db-1"
+DB_CONTAINER="leadfactory-postgres"
 DB_USER="leadfactory"
-DB_NAME="leadfactory_dev"
+DB_NAME="leadfactory"
 
 echo "========================================="
 echo "BUSINESS DETAILS"
@@ -79,7 +79,7 @@ SELECT
     accessibility_score,
     best_practices_score,
     created_at
-FROM assessment_results 
+FROM d3_assessment_results 
 WHERE business_id = '$BUSINESS_ID'
 ORDER BY created_at DESC" 2>/dev/null || echo "No assessment results found"
 

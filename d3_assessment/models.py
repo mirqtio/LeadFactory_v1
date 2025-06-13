@@ -114,9 +114,10 @@ class AssessmentResult(Base):
     costs = relationship("AssessmentCost", back_populates="assessment")
 
     # Add business relationship for compatibility with other models
-    business = relationship(
-        "Business", back_populates="assessments", foreign_keys=[business_id]
-    )
+    # Commented out to avoid circular dependency
+    # business = relationship(
+    #     "Business", back_populates="assessments", foreign_keys=[business_id]
+    # )
 
     # Proper indexing for performance
     __table_args__ = (

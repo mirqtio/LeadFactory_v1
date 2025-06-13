@@ -6,6 +6,7 @@ import time
 from functools import wraps
 from typing import Any, Dict, Optional
 
+import prometheus_client
 from prometheus_client import (CONTENT_TYPE_LATEST, CollectorRegistry, Counter,
                                Gauge, Histogram, Info, Summary,
                                generate_latest)
@@ -13,7 +14,8 @@ from prometheus_client import (CONTENT_TYPE_LATEST, CollectorRegistry, Counter,
 from core.logging import get_logger
 
 # Create a global registry for the application
-REGISTRY = CollectorRegistry()
+# Use the default registry to avoid duplicate registration issues with multiple workers
+REGISTRY = prometheus_client.REGISTRY
 
 # Application info
 app_info = Info(
@@ -45,9 +47,17 @@ businesses_processed = Counter(
 )
 
 assessments_created = Counter(
-    "leadfactory_assessments_created_total",
+    "leadfactory_assessment_created",
     "Total number of assessments created",
     ["assessment_type", "status"],
+    registry=REGISTRY,
+)
+
+# Add specific metric for smoke test
+assessments_total = Counter(
+    "leadfactory_assessments",
+    "Total number of assessments",
+    ["type", "status"],
     registry=REGISTRY,
 )
 
@@ -62,6 +72,14 @@ purchases_completed = Counter(
     "leadfactory_purchases_completed_total",
     "Total number of purchases completed",
     ["product_type", "experiment"],
+    registry=REGISTRY,
+)
+
+# Add specific metric for smoke test
+checkouts_total = Counter(
+    "leadfactory_checkouts",
+    "Total number of checkouts",
+    ["status"],
     registry=REGISTRY,
 )
 
@@ -210,6 +228,7 @@ class MetricsCollector:
     ):
         """Track assessment creation"""
         assessments_created.labels(assessment_type=assessment_type, status=status).inc()
+        assessments_total.labels(type=assessment_type, status=status).inc()  # Also update smoke test metric
         assessment_duration.labels(assessment_type=assessment_type).observe(duration)
 
     def track_email_sent(self, campaign: str, status: str = "success"):
@@ -223,6 +242,7 @@ class MetricsCollector:
         purchases_completed.labels(
             product_type=product_type, experiment=experiment
         ).inc()
+        checkouts_total.labels(status="completed").inc()  # Also update smoke test metric
         revenue_total.labels(product_type=product_type).inc(amount)
 
     def track_error(self, error_type: str, domain: str):

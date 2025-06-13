@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
+from core.metrics import metrics
 from .models import (PaymentSession, ProductType, D7Purchase, PurchaseItem,
                      PurchaseStatus)
 from .stripe_client import (PAYMENT_METHOD_TYPES, SESSION_MODES,
@@ -258,6 +259,9 @@ class CheckoutManager:
             # Create Stripe session
             stripe_result = checkout.create_stripe_session(additional_metadata)
 
+            # Track checkout initiated metric
+            metrics.checkouts_total.labels(status="initiated").inc()
+            
             # Prepare response
             response = {
                 "success": True,

@@ -1,0 +1,35 @@
+{
+  "session_id": "sess_5cf7a304052d",
+  "business_id": "07a80cdc-3c94-48df-9351-5ba097026806",
+  "url": "https://investinyakima.com/",
+  "domain": "investinyakima.com",
+  "industry": "unknown",
+  "status": "completed",
+  "total_assessments": 3,
+  "completed_assessments": 3,
+  "failed_assessments": 0,
+  "pagespeed_results": {
+    "performance_score": 53,
+    "accessibility_score": 82,
+    "seo_score": 92,
+    "best_practices_score": 79,
+    "largest_contentful_paint": 8555,
+    "first_input_delay": 226,
+    "cumulative_layout_shift": 0.000035723782151327785,
+    "speed_index": 7096,
+    "time_to_interactive": 14095
+  },
+  "tech_stack_results": [],
+  "ai_insights_results": {
+    "recommendations": [],
+    "industry_insights": {},
+    "summary": {},
+    "ai_model_version": "mock-model-v1",
+    "processing_cost_usd": "0.0"
+  },
+  "started_at": "2025-06-13T01:27:00.495546",
+  "completed_at": "2025-06-13T01:27:00.697335",
+  "execution_time_ms": 201,
+  "total_cost_usd": "0",
+  "errors": null
+}
