@@ -114,6 +114,21 @@ class ScreenshotOneClient(BaseAPIClient):
             # For ScreenshotOne, the response is the image data directly
             if isinstance(response, bytes):
                 logger.info(f"Screenshot captured for {url}, size: {len(response)} bytes")
+                
+                # Emit cost for successful screenshot
+                self.emit_cost(
+                    lead_id=kwargs.get("lead_id"),
+                    campaign_id=kwargs.get("campaign_id"),
+                    cost_usd=0.01,  # $0.01 per screenshot as per PRD
+                    operation="capture_screenshot",
+                    metadata={
+                        "url": url,
+                        "full_page": full_page,
+                        "format": format,
+                        "size_bytes": len(response)
+                    }
+                )
+                
                 return response
             else:
                 raise APIProviderError(

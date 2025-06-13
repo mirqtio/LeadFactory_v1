@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-06-13T05:13:48.393174",
+  "last_updated": "2025-06-13T05:19:13.498292",
   "tasks": {
     "001": {
       "status": "completed",
@@ -632,9 +632,9 @@
       "estimated_hours": 0.7
     },
     "GW-04": {
-      "status": "pending",
+      "status": "completed",
       "started_at": null,
-      "completed_at": null,
+      "completed_at": "2025-06-13T05:19:13.498286",
       "actual_hours": null,
       "phase": "0.5",
       "title": "Cost ledger table + helper",

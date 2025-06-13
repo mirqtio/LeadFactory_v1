@@ -27,8 +27,8 @@ def upgrade():
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('provider', sa.String(50), nullable=False),
         sa.Column('operation', sa.String(100), nullable=False),
-        sa.Column('lead_id', sa.Integer(), sa.ForeignKey('dim_lead.id', ondelete='CASCADE'), nullable=True),
-        sa.Column('campaign_id', sa.Integer(), sa.ForeignKey('dim_campaign.id', ondelete='CASCADE'), nullable=True),
+        sa.Column('lead_id', sa.Integer(), nullable=True),  # No FK until dim_lead exists
+        sa.Column('campaign_id', sa.Integer(), nullable=True),  # No FK until dim_campaign exists
         sa.Column('cost_usd', sa.Numeric(10, 4), nullable=False),
         sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
         sa.Column('request_id', sa.String(100), nullable=True),
@@ -50,7 +50,7 @@ def upgrade():
         sa.Column('date', sa.Date(), nullable=False),
         sa.Column('provider', sa.String(50), nullable=False),
         sa.Column('operation', sa.String(100), nullable=True),
-        sa.Column('campaign_id', sa.Integer(), sa.ForeignKey('dim_campaign.id', ondelete='CASCADE'), nullable=True),
+        sa.Column('campaign_id', sa.Integer(), nullable=True),  # No FK until dim_campaign exists
         sa.Column('total_cost_usd', sa.Numeric(10, 4), nullable=False),
         sa.Column('request_count', sa.Integer(), nullable=False, default=0),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP')),

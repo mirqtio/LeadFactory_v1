@@ -172,6 +172,19 @@ class GooglePlacesClient(BaseAPIClient):
             result = response.get("result", {})
             logger.info(f"Retrieved details for place: {result.get('name', place_id)}")
             
+            # Emit cost for successful place details
+            self.emit_cost(
+                lead_id=kwargs.get("lead_id"),
+                campaign_id=kwargs.get("campaign_id"),
+                cost_usd=0.002,  # $0.002 per place details call as per PRD
+                operation="place_details",
+                metadata={
+                    "place_id": place_id,
+                    "place_name": result.get("name"),
+                    "fields": fields
+                }
+            )
+            
             return result
             
         except Exception as e:
@@ -224,6 +237,20 @@ class GooglePlacesClient(BaseAPIClient):
             candidates = response.get("candidates", [])
             if candidates:
                 logger.info(f"Found place: {candidates[0].get('name', 'Unknown')}")
+                
+                # Emit cost for successful find place
+                self.emit_cost(
+                    lead_id=kwargs.get("lead_id"),
+                    campaign_id=kwargs.get("campaign_id"),
+                    cost_usd=0.002,  # $0.002 per find place call
+                    operation="find_place",
+                    metadata={
+                        "input_text": input_text,
+                        "place_name": candidates[0].get("name"),
+                        "place_id": candidates[0].get("place_id")
+                    }
+                )
+                
                 return candidates[0]
             
             return None

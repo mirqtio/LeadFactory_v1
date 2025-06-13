@@ -112,6 +112,23 @@ class OpenAIClient(BaseAPIClient):
             if "usage" in response:
                 logger.info(f"OpenAI usage: {response['usage']}")
                 
+                # Calculate and emit cost
+                total_tokens = response["usage"].get("total_tokens", 0)
+                cost_usd = float(self.calculate_cost("chat_completion", tokens=total_tokens))
+                
+                self.emit_cost(
+                    lead_id=kwargs.get("lead_id"),
+                    campaign_id=kwargs.get("campaign_id"),
+                    cost_usd=cost_usd,
+                    operation="chat_completion",
+                    metadata={
+                        "model": model,
+                        "total_tokens": total_tokens,
+                        "prompt_tokens": response["usage"].get("prompt_tokens", 0),
+                        "completion_tokens": response["usage"].get("completion_tokens", 0),
+                    }
+                )
+                
             return response
             
         except Exception as e:
