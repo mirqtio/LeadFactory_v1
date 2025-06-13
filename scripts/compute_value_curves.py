@@ -61,18 +61,6 @@ DATASETS: Dict[str, Dict[str, str | list[str]]] = {
         "url": "https://www2.census.gov/programs-surveys/cbp/datasets/2022/cbp22co.zip",
         "filename": "cbp22co.zip",
     },
-    "qcew_county": {
-        "url": [
-            "https://data.bls.gov/cew/data/files/2024/csv/2024_q3_singlefile.zip",
-            "https://data.bls.gov/cew/data/files/2024/csv/2024_q2_singlefile.zip",
-            "https://data.bls.gov/cew/data/files/2023/csv/2023_q4_singlefile.zip",
-        ],
-        "filename": "qcew_singlefile.zip",
-    },
-    "irs_soi_2021": {
-        "url": "https://www.irs.gov/pub/irs-soi/21in54naicsstate.csv",
-        "filename": "irs_2021_naics_state.csv",
-    },
     "zip_to_cbsa": {
         "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2022_Gaz_zcta_national.txt",
         "filename": "2022_Gaz_zcta_national.txt",

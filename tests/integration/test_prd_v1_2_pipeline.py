@@ -7,7 +7,7 @@ import pytest
 from typing import Dict, Any
 from decimal import Decimal
 
-from d1_targeting.yelp_search import YelpSearchAPI
+from d0_gateway.providers.yelp import YelpClient
 from d3_assessment.coordinator_v2 import AssessmentCoordinatorV2
 from d4_enrichment.email_enrichment import get_email_enricher
 from d5_scoring.tiers import TierAssignmentEngine
@@ -23,10 +23,10 @@ class TestPRDv12Pipeline:
         if not settings.yelp_api_key:
             pytest.skip("No Yelp API key")
             
-        yelp_api = YelpSearchAPI()
+        yelp_client = YelpClient()
         
         # Search for just 2 businesses to save quota
-        results = await yelp_api.search_businesses(
+        results = await yelp_client.search_businesses(
             term="restaurant",
             location="San Francisco, CA",
             limit=2
@@ -38,7 +38,7 @@ class TestPRDv12Pipeline:
         
         # Check rate limiter
         if hasattr(yelp_api.client, 'rate_limiter'):
-            tokens = yelp_api.client.rate_limiter.tokens_available()
+            tokens = yelp_client.rate_limiter.tokens_available()
             assert tokens < 300  # Should have used some tokens
             assert tokens >= 0
     
@@ -198,8 +198,8 @@ class TestPRDv12Pipeline:
         
         # Step 1: Yelp sourcing
         print("\n1. Sourcing from Yelp...")
-        yelp_api = YelpSearchAPI()
-        businesses = await yelp_api.search_businesses(
+        yelp_client = YelpClient()
+        businesses = await yelp_client.search_businesses(
             term="pizza",
             location="San Francisco, CA", 
             limit=1
