@@ -68,22 +68,34 @@ class PageSpeedClient(BaseAPIClient):
         Returns:
             Dict containing PageSpeed analysis results
         """
-        params = {"url": url, "strategy": strategy, "key": self.api_key}
+        # Build params as list of tuples to support multiple category values
+        params = [
+            ("url", url),
+            ("strategy", strategy),
+            ("key", self.api_key)
+        ]
 
-        # Add optional parameters
+        # Add categories - PageSpeed v5 expects uppercase category names
         if categories:
-            # Join categories with comma
-            params["category"] = ",".join(categories)
+            for cat in categories:
+                # Convert to API format
+                if cat.lower() == "best-practices":
+                    cat = "BEST_PRACTICES"
+                else:
+                    cat = cat.upper()
+                params.append(("category", cat))
         else:
-            # Default categories for comprehensive analysis
-            params["category"] = "performance,accessibility,best-practices,seo"
+            # Default to all main categories
+            for cat in ["PERFORMANCE", "ACCESSIBILITY", "BEST_PRACTICES", "SEO"]:
+                params.append(("category", cat))
 
+        # Add other optional parameters
         if locale:
-            params["locale"] = locale
+            params.append(("locale", locale))
         if utm_campaign:
-            params["utm_campaign"] = utm_campaign
+            params.append(("utm_campaign", utm_campaign))
         if utm_source:
-            params["utm_source"] = utm_source
+            params.append(("utm_source", utm_source))
 
         return await self.make_request(
             "GET", "/pagespeedonline/v5/runPagespeed", params=params

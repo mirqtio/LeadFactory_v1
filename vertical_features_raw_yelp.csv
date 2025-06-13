@@ -1,0 +1,1577 @@
+yelp_alias,title,parent_aliases,naics6,naics3,naics_title,urgency,ticket_band,maturity
+3dprinting,3D Printing,['localservices'],,,,0.5,mid,established
+abruzzese,Abruzzese,['italian'],,,,0.5,mid,established
+absinthebars,Absinthe Bars,['bars'],,,,0.5,mid,established
+acaibowls,Acai Bowls,['food'],,,,0.5,mid,established
+accessories,Accessories,['fashion'],,,,0.5,mid,established
+accountants,Accountants,['professional'],,,,0.5,mid,established
+acnetreatment,Acne Treatment,['beautysvc'],,,,0.5,mid,established
+active,Active Life,[],,,,0.5,mid,established
+acupuncture,Acupuncture,['health'],,,,0.5,mid,established
+addictionmedicine,Addiction Medicine,['physicians'],,,,0.5,mid,established
+adoptionservices,Adoption Services,['localservices'],,,,0.5,mid,established
+adult,Adult Shops,['shopping'],,,,0.5,mid,established
+adultedu,Adult Education,['education'],,,,0.5,mid,established
+adultentertainment,Adult Entertainment,['nightlife'],,,,0.5,mid,established
+advertising,Advertising,['professional'],,,,0.5,mid,established
+aerialfitness,Aerial Fitness,['fitness'],,,,0.5,mid,established
+aerialtours,Aerial Tours,['tours'],,,,0.5,mid,established
+aestheticians,Aestheticians,['medicalspa'],,,,0.5,mid,established
+afghani,Afghan,['restaurants'],,,,0.5,mid,established
+african,African,['restaurants'],,,,0.5,mid,established
+afrobrazilian,Afro-Brazilian,['religiousorgs'],,,,0.5,mid,established
+agriturismi,Agriturismi,['hotels'],,,,0.5,mid,established
+aircraftdealers,Aircraft Dealers,['auto'],,,,0.5,mid,established
+aircraftrepairs,Aircraft Repairs,['auto'],,,,0.5,mid,established
+airductcleaning,Air Duct Cleaning,['localservices'],,,,0.5,mid,established
+airlines,Airlines,['transport'],,,,0.5,mid,established
+airport_shuttles,Airport Shuttles,['transport'],,,,0.5,mid,established
+airportlounges,Airport Lounges,['bars'],,,,0.5,mid,established
+airports,Airports,['hotelstravel'],,,,0.5,mid,established
+airportterminals,Airport Terminals,['airports'],,,,0.5,mid,established
+airsoft,Airsoft,['active'],,,,0.5,mid,established
+alentejo,Alentejo,['portuguese'],,,,0.5,mid,established
+algarve,Algarve,['portuguese'],,,,0.5,mid,established
+allergist,Allergists,['physicians'],,,,0.5,mid,established
+alsatian,Alsatian,['french'],,,,0.5,mid,established
+alternativemedicine,Alternative Medicine,['health'],,,,0.5,mid,established
+altoatesine,Altoatesine,['italian'],,,,0.5,mid,established
+amateursportsteams,Amateur Sports Teams,['active'],,,,0.5,mid,established
+amusementparks,Amusement Parks,['active'],,,,0.5,mid,established
+andalusian,Andalusian,['restaurants'],,,,0.5,mid,established
+anesthesiologists,Anesthesiologists,['physicians'],,,,0.5,mid,established
+animalassistedtherapy,Animal Assisted Therapy,['health'],,,,0.5,mid,established
+animalholistic,Holistic Animal Care,['petservices'],,,,0.5,mid,established
+animalphysicaltherapy,Animal Physical Therapy,['petservices'],,,,0.5,mid,established
+animalshelters,Animal Shelters,['pets'],,,,0.5,mid,established
+antiques,Antiques,['shopping'],,,,0.5,mid,established
+apartmentagents,Apartment Agents,['realestateagents'],,,,0.5,mid,established
+apartments,Apartments,['realestate'],,,,0.5,mid,established
+appliances,Appliances,['homeandgarden'],,,,0.5,mid,established
+appraisalservices,Appraisal Services,['localservices'],,,,0.5,mid,established
+apulian,Apulian,['italian'],,,,0.5,mid,established
+aquariums,Aquariums,['active'],,,,0.5,mid,established
+aquariumservices,Aquarium Services,['petservices'],,,,0.5,mid,established
+arabian,Arabic,['restaurants'],,,,0.5,mid,established
+arabpizza,Arab Pizza,['arabian'],,,,0.5,mid,established
+arcades,Arcades,['arts'],,,,0.5,mid,established
+archery,Archery,['active'],,,,0.5,mid,established
+architects,Architects,['professional'],,,,0.5,mid,established
+architecturaltours,Architectural Tours,['tours'],,,,0.5,mid,established
+argentine,Argentine,['restaurants'],,,,0.5,mid,established
+armenian,Armenian,['restaurants'],,,,0.5,mid,established
+arroceria_paella,Arroceria / Paella,['spanish'],,,,0.5,mid,established
+artclasses,Art Classes,['education'],,,,0.5,mid,established
+artconsultants,Art Consultants,['professional'],,,,0.5,mid,established
+artificialturf,Artificial Turf,['homeservices'],,,,0.5,mid,established
+artinstallation,Art Installation,['localservices'],,,,0.5,mid,established
+artmuseums,Art Museums,['museums'],,,,0.5,mid,established
+artrestoration,Art Restoration,['localservices'],,,,0.5,mid,established
+arts,Arts & Entertainment,[],,,,0.5,mid,established
+artsandcrafts,Arts & Crafts,['shopping'],,,,0.5,mid,established
+artschools,Art Schools,['specialtyschools'],,,,0.5,mid,established
+artspacerentals,Art Space Rentals,['realestate'],,,,0.5,mid,established
+artsupplies,Art Supplies,['artsandcrafts'],,,,0.5,mid,established
+arttours,Art Tours,['tours'],,,,0.5,mid,established
+asianfusion,Asian Fusion,['restaurants'],,,,0.5,mid,established
+assistedliving,Assisted Living Facilities,['health'],,,,0.5,mid,established
+astrologers,Astrologers,['psychic_astrology'],,,,0.5,mid,established
+asturian,Asturian,['restaurants'],,,,0.5,mid,established
+ateliers,Ateliers,['artsandcrafts'],,,,0.5,mid,established
+attractionfarms,Attraction Farms,['farms'],,,,0.5,mid,established
+atvrentals,ATV Rentals/Tours,['active'],,,,0.5,mid,established
+auctionhouses,Auction Houses,['shopping'],,,,0.5,mid,established
+audiologist,Audiologist,['physicians'],,,,0.5,mid,established
+audiovisualequipmentrental,Audio/Visual Equipment Rental,['partyequipmentrentals'],,,,0.5,mid,established
+australian,Australian,['restaurants'],,,,0.5,mid,established
+austrian,Austrian,['restaurants'],,,,0.5,mid,established
+authorized_postal_representative,Authorized Postal Representative,['publicservicesgovt'],,,,0.5,mid,established
+auto,Automotive,[],,,,0.5,mid,established
+auto_detailing,Auto Detailing,['auto'],,,,0.5,mid,established
+autocustomization,Auto Customization,['auto'],,,,0.5,mid,established
+autodamageassessment,Car Inspectors,['auto'],,,,0.5,mid,established
+autoelectric,Auto Electric Services,['auto'],,,,0.5,mid,established
+autoglass,Auto Glass Services,['auto'],,,,0.5,mid,established
+autoinsurance,Auto Insurance,['insurance'],,,,0.5,mid,established
+autoloanproviders,Auto Loan Providers,['auto'],,,,0.5,mid,established
+autopartssupplies,Auto Parts & Supplies,['auto'],,,,0.5,mid,established
+autorepair,Auto Repair,['auto'],,,,0.5,mid,established
+autosecurity,Auto Security,['auto'],,,,0.5,mid,established
+autoupholstery,Auto Upholstery,['auto'],,,,0.5,mid,established
+auvergnat,Auvergnat,['french'],,,,0.5,mid,established
+aviationservices,Aviation Services,['auto'],,,,0.5,mid,established
+awnings,Awnings,['localservices'],,,,0.5,mid,established
+axethrowing,Axe Throwing,['active'],,,,0.5,mid,established
+ayurveda,Ayurveda,['health'],,,,0.5,mid,established
+azores,Azores,['portuguese'],,,,0.5,mid,established
+baby_gear,Baby Gear & Furniture,['shopping'],,,,0.5,mid,established
+backflowservices,Backflow Services,['plumbing'],,,,0.5,mid,established
+backshop,Backshop,['food'],,,,0.5,mid,established
+baden,Baden,['german'],,,,0.5,mid,established
+badminton,Badminton,['active'],,,,0.5,mid,established
+bagels,Bagels,['food'],,,,0.5,mid,established
+baguettes,Baguettes,['restaurants'],,,,0.5,mid,established
+bailbondsmen,Bail Bondsmen,['localservices'],,,,0.5,mid,established
+bakeries,Bakeries,['food'],,,,0.5,mid,established
+balloonservices,Balloon Services,['eventservices'],,,,0.5,mid,established
+bangladeshi,Bangladeshi,['restaurants'],,,,0.5,mid,established
+bankruptcy,Bankruptcy Law,['lawyers'],,,,0.5,mid,established
+banks,Banks & Credit Unions,['financialservices'],,,,0.5,mid,established
+barbers,Barbers,['beautysvc'],,,,0.5,mid,established
+barcrawl,Bar Crawl,['nightlife'],,,,0.5,mid,established
+barreclasses,Barre Classes,['fitness'],,,,0.5,mid,established
+bars,Bars,['nightlife'],,,,0.5,mid,established
+bartenders,Bartenders,['eventservices'],,,,0.5,mid,established
+bartendingschools,Bartending Schools,['specialtyschools'],,,,0.5,mid,established
+baseballfields,Baseball Fields,['active'],,,,0.5,mid,established
+basketballcourts,Basketball Courts,['active'],,,,0.5,mid,established
+basque,Basque,['restaurants'],,,,0.5,mid,established
+bathing_area,Bathing Area,['active'],,,,0.5,mid,established
+batterystores,Battery Stores,['shopping'],,,,0.5,mid,established
+battingcages,Batting Cages,['active'],,,,0.5,mid,established
+bavarian,Bavarian,['restaurants'],,,,0.5,mid,established
+bbq,Barbeque,['restaurants'],,,,0.5,mid,established
+beachbars,Beach Bars,['bars'],,,,0.5,mid,established
+beachequipmentrental,Beach Equipment Rentals,['active'],,,,0.5,mid,established
+beaches,Beaches,['active'],,,,0.5,mid,established
+beachvolleyball,Beach Volleyball,['active'],,,,0.5,mid,established
+beautysvc,Beauty & Spas,[],,,,0.5,mid,established
+bedbreakfast,Bed & Breakfast,['hotelstravel'],,,,0.5,mid,established
+beer_and_wine,"Beer, Wine & Spirits",['food'],,,,0.5,mid,established
+beerbar,Beer Bar,['bars'],,,,0.5,mid,established
+beergarden,Beer Garden,['restaurants'],,,,0.5,mid,established
+beergardens,Beer Gardens,['nightlife'],,,,0.5,mid,established
+beerhall,Beer Hall,['restaurants'],,,,0.5,mid,established
+beertours,Beer Tours,['tours'],,,,0.5,mid,established
+behavioranalysts,Behavior Analysts,['health'],,,,0.5,mid,established
+beira,Beira,['portuguese'],,,,0.5,mid,established
+beisl,Beisl,['restaurants'],,,,0.5,mid,established
+belgian,Belgian,['restaurants'],,,,0.5,mid,established
+bento,Bento,['food'],,,,0.5,mid,established
+berrichon,Berrichon,['french'],,,,0.5,mid,established
+bespoke,Bespoke Clothing,['shopping'],,,,0.5,mid,established
+bettingcenters,Betting Centers,['arts'],,,,0.5,mid,established
+beverage_stores,Beverage Store,['food'],,,,0.5,mid,established
+bicyclepaths,Bicycle Paths,['active'],,,,0.5,mid,established
+bicycles,Bicycles,[],,,,0.5,mid,established
+bike_repair_maintenance,Bike Repair/Maintenance,['localservices'],,,,0.5,mid,established
+bikeassociations,Bike Associations,['bicycles'],,,,0.5,mid,established
+bikeparking,Bike Parking,['active'],,,,0.5,mid,established
+bikerentals,Bike Rentals,['active'],,,,0.5,mid,established
+bikerepair,Bike Repair,['bicycles'],,,,0.5,mid,established
+bikes,Bikes,['sportgoods'],,,,0.5,mid,established
+bikesharing,Bike Sharing,['transport'],,,,0.5,mid,established
+bikeshop,Bike Shop,['bicycles'],,,,0.5,mid,established
+biketours,Bike tours,['tours'],,,,0.5,mid,established
+billingservices,Billing Services,['professional'],,,,0.5,mid,established
+bingo,Bingo Halls,['arts'],,,,0.5,mid,established
+biohazardcleanup,Biohazard Cleanup,['localservices'],,,,0.5,mid,established
+birdshops,Bird Shops,['petstore'],,,,0.5,mid,established
+bistros,Bistros,['restaurants'],,,,0.5,mid,established
+blacksea,Black Sea,['restaurants'],,,,0.5,mid,established
+blinds,Shades & Blinds,['homeservices'],,,,0.5,mid,established
+blooddonation,Blood & Plasma Donation Centers,['health'],,,,0.5,mid,established
+blowfish,Blowfish,['japanese'],,,,0.5,mid,established
+blowoutservices,Blow Dry/Out Services,['hair'],,,,0.5,mid,established
+boatcharters,Boat Charters,['eventservices'],,,,0.5,mid,established
+boatdealers,Boat Dealers,['auto'],,,,0.5,mid,established
+boating,Boating,['active'],,,,0.5,mid,established
+boatpartsandsupplies,Boat Parts & Supplies,['auto'],,,,0.5,mid,established
+boatrepair,Boat Repair,['professional'],,,,0.5,mid,established
+boattours,Boat Tours,['tours'],,,,0.5,mid,established
+bobsledding,Bobsledding,['active'],,,,0.5,mid,established
+bocceball,Bocce Ball,['active'],,,,0.5,mid,established
+bodycontouring,Body Contouring,['health'],,,,0.5,mid,established
+bodyshops,Body Shops,['auto'],,,,0.5,mid,established
+bookbinding,Bookbinding,['localservices'],,,,0.5,mid,established
+bookkeepers,Bookkeepers,['professional'],,,,0.5,mid,established
+bookstores,Bookstores,['media'],,,,0.5,mid,established
+bootcamps,Boot Camps,['fitness'],,,,0.5,mid,established
+boudoirphotography,Boudoir Photography,['photographers'],,,,0.5,mid,established
+bouncehouserentals,Bounce House Rentals,['partyequipmentrentals'],,,,0.5,mid,established
+bourguignon,Bourguignon,['french'],,,,0.5,mid,established
+bowling,Bowling,['active'],,,,0.5,mid,established
+boxing,Boxing,['fitness'],,,,0.5,mid,established
+brasseries,Brasseries,['restaurants'],,,,0.5,mid,established
+brazilian,Brazilian,['restaurants'],,,,0.5,mid,established
+brazilianempanadas,Brazilian Empanadas,['brazilian'],,,,0.5,mid,established
+brazilianjiujitsu,Brazilian Jiu-jitsu,['martialarts'],,,,0.5,mid,established
+breakfast_brunch,Breakfast & Brunch,['restaurants'],,,,0.5,mid,established
+breweries,Breweries,['food'],,,,0.5,mid,established
+brewingsupplies,Brewing Supplies,['shopping'],,,,0.5,mid,established
+brewpubs,Brewpubs,['breweries'],,,,0.5,mid,established
+bridal,Bridal,['shopping'],,,,0.5,mid,established
+british,British,['restaurants'],,,,0.5,mid,established
+bubblesoccer,Bubble Soccer,['active'],,,,0.5,mid,established
+bubbletea,Bubble Tea,['food'],,,,0.5,mid,established
+buddhist_temples,Buddhist Temples,['religiousorgs'],,,,0.5,mid,established
+buffets,Buffets,['restaurants'],,,,0.5,mid,established
+buildingsupplies,Building Supplies,['homeservices'],,,,0.5,mid,established
+bulgarian,Bulgarian,['restaurants'],,,,0.5,mid,established
+bulkbilling,Bulk Billing,['medcenters'],,,,0.5,mid,established
+bungeejumping,Bungee Jumping,['active'],,,,0.5,mid,established
+burgers,Burgers,['restaurants'],,,,0.5,mid,established
+burmese,Burmese,['restaurants'],,,,0.5,mid,established
+buses,Buses,['transport'],,,,0.5,mid,established
+businessconsulting,Business Consulting,['professional'],,,,0.5,mid,established
+businessfinancing,Business Financing,['financialservices'],,,,0.5,mid,established
+businesslawyers,Business Law,['lawyers'],,,,0.5,mid,established
+busrental,Bus Rental,['localservices'],,,,0.5,mid,established
+busstations,Bus Stations,['transport'],,,,0.5,mid,established
+bustours,Bus Tours,['tours'],,,,0.5,mid,established
+butcher,Butcher,['food'],,,,0.5,mid,established
+c_and_mh,Counseling & Mental Health,['health'],,,,0.5,mid,established
+cabaret,Cabaret,['arts'],,,,0.5,mid,established
+cabinetry,Cabinetry,['homeservices'],,,,0.5,mid,established
+cablecars,Cable Cars,['transport'],,,,0.5,mid,established
+cafes,Cafes,['restaurants'],,,,0.5,mid,established
+cafeteria,Cafeteria,['restaurants'],,,,0.5,mid,established
+cajun,Cajun/Creole,['restaurants'],,,,0.5,mid,established
+cakeshop,Patisserie/Cake Shop,['food'],,,,0.5,mid,established
+calabrian,Calabrian,['italian'],,,,0.5,mid,established
+calligraphy,Calligraphy,['localservices'],,,,0.5,mid,established
+cambodian,Cambodian,['restaurants'],,,,0.5,mid,established
+campgrounds,Campgrounds,['hotelstravel'],,,,0.5,mid,established
+candlestores,Candle Stores,['homeandgarden'],,,,0.5,mid,established
+candy,Candy Stores,['gourmet'],,,,0.5,mid,established
+cannabis_clinics,Cannabis Clinics,['health'],,,,0.5,mid,established
+cannabiscollective,Cannabis Collective,['health'],,,,0.5,mid,established
+cannabisdispensaries,Cannabis Dispensaries,['shopping'],,,,0.5,mid,established
+cannabisreferrals,Medical Cannabis Referrals,['health'],,,,0.5,mid,established
+cannabistours,Cannabis Tours,['cannabis_clinics'],,,,0.5,mid,established
+canteen,Canteen,['restaurants'],,,,0.5,mid,established
+cantonese,Cantonese,['chinese'],,,,0.5,mid,established
+canyoneering,Canyoneering,['active'],,,,0.5,mid,established
+car_dealers,Car Dealers,['auto'],,,,0.5,mid,established
+carauctions,Car Auctions,['auto'],,,,0.5,mid,established
+carbrokers,Car Brokers,['auto'],,,,0.5,mid,established
+carbuyers,Car Buyers,['auto'],,,,0.5,mid,established
+cardioclasses,Cardio Classes,['fitness'],,,,0.5,mid,established
+cardiology,Cardiologists,['physicians'],,,,0.5,mid,established
+careercounseling,Career Counseling,['professional'],,,,0.5,mid,established
+caribbean,Caribbean,['restaurants'],,,,0.5,mid,established
+caricatures,Caricatures,['eventservices'],,,,0.5,mid,established
+carousels,Carousels,['active'],,,,0.5,mid,established
+carpenters,Carpenters,['homeservices'],,,,0.5,mid,established
+carpet_cleaning,Carpet Cleaning,['localservices'],,,,0.5,mid,established
+carpetdyeing,Carpet Dyeing,['localservices'],,,,0.5,mid,established
+carpeting,Carpeting,['homeservices'],,,,0.5,mid,established
+carpetinstallation,Carpet Installation,['homeservices'],,,,0.5,mid,established
+carrental,Car Rental,['hotelstravel'],,,,0.5,mid,established
+carshares,Car Share Services,['auto'],,,,0.5,mid,established
+carwash,Car Wash,['auto'],,,,0.5,mid,established
+carwindowtinting,Car Window Tinting,['autoglass'],,,,0.5,mid,established
+casinos,Casinos,['arts'],,,,0.5,mid,established
+castles,Castles,['arts'],,,,0.5,mid,established
+catalan,Catalan,['restaurants'],,,,0.5,mid,established
+catering,Caterers,['eventservices'],,,,0.5,mid,established
+cellphoneaccessories,Mobile Phone Accessories,['shopping'],,,,0.5,mid,established
+centralbrazilian,Central Brazilian,['brazilian'],,,,0.5,mid,established
+ceremonialclothing,Ceremonial Clothing,['fashion'],,,,0.5,mid,established
+challengecourses,Challenge Courses,['active'],,,,0.5,mid,established
+champagne_bars,Champagne Bars,['bars'],,,,0.5,mid,established
+chech,Chech,['restaurants'],,,,0.5,mid,established
+cheekufta,Chee Kufta,['turkish'],,,,0.5,mid,established
+cheerleading,Cheerleading,['specialtyschools'],,,,0.5,mid,established
+cheese,Cheese Shops,['gourmet'],,,,0.5,mid,established
+cheesesteaks,Cheesesteaks,['restaurants'],,,,0.5,mid,established
+cheesetastingclasses,Cheese Tasting Classes,['tastingclasses'],,,,0.5,mid,established
+chicken_wings,Chicken Wings,['restaurants'],,,,0.5,mid,established
+chickenshop,Chicken Shop,['restaurants'],,,,0.5,mid,established
+childbirthedu,Childbirth Education,['specialtyschools'],,,,0.5,mid,established
+childcare,Child Care & Day Care,['localservices'],,,,0.5,mid,established
+childcloth,Children's Clothing,['fashion'],,,,0.5,mid,established
+childproofing,Childproofing,['homeservices'],,,,0.5,mid,established
+childrensmuseums,Children's Museums,['museums'],,,,0.5,mid,established
+chilean,Chilean,['restaurants'],,,,0.5,mid,established
+chimneycakes,Chimney Cakes,['food'],,,,0.5,mid,established
+chimneysweeps,Chimney Sweeps,['homeservices'],,,,0.5,mid,established
+chinese,Chinese,['restaurants'],,,,0.5,mid,established
+chinesebazaar,Chinese Bazaar,['shopping'],,,,0.5,mid,established
+chinesemartialarts,Chinese Martial Arts,['martialarts'],,,,0.5,mid,established
+chiropractors,Chiropractors,['health'],,,,0.5,mid,established
+chocolate,Chocolatiers & Shops,['gourmet'],,,,0.5,mid,established
+choirs,Choirs,['arts'],,,,0.5,mid,established
+christmastrees,Christmas Trees,['homeandgarden'],,,,0.5,mid,established
+churches,Churches,['religiousorgs'],,,,0.5,mid,established
+churros,Churros,['food'],,,,0.5,mid,established
+cideries,Cideries,['food'],,,,0.5,mid,established
+cigarbars,Cigar Bars,['bars'],,,,0.5,mid,established
+circuittraininggyms,Circuit Training Gyms,['gyms'],,,,0.5,mid,established
+circusschools,Circus Schools,['specialtyschools'],,,,0.5,mid,established
+civiccenter,Civic Center,['publicservicesgovt'],,,,0.5,mid,established
+climbing,Climbing,['active'],,,,0.5,mid,established
+clockrepair,Clock Repair,['localservices'],,,,0.5,mid,established
+clothingrental,Clothing Rental,['fashion'],,,,0.5,mid,established
+clowns,Clowns,['eventservices'],,,,0.5,mid,established
+clubcrawl,Club Crawl,['nightlife'],,,,0.5,mid,established
+cocktailbars,Cocktail Bars,['bars'],,,,0.5,mid,established
+coffee,Coffee & Tea,['food'],,,,0.5,mid,established
+coffeeroasteries,Coffee Roasteries,['food'],,,,0.5,mid,established
+coffeeshops,Coffeeshops,['nightlife'],,,,0.5,mid,established
+coffeeteasupplies,Coffee & Tea Supplies,['food'],,,,0.5,mid,established
+collegecounseling,College Counseling,['education'],,,,0.5,mid,established
+collegeuniv,Colleges & Universities,['education'],,,,0.5,mid,established
+colombian,Colombian,['latin'],,,,0.5,mid,established
+colonics,Colonics,['health'],,,,0.5,mid,established
+comedyclubs,Comedy Clubs,['nightlife'],,,,0.5,mid,established
+comfortfood,Comfort Food,['restaurants'],,,,0.5,mid,established
+comicbooks,Comic Books,['media'],,,,0.5,mid,established
+commercialrealestate,Commercial Real Estate,['realestate'],,,,0.5,mid,established
+commissionedartists,Commissioned Artists,['professional'],,,,0.5,mid,established
+communitybookbox,Community Book Box,['localservices'],,,,0.5,mid,established
+communitycenters,Community Centers,['publicservicesgovt'],,,,0.5,mid,established
+communitygardens,Community Gardens,['localservices'],,,,0.5,mid,established
+computers,Computers,['shopping'],,,,0.5,mid,established
+concept_shops,Concept Shops,['shopping'],,,,0.5,mid,established
+conciergemedicine,Concierge Medicine,['health'],,,,0.5,mid,established
+condominiums,Condominiums,['realestate'],,,,0.5,mid,established
+congee,Congee,['chinese'],,,,0.5,mid,established
+consumerlaw,Consumer Law,['lawyers'],,,,0.5,mid,established
+contractlaw,Contract Law,['lawyers'],,,,0.5,mid,established
+contractors,General Contractors,['homeservices'],,,,0.5,mid,established
+convenience,Convenience Stores,['food'],,,,0.5,mid,established
+conveyorsushi,Conveyor Belt Sushi,['japanese'],,,,0.5,mid,established
+cookingclasses,Cooking Classes,['artsandcrafts'],,,,0.5,mid,established
+cookingschools,Cooking Schools,['specialtyschools'],,,,0.5,mid,established
+copyshops,Printing Services,['localservices'],,,,0.5,mid,established
+corsican,Corsican,['restaurants'],,,,0.5,mid,established
+cosmeticdentists,Cosmetic Dentists,['dentists'],,,,0.5,mid,established
+cosmetics,Cosmetics & Beauty Supply,"['beautysvc', 'shopping']",,,,0.5,mid,established
+cosmeticsurgeons,Cosmetic Surgeons,['physicians'],,,,0.5,mid,established
+cosmetology_schools,Cosmetology Schools,['specialtyschools'],,,,0.5,mid,established
+costumes,Costumes,['artsandcrafts'],,,,0.5,mid,established
+countertopinstall,Countertop Installation,['homeservices'],,,,0.5,mid,established
+countryclubs,Country Clubs,['arts'],,,,0.5,mid,established
+countrydancehalls,Country Dance Halls,['nightlife'],,,,0.5,mid,established
+couriers,Couriers & Delivery Services,['localservices'],,,,0.5,mid,established
+courthouses,Courthouses,['publicservicesgovt'],,,,0.5,mid,established
+courtreporters,Court Reporters,['legalservices'],,,,0.5,mid,established
+cprclasses,CPR Classes,['specialtyschools'],,,,0.5,mid,established
+craneservices,Crane Services,['localservices'],,,,0.5,mid,established
+cremationservices,Cremation Services,['funeralservices'],,,,0.5,mid,established
+creperies,Creperies,['restaurants'],,,,0.5,mid,established
+criminaldefense,Criminal Defense Law,['lawyers'],,,,0.5,mid,established
+crisispregnancycenters,Crisis Pregnancy Centers,['health'],,,,0.5,mid,established
+cryotherapy,Cryotherapy,['health'],,,,0.5,mid,established
+csa,CSA,['food'],,,,0.5,mid,established
+cuban,Cuban,['restaurants'],,,,0.5,mid,established
+cucinacampana,Cucina campana,['italian'],,,,0.5,mid,established
+culturalcenter,Cultural Center,['arts'],,,,0.5,mid,established
+cupcakes,Cupcakes,['food'],,,,0.5,mid,established
+currencyexchange,Currency Exchange,['financialservices'],,,,0.5,mid,established
+currysausage,Curry Sausage,['restaurants'],,,,0.5,mid,established
+customcakes,Custom Cakes,['food'],,,,0.5,mid,established
+custommerchandise,Customized Merchandise,['shopping'],,,,0.5,mid,established
+customsbrokers,Customs Brokers,['professional'],,,,0.5,mid,established
+cyclingclasses,Cycling Classes,['active'],,,,0.5,mid,established
+cypriot,Cypriot,['restaurants'],,,,0.5,mid,established
+czech,Czech,['restaurants'],,,,0.5,mid,established
+czechslovakian,Czech/Slovakian,['restaurants'],,,,0.5,mid,established
+dagashi,Dagashi,['gourmet'],,,,0.5,mid,established
+damagerestoration,Damage Restoration,['homeservices'],,,,0.5,mid,established
+dance_schools,Dance Schools,['specialtyschools'],,,,0.5,mid,established
+danceclubs,Dance Clubs,['nightlife'],,,,0.5,mid,established
+dancerestaurants,Dance Restaurants,['nightlife'],,,,0.5,mid,established
+dancestudio,Dance Studios,['fitness'],,,,0.5,mid,established
+dancewear,Dance Wear,['sportswear'],,,,0.5,mid,established
+danish,Danish,['restaurants'],,,,0.5,mid,established
+dartarenas,Dart Arenas,['active'],,,,0.5,mid,established
+datarecovery,Data Recovery,['itservices'],,,,0.5,mid,established
+daycamps,Day Camps,['active'],,,,0.5,mid,established
+debtrelief,Debt Relief Services,['financialservices'],,,,0.5,mid,established
+decksrailing,Decks & Railing,['homeservices'],,,,0.5,mid,established
+delicatessen,Delicatessen,['food'],,,,0.5,mid,established
+delis,Delis,['restaurants'],,,,0.5,mid,established
+demolitionservices,Demolition Services,['homeservices'],,,,0.5,mid,established
+dentalhygeiniststorefront,Storefront Clinics,['dentalhygienists'],,,,0.5,mid,established
+dentalhygienists,Dental Hygienists,['health'],,,,0.5,mid,established
+dentalhygienistsmobile,Mobile Clinics,['dentalhygienists'],,,,0.5,mid,established
+dentists,Dentists,['health'],,,,0.5,mid,established
+departmentsofmotorvehicles,Departments of Motor Vehicles,['publicservicesgovt'],,,,0.5,mid,established
+deptstores,Department Stores,"['shopping', 'fashion']",,,,0.5,mid,established
+dermatology,Dermatologists,['physicians'],,,,0.5,mid,established
+desserts,Desserts,['food'],,,,0.5,mid,established
+diagnosticimaging,Diagnostic Imaging,['diagnosticservices'],,,,0.5,mid,established
+diagnosticservices,Diagnostic Services,['health'],,,,0.5,mid,established
+dialysisclinics,Dialysis Clinics,['health'],,,,0.5,mid,established
+diamondbuyers,Diamond Buyers,['shopping'],,,,0.5,mid,established
+dietitians,Dietitians,['health'],,,,0.5,mid,established
+digitizingservices,Digitizing Services,['professional'],,,,0.5,mid,established
+dimsum,Dim Sum,['chinese'],,,,0.5,mid,established
+diners,Diners,['restaurants'],,,,0.5,mid,established
+dinnertheater,Dinner Theater,['restaurants'],,,,0.5,mid,established
+disabilitylaw,Disability Law,['lawyers'],,,,0.5,mid,established
+discgolf,Disc Golf,['active'],,,,0.5,mid,established
+discountstore,Discount Store,['shopping'],,,,0.5,mid,established
+distilleries,Distilleries,['food'],,,,0.5,mid,established
+divebars,Dive Bars,['bars'],,,,0.5,mid,established
+diveshops,Dive Shops,['sportgoods'],,,,0.5,mid,established
+diving,Diving,['active'],,,,0.5,mid,established
+divorce,Divorce & Family Law,['lawyers'],,,,0.5,mid,established
+diyautoshop,DIY Auto Shop,['autorepair'],,,,0.5,mid,established
+diyfood,Do-It-Yourself Food,['food'],,,,0.5,mid,established
+djs,DJs,['eventservices'],,,,0.5,mid,established
+dog_parks,Dog Parks,['parks'],,,,0.5,mid,established
+dogwalkers,Dog Walkers,['petservices'],,,,0.5,mid,established
+dolmusstation,Dolmus Station,['transport'],,,,0.5,mid,established
+dominican,Dominican,['caribbean'],,,,0.5,mid,established
+donairs,Donairs,['food'],,,,0.5,mid,established
+donationcenter,Donation Center,['localservices'],,,,0.5,mid,established
+donburi,Donburi,['japanese'],,,,0.5,mid,established
+donuts,Donuts,['food'],,,,0.5,mid,established
+doorsales,Door Sales/Installation,['homeservices'],,,,0.5,mid,established
+doulas,Doulas,['health'],,,,0.5,mid,established
+dramaschools,Drama Schools,['specialtyschools'],,,,0.5,mid,established
+driedfruit,Dried Fruit,['gourmet'],,,,0.5,mid,established
+driveintheater,Drive-In Theater,['movietheaters'],,,,0.5,mid,established
+drivethrubars,Drive-Thru Bars,['bars'],,,,0.5,mid,established
+driving_schools,Driving Schools,['specialtyschools'],,,,0.5,mid,established
+drones,Drones,['shopping'],,,,0.5,mid,established
+drugstores,Drugstores,['shopping'],,,,0.5,mid,established
+dryclean,Dry Cleaning,['laundryservices'],,,,0.5,mid,established
+drycleaninglaundry,Dry Cleaning & Laundry,['localservices'],,,,0.5,mid,established
+drywall,Drywall Installation & Repair,['homeservices'],,,,0.5,mid,established
+duilawyers,DUI Law,['lawyers'],,,,0.5,mid,established
+duischools,DUI Schools,['specialtyschools'],,,,0.5,mid,established
+dumplings,Dumplings,['restaurants'],,,,0.5,mid,established
+dumpsterrental,Dumpster Rental,['junkremovalandhauling'],,,,0.5,mid,established
+duplicationservices,Duplication Services,['professional'],,,,0.5,mid,established
+dutyfreeshops,Duty-Free Shops,['shopping'],,,,0.5,mid,established
+earnosethroat,Ear Nose & Throat,['physicians'],,,,0.5,mid,established
+eastern_european,Eastern European,['restaurants'],,,,0.5,mid,established
+easterngerman,Eastern German,['german'],,,,0.5,mid,established
+easternmexican,Eastern Mexican,['mexican'],,,,0.5,mid,established
+eatertainment,Eatertainment,['arts'],,,,0.5,mid,established
+editorialservices,Editorial Services,['professional'],,,,0.5,mid,established
+education,Education,[],,,,0.5,mid,established
+educationservices,Educational Services,['education'],,,,0.5,mid,established
+egyptian,Egyptian,['mideastern'],,,,0.5,mid,established
+eldercareplanning,Elder Care Planning,['localservices'],,,,0.5,mid,established
+elderlaw,Elder Law,['lawyers'],,,,0.5,mid,established
+electricians,Electricians,['homeservices'],,,,0.5,mid,established
+electricitysuppliers,Electricity Suppliers,['utilities'],,,,0.5,mid,established
+electronics,Electronics,['shopping'],,,,0.5,mid,established
+electronicsrepair,Electronics Repair,['localservices'],,,,0.5,mid,established
+elementaryschools,Elementary Schools,['education'],,,,0.5,mid,established
+elevatorservices,Elevator Services,['localservices'],,,,0.5,mid,established
+eltern_cafes,Parent Cafes,"['food', 'restaurants']",,,,0.5,mid,established
+embassy,Embassy,['publicservicesgovt'],,,,0.5,mid,established
+embroideryandcrochet,Embroidery & Crochet,['artsandcrafts'],,,,0.5,mid,established
+emergencymedicine,Emergency Medicine,['physicians'],,,,0.5,mid,established
+emergencypethospital,Emergency Pet Hospital,['petservices'],,,,0.5,mid,established
+emergencyrooms,Emergency Rooms,['health'],,,,0.5,mid,established
+emilian,Emilian,['italian'],,,,0.5,mid,established
+empanadas,Empanadas,['food'],,,,0.5,mid,established
+employmentagencies,Employment Agencies,['professional'],,,,0.5,mid,established
+employmentlawyers,Employment Law,['lawyers'],,,,0.5,mid,established
+emstraining,EMS Training,['fitness'],,,,0.5,mid,established
+endocrinologists,Endocrinologists,['physicians'],,,,0.5,mid,established
+endodontists,Endodontists,['dentists'],,,,0.5,mid,established
+engraving,Engraving,['localservices'],,,,0.5,mid,established
+entertainmentlaw,Entertainment Law,['lawyers'],,,,0.5,mid,established
+enviroabatement,Environmental Abatement,['localservices'],,,,0.5,mid,established
+environmentaltesting,Environmental Testing,['localservices'],,,,0.5,mid,established
+eritrean,Eritrean,['restaurants'],,,,0.5,mid,established
+eroticmassage,Erotic Massage,['beautysvc'],,,,0.5,mid,established
+escapegames,Escape Games,['active'],,,,0.5,mid,established
+estateliquidation,Estate Liquidation,['realestate'],,,,0.5,mid,established
+estatephotography,Real Estate Photography,['realestatesvcs'],,,,0.5,mid,established
+estateplanning,Estate Planning Law,['lawyers'],,,,0.5,mid,established
+estheticians,Estheticians,['skincare'],,,,0.5,mid,established
+ethicgrocery,Ethical Grocery,['food'],,,,0.5,mid,established
+ethiopian,Ethiopian,['restaurants'],,,,0.5,mid,established
+ethnicgrocery,Ethnic Grocery,['food'],,,,0.5,mid,established
+ethnicmarkets,Ethnic Food,['gourmet'],,,,0.5,mid,established
+evchargingstations,EV Charging Stations,['auto'],,,,0.5,mid,established
+eventphotography,Event Photography,['photographers'],,,,0.5,mid,established
+eventplanning,Party & Event Planning,['eventservices'],,,,0.5,mid,established
+eventservices,Event Planning & Services,[],,,,0.5,mid,established
+excavationservices,Excavation Services,['homeservices'],,,,0.5,mid,established
+experiences,Experiences,['active'],,,,0.5,mid,established
+eyebrowservices,Eyebrow Services,['beautysvc'],,,,0.5,mid,established
+eyelashservice,Eyelash Service,['beautysvc'],,,,0.5,mid,established
+fabricstores,Fabric Stores,['artsandcrafts'],,,,0.5,mid,established
+facepainting,Face Painting,['eventservices'],,,,0.5,mid,established
+fado_houses,Fado Houses,['portuguese'],,,,0.5,mid,established
+faithbasedcpc,Faith-based Crisis Pregnancy Centers,['crisispregnancycenters'],,,,0.5,mid,established
+falafel,Falafel,['mediterranean'],,,,0.5,mid,established
+familydr,Family Practice,['physicians'],,,,0.5,mid,established
+farmequipmentrepair,Farm Equipment Repair,['localservices'],,,,0.5,mid,established
+farmersmarket,Farmers Market,['food'],,,,0.5,mid,established
+farmingequipment,Farming Equipment,['shopping'],,,,0.5,mid,established
+farms,Farms,['arts'],,,,0.5,mid,established
+farriers,Farriers,['petservices'],,,,0.5,mid,established
+fashion,Fashion,['shopping'],,,,0.5,mid,established
+fasil,Fasil Music,['nightlife'],,,,0.5,mid,established
+fencesgates,Fences & Gates,['homeservices'],,,,0.5,mid,established
+fencing,Fencing Clubs,['active'],,,,0.5,mid,established
+fengshui,Feng Shui,['professional'],,,,0.5,mid,established
+ferries,Ferries,['transport'],,,,0.5,mid,established
+fertility,Fertility,['physicians'],,,,0.5,mid,established
+festivals,Festivals,['arts'],,,,0.5,mid,established
+filipino,Filipino,['restaurants'],,,,0.5,mid,established
+financialadvising,Financial Advising,['financialservices'],,,,0.5,mid,established
+financialservices,Financial Services,[],,,,0.5,mid,established
+fingerprinting,Fingerprinting,['localservices'],,,,0.5,mid,established
+firearmtraining,Firearm Training,['specialtyschools'],,,,0.5,mid,established
+firedepartments,Fire Departments,['publicservicesgovt'],,,,0.5,mid,established
+fireplace,Fireplace Services,['homeservices'],,,,0.5,mid,established
+fireprotection,Fire Protection Services,['homeservices'],,,,0.5,mid,established
+firewood,Firewood,['homeservices'],,,,0.5,mid,established
+fireworks,Fireworks,['shopping'],,,,0.5,mid,established
+firstaidclasses,First Aid Classes,['specialtyschools'],,,,0.5,mid,established
+fischbroetchen,Fischbroetchen,['restaurants'],,,,0.5,mid,established
+fishing,Fishing,['active'],,,,0.5,mid,established
+fishmonger,Fishmonger,['food'],,,,0.5,mid,established
+fishnchips,Fish & Chips,['restaurants'],,,,0.5,mid,established
+fitness,Fitness & Instruction,['active'],,,,0.5,mid,established
+fitnessequipment,Fitness/Exercise Equipment,['shopping'],,,,0.5,mid,established
+flatbread,Flatbread,['restaurants'],,,,0.5,mid,established
+fleamarkets,Flea Markets,['shopping'],,,,0.5,mid,established
+flemish,Flemish,['belgian'],,,,0.5,mid,established
+flightinstruction,Flight Instruction,['specialtyschools'],,,,0.5,mid,established
+floatspa,Float Spa,['health'],,,,0.5,mid,established
+flooring,Flooring,['homeservices'],,,,0.5,mid,established
+floraldesigners,Floral Designers,['eventservices'],,,,0.5,mid,established
+florists,Florists,['flowers'],,,,0.5,mid,established
+flowers,Flowers & Gifts,['shopping'],,,,0.5,mid,established
+flowersonly,Flowers,['flowers'],,,,0.5,mid,established
+flyboarding,Flyboarding,['active'],,,,0.5,mid,established
+fondue,Fondue,['restaurants'],,,,0.5,mid,established
+food,Food,[],,,,0.5,mid,established
+food_court,Food Court,['restaurants'],,,,0.5,mid,established
+foodbanks,Food Banks,['nonprofit'],,,,0.5,mid,established
+fooddeliveryservices,Food Delivery Services,['food'],,,,0.5,mid,established
+foodsafety,Food Safety Training,['specialtyschools'],,,,0.5,mid,established
+foodstands,Food Stands,['restaurants'],,,,0.5,mid,established
+foodtours,Food Tours,['tours'],,,,0.5,mid,established
+foodtrucks,Food Trucks,['food'],,,,0.5,mid,established
+football,Soccer,['active'],,,,0.5,mid,established
+footcare,Foot Care,['beautysvc'],,,,0.5,mid,established
+forestry,Forestry,['localservices'],,,,0.5,mid,established
+formalwear,Formal Wear,['fashion'],,,,0.5,mid,established
+foundationrepair,Foundation Repair,['homeservices'],,,,0.5,mid,established
+framing,Framing,['artsandcrafts'],,,,0.5,mid,established
+franconian,Franconian,['german'],,,,0.5,mid,established
+freediving,Free Diving,['diving'],,,,0.5,mid,established
+freiduria,Freiduria,['restaurants'],,,,0.5,mid,established
+french,French,['restaurants'],,,,0.5,mid,established
+friterie,Friterie,['food'],,,,0.5,mid,established
+friulan,Friulan,['italian'],,,,0.5,mid,established
+frozenfood,Frozen Food,['gourmet'],,,,0.5,mid,established
+fueldocks,Fuel Docks,['auto'],,,,0.5,mid,established
+funeralservices,Funeral Services & Cemeteries,['localservices'],,,,0.5,mid,established
+funfair,Fun Fair,['festivals'],,,,0.5,mid,established
+furclothing,Fur Clothing,['fashion'],,,,0.5,mid,established
+furniture,Furniture Stores,['homeandgarden'],,,,0.5,mid,established
+furnitureassembly,Furniture Assembly,['homeservices'],,,,0.5,mid,established
+furniturerepair,Furniture Repair,['localservices'],,,,0.5,mid,established
+fuzhou,Fuzhou,['chinese'],,,,0.5,mid,established
+galician,Galician,['restaurants'],,,,0.5,mid,established
+galleries,Art Galleries,"['arts', 'shopping']",,,,0.5,mid,established
+gamemeat,Game Meat,['restaurants'],,,,0.5,mid,established
+gametruckrental,Game Truck Rental,['eventservices'],,,,0.5,mid,established
+garage_door_services,Garage Door Services,['homeservices'],,,,0.5,mid,established
+gardeners,Gardeners,['homeservices'],,,,0.5,mid,established
+gardening,Nurseries & Gardening,['homeandgarden'],,,,0.5,mid,established
+gardens,Botanical Gardens,['arts'],,,,0.5,mid,established
+gasstations,Gas Stations,['auto'],,,,0.5,mid,established
+gastroenterologist,Gastroenterologist,['physicians'],,,,0.5,mid,established
+gastropubs,Gastropubs,['restaurants'],,,,0.5,mid,established
+gaybars,Gay Bars,['bars'],,,,0.5,mid,established
+gelato,Gelato,['food'],,,,0.5,mid,established
+gemstonesandminerals,Gemstones & Minerals,['shopping'],,,,0.5,mid,established
+general_litigation,General Litigation,['lawyers'],,,,0.5,mid,established
+generaldentistry,General Dentistry,['dentists'],,,,0.5,mid,established
+generalfestivals,General Festivals,['festivals'],,,,0.5,mid,established
+generatorinstallrepair,Generator Installation/Repair,['localservices'],,,,0.5,mid,established
+geneticists,Geneticists,['physicians'],,,,0.5,mid,established
+georgian,Georgian,['restaurants'],,,,0.5,mid,established
+german,German,['restaurants'],,,,0.5,mid,established
+gerontologist,Gerontologists,['physicians'],,,,0.5,mid,established
+gestorias,Gestorias,['localservices'],,,,0.5,mid,established
+giblets,Giblets,['restaurants'],,,,0.5,mid,established
+giftshops,Gift Shops,['flowers'],,,,0.5,mid,established
+glassandmirrors,Glass & Mirrors,['homeservices'],,,,0.5,mid,established
+glassblowing,Glass Blowing,['artclasses'],,,,0.5,mid,established
+gliding,Gliding,['active'],,,,0.5,mid,established
+gluhwein,Mulled Wine,['food'],,,,0.5,mid,established
+gluten_free,Gluten-Free,['restaurants'],,,,0.5,mid,established
+gokarts,Go Karts,['active'],,,,0.5,mid,established
+goldbuyers,Gold Buyers,['shopping'],,,,0.5,mid,established
+golf,Golf,['active'],,,,0.5,mid,established
+golfcartdealers,Golf Cart Dealers,['auto'],,,,0.5,mid,established
+golfcartrentals,Golf Cart Rentals,['eventservices'],,,,0.5,mid,established
+golfequipment,Golf Equipment,['sportgoods'],,,,0.5,mid,established
+golflessons,Golf Lessons,['fitness'],,,,0.5,mid,established
+golfshops,Golf Equipment Shops,['shopping'],,,,0.5,mid,established
+gourmet,Specialty Food,['food'],,,,0.5,mid,established
+gozleme,Gozleme,['turkish'],,,,0.5,mid,established
+graphicdesign,Graphic Design,['professional'],,,,0.5,mid,established
+greek,Greek,['restaurants'],,,,0.5,mid,established
+grillingequipment,Grilling Equipment,['homeandgarden'],,,,0.5,mid,established
+grillservices,Grill Services,['localservices'],,,,0.5,mid,established
+grocery,Grocery,['food'],,,,0.5,mid,established
+groomer,Pet Groomers,['petservices'],,,,0.5,mid,established
+groutservices,Grout Services,['homeservices'],,,,0.5,mid,established
+guamanian,Guamanian,['restaurants'],,,,0.5,mid,established
+guesthouses,Guest Houses,['hotelstravel'],,,,0.5,mid,established
+guitarstores,Guitar Stores,['musicinstrumentservices'],,,,0.5,mid,established
+gun_ranges,Gun/Rifle Ranges,['active'],,,,0.5,mid,established
+guns_and_ammo,Guns & Ammo,['shopping'],,,,0.5,mid,established
+gunsmith,Gunsmith,['localservices'],,,,0.5,mid,established
+gutterservices,Gutter Services,['homeservices'],,,,0.5,mid,established
+gymnastics,Gymnastics,['active'],,,,0.5,mid,established
+gyms,Gyms,['fitness'],,,,0.5,mid,established
+gyudon,Gyudon,['donburi'],,,,0.5,mid,established
+habilitativeservices,Habilitative Services,['health'],,,,0.5,mid,established
+hainan,Hainan,['chinese'],,,,0.5,mid,established
+hair,Hair Salons,['beautysvc'],,,,0.5,mid,established
+hair_extensions,Hair Extensions,"['beautysvc', 'hair']",,,,0.5,mid,established
+hairloss,Hair Loss Centers,['beautysvc'],,,,0.5,mid,established
+hairremoval,Hair Removal,['beautysvc'],,,,0.5,mid,established
+hairstylists,Hair Stylists,['hair'],,,,0.5,mid,established
+haitian,Haitian,['caribbean'],,,,0.5,mid,established
+hakka,Hakka,['chinese'],,,,0.5,mid,established
+halal,Halal,['restaurants'],,,,0.5,mid,established
+halfwayhouses,Halfway Houses,['health'],,,,0.5,mid,established
+halotherapy,Halotherapy,['health'],,,,0.5,mid,established
+handball,Handball,['active'],,,,0.5,mid,established
+handrolls,Hand Rolls,['japanese'],,,,0.5,mid,established
+handyman,Handyman,['homeservices'],,,,0.5,mid,established
+hanggliding,Hang Gliding,['active'],,,,0.5,mid,established
+hardware,Hardware Stores,['homeandgarden'],,,,0.5,mid,established
+hats,Hats,['fashion'],,,,0.5,mid,established
+hauntedhouses,Haunted Houses,['arts'],,,,0.5,mid,established
+hawaiian,Hawaiian,['restaurants'],,,,0.5,mid,established
+hawkercentre,Hawker Centre,['food'],,,,0.5,mid,established
+hazardouswastedisposal,Hazardous Waste Disposal,['localservices'],,,,0.5,mid,established
+headshops,Head Shops,['shopping'],,,,0.5,mid,established
+health,Health & Medical,[],,,,0.5,mid,established
+healthcoach,Health Coach,['health'],,,,0.5,mid,established
+healthinsurance,Health Insurance Offices,['health'],,,,0.5,mid,established
+healthmarkets,Health Markets,['gourmet'],,,,0.5,mid,established
+healthretreats,Health Retreats,['hotelstravel'],,,,0.5,mid,established
+healthtrainers,Trainers,['fitness'],,,,0.5,mid,established
+hearing_aids,Hearing Aids,['health'],,,,0.5,mid,established
+hearingaidproviders,Hearing Aid Providers,['health'],,,,0.5,mid,established
+henghwa,Henghwa,['chinese'],,,,0.5,mid,established
+hennaartists,Henna Artists,['eventservices'],,,,0.5,mid,established
+hepatologists,Hepatologists,['physicians'],,,,0.5,mid,established
+herbalshops,Herbal Shops,['health'],,,,0.5,mid,established
+herbsandspices,Herbs & Spices,['gourmet'],,,,0.5,mid,established
+hessian,Hessian,['german'],,,,0.5,mid,established
+heuriger,Heuriger,['restaurants'],,,,0.5,mid,established
+hifi,High Fidelity Audio Equipment,['shopping'],,,,0.5,mid,established
+highschools,Middle Schools & High Schools,['education'],,,,0.5,mid,established
+hiking,Hiking,['active'],,,,0.5,mid,established
+himalayan,Himalayan/Nepalese,['restaurants'],,,,0.5,mid,established
+hindu_temples,Hindu Temples,['religiousorgs'],,,,0.5,mid,established
+historicaltours,Historical Tours,['tours'],,,,0.5,mid,established
+hkcafe,Hong Kong Style Cafe,['restaurants'],,,,0.5,mid,established
+hobbyshops,Hobby Shops,['shopping'],,,,0.5,mid,established
+hockeyequipment,Hockey Equipment,['sportgoods'],,,,0.5,mid,established
+hokkien,Hokkien,['chinese'],,,,0.5,mid,established
+holidaydecorations,Holiday Decorations,['homeandgarden'],,,,0.5,mid,established
+home_inspectors,Home Inspectors,['homeservices'],,,,0.5,mid,established
+home_organization,Home Organization,['homeservices'],,,,0.5,mid,established
+homeandgarden,Home & Garden,['shopping'],,,,0.5,mid,established
+homeappliancerepair,Appliances & Repair,['localservices'],,,,0.5,mid,established
+homeautomation,Home Automation,['homeservices'],,,,0.5,mid,established
+homecleaning,Home Cleaning,['homeservices'],,,,0.5,mid,established
+homedecor,Home Decor,['homeandgarden'],,,,0.5,mid,established
+homedevelopers,Home Developers,['realestate'],,,,0.5,mid,established
+homeenergyauditors,Home Energy Auditors,['homeservices'],,,,0.5,mid,established
+homehealthcare,Home Health Care,['health'],,,,0.5,mid,established
+homeinsurance,Home & Rental Insurance,['insurance'],,,,0.5,mid,established
+homelessshelters,Homeless Shelters,['nonprofit'],,,,0.5,mid,established
+homemadefood,Homemade Food,['turkish'],,,,0.5,mid,established
+homenetworkinstall,Home Network Installation,['homeservices'],,,,0.5,mid,established
+homeopathic,Homeopathic,['physicians'],,,,0.5,mid,established
+homeownerassociation,Homeowner Association,['realestate'],,,,0.5,mid,established
+homeservices,Home Services,[],,,,0.5,mid,established
+homestaging,Home Staging,['realestate'],,,,0.5,mid,established
+hometheatreinstallation,Home Theatre Installation,['homeservices'],,,,0.5,mid,established
+homewindowtinting,Home Window Tinting,['homeservices'],,,,0.5,mid,established
+honduran,Honduran,['restaurants'],,,,0.5,mid,established
+honey,Honey,['food'],,,,0.5,mid,established
+hookah_bars,Hookah Bars,['bars'],,,,0.5,mid,established
+horse_boarding,Horse Boarding,['pets'],,,,0.5,mid,established
+horsebackriding,Horseback Riding,['active'],,,,0.5,mid,established
+horsequipment,Horse Equipment Shops,['shopping'],,,,0.5,mid,established
+horseracing,Horse Racing,['active'],,,,0.5,mid,established
+horumon,Horumon,['japanese'],,,,0.5,mid,established
+hospice,Hospice,['health'],,,,0.5,mid,established
+hospitalists,Hospitalists,['physicians'],,,,0.5,mid,established
+hospitals,Hospitals,['health'],,,,0.5,mid,established
+hostels,Hostels,['hotelstravel'],,,,0.5,mid,established
+hot_air_balloons,Hot Air Balloons,['active'],,,,0.5,mid,established
+hotdog,Hot Dogs,['restaurants'],,,,0.5,mid,established
+hotdogs,Fast Food,['restaurants'],,,,0.5,mid,established
+hotel_bar,Hotel bar,['bars'],,,,0.5,mid,established
+hotels,Hotels,"['eventservices', 'hotelstravel']",,,,0.5,mid,established
+hotelstravel,Hotels & Travel,[],,,,0.5,mid,established
+hotpot,Hot Pot,['restaurants'],,,,0.5,mid,established
+hotsprings,Hot Springs,['beautysvc'],,,,0.5,mid,established
+hottubandpool,Hot Tub & Pool,['homeandgarden'],,,,0.5,mid,established
+housesitters,House Sitters,['homeservices'],,,,0.5,mid,established
+housingcooperatives,Housing Cooperatives,['realestate'],,,,0.5,mid,established
+hunan,Hunan,['chinese'],,,,0.5,mid,established
+hungarian,Hungarian,['restaurants'],,,,0.5,mid,established
+huntingfishingsupplies,Hunting & Fishing Supplies,['sportgoods'],,,,0.5,mid,established
+hvac,Heating & Air Conditioning/HVAC,['homeservices'],,,,0.5,mid,established
+hybridcarrepair,Hybrid Car Repair,['auto'],,,,0.5,mid,established
+hydrojetting,Hydro-jetting,['localservices'],,,,0.5,mid,established
+hydroponics,Hydroponics,['gardening'],,,,0.5,mid,established
+hydrotherapy,Hydrotherapy,['health'],,,,0.5,mid,established
+hypnosis,Hypnosis/Hypnotherapy,['health'],,,,0.5,mid,established
+iberian,Iberian,['restaurants'],,,,0.5,mid,established
+icecream,Ice Cream & Frozen Yogurt,['food'],,,,0.5,mid,established
+icedelivery,Ice Delivery,['localservices'],,,,0.5,mid,established
+immigrationlawyers,Immigration Law,['lawyers'],,,,0.5,mid,established
+immunodermatologists,Immunodermatologists,['physicians'],,,,0.5,mid,established
+importedfood,Imported Food,['food'],,,,0.5,mid,established
+indonesian,Indonesian,['restaurants'],,,,0.5,mid,established
+indoor_playcenter,Indoor Playcentre,['active'],,,,0.5,mid,established
+indoorlandscaping,Indoor Landscaping,['professional'],,,,0.5,mid,established
+indpak,Indian,['restaurants'],,,,0.5,mid,established
+infectiousdisease,Infectious Disease Specialists,['physicians'],,,,0.5,mid,established
+installmentloans,Installment Loans,['financialservices'],,,,0.5,mid,established
+insulationinstallation,Insulation Installation,['homeservices'],,,,0.5,mid,established
+insurance,Insurance,['financialservices'],,,,0.5,mid,established
+interiordesign,Interior Design,['homeservices'],,,,0.5,mid,established
+interlocksystems,Interlock Systems,['auto'],,,,0.5,mid,established
+internalmed,Internal Medicine,['physicians'],,,,0.5,mid,established
+international,International,['restaurants'],,,,0.5,mid,established
+internetbooth,Internet Booths & Calling Centers,['localservices'],,,,0.5,mid,established
+internetcafe,Internet Cafes,['food'],,,,0.5,mid,established
+intervaltraininggyms,Interval Training Gyms,['gyms'],,,,0.5,mid,established
+intlgrocery,International Grocery,['food'],,,,0.5,mid,established
+investing,Investing,['financialservices'],,,,0.5,mid,established
+iplaw,IP & Internet Law,['lawyers'],,,,0.5,mid,established
+irish,Irish,['restaurants'],,,,0.5,mid,established
+irish_pubs,Irish Pub,['bars'],,,,0.5,mid,established
+irrigation,Irrigation,['homeservices'],,,,0.5,mid,established
+island_pub,Island Pub,['restaurants'],,,,0.5,mid,established
+isps,Internet Service Providers,"['professional', 'homeservices']",,,,0.5,mid,established
+israeli,Israeli,['restaurants'],,,,0.5,mid,established
+italian,Italian,['restaurants'],,,,0.5,mid,established
+itservices,IT Services & Computer Repair,['localservices'],,,,0.5,mid,established
+ivhydration,IV Hydration,['health'],,,,0.5,mid,established
+izakaya,Izakaya,['japanese'],,,,0.5,mid,established
+jailsandprisons,Jails & Prisons,['publicservicesgovt'],,,,0.5,mid,established
+jaliscan,Jaliscan,['mexican'],,,,0.5,mid,established
+japacurry,Japanese Curry,['japanese'],,,,0.5,mid,established
+japanese,Japanese,['restaurants'],,,,0.5,mid,established
+jazzandblues,Jazz & Blues,"['arts', 'nightlife']",,,,0.5,mid,established
+jetskis,Jet Skis,['active'],,,,0.5,mid,established
+jewelry,Jewelry,['shopping'],,,,0.5,mid,established
+jewelryrepair,Jewelry Repair,['localservices'],,,,0.5,mid,established
+jewish,Jewish,['restaurants'],,,,0.5,mid,established
+jpsweets,Japanese Sweets,['food'],,,,0.5,mid,established
+juicebars,Juice Bars & Smoothies,['food'],,,,0.5,mid,established
+junkremovalandhauling,Junk Removal & Hauling,['localservices'],,,,0.5,mid,established
+junkyards,Junkyards,['localservices'],,,,0.5,mid,established
+kaiseki,Kaiseki,['japanese'],,,,0.5,mid,established
+karaoke,Karaoke,['nightlife'],,,,0.5,mid,established
+karaokerental,Karaoke Rental,['partyequipmentrentals'],,,,0.5,mid,established
+karate,Karate,['martialarts'],,,,0.5,mid,established
+kebab,Kebab,['restaurants'],,,,0.5,mid,established
+kickboxing,Kickboxing,['martialarts'],,,,0.5,mid,established
+kids_activities,Kids Activities,['active'],,,,0.5,mid,established
+kidshairsalons,Kids Hair Salons,['hair'],,,,0.5,mid,established
+kimonos,Kimonos,['fashion'],,,,0.5,mid,established
+kiosk,Kiosk,"['food', 'shopping']",,,,0.5,mid,established
+kitchenandbath,Kitchen & Bath,['homeandgarden'],,,,0.5,mid,established
+kitchenincubators,Kitchen Incubators,['realestate'],,,,0.5,mid,established
+kitchensupplies,Kitchen Supplies,['kitchenandbath'],,,,0.5,mid,established
+kiteboarding,Kiteboarding,['active'],,,,0.5,mid,established
+knifesharpening,Knife Sharpening,['localservices'],,,,0.5,mid,established
+knittingsupplies,Knitting Supplies,['shopping'],,,,0.5,mid,established
+kombucha,Kombucha,['food'],,,,0.5,mid,established
+kopitiam,Kopitiam,['restaurants'],,,,0.5,mid,established
+korean,Korean,['restaurants'],,,,0.5,mid,established
+kosher,Kosher,['restaurants'],,,,0.5,mid,established
+kurdish,Kurdish,['restaurants'],,,,0.5,mid,established
+kushikatsu,Kushikatsu,['japanese'],,,,0.5,mid,established
+laboratorytesting,Laboratory Testing,['diagnosticservices'],,,,0.5,mid,established
+lactationservices,Lactation Services,['health'],,,,0.5,mid,established
+lahmacun,Lahmacun,['turkish'],,,,0.5,mid,established
+lakes,Lakes,['active'],,,,0.5,mid,established
+lancenters,LAN Centers,['arts'],,,,0.5,mid,established
+landmarks,Landmarks & Historical Buildings,['publicservicesgovt'],,,,0.5,mid,established
+landscapearchitects,Landscape Architects or Designers,['homeservices'],,,,0.5,mid,established
+landscaping,Landscaping,['homeservices'],,,,0.5,mid,established
+landsurveying,Land Surveying,['realestatesvcs'],,,,0.5,mid,established
+language_schools,Language Schools,['specialtyschools'],,,,0.5,mid,established
+laos,Laos,['restaurants'],,,,0.5,mid,established
+laotian,Laotian,['restaurants'],,,,0.5,mid,established
+laser_hair_removal,Laser Hair Removal,['hairremoval'],,,,0.5,mid,established
+laserlasikeyes,Laser Eye Surgery/Lasik,['health'],,,,0.5,mid,established
+lasertag,Laser Tag,['active'],,,,0.5,mid,established
+latin,Latin American,['restaurants'],,,,0.5,mid,established
+laundromat,Laundromat,['laundryservices'],,,,0.5,mid,established
+laundryservices,Laundry Services,['localservices'],,,,0.5,mid,established
+lawn_bowling,Lawn Bowling,['active'],,,,0.5,mid,established
+lawnservices,Lawn Services,['landscaping'],,,,0.5,mid,established
+lawyers,Lawyers,['professional'],,,,0.5,mid,established
+leather,Leather Goods,['fashion'],,,,0.5,mid,established
+lebanese,Lebanese,['mideastern'],,,,0.5,mid,established
+legalservices,Legal Services,['professional'],,,,0.5,mid,established
+leisure_centers,Leisure Centers,['active'],,,,0.5,mid,established
+libraries,Libraries,['publicservicesgovt'],,,,0.5,mid,established
+liceservices,Lice Services,['health'],,,,0.5,mid,established
+lifecoach,Life Coach,['professional'],,,,0.5,mid,established
+lifeinsurance,Life Insurance,['insurance'],,,,0.5,mid,established
+lighting,Lighting Fixtures & Equipment,['homeservices'],,,,0.5,mid,established
+lightingstores,Lighting Stores,['homeandgarden'],,,,0.5,mid,established
+ligurian,Ligurian,['italian'],,,,0.5,mid,established
+limos,Limos,['transport'],,,,0.5,mid,established
+linens,Linens,['homeandgarden'],,,,0.5,mid,established
+lingerie,Lingerie,['fashion'],,,,0.5,mid,established
+livestocksupply,Livestock Feed & Supply,['shopping'],,,,0.5,mid,established
+localfishstores,Local Fish Stores,['petstore'],,,,0.5,mid,established
+localflavor,Local Flavor,[],,,,0.5,mid,established
+localservices,Local Services,[],,,,0.5,mid,established
+locksmiths,Keys & Locksmiths,['homeservices'],,,,0.5,mid,established
+lounges,Lounges,['bars'],,,,0.5,mid,established
+luggage,Luggage,['shopping'],,,,0.5,mid,established
+luggagestorage,Luggage Storage,['travelservices'],,,,0.5,mid,established
+lumbard,Lumbard,['italian'],,,,0.5,mid,established
+lyonnais,Lyonnais,['restaurants'],,,,0.5,mid,established
+macarons,Macarons,['gourmet'],,,,0.5,mid,established
+machinerental,Machine & Tool Rental,['localservices'],,,,0.5,mid,established
+machineshops,Machine Shops,['localservices'],,,,0.5,mid,established
+madeira,Madeira,['portuguese'],,,,0.5,mid,established
+magicians,Magicians,['eventservices'],,,,0.5,mid,established
+mags,Newspapers & Magazines,['media'],,,,0.5,mid,established
+mahjong,Mah Jong Halls,['arts'],,,,0.5,mid,established
+mailboxcenters,Mailbox Centers,['localservices'],,,,0.5,mid,established
+makerspaces,Makerspaces,['arts'],,,,0.5,mid,established
+makeupartists,Makeup Artists,['beautysvc'],,,,0.5,mid,established
+malaysian,Malaysian,['restaurants'],,,,0.5,mid,established
+mamak,Mamak,['malaysian'],,,,0.5,mid,established
+marchingbands,Marching Bands,['arts'],,,,0.5,mid,established
+marinas,Marinas,['auto'],,,,0.5,mid,established
+marketing,Marketing,['professional'],,,,0.5,mid,established
+markets,Fruits & Veggies,['gourmet'],,,,0.5,mid,established
+marketstalls,Market Stalls,['shopping'],,,,0.5,mid,established
+martialarts,Martial Arts,['fitness'],,,,0.5,mid,established
+masonry_concrete,Masonry/Concrete,['homeservices'],,,,0.5,mid,established
+massage,Massage,['beautysvc'],,,,0.5,mid,established
+massage_schools,Massage Schools,['specialtyschools'],,,,0.5,mid,established
+massage_therapy,Massage Therapy,['health'],,,,0.5,mid,established
+massmedia,Mass Media,[],,,,0.5,mid,established
+matchmakers,Matchmakers,['professional'],,,,0.5,mid,established
+materialeelettrico,Materiale elettrico,['homeandgarden'],,,,0.5,mid,established
+maternity,Maternity Wear,['fashion'],,,,0.5,mid,established
+mattresses,Mattresses,['homeandgarden'],,,,0.5,mid,established
+mauritius,Mauritius,['french'],,,,0.5,mid,established
+meaderies,Meaderies,['food'],,,,0.5,mid,established
+meatballs,Meatballs,['restaurants'],,,,0.5,mid,established
+meats,Meat Shops,['gourmet'],,,,0.5,mid,established
+medcenters,Medical Centers,['health'],,,,0.5,mid,established
+media,"Books, Mags, Music & Video",['shopping'],,,,0.5,mid,established
+mediators,Mediators,['professional'],,,,0.5,mid,established
+medicalfoot,Medical Foot Care,['health'],,,,0.5,mid,established
+medicallaw,Medical Law,['lawyers'],,,,0.5,mid,established
+medicalspa,Medical Spas,"['health', 'beautysvc']",,,,0.5,mid,established
+medicalsupplies,Medical Supplies,['shopping'],,,,0.5,mid,established
+medicaltransportation,Medical Transportation,['health'],,,,0.5,mid,established
+meditationcenters,Meditation Centers,['fitness'],,,,0.5,mid,established
+mediterranean,Mediterranean,['restaurants'],,,,0.5,mid,established
+memorycare,Memory Care,['health'],,,,0.5,mid,established
+menscloth,Men's Clothing,['fashion'],,,,0.5,mid,established
+menshair,Men's Hair Salons,['hair'],,,,0.5,mid,established
+metaldetectorservices,Metal Detector Services,['localservices'],,,,0.5,mid,established
+metalfabricators,Metal Fabricators,['localservices'],,,,0.5,mid,established
+metrostations,Metro Stations,['transport'],,,,0.5,mid,established
+mexican,Mexican,['restaurants'],,,,0.5,mid,established
+mideastern,Middle Eastern,['restaurants'],,,,0.5,mid,established
+midwives,Midwives,['health'],,,,0.5,mid,established
+militarysurplus,Military Surplus,['shopping'],,,,0.5,mid,established
+milkbars,Milk Bars,['restaurants'],,,,0.5,mid,established
+milkshakebars,Milkshake Bars,['food'],,,,0.5,mid,established
+minho,Minho,['portuguese'],,,,0.5,mid,established
+mini_golf,Mini Golf,['active'],,,,0.5,mid,established
+mistingsystemservices,Misting System Services,['localservices'],,,,0.5,mid,established
+mobile_home_repair,Mobile Home Repair,['homeservices'],,,,0.5,mid,established
+mobiledentrepair,Mobile Dent Repair,['auto'],,,,0.5,mid,established
+mobilehomes,Mobile Home Dealers,['realestate'],,,,0.5,mid,established
+mobileparks,Mobile Home Parks,['realestate'],,,,0.5,mid,established
+mobilephonerepair,Mobile Phone Repair,['itservices'],,,,0.5,mid,established
+mobilephones,Mobile Phones,['shopping'],,,,0.5,mid,established
+mobilityequipment,Mobility Equipment Sales & Services,['auto'],,,,0.5,mid,established
+modern_australian,Modern Australian,['restaurants'],,,,0.5,mid,established
+modern_european,Modern European,['restaurants'],,,,0.5,mid,established
+mohels,Mohels,['eventservices'],,,,0.5,mid,established
+mongolian,Mongolian,['restaurants'],,,,0.5,mid,established
+montessori,Montessori Schools,['education'],,,,0.5,mid,established
+moroccan,Moroccan,['restaurants'],,,,0.5,mid,established
+mortgagebrokers,Mortgage Brokers,['realestate'],,,,0.5,mid,established
+mortgagelenders,Mortgage Lenders,['financialservices'],,,,0.5,mid,established
+mortuaryservices,Mortuary Services,['funeralservices'],,,,0.5,mid,established
+mosques,Mosques,['religiousorgs'],,,,0.5,mid,established
+motodealers,Motorsport Vehicle Dealers,['auto'],,,,0.5,mid,established
+motorcycle_rental,Motorcycle Rental,['hotelstravel'],,,,0.5,mid,established
+motorcycledealers,Motorcycle Dealers,['auto'],,,,0.5,mid,established
+motorcyclepartsandsupplies,Motorcycle Parts & Supplies,['autopartssupplies'],,,,0.5,mid,established
+motorcyclerepair,Motorcycle Repair,['auto'],,,,0.5,mid,established
+motorcyclinggear,Motorcycle Gear,['shopping'],,,,0.5,mid,established
+motorepairs,Motorsport Vehicle Repairs,['auto'],,,,0.5,mid,established
+mountainbiking,Mountain Biking,['active'],,,,0.5,mid,established
+mountainhuts,Mountain Huts,['hotels'],,,,0.5,mid,established
+movers,Movers,['homeservices'],,,,0.5,mid,established
+movietheaters,Cinema,['arts'],,,,0.5,mid,established
+muaythai,Muay Thai,['martialarts'],,,,0.5,mid,established
+municipality,Municipality,['publicservicesgovt'],,,,0.5,mid,established
+museums,Museums,['arts'],,,,0.5,mid,established
+musicalinstrumentsandteachers,Musical Instruments & Teachers,['shopping'],,,,0.5,mid,established
+musicians,Musicians,['eventservices'],,,,0.5,mid,established
+musicinstrumentservices,Musical Instrument Services,['localservices'],,,,0.5,mid,established
+musicproduction,Music Production Services,['professional'],,,,0.5,mid,established
+musicvenues,Music Venues,"['arts', 'nightlife']",,,,0.5,mid,established
+musicvideo,Music & DVDs,['media'],,,,0.5,mid,established
+mystics,Mystics,['psychic_astrology'],,,,0.5,mid,established
+nailtechnicians,Nail Technicians,['othersalons'],,,,0.5,mid,established
+nannys,Nanny Services,['localservices'],,,,0.5,mid,established
+napoletana,Napoletana,['italian'],,,,0.5,mid,established
+nasilemak,Nasi Lemak,['food'],,,,0.5,mid,established
+naturalgassuppliers,Natural Gas Suppliers,['utilities'],,,,0.5,mid,established
+naturopathic,Naturopathic/Holistic,['physicians'],,,,0.5,mid,established
+nephrologists,Nephrologists,['physicians'],,,,0.5,mid,established
+neurologist,Neurologist,['physicians'],,,,0.5,mid,established
+neuropathologists,Neuropathologists,['physicians'],,,,0.5,mid,established
+neurotologists,Neurotologists,['physicians'],,,,0.5,mid,established
+newamerican,New American,['restaurants'],,,,0.5,mid,established
+newcanadian,Canadian (New),['restaurants'],,,,0.5,mid,established
+newmexican,New Mexican Cuisine,['restaurants'],,,,0.5,mid,established
+newzealand,New Zealand,['restaurants'],,,,0.5,mid,established
+nicaraguan,Nicaraguan,['restaurants'],,,,0.5,mid,established
+nicois,Nicoise,['french'],,,,0.5,mid,established
+nightfood,Night Food,['restaurants'],,,,0.5,mid,established
+nightlife,Nightlife,[],,,,0.5,mid,established
+nikkei,Nikkei,['restaurants'],,,,0.5,mid,established
+nonprofit,Community Service/Non-Profit,['localservices'],,,,0.5,mid,established
+noodles,Noodles,['restaurants'],,,,0.5,mid,established
+norcinerie,Norcinerie,['restaurants'],,,,0.5,mid,established
+northeasternbrazilian,Northeastern Brazilian,['brazilian'],,,,0.5,mid,established
+northernbrazilian,Northern Brazilian,['brazilian'],,,,0.5,mid,established
+northerngerman,Northern German,['german'],,,,0.5,mid,established
+northernmexican,Northern Mexican,['mexican'],,,,0.5,mid,established
+norwegian,Traditional Norwegian,['restaurants'],,,,0.5,mid,established
+notaries,Notaries,['localservices'],,,,0.5,mid,established
+nudist,Nudist,['active'],,,,0.5,mid,established
+nursepractitioner,Nurse Practitioner,['health'],,,,0.5,mid,established
+nursingschools,Nursing Schools,['specialtyschools'],,,,0.5,mid,established
+nutritionists,Nutritionists,['health'],,,,0.5,mid,established
+nyonya,Nyonya,['malaysian'],,,,0.5,mid,established
+oaxacan,Oaxacan,['mexican'],,,,0.5,mid,established
+obgyn,Obstetricians & Gynecologists,['physicians'],,,,0.5,mid,established
+observatories,Observatories,['arts'],,,,0.5,mid,established
+occupationaltherapy,Occupational Therapy,['health'],,,,0.5,mid,established
+oden,Oden,['japanese'],,,,0.5,mid,established
+officecleaning,Office Cleaning,['professional'],,,,0.5,mid,established
+officeequipment,Office Equipment,['shopping'],,,,0.5,mid,established
+officiants,Officiants,['eventservices'],,,,0.5,mid,established
+oilchange,Oil Change Stations,['auto'],,,,0.5,mid,established
+okinawan,Okinawan,['japanese'],,,,0.5,mid,established
+okonomiyaki,Okonomiyaki,['japanese'],,,,0.5,mid,established
+oliveoil,Olive Oil,['gourmet'],,,,0.5,mid,established
+oncologist,Oncologist,['physicians'],,,,0.5,mid,established
+onigiri,Onigiri,['japanese'],,,,0.5,mid,established
+opensandwiches,Open Sandwiches,['restaurants'],,,,0.5,mid,established
+opera,Opera & Ballet,['arts'],,,,0.5,mid,established
+opthamalogists,Ophthalmologists,['physicians'],,,,0.5,mid,established
+opticians,Eyewear & Opticians,['shopping'],,,,0.5,mid,established
+optometrists,Optometrists,['health'],,,,0.5,mid,established
+oralsurgeons,Oral Surgeons,['dentists'],,,,0.5,mid,established
+organdonorservices,Organ & Tissue Donor Services,['health'],,,,0.5,mid,established
+organic_stores,Organic Stores,['food'],,,,0.5,mid,established
+oriental,Oriental,['restaurants'],,,,0.5,mid,established
+orthodontists,Orthodontists,['dentists'],,,,0.5,mid,established
+orthopedists,Orthopedists,['physicians'],,,,0.5,mid,established
+orthotics,Orthotics,['health'],,,,0.5,mid,established
+osteopathicphysicians,Osteopathic Physicians,['physicians'],,,,0.5,mid,established
+osteopaths,Osteopaths,['medcenters'],,,,0.5,mid,established
+othersalons,Nail Salons,['beautysvc'],,,,0.5,mid,established
+otologists,Otologists,['physicians'],,,,0.5,mid,established
+ottomancuisine,Ottoman Cuisine,['turkish'],,,,0.5,mid,established
+outdoorfurniture,Outdoor Furniture Stores,['homeandgarden'],,,,0.5,mid,established
+outdoorgear,Outdoor Gear,['sportgoods'],,,,0.5,mid,established
+outdoormovies,Outdoor Movies,['movietheaters'],,,,0.5,mid,established
+outdoorpowerequipmentservices,Outdoor Power Equipment Services,['localservices'],,,,0.5,mid,established
+outlet_stores,Outlet Stores,['shopping'],,,,0.5,mid,established
+oxygenbars,Oxygen Bars,['health'],,,,0.5,mid,established
+oyakodon,Oyakodon,['donburi'],,,,0.5,mid,established
+pachinko,Pachinko,['arts'],,,,0.5,mid,established
+packingservices,Packing Services,['homeservices'],,,,0.5,mid,established
+packingsupplies,Packing Supplies,['shopping'],,,,0.5,mid,established
+paddleboarding,Paddleboarding,['active'],,,,0.5,mid,established
+painmanagement,Pain Management,['physicians'],,,,0.5,mid,established
+paintandsip,Paint & Sip,['arts'],,,,0.5,mid,established
+paintball,Paintball,['active'],,,,0.5,mid,established
+painters,Painters,['homeservices'],,,,0.5,mid,established
+paintstores,Paint Stores,['homeandgarden'],,,,0.5,mid,established
+paintyourownpottery,Paint-Your-Own Pottery,['artsandcrafts'],,,,0.5,mid,established
+pakistani,Pakistani,['restaurants'],,,,0.5,mid,established
+palatine,Palatine,['german'],,,,0.5,mid,established
+panasian,Pan Asian,['restaurants'],,,,0.5,mid,established
+pancakes,Pancakes,['breakfast_brunch'],,,,0.5,mid,established
+panzerotti,Panzerotti,['food'],,,,0.5,mid,established
+paragliding,Paragliding,['active'],,,,0.5,mid,established
+parasailing,Parasailing,['active'],,,,0.5,mid,established
+parentingclasses,Parenting Classes,['specialtyschools'],,,,0.5,mid,established
+parking,Parking,['auto'],,,,0.5,mid,established
+parklets,Parklets,['localflavor'],,,,0.5,mid,established
+parks,Parks,['active'],,,,0.5,mid,established
+parma,Parma,['restaurants'],,,,0.5,mid,established
+partybikerentals,Party Bike Rentals,['eventservices'],,,,0.5,mid,established
+partybusrentals,Party Bus Rentals,['eventservices'],,,,0.5,mid,established
+partycharacters,Party Characters,['eventservices'],,,,0.5,mid,established
+partyequipmentrentals,Party Equipment Rentals,['eventservices'],,,,0.5,mid,established
+partysupplies,Party Supplies,['eventservices'],,,,0.5,mid,established
+passportvisaservices,Passport & Visa Services,['travelservices'],,,,0.5,mid,established
+pastashops,Pasta Shops,['gourmet'],,,,0.5,mid,established
+patentlaw,Patent Law,['professional'],,,,0.5,mid,established
+pathologists,Pathologists,['physicians'],,,,0.5,mid,established
+patiocoverings,Patio Coverings,['homeservices'],,,,0.5,mid,established
+pawn,Pawn Shops,['shopping'],,,,0.5,mid,established
+paydayloans,Check Cashing/Pay-day Loans,['financialservices'],,,,0.5,mid,established
+payroll,Payroll Services,['professional'],,,,0.5,mid,established
+pediatric_dentists,Pediatric Dentists,['dentists'],,,,0.5,mid,established
+pediatricians,Pediatricians,['physicians'],,,,0.5,mid,established
+pedicabs,Pedicabs,['transport'],,,,0.5,mid,established
+pekinese,Pekinese,['chinese'],,,,0.5,mid,established
+pensions,Pensions,['hotels'],,,,0.5,mid,established
+perfume,Perfume,"['shopping', 'beautysvc']",,,,0.5,mid,established
+periodontists,Periodontists,['dentists'],,,,0.5,mid,established
+permanentmakeup,Permanent Makeup,['beautysvc'],,,,0.5,mid,established
+persian,Persian/Iranian,['restaurants'],,,,0.5,mid,established
+personal_injury,Personal Injury Law,['lawyers'],,,,0.5,mid,established
+personal_shopping,Personal Shopping,['shopping'],,,,0.5,mid,established
+personalassistants,Personal Assistants,['professional'],,,,0.5,mid,established
+personalcare,Personal Care Services,['health'],,,,0.5,mid,established
+personalchefs,Personal Chefs,['eventservices'],,,,0.5,mid,established
+peruvian,Peruvian,['restaurants'],,,,0.5,mid,established
+pest_control,Pest Control,['localservices'],,,,0.5,mid,established
+pet_sitting,Pet Sitting,['petservices'],,,,0.5,mid,established
+pet_training,Pet Training,['petservices'],,,,0.5,mid,established
+petadoption,Pet Adoption,['pets'],,,,0.5,mid,established
+petboarding,Pet Boarding,['pet_sitting'],,,,0.5,mid,established
+petbreeders,Pet Breeders,['petservices'],,,,0.5,mid,established
+petcremation,Pet Cremation Services,['petservices'],,,,0.5,mid,established
+pethospice,Pet Hospice,['petservices'],,,,0.5,mid,established
+petinsurance,Pet Insurance,['petservices'],,,,0.5,mid,established
+petphotography,Pet Photography,['petservices'],,,,0.5,mid,established
+pets,Pets,[],,,,0.5,mid,established
+petservices,Pet Services,['pets'],,,,0.5,mid,established
+petstore,Pet Stores,['pets'],,,,0.5,mid,established
+pettingzoos,Petting Zoos,['zoos'],,,,0.5,mid,established
+pettransport,Pet Transportation,['petservices'],,,,0.5,mid,established
+petwasteremoval,Pet Waste Removal,['petservices'],,,,0.5,mid,established
+pfcomercial,PF/Comercial,['restaurants'],,,,0.5,mid,established
+pharmacy,Pharmacy,['health'],,,,0.5,mid,established
+phlebologists,Phlebologists,['physicians'],,,,0.5,mid,established
+photoboothrentals,Photo Booth Rentals,['eventservices'],,,,0.5,mid,established
+photoclasses,Photography Classes,['specialtyschools'],,,,0.5,mid,established
+photographers,Photographers,['eventservices'],,,,0.5,mid,established
+photographystores,Photography Stores & Services,['shopping'],,,,0.5,mid,established
+physicaltherapy,Physical Therapy,['health'],,,,0.5,mid,established
+physicians,Doctors,['health'],,,,0.5,mid,established
+piadina,Piadina,['food'],,,,0.5,mid,established
+pianobars,Piano Bars,['nightlife'],,,,0.5,mid,established
+pianoservices,Piano Services,['musicinstrumentservices'],,,,0.5,mid,established
+pianostores,Piano Stores,['musicinstrumentservices'],,,,0.5,mid,established
+pickleball,Pickleball,['active'],,,,0.5,mid,established
+pickyourown,Pick Your Own Farms,['farms'],,,,0.5,mid,established
+piemonte,Piemonte,['italian'],,,,0.5,mid,established
+piercing,Piercing,['beautysvc'],,,,0.5,mid,established
+pierogis,Pierogis,['polish'],,,,0.5,mid,established
+pilates,Pilates,['fitness'],,,,0.5,mid,established
+pita,Pita,['restaurants'],,,,0.5,mid,established
+pizza,Pizza,['restaurants'],,,,0.5,mid,established
+placentaencapsulation,Placenta Encapsulations,['health'],,,,0.5,mid,established
+planetarium,Planetarium,['arts'],,,,0.5,mid,established
+plasticsurgeons,Plastic Surgeons,['physicians'],,,,0.5,mid,established
+playgrounds,Playgrounds,['active'],,,,0.5,mid,established
+playsets,Playsets,['homeandgarden'],,,,0.5,mid,established
+plumbing,Plumbing,['homeservices'],,,,0.5,mid,established
+plus_size_fashion,Plus Size Fashion,['fashion'],,,,0.5,mid,established
+podiatrists,Podiatrists,['physicians'],,,,0.5,mid,established
+poke,Poke,['food'],,,,0.5,mid,established
+poledancingclasses,Pole Dancing Classes,['specialtyschools'],,,,0.5,mid,established
+policedepartments,Police Departments,['publicservicesgovt'],,,,0.5,mid,established
+polish,Polish,['restaurants'],,,,0.5,mid,established
+polynesian,Polynesian,['restaurants'],,,,0.5,mid,established
+poolbilliards,Pool & Billiards,['shopping'],,,,0.5,mid,established
+poolcleaners,Pool Cleaners,['homeservices'],,,,0.5,mid,established
+poolhalls,Pool Halls,['nightlife'],,,,0.5,mid,established
+poolservice,Pool & Hot Tub Service,['homeservices'],,,,0.5,mid,established
+popcorn,Popcorn Shops,['gourmet'],,,,0.5,mid,established
+popuprestaurants,Pop-Up Restaurants,['restaurants'],,,,0.5,mid,established
+popupshops,Pop-up Shops,['shopping'],,,,0.5,mid,established
+portabletoiletservices,Portable Toilet Services,['localservices'],,,,0.5,mid,established
+portuguese,Portuguese,['restaurants'],,,,0.5,mid,established
+postoffices,Post Offices,['publicservicesgovt'],,,,0.5,mid,established
+postpartumcare,Postpartum Care,['health'],,,,0.5,mid,established
+potatoes,Potatoes,['restaurants'],,,,0.5,mid,established
+poutineries,Poutineries,['restaurants'],,,,0.5,mid,established
+powdercoating,Powder Coating,['localservices'],,,,0.5,mid,established
+prenatal,Prenatal/Perinatal Care,['health'],,,,0.5,mid,established
+preschools,Preschools,['education'],,,,0.5,mid,established
+pressurewashers,Pressure Washers,['homeservices'],,,,0.5,mid,established
+pretzels,Pretzels,['food'],,,,0.5,mid,established
+preventivemedicine,Preventive Medicine,['physicians'],,,,0.5,mid,established
+printmedia,Print Media,['massmedia'],,,,0.5,mid,established
+privateinvestigation,Private Investigation,['professional'],,,,0.5,mid,established
+privatejetcharter,Private Jet Charter,['transport'],,,,0.5,mid,established
+privateschools,Private Schools,['education'],,,,0.5,mid,established
+privatetutors,Private Tutors,['education'],,,,0.5,mid,established
+processservers,Process Servers,['legalservices'],,,,0.5,mid,established
+proctologist,Proctologists,['physicians'],,,,0.5,mid,established
+productdesign,Product Design,['professional'],,,,0.5,mid,established
+professional,Professional Services,[],,,,0.5,mid,established
+propane,Propane,['localservices'],,,,0.5,mid,established
+propertymgmt,Property Management,['realestate'],,,,0.5,mid,established
+props,Props,['shopping'],,,,0.5,mid,established
+prosthetics,Prosthetics,['health'],,,,0.5,mid,established
+prosthodontists,Prosthodontists,['health'],,,,0.5,mid,established
+provencal,Provencal,['french'],,,,0.5,mid,established
+psychiatrists,Psychiatrists,['physicians'],,,,0.5,mid,established
+psychic_astrology,Supernatural Readings,['arts'],,,,0.5,mid,established
+psychicmediums,Psychic Mediums,['psychic_astrology'],,,,0.5,mid,established
+psychics,Psychics,['psychic_astrology'],,,,0.5,mid,established
+psychoanalysts,Psychoanalysts,['c_and_mh'],,,,0.5,mid,established
+psychologists,Psychologists,['c_and_mh'],,,,0.5,mid,established
+psychotechnicaltests,Psychotechnical Tests,['health'],,,,0.5,mid,established
+psychotherapists,Psychotherapists,['c_and_mh'],,,,0.5,mid,established
+pubfood,Pub Food,['restaurants'],,,,0.5,mid,established
+publicadjusters,Public Adjusters,['professional'],,,,0.5,mid,established
+publicart,Public Art,['localflavor'],,,,0.5,mid,established
+publicmarkets,Public Markets,['shopping'],,,,0.5,mid,established
+publicplazas,Public Plazas,['active'],,,,0.5,mid,established
+publicrelations,Public Relations,['professional'],,,,0.5,mid,established
+publicservicesgovt,Public Services & Government,[],,,,0.5,mid,established
+publictransport,Public Transportation,['transport'],,,,0.5,mid,established
+pubs,Pubs,['bars'],,,,0.5,mid,established
+pueblan,Pueblan,['mexican'],,,,0.5,mid,established
+puertorican,Puerto Rican,['caribbean'],,,,0.5,mid,established
+pulmonologist,Pulmonologist,['physicians'],,,,0.5,mid,established
+pulquerias,Pulquerias,['bars'],,,,0.5,mid,established
+pumpkinpatches,Pumpkin Patches,['homeandgarden'],,,,0.5,mid,established
+qigong,Qi Gong,['fitness'],,,,0.5,mid,established
+races,Races & Competitions,['active'],,,,0.5,mid,established
+racetracks,Race Tracks,['arts'],,,,0.5,mid,established
+racingexperience,Racing Experience,['active'],,,,0.5,mid,established
+radiologists,Radiologists,['physicians'],,,,0.5,mid,established
+radiostations,Radio Stations,['massmedia'],,,,0.5,mid,established
+rafting,Rafting/Kayaking,['active'],,,,0.5,mid,established
+ramen,Ramen,['japanese'],,,,0.5,mid,established
+ranches,Ranches,['farms'],,,,0.5,mid,established
+raw_food,Live/Raw Food,['restaurants'],,,,0.5,mid,established
+realestate,Real Estate,['homeservices'],,,,0.5,mid,established
+realestateagents,Real Estate Agents,['realestate'],,,,0.5,mid,established
+realestatelawyers,Real Estate Law,['lawyers'],,,,0.5,mid,established
+realestatesvcs,Real Estate Services,['realestate'],,,,0.5,mid,established
+record_labels,Record Labels,['localservices'],,,,0.5,mid,established
+recording_studios,Recording & Rehearsal Studios,['localservices'],,,,0.5,mid,established
+recreation,Recreation Centers,['active'],,,,0.5,mid,established
+recyclingcenter,Recycling Center,['localservices'],,,,0.5,mid,established
+refinishing,Refinishing Services,['homeservices'],,,,0.5,mid,established
+reflexology,Reflexology,['health'],,,,0.5,mid,established
+registrationservices,Registration Services,['auto'],,,,0.5,mid,established
+registry_office,Registry Office,['publicservicesgovt'],,,,0.5,mid,established
+rehabilitation_center,Rehabilitation Center,['health'],,,,0.5,mid,established
+reiki,Reiki,['health'],,,,0.5,mid,established
+religiousitems,Religious Items,['shopping'],,,,0.5,mid,established
+religiousorgs,Religious Organizations,[],,,,0.5,mid,established
+religiousschools,Religious Schools,['education'],,,,0.5,mid,established
+rentfurniture,Furniture Rental,['localservices'],,,,0.5,mid,established
+reproductivehealthservices,Reproductive Health Services,['health'],,,,0.5,mid,established
+reptileshops,Reptile Shops,['petstore'],,,,0.5,mid,established
+residences,Residences,['hotels'],,,,0.5,mid,established
+resorts,Resorts,['hotelstravel'],,,,0.5,mid,established
+restaurants,Restaurants,[],,,,0.5,mid,established
+reststops,Rest Stops,['hotels'],,,,0.5,mid,established
+retinaspecialists,Retina Specialists,['opthamalogists'],,,,0.5,mid,established
+retirement_homes,Retirement Homes,['health'],,,,0.5,mid,established
+reunion,Reunion,['french'],,,,0.5,mid,established
+reupholstery,Furniture Reupholstery,['localservices'],,,,0.5,mid,established
+rhematologists,Rheumatologists,['physicians'],,,,0.5,mid,established
+rhinelandian,Rhinelandian,['german'],,,,0.5,mid,established
+ribatejo,Ribatejo,['portuguese'],,,,0.5,mid,established
+riceshop,Rice,['restaurants'],,,,0.5,mid,established
+roadsideassist,Roadside Assistance,['auto'],,,,0.5,mid,established
+robatayaki,Robatayaki,['japanese'],,,,0.5,mid,established
+rock_climbing,Rock Climbing,['active'],,,,0.5,mid,established
+rodeo,Rodeo,['arts'],,,,0.5,mid,established
+rodizios,Rodizios,['brazilian'],,,,0.5,mid,established
+rolfing,Rolfing,['beautysvc'],,,,0.5,mid,established
+roman,Roman,['italian'],,,,0.5,mid,established
+romanian,Romanian,['restaurants'],,,,0.5,mid,established
+roofing,Roofing,['homeservices'],,,,0.5,mid,established
+roofinspectors,Roof Inspectors,['homeservices'],,,,0.5,mid,established
+rotisserie_chicken,Rotisserie Chicken,['restaurants'],,,,0.5,mid,established
+rugs,Rugs,['homeandgarden'],,,,0.5,mid,established
+rumanian,Rumanian,['restaurants'],,,,0.5,mid,established
+russian,Russian,['restaurants'],,,,0.5,mid,established
+rv_dealers,RV Dealers,['auto'],,,,0.5,mid,established
+rvparks,RV Parks,['hotelstravel'],,,,0.5,mid,established
+rvrental,RV Rental,['hotelstravel'],,,,0.5,mid,established
+rvrepair,RV Repair,['auto'],,,,0.5,mid,established
+ryokan,Ryokan,['hotels'],,,,0.5,mid,established
+safestores,Safe Stores,['shopping'],,,,0.5,mid,established
+safetyequipment,Safety Equipment,['shopping'],,,,0.5,mid,established
+sailing,Sailing,['active'],,,,0.5,mid,established
+sakebars,Sake Bars,['bars'],,,,0.5,mid,established
+salad,Salad,['restaurants'],,,,0.5,mid,established
+salumerie,Salumerie,['food'],,,,0.5,mid,established
+salvadoran,Salvadoran,['latin'],,,,0.5,mid,established
+sambaschools,Samba Schools,['specialtyschools'],,,,0.5,mid,established
+sandblasting,Sandblasting,['localservices'],,,,0.5,mid,established
+sandwiches,Sandwiches,['restaurants'],,,,0.5,mid,established
+sardinian,Sardinian,['italian'],,,,0.5,mid,established
+saunainstallation,Sauna Installation & Repair,['homeservices'],,,,0.5,mid,established
+saunas,Saunas,['health'],,,,0.5,mid,established
+scandinavian,Scandinavian,['restaurants'],,,,0.5,mid,established
+scandinaviandesign,Scandinavian Design,['shopping'],,,,0.5,mid,established
+scavengerhunts,Scavenger Hunts,['active'],,,,0.5,mid,established
+schnitzel,Schnitzel,['restaurants'],,,,0.5,mid,established
+scooterrentals,Scooter Rentals,['active'],,,,0.5,mid,established
+scootertours,Scooter Tours,['tours'],,,,0.5,mid,established
+scottish,Scottish,['restaurants'],,,,0.5,mid,established
+screen_printing_tshirt_printing,Screen Printing/T-Shirt Printing,['localservices'],,,,0.5,mid,established
+screenprinting,Screen Printing,['localservices'],,,,0.5,mid,established
+scuba,Scuba Diving,['diving'],,,,0.5,mid,established
+seafood,Seafood,['restaurants'],,,,0.5,mid,established
+seafoodmarkets,Seafood Markets,['gourmet'],,,,0.5,mid,established
+seasonaldecorservices,Holiday Decorating Services,['homeservices'],,,,0.5,mid,established
+security,Security Services,['professional'],,,,0.5,mid,established
+securitysystems,Security Systems,['homeservices'],,,,0.5,mid,established
+selfdefenseclasses,Self-defense Classes,['fitness'],,,,0.5,mid,established
+selfstorage,Self Storage,['localservices'],,,,0.5,mid,established
+senegalese,Senegalese,['african'],,,,0.5,mid,established
+seniorcenters,Senior Centers,['active'],,,,0.5,mid,established
+septicservices,Septic Services,['localservices'],,,,0.5,mid,established
+serbocroatian,Serbo Croatian,['restaurants'],,,,0.5,mid,established
+service_stations,Service Stations,['auto'],,,,0.5,mid,established
+servicestations,Gas Stations,['auto'],,,,0.5,mid,established
+sessionphotography,Session Photography,['photographers'],,,,0.5,mid,established
+sewingalterations,Sewing & Alterations,['localservices'],,,,0.5,mid,established
+sextherapists,Sex Therapists,['c_and_mh'],,,,0.5,mid,established
+shanghainese,Shanghainese,['chinese'],,,,0.5,mid,established
+sharedofficespaces,Shared Office Spaces,['realestate'],,,,0.5,mid,established
+sharedtaxis,Shared Taxis,['transport'],,,,0.5,mid,established
+shavedice,Shaved Ice,['food'],,,,0.5,mid,established
+shavedsnow,Shaved Snow,['food'],,,,0.5,mid,established
+shedsandoutdoorstorage,Sheds & Outdoor Storage,['homeandgarden'],,,,0.5,mid,established
+shipping_centers,Shipping Centers,['localservices'],,,,0.5,mid,established
+shoerepair,Shoe Repair,['localservices'],,,,0.5,mid,established
+shoes,Shoe Stores,['fashion'],,,,0.5,mid,established
+shoeshine,Shoe Shine,['localservices'],,,,0.5,mid,established
+shopping,Shopping,[],,,,0.5,mid,established
+shoppingcenters,Shopping Centers,['shopping'],,,,0.5,mid,established
+shoppingpassages,Shopping Passages,['shopping'],,,,0.5,mid,established
+shredding,Shredding Services,['professional'],,,,0.5,mid,established
+shrines,Shrines,['religiousorgs'],,,,0.5,mid,established
+shutters,Shutters,['homeservices'],,,,0.5,mid,established
+sicilian,Sicilian,['italian'],,,,0.5,mid,established
+signature_cuisine,Signature Cuisine,['restaurants'],,,,0.5,mid,established
+signmaking,Signmaking,['professional'],,,,0.5,mid,established
+sikhtemples,Sikh Temples,['religiousorgs'],,,,0.5,mid,established
+silentdisco,Silent Disco,['eventservices'],,,,0.5,mid,established
+singaporean,Singaporean,['restaurants'],,,,0.5,mid,established
+skate_parks,Skate Parks,['parks'],,,,0.5,mid,established
+skateshops,Skate Shops,['sportgoods'],,,,0.5,mid,established
+skatingrinks,Skating Rinks,['active'],,,,0.5,mid,established
+skiing,Skiing,['active'],,,,0.5,mid,established
+skillednursing,Skilled Nursing,['health'],,,,0.5,mid,established
+skincare,Skin Care,['beautysvc'],,,,0.5,mid,established
+skiresorts,Ski Resorts,['hotelstravel'],,,,0.5,mid,established
+skischools,Ski Schools,['specialtyschools'],,,,0.5,mid,established
+skishops,Ski & Snowboard Shops,['sportgoods'],,,,0.5,mid,established
+skydiving,Skydiving,['active'],,,,0.5,mid,established
+sledding,Sledding,['active'],,,,0.5,mid,established
+sleepspecialists,Sleep Specialists,['health'],,,,0.5,mid,established
+sleepwear,Sleepwear,['fashion'],,,,0.5,mid,established
+slovakian,Slovakian,['restaurants'],,,,0.5,mid,established
+smog_check_stations,Smog Check Stations,['auto'],,,,0.5,mid,established
+smokehouse,Smokehouse,['food'],,,,0.5,mid,established
+smokingareas,Smoking Areas,['localservices'],,,,0.5,mid,established
+snorkeling,Snorkeling,['active'],,,,0.5,mid,established
+snowremoval,Snow Removal,['localservices'],,,,0.5,mid,established
+snuggleservices,Snuggle Services,['localservices'],,,,0.5,mid,established
+soba,Soba,['japanese'],,,,0.5,mid,established
+social_clubs,Social Clubs,['arts'],,,,0.5,mid,established
+socialsecuritylaw,Social Security Law,['lawyers'],,,,0.5,mid,established
+softwaredevelopment,Software Development,['professional'],,,,0.5,mid,established
+solarinstallation,Solar Installation,['homeservices'],,,,0.5,mid,established
+solarpanelcleaning,Solar Panel Cleaning,['homeservices'],,,,0.5,mid,established
+somali,Somali,['restaurants'],,,,0.5,mid,established
+sommelierservices,Sommelier Services,['eventservices'],,,,0.5,mid,established
+sophrologists,Sophrologists,['c_and_mh'],,,,0.5,mid,established
+soulfood,Soul Food,['restaurants'],,,,0.5,mid,established
+soup,Soup,['restaurants'],,,,0.5,mid,established
+southafrican,South African,['african'],,,,0.5,mid,established
+southern,Southern,['restaurants'],,,,0.5,mid,established
+souvenirs,Souvenir Shops,['shopping'],,,,0.5,mid,established
+spanish,Spanish,['restaurants'],,,,0.5,mid,established
+spas,Day Spas,['beautysvc'],,,,0.5,mid,established
+speakeasies,Speakeasies,['bars'],,,,0.5,mid,established
+specialbikes,Special Bikes,['bicycles'],,,,0.5,mid,established
+specialed,Special Education,['education'],,,,0.5,mid,established
+specialtyschools,Specialty Schools,['education'],,,,0.5,mid,established
+speech_therapists,Speech Therapists,['health'],,,,0.5,mid,established
+speechtraining,Speech Training,['specialtyschools'],,,,0.5,mid,established
+spermclinic,Sperm Clinic,['health'],,,,0.5,mid,established
+spinclasses,Spin Classes,['active'],,,,0.5,mid,established
+spinesurgeons,Spine Surgeons,['physicians'],,,,0.5,mid,established
+spiritism,Spiritism,['religiousorgs'],,,,0.5,mid,established
+spiritual_shop,Spiritual Shop,['shopping'],,,,0.5,mid,established
+sport_equipment_hire,Sport Equipment Hire,['active'],,,,0.5,mid,established
+sportgoods,Sporting Goods,['shopping'],,,,0.5,mid,established
+sports_clubs,Sports Clubs,['active'],,,,0.5,mid,established
+sportsbars,Sports Bars,['bars'],,,,0.5,mid,established
+sportsbetting,Sports Betting,['arts'],,,,0.5,mid,established
+sportsmed,Sports Medicine,['physicians'],,,,0.5,mid,established
+sportspsychologists,Sports Psychologists,['c_and_mh'],,,,0.5,mid,established
+sportsteams,Professional Sports Teams,['arts'],,,,0.5,mid,established
+sportswear,Sports Wear,"['fashion', 'sportgoods']",,,,0.5,mid,established
+spraytanning,Spray Tanning,['tanning'],,,,0.5,mid,established
+squash,Squash,['active'],,,,0.5,mid,established
+srilankan,Sri Lankan,['restaurants'],,,,0.5,mid,established
+stadiumsarenas,Stadiums & Arenas,['arts'],,,,0.5,mid,established
+stationery,Cards & Stationery,"['eventservices', 'artsandcrafts', 'flowers']",,,,0.5,mid,established
+steak,Steakhouses,['restaurants'],,,,0.5,mid,established
+stereo_installation,Car Stereo Installation,['auto'],,,,0.5,mid,established
+stockings,Stockings,['fashion'],,,,0.5,mid,established
+stonemasons,Stonemasons,['localservices'],,,,0.5,mid,established
+streetart,Street Art,['arts'],,,,0.5,mid,established
+streetvendors,Street Vendors,['food'],,,,0.5,mid,established
+stripclubs,Strip Clubs,['adultentertainment'],,,,0.5,mid,established
+stripteasedancers,Striptease Dancers,['adultentertainment'],,,,0.5,mid,established
+structuralengineers,Structural Engineers,['homeservices'],,,,0.5,mid,established
+stucco,Stucco Services,['homeservices'],,,,0.5,mid,established
+studiotaping,Studio Taping,['arts'],,,,0.5,mid,established
+sud_ouest,French Southwest,['restaurants'],,,,0.5,mid,established
+sugaring,Sugaring,['hairremoval'],,,,0.5,mid,established
+sugarshacks,Sugar Shacks,['food'],,,,0.5,mid,established
+sukiyaki,Sukiyaki,['japanese'],,,,0.5,mid,established
+summer_camps,Summer Camps,['active'],,,,0.5,mid,established
+sunglasses,Sunglasses,['opticians'],,,,0.5,mid,established
+supperclubs,Supper Clubs,['restaurants'],,,,0.5,mid,established
+suppliesrestaurant,Restaurant Supplies,['wholesalers'],,,,0.5,mid,established
+surfing,Surfing,['active'],,,,0.5,mid,established
+surflifesaving,Surf Lifesaving,['active'],,,,0.5,mid,established
+surfschools,Surf Schools,['specialtyschools'],,,,0.5,mid,established
+surfshop,Surf Shop,['fashion'],,,,0.5,mid,established
+surgeons,Surgeons,['physicians'],,,,0.5,mid,established
+sushi,Sushi Bars,['restaurants'],,,,0.5,mid,established
+swabian,Swabian,['restaurants'],,,,0.5,mid,established
+swedish,Swedish,['restaurants'],,,,0.5,mid,established
+swimminglessons,Swimming Lessons/Schools,"['fitness', 'specialtyschools']",,,,0.5,mid,established
+swimmingpools,Swimming Pools,['active'],,,,0.5,mid,established
+swimwear,Swimwear,['fashion'],,,,0.5,mid,established
+swissfood,Swiss Food,['restaurants'],,,,0.5,mid,established
+synagogues,Synagogues,['religiousorgs'],,,,0.5,mid,established
+syrian,Syrian,['restaurants'],,,,0.5,mid,established
+szechuan,Szechuan,['chinese'],,,,0.5,mid,established
+tabac,Tabac,['bars'],,,,0.5,mid,established
+tabernas,Tabernas,['restaurants'],,,,0.5,mid,established
+tablaoflamenco,Tablao Flamenco,['arts'],,,,0.5,mid,established
+tabletopgames,Tabletop Games,['shopping'],,,,0.5,mid,established
+tableware,Tableware,['homeandgarden'],,,,0.5,mid,established
+tacos,Tacos,['mexican'],,,,0.5,mid,established
+taekwondo,Taekwondo,['martialarts'],,,,0.5,mid,established
+taichi,Tai Chi,['fitness'],,,,0.5,mid,established
+taiwanese,Taiwanese,['restaurants'],,,,0.5,mid,established
+taiyaki,Taiyaki,['jpsweets'],,,,0.5,mid,established
+takoyaki,Takoyaki,['japanese'],,,,0.5,mid,established
+talentagencies,Talent Agencies,['professional'],,,,0.5,mid,established
+tamales,Tamales,['mexican'],,,,0.5,mid,established
+tanning,Tanning,['beautysvc'],,,,0.5,mid,established
+tanningbeds,Tanning Beds,['tanning'],,,,0.5,mid,established
+taoisttemples,Taoist Temples,['religiousorgs'],,,,0.5,mid,established
+tapas,Tapas Bars,['restaurants'],,,,0.5,mid,established
+tapasmallplates,Tapas/Small Plates,['restaurants'],,,,0.5,mid,established
+tastingclasses,Tasting Classes,['education'],,,,0.5,mid,established
+tattoo,Tattoo,['beautysvc'],,,,0.5,mid,established
+tattooremoval,Tattoo Removal,['physicians'],,,,0.5,mid,established
+tavolacalda,Tavola Calda,['restaurants'],,,,0.5,mid,established
+taxidermy,Taxidermy,['professional'],,,,0.5,mid,established
+taxis,Taxis,['transport'],,,,0.5,mid,established
+taxlaw,Tax Law,['lawyers'],,,,0.5,mid,established
+taxoffice,Tax Office,['publicservicesgovt'],,,,0.5,mid,established
+taxservices,Tax Services,['financialservices'],,,,0.5,mid,established
+tcm,Traditional Chinese Medicine,['health'],,,,0.5,mid,established
+tea,Tea Rooms,['food'],,,,0.5,mid,established
+teachersupplies,Teacher Supplies,['shopping'],,,,0.5,mid,established
+teambuilding,Team Building Activities,['eventservices'],,,,0.5,mid,established
+teethwhitening,Teeth Whitening,['beautysvc'],,,,0.5,mid,established
+telecommunications,Telecommunications,['itservices'],,,,0.5,mid,established
+televisionserviceproviders,Television Service Providers,['homeservices'],,,,0.5,mid,established
+televisionstations,Television Stations,['massmedia'],,,,0.5,mid,established
+tempura,Tempura,['japanese'],,,,0.5,mid,established
+tenantlaw,Tenant and Eviction Law,['professional'],,,,0.5,mid,established
+tennis,Tennis,['active'],,,,0.5,mid,established
+teochew,Teochew,['chinese'],,,,0.5,mid,established
+teppanyaki,Teppanyaki,['japanese'],,,,0.5,mid,established
+testprep,Test Preparation,['education'],,,,0.5,mid,established
+tex-mex,Tex-Mex,['restaurants'],,,,0.5,mid,established
+thai,Thai,['restaurants'],,,,0.5,mid,established
+theater,Performing Arts,['arts'],,,,0.5,mid,established
+themedcafes,Themed Cafes,['cafes'],,,,0.5,mid,established
+threadingservices,Threading Services,['hairremoval'],,,,0.5,mid,established
+thrift_stores,Thrift Stores,['shopping'],,,,0.5,mid,established
+tickets,Tickets,['shopping'],,,,0.5,mid,established
+ticketsales,Ticket Sales,['arts'],,,,0.5,mid,established
+tikibars,Tiki Bars,['bars'],,,,0.5,mid,established
+tiling,Tiling,['homeservices'],,,,0.5,mid,established
+tires,Tires,['auto'],,,,0.5,mid,established
+titleloans,Title Loans,['financialservices'],,,,0.5,mid,established
+tobaccoshops,Tobacco Shops,['shopping'],,,,0.5,mid,established
+tofu,Tofu Shops,['gourmet'],,,,0.5,mid,established
+tonkatsu,Tonkatsu,['japanese'],,,,0.5,mid,established
+torshi,Torshi,['food'],,,,0.5,mid,established
+tortillas,Tortillas,['food'],,,,0.5,mid,established
+tours,Tours,['hotelstravel'],,,,0.5,mid,established
+towing,Towing,['auto'],,,,0.5,mid,established
+towncarservice,Town Car Service,['transport'],,,,0.5,mid,established
+townhall,Town Hall,['publicservicesgovt'],,,,0.5,mid,established
+toxicologists,Toxicologists,['physicians'],,,,0.5,mid,established
+toys,Toy Stores,['shopping'],,,,0.5,mid,established
+tradamerican,American,['restaurants'],,,,0.5,mid,established
+tradclothing,Traditional Clothing,['fashion'],,,,0.5,mid,established
+tradefairs,Trade Fairs,['festivals'],,,,0.5,mid,established
+traditional_swedish,Traditional Swedish,['restaurants'],,,,0.5,mid,established
+trafficschools,Traffic Schools,['specialtyschools'],,,,0.5,mid,established
+trafficticketinglaw,Traffic Ticketing Law,['lawyers'],,,,0.5,mid,established
+trailerdealers,Trailer Dealers,['auto'],,,,0.5,mid,established
+trailerrental,Trailer Rental,['auto'],,,,0.5,mid,established
+trailerrepair,Trailer Repair,['auto'],,,,0.5,mid,established
+trains,Trains,['transport'],,,,0.5,mid,established
+trainstations,Train Stations,['hotelstravel'],,,,0.5,mid,established
+trampoline,Trampoline Parks,['active'],,,,0.5,mid,established
+translationservices,Translation Services,['professional'],,,,0.5,mid,established
+transmissionrepair,Transmission Repair,['auto'],,,,0.5,mid,established
+transport,Transportation,['hotelstravel'],,,,0.5,mid,established
+tras_os_montes,Tras-os-Montes,['portuguese'],,,,0.5,mid,established
+trattorie,Trattorie,['restaurants'],,,,0.5,mid,established
+travelagents,Travel Agents,['travelservices'],,,,0.5,mid,established
+travelservices,Travel Services,['hotelstravel'],,,,0.5,mid,established
+treeservices,Tree Services,['homeservices'],,,,0.5,mid,established
+trinidadian,Trinidadian,['caribbean'],,,,0.5,mid,established
+triviahosts,Trivia Hosts,['eventservices'],,,,0.5,mid,established
+trophyshops,Trophy Shops,['shopping'],,,,0.5,mid,established
+tropicalmedicine,Tropical Medicine,['physicians'],,,,0.5,mid,established
+truck_rental,Truck Rental,['auto'],,,,0.5,mid,established
+truckdealers,Commercial Truck Dealers,['auto'],,,,0.5,mid,established
+truckrepair,Commercial Truck Repair,['auto'],,,,0.5,mid,established
+tubing,Tubing,['active'],,,,0.5,mid,established
+tuina,Tui Na,['tcm'],,,,0.5,mid,established
+turkish,Turkish,['restaurants'],,,,0.5,mid,established
+turkishravioli,Turkish Ravioli,['turkish'],,,,0.5,mid,established
+tuscan,Tuscan,['italian'],,,,0.5,mid,established
+tutoring,Tutoring Centers,['education'],,,,0.5,mid,established
+tvmounting,TV Mounting,['localservices'],,,,0.5,mid,established
+udon,Udon,['japanese'],,,,0.5,mid,established
+ukrainian,Ukrainian,['restaurants'],,,,0.5,mid,established
+ultrasoundimagingcenters,Ultrasound Imaging Centers,['health'],,,,0.5,mid,established
+unagi,Unagi,['japanese'],,,,0.5,mid,established
+underseamedicine,Undersea/Hyperbaric Medicine,['physicians'],,,,0.5,mid,established
+uniforms,Uniforms,['shopping'],,,,0.5,mid,established
+university_housing,University Housing,['realestate'],,,,0.5,mid,established
+unofficialyelpevents,Unofficial Yelp Events,['localflavor'],,,,0.5,mid,established
+urgent_care,Urgent Care,['health'],,,,0.5,mid,established
+urologists,Urologists,['physicians'],,,,0.5,mid,established
+usedbooks,Used Bookstore,['shopping'],,,,0.5,mid,established
+usedcardealers,Used Car Dealers,['auto'],,,,0.5,mid,established
+utilities,Utilities,['homeservices'],,,,0.5,mid,established
+uzbek,Uzbek,['restaurants'],,,,0.5,mid,established
+vacation_rentals,Vacation Rentals,['hotelstravel'],,,,0.5,mid,established
+vacationrentalagents,Vacation Rental Agents,['hotelstravel'],,,,0.5,mid,established
+valetservices,Valet Services,['eventservices'],,,,0.5,mid,established
+vapeshops,Vape Shops,['shopping'],,,,0.5,mid,established
+vascularmedicine,Vascular Medicine,['physicians'],,,,0.5,mid,established
+vegan,Vegan,['restaurants'],,,,0.5,mid,established
+vegetarian,Vegetarian,['restaurants'],,,,0.5,mid,established
+vehicleshipping,Vehicle Shipping,['auto'],,,,0.5,mid,established
+vehiclewraps,Vehicle Wraps,['auto'],,,,0.5,mid,established
+venetian,Venetian,['italian'],,,,0.5,mid,established
+venezuelan,Venezuelan,['latin'],,,,0.5,mid,established
+venison,Venison,['restaurants'],,,,0.5,mid,established
+venues,Venues & Event Spaces,['eventservices'],,,,0.5,mid,established
+vermouthbars,Vermouth Bars,['bars'],,,,0.5,mid,established
+vet,Veterinarians,['pets'],,,,0.5,mid,established
+veteransorganizations,Veterans Organizations,['social_clubs'],,,,0.5,mid,established
+videoandgames,Videos & Video Game Rental,['media'],,,,0.5,mid,established
+videofilmproductions,Video/Film Production,['professional'],,,,0.5,mid,established
+videogamestores,Video Game Stores,['media'],,,,0.5,mid,established
+videographers,Videographers,['eventservices'],,,,0.5,mid,established
+vietnamese,Vietnamese,['restaurants'],,,,0.5,mid,established
+vintage,"Used, Vintage & Consignment",['fashion'],,,,0.5,mid,established
+vinyl_records,Vinyl Records,['media'],,,,0.5,mid,established
+vinylsiding,Siding,['homeservices'],,,,0.5,mid,established
+virtualrealitycenters,Virtual Reality Centers,['arts'],,,,0.5,mid,established
+visitorcenters,Visitor Centers,['travelservices'],,,,0.5,mid,established
+vitaminssupplements,Vitamins & Supplements,['shopping'],,,,0.5,mid,established
+vocalcoach,Vocal Coach,['musicinstrumentservices'],,,,0.5,mid,established
+vocation,Vocational & Technical School,['specialtyschools'],,,,0.5,mid,established
+volleyball,Volleyball,['active'],,,,0.5,mid,established
+waffles,Waffles,['restaurants'],,,,0.5,mid,established
+waldorfschools,Waldorf Schools,['education'],,,,0.5,mid,established
+walkinclinics,Walk-in Clinics,['medcenters'],,,,0.5,mid,established
+walkingtours,Walking Tours,['tours'],,,,0.5,mid,established
+wallpapering,Wallpapering,['homeservices'],,,,0.5,mid,established
+watch_repair,Watch Repair,['localservices'],,,,0.5,mid,established
+watches,Watches,['shopping'],,,,0.5,mid,established
+waterdelivery,Water Delivery,['localservices'],,,,0.5,mid,established
+waterheaterinstallrepair,Water Heater Installation/Repair,['homeservices'],,,,0.5,mid,established
+waterparks,Water Parks,['active'],,,,0.5,mid,established
+waterproofing,Waterproofing,['homeservices'],,,,0.5,mid,established
+waterpurification,Water Purification Services,['homeservices'],,,,0.5,mid,established
+waterstores,Water Stores,['food'],,,,0.5,mid,established
+watersuppliers,Water Suppliers,['utilities'],,,,0.5,mid,established
+watertaxis,Water Taxis,['transport'],,,,0.5,mid,established
+waxing,Waxing,['hairremoval'],,,,0.5,mid,established
+web_design,Web Design,['professional'],,,,0.5,mid,established
+wedding_planning,Wedding Planning,['eventservices'],,,,0.5,mid,established
+weddingchappels,Wedding Chapels,['eventservices'],,,,0.5,mid,established
+weightlosscenters,Weight Loss Centers,['health'],,,,0.5,mid,established
+welldrilling,Well Drilling,['localservices'],,,,0.5,mid,established
+westernjapanese,Western Style Japanese Food,['japanese'],,,,0.5,mid,established
+whalewatchingtours,Whale Watching Tours,['tours'],,,,0.5,mid,established
+wheelrimrepair,Wheel & Rim Repair,['auto'],,,,0.5,mid,established
+whiskeybars,Whiskey Bars,['bars'],,,,0.5,mid,established
+wholesale_stores,Wholesale Stores,['shopping'],,,,0.5,mid,established
+wholesalers,Wholesalers,['professional'],,,,0.5,mid,established
+wigs,Wigs,['shopping'],,,,0.5,mid,established
+wildlifecontrol,Wildlife Control,['localservices'],,,,0.5,mid,established
+wildlifehunting,Wildlife Hunting Ranges,['active'],,,,0.5,mid,established
+willstrustsprobates,"Wills, Trusts, & Probates",['estateplanning'],,,,0.5,mid,established
+windowsinstallation,Windows Installation,['homeservices'],,,,0.5,mid,established
+windowwashing,Window Washing,['homeservices'],,,,0.5,mid,established
+windshieldinstallrepair,Windshield Installation & Repair,['auto'],,,,0.5,mid,established
+wine_bars,Wine Bars,['bars'],,,,0.5,mid,established
+wineries,Wineries,"['arts', 'food']",,,,0.5,mid,established
+winetasteclasses,Wine Tasting Classes,['tastingclasses'],,,,0.5,mid,established
+winetastingroom,Wine Tasting Room,['wineries'],,,,0.5,mid,established
+winetours,Wine Tours,['tours'],,,,0.5,mid,established
+wok,Wok,['restaurants'],,,,0.5,mid,established
+womenscloth,Women's Clothing,['fashion'],,,,0.5,mid,established
+workerscomplaw,Workers Compensation Law,['lawyers'],,,,0.5,mid,established
+wraps,Wraps,['restaurants'],,,,0.5,mid,established
+xmasmarkets,Christmas Markets,['festivals'],,,,0.5,mid,established
+yakiniku,Yakiniku,['japanese'],,,,0.5,mid,established
+yakitori,Yakitori,['japanese'],,,,0.5,mid,established
+yelpevents,Yelp Events,['localflavor'],,,,0.5,mid,established
+yoga,Yoga,['fitness'],,,,0.5,mid,established
+youth_club,Youth Club,['localservices'],,,,0.5,mid,established
+yucatan,Yucatan,['mexican'],,,,0.5,mid,established
+yugoslav,Yugoslav,['restaurants'],,,,0.5,mid,established
+zapiekanka,Zapiekanka,['food'],,,,0.5,mid,established
+zipline,Ziplining,['active'],,,,0.5,mid,established
+zoos,Zoos,['active'],,,,0.5,mid,established
+zorbing,Zorbing,['active'],,,,0.5,mid,established

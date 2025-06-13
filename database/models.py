@@ -13,7 +13,7 @@ from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import (Float, ForeignKey, Index, Integer, Numeric, String, Text,
                         UniqueConstraint)
-from sqlalchemy.dialects.postgresql import INET, JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, INET, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -392,3 +392,34 @@ class DailyCostAggregate(Base):
     __table_args__ = (
         Index("idx_daily_cost_unique", "date", "provider", "operation", "campaign_id", unique=True),
     )
+
+
+# Phase 0.5 Feature Tables
+class GeoFeatures(Base):
+    """ZIP-level demographic and market features for geo-based targeting."""
+    __tablename__ = "geo_features"
+    
+    zip = Column(String(5), primary_key=True)
+    pop = Column(Integer)
+    bb_adoption_pct = Column(Numeric(5, 3))
+    unemp_pct = Column(Numeric(5, 3))
+    agency_cnt = Column(Integer)
+    agency_density = Column(Numeric(6, 3))
+    affluence = Column(Numeric(5, 1))
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+
+class VerticalFeatures(Base):
+    """Yelp category features for vertical-based targeting and prioritization."""
+    __tablename__ = "vertical_features"
+    
+    yelp_alias = Column(Text, primary_key=True)
+    title = Column(Text)
+    parent_aliases = Column(ARRAY(Text))
+    naics6 = Column(String(6))
+    naics3 = Column(String(3))
+    naics_title = Column(Text)
+    urgency = Column(Numeric, server_default="0.5")
+    ticket_band = Column(Text, server_default="mid")
+    maturity = Column(Text, server_default="established")
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
