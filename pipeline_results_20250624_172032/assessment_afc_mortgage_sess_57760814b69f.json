@@ -1,0 +1,83 @@
+{
+  "session_id": "sess_57760814b69f",
+  "business": {
+    "business_id": "afc_mortgage",
+    "business_name": "AFC Mortgage Group",
+    "url": "https://www.afcmortgagegroup.net",
+    "vertical": "finance",
+    "location": "Unknown"
+  },
+  "results": {
+    "session_id": "sess_57760814b69f",
+    "business_id": "afc_mortgage",
+    "url": "https://www.afcmortgagegroup.net/",
+    "domain": "afcmortgagegroup.net",
+    "industry": "unknown",
+    "status": "completed",
+    "total_assessments": 3,
+    "completed_assessments": 3,
+    "failed_assessments": 0,
+    "pagespeed_results": {
+      "performance_score": 64,
+      "accessibility_score": 88,
+      "seo_score": 91,
+      "best_practices_score": 100,
+      "largest_contentful_paint": 19149,
+      "first_input_delay": 78,
+      "cumulative_layout_shift": 0.01134828757050807,
+      "speed_index": 4552,
+      "time_to_interactive": 19156
+    },
+    "tech_stack_results": [
+      {
+        "technology_name": "Amazon Web Services",
+        "category": "hosting",
+        "confidence": 0.925,
+        "version": null
+      },
+      {
+        "technology_name": "Facebook Pixel",
+        "category": "analytics",
+        "confidence": 0.875,
+        "version": null
+      },
+      {
+        "technology_name": "Google Analytics",
+        "category": "analytics",
+        "confidence": 0.8625,
+        "version": null
+      },
+      {
+        "technology_name": "Angular",
+        "category": "frontend",
+        "confidence": 0.85,
+        "version": null
+      },
+      {
+        "technology_name": "Jquery",
+        "category": "frontend",
+        "confidence": 0.85,
+        "version": "3.5.1"
+      },
+      {
+        "technology_name": "Vue",
+        "category": "frontend",
+        "confidence": 0.7,
+        "version": null
+      }
+    ],
+    "ai_insights_results": {
+      "recommendations": [],
+      "industry_insights": {},
+      "summary": {},
+      "ai_model_version": "mock-model-v1",
+      "processing_cost_usd": "0.0"
+    },
+    "started_at": "2025-06-24T21:26:41.165902",
+    "completed_at": "2025-06-24T21:27:17.077651",
+    "execution_time_ms": 35911,
+    "total_cost_usd": "0",
+    "errors": null
+  },
+  "generated_at": "2025-06-24T21:27:17.105773"
+}

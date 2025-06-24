@@ -20,10 +20,14 @@ from typing import Any, Dict, List, Optional, Set
 
 from .llm_insights import LLMInsightGenerator
 from .models import AssessmentResult, AssessmentSession
-from .pagespeed import PageSpeedAssessor
+from .assessors.pagespeed_assessor import PageSpeedAssessor
 from .techstack import TechStackDetector
 from .types import AssessmentStatus, AssessmentType
 from d4_enrichment.email_enrichment import get_email_enricher
+from core.logging import get_logger
+from .assessors import ASSESSOR_REGISTRY
+
+logger = get_logger(__name__, domain="d3")
 
 
 class CoordinatorError(Exception):
@@ -93,6 +97,20 @@ class AssessmentCoordinator:
         self.techstack_detector = TechStackDetector()
         self.llm_generator = LLMInsightGenerator()
         self.email_enricher = get_email_enricher()
+        self.logger = logger
+        
+        # Initialize assessors from registry
+        self.assessors = {}
+        for name, assessor_class in ASSESSOR_REGISTRY.items():
+            try:
+                assessor = assessor_class()
+                if assessor.is_available():
+                    self.assessors[name] = assessor
+                    logger.info(f"Initialized assessor: {name}")
+                else:
+                    logger.warning(f"Assessor {name} not available (missing API key?)")
+            except Exception as e:
+                logger.error(f"Failed to initialize assessor {name}: {e}")
 
     async def execute_comprehensive_assessment(
         self,
@@ -126,6 +144,7 @@ class AssessmentCoordinator:
                 AssessmentType.PAGESPEED,
                 AssessmentType.TECH_STACK,
                 AssessmentType.AI_INSIGHTS,
+                AssessmentType.BUSINESS_INFO,
             ]
 
         # Create assessment session
@@ -347,8 +366,39 @@ class AssessmentCoordinator:
         url = request.url
 
         if assessment_type == AssessmentType.PAGESPEED:
-            return await self.pagespeed_assessor.assess_website(
-                business_id=business_id, url=url, session_id=session_id
+            # Use the new assessor interface
+            try:
+                result = await self.pagespeed_assessor.assess(
+                    url=url, 
+                    business_data=business_data or {"business_id": business_id}
+                )
+            except Exception as e:
+                # Log the actual error for debugging
+                import traceback
+                error_msg = f"PageSpeed assessment error: {e}"
+                tb = traceback.format_exc()
+                print(error_msg)
+                print(f"Traceback:\n{tb}")
+                # Also log to the logger
+                if hasattr(self, 'logger'):
+                    self.logger.error(f"{error_msg}\n{tb}")
+                raise
+            
+            # Convert BaseAssessor result to AssessmentResult
+            return AssessmentResult(
+                id=str(uuid.uuid4()),
+                business_id=business_id,
+                session_id=session_id,
+                assessment_type=AssessmentType.PAGESPEED,
+                status=AssessmentStatus.COMPLETED if result.status == "completed" else AssessmentStatus.FAILED,
+                url=url,
+                domain=self._extract_domain(url),
+                started_at=datetime.utcnow(),
+                completed_at=datetime.utcnow(),
+                pagespeed_data=result.data.get("pagespeed_json", {}),
+                performance_score=result.metrics.get("performance_score"),
+                error_message=result.error_message,
+                total_cost_usd=Decimal(str(result.cost))
             )
 
         elif assessment_type == AssessmentType.TECH_STACK:
@@ -414,6 +464,37 @@ class AssessmentCoordinator:
             base_assessment.total_cost_usd = insights.total_cost_usd
 
             return base_assessment
+            
+        elif assessment_type == AssessmentType.BUSINESS_INFO:
+            # Use GBP assessor from registry
+            if "gbp_profile" in self.assessors:
+                try:
+                    gbp_result = await self.assessors["gbp_profile"].assess(
+                        url=url,
+                        business_data=business_data or {"business_id": business_id}
+                    )
+                    
+                    # Convert BaseAssessor result to AssessmentResult
+                    return AssessmentResult(
+                        id=str(uuid.uuid4()),
+                        business_id=business_id,
+                        session_id=session_id,
+                        assessment_type=AssessmentType.BUSINESS_INFO,
+                        status=AssessmentStatus.COMPLETED if gbp_result.status == "completed" else AssessmentStatus.FAILED,
+                        url=url,
+                        domain=self._extract_domain(url),
+                        started_at=datetime.utcnow(),
+                        completed_at=datetime.utcnow(),
+                        # Store GBP data in the appropriate field
+                        assessment_metadata=gbp_result.data,
+                        error_message=gbp_result.error_message,
+                        total_cost_usd=Decimal(str(gbp_result.cost))
+                    )
+                except Exception as e:
+                    logger.error(f"GBP assessment failed: {e}")
+                    raise
+            else:
+                raise CoordinatorError("GBP assessor not available")
 
         else:
             raise CoordinatorError(f"Unsupported assessment type: {assessment_type}")
@@ -464,6 +545,7 @@ class AssessmentCoordinator:
             AssessmentType.PAGESPEED: AssessmentPriority.HIGH,
             AssessmentType.TECH_STACK: AssessmentPriority.MEDIUM,
             AssessmentType.AI_INSIGHTS: AssessmentPriority.MEDIUM,
+            AssessmentType.BUSINESS_INFO: AssessmentPriority.HIGH,
             AssessmentType.FULL_AUDIT: AssessmentPriority.HIGH,
         }
         return priority_map.get(assessment_type, AssessmentPriority.MEDIUM)
@@ -474,6 +556,7 @@ class AssessmentCoordinator:
             AssessmentType.PAGESPEED: 180,  # 3 minutes
             AssessmentType.TECH_STACK: 120,  # 2 minutes
             AssessmentType.AI_INSIGHTS: 300,  # 5 minutes
+            AssessmentType.BUSINESS_INFO: 30,  # 30 seconds for GBP
             AssessmentType.FULL_AUDIT: 600,  # 10 minutes
         }
         return timeout_map.get(assessment_type, 300)

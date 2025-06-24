@@ -219,7 +219,10 @@ class PageSpeedClient(BaseAPIClient):
                 results[url] = result
 
             except Exception as e:
-                self.logger.error(f"Failed to analyze URL {url}: {e}")
+                if hasattr(self, 'logger'):
+                    self.logger.error(f"Failed to analyze URL {url}: {e}")
+                else:
+                    print(f"WARNING: No logger available. Failed to analyze URL {url}: {e}")
                 results[url] = {"error": str(e), "url": url}
 
         return {

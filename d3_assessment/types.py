@@ -26,6 +26,7 @@ class AssessmentType(Enum):
     PAGESPEED = "pagespeed"
     TECH_STACK = "tech_stack"
     AI_INSIGHTS = "ai_insights"
+    BUSINESS_INFO = "business_info"  # For GBP assessor
     FULL_AUDIT = "full_audit"
     QUICK_SCAN = "quick_scan"
     CUSTOM = "custom"

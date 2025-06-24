@@ -128,6 +128,7 @@ async def trigger_assessment(
                     assessment_types=assessment_types,
                     industry=request.industry,
                     session_config=request.session_config,
+                    business_data=request.business_data,
                 )
                 result.session_id = session_id  # Ensure session ID matches
                 await store_assessment_result(session_id, result)

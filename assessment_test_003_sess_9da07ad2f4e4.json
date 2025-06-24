@@ -1,0 +1,65 @@
+{
+  "session_id": "sess_9da07ad2f4e4",
+  "business": {
+    "business_id": "test_003",
+    "business_name": "Elite Fitness Center",
+    "url": "https://www.elitefitnesscenter.com",
+    "vertical": "professional_services",
+    "location": "Los Angeles, CA"
+  },
+  "results": {
+    "session_id": "sess_9da07ad2f4e4",
+    "business_id": "test_003",
+    "url": "https://www.elitefitnesscenter.com/",
+    "domain": "elitefitnesscenter.com",
+    "industry": "unknown",
+    "status": "completed",
+    "total_assessments": 3,
+    "completed_assessments": 3,
+    "failed_assessments": 0,
+    "pagespeed_results": {
+      "performance_score": 100,
+      "accessibility_score": 76,
+      "seo_score": 100,
+      "best_practices_score": 93,
+      "largest_contentful_paint": 1506,
+      "first_input_delay": 20,
+      "cumulative_layout_shift": 0.0,
+      "speed_index": 1749,
+      "time_to_interactive": 1506
+    },
+    "tech_stack_results": [
+      {
+        "technology_name": "Amazon Web Services",
+        "category": "hosting",
+        "confidence": 0.9,
+        "version": null
+      },
+      {
+        "technology_name": "Angular",
+        "category": "frontend",
+        "confidence": 0.85,
+        "version": null
+      },
+      {
+        "technology_name": "Google Analytics",
+        "category": "analytics",
+        "confidence": 0.8,
+        "version": null
+      }
+    ],
+    "ai_insights_results": {
+      "recommendations": [],
+      "industry_insights": {},
+      "summary": {},
+      "ai_model_version": "mock-model-v1",
+      "processing_cost_usd": "0.0"
+    },
+    "started_at": "2025-06-24T20:03:57.806846",
+    "completed_at": "2025-06-24T20:03:58.050946",
+    "execution_time_ms": 244,
+    "total_cost_usd": "0",
+    "errors": null
+  },
+  "generated_at": "2025-06-24T20:03:58.074676"
+}

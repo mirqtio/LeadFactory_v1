@@ -39,6 +39,9 @@ class TriggerAssessmentRequest(BaseModel):
     session_config: Optional[Dict[str, Any]] = Field(
         default=None, description="Additional configuration for the assessment session"
     )
+    business_data: Optional[Dict[str, Any]] = Field(
+        default=None, description="Business information for enhanced assessments (e.g., GBP)"
+    )
     callback_url: Optional[HttpUrl] = Field(
         default=None, description="URL to POST results when assessment completes"
     )

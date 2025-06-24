@@ -25,6 +25,7 @@ class PageSpeedAssessor(BaseAssessor):
         super().__init__()
         self.timeout = 30  # 30 seconds per device
         self._client = None
+        self.logger = logger  # Add logger attribute
 
     @property
     def assessment_type(self) -> AssessmentType:
@@ -47,6 +48,7 @@ class PageSpeedAssessor(BaseAssessor):
         Returns:
             AssessmentResult with PageSpeed data
         """
+        logger.info(f"PageSpeedAssessor.assess called for URL: {url}")
         try:
             client = await self._get_client()
 

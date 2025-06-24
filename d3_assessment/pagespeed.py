@@ -23,7 +23,7 @@ from .models import AssessmentCost, AssessmentResult, PageSpeedAssessment
 from .types import AssessmentStatus, AssessmentType, CostType
 
 
-class PageSpeedAssessor:
+class PageSpeedAssessorLegacy:
     """
     PageSpeed assessment service with mobile-first approach
 
@@ -552,7 +552,7 @@ class PageSpeedBatchAssessor:
             api_key: Google PageSpeed API key
             max_concurrent: Maximum concurrent assessments
         """
-        self.assessor = PageSpeedAssessor(api_key=api_key)
+        self.assessor = PageSpeedAssessorLegacy(api_key=api_key)
         self.max_concurrent = max_concurrent
 
     async def assess_multiple_websites(

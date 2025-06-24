@@ -179,6 +179,7 @@ class Settings(BaseSettings):
         keys = {
             "yelp": self.yelp_api_key,
             "google": self.google_api_key,
+            "pagespeed": self.google_api_key,  # PageSpeed uses Google API key
             "stripe": self.stripe_secret_key,
             "sendgrid": self.sendgrid_api_key,
             "openai": self.openai_api_key,

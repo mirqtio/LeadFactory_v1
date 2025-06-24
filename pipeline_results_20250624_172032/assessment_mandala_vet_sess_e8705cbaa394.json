@@ -1,0 +1,89 @@
+{
+  "session_id": "sess_e8705cbaa394",
+  "business": {
+    "business_id": "mandala_vet",
+    "business_name": "Mandala Veterinary",
+    "url": "https://mandalaveterinary.com/",
+    "vertical": "healthcare",
+    "location": "Unknown"
+  },
+  "results": {
+    "session_id": "sess_e8705cbaa394",
+    "business_id": "mandala_vet",
+    "url": "https://mandalaveterinary.com/",
+    "domain": "mandalaveterinary.com",
+    "industry": "unknown",
+    "status": "completed",
+    "total_assessments": 3,
+    "completed_assessments": 3,
+    "failed_assessments": 0,
+    "pagespeed_results": {
+      "performance_score": 85,
+      "accessibility_score": 96,
+      "seo_score": 85,
+      "best_practices_score": 100,
+      "largest_contentful_paint": 3601,
+      "first_input_delay": 24,
+      "cumulative_layout_shift": 0.033749789433382874,
+      "speed_index": 3501,
+      "time_to_interactive": 3610
+    },
+    "tech_stack_results": [
+      {
+        "technology_name": "Woocommerce",
+        "category": "ecommerce",
+        "confidence": 0.9,
+        "version": "6.5"
+      },
+      {
+        "technology_name": "Wordpress",
+        "category": "cms",
+        "confidence": 0.8875,
+        "version": "6.5.5"
+      },
+      {
+        "technology_name": "Bootstrap",
+        "category": "frontend",
+        "confidence": 0.8500000000000001,
+        "version": "6.5"
+      },
+      {
+        "technology_name": "Angular",
+        "category": "frontend",
+        "confidence": 0.85,
+        "version": "6.5"
+      },
+      {
+        "technology_name": "Jquery",
+        "category": "frontend",
+        "confidence": 0.85,
+        "version": "6.5"
+      },
+      {
+        "technology_name": "Google Analytics",
+        "category": "analytics",
+        "confidence": 0.8,
+        "version": "6.5"
+      },
+      {
+        "technology_name": "Vue",
+        "category": "frontend",
+        "confidence": 0.7,
+        "version": "6.5"
+      }
+    ],
+    "ai_insights_results": {
+      "recommendations": [],
+      "industry_insights": {},
+      "summary": {},
+      "ai_model_version": "mock-model-v1",
+      "processing_cost_usd": "0.0"
+    },
+    "started_at": "2025-06-24T21:22:15.080498",
+    "completed_at": "2025-06-24T21:22:46.576805",
+    "execution_time_ms": 31496,
+    "total_cost_usd": "0",
+    "errors": null
+  },
+  "generated_at": "2025-06-24T21:22:46.600857"
+}
