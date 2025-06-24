@@ -25,10 +25,16 @@ try:
 except ImportError:
     # For testing when d0_gateway may not be available
     OpenAIClient = None
-from .models import (ContentStrategy, EmailContent, EmailContentType,
-                     EmailGenerationLog, EmailTemplate,
-                     PersonalizationStrategy, SpamScoreTracking,
-                     determine_risk_level)
+from .models import (
+    ContentStrategy,
+    EmailContent,
+    EmailContentType,
+    EmailGenerationLog,
+    EmailTemplate,
+    PersonalizationStrategy,
+    SpamScoreTracking,
+    determine_risk_level,
+)
 from .subject_lines import SubjectLineGenerator, SubjectLineRequest
 
 

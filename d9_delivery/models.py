@@ -16,8 +16,19 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Float, ForeignKey,
-                        Index, Integer, String, Text, UniqueConstraint)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from database.base import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

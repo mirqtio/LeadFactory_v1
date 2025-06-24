@@ -27,11 +27,17 @@ from core.logging import get_logger
 from d0_gateway.facade import get_gateway_facade
 from database.session import SessionLocal
 
-from .exceptions import (BatchQuotaException, ErrorRecoveryException,
-                         NetworkException, PaginationException,
-                         YelpAPIException, YelpAuthenticationException,
-                         YelpBusinessNotFoundException,
-                         YelpQuotaExceededException, YelpRateLimitException)
+from .exceptions import (
+    BatchQuotaException,
+    ErrorRecoveryException,
+    NetworkException,
+    PaginationException,
+    YelpAPIException,
+    YelpAuthenticationException,
+    YelpBusinessNotFoundException,
+    YelpQuotaExceededException,
+    YelpRateLimitException,
+)
 from .models import SourcedLocation, YelpMetadata
 
 

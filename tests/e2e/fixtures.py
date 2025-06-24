@@ -26,14 +26,30 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Import orchestration models
-from d11_orchestration.models import (Experiment, ExperimentStatus,
-                                      ExperimentVariant, PipelineRun,
-                                      PipelineRunStatus, PipelineType,
-                                      VariantAssignment, VariantType)
+from d11_orchestration.models import (
+    Experiment,
+    ExperimentStatus,
+    ExperimentVariant,
+    PipelineRun,
+    PipelineRunStatus,
+    PipelineType,
+    VariantAssignment,
+    VariantType,
+)
+
 # Import models from the database models file
-from database.models import (Batch, Business, Email, EmailClick,
-                             EmailSuppression, GatewayUsage, Purchase,
-                             ScoringResult, Target, WebhookEvent)
+from database.models import (
+    Batch,
+    Business,
+    Email,
+    EmailClick,
+    EmailSuppression,
+    GatewayUsage,
+    Purchase,
+    ScoringResult,
+    Target,
+    WebhookEvent,
+)
 
 fake = Faker()
 

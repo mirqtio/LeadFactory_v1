@@ -35,15 +35,25 @@ if "/app" not in sys.path:
 
 # Add current working directory as fallback
 import os
+
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
-from d3_assessment.models import (AssessmentResult, AssessmentStatus,
-                                  AssessmentType)
+from d3_assessment.models import AssessmentResult, AssessmentStatus, AssessmentType
 from d6_reports.models import ReportGeneration, ReportStatus, ReportType
 from d11_orchestration.models import PipelineRun, PipelineRunStatus
-from database.models import (Batch, BatchStatus, Business, Email, EmailStatus,
-                             GeoType, Purchase, PurchaseStatus, Target)
+from database.models import (
+    Batch,
+    BatchStatus,
+    Business,
+    Email,
+    EmailStatus,
+    GeoType,
+    Purchase,
+    PurchaseStatus,
+    Target,
+)
+
 # Import test fixtures and models
 from tests.e2e.fixtures import *
 

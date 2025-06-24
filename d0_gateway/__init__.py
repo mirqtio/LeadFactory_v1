@@ -8,18 +8,40 @@ No other domain makes direct external calls - everything goes through this gatew
 from .base import BaseAPIClient
 from .cache import ResponseCache
 from .circuit_breaker import CircuitBreaker
-from .exceptions import (APIProviderError, AuthenticationError,
-                         CircuitBreakerOpenError, ConfigurationError,
-                         GatewayError, InvalidResponseError,
-                         QuotaExceededError, RateLimitExceededError,
-                         ServiceUnavailableError, TimeoutError)
+from .exceptions import (
+    APIProviderError,
+    AuthenticationError,
+    CircuitBreakerOpenError,
+    ConfigurationError,
+    GatewayError,
+    InvalidResponseError,
+    QuotaExceededError,
+    RateLimitExceededError,
+    ServiceUnavailableError,
+    TimeoutError,
+)
 from .metrics import GatewayMetrics
 from .rate_limiter import RateLimiter
-from .types import (APICredentials, APIProvider, APIQuota, APIRequest,
-                    APIResponse, BulkRequest, BulkResponse, CacheConfig,
-                    CacheStrategy, CircuitBreakerConfig, CircuitBreakerState,
-                    PriorityRequest, ProviderStatus, RateLimitConfig,
-                    RateLimitType, RequestPriority, TokenBucket, UsageMetrics)
+from .types import (
+    APICredentials,
+    APIProvider,
+    APIQuota,
+    APIRequest,
+    APIResponse,
+    BulkRequest,
+    BulkResponse,
+    CacheConfig,
+    CacheStrategy,
+    CircuitBreakerConfig,
+    CircuitBreakerState,
+    PriorityRequest,
+    ProviderStatus,
+    RateLimitConfig,
+    RateLimitType,
+    RequestPriority,
+    TokenBucket,
+    UsageMetrics,
+)
 
 __all__ = [
     "BaseAPIClient",

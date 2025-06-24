@@ -20,9 +20,14 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from d10_analytics.api import get_warehouse, router
-from d10_analytics.schemas import (CohortAnalysisRequest, DateRangeFilter,
-                                   ExportRequest, FunnelMetricsRequest,
-                                   MetricsRequest, SegmentFilter)
+from d10_analytics.schemas import (
+    CohortAnalysisRequest,
+    DateRangeFilter,
+    ExportRequest,
+    FunnelMetricsRequest,
+    MetricsRequest,
+    SegmentFilter,
+)
 
 # Removed enum imports to avoid circular imports - using string literals instead
 

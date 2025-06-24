@@ -19,11 +19,19 @@ from unittest.mock import Mock, patch
 import pytest
 
 from core.exceptions import ValidationError
-from d11_orchestration.experiments import (ExperimentConfig, ExperimentManager,
-                                           VariantConfig)
-from d11_orchestration.models import (Experiment, ExperimentStatus,
-                                      ExperimentVariant, VariantAssignment,
-                                      VariantType, generate_uuid)
+from d11_orchestration.experiments import (
+    ExperimentConfig,
+    ExperimentManager,
+    VariantConfig,
+)
+from d11_orchestration.models import (
+    Experiment,
+    ExperimentStatus,
+    ExperimentVariant,
+    VariantAssignment,
+    VariantType,
+    generate_uuid,
+)
 from d11_orchestration.variant_assigner import VariantAssigner, VariantWeight
 
 

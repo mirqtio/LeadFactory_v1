@@ -18,7 +18,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from jinja2 import BaseLoader, Environment, Template, TemplateError, StrictUndefined, Undefined
+from jinja2 import (
+    BaseLoader,
+    Environment,
+    Template,
+    TemplateError,
+    StrictUndefined,
+    Undefined,
+)
 from jinja2.sandbox import SandboxedEnvironment
 
 logger = logging.getLogger(__name__)

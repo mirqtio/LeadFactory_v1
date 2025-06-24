@@ -14,8 +14,14 @@ from .geo_validator import GeoConflict, GeoValidator
 from .models import Campaign, GeographicBoundary, TargetUniverse
 from .quota_tracker import QuotaTracker
 from .target_universe import TargetUniverseManager
-from .types import (BatchSchedule, CampaignStatus, GeographyLevel,
-                    TargetingCriteria, TargetMetrics, VerticalMarket)
+from .types import (
+    BatchSchedule,
+    CampaignStatus,
+    GeographyLevel,
+    TargetingCriteria,
+    TargetMetrics,
+    VerticalMarket,
+)
 
 __all__ = [
     # Models

@@ -20,10 +20,17 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy import and_, case, func, or_, text
 from sqlalchemy.orm import Session
 
-from d10_analytics.models import (AggregationPeriod, EventType,
-                                  FunnelConversion, FunnelEvent, FunnelStage,
-                                  MetricSnapshot, MetricType, TimeSeriesData,
-                                  generate_uuid)
+from d10_analytics.models import (
+    AggregationPeriod,
+    EventType,
+    FunnelConversion,
+    FunnelEvent,
+    FunnelStage,
+    MetricSnapshot,
+    MetricType,
+    TimeSeriesData,
+    generate_uuid,
+)
 
 logger = logging.getLogger(__name__)
 

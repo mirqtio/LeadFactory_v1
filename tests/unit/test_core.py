@@ -9,15 +9,32 @@ from decimal import Decimal
 import pytest
 
 from core.config import Settings, get_settings
-from core.exceptions import (ConfigurationError, ExternalAPIError,
-                             LeadFactoryError, NotFoundError, RateLimitError,
-                             ValidationError)
+from core.exceptions import (
+    ConfigurationError,
+    ExternalAPIError,
+    LeadFactoryError,
+    NotFoundError,
+    RateLimitError,
+    ValidationError,
+)
 from core.logging import get_logger, setup_logging
-from core.utils import (calculate_percentage, chunk_list, clean_url,
-                        deep_merge, extract_domain, format_currency,
-                        generate_slug, generate_token, get_date_range,
-                        hash_email, mask_sensitive_data, normalize_phone,
-                        parse_currency, safe_divide, truncate_text)
+from core.utils import (
+    calculate_percentage,
+    chunk_list,
+    clean_url,
+    deep_merge,
+    extract_domain,
+    format_currency,
+    generate_slug,
+    generate_token,
+    get_date_range,
+    hash_email,
+    mask_sensitive_data,
+    normalize_phone,
+    parse_currency,
+    safe_divide,
+    truncate_text,
+)
 
 
 class TestConfig:

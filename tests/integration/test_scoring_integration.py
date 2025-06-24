@@ -20,12 +20,18 @@ sys.path.insert(0, "/app")
 
 from d5_scoring.engine import ConfigurableScoringEngine
 from d5_scoring.models import ScoreBreakdown, ScoringEngine, D5ScoringResult
-from d5_scoring.tiers import (LeadTier, TierAssignmentEngine, assign_lead_tier,
-                              create_standard_configuration)
+from d5_scoring.tiers import (
+    LeadTier,
+    TierAssignmentEngine,
+    assign_lead_tier,
+    create_standard_configuration,
+)
 from d5_scoring.types import ScoreComponent, ScoringTier, ScoringVersion
-from d5_scoring.vertical_overrides import (VerticalScoringEngine,
-                                           create_medical_scoring_engine,
-                                           create_restaurant_scoring_engine)
+from d5_scoring.vertical_overrides import (
+    VerticalScoringEngine,
+    create_medical_scoring_engine,
+    create_restaurant_scoring_engine,
+)
 
 
 class TestTask049AcceptanceCriteria(unittest.TestCase):
@@ -170,7 +176,9 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
             "Restaurant engine should return D5ScoringResult",
         )
         self.assertIsInstance(
-            medical_result, ScoringResult, "Medical engine should return D5ScoringResult"
+            medical_result,
+            ScoringResult,
+            "Medical engine should return D5ScoringResult",
         )
 
         # Test 4: Tier assignment integration

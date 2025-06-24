@@ -22,8 +22,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Import models and services
-from database.models import (Business, Email, EmailClick, EmailStatus,
-                             EmailSuppression, Purchase, PurchaseStatus)
+from database.models import (
+    Business,
+    Email,
+    EmailClick,
+    EmailStatus,
+    EmailSuppression,
+    Purchase,
+    PurchaseStatus,
+)
 
 
 @pytest.mark.security

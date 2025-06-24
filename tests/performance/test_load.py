@@ -23,12 +23,22 @@ import psutil
 import pytest
 
 from d6_reports.models import ReportGeneration, ReportStatus, ReportType
-from d11_orchestration.models import (PipelineRun, PipelineRunStatus,
-                                      PipelineType)
+from d11_orchestration.models import PipelineRun, PipelineRunStatus, PipelineType
+
 # Import models and services
-from database.models import (Batch, BatchStatus, Business, Email, EmailStatus,
-                             GatewayUsage, GeoType, Purchase, PurchaseStatus,
-                             ScoringResult, Target)
+from database.models import (
+    Batch,
+    BatchStatus,
+    Business,
+    Email,
+    EmailStatus,
+    GatewayUsage,
+    GeoType,
+    Purchase,
+    PurchaseStatus,
+    ScoringResult,
+    Target,
+)
 
 
 class PerformanceMonitor:

@@ -24,9 +24,14 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from d10_analytics.api import MetricsWarehouse, router
-from d10_analytics.schemas import (CohortAnalysisRequest, DateRangeFilter,
-                                   ExportRequest, FunnelMetricsRequest,
-                                   MetricsRequest, SegmentFilter)
+from d10_analytics.schemas import (
+    CohortAnalysisRequest,
+    DateRangeFilter,
+    ExportRequest,
+    FunnelMetricsRequest,
+    MetricsRequest,
+    SegmentFilter,
+)
 
 
 class TestAnalyticsIntegration:

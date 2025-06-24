@@ -15,13 +15,16 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from d4_enrichment.coordinator import (BatchEnrichmentResult,
-                                       EnrichmentCoordinator,
-                                       EnrichmentPriority, EnrichmentProgress,
-                                       enrich_business, enrich_businesses)
+from d4_enrichment.coordinator import (
+    BatchEnrichmentResult,
+    EnrichmentCoordinator,
+    EnrichmentPriority,
+    EnrichmentProgress,
+    enrich_business,
+    enrich_businesses,
+)
 from d4_enrichment.gbp_enricher import GBPEnricher
-from d4_enrichment.models import (EnrichmentResult, EnrichmentSource,
-                                  MatchConfidence)
+from d4_enrichment.models import EnrichmentResult, EnrichmentSource, MatchConfidence
 
 sys.path.insert(0, "/app")
 
@@ -183,14 +186,18 @@ class TestTask043AcceptanceCriteria:
 
         async def run_test():
             # Add a delay to the enricher to make progress tracking testable
-            original_enrich = coordinator.enrichers[EnrichmentSource.INTERNAL].enrich_business
-            
+            original_enrich = coordinator.enrichers[
+                EnrichmentSource.INTERNAL
+            ].enrich_business
+
             async def slow_enrich_business(*args, **kwargs):
                 await asyncio.sleep(0.2)  # Add delay to allow progress tracking
                 return await original_enrich(*args, **kwargs)
-            
-            coordinator.enrichers[EnrichmentSource.INTERNAL].enrich_business = slow_enrich_business
-            
+
+            coordinator.enrichers[
+                EnrichmentSource.INTERNAL
+            ].enrich_business = slow_enrich_business
+
             # Start batch enrichment (don't await yet)
             task = asyncio.create_task(
                 coordinator.enrich_businesses_batch(

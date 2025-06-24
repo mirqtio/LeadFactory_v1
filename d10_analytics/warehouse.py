@@ -45,13 +45,23 @@ def get_db_session():
     return session_context()
 
 
-from d10_analytics.aggregators import (CostAnalyzer, DailyMetricsAggregator,
-                                       FunnelCalculator,
-                                       SegmentBreakdownAnalyzer)
-from d10_analytics.models import (AggregationPeriod, EventType,
-                                  FunnelConversion, FunnelEvent, FunnelStage,
-                                  MetricSnapshot, MetricType, TimeSeriesData,
-                                  generate_uuid)
+from d10_analytics.aggregators import (
+    CostAnalyzer,
+    DailyMetricsAggregator,
+    FunnelCalculator,
+    SegmentBreakdownAnalyzer,
+)
+from d10_analytics.models import (
+    AggregationPeriod,
+    EventType,
+    FunnelConversion,
+    FunnelEvent,
+    FunnelStage,
+    MetricSnapshot,
+    MetricType,
+    TimeSeriesData,
+    generate_uuid,
+)
 
 logger = logging.getLogger(__name__)
 

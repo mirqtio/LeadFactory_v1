@@ -4,15 +4,30 @@ Database models for targeting domain
 import uuid
 from datetime import datetime
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Float, ForeignKey,
-                        Index, Integer, String, Text, UniqueConstraint)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from database.base import Base
 from database.models import Target
 
-from .types import (CampaignStatus, GeographyLevel, TargetQualificationStatus,
-                    VerticalMarket)
+from .types import (
+    CampaignStatus,
+    GeographyLevel,
+    TargetQualificationStatus,
+    VerticalMarket,
+)
 
 
 class TargetUniverse(Base):

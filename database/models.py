@@ -8,11 +8,27 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
-                        Column, Date, DateTime)
+from sqlalchemy import (
+    DECIMAL,
+    JSON,
+    TIMESTAMP,
+    Boolean,
+    CheckConstraint,
+    Column,
+    Date,
+    DateTime,
+)
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import (Float, ForeignKey, Index, Integer, Numeric, String, Text,
-                        UniqueConstraint)
+from sqlalchemy import (
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import INET, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -103,10 +119,14 @@ class Target(Base):
     priority_score = Column(DECIMAL(3, 2), default=0.5)
     is_active = Column(Boolean, default=True)
     created_at = Column(TIMESTAMP, server_default=func.now())
-    
+
     # Bucket columns for targeting intelligence (Phase 0.5)
-    geo_bucket = Column(String(80), nullable=True, index=True)  # {affluence}-{density}-{broadband}
-    vert_bucket = Column(String(80), nullable=True, index=True)  # {urgency}-{ticket}-{maturity}
+    geo_bucket = Column(
+        String(80), nullable=True, index=True
+    )  # {affluence}-{density}-{broadband}
+    vert_bucket = Column(
+        String(80), nullable=True, index=True
+    )  # {urgency}-{ticket}-{maturity}
 
     # Relationships
     batches = relationship("Batch", back_populates="target")
@@ -161,15 +181,19 @@ class Business(Base):
     # Business info
     vertical = Column(String(50))
     categories = Column(JSON)
-    
+
     # Bucket columns for targeting intelligence (Phase 0.5)
-    geo_bucket = Column(String(80), nullable=True, index=True)  # {affluence}-{density}-{broadband}
-    vert_bucket = Column(String(80), nullable=True, index=True)  # {urgency}-{ticket}-{maturity}
+    geo_bucket = Column(
+        String(80), nullable=True, index=True
+    )  # {affluence}-{density}-{broadband}
+    vert_bucket = Column(
+        String(80), nullable=True, index=True
+    )  # {urgency}-{ticket}-{maturity}
 
     # PRD v1.2 additions
     domain_hash = Column(Text, nullable=True, index=True)
     phone_hash = Column(Text, nullable=True)
-    
+
     # Enrichment data
     place_id = Column(String(100))  # Google Place ID
     rating = Column(DECIMAL(2, 1))
@@ -350,23 +374,30 @@ except ImportError:
 # Phase 0.5: Cost Tracking Models
 class APICost(Base):
     """Track costs for all external API calls"""
+
     __tablename__ = "fct_api_cost"
-    
+
     id = Column(Integer, primary_key=True)
     provider = Column(String(50), nullable=False)  # dataaxle, hunter, openai, etc.
     operation = Column(String(100), nullable=False)  # match_business, find_email, etc.
-    lead_id = Column(Integer, nullable=True)  # ForeignKey("dim_lead.id", ondelete="CASCADE") when lead table exists
-    campaign_id = Column(Integer, nullable=True)  # ForeignKey("dim_campaign.id", ondelete="CASCADE") when campaign table exists
+    lead_id = Column(
+        Integer, nullable=True
+    )  # ForeignKey("dim_lead.id", ondelete="CASCADE") when lead table exists
+    campaign_id = Column(
+        Integer, nullable=True
+    )  # ForeignKey("dim_campaign.id", ondelete="CASCADE") when campaign table exists
     cost_usd = Column(Numeric(10, 4), nullable=False)
-    timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    timestamp = Column(
+        TIMESTAMP(timezone=True), server_default=func.now(), nullable=False
+    )
     request_id = Column(String(100))  # For correlation with provider logs
     meta_data = Column(JSON)  # Additional context (e.g., match confidence)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    
+
     # Relationships (commented out until Lead and Campaign models exist)
     # lead = relationship("Lead", backref="api_costs")
     # campaign = relationship("Campaign", backref="api_costs")
-    
+
     __table_args__ = (
         Index("idx_api_cost_provider", "provider"),
         Index("idx_api_cost_timestamp", "timestamp"),
@@ -378,21 +409,33 @@ class APICost(Base):
 
 class DailyCostAggregate(Base):
     """Pre-aggregated daily costs for faster reporting"""
+
     __tablename__ = "agg_daily_cost"
-    
+
     id = Column(Integer, primary_key=True)
     date = Column(Date, nullable=False)
     provider = Column(String(50), nullable=False)
     operation = Column(String(100))
-    campaign_id = Column(Integer, nullable=True)  # ForeignKey("dim_campaign.id", ondelete="CASCADE") when campaign table exists
+    campaign_id = Column(
+        Integer, nullable=True
+    )  # ForeignKey("dim_campaign.id", ondelete="CASCADE") when campaign table exists
     total_cost_usd = Column(Numeric(10, 4), nullable=False)
     request_count = Column(Integer, nullable=False, default=0)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
-    
+    updated_at = Column(
+        TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
     # Relationships (commented out until Campaign model exists)
     # campaign = relationship("Campaign", backref="daily_costs")
-    
+
     __table_args__ = (
-        Index("idx_daily_cost_unique", "date", "provider", "operation", "campaign_id", unique=True),
+        Index(
+            "idx_daily_cost_unique",
+            "date",
+            "provider",
+            "operation",
+            "campaign_id",
+            unique=True,
+        ),
     )

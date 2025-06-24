@@ -20,8 +20,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from d3_assessment.models import (AssessmentResult, AssessmentStatus,
-                                  AssessmentType)
+from d3_assessment.models import AssessmentResult, AssessmentStatus, AssessmentType
 from database.models import Business
 
 

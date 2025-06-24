@@ -15,22 +15,22 @@ from d3_assessment.assessors.vision_assessor import VisionAssessor
 
 # Assessor registry
 ASSESSOR_REGISTRY: Dict[str, Type[BaseAssessor]] = {
-    'beautifulsoup': BeautifulSoupAssessor,
-    'semrush': SEMrushAssessor,
-    'yelp_fields': YelpSearchFieldsAssessor,
-    'gbp_profile': GBPProfileAssessor,
-    'screenshot': ScreenshotAssessor,
-    'vision': VisionAssessor,
+    "beautifulsoup": BeautifulSoupAssessor,
+    "semrush": SEMrushAssessor,
+    "yelp_fields": YelpSearchFieldsAssessor,
+    "gbp_profile": GBPProfileAssessor,
+    "screenshot": ScreenshotAssessor,
+    "vision": VisionAssessor,
 }
 
 # Export all assessors
 __all__ = [
-    'BaseAssessor',
-    'BeautifulSoupAssessor',
-    'SEMrushAssessor', 
-    'YelpSearchFieldsAssessor',
-    'GBPProfileAssessor',
-    'ScreenshotAssessor',
-    'VisionAssessor',
-    'ASSESSOR_REGISTRY',
+    "BaseAssessor",
+    "BeautifulSoupAssessor",
+    "SEMrushAssessor",
+    "YelpSearchFieldsAssessor",
+    "GBPProfileAssessor",
+    "ScreenshotAssessor",
+    "VisionAssessor",
+    "ASSESSOR_REGISTRY",
 ]

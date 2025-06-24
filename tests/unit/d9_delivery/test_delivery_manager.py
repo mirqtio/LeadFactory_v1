@@ -19,17 +19,29 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from core.exceptions import EmailDeliveryError, ValidationError
-from d9_delivery.compliance import (ComplianceHeaders, ComplianceManager,
-                                    UnsubscribeToken, check_email_suppression,
-                                    generate_unsubscribe_link,
-                                    process_unsubscribe_request)
-from d9_delivery.delivery_manager import (DeliveryManager, DeliveryRequest,
-                                          DeliveryResult,
-                                          create_delivery_request,
-                                          send_audit_email)
+from d9_delivery.compliance import (
+    ComplianceHeaders,
+    ComplianceManager,
+    UnsubscribeToken,
+    check_email_suppression,
+    generate_unsubscribe_link,
+    process_unsubscribe_request,
+)
+from d9_delivery.delivery_manager import (
+    DeliveryManager,
+    DeliveryRequest,
+    DeliveryResult,
+    create_delivery_request,
+    send_audit_email,
+)
 from d9_delivery.email_builder import PersonalizationData
-from d9_delivery.models import (DeliveryEvent, DeliveryStatus, EmailDelivery,
-                                EventType, SuppressionList)
+from d9_delivery.models import (
+    DeliveryEvent,
+    DeliveryStatus,
+    EmailDelivery,
+    EventType,
+    SuppressionList,
+)
 from d9_delivery.sendgrid_client import SendGridResponse
 from database.models import Base
 from database.session import SessionLocal, engine
@@ -318,8 +330,12 @@ class TestDeliveryManager:
         )
 
         # Mock suppression check to return False so we test SendGrid failure path
-        with patch.object(delivery_manager.compliance_manager, 'check_suppression', return_value=False):
-            with patch("d9_delivery.delivery_manager.SendGridClient") as mock_client_class:
+        with patch.object(
+            delivery_manager.compliance_manager, "check_suppression", return_value=False
+        ):
+            with patch(
+                "d9_delivery.delivery_manager.SendGridClient"
+            ) as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client.send_email.return_value = mock_response
                 mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -331,7 +347,9 @@ class TestDeliveryManager:
                 assert result.error_message == "SendGrid API error"
 
                 # Verify failed delivery was recorded
-                delivery_status = delivery_manager.get_delivery_status(result.delivery_id)
+                delivery_status = delivery_manager.get_delivery_status(
+                    result.delivery_id
+                )
                 assert delivery_status is not None
                 assert delivery_status["status"] == DeliveryStatus.FAILED.value
                 assert delivery_status["error_message"] == "SendGrid API error"

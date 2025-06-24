@@ -19,10 +19,15 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from d3_assessment.formatter import (AssessmentFormatter, FormattedIssue,
-                                     FormattedReport, IssuePriority,
-                                     ReportFormat, format_assessment_report,
-                                     get_issue_summary)
+from d3_assessment.formatter import (
+    AssessmentFormatter,
+    FormattedIssue,
+    FormattedReport,
+    IssuePriority,
+    ReportFormat,
+    format_assessment_report,
+    get_issue_summary,
+)
 from d3_assessment.models import AssessmentResult
 from d3_assessment.types import AssessmentStatus, IssueSeverity, IssueType
 

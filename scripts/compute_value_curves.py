@@ -75,7 +75,8 @@ USER_AGENT = "Anthrasite-ETL/1.0 (+https://anthrasite.ai)"
 
 # --- Helpers ---------------------------------------------------------------
 
-def _attempt_download(url: str, dest: Path, chunk: int = 2 ** 20) -> bool:
+
+def _attempt_download(url: str, dest: Path, chunk: int = 2**20) -> bool:
     """Return True if download succeeded."""
     try:
         resp = requests.get(
@@ -124,11 +125,12 @@ def download_datasets() -> None:
 # --- Digital share defaults -------------------------------------------------
 DIGITAL_SHARE_DEFAULTS = {
     722: 0.15,  # Restaurants
-    44: 0.35,   # Retail (naics2 44-45)
+    44: 0.35,  # Retail (naics2 44-45)
     45: 0.35,
-    81: 0.30,   # Services
-    54: 0.12,   # Professional
+    81: 0.30,  # Services
+    54: 0.12,  # Professional
 }
+
 
 def ensure_digital_share_table() -> pd.DataFrame:
     if DIGITAL_SHARE_PATH.exists():
@@ -146,9 +148,14 @@ def ensure_digital_share_table() -> pd.DataFrame:
 
 # ---------------------------------------------------------------------------
 
+
 def main(argv: List[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Compute value_curves.csv")
-    parser.add_argument("--refresh", action="store_true", help="Force re-compute even if output is fresh")
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Force re-compute even if output is fresh",
+    )
     args = parser.parse_args(argv)
 
     if VALUE_CURVES_PATH.exists() and not args.refresh:
@@ -198,7 +205,9 @@ def main(argv: List[str] | None = None) -> None:
                         "revenue_per_point_usd": round(revenue_per_point, 2),
                         "peer_score_percentile": pd.NA,
                         "review_velocity_gap_usd": pd.NA,
-                        "updated_at": _dt.datetime.utcnow().isoformat(timespec="seconds"),
+                        "updated_at": _dt.datetime.utcnow().isoformat(
+                            timespec="seconds"
+                        ),
                     }
                 )
 

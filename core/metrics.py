@@ -6,9 +6,16 @@ import time
 from functools import wraps
 from typing import Any, Dict, Optional
 
-from prometheus_client import (CONTENT_TYPE_LATEST, CollectorRegistry, Counter,
-                               Gauge, Histogram, Info, Summary,
-                               generate_latest)
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    Info,
+    Summary,
+    generate_latest,
+)
 
 from core.logging import get_logger
 
@@ -232,24 +239,42 @@ class MetricsCollector:
         """Generic method to increment counters by metric name"""
         # Map metric names to specific counter metrics
         if metric_name == "targeting_universes_created":
-            businesses_processed.labels(source="targeting", status="universe_created").inc(amount)
+            businesses_processed.labels(
+                source="targeting", status="universe_created"
+            ).inc(amount)
         elif metric_name == "targeting_universes_updated":
-            businesses_processed.labels(source="targeting", status="universe_updated").inc(amount)
+            businesses_processed.labels(
+                source="targeting", status="universe_updated"
+            ).inc(amount)
         elif metric_name == "targeting_universes_deleted":
-            businesses_processed.labels(source="targeting", status="universe_deleted").inc(amount)
+            businesses_processed.labels(
+                source="targeting", status="universe_deleted"
+            ).inc(amount)
         elif metric_name == "targeting_campaigns_created":
-            businesses_processed.labels(source="targeting", status="campaign_created").inc(amount)
+            businesses_processed.labels(
+                source="targeting", status="campaign_created"
+            ).inc(amount)
         elif metric_name == "targeting_campaigns_updated":
-            businesses_processed.labels(source="targeting", status="campaign_updated").inc(amount)
+            businesses_processed.labels(
+                source="targeting", status="campaign_updated"
+            ).inc(amount)
         elif metric_name == "targeting_batches_created":
-            businesses_processed.labels(source="targeting", status="batch_created").inc(amount)
+            businesses_processed.labels(source="targeting", status="batch_created").inc(
+                amount
+            )
         elif metric_name == "targeting_batches_updated":
-            businesses_processed.labels(source="targeting", status="batch_updated").inc(amount)
+            businesses_processed.labels(source="targeting", status="batch_updated").inc(
+                amount
+            )
         elif metric_name == "targeting_boundaries_created":
-            businesses_processed.labels(source="targeting", status="boundary_created").inc(amount)
+            businesses_processed.labels(
+                source="targeting", status="boundary_created"
+            ).inc(amount)
         else:
             # Default to generic business processing metric
-            businesses_processed.labels(source="generic", status=metric_name).inc(amount)
+            businesses_processed.labels(source="generic", status=metric_name).inc(
+                amount
+            )
 
     async def record_pipeline_event(
         self, pipeline_name: str, event_type: str, run_id: str = None, **kwargs

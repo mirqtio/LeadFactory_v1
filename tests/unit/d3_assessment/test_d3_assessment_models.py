@@ -19,11 +19,21 @@ import pytest
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 
-from d3_assessment.models import (AIInsight, AssessmentCost, AssessmentResult,
-                                  AssessmentSession, PageSpeedAssessment,
-                                  TechStackDetection)
-from d3_assessment.types import (AssessmentStatus, AssessmentType, CostType,
-                                 InsightCategory, TechCategory)
+from d3_assessment.models import (
+    AIInsight,
+    AssessmentCost,
+    AssessmentResult,
+    AssessmentSession,
+    PageSpeedAssessment,
+    TechStackDetection,
+)
+from d3_assessment.types import (
+    AssessmentStatus,
+    AssessmentType,
+    CostType,
+    InsightCategory,
+    TechCategory,
+)
 
 
 class TestTask030AcceptanceCriteria:

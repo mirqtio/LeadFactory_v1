@@ -8,8 +8,13 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from d2_sourcing import (BatchStatus, ScrapingResult, ScrapingStatus,
-                         SourcingCoordinator, YelpScraper)
+from d2_sourcing import (
+    BatchStatus,
+    ScrapingResult,
+    ScrapingStatus,
+    SourcingCoordinator,
+    YelpScraper,
+)
 from d2_sourcing.models import YelpMetadata
 from database.models import Business
 from database.session import SessionLocal

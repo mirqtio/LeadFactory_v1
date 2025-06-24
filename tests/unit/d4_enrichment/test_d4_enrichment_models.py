@@ -20,12 +20,17 @@ sys.path.insert(0, "/app")
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from d4_enrichment.models import (DataVersion, EnrichmentAuditLog,
-                                  EnrichmentRequest, EnrichmentResult,
-                                  EnrichmentSource, EnrichmentStatus,
-                                  MatchConfidence,
-                                  calculate_completeness_score,
-                                  validate_enrichment_data)
+from d4_enrichment.models import (
+    DataVersion,
+    EnrichmentAuditLog,
+    EnrichmentRequest,
+    EnrichmentResult,
+    EnrichmentSource,
+    EnrichmentStatus,
+    MatchConfidence,
+    calculate_completeness_score,
+    validate_enrichment_data,
+)
 from database.models import Base
 
 

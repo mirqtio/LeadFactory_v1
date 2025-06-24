@@ -19,17 +19,29 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from d10_analytics.aggregators import (CostAnalyzer, DailyMetricsAggregator,
-                                       FunnelCalculator,
-                                       SegmentBreakdownAnalyzer)
-from d10_analytics.models import (AggregationPeriod, EventType,
-                                  FunnelConversion, FunnelEvent, FunnelStage,
-                                  MetricSnapshot, MetricType)
-from d10_analytics.warehouse import (MetricsWarehouse, MetricsWarehouseConfig,
-                                     WarehouseJobStatus,
-                                     backfill_recent_metrics,
-                                     build_daily_metrics_for_date,
-                                     get_warehouse_health_check)
+from d10_analytics.aggregators import (
+    CostAnalyzer,
+    DailyMetricsAggregator,
+    FunnelCalculator,
+    SegmentBreakdownAnalyzer,
+)
+from d10_analytics.models import (
+    AggregationPeriod,
+    EventType,
+    FunnelConversion,
+    FunnelEvent,
+    FunnelStage,
+    MetricSnapshot,
+    MetricType,
+)
+from d10_analytics.warehouse import (
+    MetricsWarehouse,
+    MetricsWarehouseConfig,
+    WarehouseJobStatus,
+    backfill_recent_metrics,
+    build_daily_metrics_for_date,
+    get_warehouse_health_check,
+)
 from database.base import Base
 
 

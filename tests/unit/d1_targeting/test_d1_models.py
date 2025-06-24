@@ -6,8 +6,12 @@ from datetime import datetime
 
 import pytest
 
-from d1_targeting.models import (Campaign, CampaignTarget, GeographicBoundary,
-                                 TargetUniverse)
+from d1_targeting.models import (
+    Campaign,
+    CampaignTarget,
+    GeographicBoundary,
+    TargetUniverse,
+)
 from database.models import Business, Target, GeoType
 from d1_targeting.types import CampaignStatus, GeographyLevel, VerticalMarket
 
@@ -51,13 +55,13 @@ class TestBusinessModel:
 class TestTargetModel:
     def test_target_model_complete(self):
         """Test that target model has all required fields"""
-        
+
         target = Target(
             geo_type=GeoType.STATE,
             geo_value="CA",
             vertical=VerticalMarket.RESTAURANTS.value,
             priority_score=0.8,
-            is_active=True
+            is_active=True,
         )
 
         # Verify all attributes are accessible
@@ -69,14 +73,14 @@ class TestTargetModel:
 
     def test_target_uniqueness_constraint(self):
         """Test that target uniqueness constraint works"""
-        
+
         target = Target(
             geo_type=GeoType.CITY,
             geo_value="San Francisco",
             vertical=VerticalMarket.RETAIL.value,
-            priority_score=0.8
+            priority_score=0.8,
         )
-        
+
         assert target.geo_type == GeoType.CITY
         assert target.geo_value == "San Francisco"
         assert target.vertical == VerticalMarket.RETAIL.value
@@ -120,7 +124,7 @@ class TestTargetModel:
         # Check that table_args is a tuple and contains constraints
         assert isinstance(table_args, tuple)
         assert len(table_args) > 0
-        
+
         # The Target model should have unique constraint on (geo_type, geo_value, vertical)
         # and check constraint on priority_score
         constraint_types = [type(arg).__name__ for arg in table_args]

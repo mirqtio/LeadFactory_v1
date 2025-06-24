@@ -15,13 +15,23 @@ import pytest
 
 sys.path.insert(0, "/app")
 
-from d4_enrichment.matchers import (BatchMatcher, BusinessMatcher,
-                                    MatchConfidence, MatchConfig, MatchResult,
-                                    MatchType)
-from d4_enrichment.similarity import (AddressSimilarity, NameSimilarity,
-                                      PhoneSimilarity, SimilarityAlgorithm,
-                                      SimilarityResult, WeightedSimilarity,
-                                      ZipSimilarity)
+from d4_enrichment.matchers import (
+    BatchMatcher,
+    BusinessMatcher,
+    MatchConfidence,
+    MatchConfig,
+    MatchResult,
+    MatchType,
+)
+from d4_enrichment.similarity import (
+    AddressSimilarity,
+    NameSimilarity,
+    PhoneSimilarity,
+    SimilarityAlgorithm,
+    SimilarityResult,
+    WeightedSimilarity,
+    ZipSimilarity,
+)
 
 
 class TestTask041AcceptanceCriteria:
@@ -87,7 +97,11 @@ class TestTask041AcceptanceCriteria:
         # Test partial phone matches
         result3 = matcher.match_phone_numbers("555-123-4567", "555-123-4567 ext 123")
         assert result3.overall_score > 0.7  # Should be high similarity
-        assert result3.confidence in [MatchConfidence.MEDIUM, MatchConfidence.HIGH, MatchConfidence.EXACT]
+        assert result3.confidence in [
+            MatchConfidence.MEDIUM,
+            MatchConfidence.HIGH,
+            MatchConfidence.EXACT,
+        ]
 
         # Test different phones
         result4 = matcher.match_phone_numbers("555-123-4567", "555-987-6543")
@@ -123,7 +137,11 @@ class TestTask041AcceptanceCriteria:
             "Acme Corporation", "94105", "ACME Corp.", "94105"
         )
         assert result2.overall_score >= 0.7
-        assert result2.confidence in [MatchConfidence.MEDIUM, MatchConfidence.HIGH, MatchConfidence.EXACT]
+        assert result2.confidence in [
+            MatchConfidence.MEDIUM,
+            MatchConfidence.HIGH,
+            MatchConfidence.EXACT,
+        ]
 
         # Test same name with similar ZIP (same area)
         result3 = matcher.match_names_and_zips(
@@ -450,14 +468,18 @@ class TestTask041AcceptanceCriteria:
         result4 = matcher.match_records(
             {"business_name": long_name}, {"business_name": long_name}
         )
-        assert result4.overall_score > 0.3  # Should still show some match with single component
+        assert (
+            result4.overall_score > 0.3
+        )  # Should still show some match with single component
 
         # Test special characters
         result5 = matcher.match_records(
             {"business_name": "Café & Restaurant Inc."},
             {"business_name": "Cafe & Restaurant Inc"},
         )
-        assert result5.overall_score > 0.3  # Should handle accents and punctuation with single component
+        assert (
+            result5.overall_score > 0.3
+        )  # Should handle accents and punctuation with single component
 
         print("✓ Edge cases and error handling work correctly")
 

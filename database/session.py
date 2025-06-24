@@ -42,7 +42,7 @@ def get_db():
 def get_db_sync():
     """Get database session for synchronous code (context manager)"""
     from contextlib import contextmanager
-    
+
     @contextmanager
     def _get_db():
         db = SessionLocal()
@@ -50,5 +50,5 @@ def get_db_sync():
             yield db
         finally:
             db.close()
-    
+
     return _get_db()

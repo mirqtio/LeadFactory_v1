@@ -16,10 +16,13 @@ import pytest
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.models import (ScoreBreakdown, ScoreHistory, ScoringEngine,
-                               D5ScoringResult)
-from d5_scoring.types import (ScoreComponent, ScoringStatus, ScoringTier,
-                              ScoringVersion)
+from d5_scoring.models import (
+    ScoreBreakdown,
+    ScoreHistory,
+    ScoringEngine,
+    D5ScoringResult,
+)
+from d5_scoring.types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
 
 
 class TestTask045AcceptanceCriteria:
@@ -336,7 +339,9 @@ class TestTask045AcceptanceCriteria:
             status=ScoringStatus.COMPLETED.value,
         )
 
-        assert isinstance(scoring_result, D5ScoringResult), "Scoring result model failed"
+        assert isinstance(
+            scoring_result, D5ScoringResult
+        ), "Scoring result model failed"
         assert scoring_result.overall_score == Decimal("82.7"), "Score storage failed"
 
         # 2. Tier enumeration - verify tier classification

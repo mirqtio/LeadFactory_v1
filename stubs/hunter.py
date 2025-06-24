@@ -18,23 +18,25 @@ async def find_email(
     last_name: Optional[str] = Query(None),
 ):
     """Stub endpoint for Hunter.io email finder"""
-    
+
     # Check API key
     if not api_key or api_key == "invalid":
         raise HTTPException(status_code=401, detail="Invalid API key")
-        
+
     # Simulate rate limiting (1 in 30 requests)
     if random.random() < 0.033:
         raise HTTPException(
             status_code=429,
             detail="Rate limit exceeded",
-            headers={"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "3600"}
+            headers={"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "3600"},
         )
-    
+
     # Require either domain or company
     if not domain and not company:
-        raise HTTPException(status_code=400, detail="Either domain or company is required")
-    
+        raise HTTPException(
+            status_code=400, detail="Either domain or company is required"
+        )
+
     # Simulate no email found (20% of requests)
     if random.random() < 0.2:
         return {
@@ -43,10 +45,10 @@ async def find_email(
                 "score": 0,
             }
         }
-    
+
     # Generate email based on inputs
     email_domain = domain or f"{company.lower().replace(' ', '')}.com"
-    
+
     if first_name and last_name:
         # Use provided names
         patterns = [
@@ -59,7 +61,7 @@ async def find_email(
         # Generic emails
         departments = ["info", "contact", "hello", "sales", "support"]
         email = f"{random.choice(departments)}@{email_domain}"
-    
+
     # Generate realistic data
     return {
         "data": {
@@ -69,8 +71,12 @@ async def find_email(
             "first_name": first_name,
             "last_name": last_name,
             "position": random.choice(["CEO", "Manager", "Director", "Owner", None]),
-            "twitter": f"https://twitter.com/{company.lower().replace(' ', '')}" if random.random() > 0.5 else None,
-            "linkedin_url": f"https://linkedin.com/in/{first_name}-{last_name}".lower() if first_name and last_name and random.random() > 0.3 else None,
+            "twitter": f"https://twitter.com/{company.lower().replace(' ', '')}"
+            if random.random() > 0.5
+            else None,
+            "linkedin_url": f"https://linkedin.com/in/{first_name}-{last_name}".lower()
+            if first_name and last_name and random.random() > 0.3
+            else None,
             "sources": [
                 {
                     "domain": email_domain,
@@ -78,7 +84,9 @@ async def find_email(
                     "extracted_on": "2024-01-15",
                     "still_on_page": True,
                 }
-            ] if random.random() > 0.4 else [],
+            ]
+            if random.random() > 0.4
+            else [],
         },
         "meta": {
             "results": 1,
@@ -89,18 +97,18 @@ async def find_email(
                 "company": company,
                 "first_name": first_name,
                 "last_name": last_name,
-            }
-        }
+            },
+        },
     }
 
 
 @router.get("/v2/account")
 async def account_info(api_key: str = Query(...)):
     """Stub endpoint for Hunter.io account info"""
-    
+
     if not api_key or api_key == "invalid":
         raise HTTPException(status_code=401, detail="Invalid API key")
-        
+
     return {
         "data": {
             "email": "test@example.com",
@@ -111,6 +119,6 @@ async def account_info(api_key: str = Query(...)):
             "calls": {
                 "used": random.randint(5, 20),
                 "available": 25,
-            }
+            },
         }
     }

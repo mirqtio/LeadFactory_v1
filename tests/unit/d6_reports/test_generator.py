@@ -26,8 +26,12 @@ from d6_reports.template_engine import TemplateEngine, TemplateData
 
 # Import additional classes from generator module
 from d6_reports import generator as generator_module
-from d6_reports.generator import (DataLoader, generate_audit_report, 
-                                generate_html_report, generate_pdf_report)
+from d6_reports.generator import (
+    DataLoader,
+    generate_audit_report,
+    generate_html_report,
+    generate_pdf_report,
+)
 
 
 class TestGenerationOptions:
@@ -689,11 +693,11 @@ class TestTimeoutAndPerformance:
         # Test that generator respects timeout setting in normal operation
         # This verifies the timeout infrastructure is in place
         result = await generator.generate_report("test123", custom_options)
-        
+
         # The report should generate successfully with reasonable timeout
         # (We're testing the timeout infrastructure exists, not forcing a timeout)
         assert result is not None
-        assert hasattr(result, 'generation_time_seconds')
+        assert hasattr(result, "generation_time_seconds")
         assert result.generation_time_seconds < custom_options.timeout_seconds
 
     @pytest.mark.asyncio

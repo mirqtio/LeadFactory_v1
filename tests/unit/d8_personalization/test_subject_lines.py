@@ -18,14 +18,24 @@ from decimal import Decimal
 import pytest
 import yaml
 
-from d8_personalization.models import (EmailContentType, EmailTemplate,
-                                       PersonalizationStrategy,
-                                       SubjectLineVariant, VariantStatus)
+from d8_personalization.models import (
+    EmailContentType,
+    EmailTemplate,
+    PersonalizationStrategy,
+    SubjectLineVariant,
+    VariantStatus,
+)
 from d8_personalization.subject_lines import (
-    GeneratedSubjectLine, GenerationStrategy, SubjectLineGenerator,
-    SubjectLineManager, SubjectLineRequest, ToneStyle,
-    calculate_subject_line_readability, generate_subject_line_hash,
-    validate_subject_line_length)
+    GeneratedSubjectLine,
+    GenerationStrategy,
+    SubjectLineGenerator,
+    SubjectLineManager,
+    SubjectLineRequest,
+    ToneStyle,
+    calculate_subject_line_readability,
+    generate_subject_line_hash,
+    validate_subject_line_length,
+)
 
 
 @pytest.fixture

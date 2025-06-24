@@ -9,8 +9,11 @@ import pytest
 
 from core.exceptions import ExternalAPIError, RateLimitError
 from d0_gateway.base import BaseAPIClient
-from d0_gateway.exceptions import (APIProviderError, CircuitBreakerOpenError,
-                                   RateLimitExceededError)
+from d0_gateway.exceptions import (
+    APIProviderError,
+    CircuitBreakerOpenError,
+    RateLimitExceededError,
+)
 from d0_gateway.types import APIRequest, APIResponse, RateLimitType
 
 

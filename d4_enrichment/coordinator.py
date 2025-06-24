@@ -22,8 +22,13 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from database.session import get_db
 
 from .gbp_enricher import GBPEnricher
-from .models import (EnrichmentRequest, EnrichmentResult, EnrichmentSource,
-                     EnrichmentStatus, MatchConfidence)
+from .models import (
+    EnrichmentRequest,
+    EnrichmentResult,
+    EnrichmentSource,
+    EnrichmentStatus,
+    MatchConfidence,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +117,7 @@ class EnrichmentCoordinator:
         self.enrichers = {
             EnrichmentSource.INTERNAL: GBPEnricher(api_key=None)  # Mock for now
         }
-        
+
         # Phase 0.5: Add Data Axle and Hunter enrichers dynamically
         self._initialize_phase05_enrichers()
 
@@ -132,7 +137,7 @@ class EnrichmentCoordinator:
 
         # Concurrency control
         self._semaphore = asyncio.Semaphore(max_concurrent)
-        
+
     def _initialize_phase05_enrichers(self):
         """Initialize Phase 0.5 enrichers (Data Axle and Hunter)"""
         try:
@@ -140,22 +145,26 @@ class EnrichmentCoordinator:
             from d0_gateway.factory import GatewayClientFactory
             from .dataaxle_enricher import DataAxleEnricher
             from .hunter_enricher import HunterEnricher
-            
+
             # Get gateway clients
             gateway = GatewayClientFactory()
-            
+
             # Initialize Data Axle if configured
             if gateway._is_provider_enabled("dataaxle"):
                 dataaxle_client = gateway.get_dataaxle_client()
-                self.enrichers[EnrichmentSource.DATA_AXLE] = DataAxleEnricher(dataaxle_client)
+                self.enrichers[EnrichmentSource.DATA_AXLE] = DataAxleEnricher(
+                    dataaxle_client
+                )
                 logger.info("Data Axle enricher initialized")
-                
+
             # Initialize Hunter if configured
             if gateway._is_provider_enabled("hunter"):
                 hunter_client = gateway.get_hunter_client()
-                self.enrichers[EnrichmentSource.HUNTER_IO] = HunterEnricher(hunter_client)
+                self.enrichers[EnrichmentSource.HUNTER_IO] = HunterEnricher(
+                    hunter_client
+                )
                 logger.info("Hunter enricher initialized")
-                
+
         except Exception as e:
             logger.warning(f"Failed to initialize Phase 0.5 enrichers: {e}")
 

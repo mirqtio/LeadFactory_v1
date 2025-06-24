@@ -26,10 +26,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from core.config import get_settings
-from d9_delivery.compliance import (ComplianceHeaders, ComplianceManager,
-                                    UnsubscribeToken, check_email_suppression,
-                                    generate_unsubscribe_link,
-                                    process_unsubscribe_request)
+from d9_delivery.compliance import (
+    ComplianceHeaders,
+    ComplianceManager,
+    UnsubscribeToken,
+    check_email_suppression,
+    generate_unsubscribe_link,
+    process_unsubscribe_request,
+)
 from d9_delivery.models import DeliveryEvent, EmailDelivery, SuppressionList
 from database.base import Base
 

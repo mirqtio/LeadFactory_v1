@@ -24,8 +24,12 @@ from d1_targeting.batch_scheduler import BatchScheduler
 from d1_targeting.geo_validator import GeoValidator
 from d1_targeting.quota_tracker import QuotaTracker
 from d1_targeting.target_universe import TargetUniverseManager
-from d1_targeting.types import (BatchProcessingStatus, CampaignStatus,
-                                GeographyLevel, VerticalMarket)
+from d1_targeting.types import (
+    BatchProcessingStatus,
+    CampaignStatus,
+    GeographyLevel,
+    VerticalMarket,
+)
 
 
 class TestTargetingIntegrationTask024Simple:

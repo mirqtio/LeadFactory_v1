@@ -15,9 +15,11 @@ import pytest
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.vertical_overrides import (VerticalScoringEngine,
-                                           create_medical_scoring_engine,
-                                           create_restaurant_scoring_engine)
+from d5_scoring.vertical_overrides import (
+    VerticalScoringEngine,
+    create_medical_scoring_engine,
+    create_restaurant_scoring_engine,
+)
 
 
 class TestTask047AcceptanceCriteria:

@@ -26,9 +26,13 @@ sys.path.insert(0, "/app")
 
 from d3_assessment.api import router
 from d3_assessment.cache import AssessmentCache
-from d3_assessment.coordinator import (AssessmentCoordinator,
-                                       AssessmentPriority, AssessmentRequest,
-                                       CoordinatorError, CoordinatorResult)
+from d3_assessment.coordinator import (
+    AssessmentCoordinator,
+    AssessmentPriority,
+    AssessmentRequest,
+    CoordinatorError,
+    CoordinatorResult,
+)
 from d3_assessment.formatter import AssessmentReportFormatter, ReportFormat
 from d3_assessment.metrics import AssessmentMetrics
 from d3_assessment.models import AssessmentSession
@@ -112,14 +116,10 @@ class TestAssessmentIntegrationTask039:
         pagespeed_result.diagnostics = {"font-display": {"details": {}}}
         # Add pagespeed_data field that formatter expects
         pagespeed_result.pagespeed_data = {
-            "core_vitals": {
-                "lcp": 2.1,  # 2100ms = 2.1s
-                "fid": 80,
-                "cls": 0.05
-            },
+            "core_vitals": {"lcp": 2.1, "fid": 80, "cls": 0.05},  # 2100ms = 2.1s
             "performance_score": 85,
             "opportunities": {"render-blocking-resources": {"savings": 450}},
-            "diagnostics": {"font-display": {"details": {}}}
+            "diagnostics": {"font-display": {"details": {}}},
         }
 
         techstack_result = Mock()
@@ -182,22 +182,15 @@ class TestAssessmentIntegrationTask039:
             started_at=datetime.utcnow() - timedelta(seconds=15),
             completed_at=datetime.utcnow(),
         )
-        
+
         # Add attributes that the formatter expects as dictionaries
         mock_result.pagespeed_data = {
             "performance_score": 85,
-            "core_vitals": {
-                "lcp": 2100,
-                "fid": 80,
-                "cls": 0.05
-            },
-            "issues": []
+            "core_vitals": {"lcp": 2100, "fid": 80, "cls": 0.05},
+            "issues": [],
         }
         mock_result.tech_stack_data = techstack_result.tech_stack_data
-        mock_result.ai_insights_data = {
-            "insights": ai_result.insights,
-            "issues": []
-        }
+        mock_result.ai_insights_data = {"insights": ai_result.insights, "issues": []}
 
         # Configure mock
         coordinator.assess_business = AsyncMock(return_value=mock_result)
@@ -490,7 +483,7 @@ class TestAssessmentIntegrationTask039:
         """Test integration with report formatter"""
         formatter = AssessmentReportFormatter()
         mock_result = mock_coordinator.assess_business.return_value
-        
+
         # Get one of the assessment results from partial_results
         # The formatter expects an AssessmentResult, not a CoordinatorResult
         assessment_result = mock_result.partial_results[AssessmentType.PAGESPEED]
@@ -571,12 +564,12 @@ class TestAssessmentIntegrationTask039:
         # Test metrics retrieval
         summary = metrics.get_metrics_summary()
         print(f"Metrics summary keys: {list(summary.keys())}")
-        
+
         # Check for the actual keys in the summary
         assert "assessment_types" in summary
         assert "overall_success_rate" in summary
         assert "success_in_window" in summary
-        
+
         # Test that metrics were tracked
         assert summary["success_in_window"] > 0
         # Check that cost was tracked in the assessment types

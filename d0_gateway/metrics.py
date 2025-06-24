@@ -3,8 +3,14 @@ Prometheus metrics for D0 Gateway monitoring
 """
 from typing import Any, Dict
 
-from prometheus_client import (REGISTRY, CollectorRegistry, Counter, Gauge,
-                               Histogram, Info)
+from prometheus_client import (
+    REGISTRY,
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    Info,
+)
 
 from core.logging import get_logger
 

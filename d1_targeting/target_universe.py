@@ -14,10 +14,15 @@ from core.logging import get_logger
 from database.session import SessionLocal
 
 from .geo_validator import GeoValidator
-from .models import (Campaign, CampaignTarget, GeographicBoundary,
-                     TargetUniverse)
-from .types import (GeographicConstraint, GeographyLevel, QualificationRules,
-                    TargetingCriteria, TargetMetrics, VerticalMarket)
+from .models import Campaign, CampaignTarget, GeographicBoundary, TargetUniverse
+from .types import (
+    GeographicConstraint,
+    GeographyLevel,
+    QualificationRules,
+    TargetingCriteria,
+    TargetMetrics,
+    VerticalMarket,
+)
 
 
 class TargetUniverseManager:

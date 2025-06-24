@@ -26,9 +26,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from d7_storefront.api import router
+
 # Import all components for integration testing
-from d7_storefront.checkout import (CheckoutItem, CheckoutManager,
-                                    CheckoutSession)
+from d7_storefront.checkout import CheckoutItem, CheckoutManager, CheckoutSession
 from d7_storefront.models import ProductType, PurchaseStatus
 from d7_storefront.schemas import CheckoutInitiationRequest
 from d7_storefront.stripe_client import StripeClient, StripeConfig

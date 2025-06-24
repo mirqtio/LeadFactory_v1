@@ -17,10 +17,15 @@ import pytest
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 
-from d2_sourcing.deduplicator import (BusinessDeduplicator, DuplicateMatch,
-                                      MatchConfidence, MergeResult,
-                                      MergeStrategy, detect_duplicates_only,
-                                      find_and_merge_duplicates)
+from d2_sourcing.deduplicator import (
+    BusinessDeduplicator,
+    DuplicateMatch,
+    MatchConfidence,
+    MergeResult,
+    MergeStrategy,
+    detect_duplicates_only,
+    find_and_merge_duplicates,
+)
 from d2_sourcing.exceptions import DeduplicationException
 from database.models import Business
 
@@ -153,7 +158,9 @@ class TestTask027AcceptanceCriteria:
         assert isinstance(mario_match.match_reasons, list)
 
         # Should have similarity scores
-        assert mario_match.name_similarity > 0.6  # "Mario's Pizza" vs "Mario's Pizzeria"
+        assert (
+            mario_match.name_similarity > 0.6
+        )  # "Mario's Pizza" vs "Mario's Pizzeria"
         assert mario_match.phone_similarity > 0.9  # Same number, different format
         assert mario_match.address_similarity > 0.7
 

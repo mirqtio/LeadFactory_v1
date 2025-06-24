@@ -30,13 +30,18 @@ os.environ.setdefault(
 os.environ.setdefault("DATABASE_URL", "postgresql://test:test@localhost/test")
 os.environ.setdefault("ENVIRONMENT", "development")
 
-from d8_personalization.models import (ContentStrategy, EmailContentType,
-                                       PersonalizationStrategy)
-from d8_personalization.personalizer import (EmailPersonalizer, IssueExtractor,
-                                             PersonalizationRequest)
+from d8_personalization.models import (
+    ContentStrategy,
+    EmailContentType,
+    PersonalizationStrategy,
+)
+from d8_personalization.personalizer import (
+    EmailPersonalizer,
+    IssueExtractor,
+    PersonalizationRequest,
+)
 from d8_personalization.spam_checker import SpamScoreChecker
-from d8_personalization.subject_lines import (SubjectLineGenerator,
-                                              SubjectLineRequest)
+from d8_personalization.subject_lines import SubjectLineGenerator, SubjectLineRequest
 
 
 class MockOpenAIClient:
@@ -648,8 +653,7 @@ def test_integration_components_loaded():
 
     # Test component imports
     from d8_personalization.content_generator import AdvancedContentGenerator
-    from d8_personalization.personalizer import (EmailPersonalizer,
-                                                 IssueExtractor)
+    from d8_personalization.personalizer import EmailPersonalizer, IssueExtractor
     from d8_personalization.spam_checker import SpamScoreChecker
     from d8_personalization.subject_lines import SubjectLineGenerator
 

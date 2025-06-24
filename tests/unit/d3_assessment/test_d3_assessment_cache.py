@@ -20,8 +20,13 @@ import pytest
 sys.path.insert(0, "/app")  # noqa: E402
 
 from d3_assessment.cache import CacheEntry  # noqa: E402
-from d3_assessment.cache import (AssessmentCache, CacheManager, CacheStats,
-                                 CacheStrategy, cached_assessment)
+from d3_assessment.cache import (
+    AssessmentCache,
+    CacheManager,
+    CacheStats,
+    CacheStrategy,
+    cached_assessment,
+)
 from d3_assessment.coordinator import CoordinatorResult  # noqa: E402
 from d3_assessment.models import AssessmentResult  # noqa: E402
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
@@ -187,7 +192,7 @@ class TestTask036AcceptanceCriteria:
         # Create a second coordinator result with the correct domain for test.com
         test_com_result = CoordinatorResult(
             session_id="sess_test456",
-            business_id="biz_test123", 
+            business_id="biz_test123",
             total_assessments=1,
             completed_assessments=1,
             failed_assessments=0,
@@ -463,7 +468,9 @@ class TestTask036AcceptanceCriteria:
         cache_entries = list(cleanup_cache._cache.values())
         if cache_entries:
             entry = cache_entries[0]
-            assert entry.is_expired, f"Entry should be expired: age={entry.age_seconds}s, ttl={entry.ttl_seconds}s"
+            assert (
+                entry.is_expired
+            ), f"Entry should be expired: age={entry.age_seconds}s, ttl={entry.ttl_seconds}s"
 
         # Manual cleanup check
         await cleanup_cache._cleanup_expired()
@@ -695,7 +702,10 @@ class TestTask036AcceptanceCriteria:
 
         # 5. Test invalidation
         removed = await cache.invalidate(
-            business_id=business_id, url=url, assessment_types=assessment_types, industry=industry
+            business_id=business_id,
+            url=url,
+            assessment_types=assessment_types,
+            industry=industry,
         )
         assert removed == 1
 

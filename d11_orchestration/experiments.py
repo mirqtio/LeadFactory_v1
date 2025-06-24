@@ -21,8 +21,14 @@ from typing import Any, Dict, List, Optional, Tuple
 from core.exceptions import LeadFactoryError, ValidationError
 from core.metrics import MetricsCollector
 
-from .models import (Experiment, ExperimentStatus, ExperimentVariant,
-                     VariantAssignment, VariantType, generate_uuid)
+from .models import (
+    Experiment,
+    ExperimentStatus,
+    ExperimentVariant,
+    VariantAssignment,
+    VariantType,
+    generate_uuid,
+)
 from .variant_assigner import VariantAssigner
 
 

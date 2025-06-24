@@ -112,13 +112,13 @@ class CircuitBreaker:
             # Calculate can_execute without calling the method to avoid deadlock
             now = time.time()
             can_exec = True
-            
+
             if self.state == CircuitState.OPEN:
                 can_exec = now - self.last_failure_time >= self.config.recovery_timeout
             elif self.state == CircuitState.HALF_OPEN:
                 can_exec = True
             # CLOSED state can always execute
-            
+
             return {
                 "provider": self.provider,
                 "state": self.state.value,

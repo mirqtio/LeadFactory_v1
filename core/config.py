@@ -47,21 +47,21 @@ class Settings(BaseSettings):
     sendgrid_api_key: Optional[str] = Field(default=None)
     openai_api_key: Optional[str] = Field(default=None)
     openai_model: str = Field(default="gpt-4o-mini")
-    
+
     # PRD v1.2 - Data Axle (trial)
     data_axle_api_key: Optional[str] = Field(default=None)
     data_axle_base_url: str = Field(default="https://api.data-axle.com/v1")
     data_axle_rate_limit_per_min: int = Field(default=200)
-    
+
     # PRD v1.2 - Hunter.io
     hunter_api_key: Optional[str] = Field(default=None)
     hunter_rate_limit_per_min: int = Field(default=30)
-    
+
     # PRD v1.2 - SEMrush
     semrush_api_key: Optional[str] = Field(default=None)
     semrush_daily_quota: int = Field(default=1000)
-    
-    # PRD v1.2 - ScreenshotOne  
+
+    # PRD v1.2 - ScreenshotOne
     screenshotone_key: Optional[str] = Field(default=None)
     screenshotone_secret: Optional[str] = Field(default=None)
     screenshotone_rate_limit_per_sec: int = Field(default=2)
@@ -95,13 +95,13 @@ class Settings(BaseSettings):
     enable_llm_insights: bool = Field(default=True)
     enable_email_tracking: bool = Field(default=True)
     enable_experiments: bool = Field(default=False)
-    
+
     # Phase 0.5 - Feature flags
     providers_data_axle_enabled: bool = Field(default=True)
     providers_hunter_enabled: bool = Field(default=False)
     lead_filter_min_score: float = Field(default=0.0)
     assessment_optional: bool = Field(default=True)
-    
+
     # Phase 0.5 - Cost control
     cost_budget_usd: float = Field(default=1000.0)
 
@@ -127,7 +127,7 @@ class Settings(BaseSettings):
         # Allow default secret key in CI environment
         if os.getenv("CI") == "true":
             return v
-            
+
         if (
             info.data.get("environment") == "production"
             and v == "dev-secret-key-change-in-production"

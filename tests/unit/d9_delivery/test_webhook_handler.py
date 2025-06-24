@@ -23,13 +23,22 @@ import pytest
 
 from core.exceptions import ValidationError
 from d9_delivery.compliance import ComplianceManager
-from d9_delivery.models import (BounceTracking, BounceType, DeliveryEvent,
-                                DeliveryStatus, EmailDelivery, EventType,
-                                SuppressionList)
-from d9_delivery.webhook_handler import (SendGridEventType, WebhookEvent,
-                                         WebhookHandler,
-                                         create_test_webhook_event,
-                                         process_sendgrid_webhook)
+from d9_delivery.models import (
+    BounceTracking,
+    BounceType,
+    DeliveryEvent,
+    DeliveryStatus,
+    EmailDelivery,
+    EventType,
+    SuppressionList,
+)
+from d9_delivery.webhook_handler import (
+    SendGridEventType,
+    WebhookEvent,
+    WebhookHandler,
+    create_test_webhook_event,
+    process_sendgrid_webhook,
+)
 from database.models import Base
 from database.session import SessionLocal, engine
 

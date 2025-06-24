@@ -18,19 +18,29 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 import stripe
 
-from d7_storefront.checkout import (CHECKOUT_URLS, CheckoutConfig,
-                                    CheckoutError, CheckoutItem,
-                                    CheckoutManager, CheckoutSession,
-                                    DEFAULT_PRICING,
-                                    create_test_checkout_items,
-                                    format_checkout_response_for_api)
+from d7_storefront.checkout import (
+    CHECKOUT_URLS,
+    CheckoutConfig,
+    CheckoutError,
+    CheckoutItem,
+    CheckoutManager,
+    CheckoutSession,
+    DEFAULT_PRICING,
+    create_test_checkout_items,
+    format_checkout_response_for_api,
+)
 from d7_storefront.models import ProductType
+
 # Import modules to test
-from d7_storefront.stripe_client import (StripeCheckoutSession, StripeClient,
-                                         StripeConfig, StripeError,
-                                         create_one_time_line_item,
-                                         format_amount_for_stripe,
-                                         format_amount_from_stripe)
+from d7_storefront.stripe_client import (
+    StripeCheckoutSession,
+    StripeClient,
+    StripeConfig,
+    StripeError,
+    create_one_time_line_item,
+    format_amount_for_stripe,
+    format_amount_from_stripe,
+)
 
 
 class TestStripeConfig:
@@ -143,7 +153,7 @@ class TestStripeClient:
     @patch("d0_gateway.facade.GatewayFacade.create_checkout_session_with_line_items")
     def test_create_checkout_session_success(self, mock_create):
         """Test successful checkout session creation - Acceptance Criteria"""
-        # Mock successful gateway response 
+        # Mock successful gateway response
         mock_response = {
             "id": "cs_test_123",
             "url": "https://checkout.stripe.com/pay/cs_test_123",
@@ -154,12 +164,13 @@ class TestStripeClient:
             "metadata": {"test": "data"},
             "mode": "payment",
             "success_url": "https://example.com/success",
-            "cancel_url": "https://example.com/cancel"
+            "cancel_url": "https://example.com/cancel",
         }
 
         # Use AsyncMock for proper async function mocking
         async def mock_async_response(*args, **kwargs):
             return mock_response
+
         mock_create.side_effect = mock_async_response
 
         client = StripeClient()
@@ -188,9 +199,11 @@ class TestStripeClient:
     @patch("d0_gateway.facade.GatewayFacade.create_checkout_session_with_line_items")
     def test_create_checkout_session_stripe_error(self, mock_create):
         """Test checkout session creation with Stripe error"""
+
         # Mock gateway error (async)
         async def mock_error(*args, **kwargs):
             raise Exception("Stripe API error: Your card was declined.")
+
         mock_create.side_effect = mock_error
 
         client = StripeClient()
@@ -218,11 +231,12 @@ class TestStripeClient:
             "amount_total": 2999,
             "currency": "usd",
             "metadata": {"test": "data"},
-            "status": "complete"
+            "status": "complete",
         }
 
         async def mock_async_retrieve(*args, **kwargs):
             return mock_session_data
+
         mock_retrieve.side_effect = mock_async_retrieve
 
         client = StripeClient()
@@ -241,11 +255,14 @@ class TestStripeClient:
         assert test_client.is_test_mode() is True
 
         # Mock environment variables for live mode
-        with patch.dict("os.environ", {
-            "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
-            "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
-            "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock"
-        }):
+        with patch.dict(
+            "os.environ",
+            {
+                "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
+                "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
+                "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock",
+            },
+        ):
             live_config = StripeConfig(test_mode=False)
             live_client = StripeClient(live_config)
             assert live_client.is_test_mode() is False
@@ -917,11 +934,14 @@ class TestCheckoutManagerEnhancements:
         assert manager1.stripe_client is not None
 
         # Test with custom config (with mocked environment for live mode)
-        with patch.dict("os.environ", {
-            "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
-            "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
-            "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock"
-        }):
+        with patch.dict(
+            "os.environ",
+            {
+                "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
+                "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
+                "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock",
+            },
+        ):
             config = CheckoutConfig(test_mode=False, default_currency="eur")
             manager2 = CheckoutManager(config=config)
             assert manager2.config.test_mode is False
@@ -1078,11 +1098,14 @@ class TestCheckoutManagerEnhancements:
     def test_checkout_manager_status_comprehensive(self):
         """Test comprehensive status reporting"""
         # Mock environment variables for live mode
-        with patch.dict("os.environ", {
-            "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
-            "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
-            "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock"
-        }):
+        with patch.dict(
+            "os.environ",
+            {
+                "STRIPE_LIVE_SECRET_KEY": "sk_live_mock",
+                "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock",
+                "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock",
+            },
+        ):
             config = CheckoutConfig(
                 base_success_url="https://custom.com/success",
                 base_cancel_url="https://custom.com/cancel",

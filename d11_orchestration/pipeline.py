@@ -73,8 +73,14 @@ from core.exceptions import LeadFactoryError
 from core.metrics import MetricsCollector
 
 from .models import PipelineRun, PipelineRunStatus, PipelineType
-from .tasks import (AssessmentTask, DeliveryTask, PersonalizationTask,
-                    ScoringTask, SourcingTask, TargetingTask)
+from .tasks import (
+    AssessmentTask,
+    DeliveryTask,
+    PersonalizationTask,
+    ScoringTask,
+    SourcingTask,
+    TargetingTask,
+)
 
 
 class PipelineOrchestrator:

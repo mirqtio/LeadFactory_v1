@@ -16,10 +16,16 @@ from datetime import datetime
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.tiers import (LeadTier, TierAssignment, TierAssignmentEngine,
-                              TierBoundary, TierConfiguration,
-                              TierDistribution, assign_lead_tier,
-                              create_standard_configuration)
+from d5_scoring.tiers import (
+    LeadTier,
+    TierAssignment,
+    TierAssignmentEngine,
+    TierBoundary,
+    TierConfiguration,
+    TierDistribution,
+    assign_lead_tier,
+    create_standard_configuration,
+)
 
 
 class TestTask048AcceptanceCriteria(unittest.TestCase):

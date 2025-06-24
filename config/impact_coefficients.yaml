@@ -1,0 +1,33 @@
+# Impact coefficients (β) for revenue impact calculation
+# Based on Google/Soasta 2017 research and industry benchmarks
+# Each coefficient represents the conversion rate uplift factor
+
+performance:
+  "1": 0.0012   # Low severity - 0.6% uplift (3% / 5 severity levels)
+  "2": 0.0024   # Medium severity - 1.2% uplift
+  "3": 0.0036   # High severity - 1.8% uplift
+  "4": 0.0060   # Critical severity - 3.0% uplift (full Google/Soasta impact)
+
+seo:
+  "1": 0.0008   # Low - Minor SEO improvements
+  "2": 0.0020   # Medium - Important elements missing
+  "3": 0.0040   # High - Major visibility issues
+  "4": 0.0080   # Critical - Preventing indexing
+
+visual:
+  "1": 0.0006   # Low - Minor visual improvements
+  "2": 0.0015   # Medium - Noticeable UX issues
+  "3": 0.0030   # High - Significant UX problems (CTA below fold)
+  "4": 0.0050   # Critical - Unusable interface
+
+technical:
+  "1": 0.0004   # Low - Minor technical debt
+  "2": 0.0012   # Medium - Issues affecting some users
+  "3": 0.0025   # High - Major technical problems
+  "4": 0.0100   # Critical - Site-breaking issues
+
+trust:
+  "1": 0.0005   # Low - Minor trust improvements
+  "2": 0.0015   # Medium - Missing trust elements
+  "3": 0.0035   # High - Significant trust issues
+  "4": 0.0070   # Critical - Severe trust problems

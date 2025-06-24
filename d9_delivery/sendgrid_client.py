@@ -20,8 +20,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 
 from core.config import get_settings
-from core.exceptions import (ConfigurationError, ExternalAPIError,
-                             RateLimitError)
+from core.exceptions import ConfigurationError, ExternalAPIError, RateLimitError
 from d0_gateway.facade import get_gateway_facade
 
 logger = logging.getLogger(__name__)

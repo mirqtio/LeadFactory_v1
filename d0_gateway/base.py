@@ -218,21 +218,21 @@ class BaseAPIClient(ABC):
                 "error": str(e),
                 "circuit_breaker": self.circuit_breaker.state.name,
             }
-            
+
     def emit_cost(
         self,
         lead_id: Optional[int] = None,
         campaign_id: Optional[int] = None,
         cost_usd: float = 0.0,
         operation: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Emit cost tracking event for API usage
-        
+
         Args:
             lead_id: Associated lead ID
-            campaign_id: Associated campaign ID  
+            campaign_id: Associated campaign ID
             cost_usd: Cost in USD
             operation: Specific operation performed
             metadata: Additional context
@@ -240,7 +240,7 @@ class BaseAPIClient(ABC):
         # Import here to avoid circular dependency
         from database.models import APICost
         from database.session import get_db_sync
-        
+
         try:
             # Create cost record in database
             with get_db_sync() as db:
@@ -254,15 +254,15 @@ class BaseAPIClient(ABC):
                 )
                 db.add(cost_record)
                 db.commit()
-                
+
             # Also record in metrics
             self.metrics.record_cost(self.provider, operation or "unknown", cost_usd)
-            
+
             self.logger.info(
                 f"Cost recorded: ${cost_usd:.4f} for {self.provider}/{operation} "
                 f"(lead_id={lead_id}, campaign_id={campaign_id})"
             )
-            
+
         except Exception as e:
             # Don't fail the request if cost tracking fails
             self.logger.error(f"Failed to record cost: {e}")

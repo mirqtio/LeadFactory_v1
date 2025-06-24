@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from database.base import Base
+
 # Import all models to ensure foreign key references are available
 try:
     import database.models  # Main database models

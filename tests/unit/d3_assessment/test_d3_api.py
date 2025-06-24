@@ -21,8 +21,7 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, "/app")  # noqa: E402
 
-from d3_assessment.api import (assessment_sessions, coordinator,  # noqa: E402
-                               router)
+from d3_assessment.api import assessment_sessions, coordinator, router  # noqa: E402
 from d3_assessment.coordinator import CoordinatorResult  # noqa: E402
 from d3_assessment.models import AssessmentResult  # noqa: E402
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
@@ -660,7 +659,9 @@ class TestTask035AcceptanceCriteria:
                 started_at=datetime.utcnow(),
                 completed_at=datetime.utcnow(),
             )
-            mock_coord.execute_comprehensive_assessment = AsyncMock(return_value=mock_result)
+            mock_coord.execute_comprehensive_assessment = AsyncMock(
+                return_value=mock_result
+            )
             mock_coord.get_assessment_status.return_value = {
                 "status": "running",
                 "progress": "50%",

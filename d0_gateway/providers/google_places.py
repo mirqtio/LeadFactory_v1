@@ -40,7 +40,7 @@ class GooglePlacesClient(BaseAPIClient):
     def calculate_cost(self, operation: str, **kwargs) -> Decimal:
         """
         Calculate cost for Google Places operations
-        
+
         Place Details: $0.017 per call (we'll use $0.002 for PRD v1.2)
         Find Place: $0.017 per call
         """
@@ -52,107 +52,89 @@ class GooglePlacesClient(BaseAPIClient):
             return Decimal("0.000")
 
     async def find_place(
-        self, 
-        query: str,
-        fields: Optional[list] = None
+        self, query: str, fields: Optional[list] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Find a place by text query
-        
+
         Args:
             query: Business name and/or address
             fields: Fields to return (default: place_id, name, formatted_address)
-            
+
         Returns:
             Place data or None
         """
         if not fields:
             fields = ["place_id", "name", "formatted_address"]
-            
+
         params = {
             "input": query,
             "inputtype": "textquery",
             "fields": ",".join(fields),
-            "key": self.api_key
+            "key": self.api_key,
         }
-        
+
         response = await self.make_request(
-            "GET",
-            "/findplacefromtext/json",
-            params=params
+            "GET", "/findplacefromtext/json", params=params
         )
-        
+
         if response and response.get("candidates"):
             return response["candidates"][0]
         return None
 
     async def get_place_details(
-        self,
-        place_id: str,
-        fields: Optional[list] = None
+        self, place_id: str, fields: Optional[list] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Get detailed information about a place
-        
+
         Args:
             place_id: Google Place ID
             fields: Fields to return
-            
+
         Returns:
             Place details or None
         """
         if not fields:
             fields = [
                 "name",
-                "formatted_address", 
+                "formatted_address",
                 "formatted_phone_number",
                 "website",
                 "opening_hours",
                 "business_status",
                 "rating",
                 "user_ratings_total",
-                "types"
+                "types",
             ]
-            
-        params = {
-            "place_id": place_id,
-            "fields": ",".join(fields),
-            "key": self.api_key
-        }
-        
-        response = await self.make_request(
-            "GET",
-            "/details/json",
-            params=params
-        )
-        
+
+        params = {"place_id": place_id, "fields": ",".join(fields), "key": self.api_key}
+
+        response = await self.make_request("GET", "/details/json", params=params)
+
         if response and response.get("result"):
             result = response["result"]
-            
+
             # Check for missing hours as per PRD
-            missing_hours = not result.get("opening_hours") or not result["opening_hours"].get("weekday_text")
-            
-            return {
-                **result,
-                "missing_hours": missing_hours
-            }
-            
+            missing_hours = not result.get("opening_hours") or not result[
+                "opening_hours"
+            ].get("weekday_text")
+
+            return {**result, "missing_hours": missing_hours}
+
         return None
 
     async def search_business(
-        self,
-        name: str,
-        address: Optional[str] = None,
-        phone: Optional[str] = None
+        self, name: str, address: Optional[str] = None, phone: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Search for a business and get its details
-        
+
         Args:
             name: Business name
             address: Optional address
             phone: Optional phone number
-            
+
         Returns:
             Business details with missing_hours flag
         """
@@ -160,15 +142,15 @@ class GooglePlacesClient(BaseAPIClient):
         query_parts = [name]
         if address:
             query_parts.append(address)
-            
+
         query = " ".join(query_parts)
-        
+
         # Find the place
         place = await self.find_place(query)
         if not place or not place.get("place_id"):
             return None
-            
+
         # Get detailed information
         details = await self.get_place_details(place["place_id"])
-        
+
         return details

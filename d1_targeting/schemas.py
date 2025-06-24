@@ -10,8 +10,13 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from .types import (BatchProcessingStatus, CampaignStatus, GeographyLevel,
-                    TargetQualificationStatus, VerticalMarket)
+from .types import (
+    BatchProcessingStatus,
+    CampaignStatus,
+    GeographyLevel,
+    TargetQualificationStatus,
+    VerticalMarket,
+)
 
 
 # Base schemas

@@ -18,13 +18,20 @@ import pytest
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 
-from d2_sourcing.coordinator import (BatchStatus, CoordinatorMetrics,
-                                     CoordinatorStatus, SourcingBatch,
-                                     SourcingCoordinator,
-                                     process_location_batch,
-                                     process_multiple_locations)
-from d2_sourcing.exceptions import (BatchQuotaException,
-                                    ErrorRecoveryException, SourcingException)
+from d2_sourcing.coordinator import (
+    BatchStatus,
+    CoordinatorMetrics,
+    CoordinatorStatus,
+    SourcingBatch,
+    SourcingCoordinator,
+    process_location_batch,
+    process_multiple_locations,
+)
+from d2_sourcing.exceptions import (
+    BatchQuotaException,
+    ErrorRecoveryException,
+    SourcingException,
+)
 from d2_sourcing.yelp_scraper import ScrapingResult, ScrapingStatus
 
 
@@ -550,21 +557,25 @@ class TestTask028AcceptanceCriteria:
             mock_coordinator.create_batch.return_value = "test-batch-id"
             mock_coordinator.process_batch = AsyncMock()
             # get_batch_status is NOT async, so use Mock and return dict directly
-            mock_coordinator.get_batch_status = Mock(return_value={
-                "batch_id": "test-batch-id",
-                "status": "completed",
-                "metrics": {"scraped_count": 50},
-            })
+            mock_coordinator.get_batch_status = Mock(
+                return_value={
+                    "batch_id": "test-batch-id",
+                    "status": "completed",
+                    "metrics": {"scraped_count": 50},
+                }
+            )
             mock_coordinator.process_multiple_batches = AsyncMock()
             mock_coordinator.process_multiple_batches.return_value = [
                 "batch-1",
                 "batch-2",
             ]
             # get_coordinator_status is also NOT async
-            mock_coordinator.get_coordinator_status = Mock(return_value={
-                "status": "completed",
-                "metrics": {"total_batches": 2},
-            })
+            mock_coordinator.get_coordinator_status = Mock(
+                return_value={
+                    "status": "completed",
+                    "metrics": {"total_batches": 2},
+                }
+            )
             mock_coordinator_class.return_value = mock_coordinator
 
             # Test single location processing

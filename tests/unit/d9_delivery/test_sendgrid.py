@@ -20,14 +20,21 @@ import aiohttp
 import pytest
 from aiohttp import ClientResponse, ClientSession
 
-from core.exceptions import (ConfigurationError, ExternalAPIError,
-                             RateLimitError)
-from d9_delivery.email_builder import (EmailBuilder, EmailTemplate,
-                                       PersonalizationData, build_audit_email,
-                                       create_personalization_data)
-from d9_delivery.sendgrid_client import (EmailData, SendGridClient,
-                                         SendGridResponse, create_email_data,
-                                         send_single_email)
+from core.exceptions import ConfigurationError, ExternalAPIError, RateLimitError
+from d9_delivery.email_builder import (
+    EmailBuilder,
+    EmailTemplate,
+    PersonalizationData,
+    build_audit_email,
+    create_personalization_data,
+)
+from d9_delivery.sendgrid_client import (
+    EmailData,
+    SendGridClient,
+    SendGridResponse,
+    create_email_data,
+    send_single_email,
+)
 
 
 class TestSendGridClient:
@@ -685,16 +692,20 @@ def test_integration():
     # Test that EmailData is compatible with SendGrid client
     with patch.dict("os.environ", {"SENDGRID_API_KEY": "test_key"}):
         client = SendGridClient()
-        
+
         # Verify EmailData object is created correctly - this is what matters for integration
         assert email.to_email == "integration@example.com"
         assert email.subject == "Website Performance Insights for Integration Corp"
-        assert set(email.categories) == {"cold_outreach", "leadfactory", "website_audit"}
+        assert set(email.categories) == {
+            "cold_outreach",
+            "leadfactory",
+            "website_audit",
+        }
         assert email.custom_args["business_name"] == "Integration Corp"
-        
+
         # Verify client can be instantiated successfully
         assert client is not None
-        assert hasattr(client, 'send_email')  # Has the main method we need
+        assert hasattr(client, "send_email")  # Has the main method we need
 
     print("✓ SendGrid client and email builder integration works")
 

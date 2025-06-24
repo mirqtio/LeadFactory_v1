@@ -22,11 +22,9 @@ from sqlalchemy.orm import Session
 from core.config import get_settings
 from core.exceptions import EmailDeliveryError, ValidationError
 from d9_delivery.compliance import ComplianceManager
-from d9_delivery.email_builder import EmailBuilder, PersonalizationData
-from d9_delivery.models import (DeliveryEvent, DeliveryStatus, EmailDelivery,
-                                EventType)
-from d9_delivery.sendgrid_client import (EmailData, SendGridClient,
-                                         SendGridResponse)
+from d9_delivery.email_builder import prepare_email_context
+from d9_delivery.models import DeliveryEvent, DeliveryStatus, EmailDelivery, EventType
+from d9_delivery.sendgrid_client import EmailData, SendGridClient, SendGridResponse
 from database.session import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -450,20 +448,24 @@ class DeliveryManager:
         try:
             with SessionLocal() as session:
                 # First get the email delivery record
-                delivery = session.query(EmailDelivery).filter(
-                    EmailDelivery.delivery_id == delivery_id
-                ).first()
-                
+                delivery = (
+                    session.query(EmailDelivery)
+                    .filter(EmailDelivery.delivery_id == delivery_id)
+                    .first()
+                )
+
                 if not delivery:
                     logger.error(f"Delivery {delivery_id} not found")
                     return False
-                
+
                 event = DeliveryEvent(
                     email_delivery_id=delivery.id,
                     event_type=event_type.value,
                     sendgrid_message_id=sendgrid_message_id,
                     event_timestamp=datetime.now(timezone.utc),
-                    event_data={"error_message": error_message} if error_message else event_data or {},
+                    event_data={"error_message": error_message}
+                    if error_message
+                    else event_data or {},
                 )
 
                 session.add(event)
@@ -531,7 +533,9 @@ class DeliveryManager:
                             if event.event_timestamp
                             else None,
                             "sendgrid_message_id": event.sendgrid_message_id,
-                            "error_message": event.event_data.get("error_message") if event.event_data else None,
+                            "error_message": event.event_data.get("error_message")
+                            if event.event_data
+                            else None,
                             "event_data": event.event_data,
                         }
                         for event in events

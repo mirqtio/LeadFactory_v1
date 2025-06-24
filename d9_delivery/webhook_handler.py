@@ -28,9 +28,15 @@ from sqlalchemy.orm import Session
 from core.config import get_settings
 from core.exceptions import EmailDeliveryError, ValidationError
 from d9_delivery.compliance import ComplianceManager
-from d9_delivery.models import (BounceTracking, BounceType, DeliveryEvent,
-                                DeliveryStatus, EmailDelivery, EventType,
-                                SuppressionList)
+from d9_delivery.models import (
+    BounceTracking,
+    BounceType,
+    DeliveryEvent,
+    DeliveryStatus,
+    EmailDelivery,
+    EventType,
+    SuppressionList,
+)
 from database.session import SessionLocal
 
 logger = logging.getLogger(__name__)

@@ -20,11 +20,14 @@ import pytest
 sys.path.insert(0, "/app")  # noqa: E402
 
 from d3_assessment.coordinator import AssessmentCoordinator  # noqa: E402
-from d3_assessment.coordinator import (AssessmentPriority, AssessmentRequest,
-                                       AssessmentScheduler, CoordinatorError,
-                                       CoordinatorResult)
-from d3_assessment.models import (AssessmentResult,  # noqa: E402
-                                  AssessmentSession)
+from d3_assessment.coordinator import (
+    AssessmentPriority,
+    AssessmentRequest,
+    AssessmentScheduler,
+    CoordinatorError,
+    CoordinatorResult,
+)
+from d3_assessment.models import AssessmentResult, AssessmentSession  # noqa: E402
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
 
 
@@ -164,10 +167,11 @@ class TestTask034AcceptanceCriteria:
 
         Acceptance Criteria: Timeout handling works
         """
+
         # Mock slow assessment that times out
         async def slow_assessment(*args, **kwargs):
             await asyncio.sleep(10)  # 10 second delay, will timeout
-            
+
         coordinator.pagespeed_assessor.assess_website = AsyncMock(
             side_effect=slow_assessment
         )
@@ -195,7 +199,9 @@ class TestTask034AcceptanceCriteria:
         print("✓ Timeout handling works correctly")
 
     @pytest.mark.asyncio
-    async def test_partial_results_saved(self, mock_techstack_detector, mock_llm_generator):
+    async def test_partial_results_saved(
+        self, mock_techstack_detector, mock_llm_generator
+    ):
         """
         Test that partial results are saved even when some assessments fail
 
@@ -203,14 +209,14 @@ class TestTask034AcceptanceCriteria:
         """
         # Create a fresh coordinator for this test
         coordinator = AssessmentCoordinator(max_concurrent=3)
-        
+
         # Set up failing pagespeed assessor
         failing_pagespeed = AsyncMock()
         failing_pagespeed.assess_website = AsyncMock(
             side_effect=Exception("PageSpeed API Error")
         )
         coordinator.pagespeed_assessor = failing_pagespeed
-        
+
         # Set up successful other assessments
         coordinator.techstack_detector = mock_techstack_detector
         coordinator.llm_generator = mock_llm_generator
@@ -235,7 +241,7 @@ class TestTask034AcceptanceCriteria:
                 print(f"DEBUG: {assessment_type} status: {assessment_result.status}")
             else:
                 print(f"DEBUG: {assessment_type} result is None")
-        
+
         # Verify partial success
         assert result.total_assessments == 3
         assert result.completed_assessments == 2  # 2 succeeded

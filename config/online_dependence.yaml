@@ -1,0 +1,81 @@
+# Online dependence (omega) scaling rules
+# Rules are evaluated in order - first matching rule wins
+# Omega represents how dependent the business is on online presence
+
+rules:
+  - name: low_traffic_high_rev
+    description: "Physical businesses with minimal online traffic"
+    condition: "visits_per_mil < 3000"
+    omega: 0.4
+    
+  - name: mixed_intent_low_commercial
+    description: "Sites with mostly informational queries"
+    condition: "commercial_kw_pct < 40"
+    omega: 0.7
+    
+  - name: service_business_low_online
+    description: "Service businesses with low online dependence"
+    condition: "vertical in ['plumbing', 'hvac', 'roofing', 'landscaping'] and visits_per_mil < 5000"
+    omega: 0.5
+    
+  - name: high_traffic_ecommerce
+    description: "E-commerce or highly online-dependent"
+    condition: "visits_per_mil > 20000 and commercial_kw_pct > 60"
+    omega: 1.2
+    
+  - name: restaurant_delivery
+    description: "Restaurants with delivery/online ordering"
+    condition: "vertical == 'restaurant' and has_online_ordering"
+    omega: 0.9
+    
+  - name: restaurant_no_delivery
+    description: "Restaurants without online ordering"
+    condition: "vertical == 'restaurant' and not has_online_ordering"
+    omega: 0.6
+    
+  - name: b2b_lead_gen
+    description: "B2B businesses focused on lead generation"
+    condition: "business_type == 'b2b' and commercial_kw_pct > 50"
+    omega: 1.1
+    
+  - name: local_retail
+    description: "Local retail with moderate online presence"
+    condition: "vertical == 'retail' and visits_per_mil < 10000"
+    omega: 0.8
+    
+  - name: professional_services
+    description: "Professional services (lawyers, accountants, etc.)"
+    condition: "vertical in ['legal', 'accounting', 'financial'] and visits_per_mil < 8000"
+    omega: 0.6
+    
+  - name: default
+    description: "Default omega for unmatched conditions"
+    condition: "True"  # Always matches
+    omega: 1.0
+
+# Variable definitions for condition evaluation
+variables:
+  visits_per_mil:
+    description: "Monthly visits per $1M revenue"
+    source: "semrush"
+    default: 5000
+    
+  commercial_kw_pct:
+    description: "Percentage of commercial intent keywords"
+    source: "semrush"
+    default: 50
+    
+  vertical:
+    description: "Business vertical/industry"
+    source: "enrichment"
+    default: "other"
+    
+  has_online_ordering:
+    description: "Whether business has online ordering capability"
+    source: "assessment"
+    default: false
+    
+  business_type:
+    description: "B2B or B2C classification"
+    source: "enrichment"
+    default: "b2c"

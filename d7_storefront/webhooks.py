@@ -221,8 +221,12 @@ class WebhookProcessor:
         """
         Process specific event types
         """
-        from .webhook_handlers import (CheckoutSessionHandler, CustomerHandler,
-                                       InvoiceHandler, PaymentIntentHandler)
+        from .webhook_handlers import (
+            CheckoutSessionHandler,
+            CustomerHandler,
+            InvoiceHandler,
+            PaymentIntentHandler,
+        )
 
         try:
             # Route to appropriate handler based on event type

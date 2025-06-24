@@ -6,8 +6,14 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from core.metrics import (CONTENT_TYPE_LATEST, get_metrics_response, metrics,
-                          track_api_call, track_funnel_step, track_time)
+from core.metrics import (
+    CONTENT_TYPE_LATEST,
+    get_metrics_response,
+    metrics,
+    track_api_call,
+    track_funnel_step,
+    track_time,
+)
 
 
 class TestMetricsCollector:

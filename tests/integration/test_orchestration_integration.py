@@ -20,11 +20,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from core.metrics import MetricsCollector
-from d11_orchestration.models import (Experiment, ExperimentStatus,
-                                      ExperimentVariant, PipelineRun,
-                                      PipelineRunStatus, PipelineTask,
-                                      PipelineType, VariantAssignment,
-                                      VariantType, generate_uuid)
+from d11_orchestration.models import (
+    Experiment,
+    ExperimentStatus,
+    ExperimentVariant,
+    PipelineRun,
+    PipelineRunStatus,
+    PipelineTask,
+    PipelineType,
+    VariantAssignment,
+    VariantType,
+    generate_uuid,
+)
 from database.base import Base
 
 
@@ -36,9 +43,13 @@ def test_db():
     )
 
     # Import models to ensure tables are created
-    from d11_orchestration.models import (Experiment, ExperimentVariant,
-                                          PipelineRun, PipelineTask,
-                                          VariantAssignment)
+    from d11_orchestration.models import (
+        Experiment,
+        ExperimentVariant,
+        PipelineRun,
+        PipelineTask,
+        VariantAssignment,
+    )
 
     Base.metadata.create_all(engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -17,11 +17,18 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
-                        Column, DateTime)
+from sqlalchemy import (
+    DECIMAL,
+    JSON,
+    TIMESTAMP,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+)
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import (Float, ForeignKey, Index, Integer, String, Text,
-                        UniqueConstraint)
+from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+
 # Database compatibility: Use JSON for better SQLite compatibility
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
@@ -144,9 +151,7 @@ class SubjectLineVariant(Base):
     __tablename__ = "subject_line_variants"
 
     id = Column(UUID(), primary_key=True, default=generate_uuid)
-    template_id = Column(
-        UUID(), ForeignKey("email_templates.id"), nullable=False
-    )
+    template_id = Column(UUID(), ForeignKey("email_templates.id"), nullable=False)
 
     # Variant details
     variant_name = Column(String(100), nullable=False)
@@ -238,9 +243,7 @@ class PersonalizationVariable(Base):
     __tablename__ = "personalization_variables"
 
     id = Column(UUID(), primary_key=True, default=generate_uuid)
-    token_id = Column(
-        UUID(), ForeignKey("personalization_tokens.id"), nullable=False
-    )
+    token_id = Column(UUID(), ForeignKey("personalization_tokens.id"), nullable=False)
 
     # Context identification
     business_id = Column(String(100), index=True)  # Business this variable is for
@@ -289,9 +292,7 @@ class EmailContent(Base):
     __tablename__ = "email_content"
 
     id = Column(UUID(), primary_key=True, default=generate_uuid)
-    template_id = Column(
-        UUID(), ForeignKey("email_templates.id"), nullable=False
-    )
+    template_id = Column(UUID(), ForeignKey("email_templates.id"), nullable=False)
 
     # Content identification
     business_id = Column(String(100), nullable=False, index=True)
@@ -347,9 +348,7 @@ class ContentVariant(Base):
     __tablename__ = "content_variants"
 
     id = Column(UUID(), primary_key=True, default=generate_uuid)
-    template_id = Column(
-        UUID(), ForeignKey("email_templates.id"), nullable=False
-    )
+    template_id = Column(UUID(), ForeignKey("email_templates.id"), nullable=False)
 
     # Variant configuration
     variant_name = Column(String(100), nullable=False)
@@ -397,9 +396,7 @@ class SpamScoreTracking(Base):
     __tablename__ = "spam_score_tracking"
 
     id = Column(UUID(), primary_key=True, default=generate_uuid)
-    email_content_id = Column(
-        UUID(), ForeignKey("email_content.id"), nullable=False
-    )
+    email_content_id = Column(UUID(), ForeignKey("email_content.id"), nullable=False)
 
     # Spam scoring details
     overall_score = Column(Float, nullable=False)  # 0-100, lower is better
@@ -451,9 +448,7 @@ class EmailGenerationLog(Base):
     __tablename__ = "email_generation_logs"
 
     id = Column(UUID(), primary_key=True, default=generate_uuid)
-    template_id = Column(
-        UUID(), ForeignKey("email_templates.id"), nullable=False
-    )
+    template_id = Column(UUID(), ForeignKey("email_templates.id"), nullable=False)
 
     # Generation context
     business_id = Column(String(100), nullable=False, index=True)

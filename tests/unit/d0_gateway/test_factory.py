@@ -7,9 +7,13 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from d0_gateway.base import BaseAPIClient
-from d0_gateway.factory import (GatewayClientFactory, create_client,
-                                get_available_providers, get_gateway_factory,
-                                register_provider)
+from d0_gateway.factory import (
+    GatewayClientFactory,
+    create_client,
+    get_available_providers,
+    get_gateway_factory,
+    register_provider,
+)
 from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient
 from d0_gateway.providers.sendgrid import SendGridClient
@@ -79,7 +83,15 @@ class TestGatewayClientFactory:
         providers = factory.get_provider_names()
 
         # Check all expected providers are registered
-        expected_providers = ["yelp", "pagespeed", "openai", "sendgrid", "stripe", "dataaxle", "hunter"]
+        expected_providers = [
+            "yelp",
+            "pagespeed",
+            "openai",
+            "sendgrid",
+            "stripe",
+            "dataaxle",
+            "hunter",
+        ]
         for provider in expected_providers:
             assert provider in providers
 
@@ -138,8 +150,9 @@ class TestGatewayClientFactory:
             factory.create_client("invalid_provider")
 
         assert "Unknown provider 'invalid_provider'" in str(exc_info.value)
-        assert "Available: yelp, pagespeed, openai, sendgrid, stripe, dataaxle, hunter" in str(
-            exc_info.value
+        assert (
+            "Available: yelp, pagespeed, openai, sendgrid, stripe, dataaxle, hunter"
+            in str(exc_info.value)
         )
 
     def test_register_custom_provider(self, factory):
@@ -226,7 +239,15 @@ class TestGatewayClientFactory:
 
             # Should check all providers
             assert len(health["providers"]) == 7
-            for provider in ["yelp", "pagespeed", "openai", "sendgrid", "stripe", "dataaxle", "hunter"]:
+            for provider in [
+                "yelp",
+                "pagespeed",
+                "openai",
+                "sendgrid",
+                "stripe",
+                "dataaxle",
+                "hunter",
+            ]:
                 assert provider in health["providers"]
                 assert health["providers"][provider]["status"] == "healthy"
 

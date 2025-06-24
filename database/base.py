@@ -10,11 +10,12 @@ class UUID(TypeDecorator):
     Database-agnostic UUID type.
     Uses PostgreSQL UUID for PostgreSQL, String for other databases.
     """
+
     impl = String
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
-        if dialect.name == 'postgresql':
+        if dialect.name == "postgresql":
             return dialect.type_descriptor(PostgreSQL_UUID())
         else:
             return dialect.type_descriptor(String(36))
@@ -22,7 +23,7 @@ class UUID(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        elif dialect.name == 'postgresql':
+        elif dialect.name == "postgresql":
             return str(value)
         else:
             if not isinstance(value, uuid.UUID):

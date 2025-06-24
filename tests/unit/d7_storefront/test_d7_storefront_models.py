@@ -20,10 +20,18 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 # Import models to test
-from d7_storefront.models import (Customer, PaymentMethod, PaymentSession,
-                                  ProductType, D7Purchase, PurchaseCreateRequest,
-                                  PurchaseItem, PurchaseStatus,
-                                  PurchaseSummary, generate_uuid)
+from d7_storefront.models import (
+    Customer,
+    PaymentMethod,
+    PaymentSession,
+    ProductType,
+    D7Purchase,
+    PurchaseCreateRequest,
+    PurchaseItem,
+    PurchaseStatus,
+    PurchaseSummary,
+    generate_uuid,
+)
 from database.base import Base
 
 

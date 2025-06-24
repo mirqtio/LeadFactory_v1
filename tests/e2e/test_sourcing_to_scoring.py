@@ -30,6 +30,7 @@ from d3_assessment.coordinator import AssessmentCoordinator
 from d3_assessment.models import AssessmentResult
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d5_scoring.models import ScoringEngine
+
 # Import models
 from database.models import Business, ScoringResult, Target
 

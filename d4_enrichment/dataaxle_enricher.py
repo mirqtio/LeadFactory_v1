@@ -10,9 +10,11 @@ from .models import EnrichmentSource
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
 
+
 @dataclass
 class EnrichmentResult:
     """Simple result class for enrichment data"""
+
     business_id: str
     source: EnrichmentSource
     email: Optional[str] = None
@@ -27,48 +29,49 @@ class EnrichmentResult:
     raw_data: Optional[Dict[str, Any]] = None
     match_confidence: str = "high"  # For coordinator compatibility
 
+
 logger = logging.getLogger(__name__)
 
 
 class DataAxleEnricher:
     """Enricher that uses Data Axle API for business matching and enrichment"""
-    
+
     def __init__(self, client: Optional[DataAxleClient] = None):
         self.client = client or DataAxleClient()
         self.source = EnrichmentSource.DATA_AXLE
-        
+
     async def enrich_business(
         self, business_data: Dict[str, Any], business_id: str
     ) -> Optional[EnrichmentResult]:
         """
         Enrich business data using Data Axle API
-        
+
         Args:
             business_data: Original business data from Yelp
             business_id: Business ID for tracking
-            
+
         Returns:
             EnrichmentResult if match found, None otherwise
         """
         try:
             # Call Data Axle to match business
             result = await self.client.match_business(business_data)
-            
+
             if not result:
                 logger.info(f"No Data Axle match found for business {business_id}")
                 return None
-                
+
             # Extract matched data
             match_data = result.get("data", {})
             confidence = result.get("confidence", 0.0)
-            
+
             # Only accept high confidence matches
             if confidence < 0.7:
                 logger.info(
                     f"Low confidence match ({confidence}) for business {business_id}"
                 )
                 return None
-            
+
             # Determine match confidence level
             if confidence >= 0.9:
                 match_confidence = "exact" if confidence >= 1.0 else "high"
@@ -76,7 +79,7 @@ class DataAxleEnricher:
                 match_confidence = "medium"
             else:
                 match_confidence = "low"
-                
+
             # Build enrichment result
             enrichment = EnrichmentResult(
                 business_id=business_id,
@@ -95,17 +98,17 @@ class DataAxleEnricher:
                 raw_data={
                     "match_data": match_data,
                     "confidence": confidence,
-                    "match_id": result.get("match_id")
-                }
+                    "match_id": result.get("match_id"),
+                },
             )
-            
+
             logger.info(
                 f"Successfully enriched business {business_id} via Data Axle "
                 f"(confidence: {confidence})"
             )
-            
+
             return enrichment
-            
+
         except Exception as e:
             logger.error(f"Data Axle enrichment failed for {business_id}: {e}")
             return None

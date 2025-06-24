@@ -17,9 +17,15 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .similarity import (AddressSimilarity, NameSimilarity, PhoneSimilarity,
-                         SimilarityAlgorithm, SimilarityResult,
-                         WeightedSimilarity, ZipSimilarity)
+from .similarity import (
+    AddressSimilarity,
+    NameSimilarity,
+    PhoneSimilarity,
+    SimilarityAlgorithm,
+    SimilarityResult,
+    WeightedSimilarity,
+    ZipSimilarity,
+)
 
 logger = logging.getLogger(__name__)
 

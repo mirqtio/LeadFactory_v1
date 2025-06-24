@@ -11,8 +11,13 @@ Components:
 - Source attribution: Track data provenance
 """
 
-from .models import (DataVersion, EnrichmentRequest, EnrichmentResult,
-                     EnrichmentSource, MatchConfidence)
+from .models import (
+    DataVersion,
+    EnrichmentRequest,
+    EnrichmentResult,
+    EnrichmentSource,
+    MatchConfidence,
+)
 
 __all__ = [
     "EnrichmentResult",

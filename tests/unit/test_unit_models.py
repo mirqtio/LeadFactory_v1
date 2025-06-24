@@ -10,12 +10,22 @@ from sqlalchemy.orm import sessionmaker
 
 from d3_assessment.models import AssessmentResult
 from d3_assessment.types import AssessmentType
-from d11_orchestration.models import (Experiment, ExperimentStatus,
-                                      ExperimentVariant)
+from d11_orchestration.models import Experiment, ExperimentStatus, ExperimentVariant
 from database.base import Base
-from database.models import (Batch, BatchStatus, Business, Email, EmailClick,
-                             EmailStatus, GatewayUsage, GeoType, Purchase,
-                             PurchaseStatus, ScoringResult, Target)
+from database.models import (
+    Batch,
+    BatchStatus,
+    Business,
+    Email,
+    EmailClick,
+    EmailStatus,
+    GatewayUsage,
+    GeoType,
+    Purchase,
+    PurchaseStatus,
+    ScoringResult,
+    Target,
+)
 
 
 @pytest.fixture

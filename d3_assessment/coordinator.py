@@ -154,7 +154,7 @@ class AssessmentCoordinator:
         results = await self._execute_parallel_assessments(
             business_id, session_id, requests, industry, business_data
         )
-        
+
         # PRD v1.2: Perform email enrichment if business data provided
         email_result = None
         if business_data:
@@ -162,31 +162,43 @@ class AssessmentCoordinator:
                 email, source = await self.email_enricher.enrich_email(business_data)
                 if email:
                     email_result = {
-                        'email': email,
-                        'source': source,
-                        'enriched_at': datetime.utcnow().isoformat()
+                        "email": email,
+                        "source": source,
+                        "enriched_at": datetime.utcnow().isoformat(),
                     }
                     # Store email in business data for downstream use
-                    business_data['email'] = email
-                    business_data['email_source'] = source
+                    business_data["email"] = email
+                    business_data["email_source"] = source
             except Exception as e:
                 # Log but don't fail assessment for email enrichment
                 # Email enrichment is supplementary
                 import logging
+
                 logging.getLogger(__name__).warning(f"Email enrichment failed: {e}")
 
         # Calculate totals
         completed_at = datetime.utcnow()
         execution_time = max(1, int((completed_at - started_at).total_seconds() * 1000))
 
-        completed_count = len([
-            r for r in results.values() 
-            if r is not None and r.status == AssessmentStatus.COMPLETED
-        ])
-        failed_count = len([
-            r for r in results.values() 
-            if r is None or (r is not None and r.status in [AssessmentStatus.FAILED, AssessmentStatus.CANCELLED])
-        ])
+        completed_count = len(
+            [
+                r
+                for r in results.values()
+                if r is not None and r.status == AssessmentStatus.COMPLETED
+            ]
+        )
+        failed_count = len(
+            [
+                r
+                for r in results.values()
+                if r is None
+                or (
+                    r is not None
+                    and r.status
+                    in [AssessmentStatus.FAILED, AssessmentStatus.CANCELLED]
+                )
+            ]
+        )
         total_cost = sum(
             r.total_cost_usd or Decimal("0")
             for r in results.values()
@@ -227,11 +239,11 @@ class AssessmentCoordinator:
             started_at=started_at,
             completed_at=completed_at,
         )
-        
+
         # Add email enrichment result if available
         if email_result:
             result.email_enrichment = email_result
-            
+
         return result
 
     async def _execute_parallel_assessments(
@@ -261,7 +273,11 @@ class AssessmentCoordinator:
                         # Execute with timeout
                         result = await asyncio.wait_for(
                             self._run_assessment(
-                                business_id, session_id, request, industry, business_data
+                                business_id,
+                                session_id,
+                                request,
+                                industry,
+                                business_data,
                             ),
                             timeout=request.timeout_seconds,
                         )

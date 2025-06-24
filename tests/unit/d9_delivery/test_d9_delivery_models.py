@@ -20,9 +20,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
-from d9_delivery.models import (BounceTracking, BounceType, DeliveryEvent,
-                                DeliveryStatus, EmailDelivery, EventType,
-                                SuppressionList, SuppressionReason)
+from d9_delivery.models import (
+    BounceTracking,
+    BounceType,
+    DeliveryEvent,
+    DeliveryStatus,
+    EmailDelivery,
+    EventType,
+    SuppressionList,
+    SuppressionReason,
+)
 from database.base import Base
 
 

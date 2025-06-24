@@ -580,7 +580,7 @@ class TestRateLimiterEnhancements:
 
         with patch.object(limiter.settings, "use_stubs", False):
             mock_redis = AsyncMock()
-            
+
             # Mock eval to return successful results
             mock_redis.eval.return_value = [1, 10, 1]  # Always allow
             limiter._redis = mock_redis

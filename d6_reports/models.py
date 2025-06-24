@@ -16,8 +16,15 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from sqlalchemy import (DECIMAL, JSON, Boolean, CheckConstraint, Column,
-                        DateTime, ForeignKey)
+from sqlalchemy import (
+    DECIMAL,
+    JSON,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+)
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
@@ -92,9 +99,7 @@ class ReportGeneration(Base):
         SQLEnum(ReportType), nullable=False, default=ReportType.BUSINESS_AUDIT
     )
     status = Column(SQLEnum(ReportStatus), nullable=False, default=ReportStatus.PENDING)
-    template_id = Column(
-        String, ForeignKey("d6_report_templates.id"), nullable=False
-    )
+    template_id = Column(String, ForeignKey("d6_report_templates.id"), nullable=False)
 
     # Generation tracking
     requested_at = Column(DateTime, nullable=False, default=func.now())
@@ -267,9 +272,7 @@ class ReportSection(Base):
 
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    template_id = Column(
-        String, ForeignKey("d6_report_templates.id"), nullable=False
-    )
+    template_id = Column(String, ForeignKey("d6_report_templates.id"), nullable=False)
 
     # Section metadata
     name = Column(String, nullable=False)
@@ -307,8 +310,7 @@ class ReportSection(Base):
         Index("idx_section_template_id", "template_id"),
         Index("idx_section_order", "template_id", "section_order"),
         Index("idx_section_enabled", "is_enabled"),
-        UniqueConstraint("template_id", "name",
-                         name="uq_section_template_name"),
+        UniqueConstraint("template_id", "name", name="uq_section_template_name"),
     )
 
     def __repr__(self):

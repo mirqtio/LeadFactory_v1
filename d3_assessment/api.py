@@ -20,14 +20,22 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-from .coordinator import (AssessmentCoordinator, AssessmentPriority,
-                          CoordinatorResult)
-from .schemas import (AIInsightsResult, AssessmentResults,
-                      AssessmentStatusResponse, BatchAssessmentRequest,
-                      BatchAssessmentResponse, ErrorResponse,
-                      HealthCheckResponse, PageSpeedMetrics, TechStackResult,
-                      TriggerAssessmentRequest, TriggerAssessmentResponse,
-                      validate_business_id, validate_session_id)
+from .coordinator import AssessmentCoordinator, AssessmentPriority, CoordinatorResult
+from .schemas import (
+    AIInsightsResult,
+    AssessmentResults,
+    AssessmentStatusResponse,
+    BatchAssessmentRequest,
+    BatchAssessmentResponse,
+    ErrorResponse,
+    HealthCheckResponse,
+    PageSpeedMetrics,
+    TechStackResult,
+    TriggerAssessmentRequest,
+    TriggerAssessmentResponse,
+    validate_business_id,
+    validate_session_id,
+)
 from .types import AssessmentStatus, AssessmentType
 
 # Setup logging
@@ -67,8 +75,8 @@ def create_error_response(
     )
     # Convert to dict with JSON-serializable datetime
     error_dict = error_data.dict()
-    if 'timestamp' in error_dict and error_dict['timestamp']:
-        error_dict['timestamp'] = error_dict['timestamp'].isoformat()
+    if "timestamp" in error_dict and error_dict["timestamp"]:
+        error_dict["timestamp"] = error_dict["timestamp"].isoformat()
     return HTTPException(status_code=status_code, detail=error_dict)
 
 

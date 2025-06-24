@@ -122,6 +122,50 @@ def check_api(provider: str):
 
 
 @cli.command()
+@click.argument("url")
+def audit(url: str):
+    """Run a quick website audit (smoke test)"""
+    import requests
+
+    async def run_audit():
+        click.echo(f"Running audit for: {url}")
+
+        # Basic connectivity check
+        try:
+            response = requests.get(url, timeout=10)
+            click.echo(f"✓ Website reachable (status: {response.status_code})")
+
+            # Check if it's a valid business website
+            if response.status_code == 200:
+                content_length = len(response.content)
+                click.echo(f"✓ Content retrieved ({content_length} bytes)")
+
+                # Simple checks
+                has_title = "<title>" in response.text.lower()
+                has_phone = any(
+                    term in response.text for term in ["phone", "tel:", "call"]
+                )
+                has_address = any(
+                    term in response.text.lower()
+                    for term in ["address", "location", "street"]
+                )
+
+                click.echo(f"✓ Has title tag: {has_title}")
+                click.echo(f"✓ Has phone info: {has_phone}")
+                click.echo(f"✓ Has address info: {has_address}")
+
+                click.echo("\nAudit complete! Full assessment available via API.")
+            else:
+                click.echo(f"✗ Website returned non-200 status: {response.status_code}")
+
+        except requests.RequestException as e:
+            click.echo(f"✗ Failed to reach website: {e}", err=True)
+            return
+
+    asyncio.run(run_audit())
+
+
+@cli.command()
 def env_info():
     """Display environment information"""
     click.echo(f"LeadFactory v{settings.app_version}")

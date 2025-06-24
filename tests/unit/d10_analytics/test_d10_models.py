@@ -19,10 +19,18 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
-from d10_analytics.models import (AggregationPeriod, DashboardMetric,
-                                  EventType, FunnelConversion, FunnelEvent,
-                                  FunnelStage, MetricSnapshot, MetricType,
-                                  TimeSeriesData, generate_uuid)
+from d10_analytics.models import (
+    AggregationPeriod,
+    DashboardMetric,
+    EventType,
+    FunnelConversion,
+    FunnelEvent,
+    FunnelStage,
+    MetricSnapshot,
+    MetricType,
+    TimeSeriesData,
+    generate_uuid,
+)
 from database.base import Base
 
 

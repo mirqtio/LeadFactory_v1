@@ -19,8 +19,12 @@ import pytest
 sys.path.insert(0, "/app")
 
 from d5_scoring.engine import ConfigurableScoringEngine, ScoringMetrics
-from d5_scoring.rules_parser import (ComponentRules, ScoringRule,
-                                     ScoringRulesParser, TierRule)
+from d5_scoring.rules_parser import (
+    ComponentRules,
+    ScoringRule,
+    ScoringRulesParser,
+    TierRule,
+)
 
 
 class TestTask046AcceptanceCriteria:

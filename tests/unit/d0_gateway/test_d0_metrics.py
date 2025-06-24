@@ -399,7 +399,7 @@ class TestGatewayMetricsIntegration:
         # Reset singleton state for isolated testing
         GatewayMetrics._instance = None
         GatewayMetrics._initialized = False
-        
+
         gateway_metrics = GatewayMetrics()
 
         # Verify logger was created with correct domain

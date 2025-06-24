@@ -7,8 +7,12 @@ import pytest
 
 from d0_gateway.base import BaseAPIClient
 from d0_gateway.facade import GatewayFacade, get_gateway_facade
-from d0_gateway.factory import (GatewayClientFactory, create_client,
-                                get_gateway_factory, register_provider)
+from d0_gateway.factory import (
+    GatewayClientFactory,
+    create_client,
+    get_gateway_factory,
+    register_provider,
+)
 
 
 class TestGatewayFactory:
@@ -18,11 +22,12 @@ class TestGatewayFactory:
         # Reset singleton state for testing
         GatewayClientFactory._instance = None
         GatewayClientFactory._initialized = False
-        
+
         # Also reset module-level factory instance
         import d0_gateway.factory
+
         d0_gateway.factory._factory_instance = None
-        
+
         return GatewayClientFactory()
 
     def test_thread_safe_singleton_pattern(self):
@@ -30,9 +35,10 @@ class TestGatewayFactory:
         # Reset singleton for test
         GatewayClientFactory._instance = None
         GatewayClientFactory._initialized = False
-        
+
         # Also reset module-level factory instance
         import d0_gateway.factory
+
         d0_gateway.factory._factory_instance = None
 
         # Create multiple instances

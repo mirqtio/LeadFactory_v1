@@ -23,10 +23,16 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
-from .models import (ContentStrategy, EmailContentType, EmailTemplate,
-                     PersonalizationStrategy, PersonalizationToken,
-                     PersonalizationVariable, SubjectLineVariant,
-                     VariantStatus)
+from .models import (
+    ContentStrategy,
+    EmailContentType,
+    EmailTemplate,
+    PersonalizationStrategy,
+    PersonalizationToken,
+    PersonalizationVariable,
+    SubjectLineVariant,
+    VariantStatus,
+)
 
 
 class GenerationStrategy(str, Enum):

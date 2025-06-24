@@ -19,10 +19,18 @@ from decimal import Decimal
 sys.path.insert(0, "/app")
 
 # Import models to test
-from d7_storefront.models import (Customer, PaymentMethod, PaymentSession,
-                                  ProductType, D7Purchase, PurchaseCreateRequest,
-                                  PurchaseItem, PurchaseStatus,
-                                  PurchaseSummary, generate_uuid)
+from d7_storefront.models import (
+    Customer,
+    PaymentMethod,
+    PaymentSession,
+    ProductType,
+    D7Purchase,
+    PurchaseCreateRequest,
+    PurchaseItem,
+    PurchaseStatus,
+    PurchaseSummary,
+    generate_uuid,
+)
 
 
 def test_enum_values():

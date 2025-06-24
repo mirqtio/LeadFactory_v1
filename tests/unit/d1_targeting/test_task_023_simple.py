@@ -17,9 +17,11 @@ import pytest
 sys.path.insert(0, "/app")
 
 from d1_targeting.api import router
-from d1_targeting.schemas import (CreateTargetUniverseSchema,
-                                  GeographicConstraintSchema,
-                                  TargetingCriteriaSchema)
+from d1_targeting.schemas import (
+    CreateTargetUniverseSchema,
+    GeographicConstraintSchema,
+    TargetingCriteriaSchema,
+)
 from d1_targeting.types import GeographyLevel, VerticalMarket
 
 
@@ -142,14 +144,16 @@ class TestTask023AcceptanceCriteriaSimple:
         """Test that schema structure is complete"""
 
         # Test that key schemas exist and can be imported
-        from d1_targeting.schemas import (BatchResponseSchema,
-                                          CampaignResponseSchema,
-                                          CreateCampaignSchema,
-                                          CreateTargetUniverseSchema,
-                                          ErrorResponseSchema,
-                                          QuotaAllocationResponseSchema,
-                                          TargetUniverseResponseSchema,
-                                          UpdateTargetUniverseSchema)
+        from d1_targeting.schemas import (
+            BatchResponseSchema,
+            CampaignResponseSchema,
+            CreateCampaignSchema,
+            CreateTargetUniverseSchema,
+            ErrorResponseSchema,
+            QuotaAllocationResponseSchema,
+            TargetUniverseResponseSchema,
+            UpdateTargetUniverseSchema,
+        )
 
         # Test that schemas have proper field types
         universe_schema = CreateTargetUniverseSchema
@@ -207,8 +211,7 @@ class TestTask023AcceptanceCriteriaSimple:
         assert api_router == router
 
         # Test that we can import key components used by the API
-        from d1_targeting import (BatchScheduler, QuotaTracker,
-                                  TargetUniverseManager)
+        from d1_targeting import BatchScheduler, QuotaTracker, TargetUniverseManager
 
         assert TargetUniverseManager is not None
         assert BatchScheduler is not None
@@ -234,11 +237,13 @@ class TestTask023AcceptanceCriteriaSimple:
         assert callable(handle_api_errors)
 
         # Test schemas.py
-        from d1_targeting.schemas import (BatchResponseSchema,
-                                          CreateCampaignSchema,
-                                          CreateTargetUniverseSchema,
-                                          PaginationSchema,
-                                          TargetUniverseResponseSchema)
+        from d1_targeting.schemas import (
+            BatchResponseSchema,
+            CreateCampaignSchema,
+            CreateTargetUniverseSchema,
+            PaginationSchema,
+            TargetUniverseResponseSchema,
+        )
 
         assert CreateTargetUniverseSchema is not None
         assert TargetUniverseResponseSchema is not None
@@ -258,8 +263,7 @@ class TestTask023AcceptanceCriteriaSimple:
         """Test that enum integration works properly"""
 
         # Test that enums can be used in schemas
-        from d1_targeting.types import (CampaignStatus, GeographyLevel,
-                                        VerticalMarket)
+        from d1_targeting.types import CampaignStatus, GeographyLevel, VerticalMarket
 
         # Test vertical market enum
         assert VerticalMarket.RESTAURANTS.value == "restaurants"

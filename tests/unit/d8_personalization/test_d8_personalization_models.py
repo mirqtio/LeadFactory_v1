@@ -19,17 +19,24 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from d8_personalization.models import (ContentStrategy, ContentVariant,
-                                       EmailContent, EmailContentType,
-                                       EmailGenerationLog, EmailTemplate,
-                                       PersonalizationStrategy,
-                                       PersonalizationToken,
-                                       PersonalizationVariable, SpamCategory,
-                                       SpamScoreTracking, SubjectLineVariant,
-                                       VariantStatus,
-                                       calculate_personalization_score,
-                                       determine_risk_level,
-                                       generate_content_hash)
+from d8_personalization.models import (
+    ContentStrategy,
+    ContentVariant,
+    EmailContent,
+    EmailContentType,
+    EmailGenerationLog,
+    EmailTemplate,
+    PersonalizationStrategy,
+    PersonalizationToken,
+    PersonalizationVariable,
+    SpamCategory,
+    SpamScoreTracking,
+    SubjectLineVariant,
+    VariantStatus,
+    calculate_personalization_score,
+    determine_risk_level,
+    generate_content_hash,
+)
 from database.base import Base
 
 

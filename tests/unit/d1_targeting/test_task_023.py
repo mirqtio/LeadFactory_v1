@@ -20,14 +20,20 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, "/app")
 
 from d1_targeting.api import handle_api_errors, router, get_db
-from d1_targeting.schemas import (BatchStatusUpdateSchema,
-                                  CreateCampaignSchema,
-                                  CreateTargetUniverseSchema,
-                                  GeographicConstraintSchema,
-                                  TargetingCriteriaSchema,
-                                  UpdateTargetUniverseSchema)
-from d1_targeting.types import (BatchProcessingStatus, CampaignStatus,
-                                GeographyLevel, VerticalMarket)
+from d1_targeting.schemas import (
+    BatchStatusUpdateSchema,
+    CreateCampaignSchema,
+    CreateTargetUniverseSchema,
+    GeographicConstraintSchema,
+    TargetingCriteriaSchema,
+    UpdateTargetUniverseSchema,
+)
+from d1_targeting.types import (
+    BatchProcessingStatus,
+    CampaignStatus,
+    GeographyLevel,
+    VerticalMarket,
+)
 
 
 class TestTask023AcceptanceCriteria:
@@ -68,20 +74,20 @@ class TestTask023AcceptanceCriteria:
 
         # Set up mocks for health check queries
         mock_db_session.execute.return_value = None  # SELECT 1 query
-        
+
         # Mock for TargetUniverse count query
         mock_universe_query = Mock()
         mock_universe_query.filter.return_value.count.return_value = 5
-        
-        # Mock for Campaign count query  
+
+        # Mock for Campaign count query
         mock_campaign_query = Mock()
         mock_campaign_query.filter.return_value.count.return_value = 3
-        
+
         # Set up query method to return different mocks based on what's queried
         def mock_query(model):
-            if 'TargetUniverse' in str(model):
+            if "TargetUniverse" in str(model):
                 return mock_universe_query
-            elif 'Campaign' in str(model):
+            elif "Campaign" in str(model):
                 return mock_campaign_query
             else:
                 # For list endpoints, return a mock that supports pagination
@@ -91,11 +97,13 @@ class TestTask023AcceptanceCriteria:
                 list_mock.offset.return_value = list_mock
                 list_mock.limit.return_value = list_mock
                 list_mock.all.return_value = []
-                list_mock.filter_by.return_value.first.return_value = None  # For not found tests
+                list_mock.filter_by.return_value.first.return_value = (
+                    None  # For not found tests
+                )
                 return list_mock
-                
+
         mock_db_session.query.side_effect = mock_query
-        
+
         # Test health endpoint (may fail due to database issues)
         response = client.get("/api/v1/targeting/health")
         assert response.status_code in [
@@ -107,11 +115,11 @@ class TestTask023AcceptanceCriteria:
         # Reset mocks for list endpoint test
         mock_db_session.reset_mock()
         mock_db_session.query = Mock()
-        
+
         # Set up fresh mock for universes list
         list_mock = Mock()
         list_mock.filter.return_value = list_mock
-        list_mock.offset.return_value = list_mock  
+        list_mock.offset.return_value = list_mock
         list_mock.limit.return_value = list_mock
         list_mock.all.return_value = []
         mock_db_session.query.return_value = list_mock
@@ -407,22 +415,26 @@ class TestTask023AcceptanceCriteria:
         for endpoint in get_endpoints:
             with patch("d1_targeting.api.QuotaTracker") as mock_quota, patch(
                 "d1_targeting.api.TargetUniverseManager"
-            ) as mock_manager, patch("d1_targeting.api.BatchScheduler") as mock_scheduler:
+            ) as mock_manager, patch(
+                "d1_targeting.api.BatchScheduler"
+            ) as mock_scheduler:
                 # Set up specific mocks for complex endpoints
                 mock_quota.return_value.get_daily_quota.return_value = 1000
                 mock_quota.return_value.get_used_quota.return_value = 100
                 mock_quota.return_value.get_remaining_quota.return_value = 900
                 mock_quota.return_value.get_campaign_quota_allocation.return_value = {}
-                
+
                 mock_manager.return_value.rank_universes_by_priority.return_value = []
                 mock_manager.return_value.calculate_freshness_score.return_value = 0.5
-                
+
                 mock_scheduler.return_value.get_pending_batches.return_value = []
-                
+
                 # For analytics/quota endpoint, need to mock campaigns query result
-                if 'analytics/quota' in endpoint:
-                    mock_db_session.query.return_value.filter.return_value.all.return_value = []
-                
+                if "analytics/quota" in endpoint:
+                    mock_db_session.query.return_value.filter.return_value.all.return_value = (
+                        []
+                    )
+
                 response = client.get(endpoint)
                 assert response.status_code in [
                     200,
@@ -474,7 +486,7 @@ class TestTask023AcceptanceCriteria:
         mock_campaign.total_targets = 100
         mock_campaign.contacted_targets = 90
         mock_campaign.responded_targets = 10
-        
+
         # Create a proper filter_by mock chain
         mock_filter_by = Mock()
         mock_filter_by.first.return_value = mock_campaign
@@ -546,11 +558,13 @@ class TestTask023AcceptanceCriteria:
         assert len(router.routes) > 0
 
         # Test schemas.py
-        from d1_targeting.schemas import (BatchResponseSchema,
-                                          CampaignResponseSchema,
-                                          CreateCampaignSchema,
-                                          CreateTargetUniverseSchema,
-                                          TargetUniverseResponseSchema)
+        from d1_targeting.schemas import (
+            BatchResponseSchema,
+            CampaignResponseSchema,
+            CreateCampaignSchema,
+            CreateTargetUniverseSchema,
+            TargetUniverseResponseSchema,
+        )
 
         # Test that schemas can be instantiated
         assert CreateTargetUniverseSchema is not None

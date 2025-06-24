@@ -1,0 +1,25 @@
+# Confidence weights for different data sources
+# Higher weight = more reliable/accurate source
+# Used to calculate confidence intervals for impact estimates
+
+sources:
+  pagespeed: 0.9      # Google PageSpeed - highly reliable, objective metrics
+  lighthouse: 0.9     # Lighthouse audits - same reliability as PageSpeed
+  semrush: 0.8        # SEMrush traffic data - good but estimates
+  dataaxle: 0.85      # Data Axle business data - comprehensive but may be outdated
+  hunter: 0.7         # Hunter.io email finder - variable accuracy
+  screenshotone: 0.95 # Screenshot service - direct visual capture
+  visual: 0.6         # Visual analysis - subjective, AI-based
+  gbp: 0.9            # Google Business Profile - authoritative when available
+  manual: 0.5         # Manual analysis - subjective
+
+# Category-specific confidence adjustments
+category_modifiers:
+  performance: 1.0    # Objective metrics, no adjustment needed
+  seo: 0.95          # Mostly objective with some interpretation
+  visual: 0.8        # More subjective, lower confidence
+  technical: 1.0     # Objective technical checks
+  trust: 0.85        # Mix of objective and subjective signals
+
+# Default confidence for unknown sources
+default_confidence: 0.5

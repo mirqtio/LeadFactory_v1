@@ -17,19 +17,30 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Index,
-                        Integer, Numeric, String, Text, UniqueConstraint)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 
 from database.base import UUID
+
 
 # UUID handling for both PostgreSQL and SQLite
 def get_uuid_column():
     return Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
+
 def get_uuid_foreign_key(table_name):
-    return Column(
-        UUID(as_uuid=True), ForeignKey(f"{table_name}.id"), nullable=False
-    )
+    return Column(UUID(as_uuid=True), ForeignKey(f"{table_name}.id"), nullable=False)
 
 
 from sqlalchemy.orm import relationship

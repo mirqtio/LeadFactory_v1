@@ -20,11 +20,16 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from d9_delivery.compliance import ComplianceManager
-from d9_delivery.models import (BounceTracking, BounceType, DeliveryEvent,
-                                DeliveryStatus, EmailDelivery, EventType,
-                                SuppressionList)
-from d9_delivery.webhook_handler import (WebhookHandler,
-                                         process_sendgrid_webhook)
+from d9_delivery.models import (
+    BounceTracking,
+    BounceType,
+    DeliveryEvent,
+    DeliveryStatus,
+    EmailDelivery,
+    EventType,
+    SuppressionList,
+)
+from d9_delivery.webhook_handler import WebhookHandler, process_sendgrid_webhook
 from database.models import Base
 from database.session import SessionLocal, engine
 

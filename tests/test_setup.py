@@ -45,15 +45,23 @@ def test_environment_setup():
     env = os.getenv("ENVIRONMENT", "development")
     use_stubs = os.getenv("USE_STUBS", "false")
     db_url = os.getenv("DATABASE_URL", "sqlite:///tmp/test.db")
-    
+
     # For CI/testing, we accept either test or development environment
-    assert env in ["test", "development"], f"ENVIRONMENT should be test or development, got {env}"
-    
+    assert env in [
+        "test",
+        "development",
+    ], f"ENVIRONMENT should be test or development, got {env}"
+
     # In test environments, stubs might be enabled
-    assert use_stubs in ["true", "false"], f"USE_STUBS should be true or false, got {use_stubs}"
-    
+    assert use_stubs in [
+        "true",
+        "false",
+    ], f"USE_STUBS should be true or false, got {use_stubs}"
+
     # Database URL should point to a test database
-    assert "test" in db_url or ":memory:" in db_url, f"DATABASE_URL should contain 'test' or ':memory:', got {db_url}"
+    assert (
+        "test" in db_url or ":memory:" in db_url
+    ), f"DATABASE_URL should contain 'test' or ':memory:', got {db_url}"
 
 
 def test_project_structure():

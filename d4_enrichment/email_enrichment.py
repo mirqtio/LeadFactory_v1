@@ -3,12 +3,12 @@ Email enrichment logic for PRD v1.2
 Implements Hunter-first, Data Axle fallback pattern
 """
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from urllib.parse import urlparse
 
 from d0_gateway.providers.hunter import HunterClient
 from d0_gateway.providers.dataaxle import DataAxleClient
-from d0_gateway.factory import get_provider
+from d0_gateway.factory import get_gateway_factory
 from core.config import settings
 from core.logging import get_logger
 
@@ -22,153 +22,157 @@ class EmailEnricher:
     2. If confidence >= 0.75, use it
     3. Otherwise try Data Axle if API key available
     """
-    
+
     def __init__(self):
         self._hunter_client = None
         self._dataaxle_client = None
-        
+
     async def _get_hunter_client(self) -> Optional[HunterClient]:
         """Get Hunter client if available"""
         if not self._hunter_client and settings.hunter_api_key:
             try:
-                self._hunter_client = await get_provider("hunter")
+                self._hunter_client = get_gateway_factory().create_client("hunter")
             except Exception as e:
                 logger.error(f"Failed to initialize Hunter client: {e}")
         return self._hunter_client
-        
+
     async def _get_dataaxle_client(self) -> Optional[DataAxleClient]:
         """Get Data Axle client if available"""
         if not self._dataaxle_client and settings.data_axle_api_key:
             try:
-                self._dataaxle_client = await get_provider("dataaxle")
+                self._dataaxle_client = get_gateway_factory().create_client("dataaxle")
             except Exception as e:
                 logger.error(f"Failed to initialize Data Axle client: {e}")
         return self._dataaxle_client
-    
+
     async def enrich_email(self, business: Dict[str, Any]) -> Tuple[Optional[str], str]:
         """
         Enrich business with email following PRD v1.2 logic
-        
+
         Args:
             business: Business data with domain/website
-            
+
         Returns:
             Tuple of (email, source) where source is 'hunter', 'dataaxle', or None
         """
         # Check if business already has email
-        if business.get('email'):
-            return business['email'], 'existing'
-            
+        if business.get("email"):
+            return business["email"], "existing"
+
         # Extract domain from website
         domain = self._extract_domain(business)
         if not domain:
-            logger.warning(f"No domain found for business {business.get('name', 'unknown')}")
+            logger.warning(
+                f"No domain found for business {business.get('name', 'unknown')}"
+            )
             return None, None
-            
+
         # Try Hunter first
         hunter_client = await self._get_hunter_client()
         if hunter_client:
             try:
                 email, confidence = await hunter_client.domain_search(domain)
-                
+
                 # PRD v1.2: Use if confidence >= 0.75
                 if email and confidence >= 0.75:
                     logger.info(
                         f"Found email via Hunter for {domain}: {email} "
                         f"(confidence: {confidence:.2f})"
                     )
-                    return email, 'hunter'
+                    return email, "hunter"
                 elif email:
                     logger.info(
                         f"Hunter email confidence too low for {domain}: "
                         f"{confidence:.2f} < 0.75"
                     )
-                    
+
             except Exception as e:
                 logger.error(f"Hunter search failed for {domain}: {e}")
-        
+
         # Try Data Axle as fallback
         dataaxle_client = await self._get_dataaxle_client()
         if dataaxle_client and settings.data_axle_api_key:
             try:
                 data = await dataaxle_client.enrich(domain)
-                
-                if data and data.get('email'):
-                    email = data['email']
+
+                if data and data.get("email"):
+                    email = data["email"]
                     logger.info(f"Found email via Data Axle for {domain}: {email}")
-                    return email, 'dataaxle'
-                    
+                    return email, "dataaxle"
+
             except Exception as e:
                 logger.error(f"Data Axle enrichment failed for {domain}: {e}")
-        
+
         # No email found
         logger.info(f"No email found for {domain}")
         return None, None
-    
+
     def _extract_domain(self, business: Dict[str, Any]) -> Optional[str]:
         """Extract domain from business data"""
         # Try website field first
-        website = business.get('website')
+        website = business.get("website")
         if website:
             try:
                 parsed = urlparse(website)
                 domain = parsed.netloc
                 # Remove www prefix
-                if domain.startswith('www.'):
+                if domain.startswith("www."):
                     domain = domain[4:]
                 return domain
             except Exception:
                 pass
-                
+
         # Try domain field
-        domain = business.get('domain')
+        domain = business.get("domain")
         if domain:
             # Clean up domain
-            if domain.startswith('www.'):
+            if domain.startswith("www."):
                 domain = domain[4:]
             return domain
-            
+
         # Try to construct from business name and location
         # This is a last resort and may not be accurate
-        name = business.get('name', '').lower()
+        name = business.get("name", "").lower()
         if name:
             # Remove common business suffixes
-            for suffix in [' inc', ' llc', ' corp', ' ltd', ' co']:
-                name = name.replace(suffix, '')
+            for suffix in [" inc", " llc", " corp", " ltd", " co"]:
+                name = name.replace(suffix, "")
             # Remove special characters
-            name = ''.join(c for c in name if c.isalnum() or c == ' ')
+            name = "".join(c for c in name if c.isalnum() or c == " ")
             # Convert spaces to hyphens
-            name = name.strip().replace(' ', '-')
+            name = name.strip().replace(" ", "-")
             if name:
                 return f"{name}.com"  # Guess .com domain
-                
+
         return None
-    
-    async def enrich_batch(self, businesses: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+
+    async def enrich_batch(
+        self, businesses: List[Dict[str, Any]]
+    ) -> Dict[str, Dict[str, Any]]:
         """
         Enrich multiple businesses with emails
-        
+
         Args:
             businesses: List of business dictionaries
-            
+
         Returns:
             Dict mapping business ID to enrichment result
         """
         results = {}
-        
+
         for business in businesses:
-            business_id = business.get('id') or business.get('yelp_id')
+            business_id = business.get("id") or business.get("yelp_id")
             if not business_id:
                 continue
-                
+
             email, source = await self.enrich_email(business)
-            
+
             results[business_id] = {
-                'email': email,
-                'source': source,
-                'success': email is not None
+                "email": email,
+                "source": source,
+                "success": email is not None,
             }
-            
+
         return results
 
 

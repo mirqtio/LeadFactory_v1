@@ -378,9 +378,7 @@ class ErrorResponse(BaseModel):
     )
 
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
         json_schema_extra = {
             "example": {
                 "error": "validation_error",

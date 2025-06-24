@@ -16,11 +16,18 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
-                        Column, DateTime)
+from sqlalchemy import (
+    DECIMAL,
+    JSON,
+    TIMESTAMP,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+)
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import (ForeignKey, Index, Integer, String, Text,
-                        UniqueConstraint)
+from sqlalchemy import ForeignKey, Index, Integer, String, Text, UniqueConstraint
+
 # Database compatibility: Use JSON for better SQLite compatibility
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship

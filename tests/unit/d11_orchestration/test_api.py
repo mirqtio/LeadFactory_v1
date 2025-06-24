@@ -15,6 +15,7 @@ from datetime import date, datetime
 from unittest.mock import Mock, patch
 
 import pytest
+
 # Create FastAPI test app
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -22,13 +23,21 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from d11_orchestration.api import router
-from d11_orchestration.models import (Experiment, ExperimentStatus,
-                                      ExperimentVariant, PipelineRun,
-                                      PipelineRunStatus, PipelineType,
-                                      VariantAssignment, VariantType)
-from d11_orchestration.schemas import (ExperimentCreateRequest,
-                                       ExperimentVariantCreateRequest,
-                                       PipelineTriggerRequest)
+from d11_orchestration.models import (
+    Experiment,
+    ExperimentStatus,
+    ExperimentVariant,
+    PipelineRun,
+    PipelineRunStatus,
+    PipelineType,
+    VariantAssignment,
+    VariantType,
+)
+from d11_orchestration.schemas import (
+    ExperimentCreateRequest,
+    ExperimentVariantCreateRequest,
+    PipelineTriggerRequest,
+)
 from database.base import Base
 from database.session import get_db
 
@@ -41,16 +50,16 @@ def test_db():
     """Create test database session"""
     # Use a single shared engine for the whole test
     from sqlalchemy.pool import StaticPool
-    
+
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
-        poolclass=StaticPool
+        poolclass=StaticPool,
     )
 
     # Import Base first
     from database.base import Base
-    
+
     # Import all model modules to register tables with Base
     import database.models
     import d1_targeting.models
@@ -64,10 +73,10 @@ def test_db():
     import d9_delivery.models
     import d10_analytics.models
     import d11_orchestration.models
-    
+
     # Create all tables
     Base.metadata.create_all(bind=engine)
-    
+
     # Create session factory
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -79,7 +88,7 @@ def test_db():
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
-    
+
     # Yield a session instance for the test
     db = TestingSessionLocal()
     try:

@@ -27,17 +27,41 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from d6_reports.models import (DeliveryMethod, ReportDelivery,
-                               ReportGeneration, ReportStatus, ReportType)
-from d11_orchestration.models import (Experiment, ExperimentStatus,
-                                      ExperimentVariant, PipelineRun,
-                                      PipelineRunStatus, PipelineType,
-                                      VariantAssignment, VariantType)
+from d6_reports.models import (
+    DeliveryMethod,
+    ReportDelivery,
+    ReportGeneration,
+    ReportStatus,
+    ReportType,
+)
+from d11_orchestration.models import (
+    Experiment,
+    ExperimentStatus,
+    ExperimentVariant,
+    PipelineRun,
+    PipelineRunStatus,
+    PipelineType,
+    VariantAssignment,
+    VariantType,
+)
+
 # Import models from all domains
-from database.models import (Batch, BatchStatus, Business, Email, EmailClick,
-                             EmailStatus, EmailSuppression, GatewayUsage,
-                             GeoType, Purchase, PurchaseStatus, ScoringResult,
-                             Target, WebhookEvent)
+from database.models import (
+    Batch,
+    BatchStatus,
+    Business,
+    Email,
+    EmailClick,
+    EmailStatus,
+    EmailSuppression,
+    GatewayUsage,
+    GeoType,
+    Purchase,
+    PurchaseStatus,
+    ScoringResult,
+    Target,
+    WebhookEvent,
+)
 
 
 @pytest.mark.e2e

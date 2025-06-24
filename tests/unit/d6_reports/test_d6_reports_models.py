@@ -34,31 +34,38 @@ for path in paths_to_add:
         sys.path.insert(0, path)
 
 try:
-    from d6_reports.models import (DeliveryMethod, ReportDelivery,
-                                   ReportGeneration, ReportSection, ReportStatus,
-                                   ReportTemplate, ReportType, TemplateFormat,
-                                   generate_uuid)
+    from d6_reports.models import (
+        DeliveryMethod,
+        ReportDelivery,
+        ReportGeneration,
+        ReportSection,
+        ReportStatus,
+        ReportTemplate,
+        ReportType,
+        TemplateFormat,
+        generate_uuid,
+    )
 except ImportError as e:
     # If import fails, try direct file import as fallback
     import importlib.util
-    
+
     # Try multiple potential locations
     potential_paths = [
         os.path.join(app_dir, "d6_reports", "models.py"),
         os.path.join(current_dir, "d6_reports", "models.py"),
-        os.path.join(str(project_root), "d6_reports", "models.py")
+        os.path.join(str(project_root), "d6_reports", "models.py"),
     ]
-    
+
     spec = None
     for path in potential_paths:
         if os.path.exists(path):
             spec = importlib.util.spec_from_file_location("d6_reports.models", path)
             break
-    
+
     if spec and spec.loader:
         d6_models = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(d6_models)
-        
+
         # Extract the classes we need
         DeliveryMethod = d6_models.DeliveryMethod
         ReportDelivery = d6_models.ReportDelivery
@@ -77,6 +84,7 @@ except ImportError as e:
 def db_session():
     """Create a database session for testing"""
     from database.base import Base
+
     engine = create_engine("sqlite:///:memory:", echo=False)
     Base.metadata.create_all(engine)
 

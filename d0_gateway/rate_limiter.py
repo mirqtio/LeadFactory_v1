@@ -19,14 +19,30 @@ class RateLimiter:
 
     # Provider-specific rate limits
     PROVIDER_LIMITS = {
-        "yelp": {"daily_limit": 300, "burst_limit": 10, "window_seconds": 1},  # PRD v1.2: 300/day
+        "yelp": {
+            "daily_limit": 300,
+            "burst_limit": 10,
+            "window_seconds": 1,
+        },  # PRD v1.2: 300/day
         "pagespeed": {"daily_limit": 25000, "burst_limit": 50, "window_seconds": 1},
         "openai": {"daily_limit": 10000, "burst_limit": 20, "window_seconds": 1},
         "sendgrid": {"daily_limit": 100000, "burst_limit": 100, "window_seconds": 1},
         "stripe": {"daily_limit": 50000, "burst_limit": 25, "window_seconds": 1},
-        "hunter": {"daily_limit": 1000, "burst_limit": 5, "window_seconds": 2},  # Pay-as-you-go
-        "semrush": {"daily_limit": 1000, "burst_limit": 10, "window_seconds": 1},  # PRD v1.2: 1000/day
-        "screenshotone": {"daily_limit": 10000, "burst_limit": 2, "window_seconds": 1},  # 2/sec limit
+        "hunter": {
+            "daily_limit": 1000,
+            "burst_limit": 5,
+            "window_seconds": 2,
+        },  # Pay-as-you-go
+        "semrush": {
+            "daily_limit": 1000,
+            "burst_limit": 10,
+            "window_seconds": 1,
+        },  # PRD v1.2: 1000/day
+        "screenshotone": {
+            "daily_limit": 10000,
+            "burst_limit": 2,
+            "window_seconds": 1,
+        },  # 2/sec limit
     }
 
     def __init__(self, provider: str):

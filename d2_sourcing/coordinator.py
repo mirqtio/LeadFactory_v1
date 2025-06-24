@@ -28,11 +28,19 @@ from core.logging import get_logger
 from database.models import Business
 from database.session import SessionLocal
 
-from .deduplicator import (BusinessDeduplicator, DuplicateMatch, MergeResult,
-                           find_and_merge_duplicates)
-from .exceptions import (BatchQuotaException, DeduplicationException,
-                         ErrorRecoveryException, SourcingException,
-                         YelpAPIException)
+from .deduplicator import (
+    BusinessDeduplicator,
+    DuplicateMatch,
+    MergeResult,
+    find_and_merge_duplicates,
+)
+from .exceptions import (
+    BatchQuotaException,
+    DeduplicationException,
+    ErrorRecoveryException,
+    SourcingException,
+    YelpAPIException,
+)
 from .models import SourcedLocation, YelpMetadata
 from .yelp_scraper import ScrapingResult, ScrapingStatus, YelpScraper
 

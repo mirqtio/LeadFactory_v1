@@ -17,24 +17,28 @@ from fastapi import FastAPI
 def create_async_mock(return_value: Any) -> Callable:
     """
     Create an async mock function that returns the specified value.
-    
+
     Usage:
         mock_gateway.some_method.side_effect = create_async_mock({"result": "data"})
     """
+
     async def mock_coro(*args, **kwargs):
         return return_value
+
     return mock_coro
 
 
 def create_async_mock_error(exception: Exception) -> Callable:
     """
     Create an async mock function that raises the specified exception.
-    
+
     Usage:
         mock_gateway.some_method.side_effect = create_async_mock_error(ValueError("Test error"))
     """
+
     async def mock_coro(*args, **kwargs):
         raise exception
+
     return mock_coro
 
 
@@ -42,7 +46,7 @@ def create_async_mock_error(exception: Exception) -> Callable:
 def override_fastapi_dependency(app: FastAPI, dependency: Callable, mock_value: Any):
     """
     Context manager to override a FastAPI dependency and clean up after.
-    
+
     Usage:
         with override_fastapi_dependency(app, get_db, mock_db):
             response = client.get("/endpoint")
@@ -58,7 +62,7 @@ def override_fastapi_dependency(app: FastAPI, dependency: Callable, mock_value: 
 def mock_env_vars(**env_vars):
     """
     Context manager to temporarily set environment variables.
-    
+
     Usage:
         with mock_env_vars(API_KEY="test_key", ENV="test"):
             # Code that uses environment variables
@@ -72,26 +76,26 @@ def create_mock_gateway_facade():
     Create a mock gateway facade with common methods pre-configured.
     """
     mock_gateway = Mock()
-    
+
     # Common async methods
     async_methods = [
-        'create_checkout_session_with_line_items',
-        'get_checkout_session',
-        'create_customer',
-        'create_product',
-        'create_price',
-        'construct_webhook_event',
-        'get_business_details',
-        'search_businesses',
-        'analyze_website',
-        'get_pagespeed_insights',
-        'send_email',
-        'generate_text'
+        "create_checkout_session_with_line_items",
+        "get_checkout_session",
+        "create_customer",
+        "create_product",
+        "create_price",
+        "construct_webhook_event",
+        "get_business_details",
+        "search_businesses",
+        "analyze_website",
+        "get_pagespeed_insights",
+        "send_email",
+        "generate_text",
     ]
-    
+
     for method_name in async_methods:
         setattr(mock_gateway, method_name, AsyncMock())
-    
+
     return mock_gateway
 
 
@@ -104,8 +108,8 @@ def create_stripe_test_config():
         "STRIPE_TEST_PUBLISHABLE_KEY": "pk_test_mock_key",
         "STRIPE_TEST_WEBHOOK_SECRET": "whsec_test_mock_secret",
         "STRIPE_LIVE_SECRET_KEY": "sk_live_mock_key",
-        "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock_key", 
-        "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock_secret"
+        "STRIPE_LIVE_PUBLISHABLE_KEY": "pk_live_mock_key",
+        "STRIPE_LIVE_WEBHOOK_SECRET": "whsec_live_mock_secret",
     }
 
 
@@ -113,12 +117,13 @@ class AsyncContextManager:
     """
     Helper for testing async context managers.
     """
+
     def __init__(self, return_value=None):
         self.return_value = return_value
-        
+
     async def __aenter__(self):
         return self.return_value
-        
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
 
@@ -126,7 +131,7 @@ class AsyncContextManager:
 def run_async(coro):
     """
     Run an async coroutine in a test.
-    
+
     Usage:
         result = run_async(async_function())
     """
@@ -159,7 +164,7 @@ def async_return():
     return create_async_mock
 
 
-@pytest.fixture  
+@pytest.fixture
 def async_raise():
     """
     Pytest fixture providing the create_async_mock_error helper.
@@ -179,13 +184,15 @@ def create_test_business(business_id: str = "test_biz_001", **kwargs) -> Dict[st
         "state": "TS",
         "zip": "12345",
         "website": "https://testbusiness.com",
-        "email": "contact@testbusiness.com"
+        "email": "contact@testbusiness.com",
     }
     defaults.update(kwargs)
     return defaults
 
 
-def create_test_assessment_result(business_id: str = "test_biz_001", **kwargs) -> Dict[str, Any]:
+def create_test_assessment_result(
+    business_id: str = "test_biz_001", **kwargs
+) -> Dict[str, Any]:
     """Create a test assessment result with sensible defaults."""
     defaults = {
         "business_id": business_id,
@@ -194,13 +201,15 @@ def create_test_assessment_result(business_id: str = "test_biz_001", **kwargs) -
         "findings": [],
         "recommendations": [],
         "total_cost_usd": 0.05,
-        "api_calls": 2
+        "api_calls": 2,
     }
     defaults.update(kwargs)
     return defaults
 
 
-def create_test_enrichment_result(business_id: str = "test_biz_001", **kwargs) -> Dict[str, Any]:
+def create_test_enrichment_result(
+    business_id: str = "test_biz_001", **kwargs
+) -> Dict[str, Any]:
     """Create a test enrichment result with sensible defaults."""
     defaults = {
         "business_id": business_id,
@@ -211,7 +220,7 @@ def create_test_enrichment_result(business_id: str = "test_biz_001", **kwargs) -
         "data_version": "test_v1",
         "enrichment_cost_usd": 0.01,
         "api_calls_used": 1,
-        "processed_data": {}
+        "processed_data": {},
     }
     defaults.update(kwargs)
     return defaults

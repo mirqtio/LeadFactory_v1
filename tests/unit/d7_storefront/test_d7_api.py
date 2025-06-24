@@ -21,19 +21,26 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 # Import modules to test
-from d7_storefront.api import (get_checkout_manager, get_stripe_client,
-                               get_webhook_processor, router)
+from d7_storefront.api import (
+    get_checkout_manager,
+    get_stripe_client,
+    get_webhook_processor,
+    router,
+)
 from d7_storefront.checkout import CheckoutError, CheckoutManager
 from d7_storefront.models import ProductType
-from d7_storefront.schemas import (AuditReportCheckoutRequest,
-                                   BulkReportsCheckoutRequest,
-                                   CheckoutInitiationRequest,
-                                   CheckoutInitiationResponse, ErrorResponse,
-                                   SuccessPageResponse, WebhookEventRequest,
-                                   WebhookEventResponse)
+from d7_storefront.schemas import (
+    AuditReportCheckoutRequest,
+    BulkReportsCheckoutRequest,
+    CheckoutInitiationRequest,
+    CheckoutInitiationResponse,
+    ErrorResponse,
+    SuccessPageResponse,
+    WebhookEventRequest,
+    WebhookEventResponse,
+)
 from d7_storefront.stripe_client import StripeClient, StripeError
-from d7_storefront.webhooks import (WebhookError, WebhookProcessor,
-                                    WebhookStatus)
+from d7_storefront.webhooks import WebhookError, WebhookProcessor, WebhookStatus
 
 # Test app setup
 app = FastAPI()
@@ -57,7 +64,7 @@ def mock_checkout_manager():
     return mock_manager
 
 
-@pytest.fixture  
+@pytest.fixture
 def mock_webhook_processor():
     """Fixture providing a mock webhook processor."""
     mock_processor = Mock()
@@ -91,9 +98,10 @@ class TestCheckoutInitiationAPI:
                 }
             ],
         }
-        
+
         # Override the FastAPI dependency for this test
         from d7_storefront.api import get_checkout_manager
+
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
 
         # Test request
@@ -139,9 +147,10 @@ class TestCheckoutInitiationAPI:
             "error": "Invalid email address",
             "error_type": "ValidationError",
         }
-        
+
         # Override the FastAPI dependency for this test
         from d7_storefront.api import get_checkout_manager
+
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
 
         request_data = {
@@ -192,9 +201,10 @@ class TestWebhookAPI:
                 "payment_status": "paid",
             },
         }
-        
+
         # Override the FastAPI dependency for this test
         from d7_storefront.api import get_webhook_processor
+
         app.dependency_overrides[get_webhook_processor] = lambda: mock_processor
 
         # Mock webhook payload
@@ -279,9 +289,10 @@ class TestSuccessPageAPI:
                 "business_url": "https://example.com",
             },
         }
-        
+
         # Override the FastAPI dependency for this test
         from d7_storefront.api import get_checkout_manager
+
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
 
         try:
@@ -317,9 +328,10 @@ class TestSuccessPageAPI:
             "status": "open",
             "metadata": {},
         }
-        
+
         # Override the FastAPI dependency for this test
         from d7_storefront.api import get_checkout_manager
+
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
 
         try:
@@ -372,9 +384,10 @@ class TestSessionStatusAPI:
             "payment_intent": "pi_test_123",
             "metadata": {"purchase_id": "purchase_123"},
         }
-        
+
         # Override the FastAPI dependency for this test
         from d7_storefront.api import get_checkout_manager
+
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
 
         try:
@@ -400,9 +413,10 @@ class TestSessionStatusAPI:
             "error": "Session not found",
             "error_type": "StripeError",
         }
-        
+
         # Override the FastAPI dependency for this test
         from d7_storefront.api import get_checkout_manager
+
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
 
         try:
@@ -496,7 +510,12 @@ class TestAPIStatus:
         mock_stripe.get_status.return_value = {"webhook_configured": True}
 
         # Override all dependencies
-        from d7_storefront.api import get_checkout_manager, get_webhook_processor, get_stripe_client
+        from d7_storefront.api import (
+            get_checkout_manager,
+            get_webhook_processor,
+            get_stripe_client,
+        )
+
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
         app.dependency_overrides[get_webhook_processor] = lambda: mock_processor
         app.dependency_overrides[get_stripe_client] = lambda: mock_stripe
@@ -560,7 +579,9 @@ class TestErrorHandling:
     def test_webhook_error_handling(self, mock_webhook_processor):
         """Test webhook error handling"""
         # Mock WebhookError
-        mock_webhook_processor.process_webhook.side_effect = WebhookError("Test webhook error")
+        mock_webhook_processor.process_webhook.side_effect = WebhookError(
+            "Test webhook error"
+        )
 
         response = client.post(
             "/api/v1/checkout/webhook",
@@ -676,8 +697,10 @@ if __name__ == "__main__":
         print("Testing basic functionality...")
 
         # Test request/response models
-        from d7_storefront.schemas import (CheckoutInitiationRequest,
-                                           CheckoutInitiationResponse)
+        from d7_storefront.schemas import (
+            CheckoutInitiationRequest,
+            CheckoutInitiationResponse,
+        )
 
         # Valid request
         request_data = {

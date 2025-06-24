@@ -18,14 +18,21 @@ import pytest
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 
-from d2_sourcing.exceptions import (BatchQuotaException,
-                                    ErrorRecoveryException, NetworkException,
-                                    YelpAPIException,
-                                    YelpAuthenticationException,
-                                    YelpQuotaExceededException,
-                                    YelpRateLimitException)
-from d2_sourcing.yelp_scraper import (PaginationState, ScrapingResult,
-                                      ScrapingStatus, YelpScraper)
+from d2_sourcing.exceptions import (
+    BatchQuotaException,
+    ErrorRecoveryException,
+    NetworkException,
+    YelpAPIException,
+    YelpAuthenticationException,
+    YelpQuotaExceededException,
+    YelpRateLimitException,
+)
+from d2_sourcing.yelp_scraper import (
+    PaginationState,
+    ScrapingResult,
+    ScrapingStatus,
+    YelpScraper,
+)
 
 
 class TestTask026AcceptanceCriteria:
@@ -369,9 +376,9 @@ class TestTask026AcceptanceCriteria:
         assert scraper.consecutive_errors == 0
 
         # Test basic scraper object structure
-        assert hasattr(scraper, 'gateway')
-        assert hasattr(scraper, 'logger')
-        assert hasattr(scraper, 'settings')
+        assert hasattr(scraper, "gateway")
+        assert hasattr(scraper, "logger")
+        assert hasattr(scraper, "settings")
 
         # Test business details fetching
         async def test_business_details():
@@ -407,7 +414,7 @@ class TestTask026AcceptanceCriteria:
             assert business_id is not None
             assert isinstance(business_id, str)
             return business_id
-        
+
         business_id = asyncio.run(test_save_business_data())
 
         # Test completeness score calculation
@@ -440,8 +447,10 @@ class TestTask026AcceptanceCriteria:
     def test_convenience_functions(self):
         """Test convenience functions for common use cases"""
 
-        from d2_sourcing.yelp_scraper import (scrape_businesses_by_location,
-                                              scrape_businesses_by_term)
+        from d2_sourcing.yelp_scraper import (
+            scrape_businesses_by_location,
+            scrape_businesses_by_term,
+        )
 
         # Test function signatures exist
         assert callable(scrape_businesses_by_location)
@@ -486,13 +495,15 @@ class TestTask026AcceptanceCriteria:
     def test_exception_hierarchy(self):
         """Test that exception hierarchy is properly defined"""
 
-        from d2_sourcing.exceptions import (BatchQuotaException,
-                                            ErrorRecoveryException,
-                                            PaginationException,
-                                            SourcingException,
-                                            YelpAPIException,
-                                            YelpQuotaExceededException,
-                                            YelpRateLimitException)
+        from d2_sourcing.exceptions import (
+            BatchQuotaException,
+            ErrorRecoveryException,
+            PaginationException,
+            SourcingException,
+            YelpAPIException,
+            YelpQuotaExceededException,
+            YelpRateLimitException,
+        )
 
         # Test exception inheritance
         assert issubclass(YelpAPIException, SourcingException)

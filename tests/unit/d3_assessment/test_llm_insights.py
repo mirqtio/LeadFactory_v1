@@ -35,10 +35,11 @@ class TestTask033AcceptanceCriteria:
 
         # Define different responses for different insight types
         call_count = 0
+
         def mock_generate_completion(**kwargs):
             nonlocal call_count
             call_count += 1
-            
+
             # Return different responses based on call order
             # 1st call: recommendations, 2nd call: technical_analysis, 3rd call: industry_benchmark
             if call_count == 1:
@@ -109,61 +110,90 @@ class TestTask033AcceptanceCriteria:
             elif call_count == 2:
                 # Technical analysis response
                 return MagicMock(
-                    content=json.dumps({
-                        "technical_recommendations": [
-                            {
-                                "category": "Performance",
-                                "title": "Optimize Critical Rendering Path",
-                                "description": "Eliminate render-blocking resources to improve LCP",
-                                "implementation": "Inline critical CSS and defer non-critical resources",
-                                "expected_improvement": "30% reduction in LCP"
-                            }
-                        ],
-                        "infrastructure_insights": {
-                            "current_setup": "WordPress with WooCommerce on shared hosting",
-                            "optimization_opportunities": "CDN implementation, database caching",
-                            "modernization_path": "Consider managed WordPress hosting"
+                    content=json.dumps(
+                        {
+                            "technical_recommendations": [
+                                {
+                                    "category": "Performance",
+                                    "title": "Optimize Critical Rendering Path",
+                                    "description": "Eliminate render-blocking resources to improve LCP",
+                                    "implementation": "Inline critical CSS and defer non-critical resources",
+                                    "expected_improvement": "30% reduction in LCP",
+                                }
+                            ],
+                            "infrastructure_insights": {
+                                "current_setup": "WordPress with WooCommerce on shared hosting",
+                                "optimization_opportunities": "CDN implementation, database caching",
+                                "modernization_path": "Consider managed WordPress hosting",
+                            },
                         }
-                    }),
-                    usage={"prompt_tokens": 1200, "completion_tokens": 600, "total_tokens": 1800}
+                    ),
+                    usage={
+                        "prompt_tokens": 1200,
+                        "completion_tokens": 600,
+                        "total_tokens": 1800,
+                    },
                 )
             elif call_count == 3:
                 # Industry benchmark response
                 return MagicMock(
-                    content=json.dumps({
-                        "benchmark_analysis": {
-                            "industry": "technology",
-                            "performance_vs_industry": {
-                                "percentile": "Bottom 40%",
-                                "key_strengths": ["Good SEO structure"],
-                                "improvement_areas": ["Page speed", "Mobile experience"]
-                            },
-                            "industry_specific_insights": [
-                                {
-                                    "insight": "Tech sites require faster loading for user retention",
-                                    "implication": "Current speed impacts conversion rates",
-                                    "action": "Prioritize Core Web Vitals optimization"
-                                }
-                            ],
-                            "competitive_analysis": {
-                                "advantages": "Strong content structure",
-                                "gaps": "Performance lags behind competitors",
-                                "differentiation_opportunities": "Focus on mobile-first experience"
+                    content=json.dumps(
+                        {
+                            "benchmark_analysis": {
+                                "industry": "technology",
+                                "performance_vs_industry": {
+                                    "percentile": "Bottom 40%",
+                                    "key_strengths": ["Good SEO structure"],
+                                    "improvement_areas": [
+                                        "Page speed",
+                                        "Mobile experience",
+                                    ],
+                                },
+                                "industry_specific_insights": [
+                                    {
+                                        "insight": "Tech sites require faster loading for user retention",
+                                        "implication": "Current speed impacts conversion rates",
+                                        "action": "Prioritize Core Web Vitals optimization",
+                                    }
+                                ],
+                                "competitive_analysis": {
+                                    "advantages": "Strong content structure",
+                                    "gaps": "Performance lags behind competitors",
+                                    "differentiation_opportunities": "Focus on mobile-first experience",
+                                },
                             }
                         }
-                    }),
-                    usage={"prompt_tokens": 1000, "completion_tokens": 400, "total_tokens": 1400}
+                    ),
+                    usage={
+                        "prompt_tokens": 1000,
+                        "completion_tokens": 400,
+                        "total_tokens": 1400,
+                    },
                 )
             else:
                 # Quick wins or other responses
                 return MagicMock(
-                    content=json.dumps({
-                        "quick_wins": [
-                            {"action": "Enable compression", "effort": "Low", "impact": "High"},
-                            {"action": "Optimize images", "effort": "Medium", "impact": "High"}
-                        ]
-                    }),
-                    usage={"prompt_tokens": 800, "completion_tokens": 300, "total_tokens": 1100}
+                    content=json.dumps(
+                        {
+                            "quick_wins": [
+                                {
+                                    "action": "Enable compression",
+                                    "effort": "Low",
+                                    "impact": "High",
+                                },
+                                {
+                                    "action": "Optimize images",
+                                    "effort": "Medium",
+                                    "impact": "High",
+                                },
+                            ]
+                        }
+                    ),
+                    usage={
+                        "prompt_tokens": 800,
+                        "completion_tokens": 300,
+                        "total_tokens": 1100,
+                    },
                 )
 
         client.generate_completion.side_effect = mock_generate_completion
@@ -242,9 +272,11 @@ class TestTask033AcceptanceCriteria:
         Acceptance Criteria: 3 recommendations generated
         """
         result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment, 
+            assessment=sample_assessment,
             industry="ecommerce",
-            insight_types=[InsightType.RECOMMENDATIONS]  # Test specifically for recommendations
+            insight_types=[
+                InsightType.RECOMMENDATIONS
+            ],  # Test specifically for recommendations
         )
 
         # Verify result structure
@@ -295,9 +327,11 @@ class TestTask033AcceptanceCriteria:
         """
         # Test e-commerce specific insights
         result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment, 
+            assessment=sample_assessment,
             industry="ecommerce",
-            insight_types=[InsightType.RECOMMENDATIONS]  # Test recommendations for industry context
+            insight_types=[
+                InsightType.RECOMMENDATIONS
+            ],  # Test recommendations for industry context
         )
 
         # Verify industry context in recommendations
@@ -329,9 +363,9 @@ class TestTask033AcceptanceCriteria:
 
         # Test different industry
         healthcare_result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment, 
+            assessment=sample_assessment,
             industry="healthcare",
-            insight_types=[InsightType.RECOMMENDATIONS]  # Test with different industry
+            insight_types=[InsightType.RECOMMENDATIONS],  # Test with different industry
         )
 
         assert healthcare_result.industry == "healthcare"
@@ -353,9 +387,11 @@ class TestTask033AcceptanceCriteria:
         with patch("d3_assessment.llm_insights.AssessmentCost") as mock_cost:
             # Test with single insight type to verify precise cost calculation
             result = await insight_generator.generate_comprehensive_insights(
-                assessment=sample_assessment, 
+                assessment=sample_assessment,
                 industry="ecommerce",
-                insight_types=[InsightType.RECOMMENDATIONS]  # Single type for precise cost test
+                insight_types=[
+                    InsightType.RECOMMENDATIONS
+                ],  # Single type for precise cost test
             )
 
             # Verify cost tracking was called
@@ -395,9 +431,11 @@ class TestTask033AcceptanceCriteria:
         """
         # Test successful JSON parsing
         result = await insight_generator.generate_comprehensive_insights(
-            assessment=sample_assessment, 
+            assessment=sample_assessment,
             industry="ecommerce",
-            insight_types=[InsightType.RECOMMENDATIONS]  # Test structured parsing with recommendations
+            insight_types=[
+                InsightType.RECOMMENDATIONS
+            ],  # Test structured parsing with recommendations
         )
 
         # Verify structured output
@@ -432,9 +470,11 @@ class TestTask033AcceptanceCriteria:
             )
 
             fallback_result = await insight_generator.generate_comprehensive_insights(
-                assessment=sample_assessment, 
+                assessment=sample_assessment,
                 industry="ecommerce",
-                insight_types=[InsightType.RECOMMENDATIONS]  # Test fallback with recommendations
+                insight_types=[
+                    InsightType.RECOMMENDATIONS
+                ],  # Test fallback with recommendations
             )
 
             # Should still produce structured output via fallback

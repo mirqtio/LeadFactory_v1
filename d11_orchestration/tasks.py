@@ -344,21 +344,23 @@ class AssessmentTask(BaseTask):
                 async with semaphore:
                     try:
                         # PRD v1.2: Enrich email first
-                        email, email_source = await self.email_enricher.enrich_email(business)
+                        email, email_source = await self.email_enricher.enrich_email(
+                            business
+                        )
                         if email:
-                            business['email'] = email
-                            business['email_source'] = email_source
-                            
+                            business["email"] = email
+                            business["email_source"] = email_source
+
                         # PRD v1.2: Use new assessment coordinator
                         result = await self.assessment_coordinator.assess_business(
                             business_data=business
                         )
-                        
+
                         # Add business and email info to result
-                        result['business'] = business
-                        result['email'] = business.get('email')
-                        result['email_source'] = business.get('email_source')
-                        
+                        result["business"] = business
+                        result["email"] = business.get("email")
+                        result["email_source"] = business.get("email_source")
+
                         return result
 
                     except Exception as e:

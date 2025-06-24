@@ -17,45 +17,49 @@ try:
     from prefect.logging import get_run_logger
     from prefect.server.schemas.schedules import CronSchedule, IntervalSchedule
     from prefect.artifacts import create_markdown_artifact
-    
+
     PREFECT_AVAILABLE = True
 except ImportError:
     # Mock imports for testing
     PREFECT_AVAILABLE = False
-    
+
     def flow(*args, **kwargs):
         def decorator(func):
             func.retries = kwargs.get("retries", 0)
             func.retry_delay_seconds = kwargs.get("retry_delay_seconds", 0)
             return func
+
         return decorator
-        
+
     def task(*args, **kwargs):
         def decorator(func):
             func.retries = kwargs.get("retries", 0)
             func.retry_delay_seconds = kwargs.get("retry_delay_seconds", 0)
             return func
+
         return decorator
-        
+
     def get_run_logger():
         import logging
+
         return logging.getLogger(__name__)
-        
+
     class Deployment:
         @classmethod
         def build_from_flow(cls, **kwargs):
             return cls()
-            
+
     class CronSchedule:
         def __init__(self, cron):
             self.cron = cron
-            
+
     class IntervalSchedule:
         def __init__(self, interval):
             self.interval = interval
-            
+
     def create_markdown_artifact(markdown, key):
         print(f"Artifact {key}: {markdown}")
+
 
 from sqlalchemy import text
 
@@ -67,39 +71,43 @@ from database.session import SessionLocal
     name="get-daily-costs",
     description="Get current day's costs by provider",
     retries=2,
-    retry_delay_seconds=60
+    retry_delay_seconds=60,
 )
 def get_daily_costs() -> Dict[str, float]:
     """Get today's costs aggregated by provider"""
     logger = get_run_logger()
-    
+
     with SessionLocal() as db:
         # Query aggregated daily costs
         today = datetime.utcnow().date()
-        
-        query = text("""
+
+        query = text(
+            """
             SELECT 
                 provider,
                 SUM(total_cost_usd) as total_cost
             FROM agg_daily_cost
             WHERE date = :date
             GROUP BY provider
-        """)
-        
+        """
+        )
+
         results = db.execute(query, {"date": today}).fetchall()
-        
+
         costs = {row.provider: float(row.total_cost) for row in results}
-        
+
         # Also get total
-        total_query = text("""
+        total_query = text(
+            """
             SELECT COALESCE(SUM(total_cost_usd), 0) as total
             FROM agg_daily_cost
             WHERE date = :date
-        """)
-        
+        """
+        )
+
         total_result = db.execute(total_query, {"date": today}).fetchone()
-        costs['total'] = float(total_result.total) if total_result else 0.0
-        
+        costs["total"] = float(total_result.total) if total_result else 0.0
+
     logger.info(f"Daily costs: ${costs.get('total', 0):.2f}")
     return costs
 
@@ -108,37 +116,41 @@ def get_daily_costs() -> Dict[str, float]:
     name="check-budget-threshold",
     description="Check if spending is approaching budget limit",
     retries=1,
-    retry_delay_seconds=30
+    retry_delay_seconds=30,
 )
 def check_budget_threshold(
-    daily_costs: Dict[str, float],
-    daily_budget: float,
-    warning_threshold: float = 0.8
+    daily_costs: Dict[str, float], daily_budget: float, warning_threshold: float = 0.8
 ) -> Tuple[bool, float, str]:
     """
     Check if spending is approaching budget limit
-    
+
     Returns:
         Tuple of (is_over_threshold, percentage_used, alert_level)
     """
     logger = get_run_logger()
-    
-    total_cost = daily_costs.get('total', 0.0)
+
+    total_cost = daily_costs.get("total", 0.0)
     percentage_used = (total_cost / daily_budget) if daily_budget > 0 else 0.0
-    
+
     if percentage_used >= 1.0:
-        alert_level = 'critical'
+        alert_level = "critical"
         is_over = True
-        logger.error(f"CRITICAL: Daily budget exceeded! ${total_cost:.2f} / ${daily_budget:.2f}")
+        logger.error(
+            f"CRITICAL: Daily budget exceeded! ${total_cost:.2f} / ${daily_budget:.2f}"
+        )
     elif percentage_used >= warning_threshold:
-        alert_level = 'warning'
+        alert_level = "warning"
         is_over = True
-        logger.warning(f"WARNING: Approaching daily budget limit! ${total_cost:.2f} / ${daily_budget:.2f}")
+        logger.warning(
+            f"WARNING: Approaching daily budget limit! ${total_cost:.2f} / ${daily_budget:.2f}"
+        )
     else:
-        alert_level = 'ok'
+        alert_level = "ok"
         is_over = False
-        logger.info(f"Budget OK: ${total_cost:.2f} / ${daily_budget:.2f} ({percentage_used:.1%})")
-        
+        logger.info(
+            f"Budget OK: ${total_cost:.2f} / ${daily_budget:.2f} ({percentage_used:.1%})"
+        )
+
     return is_over, percentage_used, alert_level
 
 
@@ -146,26 +158,26 @@ def check_budget_threshold(
     name="pause-expensive-operations",
     description="Pause high-cost operations when over budget",
     retries=1,
-    retry_delay_seconds=30
+    retry_delay_seconds=30,
 )
 def pause_expensive_operations(providers_to_pause: List[str]) -> Dict[str, bool]:
     """
     Pause operations for expensive providers
-    
+
     In production, this would:
     1. Update feature flags to disable providers
     2. Notify the pipeline to skip expensive operations
     3. Send alerts to the team
     """
     logger = get_run_logger()
-    
+
     paused = {}
-    
+
     for provider in providers_to_pause:
         # In production, update feature flags or config
         logger.warning(f"Pausing operations for provider: {provider}")
         paused[provider] = True
-        
+
     return paused
 
 
@@ -173,17 +185,18 @@ def pause_expensive_operations(providers_to_pause: List[str]) -> Dict[str, bool]
     name="get-profit-metrics",
     description="Calculate current profitability metrics",
     retries=2,
-    retry_delay_seconds=60
+    retry_delay_seconds=60,
 )
 def get_profit_metrics(lookback_days: int = 7) -> Dict[str, float]:
     """Get profit metrics for the specified period"""
     logger = get_run_logger()
-    
+
     with SessionLocal() as db:
         # Query unit economics view
         start_date = datetime.utcnow().date() - timedelta(days=lookback_days)
-        
-        query = text("""
+
+        query = text(
+            """
             SELECT 
                 SUM(revenue_usd) as total_revenue,
                 SUM(total_cost_usd) as total_cost,
@@ -193,46 +206,47 @@ def get_profit_metrics(lookback_days: int = 7) -> Dict[str, float]:
                 SUM(purchases) as total_purchases
             FROM unit_economics_day
             WHERE date >= :start_date
-        """)
-        
+        """
+        )
+
         result = db.execute(query, {"start_date": start_date}).fetchone()
-        
+
         if result:
             metrics = {
-                'total_revenue': float(result.total_revenue or 0),
-                'total_cost': float(result.total_cost or 0),
-                'total_profit': float(result.total_profit or 0),
-                'avg_roi': float(result.avg_roi or 0),
-                'avg_cpa': float(result.avg_cpa or 0),
-                'total_purchases': int(result.total_purchases or 0)
+                "total_revenue": float(result.total_revenue or 0),
+                "total_cost": float(result.total_cost or 0),
+                "total_profit": float(result.total_profit or 0),
+                "avg_roi": float(result.avg_roi or 0),
+                "avg_cpa": float(result.avg_cpa or 0),
+                "total_purchases": int(result.total_purchases or 0),
             }
         else:
             metrics = {
-                'total_revenue': 0.0,
-                'total_cost': 0.0,
-                'total_profit': 0.0,
-                'avg_roi': 0.0,
-                'avg_cpa': 0.0,
-                'total_purchases': 0
+                "total_revenue": 0.0,
+                "total_cost": 0.0,
+                "total_profit": 0.0,
+                "avg_roi": 0.0,
+                "avg_cpa": 0.0,
+                "total_purchases": 0,
             }
-    
-    logger.info(f"Profit metrics ({lookback_days}d): Revenue=${metrics['total_revenue']:.2f}, Profit=${metrics['total_profit']:.2f}")
+
+    logger.info(
+        f"Profit metrics ({lookback_days}d): Revenue=${metrics['total_revenue']:.2f}, Profit=${metrics['total_profit']:.2f}"
+    )
     return metrics
 
 
 @task(
     name="create-profit-report",
     description="Create markdown report of profitability",
-    retries=1
+    retries=1,
 )
 def create_profit_report(
-    metrics: Dict[str, float],
-    bucket_performance: List[Dict],
-    period_days: int
+    metrics: Dict[str, float], bucket_performance: List[Dict], period_days: int
 ) -> str:
     """Create a markdown report of profitability metrics"""
     logger = get_run_logger()
-    
+
     report = f"""# Profit Snapshot Report
 
 **Period**: Last {period_days} days  
@@ -254,15 +268,17 @@ def create_profit_report(
 | Geo Bucket | Vertical Bucket | Businesses | Revenue | Profit | ROI |
 |------------|-----------------|------------|---------|--------|-----|
 """
-    
+
     # Add top 5 performing buckets
     for bucket in bucket_performance[:5]:
         report += f"| {bucket.get('geo_bucket', 'unknown')} | {bucket.get('vert_bucket', 'unknown')} | "
         report += f"{bucket.get('total_businesses', 0):,} | ${bucket.get('total_revenue_usd', 0):,.2f} | "
-        report += f"${bucket.get('profit_usd', 0):,.2f} | {bucket.get('roi', 0):.1%} |\n"
-        
+        report += (
+            f"${bucket.get('profit_usd', 0):,.2f} | {bucket.get('roi', 0):.1%} |\n"
+        )
+
     report += f"\n_Report generated by cost_guardrails flow_"
-    
+
     return report
 
 
@@ -270,16 +286,16 @@ def create_profit_report(
     name="cost-guardrail-flow",
     description="Monitor costs and pause operations if over budget",
     retries=2,
-    retry_delay_seconds=300
+    retry_delay_seconds=300,
 )
 def cost_guardrail_flow(
     daily_budget_override: Optional[float] = None,
     warning_threshold: float = 0.8,
-    expensive_providers: List[str] = ["openai", "dataaxle", "hunter"]
+    expensive_providers: List[str] = ["openai", "dataaxle", "hunter"],
 ) -> Dict[str, any]:
     """
     Cost guardrail flow to monitor and control spending
-    
+
     Args:
         daily_budget_override: Override config daily budget
         warning_threshold: Threshold to trigger warnings (0.8 = 80%)
@@ -287,33 +303,33 @@ def cost_guardrail_flow(
     """
     logger = get_run_logger()
     logger.info("Starting cost guardrail check")
-    
+
     # Get configuration
     settings = get_settings()
     daily_budget = daily_budget_override or settings.cost_budget_usd
-    
+
     # Get current costs
     daily_costs = get_daily_costs()
-    
+
     # Check budget threshold
     is_over, percentage_used, alert_level = check_budget_threshold(
         daily_costs, daily_budget, warning_threshold
     )
-    
+
     # Take action if needed
     paused_providers = {}
-    if alert_level == 'critical':
+    if alert_level == "critical":
         paused_providers = pause_expensive_operations(expensive_providers)
-        
+
     # Create result summary
     result = {
-        'daily_costs': daily_costs,
-        'budget_used_percentage': percentage_used,
-        'alert_level': alert_level,
-        'paused_providers': paused_providers,
-        'timestamp': datetime.utcnow().isoformat()
+        "daily_costs": daily_costs,
+        "budget_used_percentage": percentage_used,
+        "alert_level": alert_level,
+        "paused_providers": paused_providers,
+        "timestamp": datetime.utcnow().isoformat(),
     }
-    
+
     # Create artifact for UI
     if PREFECT_AVAILABLE:
         artifact_markdown = f"""# Cost Guardrail Alert
@@ -325,19 +341,16 @@ def cost_guardrail_flow(
 ## Provider Breakdown
 """
         for provider, cost in daily_costs.items():
-            if provider != 'total':
+            if provider != "total":
                 artifact_markdown += f"- **{provider}**: ${cost:.2f}\n"
-                
+
         if paused_providers:
             artifact_markdown += f"\n## Paused Providers\n"
             for provider in paused_providers:
                 artifact_markdown += f"- {provider}\n"
-                
-        create_markdown_artifact(
-            markdown=artifact_markdown,
-            key="cost-guardrail-alert"
-        )
-    
+
+        create_markdown_artifact(markdown=artifact_markdown, key="cost-guardrail-alert")
+
     logger.info(f"Cost guardrail check complete: {alert_level}")
     return result
 
@@ -346,28 +359,28 @@ def cost_guardrail_flow(
     name="profit-snapshot-flow",
     description="Generate profitability report",
     retries=2,
-    retry_delay_seconds=300
+    retry_delay_seconds=300,
 )
 def profit_snapshot_flow(
-    lookback_days: int = 7,
-    top_buckets_count: int = 5
+    lookback_days: int = 7, top_buckets_count: int = 5
 ) -> Dict[str, any]:
     """
     Generate profit snapshot report
-    
+
     Args:
         lookback_days: Days to look back for metrics
         top_buckets_count: Number of top buckets to show
     """
     logger = get_run_logger()
     logger.info(f"Generating profit snapshot for last {lookback_days} days")
-    
+
     # Get profit metrics
     metrics = get_profit_metrics(lookback_days)
-    
+
     # Get bucket performance
     with SessionLocal() as db:
-        query = text("""
+        query = text(
+            """
             SELECT 
                 geo_bucket,
                 vert_bucket,
@@ -379,47 +392,45 @@ def profit_snapshot_flow(
             WHERE total_revenue_usd > 0
             ORDER BY profit_usd DESC
             LIMIT :limit
-        """)
-        
+        """
+        )
+
         results = db.execute(query, {"limit": top_buckets_count}).fetchall()
-        
+
         bucket_performance = [
             {
-                'geo_bucket': row.geo_bucket,
-                'vert_bucket': row.vert_bucket,
-                'total_businesses': row.total_businesses,
-                'total_revenue_usd': float(row.total_revenue_usd),
-                'profit_usd': float(row.profit_usd),
-                'roi': float(row.roi) if row.roi else 0
+                "geo_bucket": row.geo_bucket,
+                "vert_bucket": row.vert_bucket,
+                "total_businesses": row.total_businesses,
+                "total_revenue_usd": float(row.total_revenue_usd),
+                "profit_usd": float(row.profit_usd),
+                "roi": float(row.roi) if row.roi else 0,
             }
             for row in results
         ]
-    
+
     # Create report
     report = create_profit_report(metrics, bucket_performance, lookback_days)
-    
+
     # Create artifact
     if PREFECT_AVAILABLE:
-        create_markdown_artifact(
-            markdown=report,
-            key="profit-snapshot"
-        )
-    
+        create_markdown_artifact(markdown=report, key="profit-snapshot")
+
     result = {
-        'metrics': metrics,
-        'top_buckets': bucket_performance,
-        'report': report,
-        'period_days': lookback_days,
-        'timestamp': datetime.utcnow().isoformat()
+        "metrics": metrics,
+        "top_buckets": bucket_performance,
+        "report": report,
+        "period_days": lookback_days,
+        "timestamp": datetime.utcnow().isoformat(),
     }
-    
+
     logger.info(f"Profit snapshot complete: ROI={metrics['avg_roi']:.1%}")
     return result
 
 
 def create_guardrail_deployment() -> Deployment:
     """Create deployment for cost guardrail monitoring"""
-    
+
     deployment = Deployment.build_from_flow(
         flow=cost_guardrail_flow,
         name="cost-guardrail-monitor",
@@ -427,31 +438,28 @@ def create_guardrail_deployment() -> Deployment:
         work_queue_name="monitoring",
         parameters={
             "warning_threshold": 0.8,
-            "expensive_providers": ["openai", "dataaxle", "hunter"]
+            "expensive_providers": ["openai", "dataaxle", "hunter"],
         },
         description="Hourly cost monitoring with automatic guardrails",
-        tags=["cost-control", "monitoring", "phase-0.5"]
+        tags=["cost-control", "monitoring", "phase-0.5"],
     )
-    
+
     return deployment
 
 
 def create_profit_snapshot_deployment() -> Deployment:
     """Create deployment for daily profit snapshot"""
-    
+
     deployment = Deployment.build_from_flow(
         flow=profit_snapshot_flow,
         name="daily-profit-snapshot",
         schedule=CronSchedule(cron="0 6 * * *"),  # 6 AM UTC daily
         work_queue_name="reporting",
-        parameters={
-            "lookback_days": 7,
-            "top_buckets_count": 10
-        },
+        parameters={"lookback_days": 7, "top_buckets_count": 10},
         description="Daily profitability report generation",
-        tags=["reporting", "profit", "phase-0.5"]
+        tags=["reporting", "profit", "phase-0.5"],
     )
-    
+
     return deployment
 
 
@@ -471,18 +479,18 @@ async def generate_profit_report_now(days: int = 7) -> Dict[str, any]:
 if __name__ == "__main__":
     # Test flows
     import asyncio
-    
+
     async def test():
         # Test cost guardrail
         print("Testing cost guardrail...")
         guardrail_result = await check_costs_now()
         print(f"Alert level: {guardrail_result['alert_level']}")
         print(f"Budget used: {guardrail_result['budget_used_percentage']:.1%}")
-        
+
         # Test profit snapshot
         print("\nTesting profit snapshot...")
         profit_result = await generate_profit_report_now(days=7)
         print(f"Total profit: ${profit_result['metrics']['total_profit']:.2f}")
         print(f"ROI: {profit_result['metrics']['avg_roi']:.1%}")
-        
+
     asyncio.run(test())

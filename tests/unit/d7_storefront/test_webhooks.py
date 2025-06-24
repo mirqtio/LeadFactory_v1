@@ -22,16 +22,27 @@ import stripe
 
 from d7_storefront.stripe_client import StripeClient, StripeConfig, StripeError
 from d7_storefront.webhook_handlers import (
-    BaseWebhookHandler, CheckoutSessionHandler, CustomerHandler,
-    InvoiceHandler, PaymentIntentHandler, ReportGenerationStatus,
-    determine_report_priority, extract_business_info_from_metadata,
-    format_report_generation_request)
+    BaseWebhookHandler,
+    CheckoutSessionHandler,
+    CustomerHandler,
+    InvoiceHandler,
+    PaymentIntentHandler,
+    ReportGenerationStatus,
+    determine_report_priority,
+    extract_business_info_from_metadata,
+    format_report_generation_request,
+)
+
 # Import modules to test
-from d7_storefront.webhooks import (WebhookError, WebhookEventType,
-                                    WebhookProcessor, WebhookStatus,
-                                    extract_metadata_from_event,
-                                    format_webhook_response_for_api,
-                                    generate_event_hash)
+from d7_storefront.webhooks import (
+    WebhookError,
+    WebhookEventType,
+    WebhookProcessor,
+    WebhookStatus,
+    extract_metadata_from_event,
+    format_webhook_response_for_api,
+    generate_event_hash,
+)
 
 
 class TestWebhookProcessor:
@@ -1301,8 +1312,11 @@ class TestWebhookEnhancements:
         assert WEBHOOK_RESPONSE_CODES["MALFORMED_REQUEST"] == 400
 
         # Test webhook configuration from webhooks.py
-        from d7_storefront.webhooks import (WEBHOOK_CONFIG, WEBHOOK_ENDPOINTS,
-                                            WEBHOOK_EVENTS_TO_SUBSCRIBE)
+        from d7_storefront.webhooks import (
+            WEBHOOK_CONFIG,
+            WEBHOOK_ENDPOINTS,
+            WEBHOOK_EVENTS_TO_SUBSCRIBE,
+        )
 
         assert "PRODUCTION" in WEBHOOK_ENDPOINTS
         assert "checkout.session.completed" in WEBHOOK_EVENTS_TO_SUBSCRIBE

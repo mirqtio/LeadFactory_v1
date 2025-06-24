@@ -19,8 +19,7 @@ sys.path.insert(0, "/app")
 
 from d1_targeting.batch_scheduler import BatchScheduler
 from d1_targeting.quota_tracker import QuotaTracker
-from d1_targeting.types import (BatchProcessingStatus, BatchSchedule,
-                                CampaignStatus)
+from d1_targeting.types import BatchProcessingStatus, BatchSchedule, CampaignStatus
 
 
 class TestTask022AcceptanceCriteria:

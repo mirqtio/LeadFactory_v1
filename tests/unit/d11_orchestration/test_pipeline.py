@@ -18,15 +18,26 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from d11_orchestration.pipeline import (PipelineOrchestrator, assessment_stage,
-                                        create_daily_deployment,
-                                        daily_lead_generation_flow,
-                                        delivery_stage, personalization_stage,
-                                        scoring_stage, sourcing_stage,
-                                        targeting_stage, trigger_manual_run)
-from d11_orchestration.tasks import (AssessmentTask, DeliveryTask,
-                                     PersonalizationTask, ScoringTask,
-                                     SourcingTask, TargetingTask)
+from d11_orchestration.pipeline import (
+    PipelineOrchestrator,
+    assessment_stage,
+    create_daily_deployment,
+    daily_lead_generation_flow,
+    delivery_stage,
+    personalization_stage,
+    scoring_stage,
+    sourcing_stage,
+    targeting_stage,
+    trigger_manual_run,
+)
+from d11_orchestration.tasks import (
+    AssessmentTask,
+    DeliveryTask,
+    PersonalizationTask,
+    ScoringTask,
+    SourcingTask,
+    TargetingTask,
+)
 
 # Avoid importing models directly to prevent SQLAlchemy configuration issues
 # from d11_orchestration.models import PipelineRun, PipelineRunStatus, PipelineType
@@ -487,11 +498,14 @@ class TestTaskRetryConfiguration:
         """Test that tasks have proper retry configuration"""
 
         # Import the task decorators to check their configuration
-        from d11_orchestration.pipeline import (assessment_stage,
-                                                delivery_stage,
-                                                personalization_stage,
-                                                scoring_stage, sourcing_stage,
-                                                targeting_stage)
+        from d11_orchestration.pipeline import (
+            assessment_stage,
+            delivery_stage,
+            personalization_stage,
+            scoring_stage,
+            sourcing_stage,
+            targeting_stage,
+        )
 
         # Check targeting stage retry config
         assert hasattr(targeting_stage, "retries")

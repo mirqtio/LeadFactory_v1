@@ -23,19 +23,31 @@ from .batch_scheduler import BatchScheduler
 from .models import Campaign, CampaignBatch, GeographicBoundary, TargetUniverse
 from .quota_tracker import QuotaTracker
 from .schemas import BaseResponseSchema  # Request schemas; Response schemas
-from .schemas import (BatchFilterSchema, BatchResponseSchema,
-                      BatchStatusUpdateSchema, BulkOperationResponseSchema,
-                      CampaignFilterSchema, CampaignMetricsResponseSchema,
-                      CampaignResponseSchema, CreateBatchesSchema,
-                      CreateCampaignSchema, CreateGeographicBoundarySchema,
-                      CreateTargetUniverseSchema, ErrorResponseSchema,
-                      GeographicBoundaryResponseSchema,
-                      PaginatedResponseSchema, PaginationSchema,
-                      QuotaAllocationResponseSchema, RefreshUniverseSchema,
-                      TargetingMetricsResponseSchema,
-                      TargetUniverseFilterSchema, TargetUniverseResponseSchema,
-                      UniversePriorityResponseSchema, UpdateCampaignSchema,
-                      UpdateTargetUniverseSchema)
+from .schemas import (
+    BatchFilterSchema,
+    BatchResponseSchema,
+    BatchStatusUpdateSchema,
+    BulkOperationResponseSchema,
+    CampaignFilterSchema,
+    CampaignMetricsResponseSchema,
+    CampaignResponseSchema,
+    CreateBatchesSchema,
+    CreateCampaignSchema,
+    CreateGeographicBoundarySchema,
+    CreateTargetUniverseSchema,
+    ErrorResponseSchema,
+    GeographicBoundaryResponseSchema,
+    PaginatedResponseSchema,
+    PaginationSchema,
+    QuotaAllocationResponseSchema,
+    RefreshUniverseSchema,
+    TargetingMetricsResponseSchema,
+    TargetUniverseFilterSchema,
+    TargetUniverseResponseSchema,
+    UniversePriorityResponseSchema,
+    UpdateCampaignSchema,
+    UpdateTargetUniverseSchema,
+)
 from .target_universe import TargetUniverseManager
 from .types import VerticalMarket
 
@@ -144,8 +156,12 @@ async def list_target_universes(
     db: Session = Depends(get_db),
     page: int = Query(default=1, ge=1, description="Page number"),
     size: int = Query(default=20, ge=1, le=100, description="Items per page"),
-    name_contains: Optional[str] = Query(None, description="Filter by name containing text"),
-    verticals: Optional[List[VerticalMarket]] = Query(None, description="Filter by verticals"),
+    name_contains: Optional[str] = Query(
+        None, description="Filter by name containing text"
+    ),
+    verticals: Optional[List[VerticalMarket]] = Query(
+        None, description="Filter by verticals"
+    ),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
     min_size: Optional[int] = Query(None, ge=0, description="Minimum universe size"),
     max_size: Optional[int] = Query(None, ge=0, description="Maximum universe size"),

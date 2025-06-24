@@ -107,8 +107,7 @@ def test_parallel_test_support(parallel_test_config, isolated_test_workspace):
 def test_workflow_orchestrator_basic():
     """Test workflow orchestrator functionality - basic validation"""
     # Test that we can import and use workflow components
-    from d11_orchestration.models import (PipelineRun, PipelineRunStatus,
-                                          PipelineType)
+    from d11_orchestration.models import PipelineRun, PipelineRunStatus, PipelineType
 
     # Create a simple pipeline run
     pipeline_run = PipelineRun(

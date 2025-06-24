@@ -22,17 +22,30 @@ import pytest
 
 # Import the modules we need for integration testing
 try:
-    from d6_reports import (FindingPrioritizer, GenerationOptions,
-                            GenerationResult, PDFConverter, PDFOptions,
-                            ReportGenerator, TemplateEngine)
+    from d6_reports import (
+        FindingPrioritizer,
+        GenerationOptions,
+        GenerationResult,
+        PDFConverter,
+        PDFOptions,
+        ReportGenerator,
+        TemplateEngine,
+    )
 except ImportError:
     # Fallback for test environments
     import sys
     import os
+
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-    from d6_reports import (FindingPrioritizer, GenerationOptions,
-                            GenerationResult, PDFConverter, PDFOptions,
-                            ReportGenerator, TemplateEngine)
+    from d6_reports import (
+        FindingPrioritizer,
+        GenerationOptions,
+        GenerationResult,
+        PDFConverter,
+        PDFOptions,
+        ReportGenerator,
+        TemplateEngine,
+    )
 
 
 class TestReportGenerationIntegration:

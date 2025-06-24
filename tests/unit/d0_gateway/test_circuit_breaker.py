@@ -8,8 +8,11 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from d0_gateway.circuit_breaker import (CircuitBreaker, CircuitBreakerConfig,
-                                        CircuitState)
+from d0_gateway.circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerConfig,
+    CircuitState,
+)
 
 
 class TestCircuitBreakerStates:

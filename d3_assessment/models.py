@@ -12,11 +12,10 @@ Acceptance Criteria:
 """
 import uuid
 
-from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint,
-                        Column)
+from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint, Column
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import (Float, ForeignKey, Index, Integer, String, Text,
-                        UniqueConstraint)
+from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+
 # Database compatibility: Use JSON for better SQLite compatibility
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
@@ -27,8 +26,14 @@ JsonColumn = JSON
 
 from database.base import Base
 
-from .types import (AssessmentStatus, AssessmentType, CostType,
-                    InsightCategory, InsightType, TechCategory)
+from .types import (
+    AssessmentStatus,
+    AssessmentType,
+    CostType,
+    InsightCategory,
+    InsightType,
+    TechCategory,
+)
 
 
 def generate_uuid():
@@ -66,7 +71,7 @@ class AssessmentResult(Base):
     tech_stack_data = Column(JsonColumn)  # Technology detection results
     ai_insights_data = Column(JsonColumn)  # AI-generated insights
     assessment_metadata = Column(JsonColumn)  # Additional metadata
-    
+
     # PRD v1.2 new assessment data columns
     bsoup_json = Column(JsonColumn)  # BeautifulSoup extracted data
     semrush_json = Column(JsonColumn)  # SEMrush domain overview
