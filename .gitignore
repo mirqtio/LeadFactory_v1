@@ -175,3 +175,18 @@ production_readiness_report.json
 deploy/
 dist/
 *.tar.gz
+
+# Generated reports directories
+complete_reports_*/
+*_reports_*/
+*_results_*/
+*_assessment_*/
+reports_*/
+test-results/
+venv_*/
+
+# Generated output files
+pipeline_results_*.json
+scoring_results_*.json
+*_summary.json
+validation_report.json
