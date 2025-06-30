@@ -1,4 +1,4 @@
-FROM python:3.11.0-slim
+FROM python:3.11-slim-bookworm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,12 +13,19 @@ RUN useradd -m -u 1000 leadfactory
 
 WORKDIR /app
 
+# Upgrade packaging tools
+RUN pip install --upgrade pip setuptools wheel
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN playwright install --with-deps
 
 # Copy application code
 COPY --chown=leadfactory:leadfactory . .
+
+# Make scripts executable
+RUN chmod +x scripts/run_coordinator_production.py
 
 # Create required directories
 RUN mkdir -p tmp logs && chown -R leadfactory:leadfactory tmp logs
