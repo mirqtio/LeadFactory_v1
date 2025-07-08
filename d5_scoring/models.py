@@ -129,7 +129,17 @@ class D5ScoringResult(Base):
 
     def update_tier_from_score(self):
         """Update tier based on current overall score"""
-        self.tier = ScoringTier.from_score(float(self.overall_score)).value
+        # TODO Phase 0.5: Update to use rules_parser.get_tier_for_score()
+        # For now, use simplified A/B/C/D mapping
+        score = float(self.overall_score) if self.overall_score else 0
+        if score >= 80:
+            self.tier = "A"
+        elif score >= 60:
+            self.tier = "B"  
+        elif score >= 40:
+            self.tier = "C"
+        else:
+            self.tier = "D"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API responses"""

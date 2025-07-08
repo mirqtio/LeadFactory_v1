@@ -174,14 +174,54 @@ class ConfigurableScoringEngine:
 
             # Calculate overall score (normalized to 0-100)
             max_possible_score = self.rules_parser.engine_config.get("max_score", 100.0)
-            overall_score = (
-                min(
-                    max_possible_score,
-                    max(0.0, total_weighted_score / total_weight * max_possible_score),
+            
+            # Check if there's a formula for overall score calculation
+            if hasattr(self.rules_parser, 'schema') and self.rules_parser.schema and \
+               hasattr(self.rules_parser.schema, 'formulas') and self.rules_parser.schema.formulas:
+                overall_formula = self.rules_parser.schema.formulas.get('weighted_score')
+                if overall_formula:
+                    from .formula_evaluator import evaluate_formula
+                    try:
+                        # Prepare data for formula
+                        formula_data = {
+                            'total_weighted_score': total_weighted_score,
+                            'total_weight': total_weight,
+                            'max_score': max_possible_score,
+                            **{f'component_{k}': v['weighted_score'] 
+                               for k, v in component_results.items()}
+                        }
+                        overall_score = evaluate_formula(overall_formula, formula_data)
+                        if overall_score is None:
+                            raise ValueError("Formula returned None")
+                        overall_score = float(overall_score)
+                    except Exception as e:
+                        logger.warning(f"Formula evaluation failed, using default: {e}")
+                        overall_score = (
+                            min(
+                                max_possible_score,
+                                max(0.0, total_weighted_score / total_weight * max_possible_score),
+                            )
+                            if total_weight > 0
+                            else 0.0
+                        )
+                else:
+                    overall_score = (
+                        min(
+                            max_possible_score,
+                            max(0.0, total_weighted_score / total_weight * max_possible_score),
+                        )
+                        if total_weight > 0
+                        else 0.0
+                    )
+            else:
+                overall_score = (
+                    min(
+                        max_possible_score,
+                        max(0.0, total_weighted_score / total_weight * max_possible_score),
+                    )
+                    if total_weight > 0
+                    else 0.0
                 )
-                if total_weight > 0
-                else 0.0
-            )
 
             # Determine tier
             tier_rule = self.rules_parser.get_tier_for_score(overall_score)

@@ -14,7 +14,7 @@ import aiohttp
 from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType
 from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
-from d0_gateway.providers.openai import OpenAIClient
+from d0_gateway.providers.humanloop import HumanloopClient
 from d0_gateway.factory import create_client
 from core.logging import get_logger
 from core.config import settings
@@ -22,30 +22,8 @@ from core.config import settings
 logger = get_logger(__name__, domain="d3")
 
 
-# PRD v1.2 GPT-4o Vision prompt
-VISION_PROMPT = """You are a senior web-design auditor.
-Given this full-page screenshot, return STRICT JSON:
-
-{
- "scores":{         // 0-5 ints
-   "visual_appeal":0,
-   "readability":0,
-   "modernity":0,
-   "brand_consistency":0,
-   "accessibility":0
- },
- "style_warnings":[ "…", "…" ],  // max 3
- "quick_wins":[ "…", "…" ]       // max 3
-}
-
-Scoring rubric:
-visual_appeal = aesthetics / imagery
-readability   = typography & contrast
-modernity     = feels current vs outdated
-brand_consistency = colours/images align w/ name
-accessibility = obvious a11y issues (alt-text, contrast)
-
-Give short bullet phrases only.  Return JSON ONLY."""
+# PRD v1.2 GPT-4o Vision prompt - now loaded from prompts/website_screenshot_analysis_v1.md
+VISION_PROMPT_SLUG = "website_screenshot_analysis_v1"
 
 
 class VisionAssessor(BaseAssessor):
@@ -60,10 +38,10 @@ class VisionAssessor(BaseAssessor):
     def assessment_type(self) -> AssessmentType:
         return AssessmentType.AI_INSIGHTS
 
-    def _get_client(self) -> OpenAIClient:
-        """Get or create OpenAI client"""
+    def _get_client(self) -> HumanloopClient:
+        """Get or create Humanloop client"""
         if not self._client:
-            self._client = create_client("openai")
+            self._client = create_client("humanloop")
         return self._client
 
     async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
@@ -90,7 +68,7 @@ class VisionAssessor(BaseAssessor):
                     error_message="No screenshot URL available for analysis",
                 )
 
-            # Get OpenAI client
+            # Get Humanloop client
             client = self._get_client()
 
             # Prepare vision request
@@ -98,7 +76,6 @@ class VisionAssessor(BaseAssessor):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": VISION_PROMPT},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -110,14 +87,12 @@ class VisionAssessor(BaseAssessor):
                 }
             ]
 
-            # Call GPT-4o Vision
+            # Call Humanloop with vision prompt
             response = await client.chat_completion(
+                prompt_slug=VISION_PROMPT_SLUG,
+                inputs={},  # No template variables needed for this prompt
                 messages=messages,
-                model=settings.openai_model,  # gpt-4o-mini
-                max_tokens=500,
-                temperature=0.2,  # Low temperature for consistent JSON
-                response_format={"type": "json_object"},  # Force JSON response
-                lead_id=business_data.get("id"),
+                metadata={"lead_id": business_data.get("id")},
             )
 
             if not response or "choices" not in response:
@@ -170,7 +145,7 @@ class VisionAssessor(BaseAssessor):
                     },
                 },
                 metrics={
-                    "model_used": settings.openai_model,
+                    "model_used": response.get("model", "gpt-4o-mini"),
                     "average_visual_score": avg_score,
                     "warnings_count": len(visual_warnings),
                     "quickwins_count": len(visual_quickwins),
@@ -241,5 +216,5 @@ class VisionAssessor(BaseAssessor):
         return 0.003
 
     def is_available(self) -> bool:
-        """Check if OpenAI Vision is available"""
-        return bool(settings.openai_api_key) or settings.use_stubs
+        """Check if Humanloop/Vision is available"""
+        return bool(settings.humanloop_api_key) or settings.use_stubs

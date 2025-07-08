@@ -162,6 +162,51 @@ pipeline_duration = Histogram(
     registry=REGISTRY,
 )
 
+# Humanloop/Prompt metrics
+prompt_requests = Counter(
+    "leadfactory_prompt_requests_total",
+    "Total prompt/LLM requests",
+    ["prompt_slug", "model", "status"],
+    registry=REGISTRY,
+)
+
+prompt_duration = Histogram(
+    "leadfactory_prompt_duration_seconds",
+    "Prompt execution duration",
+    ["prompt_slug", "model"],
+    buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0),
+    registry=REGISTRY,
+)
+
+prompt_tokens_used = Counter(
+    "leadfactory_prompt_tokens_total",
+    "Total tokens used by prompts",
+    ["prompt_slug", "model", "token_type"],
+    registry=REGISTRY,
+)
+
+prompt_cost_usd = Counter(
+    "leadfactory_prompt_cost_usd_total",
+    "Total cost of prompt executions in USD",
+    ["prompt_slug", "model"],
+    registry=REGISTRY,
+)
+
+config_reload_total = Counter(
+    "leadfactory_config_reload_total",
+    "Total configuration reloads",
+    ["config_type", "status"],
+    registry=REGISTRY,
+)
+
+config_reload_duration = Histogram(
+    "leadfactory_config_reload_duration_seconds",
+    "Configuration reload duration",
+    ["config_type"],
+    buckets=(0.001, 0.01, 0.05, 0.1, 0.5, 1.0),
+    registry=REGISTRY,
+)
+
 
 class MetricsCollector:
     """Helper class for collecting metrics"""
@@ -234,6 +279,39 @@ class MetricsCollector:
     def track_cache_miss(self, cache_type: str = "redis"):
         """Track cache miss"""
         cache_misses.labels(cache_type=cache_type).inc()
+        
+    def track_prompt_request(
+        self,
+        prompt_slug: str,
+        model: str,
+        duration: float,
+        tokens_input: int,
+        tokens_output: int,
+        cost: float,
+        status: str = "success",
+    ):
+        """Track Humanloop prompt request metrics"""
+        # Track request count
+        prompt_requests.labels(prompt_slug=prompt_slug, model=model, status=status).inc()
+        
+        # Track duration
+        prompt_duration.labels(prompt_slug=prompt_slug, model=model).observe(duration)
+        
+        # Track token usage
+        prompt_tokens_used.labels(
+            prompt_slug=prompt_slug, model=model, token_type="input"
+        ).inc(tokens_input)
+        prompt_tokens_used.labels(
+            prompt_slug=prompt_slug, model=model, token_type="output"
+        ).inc(tokens_output)
+        
+        # Track cost
+        prompt_cost_usd.labels(prompt_slug=prompt_slug, model=model).inc(cost)
+        
+    def track_config_reload(self, config_type: str, duration: float, status: str = "success"):
+        """Track configuration reload metrics"""
+        config_reload_total.labels(config_type=config_type, status=status).inc()
+        config_reload_duration.labels(config_type=config_type).observe(duration)
 
     def increment_counter(self, metric_name: str, amount: int = 1):
         """Generic method to increment counters by metric name"""
