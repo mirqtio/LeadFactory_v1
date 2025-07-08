@@ -229,21 +229,23 @@ class TierAssignmentEngine:
 
     def _create_default_configuration(self) -> TierConfiguration:
         """Create default A/B/C/D tier configuration"""
+        # TODO Phase 0.5: Enable tier-based branching
+        # For Phase 0, tiers are calculated but have zero gating effect (analytics only)
         return TierConfiguration(
             name="default_abcd",
             version="1.0.0",
-            gate_threshold=30.0,  # Minimum 30 points to qualify
-            description="Default A/B/C/D tier configuration",
+            gate_threshold=0.0,  # Phase 0: No gating, all leads pass
+            description="Default A/B/C/D tier configuration (Phase 0: analytics only)",
             boundaries=[
-                TierBoundary(LeadTier.A, 80.0, 100.0, "Premium leads (80-100 points)"),
+                TierBoundary(LeadTier.A, 80.0, 100.0, "Tier A: 80-100 points"),
                 TierBoundary(
-                    LeadTier.B, 65.0, 79.9, "High-quality leads (65-80 points)"
+                    LeadTier.B, 60.0, 79.9, "Tier B: 60-79.9 points"
                 ),
                 TierBoundary(
-                    LeadTier.C, 50.0, 64.9, "Medium-quality leads (50-65 points)"
+                    LeadTier.C, 40.0, 59.9, "Tier C: 40-59.9 points"
                 ),
                 TierBoundary(
-                    LeadTier.D, 30.0, 49.9, "Lower-quality leads (30-50 points)"
+                    LeadTier.D, 0.0, 39.9, "Tier D: 0-39.9 points"
                 ),
             ],
         )
@@ -502,56 +504,31 @@ def assign_lead_tier(
     return engine.assign_tier(lead_id, score)
 
 
-def create_standard_configuration(gate_threshold: float = 30.0) -> TierConfiguration:
+def create_standard_configuration(gate_threshold: float = 0.0) -> TierConfiguration:
     """
     Create standard A/B/C/D configuration with custom gate threshold
 
     Args:
-        gate_threshold: Minimum score to qualify (default 30.0)
+        gate_threshold: Minimum score to qualify (default 0.0 for Phase 0)
 
     Returns:
         TierConfiguration with standard A/B/C/D boundaries
     """
-    # Calculate tier boundaries dynamically based on gate threshold
-    # For high gate thresholds, compress the tier ranges accordingly
-
-    if gate_threshold <= 30.0:
-        # Standard boundaries for low gate thresholds
-        boundaries = [
-            TierBoundary(LeadTier.A, 80.0, 100.0, "Tier A: Premium leads"),
-            TierBoundary(LeadTier.B, 65.0, 79.9, "Tier B: High-quality leads"),
-            TierBoundary(LeadTier.C, 50.0, 64.9, "Tier C: Medium-quality leads"),
-            TierBoundary(
-                LeadTier.D, gate_threshold, 49.9, f"Tier D: Basic qualified leads"
-            ),
-        ]
-    else:
-        # Adjust boundaries for higher gate thresholds
-        # Ensure no overlapping and logical progression
-        tier_a_min = min(85.0, max(80.0, gate_threshold + 35.0))
-        tier_b_min = min(70.0, max(65.0, gate_threshold + 20.0))
-        tier_c_min = min(55.0, max(50.0, gate_threshold + 10.0))
-
-        boundaries = [
-            TierBoundary(LeadTier.A, tier_a_min, 100.0, "Tier A: Premium leads"),
-            TierBoundary(
-                LeadTier.B, tier_b_min, tier_a_min - 0.1, "Tier B: High-quality leads"
-            ),
-            TierBoundary(
-                LeadTier.C, tier_c_min, tier_b_min - 0.1, "Tier C: Medium-quality leads"
-            ),
-            TierBoundary(
-                LeadTier.D,
-                gate_threshold,
-                tier_c_min - 0.1,
-                f"Tier D: Basic qualified leads",
-            ),
-        ]
+    # TODO Phase 0.5: Re-enable gate threshold logic
+    # For Phase 0, all leads pass (gate_threshold = 0.0)
+    
+    # Standard boundaries matching scoring_rules.yaml
+    boundaries = [
+        TierBoundary(LeadTier.A, 80.0, 100.0, "Tier A: 80-100 points"),
+        TierBoundary(LeadTier.B, 60.0, 79.9, "Tier B: 60-79.9 points"),
+        TierBoundary(LeadTier.C, 40.0, 59.9, "Tier C: 40-59.9 points"),
+        TierBoundary(LeadTier.D, 0.0, 39.9, "Tier D: 0-39.9 points"),
+    ]
 
     return TierConfiguration(
         name="standard_abcd",
         version="1.0.0",
         gate_threshold=gate_threshold,
-        description="Standard A/B/C/D tier configuration",
+        description="Standard A/B/C/D tier configuration (Phase 0: analytics only)",
         boundaries=boundaries,
     )

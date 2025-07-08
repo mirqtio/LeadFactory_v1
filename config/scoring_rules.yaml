@@ -1,0 +1,117 @@
+# LeadFactory Scoring Configuration
+# Edit weights and thresholds here. Changes will be live after PR merge.
+version: "1.0"
+
+# Tier thresholds - used for analytics only in Phase 0
+# Comment: Tier used for analytics only until Phase 0.5. Do not branch on tier.
+tiers:
+  A: {min: 80, label: "A"}
+  B: {min: 60, label: "B"}  
+  C: {min: 40, label: "C"}
+  D: {min: 0, label: "D"}
+
+# Component weights must sum to 1.0 (±0.005 tolerance)
+components:
+  company_info:
+    weight: 0.08
+    factors:
+      name_quality: {weight: 0.3}
+      industry_classification: {weight: 0.4}
+      years_in_business: {weight: 0.3}
+  
+  contact_info:
+    weight: 0.06
+    factors:
+      email_quality: {weight: 0.4}
+      phone_verified: {weight: 0.3}
+      decision_maker: {weight: 0.3}
+  
+  location_data:
+    weight: 0.04
+    factors:
+      address_complete: {weight: 0.5}
+      service_area: {weight: 0.5}
+  
+  business_validation:
+    weight: 0.10
+    factors:
+      license_verified: {weight: 0.4}
+      tax_id_present: {weight: 0.3}
+      business_age: {weight: 0.3}
+  
+  online_presence:
+    weight: 0.08
+    factors:
+      website_quality: {weight: 0.4}
+      domain_age: {weight: 0.2}
+      ssl_certificate: {weight: 0.2}
+      mobile_responsive: {weight: 0.2}
+  
+  social_signals:
+    weight: 0.06
+    factors:
+      facebook_presence: {weight: 0.3}
+      linkedin_presence: {weight: 0.3}
+      review_count: {weight: 0.4}
+  
+  revenue_indicators:
+    weight: 0.12
+    factors:
+      estimated_revenue: {weight: 0.5}
+      growth_trend: {weight: 0.3}
+      payment_methods: {weight: 0.2}
+  
+  employee_count:
+    weight: 0.08
+    factors:
+      size_category: {weight: 0.6}
+      hiring_signals: {weight: 0.4}
+  
+  funding_status:
+    weight: 0.06
+    factors:
+      funding_rounds: {weight: 0.5}
+      investor_quality: {weight: 0.5}
+  
+  industry_relevance:
+    weight: 0.10
+    factors:
+      target_match: {weight: 0.6}
+      growth_potential: {weight: 0.4}
+  
+  market_position:
+    weight: 0.08
+    factors:
+      competitive_strength: {weight: 0.5}
+      market_share: {weight: 0.5}
+  
+  growth_indicators:
+    weight: 0.06
+    factors:
+      yoy_growth: {weight: 0.6}
+      expansion_signals: {weight: 0.4}
+  
+  technology_stack:
+    weight: 0.04
+    factors:
+      tech_sophistication: {weight: 0.6}
+      integration_potential: {weight: 0.4}
+  
+  decision_maker_access:
+    weight: 0.08
+    factors:
+      contact_level: {weight: 0.6}
+      response_likelihood: {weight: 0.4}
+  
+  timing_indicators:
+    weight: 0.06
+    factors:
+      buying_signals: {weight: 0.7}
+      budget_cycle: {weight: 0.3}
+
+# Scoring formula configuration (for xlcalculator integration)
+formulas:
+  # Reference formulas from lead_value.xlsx ImpactCalcs sheet
+  total_score: "SUM(component_scores)"
+  weighted_score: "SUMPRODUCT(component_values, component_weights)"
+  tier_assignment: "IF(total_score >= 80, 'A', IF(total_score >= 60, 'B', IF(total_score >= 40, 'C', 'D')))"

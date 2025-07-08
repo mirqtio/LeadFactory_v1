@@ -1,0 +1,27 @@
+# Excel file placeholder
+# This would normally be a binary Excel file with formulas
+# For testing purposes, we'll document the formulas here
+
+## ImpactCalcs Sheet
+
+### Revenue Impact Formulas
+- Cell B2: =A2*0.03  # 3% conversion uplift for critical issues
+- Cell B3: =A3*0.02  # 2% conversion uplift for high issues  
+- Cell B4: =A4*0.01  # 1% conversion uplift for medium issues
+- Cell B5: =A5*0.005 # 0.5% conversion uplift for low issues
+
+### Weighted Impact Score
+- Cell C2: =SUMPRODUCT(B2:B5, D2:D5) # Weighted sum of impacts
+- Cell C3: =IF(C2>100, 100, C2)      # Cap at 100
+
+### Tier Assignment Formula
+- Cell D2: =IF(C3>=80,"A",IF(C3>=60,"B",IF(C3>=40,"C","D")))
+
+### ROI Calculation
+- Cell E2: =B2*12*F2  # Annual revenue impact
+- Cell E3: =E2/G2      # ROI ratio
+
+### Complex Scoring Formula
+- Cell F2: =SUM(H2:H10)*0.3 + SUM(I2:I10)*0.4 + SUM(J2:J10)*0.3
+- Cell F3: =AVERAGE(F2, K2, L2)
+- Cell F4: =MAX(0, MIN(100, F3*M2))  # Scaled and bounded score

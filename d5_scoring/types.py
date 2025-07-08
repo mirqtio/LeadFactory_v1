@@ -33,44 +33,41 @@ class ScoringTier(Enum):
     @classmethod
     def from_score(cls, score: float) -> "ScoringTier":
         """Convert numeric score to tier"""
-        if score >= 90:
-            return cls.PLATINUM
-        elif score >= 80:
-            return cls.GOLD
-        elif score >= 70:
-            return cls.SILVER
+        # DEPRECATED - Use YAML-based tier configuration instead
+        # TODO Phase 0.5: Remove this method after migration to A/B/C/D tiers
+        import logging
+        logging.warning(
+            "ScoringTier.from_score is deprecated. Use rules_parser.get_tier_for_score() instead."
+        )
+        # Map to closest A/B/C/D tier for backwards compatibility
+        if score >= 80:
+            return cls.PLATINUM  # Maps to A
         elif score >= 60:
-            return cls.BRONZE
-        elif score >= 50:
-            return cls.BASIC
+            return cls.GOLD  # Maps to B
+        elif score >= 40:
+            return cls.SILVER  # Maps to C
         else:
-            return cls.UNQUALIFIED
+            return cls.BRONZE  # Maps to D
 
     @property
     def min_score(self) -> float:
         """Minimum score for this tier"""
-        tier_ranges = {
-            self.PLATINUM: 90.0,
-            self.GOLD: 80.0,
-            self.SILVER: 70.0,
-            self.BRONZE: 60.0,
-            self.BASIC: 50.0,
-            self.UNQUALIFIED: 0.0,
-        }
-        return tier_ranges[self]
+        # DEPRECATED - Use YAML-based tier configuration instead
+        import logging
+        logging.warning(
+            "ScoringTier.min_score is deprecated. Use YAML configuration instead."
+        )
+        return 0.0  # Default for backwards compatibility
 
     @property
     def max_score(self) -> float:
         """Maximum score for this tier"""
-        tier_ranges = {
-            self.PLATINUM: 100.0,
-            self.GOLD: 89.9,
-            self.SILVER: 79.9,
-            self.BRONZE: 69.9,
-            self.BASIC: 59.9,
-            self.UNQUALIFIED: 49.9,
-        }
-        return tier_ranges[self]
+        # DEPRECATED - Use YAML-based tier configuration instead
+        import logging
+        logging.warning(
+            "ScoringTier.max_score is deprecated. Use YAML configuration instead."
+        )
+        return 100.0  # Default for backwards compatibility
 
 
 class ScoreComponent(Enum):
@@ -108,47 +105,28 @@ class ScoreComponent(Enum):
     @property
     def max_points(self) -> float:
         """Maximum points this component can contribute"""
-        # Weight different components by importance
-        weights = {
-            self.COMPANY_INFO: 8.0,
-            self.CONTACT_INFO: 6.0,
-            self.LOCATION_DATA: 4.0,
-            self.BUSINESS_VALIDATION: 10.0,
-            self.ONLINE_PRESENCE: 8.0,
-            self.SOCIAL_SIGNALS: 6.0,
-            self.REVENUE_INDICATORS: 12.0,
-            self.EMPLOYEE_COUNT: 8.0,
-            self.FUNDING_STATUS: 6.0,
-            self.INDUSTRY_RELEVANCE: 10.0,
-            self.MARKET_POSITION: 8.0,
-            self.GROWTH_INDICATORS: 6.0,
-            self.TECHNOLOGY_STACK: 4.0,
-            self.DECISION_MAKER_ACCESS: 8.0,
-            self.TIMING_INDICATORS: 6.0,
-        }
-        return weights.get(self, 5.0)
+        # DEPRECATED – replaced by YAML configuration
+        # TODO: Remove this method after all callers updated to use YAML config
+        # For now, return a default value. Real weights come from config/scoring_rules.yaml
+        import logging
+        logging.warning(
+            f"ScoreComponent.max_points is deprecated. "
+            f"Component '{self.value}' should use weights from scoring_rules.yaml"
+        )
+        return 10.0  # Default weight for backwards compatibility
 
     @property
     def description(self) -> str:
         """Human-readable description of the component"""
-        descriptions = {
-            self.COMPANY_INFO: "Basic company information completeness and accuracy",
-            self.CONTACT_INFO: "Quality and completeness of contact information",
-            self.LOCATION_DATA: "Address accuracy and location verification",
-            self.BUSINESS_VALIDATION: "Legitimacy and operational status indicators",
-            self.ONLINE_PRESENCE: "Website quality and digital footprint strength",
-            self.SOCIAL_SIGNALS: "Social media presence and customer reviews",
-            self.REVENUE_INDICATORS: "Revenue data and financial health signals",
-            self.EMPLOYEE_COUNT: "Company size and headcount indicators",
-            self.FUNDING_STATUS: "Investment history and funding status",
-            self.INDUSTRY_RELEVANCE: "Alignment with target industry and use cases",
-            self.MARKET_POSITION: "Competitive positioning and market presence",
-            self.GROWTH_INDICATORS: "Growth trajectory and expansion signals",
-            self.TECHNOLOGY_STACK: "Technology compatibility and stack alignment",
-            self.DECISION_MAKER_ACCESS: "Accessibility of key decision makers",
-            self.TIMING_INDICATORS: "Buying readiness and timing signals",
-        }
-        return descriptions.get(self, "Score component")
+        # DEPRECATED – replaced by YAML configuration
+        # TODO: Remove this method after all callers updated to use YAML config
+        # Descriptions should come from config/scoring_rules.yaml
+        import logging
+        logging.warning(
+            f"ScoreComponent.description is deprecated. "
+            f"Component '{self.value}' description should come from scoring_rules.yaml"
+        )
+        return f"Score component: {self.value}"
 
 
 class ScoringStatus(Enum):

@@ -18,27 +18,8 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-# Placeholder for LLM client - will be implemented in d0_gateway
-try:
-    from d0_gateway.providers.llm import LLMClient
-except ImportError:
-    # Mock LLM client for testing and development
-    class LLMClient:
-        async def generate_completion(self, prompt, max_tokens=1000, temperature=0.7):
-            class MockResponse:
-                content = (
-                    '{"recommendations": [], "error": "LLM client not implemented"}'
-                )
-                usage = {
-                    "prompt_tokens": 100,
-                    "completion_tokens": 50,
-                    "total_tokens": 150,
-                }
-
-            return MockResponse()
-
-        async def get_model_version(self):
-            return "mock-model-v1"
+# Use Humanloop for all LLM operations
+from d0_gateway.providers.humanloop import HumanloopClient
 
 
 from .models import AssessmentCost, AssessmentResult
@@ -72,14 +53,14 @@ class LLMInsightGenerator:
     and strategic analysis using advanced language models.
     """
 
-    def __init__(self, llm_client: Optional[LLMClient] = None):
+    def __init__(self, llm_client: Optional[HumanloopClient] = None):
         """
         Initialize LLM insight generator
 
         Args:
-            llm_client: LLM client instance (defaults to OpenAI)
+            llm_client: LLM client instance (defaults to Humanloop)
         """
-        self.llm_client = llm_client or LLMClient()
+        self.llm_client = llm_client or HumanloopClient()
         self.prompts = InsightPrompts()
 
     async def generate_comprehensive_insights(
@@ -159,7 +140,7 @@ class LLMInsightGenerator:
                 total_cost_usd=total_cost,
                 generated_at=started_at,
                 completed_at=datetime.utcnow(),
-                model_version=await self.llm_client.get_model_version(),
+                model_version="humanloop-v1",
                 processing_time_ms=max(
                     1, int((datetime.utcnow() - started_at).total_seconds() * 1000)
                 ),
@@ -183,7 +164,7 @@ class LLMInsightGenerator:
                 generated_at=started_at,
                 completed_at=datetime.utcnow(),
                 error_message=str(e),
-                model_version=await self.llm_client.get_model_version(),
+                model_version="humanloop-v1",
                 processing_time_ms=max(
                     1, int((datetime.utcnow() - started_at).total_seconds() * 1000)
                 ),
@@ -198,20 +179,21 @@ class LLMInsightGenerator:
         Acceptance Criteria: 3 recommendations generated
         """
         prompt_vars = self.prompts.get_prompt_variables(assessment_data, industry)
-        prompt = self.prompts.WEBSITE_ANALYSIS_PROMPT.format(**prompt_vars)
 
-        response = await self.llm_client.generate_completion(
-            prompt=prompt, max_tokens=2000, temperature=0.7
+        response = await self.llm_client.completion(
+            prompt_slug="website_analysis_v1",
+            inputs=prompt_vars,
+            metadata={"insight_id": insight_id, "type": "recommendations"},
         )
 
         # Track cost
         cost = await self._track_llm_cost(
-            insight_id, "recommendations", response.usage, "Website Analysis"
+            insight_id, "recommendations", response.get("usage", {}), "Website Analysis"
         )
 
         # Parse structured output
         try:
-            parsed_response = json.loads(response.content)
+            parsed_response = json.loads(response.get("output", "{}"))
 
             # Validate 3 recommendations
             recommendations = parsed_response.get("recommendations", [])
@@ -224,27 +206,28 @@ class LLMInsightGenerator:
 
         except json.JSONDecodeError as e:
             # Fallback: extract structured data from unstructured response
-            return self._extract_recommendations_fallback(response.content), cost
+            return self._extract_recommendations_fallback(response.get("output", "")), cost
 
     async def _generate_technical_analysis(
         self, assessment_data: Dict[str, Any], insight_id: str
     ) -> tuple[Dict[str, Any], Decimal]:
         """Generate technical performance analysis"""
         prompt_vars = self.prompts.get_prompt_variables(assessment_data)
-        prompt = self.prompts.TECHNICAL_ANALYSIS_PROMPT.format(**prompt_vars)
 
-        response = await self.llm_client.generate_completion(
-            prompt=prompt, max_tokens=1500, temperature=0.5
+        response = await self.llm_client.completion(
+            prompt_slug="technical_analysis_v1",
+            inputs=prompt_vars,
+            metadata={"insight_id": insight_id, "type": "technical_analysis"},
         )
 
         cost = await self._track_llm_cost(
-            insight_id, "technical_analysis", response.usage, "Technical Analysis"
+            insight_id, "technical_analysis", response.get("usage", {}), "Technical Analysis"
         )
 
         try:
-            return json.loads(response.content), cost
+            return json.loads(response.get("output", "{}")), cost
         except json.JSONDecodeError:
-            return self._extract_technical_analysis_fallback(response.content), cost
+            return self._extract_technical_analysis_fallback(response.get("output", "")), cost
 
     async def _generate_industry_benchmark(
         self, assessment_data: Dict[str, Any], industry: str, insight_id: str
@@ -255,40 +238,42 @@ class LLMInsightGenerator:
         Acceptance Criteria: Industry-specific insights
         """
         prompt_vars = self.prompts.get_prompt_variables(assessment_data, industry)
-        prompt = self.prompts.INDUSTRY_BENCHMARK_PROMPT.format(**prompt_vars)
 
-        response = await self.llm_client.generate_completion(
-            prompt=prompt, max_tokens=1200, temperature=0.6
+        response = await self.llm_client.completion(
+            prompt_slug="industry_benchmark_v1",
+            inputs=prompt_vars,
+            metadata={"insight_id": insight_id, "type": "industry_benchmark"},
         )
 
         cost = await self._track_llm_cost(
-            insight_id, "industry_benchmark", response.usage, "Industry Benchmark"
+            insight_id, "industry_benchmark", response.get("usage", {}), "Industry Benchmark"
         )
 
         try:
-            return json.loads(response.content), cost
+            return json.loads(response.get("output", "{}")), cost
         except json.JSONDecodeError:
-            return self._extract_benchmark_analysis_fallback(response.content), cost
+            return self._extract_benchmark_analysis_fallback(response.get("output", "")), cost
 
     async def _generate_quick_wins(
         self, assessment_data: Dict[str, Any], insight_id: str
     ) -> tuple[Dict[str, Any], Decimal]:
         """Generate quick win recommendations"""
         prompt_vars = self.prompts.get_prompt_variables(assessment_data)
-        prompt = self.prompts.QUICK_WINS_PROMPT.format(**prompt_vars)
 
-        response = await self.llm_client.generate_completion(
-            prompt=prompt, max_tokens=1000, temperature=0.8
+        response = await self.llm_client.completion(
+            prompt_slug="quick_wins_v1",
+            inputs=prompt_vars,
+            metadata={"insight_id": insight_id, "type": "quick_wins"},
         )
 
         cost = await self._track_llm_cost(
-            insight_id, "quick_wins", response.usage, "Quick Wins"
+            insight_id, "quick_wins", response.get("usage", {}), "Quick Wins"
         )
 
         try:
-            return json.loads(response.content), cost
+            return json.loads(response.get("output", "{}")), cost
         except json.JSONDecodeError:
-            return self._extract_quick_wins_fallback(response.content), cost
+            return self._extract_quick_wins_fallback(response.get("output", "")), cost
 
     def _prepare_assessment_data(self, assessment: AssessmentResult) -> Dict[str, Any]:
         """Prepare assessment data for LLM analysis"""

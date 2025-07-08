@@ -51,23 +51,25 @@ class VerticalScoringEngine:
     """
 
     # Supported verticals and their configurations
+    # DEPRECATED - Multipliers should come from YAML engine_config.vertical_multiplier
+    # TODO: Load vertical configurations dynamically from config directory
     SUPPORTED_VERTICALS = {
         "restaurant": VerticalConfig(
             vertical_name="restaurant",
             rules_file="scoring_rules_restaurant.yaml",
-            multiplier=1.1,
+            multiplier=1.0,  # Will be overridden by YAML
             description="Restaurant and food service industry scoring",
         ),
         "medical": VerticalConfig(
             vertical_name="medical",
             rules_file="scoring_rules_medical.yaml",
-            multiplier=1.15,
+            multiplier=1.0,  # Will be overridden by YAML
             description="Medical and healthcare industry scoring",
         ),
         "healthcare": VerticalConfig(  # Alias for medical
             vertical_name="medical",
             rules_file="scoring_rules_medical.yaml",
-            multiplier=1.15,
+            multiplier=1.0,  # Will be overridden by YAML
             description="Healthcare industry scoring",
         ),
     }

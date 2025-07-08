@@ -1,5 +1,6 @@
 """
 OpenAI API client implementation for LLM-powered insights
+DEPRECATED: Use HumanloopClient instead for all LLM operations
 """
 import json
 from decimal import Decimal

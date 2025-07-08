@@ -1,0 +1,76 @@
+name: Sheet to YAML Pull
+on:
+  workflow_dispatch:
+    inputs:
+      sheetId:
+        description: 'Google Sheet ID'
+        required: true
+      tab:
+        description: 'Sheet tab name'
+        required: true
+      sha:
+        description: 'Sheet SHA for version tracking'
+        required: true
+
+jobs:
+  pull-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+          pip install ruamel.yaml pydantic
+      
+      - name: Pull from Sheet
+        env:
+          GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+        run: |
+          python scripts/sheet_to_yaml.py \
+            --sheet-id "${{ github.event.inputs.sheetId }}" \
+            --tab "${{ github.event.inputs.tab }}" \
+            --output config/scoring_rules.yaml
+      
+      - name: Validate YAML
+        run: |
+          export PYTHONPATH=.
+          python -m d5_scoring.rules_schema validate config/scoring_rules.yaml
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update scoring rules from Google Sheets"
+          title: "Update scoring rules from Sheet"
+          body: |
+            ## Scoring Rules Update
+            
+            This PR updates the scoring rules configuration from Google Sheets.
+            
+            - **Sheet ID**: ${{ github.event.inputs.sheetId }}
+            - **Tab**: ${{ github.event.inputs.tab }}
+            - **SHA**: ${{ github.event.inputs.sha }}
+            
+            ### Changes
+            The scoring weights and tier thresholds have been updated based on the latest configuration in the Google Sheet.
+            
+            ### Validation
+            - ✅ YAML schema validation passed
+            - ✅ Component weights sum to 1.0 (±0.005)
+            - ✅ All tier labels present (A, B, C, D)
+            
+            Please review the changes and merge if they look correct.
+          branch: update-scoring-rules-${{ github.event.inputs.sha }}
+          delete-branch: true
+          labels: |
+            config
+            scoring
+            automated

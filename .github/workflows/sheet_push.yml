@@ -1,0 +1,67 @@
+name: YAML to Sheet Push
+on:
+  push:
+    paths:
+      - 'config/scoring_rules.yaml'
+    branches:
+      - main
+
+jobs:
+  push-to-sheet:
+    runs-on: ubuntu-latest
+    # Only run if the commit message doesn't contain [skip-sheet-sync]
+    if: "!contains(github.event.head_commit.message, '[skip-sheet-sync]')"
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+          pip install ruamel.yaml pydantic
+      
+      - name: Validate YAML before push
+        run: |
+          export PYTHONPATH=.
+          python -m d5_scoring.rules_schema validate config/scoring_rules.yaml
+      
+      - name: Push to Google Sheet
+        env:
+          GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+          SHEET_ID: ${{ secrets.SCORING_SHEET_ID }}  # TODO: inject SHEET_ID
+          TAB_NAME: ${{ secrets.SCORING_TAB_NAME }}  # TODO: inject TAB_NAME
+        run: |
+          python scripts/yaml_to_sheet.py \
+            --yaml-file config/scoring_rules.yaml \
+            --sheet-id "$SHEET_ID" \
+            --tab "$TAB_NAME"
+      
+      - name: Update SHA in sheet
+        env:
+          GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+          SHEET_ID: ${{ secrets.SCORING_SHEET_ID }}
+          TAB_NAME: ${{ secrets.SCORING_TAB_NAME }}
+        run: |
+          # Update SHA cell (Z1) with current git SHA
+          python scripts/update_sheet_sha.py \
+            --sheet-id "$SHEET_ID" \
+            --tab "$TAB_NAME" \
+            --sha "${{ github.sha }}"
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Scoring rules successfully synchronized to Google Sheet!'
+            })

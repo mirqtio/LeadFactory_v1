@@ -10,6 +10,7 @@ from core.logging import get_logger
 from .base import BaseAPIClient
 from .providers.dataaxle import DataAxleClient
 from .providers.google_places import GooglePlacesClient
+from .providers.humanloop import HumanloopClient
 from .providers.hunter import HunterClient
 from .providers.openai import OpenAIClient
 from .providers.pagespeed import PageSpeedClient
@@ -48,6 +49,7 @@ class GatewayClientFactory:
                         "yelp": YelpClient,
                         "pagespeed": PageSpeedClient,
                         "openai": OpenAIClient,
+                        "humanloop": HumanloopClient,
                         "sendgrid": SendGridClient,
                         "stripe": StripeClient,
                         "dataaxle": DataAxleClient,
@@ -185,6 +187,8 @@ class GatewayClientFactory:
             config["api_secret"] = getattr(self.settings, "screenshotone_secret", None)
         elif provider == "google_places":
             config["api_key"] = getattr(self.settings, "google_api_key", None)
+        elif provider == "humanloop":
+            config["api_key"] = getattr(self.settings, "humanloop_api_key", None)
 
         # Common configuration
         config.update(
