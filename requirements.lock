@@ -683,13 +683,31 @@ geopy==2.4.1 \
     --hash=sha256:50283d8e7ad07d89be5cb027338c6365a32044df3ae2556ad3f52f4840b3d0d1 \
     --hash=sha256:ae8b4bc5c1131820f4d75fce9d4aaaca0c85189b3aa5d64c3dcaf5e3b7b882a7
     # via -r requirements.txt
-google-auth==2.40.3 \
-    --hash=sha256:1370d4593e86213563547f97a92752fc658456fe4514c809544f330fed45a7ca \
-    --hash=sha256:500c3a29adedeb36ea9cf24b8d10858e152f2412e3ca37829b3fa18e33d63b77
-    # via kubernetes
+google-api-core==2.25.1 \
+    --hash=sha256:8a2a56c1fef82987a524371f99f3bd0143702fecc670c72e600c1cda6bf8dbb7 \
+    --hash=sha256:d2aaa0b13c78c61cb3f4282c464c046e45fbd75755683c9c525e6e8f7ed0a5e8
+    # via google-api-python-client
 google-api-python-client==2.100.0 \
     --hash=sha256:226ca35355993d6182506c51745ab5149405cdf6a92975b2725ab3e0d757dbe9
     # via -r requirements.txt
+google-auth==2.40.3 \
+    --hash=sha256:1370d4593e86213563547f97a92752fc658456fe4514c809544f330fed45a7ca \
+    --hash=sha256:500c3a29adedeb36ea9cf24b8d10858e152f2412e3ca37829b3fa18e33d63b77
+    # via
+    #   google-api-core
+    #   google-api-python-client
+    #   google-auth-httplib2
+    #   kubernetes
+google-auth-httplib2==0.2.0 \
+    --hash=sha256:38aa7badf48f974f1eb9861794e9c0cb2a0511a4ec0679b1f886d108f5640e05 \
+    --hash=sha256:b65a0a2123300dd71281a7bf6e64d65a0759287df52729bdd1ae2e47dc311a3d
+    # via
+    #   -r requirements.txt
+    #   google-api-python-client
+googleapis-common-protos==1.70.0 \
+    --hash=sha256:0e1b44e0ea153e6594f9f394fef15193a68aaaea2d843f83e2742717ca753257 \
+    --hash=sha256:b8bfcca8c25a2bb253e0e0b0adaf8c00773e5e6af6fd92397576680b807e0fd8
+    # via google-api-core
 graphviz==0.21 \
     --hash=sha256:20743e7183be82aaaa8ad6c93f8893c923bd6658a04c32ee115edb3c8a835f78 \
     --hash=sha256:54f33de9f4f911d7e84e4191749cac8cc5653f815b06738c54db9a15ab8b1e42
@@ -785,7 +803,10 @@ httpcore==1.0.9 \
     #   prefect
 httplib2==0.22.0 \
     --hash=sha256:14ae0a53c1ba8f3d37e9e27cf37eabb0fb9980f435ba405d546948b009dd64dc
-    # via -r requirements.txt
+    # via
+    #   -r requirements.txt
+    #   google-api-python-client
+    #   google-auth-httplib2
 httptools==0.6.4 \
     --hash=sha256:0614154d5454c21b6410fdf5262b4a3ddb0f53f1e1721cfd59d55f32138c578a \
     --hash=sha256:0e563e54979e97b6d13f1bbc05a96109923e76b901f786a5eae36e99c01237bd \
@@ -1415,6 +1436,24 @@ propcache==0.3.2 \
     --hash=sha256:fb075ad271405dcad8e2a7ffc9a750a3bf70e533bd86e89f0603e607b93aa64c \
     --hash=sha256:fd3e6019dc1261cd0291ee8919dd91fbab7b169bb76aeef6c716833a3f65d206
     # via yarl
+proto-plus==1.26.1 \
+    --hash=sha256:13285478c2dcf2abb829db158e1047e2f1e8d63a077d94263c2b88b043c75a66 \
+    --hash=sha256:21a515a4c4c0088a773899e23c7bbade3d18f9c66c73edd4c7ee3816bc96a012
+    # via google-api-core
+protobuf==6.31.1 \
+    --hash=sha256:0414e3aa5a5f3ff423828e1e6a6e907d6c65c1d5b7e6e975793d5590bdeecc16 \
+    --hash=sha256:426f59d2964864a1a366254fa703b8632dcec0790d8862d30034d8245e1cd447 \
+    --hash=sha256:4ee898bf66f7a8b0bd21bce523814e6fbd8c6add948045ce958b73af7e8878c6 \
+    --hash=sha256:6f1227473dc43d44ed644425268eb7c2e488ae245d51c6866d19fe158e207402 \
+    --hash=sha256:720a6c7e6b77288b85063569baae8536671b39f15cc22037ec7045658d80489e \
+    --hash=sha256:7fa17d5a29c2e04b7d90e5e32388b8bfd0e7107cd8e616feef7ed3fa6bdab5c9 \
+    --hash=sha256:8764cf4587791e7564051b35524b72844f845ad0bb011704c3736cce762d8fe9 \
+    --hash=sha256:a40fc12b84c154884d7d4c4ebd675d5b3b5283e155f324049ae396b95ddebc39 \
+    --hash=sha256:d8cac4c982f0b957a4dc73a80e2ea24fab08e679c0de9deb835f4a12d69aca9a
+    # via
+    #   google-api-core
+    #   googleapis-common-protos
+    #   proto-plus
 psutil==5.9.0 \
     --hash=sha256:869842dbd66bb80c3217158e629d6fceaecc3a3166d3d1faee515b05dd26ca25
     # via -r requirements.txt
@@ -1636,6 +1675,10 @@ pyjwt==2.8.0 \
     --hash=sha256:57e28d156e3d5c10088e0c68abb90bfac3df82b40a71bd0daa20c65ccd5c23de \
     --hash=sha256:59127c392cc44c2da5bb3192169a91f429924e17aff6534d70fdc02ab3e04320
     # via -r requirements.txt
+pyparsing==3.2.3 \
+    --hash=sha256:a749938e02d6fd0b59b356ca504a24982314bb090c383e3cf201c95ef7e2bfcf \
+    --hash=sha256:b9c13f1ab8b3b542f72e28f634bad4de758ab3ce4546e4301970ad6fa77c38be
+    # via httplib2
 pytest==8.4.1 \
     --hash=sha256:539c70ba6fcead8e78eebbf1115e8b589e7565830d7d006a8723f19ac8a0afb7 \
     --hash=sha256:7c67fd69174877359ed9371ec3af8a3d2b04741818c51e5e99cc1742251fa93c
@@ -1761,6 +1804,7 @@ pyyaml==6.0.1 \
     #   apprise
     #   kubernetes
     #   prefect
+    #   responses
     #   uvicorn
 readchar==4.2.1 \
     --hash=sha256:91ce3faf07688de14d800592951e5575e9c7a3213738ed01d394dcc949b79adb \
@@ -1878,8 +1922,10 @@ requests==2.32.4 \
     # via
     #   apprise
     #   docker
+    #   google-api-core
     #   kubernetes
     #   requests-oauthlib
+    #   responses
     #   stripe
 requests-oauthlib==2.0.0 \
     --hash=sha256:7dd8a5c40426b779b0868c404bdef9768deccf22749cde15852df527e6269b36 \
@@ -2366,6 +2412,12 @@ ujson==5.10.0 \
     --hash=sha256:f8ccb77b3e40b151e20519c6ae6d89bfe3f4c14e8e210d910287f778368bb3d1 \
     --hash=sha256:fbd8fd427f57a03cff3ad6574b5e299131585d9727c8c366da4624a9069ed746
     # via prefect
+uritemplate==4.2.0 \
+    --hash=sha256:480c2ed180878955863323eea31b0ede668795de182617fef9c6ca09e6ec9d0e \
+    --hash=sha256:962201ba1c4edcab02e60f9a0d3821e82dfc5d2d6662a21abd533879bdb8a686
+    # via
+    #   -r requirements.txt
+    #   google-api-python-client
 urllib3==1.26.20 \
     --hash=sha256:0ed14ccfbf1c30a9072c7ca157e4319b70d65f623e91e7b32fadb2853431016e \
     --hash=sha256:40c2dc0c681e47eb8f90e7e27bf6ff7df2e677421fd46756da1161c39ca70d32
@@ -2373,6 +2425,7 @@ urllib3==1.26.20 \
     #   docker
     #   kubernetes
     #   requests
+    #   responses
     #   sentry-sdk
 uvicorn[standard]==0.24.0 \
     --hash=sha256:368d5d81520a51be96431845169c225d771c9dd22a58613e1a181e6c4512ac33 \
