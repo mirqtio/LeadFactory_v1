@@ -38,7 +38,6 @@ class Settings(BaseSettings):
     stub_base_url: str = Field(default="http://localhost:5010")
 
     # API Keys (only needed when USE_STUBS=false)
-    yelp_api_key: Optional[str] = Field(default=None)
     google_api_key: Optional[str] = Field(default=None)
     stripe_secret_key: Optional[str] = Field(default=None)
     stripe_publishable_key: Optional[str] = Field(default=None)
@@ -72,7 +71,6 @@ class Settings(BaseSettings):
 
     # PRD v1.2 - API Limits
     max_daily_emails: int = Field(default=100000)
-    max_daily_yelp_calls: int = Field(default=300)
     max_businesses_per_batch: int = Field(default=50)
 
     # Performance
@@ -156,7 +154,6 @@ class Settings(BaseSettings):
         """Get base URLs for external APIs"""
         if self.use_stubs:
             return {
-                "yelp": self.stub_base_url,
                 "pagespeed": self.stub_base_url,
                 "stripe": self.stub_base_url,
                 "sendgrid": self.stub_base_url,
@@ -168,7 +165,6 @@ class Settings(BaseSettings):
             }
         else:
             return {
-                "yelp": "https://api.yelp.com",
                 "pagespeed": "https://www.googleapis.com",
                 "stripe": "https://api.stripe.com",
                 "sendgrid": "https://api.sendgrid.com",
@@ -185,7 +181,6 @@ class Settings(BaseSettings):
             return f"stub-{service}-key"
 
         keys = {
-            "yelp": self.yelp_api_key,
             "google": self.google_api_key,
             "pagespeed": self.google_api_key,  # PageSpeed uses Google API key
             "stripe": self.stripe_secret_key,

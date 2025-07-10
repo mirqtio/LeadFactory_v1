@@ -16,7 +16,6 @@ class StubConfig:
         """Get API URLs based on stub configuration"""
         if self.use_stubs:
             return {
-                "yelp": f"{self.stub_base_url}",
                 "pagespeed": f"{self.stub_base_url}",
                 "stripe": f"{self.stub_base_url}",
                 "sendgrid": f"{self.stub_base_url}",
@@ -24,7 +23,6 @@ class StubConfig:
             }
         else:
             return {
-                "yelp": "https://api.yelp.com",
                 "pagespeed": "https://www.googleapis.com",
                 "stripe": "https://api.stripe.com",
                 "sendgrid": "https://api.sendgrid.com",
@@ -39,7 +37,6 @@ class StubConfig:
         else:
             # Real APIs need actual keys from environment
             api_keys = {
-                "yelp": os.getenv("YELP_API_KEY", ""),
                 "pagespeed": os.getenv("GOOGLE_API_KEY", ""),
                 "stripe": os.getenv("STRIPE_SECRET_KEY", ""),
                 "sendgrid": os.getenv("SENDGRID_API_KEY", ""),
@@ -50,8 +47,6 @@ class StubConfig:
             if service == "sendgrid":
                 return {"Authorization": f"Bearer {key}"}
             elif service == "stripe":
-                return {"Authorization": f"Bearer {key}"}
-            elif service == "yelp":
                 return {"Authorization": f"Bearer {key}"}
             elif service == "openai":
                 return {"Authorization": f"Bearer {key}"}
