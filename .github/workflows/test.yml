@@ -65,9 +65,6 @@ jobs:
     - name: Run smoke tests (if API keys present)
       run: |
         # Check if we have API keys in GitHub secrets
-        if [ -n "${{ secrets.YELP_API_KEY }}" ]; then
-          export YELP_API_KEY="${{ secrets.YELP_API_KEY }}"
-        fi
         if [ -n "${{ secrets.HUNTER_API_KEY }}" ]; then
           export HUNTER_API_KEY="${{ secrets.HUNTER_API_KEY }}"
         fi

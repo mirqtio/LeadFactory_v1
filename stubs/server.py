@@ -1,6 +1,6 @@
 """
 Stub server to mock external APIs for testing
-Implements Yelp, Google PageSpeed, Stripe, SendGrid, OpenAI, Data Axle, and Hunter endpoints
+Implements Google PageSpeed, Stripe, SendGrid, OpenAI, Data Axle, and Hunter endpoints
 """
 import json
 import os
@@ -32,71 +32,6 @@ IS_TEST_MODE = os.getenv("ENVIRONMENT") == "test"
 
 
 # Stub data generators
-def generate_yelp_business(
-    index: int, location: str, categories: str
-) -> Dict[str, Any]:
-    """Generate realistic Yelp business data"""
-    business_types = {
-        "restaurant": [
-            "Pizza Place",
-            "Burger Joint",
-            "Sushi Bar",
-            "Cafe",
-            "Steakhouse",
-        ],
-        "medical": [
-            "Family Clinic",
-            "Dental Office",
-            "Urgent Care",
-            "Medical Center",
-            "Specialty Clinic",
-        ],
-        "retail": [
-            "Boutique",
-            "Electronics Store",
-            "Book Shop",
-            "Hardware Store",
-            "Gift Shop",
-        ],
-    }
-
-    vertical = categories.split(",")[0] if categories else "restaurant"
-    names = business_types.get(vertical, ["Business"])
-
-    return {
-        "id": f"stub-yelp-{location}-{index}",
-        "alias": f"stub-business-{index}",
-        "name": f"{random.choice(names)} #{index}",
-        "image_url": f"https://stub.yelp.com/biz/{index}.jpg",
-        "is_closed": False,
-        "url": f"https://www.yelp.com/biz/stub-{index}",
-        "review_count": random.randint(10, 500),
-        "categories": [{"alias": vertical, "title": vertical.title()}],
-        "rating": round(random.uniform(3.0, 5.0), 1),
-        "coordinates": {
-            "latitude": 40.7128 + random.uniform(-0.1, 0.1),
-            "longitude": -74.0060 + random.uniform(-0.1, 0.1),
-        },
-        "transactions": ["delivery", "pickup"],
-        "price": random.choice(["$", "$$", "$$$"]),
-        "location": {
-            "address1": f"{random.randint(100, 999)} Main St",
-            "address2": "",
-            "address3": "",
-            "city": location.split(",")[0] if "," in location else location,
-            "zip_code": str(random.randint(10000, 99999)),
-            "country": "US",
-            "state": "NY",
-            "display_address": [
-                f"{random.randint(100, 999)} Main St",
-                f"{location}, NY {random.randint(10000, 99999)}",
-            ],
-        },
-        "phone": f"+1{random.randint(2000000000, 9999999999)}",
-        "display_phone": f"({random.randint(200, 999)}) {random.randint(100, 999)}-{random.randint(1000, 9999)}",
-    }
-
-
 def generate_pagespeed_data(url: str) -> Dict[str, Any]:
     """Generate realistic PageSpeed Insights data"""
     # Simulate some URLs being slower than others
@@ -213,39 +148,6 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
                 },
             },
         },
-    }
-
-
-# Yelp API endpoints
-@app.get("/v3/businesses/search")
-async def yelp_search(
-    location: str,
-    categories: Optional[str] = None,
-    limit: int = 50,
-    offset: int = 0,
-    authorization: str = Header(None),
-):
-    """Mock Yelp Fusion API business search"""
-    if not USE_STUBS:
-        raise HTTPException(status_code=503, detail="Stub server disabled")
-
-    # Simulate rate limiting
-    if random.random() < 0.01:  # 1% chance
-        return JSONResponse(
-            status_code=429, content={"error": {"code": "TOO_MANY_REQUESTS_PER_SECOND"}}
-        )
-
-    # Generate businesses
-    total = 250  # Simulate 250 businesses per location
-    businesses = []
-
-    for i in range(offset, min(offset + limit, total)):
-        businesses.append(generate_yelp_business(i, location, categories or ""))
-
-    return {
-        "businesses": businesses,
-        "total": total,
-        "region": {"center": {"longitude": -74.0060, "latitude": 40.7128}},
     }
 
 

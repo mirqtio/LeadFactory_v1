@@ -18,7 +18,6 @@ from .providers.screenshotone import ScreenshotOneClient
 from .providers.semrush import SEMrushClient
 from .providers.sendgrid import SendGridClient
 from .providers.stripe import StripeClient
-from .providers.yelp import YelpClient
 
 
 class GatewayClientFactory:
@@ -46,7 +45,6 @@ class GatewayClientFactory:
 
                     # Registry of available providers
                     self._providers: Dict[str, Type[BaseAPIClient]] = {
-                        "yelp": YelpClient,
                         "pagespeed": PageSpeedClient,
                         "openai": OpenAIClient,
                         "humanloop": HumanloopClient,

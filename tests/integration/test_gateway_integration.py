@@ -31,33 +31,6 @@ class TestGatewayProviderIntegration:
         return GatewayFacade()
 
     @pytest.mark.asyncio
-    async def test_all_providers_work_with_stubs_yelp(self, facade):
-        """Test that Yelp provider works with stubs"""
-        settings = get_settings()
-
-        # Should be using stubs in test environment
-        assert settings.use_stubs is True
-
-        # Test Yelp search functionality
-        result = await facade.search_businesses(
-            term="restaurants", location="San Francisco, CA", limit=5
-        )
-
-        # Verify stub response structure
-        assert "businesses" in result
-        assert "total" in result
-        assert len(result["businesses"]) <= 5
-
-        # Verify business structure from stubs
-        if result["businesses"]:
-            business = result["businesses"][0]
-            assert "id" in business
-            assert business["id"].startswith("stub-yelp-")
-            assert "name" in business
-            assert "rating" in business
-            assert "location" in business
-
-    @pytest.mark.asyncio
     async def test_all_providers_work_with_stubs_pagespeed(self, facade):
         """Test that PageSpeed provider works with stubs"""
         # Test PageSpeed analysis functionality
@@ -159,7 +132,7 @@ class TestRateLimitingIntegration:
         rate_limits = await facade.get_all_rate_limits()
 
         # Should have rate limits for all providers
-        expected_providers = ["yelp", "pagespeed", "openai"]
+        expected_providers = ["pagespeed", "openai"]
         for provider in expected_providers:
             assert provider in rate_limits
 
@@ -205,10 +178,6 @@ class TestRateLimitingIntegration:
         providers_tested = []
 
         try:
-            # Test Yelp
-            await facade.search_businesses("test", "test", limit=1)
-            providers_tested.append("yelp")
-
             # Test PageSpeed
             await facade.analyze_website("https://example.com")
             providers_tested.append("pagespeed")
@@ -250,7 +219,7 @@ class TestCircuitBreakerIntegration:
         # Get a client to verify circuit breaker exists
         factory = facade.factory
 
-        for provider in ["yelp", "pagespeed", "openai"]:
+        for provider in ["pagespeed", "openai"]:
             try:
                 client = factory.create_client(provider)
 
@@ -328,7 +297,7 @@ class TestCacheIntegration:
         """Test that caching is properly initialized"""
         factory = facade.factory
 
-        for provider in ["yelp", "pagespeed", "openai"]:
+        for provider in ["pagespeed", "openai"]:
             try:
                 client = factory.create_client(provider)
 
@@ -352,7 +321,7 @@ class TestCacheIntegration:
         factory = facade.factory
 
         try:
-            client = factory.create_client("yelp")
+            client = factory.create_client("pagespeed")
             cache = client.cache
 
             # Test key generation
@@ -480,7 +449,7 @@ class TestGatewayIntegrationHealth:
 
         # Should check all registered providers
         providers = factory.get_provider_names()
-        assert len(providers) >= 3  # yelp, pagespeed, openai
+        assert len(providers) >= 2  # pagespeed, openai, and others
 
         for provider in providers:
             assert provider in health["providers"]

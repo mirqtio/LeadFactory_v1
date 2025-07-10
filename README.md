@@ -19,7 +19,7 @@ docker-compose up
 
 - **12 domains** (D0-D11) for modular development
 - **CI-first** development with Docker-based testing
-- **250,000 businesses** processed daily from 5,000 Yelp API calls
+- **250,000 businesses** processed daily through data provider APIs
 - **$199 audit reports** with Stripe payment processing
 
 ### Phase 0.5 Enhancements
