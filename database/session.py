@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 # Get database URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///tmp/leadfactory.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test_leadfactory.db")
 
 # Create engine with appropriate settings
 if DATABASE_URL.startswith("sqlite"):
