@@ -31,6 +31,23 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class PersonalizationData:
+    """Personalization data for email templates"""
+    business_name: str
+    contact_name: str
+    contact_first_name: str
+    business_category: str
+    business_location: str
+    issues_found: List[Dict[str, str]]
+    assessment_score: float
+    custom_fields: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.custom_fields is None:
+            self.custom_fields = {}
+
+
+@dataclass
 class DeliveryRequest:
     """Email delivery request data structure"""
 
@@ -72,10 +89,102 @@ class DeliveryManager:
     def __init__(self, config: Optional[Any] = None):
         """Initialize delivery manager"""
         self.config = config or get_settings()
-        self.email_builder = EmailBuilder()
         self.compliance_manager = ComplianceManager(config)
 
         logger.info("Delivery manager initialized")
+    
+    def _build_email_data(self, request: DeliveryRequest) -> EmailData:
+        """Build email data from delivery request"""
+        # Get email subject based on template
+        subject_templates = {
+            "cold_outreach": f"Website Performance Insights for {request.personalization.business_name}",
+            "follow_up": f"Quick follow-up: {request.personalization.business_name} website audit",
+            "audit_report": f"Your Website Audit Report - {request.personalization.business_name}",
+        }
+        
+        subject = subject_templates.get(request.template_name, 
+                                       f"Important information for {request.personalization.business_name}")
+        
+        # Build email content
+        html_content = self._generate_html_content(request)
+        text_content = self._generate_text_content(request)
+        
+        # Create EmailData
+        return EmailData(
+            to_email=request.to_email,
+            to_name=request.to_name or request.personalization.contact_name,
+            from_email=self.config.SENDGRID_FROM_EMAIL,
+            from_name=self.config.SENDGRID_FROM_NAME,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content,
+            reply_to_email=getattr(request, 'reply_to_email', None),
+            categories=[request.template_name, "website_audit", "leadfactory"],
+            custom_args={
+                "template_name": request.template_name,
+                "business_name": request.personalization.business_name,
+                "personalization_id": str(uuid.uuid4()),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    
+    def _generate_html_content(self, request: DeliveryRequest) -> str:
+        """Generate HTML email content"""
+        p = request.personalization
+        issues_html = "\n".join([
+            f"<li><strong>{issue['title']}</strong>: {issue['suggestion']}</li>"
+            for issue in p.issues_found[:3]
+        ])
+        
+        return f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <h2>Hi {p.contact_first_name},</h2>
+            
+            <p>I noticed a few things about {p.business_name}'s website that could be impacting your online performance.</p>
+            
+            <p>Your current website score is <strong>{p.assessment_score:.1f}/100</strong>.</p>
+            
+            <h3>Key Issues Found:</h3>
+            <ul>
+                {issues_html}
+            </ul>
+            
+            <p>These issues could be costing you potential customers every day.</p>
+            
+            <p>Would you like to see the full audit report with specific recommendations?</p>
+            
+            <p>Best regards,<br>
+            The LeadFactory Team</p>
+        </body>
+        </html>
+        """
+    
+    def _generate_text_content(self, request: DeliveryRequest) -> str:
+        """Generate plain text email content"""
+        p = request.personalization
+        issues_text = "\n".join([
+            f"- {issue['title']}: {issue['suggestion']}"
+            for issue in p.issues_found[:3]
+        ])
+        
+        return f"""
+Hi {p.contact_first_name},
+
+I noticed a few things about {p.business_name}'s website that could be impacting your online performance.
+
+Your current website score is {p.assessment_score:.1f}/100.
+
+Key Issues Found:
+{issues_text}
+
+These issues could be costing you potential customers every day.
+
+Would you like to see the full audit report with specific recommendations?
+
+Best regards,
+The LeadFactory Team
+        """
 
     async def send_email(self, request: DeliveryRequest) -> DeliveryResult:
         """
@@ -112,13 +221,8 @@ class DeliveryManager:
 
             # Step 2: Build email with personalization
             try:
-                email_data = self.email_builder.build_email(
-                    template_name=request.template_name,
-                    personalization=request.personalization,
-                    to_email=request.to_email,
-                    to_name=request.to_name,
-                    reply_to_email=request.reply_to_email,
-                )
+                # Build email data from personalization
+                email_data = self._build_email_data(request)
 
                 # Add custom args from request
                 if request.custom_args:

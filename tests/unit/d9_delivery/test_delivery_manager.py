@@ -31,10 +31,10 @@ from d9_delivery.delivery_manager import (
     DeliveryManager,
     DeliveryRequest,
     DeliveryResult,
+    PersonalizationData,
     create_delivery_request,
     send_audit_email,
 )
-from d9_delivery.email_builder import PersonalizationData
 from d9_delivery.models import (
     DeliveryEvent,
     DeliveryStatus,

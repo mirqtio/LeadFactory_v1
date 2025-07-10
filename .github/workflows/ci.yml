@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches: [ main, '**' ]
+  pull_request:
+
+jobs:
+  test:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install deps (lockfile)
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip==23.3.1
+          pip install --require-hashes -r requirements.lock
+
+      - name: Run tests + coverage
+        run: |
+          source .venv/bin/activate
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          pytest -q
+          pytest --cov=core --cov=d0_gateway --cov=d1_targeting --cov=d2_sourcing --cov=d3_assessment --cov=d4_enrichment --cov=d5_scoring --cov=d6_reports --cov=d7_storefront --cov=d8_personalization --cov=d9_delivery --cov=d10_analytics --cov=d11_orchestration --cov=database --cov-report=xml --cov-report=term
+
+      - name: Enforce 90% coverage
+        run: |
+          source .venv/bin/activate
+          python scripts/enforce_cov.py coverage.xml 90
