@@ -73,3 +73,4 @@ pytest-cov>=6.2.1
 pytest-asyncio>=1.0.0
 pytest-env>=1.1.5
 pytest-mock>=3.14.1
+psutil>=5.9.0
