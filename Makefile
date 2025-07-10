@@ -35,6 +35,10 @@ install:
 	pip install -r requirements.txt -r requirements-dev.txt
 	pre-commit install
 
+# Generate lockfile with hashes
+sync-lock:
+	pip-compile requirements.txt --generate-hashes -o requirements.lock
+
 # Run tests locally
 test:
 	mkdir -p tmp

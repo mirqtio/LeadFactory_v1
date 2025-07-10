@@ -2,7 +2,7 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 gunicorn==21.2.0
-pydantic==2.5.0
+pydantic>=2.7
 pydantic-settings==2.1.0
 
 # Database
@@ -25,7 +25,7 @@ sendgrid==6.11.0
 openai==1.6.1
 
 # Data processing
-pandas==2.1.4
+pandas>=2.2.0
 numpy==1.26.2
 
 # Geographic data processing
@@ -65,3 +65,12 @@ ruamel.yaml>=0.18
 xlcalculator>=0.5
 openpyxl>=3.1
 watchdog>=3.0
+
+# Testing and coverage dependencies
+pytest>=7.4.3
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.1
+pytest-env>=1.1.1
+pytest-mock>=3.12.0
+pytest-xdist>=3.5.0
+faker>=22.0.0
