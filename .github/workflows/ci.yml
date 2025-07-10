@@ -20,8 +20,8 @@ jobs:
         run: |
           python -m venv .venv
           source .venv/bin/activate
-          python -m pip install --upgrade pip
-          pip install --require-hashes -r requirements.lock
+          python -m pip install --upgrade pip==23.3.1
+          pip install -r requirements.lock
 
       - name: Run tests + coverage
         run: |
