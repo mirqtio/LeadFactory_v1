@@ -19,7 +19,7 @@ import asyncio
 
 from d0_gateway.providers.dataaxle import DataAxleClient
 from d0_gateway.providers.hunter import HunterClient
-from d0_gateway.facade import APIGatewayFacade
+from d0_gateway.facade import GatewayFacade
 from d1_targeting.bucket_loader import BucketFeatureLoader
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d11_orchestration.bucket_enrichment import bucket_enrichment_flow
@@ -166,7 +166,7 @@ class TestPhase05Integration:
             assert float(cost_record.cost_usd) == 0.01
 
     @pytest.mark.asyncio
-    @patch("d4_enrichment.coordinator.APIGatewayFacade")
+    @patch("d4_enrichment.coordinator.GatewayFacade")
     async def test_enrichment_flow_with_phase05(
         self, mock_gateway_class, test_business_data
     ):
