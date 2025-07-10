@@ -687,6 +687,9 @@ google-auth==2.40.3 \
     --hash=sha256:1370d4593e86213563547f97a92752fc658456fe4514c809544f330fed45a7ca \
     --hash=sha256:500c3a29adedeb36ea9cf24b8d10858e152f2412e3ca37829b3fa18e33d63b77
     # via kubernetes
+google-api-python-client==2.100.0 \
+    --hash=sha256:226ca35355993d6182506c51745ab5149405cdf6a92975b2725ab3e0d757dbe9
+    # via -r requirements.txt
 graphviz==0.21 \
     --hash=sha256:20743e7183be82aaaa8ad6c93f8893c923bd6658a04c32ee115edb3c8a835f78 \
     --hash=sha256:54f33de9f4f911d7e84e4191749cac8cc5653f815b06738c54db9a15ab8b1e42

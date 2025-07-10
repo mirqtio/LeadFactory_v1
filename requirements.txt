@@ -75,3 +75,6 @@ pytest-env>=1.1.5
 pytest-mock>=3.14.1
 psutil>=5.9.0
 responses>=0.24.0
+
+# Google API client
+google-api-python-client>=2.100.0
