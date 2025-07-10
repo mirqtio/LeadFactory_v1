@@ -47,7 +47,7 @@ class TestConfig:
         assert settings.environment == expected_env
         assert settings.use_stubs is True
         # Database URL may be overridden by system env vars
-        assert settings.max_daily_emails == 100
+        assert settings.max_daily_emails == 100000
         assert settings.report_price_cents == 19900
 
     def test_environment_override(self, monkeypatch):

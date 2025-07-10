@@ -38,7 +38,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from d1_targeting.models import Business
+from database.models import Business
 
 Base = declarative_base()
 
@@ -72,7 +72,7 @@ class FunnelEvent(Base):
     stage = Column(Enum(FunnelStage), nullable=False)
     event_type = Column(Enum(EventType), nullable=False)
     timestamp = Column(TIMESTAMP, default=datetime.utcnow)
-    metadata = Column(JSONB)
+    event_metadata = Column(JSONB)
 
     business = relationship("Business")
 
@@ -86,7 +86,7 @@ class MetricsAggregation(Base):
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
     value = Column(DECIMAL, nullable=False)
-    metadata = Column(JSON)
+    aggregation_metadata = Column(JSON)
 
 
 class TimeSeriesData(Base):

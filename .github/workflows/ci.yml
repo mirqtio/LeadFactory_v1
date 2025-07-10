@@ -27,7 +27,7 @@ jobs:
         run: |
           source .venv/bin/activate
           pytest -q
-          pytest --cov=leadfactory --cov-report=xml --cov-report=term
+          pytest --cov=core --cov=d0_gateway --cov=d1_targeting --cov=d2_sourcing --cov=d3_assessment --cov=d4_enrichment --cov=d5_scoring --cov=d6_reports --cov=d7_storefront --cov=d8_personalization --cov=d9_delivery --cov=d10_analytics --cov=d11_orchestration --cov=database --cov-report=xml --cov-report=term
 
       - name: Enforce 90% coverage
         run: |

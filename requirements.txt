@@ -75,3 +75,9 @@ pytest-env>=1.1.1
 pytest-mock>=3.12.0
 pytest-xdist>=3.5.0
 faker>=22.0.0
+psutil>=5.9.0
+
+# Google integration
+google-api-python-client>=2.100.0
+google-auth-httplib2>=0.1.0
+google-auth-oauthlib>=1.0.0

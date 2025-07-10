@@ -19,7 +19,7 @@ import asyncio
 
 from d0_gateway.providers.dataaxle import DataAxleClient
 from d0_gateway.providers.hunter import HunterClient
-from d0_gateway.facade import APIGatewayFacade
+from d0_gateway.facade import GatewayFacade
 from d1_targeting.bucket_loader import BucketFeatureLoader
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d11_orchestration.bucket_enrichment import bucket_enrichment_flow
