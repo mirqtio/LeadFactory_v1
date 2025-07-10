@@ -121,6 +121,14 @@ class Settings(BaseSettings):
             return "sqlite:///tmp/test.db"
         return v
 
+    @field_validator("use_stubs")
+    @classmethod
+    def validate_use_stubs(cls, v, info):
+        # Force stubs in CI environment
+        if os.getenv("CI") == "true" or info.data.get("environment") == "test":
+            return True
+        return v
+
     @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v, info):
