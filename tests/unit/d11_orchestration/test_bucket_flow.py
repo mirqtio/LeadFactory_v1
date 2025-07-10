@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 
 from d11_orchestration.bucket_enrichment import (
     load_bucket_features,
-    get_unenriched_entities,
-    enrich_with_buckets,
-    update_entity_buckets,
+    get_unenriched_businesses,
+    enrich_business_buckets,
+    update_business_buckets,
     bucket_enrichment_flow,
 )
 
@@ -42,7 +42,7 @@ class TestBucketEnrichmentFlow:
         assert stats["unique_vert_buckets"] == 8
 
     @patch("d11_orchestration.flows.bucket_enrichment.SessionLocal")
-    def test_get_unenriched_entities(self, mock_session):
+    def test_get_unenriched_businesses(self, mock_session):
         """Test fetching entities without buckets"""
         # Mock database session
         mock_db = MagicMock()
@@ -69,7 +69,7 @@ class TestBucketEnrichmentFlow:
         ]
 
         # Test
-        entities = get_unenriched_entities(batch_size=10)
+        entities = get_unenriched_businesses(batch_size=10)
 
         assert len(entities["businesses"]) == 1
         assert len(entities["targets"]) == 1
@@ -77,7 +77,7 @@ class TestBucketEnrichmentFlow:
         assert entities["targets"][0]["id"] == "tgt-456"
 
     @patch("d11_orchestration.flows.bucket_enrichment.get_bucket_loader")
-    def test_enrich_with_buckets(self, mock_get_loader):
+    def test_enrich_business_buckets(self, mock_get_loader):
         """Test bucket enrichment logic"""
         # Mock loader
         mock_loader = MagicMock()
@@ -112,7 +112,7 @@ class TestBucketEnrichmentFlow:
         }
 
         # Test enrichment
-        result = enrich_with_buckets(entities)
+        result = enrich_business_buckets(entities)
 
         # Check results
         assert result["businesses"][0]["geo_bucket"] == "high-high-high"
@@ -127,7 +127,7 @@ class TestBucketEnrichmentFlow:
 
     @patch("d11_orchestration.flows.bucket_enrichment.SessionLocal")
     @patch("d11_orchestration.flows.bucket_enrichment.update")
-    def test_update_entity_buckets(self, mock_update, mock_session):
+    def test_update_business_buckets(self, mock_update, mock_session):
         """Test database update with buckets"""
         # Mock database
         mock_db = MagicMock()
@@ -158,7 +158,7 @@ class TestBucketEnrichmentFlow:
         }
 
         # Test update
-        result = update_entity_buckets(enriched_entities)
+        result = update_business_buckets(enriched_entities)
 
         assert result["businesses_updated"] == 1
         assert result["targets_updated"] == 1
@@ -168,9 +168,9 @@ class TestBucketEnrichmentFlow:
         mock_db.commit.assert_called_once()
 
     @patch("d11_orchestration.flows.bucket_enrichment.load_bucket_features")
-    @patch("d11_orchestration.flows.bucket_enrichment.get_unenriched_entities")
-    @patch("d11_orchestration.flows.bucket_enrichment.enrich_with_buckets")
-    @patch("d11_orchestration.flows.bucket_enrichment.update_entity_buckets")
+    @patch("d11_orchestration.flows.bucket_enrichment.get_unenriched_businesses")
+    @patch("d11_orchestration.flows.bucket_enrichment.enrich_business_buckets")
+    @patch("d11_orchestration.flows.bucket_enrichment.update_business_buckets")
     def test_bucket_enrichment_flow(
         self, mock_update, mock_enrich, mock_get_entities, mock_load
     ):
@@ -283,7 +283,7 @@ class TestBucketEnrichmentFlow:
             }
 
             # Run enrichment
-            result = enrich_with_buckets(entities)
+            result = enrich_business_buckets(entities)
 
             # Check missing data was tracked
             assert "99999" in result["stats"]["missing_zip_list"]
