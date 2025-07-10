@@ -27,6 +27,7 @@ openai==1.6.1
 # Data processing
 pandas==2.1.4
 numpy==1.26.2
+beautifulsoup4>=4.12.0
 
 # Geographic data processing
 geopy==2.4.1

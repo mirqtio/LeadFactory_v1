@@ -227,6 +227,10 @@ bcrypt==4.3.0 \
     --hash=sha256:f6746e6fec103fcd509b96bacdfdaa2fbde9a553245dbada284435173a6f1aef \
     --hash=sha256:f81b0ed2639568bf14749112298f9e4e2b28853dab50a8b357e31798686a036d
     # via passlib
+beautifulsoup4==4.12.0 \
+    --hash=sha256:2130a5ad7f513200fae61a17abb5e338ca980fa28c439c0571014bc0217e9591 \
+    --hash=sha256:c5fceeaec29d09c84970e47c65f2f0efe57872f7cff494c9691a26ec0ff13234
+    # via -r requirements.txt
 cachetools==5.5.2 \
     --hash=sha256:1a661caa9175d26759571b2e19580f9d6393969e5dfca11fdb1f947a23e640d4 \
     --hash=sha256:d26a22bcc62eb95c3beabd9f1ee5e820d3d2704fe2967cbe350e20c8ffcd3f0a
@@ -2154,6 +2158,10 @@ sniffio==1.3.1 \
     #   httpx
     #   openai
     #   prefect
+soupsieve==2.7 \
+    --hash=sha256:6e60cc5c1ffaf1cebcc12e8188320b72071e922c2e897f737cadce79ad5d30c4 \
+    --hash=sha256:ad282f9b6926286d2ead4750552c8a6142bc4c783fd66b0293547c8fe6ae126a
+    # via beautifulsoup4
 sqlalchemy[asyncio]==2.0.23 \
     --hash=sha256:0666031df46b9badba9bed00092a1ffa3aa063a5e68fa244acd9f08070e936d3 \
     --hash=sha256:0a8c6aa506893e25a04233bc721c6b6cf844bafd7250535abb56cb6cc1368884 \
