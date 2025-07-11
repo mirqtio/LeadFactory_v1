@@ -1,0 +1,287 @@
+﻿2025-07-11T18:28:00.2435466Z Current runner version: '2.326.0'
+2025-07-11T18:28:00.2462020Z ##[group]Runner Image Provisioner
+2025-07-11T18:28:00.2463139Z Hosted Compute Agent
+2025-07-11T18:28:00.2463792Z Version: 20250710.361
+2025-07-11T18:28:00.2464547Z Commit: 1aa91963755b73deaa955e512f5de173acfde7a8
+2025-07-11T18:28:00.2465349Z Build Date: 2025-07-10T18:39:53Z
+2025-07-11T18:28:00.2466078Z ##[endgroup]
+2025-07-11T18:28:00.2466688Z ##[group]Operating System
+2025-07-11T18:28:00.2467526Z Ubuntu
+2025-07-11T18:28:00.2468193Z 24.04.2
+2025-07-11T18:28:00.2468772Z LTS
+2025-07-11T18:28:00.2469404Z ##[endgroup]
+2025-07-11T18:28:00.2469979Z ##[group]Runner Image
+2025-07-11T18:28:00.2470685Z Image: ubuntu-24.04
+2025-07-11T18:28:00.2471306Z Version: 20250629.1.0
+2025-07-11T18:28:00.2472443Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20250629.1/images/ubuntu/Ubuntu2404-Readme.md
+2025-07-11T18:28:00.2474113Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20250629.1
+2025-07-11T18:28:00.2475291Z ##[endgroup]
+2025-07-11T18:28:00.2476578Z ##[group]GITHUB_TOKEN Permissions
+2025-07-11T18:28:00.2479127Z Contents: read
+2025-07-11T18:28:00.2479915Z Metadata: read
+2025-07-11T18:28:00.2480600Z Packages: read
+2025-07-11T18:28:00.2481218Z ##[endgroup]
+2025-07-11T18:28:00.2483406Z Secret source: Actions
+2025-07-11T18:28:00.2484379Z Prepare workflow directory
+2025-07-11T18:28:00.2827051Z Prepare all required actions
+2025-07-11T18:28:00.2866457Z Getting action download info
+2025-07-11T18:28:00.6056793Z ##[group]Download immutable action package 'actions/checkout@v4'
+2025-07-11T18:28:00.6058242Z Version: 4.2.2
+2025-07-11T18:28:00.6059302Z Digest: sha256:ccb2698953eaebd21c7bf6268a94f9c26518a7e38e27e0b83c1fe1ad049819b1
+2025-07-11T18:28:00.6060603Z Source commit SHA: 11bd71901bbe5b1630ceea73d27597364c9af683
+2025-07-11T18:28:00.6061436Z ##[endgroup]
+2025-07-11T18:28:00.6910935Z Download action repository 'webfactory/ssh-agent@v0.8.0' (SHA:d4b9b8ff72958532804b70bbe600ad43b36d5f2e)
+2025-07-11T18:28:01.0912846Z Complete job name: ***
+2025-07-11T18:28:01.1587099Z ##[group]Run actions/checkout@v4
+2025-07-11T18:28:01.1588247Z with:
+2025-07-11T18:28:01.1588743Z   repository: mirqtio/LeadFactory_v1
+2025-07-11T18:28:01.1589492Z   token: ***
+2025-07-11T18:28:01.1589951Z   ssh-strict: true
+2025-07-11T18:28:01.1590414Z   ssh-user: git
+2025-07-11T18:28:01.1590887Z   persist-credentials: true
+2025-07-11T18:28:01.1591405Z   clean: true
+2025-07-11T18:28:01.1591870Z   sparse-checkout-cone-mode: true
+2025-07-11T18:28:01.1592418Z   fetch-depth: 1
+2025-07-11T18:28:01.1593060Z   fetch-tags: false
+2025-07-11T18:28:01.1593607Z   show-progress: true
+2025-07-11T18:28:01.1594079Z   lfs: false
+2025-07-11T18:28:01.1594524Z   submodules: false
+2025-07-11T18:28:01.1594999Z   set-safe-directory: true
+2025-07-11T18:28:01.1595730Z ##[endgroup]
+2025-07-11T18:28:01.2717004Z Syncing repository: mirqtio/LeadFactory_v1
+2025-07-11T18:28:01.2720023Z ##[group]Getting Git version info
+2025-07-11T18:28:01.2721495Z Working directory is '/home/runner/work/LeadFactory_v1/LeadFactory_v1'
+2025-07-11T18:28:01.2723455Z [command]/usr/bin/git version
+2025-07-11T18:28:01.2733250Z git version 2.49.0
+2025-07-11T18:28:01.2759508Z ##[endgroup]
+2025-07-11T18:28:01.2781709Z Temporarily overriding HOME='/home/runner/work/_temp/56de9354-0801-45b9-bc33-a825d51d9a99' before making global git config changes
+2025-07-11T18:28:01.2784301Z Adding repository directory to the temporary git global config as a safe directory
+2025-07-11T18:28:01.2787027Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/LeadFactory_v1/LeadFactory_v1
+2025-07-11T18:28:01.2824738Z Deleting the contents of '/home/runner/work/LeadFactory_v1/LeadFactory_v1'
+2025-07-11T18:28:01.2827646Z ##[group]Initializing the repository
+2025-07-11T18:28:01.2831825Z [command]/usr/bin/git init /home/runner/work/LeadFactory_v1/LeadFactory_v1
+2025-07-11T18:28:01.2894174Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-07-11T18:28:01.2896185Z hint: is subject to change. To configure the initial branch name to use in all
+2025-07-11T18:28:01.2898617Z hint: of your new repositories, which will suppress this warning, call:
+2025-07-11T18:28:01.2899928Z hint:
+2025-07-11T18:28:01.2900860Z hint: 	git config --global init.defaultBranch <name>
+2025-07-11T18:28:01.2901972Z hint:
+2025-07-11T18:28:01.2903051Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-07-11T18:28:01.2904790Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-07-11T18:28:01.2906195Z hint:
+2025-07-11T18:28:01.2907017Z hint: 	git branch -m <name>
+2025-07-11T18:28:01.2912858Z Initialized empty Git repository in /home/runner/work/LeadFactory_v1/LeadFactory_v1/.git/
+2025-07-11T18:28:01.2926776Z [command]/usr/bin/git remote add origin https://github.com/mirqtio/LeadFactory_v1
+2025-07-11T18:28:01.2965612Z ##[endgroup]
+2025-07-11T18:28:01.2967054Z ##[group]Disabling automatic garbage collection
+2025-07-11T18:28:01.2969513Z [command]/usr/bin/git config --local gc.auto 0
+2025-07-11T18:28:01.3004298Z ##[endgroup]
+2025-07-11T18:28:01.3005879Z ##[group]Setting up auth
+2025-07-11T18:28:01.3012158Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-07-11T18:28:01.3046440Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-07-11T18:28:01.3305661Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-07-11T18:28:01.3336741Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-07-11T18:28:01.3563107Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-07-11T18:28:01.3601581Z ##[endgroup]
+2025-07-11T18:28:01.3602876Z ##[group]Fetching the repository
+2025-07-11T18:28:01.3619373Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d0178e00a53173cb24921a360608d23cc2c2b503:refs/remotes/origin/main
+2025-07-11T18:28:02.6490139Z From https://github.com/mirqtio/LeadFactory_v1
+2025-07-11T18:28:02.6516150Z  * [new ref]         d0178e00a53173cb24921a360608d23cc2c2b503 -> origin/main
+2025-07-11T18:28:02.6519942Z ##[endgroup]
+2025-07-11T18:28:02.6521422Z ##[group]Determining the checkout info
+2025-07-11T18:28:02.6522985Z ##[endgroup]
+2025-07-11T18:28:02.6526762Z [command]/usr/bin/git sparse-checkout disable
+2025-07-11T18:28:02.6567249Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2025-07-11T18:28:02.6596944Z ##[group]Checking out the ref
+2025-07-11T18:28:02.6603628Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2025-07-11T18:28:02.8815630Z Switched to a new branch 'main'
+2025-07-11T18:28:02.8817107Z branch 'main' set up to track 'origin/main'.
+2025-07-11T18:28:02.8834833Z ##[endgroup]
+2025-07-11T18:28:02.8873363Z [command]/usr/bin/git log -1 --format=%H
+2025-07-11T18:28:02.8896042Z d0178e00a53173cb24921a360608d23cc2c2b503
+2025-07-11T18:28:02.9160751Z ##[group]Run webfactory/ssh-agent@v0.8.0
+2025-07-11T18:28:02.9162149Z with:
+2025-07-11T18:28:02.9169555Z   ssh-private-key: ***
+2025-07-11T18:28:02.9170736Z   log-public-key: true
+2025-07-11T18:28:02.9171853Z ##[endgroup]
+2025-07-11T18:28:02.9519042Z Starting ssh-agent
+2025-07-11T18:28:02.9864682Z SSH_AUTH_SOCK=/tmp/ssh-DPZ2tMhHj8d4/agent.2053
+2025-07-11T18:28:02.9866625Z SSH_AGENT_PID=2054
+2025-07-11T18:28:02.9867920Z Adding private key(s) to agent
+2025-07-11T18:28:03.0120283Z Identity added: (stdin) (leadfactory-ci)
+2025-07-11T18:28:03.0121784Z Key(s) added:
+2025-07-11T18:28:03.0153112Z 256 SHA256:x+9Qtasan/Tqn5U/dWHnBcMZjsdJkbRAc+qDLn51sxM leadfactory-ci (ED25519)
+2025-07-11T18:28:03.0158202Z Configuring ***ment key(s)
+2025-07-11T18:28:03.0205955Z Comment for (public) key 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOTSLrW1SN/qnL9+/avyUQUZ66CM68E662urmSq+j+ie leadfactory-ci' does not match GitHub URL pattern. Not treating it as a GitHub *** key.
+2025-07-11T18:28:03.0343652Z ##[group]Run mkdir -p ~/.ssh
+2025-07-11T18:28:03.0344955Z [36;1mmkdir -p ~/.ssh[0m
+2025-07-11T18:28:03.0346469Z [36;1mssh-keyscan -p *** *** >> ~/.ssh/known_hosts[0m
+2025-07-11T18:28:03.0439079Z shell: /usr/bin/bash -e {0}
+2025-07-11T18:28:03.0440205Z env:
+2025-07-11T18:28:03.0441313Z   SSH_AUTH_SOCK: /tmp/ssh-DPZ2tMhHj8d4/agent.2053
+2025-07-11T18:28:03.0442616Z   SSH_AGENT_PID: 2054
+2025-07-11T18:28:03.0443627Z ##[endgroup]
+2025-07-11T18:28:03.1257704Z # ***:*** SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2025-07-11T18:28:03.2359696Z # ***:*** SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2025-07-11T18:28:03.3443644Z # ***:*** SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2025-07-11T18:28:03.4571337Z # ***:*** SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2025-07-11T18:28:03.4769946Z # ***:*** SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.13
+2025-07-11T18:28:03.5018023Z ##[group]Run ssh -o StrictHostKeyChecking=accept-new -p *** ***@*** <<'SSH'
+2025-07-11T18:28:03.5018826Z [36;1mssh -o StrictHostKeyChecking=accept-new -p *** ***@*** <<'SSH'[0m
+2025-07-11T18:28:03.5019299Z [36;1m  set -e[0m
+2025-07-11T18:28:03.5019632Z [36;1m  # Clone or pull repository[0m
+2025-07-11T18:28:03.5020047Z [36;1m  echo "Starting ***ment..."[0m
+2025-07-11T18:28:03.5020442Z [36;1m  if [ ! -d /srv/leadfactory ]; then[0m
+2025-07-11T18:28:03.5020957Z [36;1m    sudo mkdir -p /srv/leadfactory && sudo chown $USER /srv/leadfactory[0m
+2025-07-11T18:28:03.5021412Z [36;1m  fi[0m
+2025-07-11T18:28:03.5021738Z [36;1m  cd /srv/leadfactory[0m
+2025-07-11T18:28:03.5022109Z [36;1m  if [ -d .git ]; then[0m
+2025-07-11T18:28:03.5022561Z [36;1m    git fetch --depth=1 origin main && git reset --hard origin/main[0m
+2025-07-11T18:28:03.5023032Z [36;1m  else[0m
+2025-07-11T18:28:03.5023498Z [36;1m    git clone --depth=1 git@github.com:mirqtio/LeadFactory_v1.git .[0m
+2025-07-11T18:28:03.5024011Z [36;1m  fi[0m
+2025-07-11T18:28:03.5024388Z [36;1m  docker compose -f docker-compose.prod.yml build[0m
+2025-07-11T18:28:03.5024919Z [36;1m  docker compose -f docker-compose.prod.yml up -d --remove-orphans[0m
+2025-07-11T18:28:03.5025394Z [36;1m  [0m
+2025-07-11T18:28:03.5025736Z [36;1m  # Wait for database to be ready[0m
+2025-07-11T18:28:03.5026179Z [36;1m  echo "Waiting for database to be ready..."[0m
+2025-07-11T18:28:03.5026590Z [36;1m  sleep 10[0m
+2025-07-11T18:28:03.5026909Z [36;1m  [0m
+2025-07-11T18:28:03.5027212Z [36;1m  # Run database migrations[0m
+2025-07-11T18:28:03.5027858Z [36;1m  echo "Running database migrations..."[0m
+2025-07-11T18:28:03.5028410Z [36;1m  docker compose -f docker-compose.prod.yml exec -T web alembic upgrade head[0m
+2025-07-11T18:28:03.5028912Z [36;1m  [0m
+2025-07-11T18:28:03.5029257Z [36;1m  # Verify ***ment[0m
+2025-07-11T18:28:03.5029643Z [36;1m  echo "Verifying ***ment..."[0m
+2025-07-11T18:28:03.5030085Z [36;1m  docker compose -f docker-compose.prod.yml ps[0m
+2025-07-11T18:28:03.5030647Z [36;1m  curl -f http://localhost:8000/health || echo "Health check failed"[0m
+2025-07-11T18:28:03.5031120Z [36;1mSSH[0m
+2025-07-11T18:28:03.5088918Z shell: /usr/bin/bash -e {0}
+2025-07-11T18:28:03.5089290Z env:
+2025-07-11T18:28:03.5089660Z   SSH_AUTH_SOCK: /tmp/ssh-DPZ2tMhHj8d4/agent.2053
+2025-07-11T18:28:03.5090078Z   SSH_AGENT_PID: 2054
+2025-07-11T18:28:03.5090417Z ##[endgroup]
+2025-07-11T18:28:03.5857858Z Pseudo-terminal will not be allocated because stdin is not a terminal.
+2025-07-11T18:28:04.3184000Z Welcome to Ubuntu ***.04.5 LTS (GNU/Linux 5.15.0-143-generic x86_64)
+2025-07-11T18:28:04.3184725Z 
+2025-07-11T18:28:04.3185038Z  * Documentation:  https://help.ubuntu.com
+2025-07-11T18:28:04.3185805Z  * Management:     https://landscape.canonical.com
+2025-07-11T18:28:04.3186324Z  * Support:        https://ubuntu.com/pro
+2025-07-11T18:28:04.3186676Z 
+2025-07-11T18:28:04.3186908Z  System information as of Fri Jul 11 06:28:04 PM UTC 2025
+2025-07-11T18:28:04.3188173Z 
+2025-07-11T18:28:04.3188317Z   System load:             0.04
+2025-07-11T18:28:04.3188699Z   Usage of /:              14.2% of 140.10GB
+2025-07-11T18:28:04.3189137Z   Memory usage:            10%
+2025-07-11T18:28:04.3189503Z   Swap usage:              0%
+2025-07-11T18:28:04.3189851Z   Processes:               186
+2025-07-11T18:28:04.3190208Z   Users logged in:         1
+2025-07-11T18:28:04.3190628Z   IPv4 address for enp1s0: ***
+2025-07-11T18:28:04.3191117Z   IPv6 address for enp1s0: 2001:19f0:5401:252e:5400:5ff:fe88:7fac
+2025-07-11T18:28:04.3191470Z 
+2025-07-11T18:28:04.3191761Z  * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+2025-07-11T18:28:04.3192428Z    just raised the bar for easy, resilient and secure K8s cluster ***ment.
+2025-07-11T18:28:04.3192807Z 
+2025-07-11T18:28:04.3193039Z    https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+2025-07-11T18:28:04.3193373Z 
+2025-07-11T18:28:04.3193831Z Expanded Security Maintenance for Applications is not enabled.
+2025-07-11T18:28:04.3194218Z 
+2025-07-11T18:28:04.3194358Z 0 updates can be applied immediately.
+2025-07-11T18:28:04.3194623Z 
+2025-07-11T18:28:04.3194840Z Enable ESM Apps to receive additional future security updates.
+2025-07-11T18:28:04.3195349Z See https://ubuntu.com/esm or run: sudo pro status
+2025-07-11T18:28:04.3195691Z 
+2025-07-11T18:28:04.3195892Z New release '24.04.2 LTS' available.
+2025-07-11T18:28:04.3196345Z Run 'do-release-upgrade' to upgrade to it.
+2025-07-11T18:28:04.3196616Z 
+2025-07-11T18:28:04.3196625Z 
+2025-07-11T18:28:04.3368412Z Starting ***ment...
+2025-07-11T18:28:04.8680473Z From github.com:mirqtio/LeadFactory_v1
+2025-07-11T18:28:04.8681027Z  * branch            main       -> FETCH_HEAD
+2025-07-11T18:28:04.8682638Z  + 94d7544...d0178e0 main       -> origin/main  (forced update)
+2025-07-11T18:28:04.8770666Z HEAD is now at d0178e0 fix: Fix CI test failures and Docker build issues
+2025-07-11T18:28:04.9477210Z time="2025-07-11T18:28:04Z" level=warning msg="/srv/leadfactory/docker-compose.prod.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2025-07-11T18:28:05.0006496Z #1 [internal] load local bake definitions
+2025-07-11T18:28:05.2090112Z #1 reading from stdin 330B done
+2025-07-11T18:28:05.2090826Z #1 DONE 0.0s
+2025-07-11T18:28:05.2091138Z 
+2025-07-11T18:28:05.2091360Z #2 [internal] load build definition from Dockerfile
+2025-07-11T18:28:05.2091895Z #2 transferring dockerfile: 1.36kB done
+2025-07-11T18:28:05.2092325Z #2 DONE 0.0s
+2025-07-11T18:28:05.2092756Z 
+2025-07-11T18:28:05.2093175Z #3 [internal] load metadata for docker.io/library/python:3.11-slim-bookworm
+2025-07-11T18:28:05.2550391Z #3 DONE 0.2s
+2025-07-11T18:28:05.4271365Z 
+2025-07-11T18:28:05.4271886Z #4 [internal] load .dockerignore
+2025-07-11T18:28:05.4272574Z #4 transferring context: 716B done
+2025-07-11T18:28:05.4273106Z #4 DONE 0.0s
+2025-07-11T18:28:05.4273304Z 
+2025-07-11T18:28:05.4274228Z #5 [ 1/10] FROM docker.io/library/python:3.11-slim-bookworm@sha256:139020233cc412efe4c8135b0efe1c7569dc8b28ddd88bddb109b764f8977e30
+2025-07-11T18:28:05.4275718Z #5 DONE 0.0s
+2025-07-11T18:28:05.4275915Z 
+2025-07-11T18:28:05.4276070Z #6 [internal] load build context
+2025-07-11T18:28:05.4276524Z #6 transferring context: 533.86kB 0.0s done
+2025-07-11T18:28:05.4276964Z #6 DONE 0.0s
+2025-07-11T18:28:05.4277146Z 
+2025-07-11T18:28:05.4278014Z #7 [ 2/10] RUN apt-get update && apt-get install -y     gcc     g++     postgresql-client     curl     && rm -rf /var/lib/apt/lists/*
+2025-07-11T18:28:05.4278888Z #7 CACHED
+2025-07-11T18:28:05.4279066Z 
+2025-07-11T18:28:05.4279310Z #8 [ 7/10] RUN pip install --no-cache-dir -r requirements.txt
+2025-07-11T18:28:05.4279823Z #8 CACHED
+2025-07-11T18:28:05.4279992Z 
+2025-07-11T18:28:05.4280170Z #9 [ 3/10] RUN useradd -m -u 1000 leadfactory
+2025-07-11T18:28:05.4280605Z #9 CACHED
+2025-07-11T18:28:05.4280776Z 
+2025-07-11T18:28:05.4280925Z #10 [ 4/10] WORKDIR /app
+2025-07-11T18:28:05.4281280Z #10 CACHED
+2025-07-11T18:28:05.4281456Z 
+2025-07-11T18:28:05.4282048Z #11 [ 5/10] RUN pip install --upgrade pip setuptools wheel
+2025-07-11T18:28:05.4282453Z #11 CACHED
+2025-07-11T18:28:05.4282588Z 
+2025-07-11T18:28:05.4282724Z #12 [ 6/10] COPY requirements.txt .
+2025-07-11T18:28:05.4283052Z #12 CACHED
+2025-07-11T18:28:05.4283191Z 
+2025-07-11T18:28:05.4283349Z #13 [ 8/10] RUN playwright install --with-deps
+2025-07-11T18:28:05.4283709Z #13 CACHED
+2025-07-11T18:28:05.4283849Z 
+2025-07-11T18:28:05.4284015Z #14 [ 9/10] COPY --chown=leadfactory:leadfactory . .
+2025-07-11T18:28:05.4284391Z #14 DONE 0.1s
+2025-07-11T18:28:05.5789446Z 
+2025-07-11T18:28:05.5790263Z #15 [10/10] RUN mkdir -p tmp logs && chown -R leadfactory:leadfactory tmp logs
+2025-07-11T18:28:05.5845662Z #15 DONE 0.2s
+2025-07-11T18:28:05.7055299Z 
+2025-07-11T18:28:05.7055836Z #16 exporting to image
+2025-07-11T18:28:05.7056538Z #16 exporting layers 0.1s done
+2025-07-11T18:28:05.7297969Z  web  Built
+2025-07-11T18:28:05.7298686Z #16 writing image sha256:d46f24a996533c488a452c739ce9bfce80aa4dfb3b005b4ff9b99c8556a46f26 done
+2025-07-11T18:28:05.7299976Z #16 naming to docker.io/library/leadfactory-web done
+2025-07-11T18:28:05.7300480Z #16 DONE 0.1s
+2025-07-11T18:28:05.7300675Z 
+2025-07-11T18:28:05.7300869Z #17 resolving provenance for metadata file
+2025-07-11T18:28:05.7301317Z #17 DONE 0.0s
+2025-07-11T18:28:05.8080970Z time="2025-07-11T18:28:05Z" level=warning msg="/srv/leadfactory/docker-compose.prod.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2025-07-11T18:28:05.8136080Z  Container leadfactory_db  Running
+2025-07-11T18:28:05.8136776Z  Container leadfactory_redis  Running
+2025-07-11T18:28:05.8137597Z  Container leadfactory_web  Recreate
+2025-07-11T18:28:05.8388934Z  Container leadfactory_web  Recreated
+2025-07-11T18:28:05.8397708Z  Container leadfactory_web  Starting
+2025-07-11T18:28:05.9726300Z  Container leadfactory_web  Started
+2025-07-11T18:28:05.9769710Z Waiting for database to be ready...
+2025-07-11T18:28:15.9788912Z Running database migrations...
+2025-07-11T18:28:16.3263933Z time="2025-07-11T18:28:16Z" level=warning msg="/srv/leadfactory/docker-compose.prod.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+2025-07-11T18:28:16.5626276Z ##[error]Process completed with exit code 137.
+2025-07-11T18:28:16.5696761Z Post job cleanup.
+2025-07-11T18:28:16.6030103Z Stopping SSH agent
+2025-07-11T18:28:16.6040457Z The "file" argument must be of type string. Received undefined
+2025-07-11T18:28:16.6076720Z Error stopping the SSH agent, proceeding anyway
+2025-07-11T18:28:16.6157883Z Post job cleanup.
+2025-07-11T18:28:16.7089392Z [command]/usr/bin/git version
+2025-07-11T18:28:16.7125743Z git version 2.49.0
+2025-07-11T18:28:16.7170875Z Temporarily overriding HOME='/home/runner/work/_temp/03b7c785-9ed4-4648-b626-980bbb37d759' before making global git config changes
+2025-07-11T18:28:16.7172237Z Adding repository directory to the temporary git global config as a safe directory
+2025-07-11T18:28:16.7177674Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/LeadFactory_v1/LeadFactory_v1
+2025-07-11T18:28:16.7215154Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-07-11T18:28:16.7248272Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-07-11T18:28:16.7463741Z fatal: No url found for submodule path 'temp_context_engineering' in .gitmodules
+2025-07-11T18:28:16.7506661Z ##[warning]The process '/usr/bin/git' failed with exit code 128
+2025-07-11T18:28:16.7591711Z Cleaning up orphan processes
