@@ -7,14 +7,14 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from core.exceptions import ExternalAPIError, RateLimitError
+from core.exceptions import ExternalAPIError
 from d0_gateway.base import BaseAPIClient
 from d0_gateway.exceptions import (
     APIProviderError,
     CircuitBreakerOpenError,
     RateLimitExceededError,
 )
-from d0_gateway.types import APIRequest, APIResponse, RateLimitType
+from d0_gateway.types import RateLimitType
 
 
 class MockAPIClient(BaseAPIClient):

@@ -17,18 +17,15 @@ import hmac
 import json
 import logging
 import os
-import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 from urllib.parse import urlencode
 
-from sqlalchemy import and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import and_
 
 from core.config import get_settings
-from core.exceptions import ConfigurationError, ValidationError
-from d9_delivery.models import DeliveryEvent, EmailDelivery, SuppressionList
+from d9_delivery.models import SuppressionList
 from database.session import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -194,7 +191,7 @@ class ComplianceManager:
                     token_data_b64.encode()
                 ).decode()
                 token_data_dict = json.loads(token_data_json)
-            except Exception as e:
+            except Exception:
                 logger.warning(f"Invalid token data encoding: {token[:20]}...")
                 return None
 
@@ -304,7 +301,7 @@ class ComplianceManager:
         # Create compliance headers
         headers = ComplianceHeaders(
             list_unsubscribe=f"<{unsubscribe_url}>, <mailto:unsubscribe@leadfactory.com>",
-            list_unsubscribe_post=f"List-Unsubscribe=One-Click",
+            list_unsubscribe_post="List-Unsubscribe=One-Click",
             list_id=self.list_id,
             precedence="bulk",
             auto_submitted="auto-generated",

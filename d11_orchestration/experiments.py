@@ -11,14 +11,11 @@ Acceptance Criteria:
 - Control group handled ✓
 """
 
-import hashlib
-import uuid
 from dataclasses import dataclass
-from datetime import date, datetime
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import date
+from typing import Any, Dict, List, Optional
 
-from core.exceptions import LeadFactoryError, ValidationError
+from core.exceptions import ValidationError
 from core.metrics import MetricsCollector
 
 from .models import (

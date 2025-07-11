@@ -15,7 +15,6 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -37,7 +36,7 @@ from d6_reports.models import (
 )
 
 # Import models
-from database.models import Business, Purchase, PurchaseStatus, WebhookEvent
+from database.models import Purchase, PurchaseStatus, WebhookEvent
 
 
 @pytest.mark.e2e
@@ -456,7 +455,7 @@ def test_complete_purchase_flow_integration(
     # Performance validation
     assert total_time < 5, f"Purchase flow took {total_time:.2f}s, should be under 5s"
 
-    print(f"\n=== PURCHASE FLOW INTEGRATION TEST COMPLETE ===")
+    print("\n=== PURCHASE FLOW INTEGRATION TEST COMPLETE ===")
     print(f"Business: {test_business.name}")
     print(f"Purchase Amount: ${purchase.amount_cents / 100:.2f}")
     print(f"Purchase Status: {purchase.status.value}")

@@ -6,12 +6,12 @@ Timeout: 5s
 Cost: $0.010 per assessment
 Output: semrush_json column
 """
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from urllib.parse import urlparse
 
 from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType
-from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
+from d3_assessment.exceptions import AssessmentTimeoutError
 from d0_gateway.providers.semrush import SEMrushClient
 from d0_gateway.factory import create_client
 from core.logging import get_logger

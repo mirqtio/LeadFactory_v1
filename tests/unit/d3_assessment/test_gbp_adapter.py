@@ -1,7 +1,6 @@
 """Unit tests for Google Business Profile adapter."""
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
-import json
 
 from d3_assessment.gbp import GBPAdapter
 from d3_assessment.audit_schema import FindingSeverity, FindingCategory

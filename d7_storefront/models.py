@@ -17,26 +17,23 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import (
-    DECIMAL,
     JSON,
     TIMESTAMP,
     Boolean,
     CheckConstraint,
     Column,
-    DateTime,
 )
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, Integer, String, Text
 
 # Database compatibility: Use JSON for better SQLite compatibility
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 # Use JSON type for better cross-database compatibility in tests
 JsonColumn = JSON
 
-from database.base import Base, UUID
+from database.base import Base
 
 
 def generate_uuid():

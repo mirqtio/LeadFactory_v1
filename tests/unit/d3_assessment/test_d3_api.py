@@ -13,7 +13,7 @@ import sys
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import FastAPI
@@ -21,7 +21,7 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, "/app")  # noqa: E402
 
-from d3_assessment.api import assessment_sessions, coordinator, router  # noqa: E402
+from d3_assessment.api import assessment_sessions, router  # noqa: E402
 from d3_assessment.coordinator import CoordinatorResult  # noqa: E402
 from d3_assessment.models import AssessmentResult  # noqa: E402
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402

@@ -11,10 +11,8 @@ Acceptance Criteria:
 - Error handling proper ✓
 """
 
-import hashlib
-import hmac
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from fastapi import (
@@ -23,30 +21,25 @@ from fastapi import (
     Depends,
     HTTPException,
     Request,
-    Response,
 )
-from fastapi.responses import JSONResponse, RedirectResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
 from pydantic import ValidationError
 
-from .checkout import CheckoutError, CheckoutItem, CheckoutManager, CheckoutSession
-from .models import ProductType
+from .checkout import CheckoutError, CheckoutItem, CheckoutManager
 from .schemas import (
     APIStatusResponse,
     AuditReportCheckoutRequest,
     BulkReportsCheckoutRequest,
     CheckoutInitiationRequest,
     CheckoutInitiationResponse,
-    CheckoutSessionStatusRequest,
     CheckoutSessionStatusResponse,
     ErrorResponse,
-    SuccessPageRequest,
     SuccessPageResponse,
-    WebhookEventRequest,
     WebhookEventResponse,
 )
-from .stripe_client import StripeClient, StripeConfig, StripeError
-from .webhooks import WebhookError, WebhookProcessor, WebhookStatus
+from .stripe_client import StripeClient, StripeError
+from .webhooks import WebhookError, WebhookProcessor
 
 logger = logging.getLogger(__name__)
 

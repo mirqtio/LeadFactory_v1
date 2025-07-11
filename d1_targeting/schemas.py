@@ -5,16 +5,14 @@ Provides request/response validation and OpenAPI documentation generation.
 """
 from datetime import date, datetime, time
 from decimal import Decimal
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from .types import (
     BatchProcessingStatus,
     CampaignStatus,
     GeographyLevel,
-    TargetQualificationStatus,
     VerticalMarket,
 )
 

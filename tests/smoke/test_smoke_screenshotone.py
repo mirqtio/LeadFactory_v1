@@ -36,7 +36,7 @@ class TestScreenshotOneSmoke:
         assert "url" in result
         assert result["url"].startswith("https://")
 
-        print(f"✓ ScreenshotOne capture successful:")
+        print("✓ ScreenshotOne capture successful:")
         print(f"  URL: {result['url']}")
         print(f"  Cached: {result.get('cached', False)}")
 
@@ -62,7 +62,7 @@ class TestScreenshotOneSmoke:
         assert result is not None
         assert "url" in result
 
-        print(f"\n✓ ScreenshotOne with options successful:")
+        print("\n✓ ScreenshotOne with options successful:")
         print(f"  Screenshot URL: {result['url'][:80]}...")
 
     @pytest.mark.asyncio

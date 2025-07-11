@@ -15,15 +15,13 @@ import asyncio
 import hashlib
 import json
 import logging
-import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 from .coordinator import CoordinatorResult
-from .types import AssessmentStatus, AssessmentType
+from .types import AssessmentType
 
 # Setup logging
 logger = logging.getLogger(__name__)

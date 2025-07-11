@@ -13,15 +13,12 @@ Acceptance Criteria:
 
 import enum
 import uuid
-from datetime import date, datetime
-from decimal import Decimal
-from typing import Any, Dict, Optional
+from datetime import datetime
 
 from sqlalchemy import (
     DECIMAL,
     JSON,
     TIMESTAMP,
-    Boolean,
     Column,
     Date,
     DateTime,
@@ -31,14 +28,11 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
-    Text,
-    func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from database.models import Business
 
 Base = declarative_base()
 

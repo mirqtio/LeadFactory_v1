@@ -11,13 +11,10 @@ Acceptance Criteria:
 - No data leaks ✓
 """
 
-import os
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch
 
 import psutil
 import pytest
@@ -38,14 +35,8 @@ from d6_reports.models import (
     ReportType,
 )
 from d11_orchestration.models import (
-    Experiment,
-    ExperimentStatus,
-    ExperimentVariant,
-    PipelineRun,
     PipelineRunStatus,
-    PipelineType,
     VariantAssignment,
-    VariantType,
 )
 
 # Import models from all domains
@@ -298,7 +289,7 @@ def test_complete_flow_works(
         memory_delta < 50 * 1024 * 1024
     ), f"Memory usage increased by {memory_delta/1024/1024:.2f}MB"
 
-    print(f"\n=== COMPLETE FLOW PIPELINE TEST ===")
+    print("\n=== COMPLETE FLOW PIPELINE TEST ===")
     print(f"Businesses Processed: {len(businesses)}")
     print(f"Emails Sent: {len(emails)}")
     print(f"Purchases: {len(purchases)}")
@@ -438,11 +429,11 @@ def test_all_domains_integrate(
     assert pipeline_run.records_processed >= 1
     assert pipeline_run.records_failed == 0
 
-    print(f"\n=== DOMAIN INTEGRATION TEST ===")
+    print("\n=== DOMAIN INTEGRATION TEST ===")
     print(f"✓ D1 Targeting → D2 Sourcing: {target.id} → {batch.target_id}")
     print(f"✓ D2 Sourcing → D5 Scoring: {test_business.id} → {score.business_id}")
     print(f"✓ D5 Scoring → D8/D9 Email: {score.tier} tier → Email sent")
-    print(f"✓ D9 Delivery → D7 Purchase: Email delivered → Purchase completed")
+    print("✓ D9 Delivery → D7 Purchase: Email delivered → Purchase completed")
     print(
         f"✓ D7 Purchase → D6 Reports: ${purchase.amount_cents/100} → Report generated"
     )
@@ -583,7 +574,7 @@ def test_metrics_recorded(
     assert pipeline.cost_cents > 0
     assert 0 <= pipeline_efficiency <= 100
 
-    print(f"\n=== METRICS RECORDING TEST ===")
+    print("\n=== METRICS RECORDING TEST ===")
     print(f"Gateway Calls: {len(gateway_metrics)}, Cost: ${total_gateway_cost:.4f}")
     print(f"Cache Hit Rate: {cache_hit_rate:.2%}")
     print(f"Avg Response Time: {avg_response_time:.0f}ms")
@@ -737,13 +728,13 @@ def test_no_data_leaks(
     assert purchase.stripe_session_id not in memory_sample
     assert sensitive_email not in memory_sample  # Should be hashed
 
-    print(f"\n=== DATA LEAK PROTECTION TEST ===")
+    print("\n=== DATA LEAK PROTECTION TEST ===")
     print(f"✓ Email suppression uses hash: {email_hash[:16]}...")
     print(f"✓ Report data contains {len(report.report_data)} business fields")
-    print(f"✓ No payment details in report: stripe_* fields excluded")
-    print(f"✓ Gateway logs clean: no sensitive data in error messages")
-    print(f"✓ Cross-domain isolation: customer/business data properly separated")
-    print(f"✓ Memory safety: no sensitive data in memory samples")
+    print("✓ No payment details in report: stripe_* fields excluded")
+    print("✓ Gateway logs clean: no sensitive data in error messages")
+    print("✓ Cross-domain isolation: customer/business data properly separated")
+    print("✓ Memory safety: no sensitive data in memory samples")
 
 
 @pytest.mark.e2e
@@ -916,7 +907,7 @@ def test_full_pipeline_integration(
         else 0
     )
 
-    print(f"\n=== FULL PIPELINE INTEGRATION TEST COMPLETE ===")
+    print("\n=== FULL PIPELINE INTEGRATION TEST COMPLETE ===")
     print(f"Pipeline Status: {pipeline_run.status.value}")
     print(f"Businesses Processed: {businesses_processed}")
     print(f"Emails Sent: {emails_sent}")
@@ -927,7 +918,7 @@ def test_full_pipeline_integration(
     print(f"Total Cost: ${total_cost:.4f}")
     print(f"Execution Time: {pipeline_run.execution_time_seconds}s")
     print(f"Memory Delta: {memory_delta/1024/1024:.2f}MB")
-    print(f"✓ Complete flow works")
-    print(f"✓ All domains integrate")
-    print(f"✓ Metrics recorded")
-    print(f"✓ No data leaks")
+    print("✓ Complete flow works")
+    print("✓ All domains integrate")
+    print("✓ Metrics recorded")
+    print("✓ No data leaks")

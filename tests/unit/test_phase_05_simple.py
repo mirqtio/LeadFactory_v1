@@ -4,12 +4,11 @@ Task TS-10: Basic tests for core functionality
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from decimal import Decimal
 
 from d0_gateway.providers.dataaxle import DataAxleClient
 from d0_gateway.providers.hunter import HunterClient
-from d0_gateway.exceptions import AuthenticationError
 from core.exceptions import ValidationError
 
 # Mark entire module as xfail for Phase 0.5

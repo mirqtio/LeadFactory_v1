@@ -11,15 +11,12 @@ Acceptance Criteria:
 - Stripe test mode used ✓
 """
 
-import asyncio
-import hashlib
-import hmac
 import json
 import time
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from typing import Any, Dict
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi import FastAPI
@@ -31,9 +28,8 @@ from d7_storefront.api import router
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
 # Import all components for integration testing
-from d7_storefront.checkout import CheckoutItem, CheckoutManager, CheckoutSession
-from d7_storefront.models import ProductType, PurchaseStatus
-from d7_storefront.schemas import CheckoutInitiationRequest
+from d7_storefront.checkout import CheckoutItem, CheckoutManager
+from d7_storefront.models import ProductType
 from d7_storefront.stripe_client import StripeClient, StripeConfig
 from d7_storefront.webhooks import WebhookProcessor, WebhookStatus
 

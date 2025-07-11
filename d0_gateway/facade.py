@@ -1,7 +1,6 @@
 """
 D0 Gateway facade - unified interface for all external APIs
 """
-import asyncio
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
@@ -321,7 +320,7 @@ class GatewayFacade:
                 start_time=start_time, end_time=end_time, limit=limit, offset=offset
             )
 
-            self.logger.info(f"Retrieved bounce information")
+            self.logger.info("Retrieved bounce information")
             return result
 
         except Exception as e:

@@ -2,7 +2,7 @@
 Tests for D0 Gateway Client Factory
 """
 import threading
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -15,7 +15,6 @@ from d0_gateway.factory import (
     create_client,
     get_available_providers,
     get_gateway_factory,
-    register_provider,
 )
 from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient

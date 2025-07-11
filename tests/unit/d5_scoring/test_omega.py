@@ -1,5 +1,4 @@
 """Unit tests for omega (online dependence) calculator."""
-import pytest
 from d5_scoring.omega import calculate_omega, evaluate_condition
 
 

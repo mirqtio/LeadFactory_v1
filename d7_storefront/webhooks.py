@@ -12,17 +12,13 @@ Acceptance Criteria:
 """
 
 import hashlib
-import json
 import logging
-import os
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-import stripe
 
-from .models import PaymentMethod, PaymentSession, D7Purchase, PurchaseStatus
-from .stripe_client import StripeClient, StripeConfig, StripeError
+from .stripe_client import StripeClient, StripeError
 
 logger = logging.getLogger(__name__)
 

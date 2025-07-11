@@ -11,13 +11,9 @@ Acceptance Criteria:
 - Data consistency ✓
 """
 
-import asyncio
-import json
 import time
 from datetime import date, datetime, timedelta
-from decimal import Decimal
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -27,14 +23,6 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from d10_analytics.api import MetricsWarehouse, router
-from d10_analytics.schemas import (
-    CohortAnalysisRequest,
-    DateRangeFilter,
-    ExportRequest,
-    FunnelMetricsRequest,
-    MetricsRequest,
-    SegmentFilter,
-)
 
 
 class TestAnalyticsIntegration:

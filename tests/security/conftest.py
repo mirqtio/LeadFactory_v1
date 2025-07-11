@@ -4,9 +4,8 @@ Security test configuration and fixtures - Task 086
 Provides test environment setup and fixtures for security and compliance testing.
 """
 
-import tempfile
 from typing import Generator
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from sqlalchemy import create_engine

@@ -3,7 +3,6 @@ Response caching for external API calls with Redis backing
 """
 import hashlib
 import json
-from datetime import timedelta
 from typing import Any, Dict, Optional
 
 import redis.asyncio as aioredis

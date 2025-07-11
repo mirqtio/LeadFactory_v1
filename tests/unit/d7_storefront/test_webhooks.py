@@ -11,16 +11,12 @@ Acceptance Criteria:
 - Report generation triggered ✓
 """
 
-import hashlib
-import hmac
-import json
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
-import stripe
 
-from d7_storefront.stripe_client import StripeClient, StripeConfig, StripeError
+from d7_storefront.stripe_client import StripeClient, StripeError
 from d7_storefront.webhook_handlers import (
     BaseWebhookHandler,
     CheckoutSessionHandler,
@@ -833,7 +829,6 @@ class TestWebhookEnhancements:
 
     def test_webhook_processor_unhandled_event_type(self):
         """Test handling of unhandled event types"""
-        from d7_storefront.webhook_handlers import CheckoutSessionHandler
 
         processor = WebhookProcessor()
 

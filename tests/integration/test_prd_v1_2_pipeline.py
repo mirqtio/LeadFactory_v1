@@ -10,8 +10,6 @@ pytestmark = [
     pytest.mark.slow,
     pytest.mark.xfail(reason="PRD v1.2 pipeline features are Phase 0.5")
 ]
-from typing import Dict, Any
-from decimal import Decimal
 
 # Yelp has been removed from the codebase
 from d3_assessment.coordinator_v2 import AssessmentCoordinatorV2
@@ -123,7 +121,7 @@ class TestPRDv12Pipeline:
         # Calculate total
         total_cost = sum(costs.values())
 
-        print(f"\nPer-lead cost breakdown:")
+        print("\nPer-lead cost breakdown:")
         for service, cost in costs.items():
             print(f"  {service:15} ${cost:.3f}")
         print(f"  {'TOTAL':15} ${total_cost:.3f}")
@@ -166,12 +164,12 @@ class TestPRDv12Pipeline:
         ):
             issues_found.append("listing_gap")
 
-        print(f"\nPRD v1.2 scoring issues detected:")
+        print("\nPRD v1.2 scoring issues detected:")
         for issue in issues_found:
             print(f"  - {issue}")
 
         assert len(issues_found) == 4, "Should detect all 4 PRD v1.2 issues"
-        print(f"\n✓ All PRD v1.2 scoring rules working")
+        print("\n✓ All PRD v1.2 scoring rules working")
 
     @pytest.mark.asyncio
     async def test_full_pipeline_execution(self):

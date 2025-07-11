@@ -15,7 +15,6 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -29,7 +28,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Import models
-from database.models import Business, Email, EmailClick, EmailSuppression
+from database.models import Email, EmailClick, EmailSuppression
 
 
 @pytest.mark.e2e
@@ -424,10 +423,10 @@ def test_complete_email_flow_integration(
     # Performance validation
     assert total_time < 10, f"Email flow took {total_time:.2f}s, should be under 10s"
 
-    print(f"\n=== EMAIL FLOW INTEGRATION TEST COMPLETE ===")
+    print("\n=== EMAIL FLOW INTEGRATION TEST COMPLETE ===")
     print(f"Business: {test_business.name}")
     print(f"Subject: {personalized_email['subject']}")
-    print(f"Send Status: sent")
-    print(f"Opens: 1")
+    print("Send Status: sent")
+    print("Opens: 1")
     print(f"Clicks: {len(clicks)}")
     print(f"Total Time: {total_time:.2f}s")

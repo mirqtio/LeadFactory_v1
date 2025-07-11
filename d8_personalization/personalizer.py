@@ -12,11 +12,9 @@ Acceptance Criteria:
 """
 
 import hashlib
-import json
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -27,12 +25,8 @@ except ImportError:
     OpenAIClient = None
 from .models import (
     ContentStrategy,
-    EmailContent,
     EmailContentType,
-    EmailGenerationLog,
-    EmailTemplate,
     PersonalizationStrategy,
-    SpamScoreTracking,
     determine_risk_level,
 )
 from .subject_lines import SubjectLineGenerator, SubjectLineRequest
@@ -768,7 +762,7 @@ class EmailPersonalizer:
                     request, issues, business_name, contact_name
                 )
 
-        except Exception as e:
+        except Exception:
             # Fallback content generation
             return self._generate_fallback_content(
                 request, issues, business_name, contact_name

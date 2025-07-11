@@ -15,9 +15,8 @@ import statistics
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Tuple
-from unittest.mock import MagicMock, patch
+from datetime import datetime
+from typing import Any, Dict, List
 
 import psutil
 import pytest
@@ -25,8 +24,6 @@ import pytest
 # Mark entire module as slow for performance tests
 pytestmark = pytest.mark.slow
 
-from d6_reports.models import ReportGeneration, ReportStatus, ReportType
-from d11_orchestration.models import PipelineRun, PipelineRunStatus, PipelineType
 
 # Import models and services
 from database.models import (
@@ -37,8 +34,6 @@ from database.models import (
     EmailStatus,
     GatewayUsage,
     GeoType,
-    Purchase,
-    PurchaseStatus,
     ScoringResult,
     Target,
 )
@@ -410,18 +405,18 @@ def test_5k_business_processing_load(test_db_session, mock_external_services):
     ), f"Throughput too low: {overall_throughput:.2f} businesses/second"
     assert total_time < 300, f"Processing took too long: {total_time:.2f} seconds"
 
-    print(f"\n=== LOAD TEST RESULTS: 5K BUSINESSES ===")
+    print("\n=== LOAD TEST RESULTS: 5K BUSINESSES ===")
     print(f"✅ Total Businesses Processed: {total_businesses_processed:,}")
     print(f"⚡ Overall Throughput: {overall_throughput:.2f} businesses/second")
     print(f"⏱️  Total Processing Time: {processing_time:.2f}s")
     print(f"🏗️  Business Creation Time: {business_creation_time:.2f}s")
-    print(f"📊 Performance Metrics:")
+    print("📊 Performance Metrics:")
     print(f"   - Average CPU Usage: {performance_metrics['avg_cpu']:.1f}%")
     print(f"   - Peak CPU Usage: {performance_metrics['peak_cpu']:.1f}%")
     print(f"   - Average Memory Usage: {performance_metrics['avg_memory']:.1f}MB")
     print(f"   - Peak Memory Usage: {performance_metrics['peak_memory']:.1f}MB")
 
-    print(f"\n📈 Stage Performance Analysis:")
+    print("\n📈 Stage Performance Analysis:")
     for stage, metrics in stage_performance.items():
         print(f"   {stage.title()}:")
         print(f"     - Total: {metrics['total_time']:.3f}s")
@@ -551,13 +546,13 @@ def test_response_time_measurement(test_db_session, mock_external_services):
             metrics["max"] < 3.0
         ), f"{stage} max response time too high: {metrics['max']:.3f}s"
 
-    print(f"\n=== RESPONSE TIME ANALYSIS ===")
+    print("\n=== RESPONSE TIME ANALYSIS ===")
     for stage, metrics in stage_results.items():
         print(f"{stage.title()}:")
         print(f"  Average: {metrics['avg']:.3f}s")
         print(f"  P95: {metrics['p95']:.3f}s")
         print(f"  Maximum: {metrics['max']:.3f}s")
-        print(f"  ✅ Performance targets met")
+        print("  ✅ Performance targets met")
 
 
 @pytest.mark.performance
@@ -699,11 +694,11 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
     assert bottleneck_stage is not None, "Should identify primary bottleneck"
     assert len(recommendations) > 0, "Should provide performance recommendations"
 
-    print(f"\n=== BOTTLENECK ANALYSIS ===")
+    print("\n=== BOTTLENECK ANALYSIS ===")
     print(
         f"🔍 Primary Bottleneck: {bottleneck_stage.title()} ({bottleneck_percentage:.1f}% of total time)"
     )
-    print(f"\n📊 Stage Analysis:")
+    print("\n📊 Stage Analysis:")
     for stage, analysis in bottleneck_analysis.items():
         print(f"  {stage.title()}:")
         print(f"    Total Time: {analysis['total_time']:.3f}s")
@@ -712,7 +707,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
         if stage == bottleneck_stage:
             print("    ⚠️  PRIMARY BOTTLENECK")
 
-    print(f"\n💻 Resource Utilization:")
+    print("\n💻 Resource Utilization:")
     print(
         f"  CPU: {resource_analysis['cpu_utilization']:.1f}% avg, {performance_metrics['peak_cpu']:.1f}% peak"
     )
@@ -720,7 +715,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
         f"  Memory: {resource_analysis['memory_utilization']:.1f}MB avg, {performance_metrics['peak_memory']:.1f}MB peak"
     )
 
-    print(f"\n🎯 Performance Recommendations:")
+    print("\n🎯 Performance Recommendations:")
     for i, rec in enumerate(recommendations, 1):
         print(f"  {i}. {rec}")
 
@@ -860,13 +855,13 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
         db_metrics["inserts_per_second"] > 50
     ), f"Database insert rate too low: {db_metrics['inserts_per_second']:.1f}/second"
 
-    print(f"\n=== RESOURCE USAGE TRACKING ===")
-    print(f"🏗️  Processing Metrics:")
+    print("\n=== RESOURCE USAGE TRACKING ===")
+    print("🏗️  Processing Metrics:")
     print(f"   Total Processing Time: {resource_metrics['processing_time']:.2f}s")
     print(f"   Throughput: {resource_metrics['throughput']:.2f} businesses/second")
     print(f"   Businesses Processed: {len(businesses):,}")
 
-    print(f"\n💻 CPU & Memory Usage:")
+    print("\n💻 CPU & Memory Usage:")
     print(f"   Average CPU: {resource_metrics['avg_cpu_usage']:.1f}%")
     print(f"   Peak CPU: {resource_metrics['peak_cpu_usage']:.1f}%")
     print(f"   Average Memory: {resource_metrics['avg_memory_usage']:.1f}MB")
@@ -874,21 +869,21 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
     print(f"   Memory Growth: {resource_metrics['memory_growth']:.1f}MB")
     print(f"   Memory per Business: {resource_metrics['memory_per_business']:.3f}MB")
 
-    print(f"\n🗄️  Database Performance:")
+    print("\n🗄️  Database Performance:")
     print(f"   Total Inserts: {db_metrics['total_inserts']:,}")
     print(f"   Total Queries: {db_metrics['total_queries']:,}")
     print(f"   Inserts/Second: {db_metrics['inserts_per_second']:.1f}")
     print(f"   Queries/Second: {db_metrics['queries_per_second']:.1f}")
     print(f"   Commit Interval: {db_metrics['avg_commit_interval']:.2f}s")
 
-    print(f"\n💰 Cost Tracking:")
+    print("\n💰 Cost Tracking:")
     print(f"   Total Gateway Cost: ${cost_metrics['total_gateway_cost']:.4f}")
     print(f"   Cost per Business: ${cost_metrics['cost_per_business']:.4f}")
     print(
         f"   Processing Efficiency: {cost_metrics['processing_efficiency']:.1f} businesses/$"
     )
 
-    print(f"\n⚡ Efficiency Metrics:")
+    print("\n⚡ Efficiency Metrics:")
     print(
         f"   CPU Efficiency: {efficiency_metrics['cpu_efficiency']:.1f} businesses/CPU%"
     )

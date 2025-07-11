@@ -4,18 +4,13 @@ Batch Scheduler for D1 Targeting Domain
 Manages creation and scheduling of campaign batches with priority-based allocation,
 quota tracking, and fair distribution across campaigns.
 """
-import asyncio
-import logging
-import uuid
-from datetime import datetime, time, timedelta
-from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, desc, func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from core.config import get_settings
-from core.exceptions import ValidationError
 from core.logging import get_logger
 from database.session import SessionLocal
 

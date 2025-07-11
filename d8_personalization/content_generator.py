@@ -11,14 +11,12 @@ Acceptance Criteria:
 - Spam check integrated ✓
 """
 
-import json
 import re
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from .models import ContentStrategy, EmailContentType, PersonalizationStrategy
+from .models import ContentStrategy, EmailContentType
 from .personalizer import ExtractedIssue, IssueImpact
 
 

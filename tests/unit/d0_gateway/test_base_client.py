@@ -5,11 +5,9 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from prometheus_client import REGISTRY
 
 from core.exceptions import ExternalAPIError, RateLimitError
 from d0_gateway.base import BaseAPIClient
-from d0_gateway.circuit_breaker import CircuitState
 
 
 class TestAPIClient(BaseAPIClient):

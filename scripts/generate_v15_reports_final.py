@@ -12,7 +12,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Tuple, Set
+from typing import Dict, Any, List, Tuple
 import yaml
 from jinja2 import Template
 
@@ -242,9 +242,9 @@ class V15ReportGeneratorFinal:
             
             perf_description = f"Your site's Largest Contentful Paint is {lcp:.1f}s "
             if lcp > 2.5:
-                perf_description += f"(exceeds Google's 2.5s target). "
+                perf_description += "(exceeds Google's 2.5s target). "
             else:
-                perf_description += f"(meets Google's 2.5s target). "
+                perf_description += "(meets Google's 2.5s target). "
             
             # Add citation for conversion impact
             perf_description += "Studies by Amazon and Akamai show every 100ms delay reduces conversions by 1-7%."
@@ -751,7 +751,7 @@ class V15ReportGeneratorFinal:
         
         # Add GBP free fix callout if unclaimed
         if not gbp_data.get('claimed', True):
-            summary += f"Quick win: Claiming your Google Business Profile (free, 10-minute fix) "
+            summary += "Quick win: Claiming your Google Business Profile (free, 10-minute fix) "
             summary += f"could drive ${gbp_data.get('free_fix_value', 1200):,.0f} in local traffic value. "
         elif top_opp:
             summary += f"The highest-impact opportunity is {top_opp['title'].lower()}, "
@@ -1465,7 +1465,7 @@ def main():
             import traceback
             traceback.print_exc()
     
-    print(f"\n✅ v1.5 final report generation complete!")
+    print("\n✅ v1.5 final report generation complete!")
     print(f"📁 Reports saved in: {output_dir}")
 
 

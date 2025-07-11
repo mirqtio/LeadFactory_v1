@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 import httpx
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -186,9 +186,9 @@ async def generate_report(business: Dict[str, Any], assessment_results: Dict[str
                             f.write(pdf_response.content)
                         print(f"✅ PDF report saved: {pdf_filename}")
                     else:
-                        print(f"⚠️  Could not download PDF report")
+                        print("⚠️  Could not download PDF report")
                         
-                print(f"✅ Report generation completed successfully")
+                print("✅ Report generation completed successfully")
             else:
                 print(f"❌ Report generation failed: {response.text}")
                 

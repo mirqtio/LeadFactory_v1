@@ -2,9 +2,8 @@
 import pytest
 import tempfile
 import time
-import threading
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from d5_scoring.hot_reload import (
     ScoringRulesFileHandler,

@@ -15,12 +15,11 @@ Acceptance Criteria:
 import asyncio
 import json
 import logging
-import os
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -521,7 +520,7 @@ class SystemChecker:
         """Print a summary of the system verification"""
         results = self.verification_results
 
-        print(f"\n🎯 SYSTEM VERIFICATION SUMMARY")
+        print("\n🎯 SYSTEM VERIFICATION SUMMARY")
         print("=" * 80)
 
         print(f"\n📊 Overall Status: {results['overall_status'].upper()}")
@@ -532,7 +531,7 @@ class SystemChecker:
 
         # System details
         systems = results.get("systems", {})
-        print(f"\n🔧 Core Systems:")
+        print("\n🔧 Core Systems:")
         print(f"   Database: {'✅' if systems.get('database') else '❌'}")
         print(f"   Core Modules: {'✅' if systems.get('core_modules') else '❌'}")
         print(f"   Domain Modules: {'✅' if systems.get('domain_modules') else '❌'}")
@@ -541,7 +540,7 @@ class SystemChecker:
 
         # Integration details
         integrations = results.get("integrations", {})
-        print(f"\n🌐 External Integrations:")
+        print("\n🌐 External Integrations:")
         print(
             f"   Gateway Components: {'✅' if integrations.get('gateway_components') else '❌'}"
         )
@@ -551,7 +550,7 @@ class SystemChecker:
 
         # Documentation details
         documentation = results.get("documentation", {})
-        print(f"\n📚 Documentation:")
+        print("\n📚 Documentation:")
         print(f"   Core Documentation: {'✅' if documentation.get('complete') else '❌'}")
         print(
             f"   API Documentation: {'✅' if documentation.get('api_documentation') else '❌'}"
@@ -559,7 +558,7 @@ class SystemChecker:
 
         # Team access details
         team_access = results.get("team_access", {})
-        print(f"\n👥 Team Access:")
+        print("\n👥 Team Access:")
         print(
             f"   Deployment Scripts: {'✅' if team_access.get('deployment_scripts') else '❌'}"
         )
@@ -570,7 +569,7 @@ class SystemChecker:
 
         # Revenue tracking details
         revenue = results.get("revenue_tracking", {})
-        print(f"\n💰 Revenue Tracking:")
+        print("\n💰 Revenue Tracking:")
         print(f"   Payment System: {'✅' if revenue.get('payment_system') else '❌'}")
         print(f"   Analytics System: {'✅' if revenue.get('analytics_system') else '❌'}")
         print(f"   Revenue Models: {'✅' if revenue.get('revenue_models') else '❌'}")

@@ -14,9 +14,7 @@ Acceptance Criteria:
 
 import argparse
 import os
-import subprocess
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -123,7 +121,6 @@ class DatabaseSetup:
             alembic_cfg.set_main_option("sqlalchemy.url", self.database_url)
 
             # Get current revision
-            from alembic.runtime.environment import EnvironmentContext
             from alembic.runtime.migration import MigrationContext
             from alembic.script import ScriptDirectory
 

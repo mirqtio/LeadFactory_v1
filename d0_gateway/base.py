@@ -1,14 +1,12 @@
 """
 Base API client with common functionality for all external API providers
 """
-import asyncio
 import time
 from abc import ABC, abstractmethod
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
 import httpx
-from prometheus_client import Counter, Gauge, Histogram
 
 from core.config import get_settings
 from core.exceptions import ExternalAPIError, RateLimitError

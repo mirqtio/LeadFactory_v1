@@ -13,14 +13,11 @@ Acceptance Criteria:
 
 import enum
 import uuid
-from datetime import date, datetime
-from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Dict, Optional
 
 from sqlalchemy import (
     DECIMAL,
     JSON,
-    TIMESTAMP,
     Boolean,
     CheckConstraint,
     Column,
@@ -29,11 +26,10 @@ from sqlalchemy import (
 )
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from database.base import Base, UUID
+from database.base import Base
 
 
 def generate_uuid():

@@ -30,7 +30,7 @@ def upgrade() -> None:
     # Drop unique constraint first (if exists)
     try:
         op.drop_constraint('businesses_yelp_id_key', 'businesses', type_='unique')
-    except:
+    except Exception:
         pass  # Constraint might not exist
     
     # Drop the yelp_id column

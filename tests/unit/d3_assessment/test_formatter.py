@@ -15,7 +15,7 @@ import json
 import os
 import tempfile
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
@@ -25,7 +25,6 @@ pytestmark = pytest.mark.slow
 from d3_assessment.formatter import (
     AssessmentFormatter,
     FormattedIssue,
-    FormattedReport,
     IssuePriority,
     ReportFormat,
     format_assessment_report,

@@ -11,10 +11,7 @@ Acceptance Criteria:
 - Error handling proper ✓
 """
 
-import json
-from datetime import datetime
-from decimal import Decimal
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
@@ -27,20 +24,12 @@ from d7_storefront.api import (
     get_webhook_processor,
     router,
 )
-from d7_storefront.checkout import CheckoutError, CheckoutManager
-from d7_storefront.models import ProductType
+from d7_storefront.checkout import CheckoutError
 from d7_storefront.schemas import (
-    AuditReportCheckoutRequest,
-    BulkReportsCheckoutRequest,
     CheckoutInitiationRequest,
     CheckoutInitiationResponse,
-    ErrorResponse,
-    SuccessPageResponse,
-    WebhookEventRequest,
-    WebhookEventResponse,
 )
-from d7_storefront.stripe_client import StripeClient, StripeError
-from d7_storefront.webhooks import WebhookError, WebhookProcessor, WebhookStatus
+from d7_storefront.webhooks import WebhookError, WebhookStatus
 
 # Test app setup
 app = FastAPI()
@@ -513,7 +502,6 @@ class TestAPIStatus:
         from d7_storefront.api import (
             get_checkout_manager,
             get_webhook_processor,
-            get_stripe_client,
         )
 
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager

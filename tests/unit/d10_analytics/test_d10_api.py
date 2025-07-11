@@ -11,9 +11,8 @@ Acceptance Criteria Tests:
 - CSV export option ✓
 """
 
-from datetime import date, datetime, timedelta
-from decimal import Decimal
-from unittest.mock import AsyncMock, Mock, patch
+from datetime import date, timedelta
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from fastapi import FastAPI
@@ -21,11 +20,7 @@ from fastapi.testclient import TestClient
 
 from d10_analytics.api import get_warehouse, router
 from d10_analytics.schemas import (
-    CohortAnalysisRequest,
     DateRangeFilter,
-    ExportRequest,
-    FunnelMetricsRequest,
-    MetricsRequest,
     SegmentFilter,
 )
 

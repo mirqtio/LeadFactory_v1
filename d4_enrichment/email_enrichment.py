@@ -2,7 +2,6 @@
 Email enrichment logic for PRD v1.2
 Implements Hunter-first, Data Axle fallback pattern
 """
-import logging
 from typing import Dict, Any, Optional, Tuple, List
 from urllib.parse import urlparse
 

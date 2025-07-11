@@ -6,11 +6,9 @@ Acceptance Criteria:
 - Update timestamps properly
 - Performance optimized
 """
-import os
 import sys
-from datetime import datetime, timedelta
-from decimal import Decimal
-from unittest.mock import MagicMock, Mock, patch
+from datetime import datetime
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -21,12 +19,10 @@ from d2_sourcing.deduplicator import (
     BusinessDeduplicator,
     DuplicateMatch,
     MatchConfidence,
-    MergeResult,
     MergeStrategy,
     detect_duplicates_only,
     find_and_merge_duplicates,
 )
-from d2_sourcing.exceptions import DeduplicationException
 from database.models import Business
 
 # Mark entire module as xfail - References removed Yelp functionality

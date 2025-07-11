@@ -18,9 +18,7 @@ import pytest
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
 from pathlib import Path
-from jinja2 import Environment, FileSystemLoader, Template
-from unittest.mock import Mock, patch
-import re
+from jinja2 import Environment, FileSystemLoader
 
 
 @pytest.fixture

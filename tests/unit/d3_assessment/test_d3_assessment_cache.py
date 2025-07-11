@@ -13,7 +13,6 @@ import sys
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -22,11 +21,9 @@ pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")  # noqa: E402
 
-from d3_assessment.cache import CacheEntry  # noqa: E402
 from d3_assessment.cache import (
     AssessmentCache,
     CacheManager,
-    CacheStats,
     CacheStrategy,
     cached_assessment,
 )

@@ -8,7 +8,6 @@ import re
 import time
 from typing import Dict, Any, Optional, Union, List
 from functools import lru_cache
-import logging
 
 from xlcalculator import ModelCompiler, Model, Evaluator
 from xlcalculator.xltypes import XLCell

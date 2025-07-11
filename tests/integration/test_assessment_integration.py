@@ -7,13 +7,10 @@ Acceptance Criteria:
 - Results stored correctly
 """
 import asyncio
-import json
-import os
 import sys
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -33,15 +30,12 @@ from d3_assessment.coordinator import (
     AssessmentCoordinator,
     AssessmentPriority,
     AssessmentRequest,
-    CoordinatorError,
     CoordinatorResult,
 )
 from d3_assessment.formatter import AssessmentReportFormatter, ReportFormat
 from d3_assessment.metrics import AssessmentMetrics
-from d3_assessment.models import AssessmentSession
 from d3_assessment.types import AssessmentStatus, AssessmentType
 from database.models import Base
-from database.session import SessionLocal
 
 
 class TestAssessmentIntegrationTask039:

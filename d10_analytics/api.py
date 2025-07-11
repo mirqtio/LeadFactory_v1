@@ -11,7 +11,6 @@ Acceptance Criteria:
 - CSV export option ✓
 """
 
-import asyncio
 import csv
 import json
 import logging
@@ -19,9 +18,9 @@ import uuid
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from io import StringIO
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 
 

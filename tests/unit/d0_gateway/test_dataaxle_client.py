@@ -2,10 +2,8 @@
 Tests for Data Axle client - Phase 0.5 Task GW-02
 """
 import pytest
-import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from httpx import AsyncClient, Response
 
 from d0_gateway.exceptions import (

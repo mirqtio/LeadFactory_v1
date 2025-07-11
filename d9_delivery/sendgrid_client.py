@@ -12,15 +12,13 @@ Acceptance Criteria:
 """
 
 import asyncio
-import json
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from core.config import get_settings
-from core.exceptions import ConfigurationError, ExternalAPIError, RateLimitError
+from core.exceptions import ExternalAPIError, RateLimitError
 from d0_gateway.facade import get_gateway_facade
 
 logger = logging.getLogger(__name__)

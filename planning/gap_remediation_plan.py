@@ -11,7 +11,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 # Load gap remediation tasks
 GAP_TASKS_FILE = Path(__file__).parent.parent / "gap_remediation_tasks.json"
@@ -148,30 +148,30 @@ def display_next_task(task: Dict) -> None:
     print(f"Priority: {task['priority'].upper()}")
     print(f"Estimated Hours: {task['estimated_hours']}")
 
-    print(f"\nGap Description:")
+    print("\nGap Description:")
     print(f"  {task['gap_description']}")
 
-    print(f"\nCurrent State:")
+    print("\nCurrent State:")
     print(f"  {task['current_state']}")
 
-    print(f"\nSuccess Criteria:")
+    print("\nSuccess Criteria:")
     for criterion in task["success_criteria"]:
         print(f"  - {criterion}")
 
     if "files_to_create" in task:
-        print(f"\nFiles to Create:")
+        print("\nFiles to Create:")
         for file in task["files_to_create"]:
             print(f"  - {file}")
 
     if "files_to_modify" in task:
-        print(f"\nFiles to Modify:")
+        print("\nFiles to Modify:")
         for file in task["files_to_modify"]:
             print(f"  - {file}")
 
-    print(f"\nImplementation Notes:")
+    print("\nImplementation Notes:")
     print(f"  {task['implementation_notes']}")
 
-    print(f"\nTest Commands:")
+    print("\nTest Commands:")
     for cmd in task["test_commands"]:
         print(f"  - {cmd}")
 

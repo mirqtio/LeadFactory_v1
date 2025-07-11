@@ -5,11 +5,8 @@ Build vertical_stats.parquet from Census Economic data.
 This script should be run annually to update baseline revenue statistics 
 by state and NAICS code using Economic Census and SUSB data.
 """
-import os
 import pandas as pd
-import numpy as np
 import requests
-import pyarrow.parquet as pq
 from pathlib import Path
 
 

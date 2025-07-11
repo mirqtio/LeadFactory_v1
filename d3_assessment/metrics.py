@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import wraps
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from prometheus_client import Counter, Gauge, Histogram, Info, Summary
 
@@ -518,7 +518,7 @@ def track_assessment(assessment_type: AssessmentType, industry: str = "unknown")
 
                 return result
 
-            except Exception as e:
+            except Exception:
                 # Track failure
                 duration = time.time() - start_time
 

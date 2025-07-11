@@ -33,7 +33,7 @@ class TestGBPSmoke:
         assert results.get("place_id")
         assert results.get("name")
 
-        print(f"✓ GBP find place successful:")
+        print("✓ GBP find place successful:")
         print(f"  Found: {results['name']}")
         print(f"  Place ID: {results['place_id']}")
 
@@ -71,7 +71,7 @@ class TestGBPSmoke:
             # Check for hours (key for PRD v1.2 scoring)
             has_hours = bool(details.get("opening_hours", {}).get("periods"))
 
-            print(f"\n✓ GBP place details successful:")
+            print("\n✓ GBP place details successful:")
             print(f"  Name: {details['name']}")
             print(f"  Rating: {details.get('rating', 'N/A')}")
             print(f"  Reviews: {details.get('user_ratings_total', 0)}")
@@ -97,7 +97,7 @@ class TestGBPSmoke:
 
             has_hours = bool(details.get("opening_hours", {}).get("periods"))
 
-            print(f"\n✓ GBP missing hours detection:")
+            print("\n✓ GBP missing hours detection:")
             print(f"  Place: {details.get('name', 'Unknown')}")
             print(f"  Has Hours: {has_hours}")
             print(f"  Missing Hours Detected: {not has_hours}")
@@ -153,7 +153,7 @@ class TestGBPSmoke:
                 ],
             )
 
-            print(f"\n✓ GBP fields extraction:")
+            print("\n✓ GBP fields extraction:")
             print(f"  Name: {details.get('name')}")
             print(f"  Types: {details.get('types', [])[:3]}")
             print(

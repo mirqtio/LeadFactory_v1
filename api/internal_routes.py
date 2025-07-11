@@ -5,10 +5,8 @@ These endpoints should be protected and not exposed publicly.
 """
 import time
 from typing import Dict, Any
-import logging
 
 from fastapi import APIRouter, HTTPException, Depends, Header
-from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram
 
 from core.logging import get_logger

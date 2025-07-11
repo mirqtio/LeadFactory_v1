@@ -18,10 +18,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from itertools import chain
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-from database.session import get_db
 
 from .gbp_enricher import GBPEnricher
 from .models import (

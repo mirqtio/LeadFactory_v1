@@ -100,7 +100,7 @@ def add_phase_05_tasks():
         with open(taskmaster_file, "w") as f:
             json.dump(taskmaster, f, indent=2)
 
-        print(f"\n✅ Updated taskmaster_plan.json with Phase 0.5")
+        print("\n✅ Updated taskmaster_plan.json with Phase 0.5")
 
 
 def create_phase_05_tracker():
@@ -144,7 +144,7 @@ def create_phase_05_tracker():
     with open(tracker_file, "w") as f:
         json.dump(tracker, f, indent=2)
 
-    print(f"\n✅ Created phase_05_progress.json tracker")
+    print("\n✅ Created phase_05_progress.json tracker")
 
 
 if __name__ == "__main__":

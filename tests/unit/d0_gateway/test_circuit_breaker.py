@@ -1,10 +1,8 @@
 """
 Test circuit breaker pattern implementation
 """
-import threading
 import time
-from threading import Lock
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 

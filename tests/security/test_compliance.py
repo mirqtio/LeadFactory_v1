@@ -14,12 +14,9 @@ Acceptance Criteria:
 import hashlib
 import json
 import re
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch
+from datetime import datetime
 
 import pytest
-from fastapi.testclient import TestClient
 
 # Mark entire module as slow for security compliance tests
 pytestmark = pytest.mark.slow
@@ -28,7 +25,6 @@ pytestmark = pytest.mark.slow
 from database.models import (
     Business,
     Email,
-    EmailClick,
     EmailStatus,
     EmailSuppression,
     Purchase,
@@ -247,12 +243,12 @@ def test_api_authentication_verification(test_db_session):
         auth_mechanisms.values()
     ), "All authentication mechanisms should be implemented"
 
-    print(f"\n=== API AUTHENTICATION VERIFICATION ===")
+    print("\n=== API AUTHENTICATION VERIFICATION ===")
     print(f"✅ Total Security Tests: {len(security_validations)}")
     print(f"✅ Passed Tests: {len(passed_tests)}")
     print(f"❌ Failed Tests: {len(failed_tests)}")
 
-    print(f"\n📊 Security Test Categories:")
+    print("\n📊 Security Test Categories:")
     categories = {}
     for validation in security_validations:
         category = validation["category"]
@@ -269,7 +265,7 @@ def test_api_authentication_verification(test_db_session):
             f"  {category.replace('_', ' ').title()}: {results['passed']}/{total} passed"
         )
 
-    print(f"\n🔐 Authentication Mechanisms:")
+    print("\n🔐 Authentication Mechanisms:")
     for mechanism, implemented in auth_mechanisms.items():
         status = "✅" if implemented else "❌"
         print(f"  {status} {mechanism.replace('_', ' ').title()}")
@@ -522,24 +518,24 @@ def test_data_privacy_compliance(test_db_session):
         len(passed_tests) >= 10
     ), f"Expected at least 10 privacy tests, got {len(passed_tests)}"
 
-    print(f"\n=== DATA PRIVACY COMPLIANCE ===")
+    print("\n=== DATA PRIVACY COMPLIANCE ===")
     print(f"✅ Total Privacy Tests: {len(compliance_results)}")
     print(f"✅ Passed Tests: {len(passed_tests)}")
     print(f"❌ Failed Tests: {len(failed_tests)}")
 
     # Test specific privacy requirements
-    print(f"\n🔒 Privacy Test Results:")
+    print("\n🔒 Privacy Test Results:")
     for test in privacy_tests.values():
         if "compliant" in test:
             status = "✅" if test["compliant"] else "❌"
             print(f"  {status} {test['requirement']}")
 
-    print(f"\n🛡️ Data Protection Measures:")
+    print("\n🛡️ Data Protection Measures:")
     print(f"  ✅ Email Hashing: SHA-256 ({len(email_hash)} chars)")
-    print(f"  ✅ Data Isolation: Customer/business data separated")
-    print(f"  ✅ Log Security: No sensitive data in logs")
-    print(f"  ✅ Access Controls: Role-based and field-level")
-    print(f"  ✅ Privacy Rights: Access, rectification, erasure, portability")
+    print("  ✅ Data Isolation: Customer/business data separated")
+    print("  ✅ Log Security: No sensitive data in logs")
+    print("  ✅ Access Controls: Role-based and field-level")
+    print("  ✅ Privacy Rights: Access, rectification, erasure, portability")
 
 
 @pytest.mark.security
@@ -801,7 +797,7 @@ def test_email_compliance(test_db_session):
         len(passed_checks) >= 12
     ), f"Expected at least 12 compliance checks, got {len(passed_checks)}"
 
-    print(f"\n=== EMAIL COMPLIANCE VERIFICATION ===")
+    print("\n=== EMAIL COMPLIANCE VERIFICATION ===")
     print(f"✅ Total Compliance Checks: {len(compliance_checks)}")
     print(f"✅ Passed Checks: {len(passed_checks)}")
     print(f"❌ Failed Checks: {len(failed_checks)}")
@@ -816,20 +812,20 @@ def test_email_compliance(test_db_session):
         if check["passed"]:
             categories[cat]["passed"] += 1
 
-    print(f"\n📧 Compliance by Category:")
+    print("\n📧 Compliance by Category:")
     for category, stats in categories.items():
         percentage = (stats["passed"] / stats["total"]) * 100
         print(
             f"  {category.upper()}: {stats['passed']}/{stats['total']} ({percentage:.0f}%)"
         )
 
-    print(f"\n📋 Key Compliance Elements:")
-    print(f"  ✅ Sender Identification: LeadFactory Team")
-    print(f"  ✅ Physical Address: 123 Marketing St, San Francisco, CA")
-    print(f"  ✅ Unsubscribe Link: Present and functional")
-    print(f"  ✅ Privacy Policy: Linked in email footer")
-    print(f"  ✅ GDPR Rights: Data subject rights mentioned")
-    print(f"  ✅ Email Authentication: SPF, DKIM, DMARC configured")
+    print("\n📋 Key Compliance Elements:")
+    print("  ✅ Sender Identification: LeadFactory Team")
+    print("  ✅ Physical Address: 123 Marketing St, San Francisco, CA")
+    print("  ✅ Unsubscribe Link: Present and functional")
+    print("  ✅ Privacy Policy: Linked in email footer")
+    print("  ✅ GDPR Rights: Data subject rights mentioned")
+    print("  ✅ Email Authentication: SPF, DKIM, DMARC configured")
 
 
 @pytest.mark.security
@@ -1134,7 +1130,7 @@ def test_payment_security(test_db_session):
         len(passed_validations) >= 20
     ), f"Expected at least 20 security validations, got {len(passed_validations)}"
 
-    print(f"\n=== PAYMENT SECURITY VERIFICATION ===")
+    print("\n=== PAYMENT SECURITY VERIFICATION ===")
     print(f"✅ Total Security Validations: {len(security_validations)}")
     print(f"✅ Passed Validations: {len(passed_validations)}")
     print(f"❌ Failed Validations: {len(failed_validations)}")
@@ -1149,20 +1145,20 @@ def test_payment_security(test_db_session):
         if validation["passed"]:
             categories[cat]["passed"] += 1
 
-    print(f"\n🔒 Security by Category:")
+    print("\n🔒 Security by Category:")
     for category, stats in categories.items():
         percentage = (stats["passed"] / stats["total"]) * 100
         print(
             f"  {category.replace('_', ' ').title()}: {stats['passed']}/{stats['total']} ({percentage:.0f}%)"
         )
 
-    print(f"\n💳 Payment Security Highlights:")
-    print(f"  ✅ PCI DSS Compliance: All 12 requirements met")
-    print(f"  ✅ No Card Data Stored: Stripe tokenization used")
-    print(f"  ✅ Encryption: TLS 1.3 in transit, AES-256 at rest")
-    print(f"  ✅ Fraud Prevention: Velocity checks and risk scoring")
-    print(f"  ✅ Webhook Security: Signature verification implemented")
-    print(f"  ✅ Incident Response: Detection and response procedures in place")
+    print("\n💳 Payment Security Highlights:")
+    print("  ✅ PCI DSS Compliance: All 12 requirements met")
+    print("  ✅ No Card Data Stored: Stripe tokenization used")
+    print("  ✅ Encryption: TLS 1.3 in transit, AES-256 at rest")
+    print("  ✅ Fraud Prevention: Velocity checks and risk scoring")
+    print("  ✅ Webhook Security: Signature verification implemented")
+    print("  ✅ Incident Response: Detection and response procedures in place")
 
     # Validate incident response capabilities
     all_incident_capabilities = [

@@ -2,13 +2,12 @@
 Tests for D0 Gateway provider implementations
 """
 from decimal import Decimal
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
-from prometheus_client import REGISTRY
 
 from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient

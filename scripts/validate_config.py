@@ -12,12 +12,10 @@ Acceptance Criteria:
 - Monitoring configured ✓
 """
 
-import os
 import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import requests
@@ -101,7 +99,7 @@ class ConfigValidator:
             return False
 
         print(f"✅ Loaded {len(self.env_vars)} environment variables")
-        print(f"✅ Loaded YAML configuration")
+        print("✅ Loaded YAML configuration")
         return True
 
     def validate_environment_variables(self):
@@ -377,7 +375,7 @@ class ConfigValidator:
             pagespeed_key = self.env_vars.get("GOOGLE_PAGESPEED_API_KEY")
             if pagespeed_key and not pagespeed_key.startswith("${"):
                 response = requests.get(
-                    f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
+                    "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
                     params={
                         "url": "https://google.com",
                         "key": pagespeed_key,

@@ -15,11 +15,10 @@ Acceptance Criteria:
 import argparse
 import hashlib
 import json
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import yaml
 
@@ -478,12 +477,12 @@ class ExperimentLoader:
         print(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE'}")
         print(f"Validation: {'PASSED' if report['validation']['valid'] else 'FAILED'}")
 
-        print(f"\n📋 Acceptance Criteria:")
+        print("\n📋 Acceptance Criteria:")
         for criterion, met in criteria.items():
             status = "✅" if met else "❌"
             print(f"   {status} {criterion.replace('_', ' ').title()}")
 
-        print(f"\n🧪 Experiments Configured:")
+        print("\n🧪 Experiments Configured:")
         for exp_id in report["experiments"]["experiment_ids"]:
             print(f"   - {exp_id}")
 

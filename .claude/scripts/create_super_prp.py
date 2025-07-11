@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Create a combined super PRP from all individual PRPs"""
 
-import os
-import re
 from pathlib import Path
 
 def extract_prp_content(prp_path):

@@ -14,8 +14,7 @@ import hashlib
 import hmac
 
 from d0_gateway.base import BaseAPIClient
-from d0_gateway.exceptions import APIProviderError, RateLimitExceededError
-from core.config import settings
+from d0_gateway.exceptions import APIProviderError
 from core.logging import get_logger
 
 logger = get_logger(__name__, domain="d0")

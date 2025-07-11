@@ -1,20 +1,13 @@
 """Tests for scoring rules schema validation."""
 import pytest
 import tempfile
-from pathlib import Path
-import yaml
 
 from d5_scoring.rules_schema import (
     validate_rules,
-    ScoringRulesSchema,
-    TierConfig,
-    ComponentConfig,
-    FactorConfig,
     check_missing_components
 )
 from d5_scoring.constants import (
-    WEIGHT_SUM_WARNING_THRESHOLD,
-    WEIGHT_SUM_ERROR_THRESHOLD
+    WEIGHT_SUM_WARNING_THRESHOLD
 )
 
 # Mark entire module as xfail for Phase 0.5

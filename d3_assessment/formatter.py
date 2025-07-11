@@ -19,7 +19,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 from d3_assessment.models import AssessmentResult
-from d3_assessment.types import AssessmentStatus, IssueSeverity, IssueType
+from d3_assessment.types import IssueSeverity, IssueType
 
 logger = logging.getLogger(__name__)
 
@@ -621,7 +621,7 @@ class AssessmentFormatter:
         md_parts = []
 
         # Header
-        md_parts.append(f"# Website Assessment Report")
+        md_parts.append("# Website Assessment Report")
         md_parts.append(f"**Business:** {report.business_name}")
         md_parts.append(f"**Website:** {report.website_url}")
         md_parts.append(
@@ -705,7 +705,7 @@ class AssessmentFormatter:
         html_parts.append("</head><body>")
 
         # Content
-        html_parts.append(f"<h1>Website Assessment Report</h1>")
+        html_parts.append("<h1>Website Assessment Report</h1>")
         html_parts.append(f"<p><strong>Business:</strong> {report.business_name}</p>")
         html_parts.append(f"<p><strong>Website:</strong> {report.website_url}</p>")
         html_parts.append(
@@ -715,12 +715,12 @@ class AssessmentFormatter:
             f"<p><strong>Overall Score:</strong> <span class='score'>{report.overall_score}/100</span></p>"
         )
 
-        html_parts.append(f"<h2>Executive Summary</h2>")
+        html_parts.append("<h2>Executive Summary</h2>")
         html_parts.append(f"<p>{report.summary}</p>")
 
         # Issues
         if report.top_issues:
-            html_parts.append(f"<h2>Priority Issues</h2>")
+            html_parts.append("<h2>Priority Issues</h2>")
             for i, issue in enumerate(report.top_issues, 1):
                 priority_class = issue.priority.value
                 html_parts.append(f"<div class='issue {priority_class}'>")
@@ -736,7 +736,7 @@ class AssessmentFormatter:
 
         # Recommendations
         if report.recommendations:
-            html_parts.append(f"<h2>Action Plan</h2>")
+            html_parts.append("<h2>Action Plan</h2>")
             html_parts.append("<ul>")
             for recommendation in report.recommendations:
                 html_parts.append(f"<li>{recommendation}</li>")

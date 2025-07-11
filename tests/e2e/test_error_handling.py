@@ -11,15 +11,10 @@ Acceptance Criteria:
 - No data corruption ✓
 """
 
-import asyncio
-import json
 import sys
 import time
-from datetime import datetime, timedelta
-from decimal import Decimal
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
@@ -49,8 +44,6 @@ from database.models import (
     Email,
     EmailStatus,
     GeoType,
-    Purchase,
-    PurchaseStatus,
     Target,
 )
 
@@ -265,19 +258,19 @@ def test_api_failures_handled(test_db_session):
         len(api_failures_handled) >= 5
     ), f"Expected at least 5 API failure tests, got {len(api_failures_handled)}"
 
-    print(f"\n=== API FAILURES HANDLED ===")
+    print("\n=== API FAILURES HANDLED ===")
     print(f"✅ Total API Failure Scenarios: {len(api_failures_handled)}")
     print(
         f"✅ Successfully Handled: {len([r for r in api_failures_handled if r['behavior_correct']])}"
     )
     print(f"❌ Failed Handling: {len(failed_handling)}")
 
-    print(f"\n🛡️ API Error Handling Summary:")
+    print("\n🛡️ API Error Handling Summary:")
     for result in api_failures_handled:
         status = "✅" if result["behavior_correct"] else "❌"
         print(f"  {status} {result['scenario']}: {result['expected_behavior']}")
 
-    print(f"\n🔄 Circuit Breaker Protection:")
+    print("\n🔄 Circuit Breaker Protection:")
     circuit_results = [r for r in error_handling_results if "threshold_met" in r]
     for result in circuit_results:
         status = "✅" if result["protection_active"] else "❌"
@@ -460,7 +453,7 @@ def test_partial_results_saved(test_db_session):
                 # Attempt to save partial progress before failing
                 try:
                     test_db_session.commit()
-                    print(f"  💾 Partial progress saved before failure")
+                    print("  💾 Partial progress saved before failure")
                 except Exception as e:
                     test_db_session.rollback()
                     print(f"  ⚠️ Failed to save partial progress: {e}")
@@ -580,19 +573,19 @@ def test_partial_results_saved(test_db_session):
             }
             recovery_results.append(recovery_result)
 
-    print(f"\n=== PARTIAL RESULTS SAVED ===")
+    print("\n=== PARTIAL RESULTS SAVED ===")
     print(f"✅ Total Partial Processing Tests: {len(partial_results)}")
     print(f"✅ Successful Partial Saves: {len(successful_saves)}")
     print(f"❌ Failed Partial Saves: {len(failed_saves)}")
 
-    print(f"\n💾 Partial Save Results:")
+    print("\n💾 Partial Save Results:")
     for result in partial_results:
         status = "✅" if result["saved_correctly"] else "❌"
         print(
             f"  {status} {result['scenario']}: {result['actual_saved']}/{result['expected_saved']} saved"
         )
 
-    print(f"\n🔄 Recovery Test Results:")
+    print("\n🔄 Recovery Test Results:")
     successful_recoveries = [r for r in recovery_results if r["recovery_successful"]]
     for result in recovery_results:
         status = "✅" if result["recovery_successful"] else "❌"
@@ -913,12 +906,12 @@ def test_retries_work_properly(test_db_session):
         len(successful_queues) >= 3
     ), f"Expected at least 3 functional retry queues, got {len(successful_queues)}"
 
-    print(f"\n=== RETRIES WORK PROPERLY ===")
+    print("\n=== RETRIES WORK PROPERLY ===")
     print(f"✅ Total Retry Strategy Tests: {len(retry_results)}")
     print(f"✅ Successful Retry Tests: {len(successful_retries)}")
     print(f"❌ Failed Retry Tests: {len(failed_retries)}")
 
-    print(f"\n🔄 Retry Strategy Results:")
+    print("\n🔄 Retry Strategy Results:")
     for result in retry_results:
         status = "✅" if result["behavior_correct"] else "❌"
         print(
@@ -928,7 +921,7 @@ def test_retries_work_properly(test_db_session):
             for note in result["validation_notes"]:
                 print(f"    ⚠️ {note}")
 
-    print(f"\n📥 Retry Queue Results:")
+    print("\n📥 Retry Queue Results:")
     for result in queue_results:
         status = "✅" if result["queue_functional"] else "❌"
         print(
@@ -1183,11 +1176,11 @@ def test_no_data_corruption(test_db_session):
             if scenario["rollback_on_failure"] and len(operations_failed) > 0:
                 # Rollback entire transaction if any operation failed
                 savepoint.rollback()
-                print(f"  🔄 Rolled back entire transaction due to failures")
+                print("  🔄 Rolled back entire transaction due to failures")
             else:
                 # Commit successful operations
                 savepoint.commit()
-                print(f"  ✅ Committed successful operations")
+                print("  ✅ Committed successful operations")
 
         except Exception as e:
             # Handle transaction-level failures
@@ -1407,12 +1400,12 @@ def test_no_data_corruption(test_db_session):
         len(successful_stress_tests) >= 3
     ), f"Expected at least 3 stress tests, got {len(successful_stress_tests)}"
 
-    print(f"\n=== NO DATA CORRUPTION ===")
+    print("\n=== NO DATA CORRUPTION ===")
     print(f"✅ Total Corruption Tests: {len(corruption_test_results)}")
     print(f"✅ Consistency Maintained: {len(successful_corruption_tests)}")
     print(f"❌ Corruption Detected: {len(failed_corruption_tests)}")
 
-    print(f"\n🛡️ Data Consistency Results:")
+    print("\n🛡️ Data Consistency Results:")
     for result in corruption_test_results:
         status = "✅" if result["consistency_maintained"] else "❌"
         print(
@@ -1422,19 +1415,19 @@ def test_no_data_corruption(test_db_session):
             for note in result["consistency_notes"]:
                 print(f"    ⚠️ {note}")
 
-    print(f"\n⚡ Concurrent Access Results:")
+    print("\n⚡ Concurrent Access Results:")
     for result in stress_test_results:
         status = "✅" if result["behavior_met"] else "❌"
         print(
             f"  {status} {result['scenario']}: {result['operations_successful']}/{result['operations_attempted']} successful"
         )
 
-    print(f"\n🔒 Database Integrity Verified:")
-    print(f"  ✅ No orphaned records")
-    print(f"  ✅ Unique constraints enforced")
-    print(f"  ✅ Referential integrity maintained")
-    print(f"  ✅ Transaction atomicity preserved")
-    print(f"  ✅ Concurrent access handled safely")
+    print("\n🔒 Database Integrity Verified:")
+    print("  ✅ No orphaned records")
+    print("  ✅ Unique constraints enforced")
+    print("  ✅ Referential integrity maintained")
+    print("  ✅ Transaction atomicity preserved")
+    print("  ✅ Concurrent access handled safely")
 
 
 if __name__ == "__main__":

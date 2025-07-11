@@ -17,9 +17,9 @@ import csv
 import json
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -27,7 +27,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from database.base import Base
 from database.models import GeoType, Target
 
 
@@ -422,14 +421,14 @@ def main():
 
         # Analytics
         analytics = report["analytics"]
-        print(f"\n📈 Campaign Analytics:")
+        print("\n📈 Campaign Analytics:")
         print(f"   Total Campaigns: {analytics['total_campaigns']}")
         print(f"   Total Daily Quota: {analytics['total_daily_quota']} businesses")
         print(
             f"   Average Quota: {analytics['average_quota_per_campaign']:.1f} per campaign"
         )
 
-        print(f"\n🏢 Vertical Distribution:")
+        print("\n🏢 Vertical Distribution:")
         for vertical, quota in analytics["vertical_distribution"].items():
             percentage = (
                 (quota / analytics["total_daily_quota"] * 100)
@@ -438,7 +437,7 @@ def main():
             )
             print(f"   {vertical.title()}: {quota} businesses ({percentage:.1f}%)")
 
-        print(f"\n⭐ Priority Distribution:")
+        print("\n⭐ Priority Distribution:")
         for priority, quota in analytics["priority_distribution"].items():
             percentage = (
                 (quota / analytics["total_daily_quota"] * 100)
@@ -448,7 +447,7 @@ def main():
             print(f"   {priority.title()}: {quota} businesses ({percentage:.1f}%)")
 
         if analytics["top_locations"]:
-            print(f"\n🌎 Top Locations:")
+            print("\n🌎 Top Locations:")
             for location, quota in analytics["top_locations"]:
                 print(f"   {location}: {quota} businesses")
 

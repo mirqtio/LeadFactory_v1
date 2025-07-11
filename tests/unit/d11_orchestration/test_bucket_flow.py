@@ -3,7 +3,6 @@ Unit tests for Phase 0.5 bucket enrichment flow
 Task ET-07: Test nightly bucket_enrichment Prefect flow
 """
 import pytest
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 from d11_orchestration.bucket_enrichment import (

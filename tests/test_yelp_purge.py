@@ -40,7 +40,7 @@ class TestYelpPurge:
                 else:
                     active_imports.append(line)
             
-            assert len(active_imports) == 0, f"Found active Yelp imports:\n" + "\n".join(active_imports)
+            assert len(active_imports) == 0, "Found active Yelp imports:\n" + "\n".join(active_imports)
 
     def test_no_yelp_classes(self):
         """Test that there are no Yelp class definitions"""
@@ -58,7 +58,7 @@ class TestYelpPurge:
                 if '#' not in line or line.strip().index('#') > line.strip().index('class'):
                     active_classes.append(line)
             
-            assert len(active_classes) == 0, f"Found active Yelp classes:\n" + "\n".join(active_classes)
+            assert len(active_classes) == 0, "Found active Yelp classes:\n" + "\n".join(active_classes)
 
     def test_no_yelp_models(self):
         """Test that there are no Yelp database models"""
@@ -78,7 +78,7 @@ class TestYelpPurge:
                     continue
                 active_models.append(line)
             
-            assert len(active_models) == 0, f"Found active Yelp models:\n" + "\n".join(active_models)
+            assert len(active_models) == 0, "Found active Yelp models:\n" + "\n".join(active_models)
 
     def test_no_yelp_exceptions(self):
         """Test that there are no Yelp-specific exceptions"""
@@ -97,7 +97,7 @@ class TestYelpPurge:
                     continue
                 active_exceptions.append(line)
             
-            assert len(active_exceptions) == 0, f"Found active Yelp exceptions:\n" + "\n".join(active_exceptions)
+            assert len(active_exceptions) == 0, "Found active Yelp exceptions:\n" + "\n".join(active_exceptions)
 
     def test_no_yelp_in_stub_server(self):
         """Test that stub server has no Yelp endpoints"""
@@ -130,7 +130,7 @@ class TestYelpPurge:
                     continue
                 active_keys.append(line)
             
-            assert len(active_keys) == 0, f"Found active Yelp API key references:\n" + "\n".join(active_keys)
+            assert len(active_keys) == 0, "Found active Yelp API key references:\n" + "\n".join(active_keys)
 
     def test_no_yelp_id_usage(self):
         """Test that yelp_id is not used in active code"""
@@ -152,7 +152,7 @@ class TestYelpPurge:
                     continue
                 active_usage.append(line)
             
-            assert len(active_usage) == 0, f"Found active yelp_id usage:\n" + "\n".join(active_usage)
+            assert len(active_usage) == 0, "Found active yelp_id usage:\n" + "\n".join(active_usage)
 
     def test_documentation_only_yelp_references(self):
         """Test that Yelp references in docs are marked as removed"""

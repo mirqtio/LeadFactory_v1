@@ -4,7 +4,7 @@ Handles environment variables and validation
 """
 import os
 from functools import lru_cache
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 from pydantic_settings import BaseSettings

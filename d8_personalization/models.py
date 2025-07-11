@@ -13,14 +13,10 @@ Acceptance Criteria:
 
 import enum
 import uuid
-from datetime import datetime
-from decimal import Decimal
-from typing import Any, Dict, List, Optional
 
 from sqlalchemy import (
     DECIMAL,
     JSON,
-    TIMESTAMP,
     Boolean,
     CheckConstraint,
     Column,
@@ -30,7 +26,6 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 
 # Database compatibility: Use JSON for better SQLite compatibility
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 

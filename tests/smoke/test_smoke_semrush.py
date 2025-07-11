@@ -32,7 +32,7 @@ class TestSEMrushSmoke:
 
         # Check for expected fields
         if "organic_keywords" in result:
-            print(f"✓ SEMrush domain overview successful:")
+            print("✓ SEMrush domain overview successful:")
             print(f"  Domain: {result['domain']}")
             print(f"  Organic Keywords: {result.get('organic_keywords', 0)}")
             print(f"  Organic Traffic: {result.get('organic_traffic', 0)}")
@@ -51,7 +51,7 @@ class TestSEMrushSmoke:
         assert result is not None
         assert result.get("organic_keywords", 0) > 0
 
-        print(f"\n✓ SEMrush data for nytimes.com:")
+        print("\n✓ SEMrush data for nytimes.com:")
         print(f"  Organic Keywords: {result.get('organic_keywords', 0):,}")
         print(f"  Domain Authority: {result.get('domain_authority', 0)}")
 

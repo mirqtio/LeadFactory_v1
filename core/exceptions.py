@@ -101,7 +101,7 @@ class RateLimitError(ExternalAPIError):
         daily_limit: Optional[int] = None,
         daily_used: Optional[int] = None,
     ):
-        message = f"Rate limit exceeded"
+        message = "Rate limit exceeded"
         if retry_after:
             message += f", retry after {retry_after} seconds"
 

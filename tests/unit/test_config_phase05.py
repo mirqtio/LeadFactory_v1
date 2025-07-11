@@ -1,11 +1,9 @@
 """
 Tests for Phase 0.5 configuration updates
 """
-import os
 import pytest
-from pydantic import ValidationError
 
-from core.config import Settings, get_settings
+from core.config import Settings
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)

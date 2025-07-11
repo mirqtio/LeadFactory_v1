@@ -15,7 +15,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -32,7 +32,7 @@ from d4_enrichment.coordinator import EnrichmentCoordinator
 from d5_scoring.models import ScoringEngine
 
 # Import models
-from database.models import Business, ScoringResult, Target
+from database.models import Business
 
 # Mark entire module as xfail - Yelp sourcing removed
 pytestmark = pytest.mark.xfail(reason="Yelp sourcing functionality removed", strict=False)
@@ -449,7 +449,7 @@ async def test_performance_benchmarked(
     assert len(scoring_results) == 5
 
     # Log performance metrics
-    print(f"\n=== PERFORMANCE BENCHMARK RESULTS ===")
+    print("\n=== PERFORMANCE BENCHMARK RESULTS ===")
     print(f"Assessment: {assessment_time:.2f}s ({len(assessments)} assessments)")
     print(f"Scoring: {scoring_time:.2f}s ({len(scoring_results)} scores)")
     print(f"Total Pipeline: {pipeline_total_time:.2f}s")
@@ -593,7 +593,7 @@ async def test_complete_sourcing_to_scoring_integration(
     score_float = float(scoring_result.overall_score)
     assert score_float > 50, "High-quality business should have reasonable score"
 
-    print(f"\n=== INTEGRATION TEST COMPLETE ===")
+    print("\n=== INTEGRATION TEST COMPLETE ===")
     print(f"Business: {business.name}")
     print(f"Assessment Score: {assessment.pagespeed_score}")
     print(f"Final Score: {scoring_result.overall_score}")

@@ -204,7 +204,7 @@ class LLMInsightGenerator:
 
             return parsed_response, cost
 
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             # Fallback: extract structured data from unstructured response
             return self._extract_recommendations_fallback(response.get("output", "")), cost
 

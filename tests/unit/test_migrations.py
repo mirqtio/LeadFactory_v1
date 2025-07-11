@@ -13,15 +13,13 @@ Acceptance Criteria:
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from alembic import command
 from alembic.config import Config
 from alembic.migration import MigrationContext
-from alembic.operations import Operations
 from alembic.script import ScriptDirectory
-from sqlalchemy import create_engine, inspect, MetaData
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.pool import NullPool
 
 from database.base import Base
@@ -310,7 +308,6 @@ class TestMigrations:
     def _import_all_models(self):
         """Import all model files to ensure they're registered with SQLAlchemy"""
         import importlib
-        import pkgutil
         
         # List of packages that contain models
         model_packages = [

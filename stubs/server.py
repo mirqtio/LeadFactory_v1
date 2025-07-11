@@ -5,12 +5,11 @@ Implements Google PageSpeed, Stripe, SendGrid, OpenAI, Data Axle, and Hunter end
 import json
 import os
 import random
-from datetime import datetime, timedelta
-from decimal import Decimal
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import uvicorn
-from fastapi import FastAPI, Header, HTTPException, Request, Response
+from fastapi import FastAPI, Header, HTTPException, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 

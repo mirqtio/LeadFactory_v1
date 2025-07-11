@@ -84,7 +84,7 @@ def generate_fix_report():
     report_path = Path("CI_TEST_STATUS_REPORT.md")
 
     with open(report_path, "w") as f:
-        f.write(f"# CI Test Status Report\n")
+        f.write("# CI Test Status Report\n")
         f.write(f"Generated: {datetime.now().isoformat()}\n\n")
 
         # Summary
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     print("Running comprehensive CI health check...")
     results = generate_fix_report()
 
-    print(f"\nTest Status:")
+    print("\nTest Status:")
     print(f"- Failed: {results['summary'].get('failed', 0)}")
     print(f"- Skipped: {results['summary'].get('skipped', 0)}")
     print(

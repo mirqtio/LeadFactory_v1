@@ -67,7 +67,7 @@ def generate_report_for_assessment(json_file, output_dir="reports"):
             options=options
         )
         
-        print(f"✅ Report generated:")
+        print("✅ Report generated:")
         print(f"   HTML: {result.html_path}")
         if result.pdf_path:
             print(f"   PDF: {result.pdf_path}")

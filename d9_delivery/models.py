@@ -14,7 +14,7 @@ Acceptance Criteria:
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from sqlalchemy import (
     JSON,
@@ -29,9 +29,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from database.base import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 
 from database.base import Base
 

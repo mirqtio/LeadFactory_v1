@@ -18,8 +18,7 @@ import pytest
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from d10_analytics.models import (

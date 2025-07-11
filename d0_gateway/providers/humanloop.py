@@ -2,7 +2,6 @@
 Humanloop provider for centralized prompt management
 Phase-0 implementation with all prompts via Humanloop
 """
-import json
 import os
 import time
 from decimal import Decimal
@@ -10,7 +9,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from ..base import BaseAPIClient
-from core.config import settings
 from core.logging import get_logger
 from core.metrics import metrics
 
@@ -211,7 +209,7 @@ class HumanloopClient(BaseAPIClient):
             
             # Log the request
             logger.info(
-                f"Humanloop completion successful",
+                "Humanloop completion successful",
                 extra={
                     "prompt_slug": prompt_slug,
                     "model": prompt_config["model"],
@@ -236,7 +234,7 @@ class HumanloopClient(BaseAPIClient):
             )
             
             logger.error(
-                f"Humanloop completion failed",
+                "Humanloop completion failed",
                 extra={
                     "prompt_slug": prompt_slug,
                     "error": str(e),
@@ -312,7 +310,7 @@ class HumanloopClient(BaseAPIClient):
             )
             
             logger.info(
-                f"Humanloop chat completion successful",
+                "Humanloop chat completion successful",
                 extra={
                     "prompt_slug": prompt_slug,
                     "model": prompt_config["model"],
@@ -337,7 +335,7 @@ class HumanloopClient(BaseAPIClient):
             )
             
             logger.error(
-                f"Humanloop chat completion failed",
+                "Humanloop chat completion failed",
                 extra={
                     "prompt_slug": prompt_slug,
                     "error": str(e),

@@ -10,12 +10,11 @@ Acceptance Criteria:
 - Address similarity scoring
 - Weighted combination logic
 """
-import math
 import re
 import unicodedata
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, Optional, Set
 
 
 class SimilarityAlgorithm(Enum):

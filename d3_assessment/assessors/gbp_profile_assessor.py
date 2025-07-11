@@ -6,12 +6,10 @@ Timeout: 5s
 Cost: $0.002 per assessment
 Output: gbp_profile_json column
 """
-from typing import Dict, Any, Optional, List
-from datetime import datetime
+from typing import Dict, Any, Optional
 
 from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType
-from d3_assessment.exceptions import AssessmentError
 from d0_gateway.providers.google_places import GooglePlacesClient
 from d0_gateway.factory import create_client
 from core.logging import get_logger

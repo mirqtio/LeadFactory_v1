@@ -16,7 +16,6 @@ Create Date: 2025-06-09 18:12:00.000000
 """
 import os
 
-import sqlalchemy as sa
 from sqlalchemy import text
 
 from alembic import op

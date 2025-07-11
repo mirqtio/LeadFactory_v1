@@ -9,8 +9,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 import httpx
-from typing import Dict, Any, List
-from jinja2 import Environment, FileSystemLoader
+from typing import Dict, Any
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

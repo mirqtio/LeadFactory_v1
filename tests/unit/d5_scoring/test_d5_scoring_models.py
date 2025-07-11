@@ -9,7 +9,7 @@ Tests for scoring models ensuring all acceptance criteria are met:
 """
 
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 
 import pytest

@@ -16,8 +16,7 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 try:
     from .finding_scorer import FindingScorer
@@ -34,10 +33,9 @@ except ImportError:
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
 
-    from finding_scorer import FindingScorer
     from pdf_converter import PDFConverter, PDFOptions, PDFResult
-    from prioritizer import FindingPrioritizer, PrioritizationResult
-    from template_engine import TemplateData, TemplateEngine
+    from prioritizer import FindingPrioritizer
+    from template_engine import TemplateEngine
 
 
 logger = logging.getLogger(__name__)

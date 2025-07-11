@@ -4,19 +4,17 @@ Quota Tracker for D1 Targeting Domain
 Manages daily quotas and fair allocation of targeting resources across campaigns.
 Tracks usage, enforces limits, and provides analytics on quota utilization.
 """
-import logging
-from datetime import date, datetime, timedelta
-from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
+from datetime import date, timedelta
+from typing import Dict, List, Optional
 
-from sqlalchemy import and_, desc, func
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from core.config import get_settings
 from core.logging import get_logger
 from database.session import SessionLocal
 
-from .models import Campaign, CampaignBatch, CampaignTarget
+from .models import Campaign, CampaignBatch
 
 
 class QuotaTracker:

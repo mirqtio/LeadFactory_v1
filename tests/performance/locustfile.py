@@ -22,7 +22,6 @@ Usage:
 
 import random
 import time
-from typing import Any, Dict, List
 
 from locust import HttpUser, between, task
 

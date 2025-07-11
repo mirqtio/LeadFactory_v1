@@ -1,5 +1,4 @@
 """Severity rubric mapper for audit findings."""
-from typing import Dict, Optional
 
 # Define severity mappings for specific metrics
 SEVERITY_MAPPINGS = {

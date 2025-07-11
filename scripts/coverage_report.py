@@ -18,7 +18,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 import coverage
 
@@ -247,7 +247,7 @@ class CoverageReporter:
         )
 
         # Critical paths analysis
-        print(f"\n🔥 CRITICAL PATHS ANALYSIS:")
+        print("\n🔥 CRITICAL PATHS ANALYSIS:")
         critical_paths = analysis["critical_paths"]
         all_critical_pass = True
 
@@ -265,13 +265,13 @@ class CoverageReporter:
             print("❌ Some critical paths need attention")
 
         # Lowest coverage files
-        print(f"\n📉 LOWEST COVERAGE FILES:")
+        print("\n📉 LOWEST COVERAGE FILES:")
         for path, coverage in summary["lowest_coverage_files"]:
             status = "✅" if coverage >= self.min_coverage else "❌"
             print(f"{status} {path}: {coverage:.1f}%")
 
         # Highest coverage files
-        print(f"\n📈 HIGHEST COVERAGE FILES:")
+        print("\n📈 HIGHEST COVERAGE FILES:")
         for path, coverage in summary["highest_coverage_files"][:3]:
             print(f"✅ {path}: {coverage:.1f}%")
 

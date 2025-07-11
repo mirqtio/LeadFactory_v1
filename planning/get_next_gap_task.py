@@ -145,7 +145,7 @@ class GapTaskManager:
             if test_req.get("files"):
                 print(f"  Test Files: {', '.join(test_req['files'])}")
             if test_req.get("commands"):
-                print(f"  Test Commands:")
+                print("  Test Commands:")
                 for cmd in test_req["commands"]:
                     print(f"    $ {cmd}")
 

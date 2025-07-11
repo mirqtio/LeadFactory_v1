@@ -11,10 +11,9 @@ Acceptance Criteria:
 - Conversion focus ✓
 """
 
-import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 
 class ImpactLevel(Enum):

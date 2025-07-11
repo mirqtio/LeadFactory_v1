@@ -13,14 +13,10 @@ Acceptance Criteria:
 
 import asyncio
 import logging
-import os
-import tempfile
 import threading
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Any, BinaryIO, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 try:
     from playwright.async_api import Browser, Page, async_playwright

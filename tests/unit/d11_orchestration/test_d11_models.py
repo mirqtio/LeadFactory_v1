@@ -11,10 +11,8 @@ Acceptance Criteria Tests:
 - Status management ✓
 """
 
-import uuid
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from unittest.mock import Mock, patch
 
 import pytest
 from sqlalchemy import create_engine

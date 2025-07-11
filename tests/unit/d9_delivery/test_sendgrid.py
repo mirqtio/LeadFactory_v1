@@ -11,16 +11,12 @@ Acceptance Criteria Tests:
 - Custom args included ✓
 """
 
-import asyncio
-import json
-from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, Mock, patch
 
-import aiohttp
 import pytest
-from aiohttp import ClientResponse, ClientSession
+from aiohttp import ClientResponse
 
-from core.exceptions import ConfigurationError, ExternalAPIError, RateLimitError
+from core.exceptions import ExternalAPIError, RateLimitError
 from d9_delivery.email_builder import (
     EmailBuilder,
     EmailTemplate,

@@ -2,7 +2,6 @@
 Test response cache system
 """
 import json
-import time
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest

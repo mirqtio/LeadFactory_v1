@@ -3,7 +3,6 @@ Run all PRD v1.2 smoke tests
 Verifies all external APIs are working before running full pipeline
 """
 import asyncio
-import os
 import sys
 from pathlib import Path
 

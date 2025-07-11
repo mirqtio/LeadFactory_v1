@@ -15,6 +15,7 @@ psycopg2-binary==2.9.9
 httpx==0.25.2
 aiohttp==3.9.1
 tenacity==8.2.3
+requests==2.31.0
 
 # Redis for caching
 redis==5.0.1

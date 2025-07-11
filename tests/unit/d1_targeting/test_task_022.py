@@ -6,11 +6,9 @@ Acceptance Criteria:
 - Priority-based scheduling
 - No duplicate batches
 """
-import os
 import sys
 from datetime import date, datetime, time, timedelta
-from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -370,7 +368,7 @@ class TestTask022AcceptanceCriteria:
     def test_integration_with_existing_models(self):
         """Test integration with existing database models"""
         # Test that we can import and use the models
-        from d1_targeting.models import Campaign, CampaignBatch, TargetUniverse
+        from d1_targeting.models import Campaign, CampaignBatch
         from d1_targeting.types import BatchProcessingStatus, CampaignStatus
 
         # Test that models can be instantiated

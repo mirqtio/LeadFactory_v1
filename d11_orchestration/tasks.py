@@ -26,7 +26,6 @@ except ImportError:
 from core.exceptions import LeadFactoryError
 from core.metrics import MetricsCollector
 from d2_sourcing.coordinator import SourcingCoordinator
-from d3_assessment.coordinator import AssessmentCoordinator
 from d3_assessment.coordinator_v2 import AssessmentCoordinatorV2
 from d4_enrichment.email_enrichment import get_email_enricher
 

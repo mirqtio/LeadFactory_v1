@@ -160,7 +160,7 @@ class TestBucketsSimple:
             ["yelp_category"]
         ).any(), "No duplicate categories allowed"
 
-        print(f"✓ Data quality checks passed")
+        print("✓ Data quality checks passed")
         print(f"  - {len(geo_df)} unique ZIP codes")
         print(f"  - {len(vert_df)} unique Yelp categories")
 

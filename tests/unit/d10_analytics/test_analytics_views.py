@@ -3,7 +3,7 @@ Tests for analytics views - Phase 0.5 Task AN-08
 """
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -16,7 +16,6 @@ from database.models import (
     Purchase,
     PurchaseStatus,
     ScoringResult,
-    APICost,
     DailyCostAggregate,
 )
 

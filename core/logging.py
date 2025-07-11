@@ -2,7 +2,6 @@
 Structured logging configuration
 Supports both JSON and text formats for different environments
 """
-import json
 import logging
 import sys
 from datetime import datetime

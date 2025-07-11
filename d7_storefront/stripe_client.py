@@ -187,7 +187,7 @@ class StripeClient:
             # Convert to Stripe parameters
             params = session_config.to_stripe_params(self.config)
 
-            logger.info(f"Creating checkout session with line items")
+            logger.info("Creating checkout session with line items")
 
             # Create session via Gateway API
             result = self._run_async(

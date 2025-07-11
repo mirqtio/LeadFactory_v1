@@ -11,10 +11,6 @@ Acceptance Criteria Tests:
 - Control group handled ✓
 """
 
-import hashlib
-from datetime import date, datetime, timedelta
-from typing import Any, Dict, List
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -28,11 +24,9 @@ from d11_orchestration.models import (
     Experiment,
     ExperimentStatus,
     ExperimentVariant,
-    VariantAssignment,
     VariantType,
-    generate_uuid,
 )
-from d11_orchestration.variant_assigner import VariantAssigner, VariantWeight
+from d11_orchestration.variant_assigner import VariantAssigner
 
 
 class TestExperimentManager:

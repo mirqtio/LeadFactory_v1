@@ -13,7 +13,7 @@ Acceptance Criteria:
 
 import asyncio
 from datetime import date, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -33,7 +33,6 @@ from d11_orchestration.models import (
     PipelineType,
     VariantAssignment,
     VariantType,
-    generate_uuid,
 )
 from database.base import Base
 
@@ -46,13 +45,6 @@ def test_db():
     )
 
     # Import models to ensure tables are created
-    from d11_orchestration.models import (
-        Experiment,
-        ExperimentVariant,
-        PipelineRun,
-        PipelineTask,
-        VariantAssignment,
-    )
 
     Base.metadata.create_all(engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

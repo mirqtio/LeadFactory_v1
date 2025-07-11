@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, TypeVar
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 T = TypeVar("T")
 

@@ -17,7 +17,7 @@ import hmac
 import json
 import os
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -28,7 +28,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
-from core.config import get_settings
 from d9_delivery.compliance import (
     ComplianceHeaders,
     ComplianceManager,
@@ -37,7 +36,6 @@ from d9_delivery.compliance import (
     generate_unsubscribe_link,
     process_unsubscribe_request,
 )
-from d9_delivery.models import DeliveryEvent, EmailDelivery, SuppressionList
 from database.base import Base
 
 

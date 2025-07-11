@@ -1,7 +1,6 @@
 """
 Tests for Hunter.io client - Phase 0.5 Task GW-03
 """
-import json
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 

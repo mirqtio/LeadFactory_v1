@@ -12,14 +12,13 @@ import uvicorn
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from prometheus_client import make_asgi_app
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.exceptions import LeadFactoryError
 from core.logging import get_logger
-from core.metrics import CONTENT_TYPE_LATEST, get_metrics_response, metrics
+from core.metrics import get_metrics_response, metrics
 from database.session import get_db
 
 logger = get_logger(__name__)

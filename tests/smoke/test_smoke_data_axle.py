@@ -30,8 +30,8 @@ class TestDataAxleSmoke:
         assert result is not None
 
         if result:
-            print(f"✓ Data Axle enrichment successful:")
-            print(f"  Domain: salesforce.com")
+            print("✓ Data Axle enrichment successful:")
+            print("  Domain: salesforce.com")
             print(f"  Company: {result.get('company_name', 'N/A')}")
             print(f"  Email: {result.get('email', 'N/A')}")
             print(f"  Phone: {result.get('phone', 'N/A')}")
@@ -98,7 +98,7 @@ class TestDataAxleSmoke:
         print(
             f"  Mode: {'Trial' if 'trial' in str(settings.data_axle_api_key).lower() else 'Full'}"
         )
-        print(f"  Use Case: Email enrichment fallback when Hunter.io confidence < 0.75")
+        print("  Use Case: Email enrichment fallback when Hunter.io confidence < 0.75")
 
         # Test that it can be used as fallback
         result = await client.enrich("example.com")

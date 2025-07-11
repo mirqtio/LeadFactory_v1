@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, asc, desc, func, or_
+from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import Session
 
 from core.config import get_settings
@@ -14,12 +14,10 @@ from core.logging import get_logger
 from database.session import SessionLocal
 
 from .geo_validator import GeoValidator
-from .models import Campaign, CampaignTarget, GeographicBoundary, TargetUniverse
+from .models import Campaign, TargetUniverse
 from .types import (
     GeographicConstraint,
-    GeographyLevel,
     QualificationRules,
-    TargetingCriteria,
     TargetMetrics,
     VerticalMarket,
 )

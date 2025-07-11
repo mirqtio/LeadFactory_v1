@@ -18,13 +18,11 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional
-from urllib.parse import urlencode
+from typing import Any, Dict, List
 
 import requests
 import stripe
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 
 
 class IntegrationVerifier:
@@ -63,7 +61,7 @@ class IntegrationVerifier:
     def verify_google_pagespeed_integration(self) -> bool:
         """Verify Google PageSpeed Insights API integration"""
         service = "google_pagespeed"
-        print(f"⚡ Verifying Google PageSpeed integration...")
+        print("⚡ Verifying Google PageSpeed integration...")
 
         try:
             if self.use_stubs:
@@ -150,7 +148,7 @@ class IntegrationVerifier:
     def verify_openai_integration(self) -> bool:
         """Verify OpenAI API integration"""
         service = "openai"
-        print(f"🤖 Verifying OpenAI integration...")
+        print("🤖 Verifying OpenAI integration...")
 
         try:
             if self.use_stubs:
@@ -216,7 +214,7 @@ class IntegrationVerifier:
     def verify_stripe_integration(self) -> bool:
         """Verify Stripe payment integration"""
         service = "stripe"
-        print(f"💳 Verifying Stripe integration...")
+        print("💳 Verifying Stripe integration...")
 
         try:
             if not self.api_keys["stripe_secret"]:
@@ -286,7 +284,7 @@ class IntegrationVerifier:
     def verify_sendgrid_integration(self) -> bool:
         """Verify SendGrid email integration"""
         service = "sendgrid"
-        print(f"📧 Verifying SendGrid integration...")
+        print("📧 Verifying SendGrid integration...")
 
         try:
             if not self.api_keys["sendgrid"]:
@@ -359,7 +357,7 @@ class IntegrationVerifier:
         try:
             response = requests.get(f"{self.stub_base_url}/health", timeout=5)
             if response.status_code == 200:
-                print(f"✅ Stub server is available")
+                print("✅ Stub server is available")
                 return True
             else:
                 self.warnings.append(

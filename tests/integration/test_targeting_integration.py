@@ -6,11 +6,9 @@ Acceptance Criteria:
 - API endpoints work
 - Database state correct
 """
-import os
 import sys
-from datetime import date, datetime, time
-from decimal import Decimal
-from unittest.mock import AsyncMock, Mock, patch
+from datetime import datetime
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -29,11 +27,8 @@ sys.path.insert(0, "/app")
 
 from d1_targeting.api import router
 from d1_targeting.batch_scheduler import BatchScheduler
-from d1_targeting.geo_validator import GeoValidator
 from d1_targeting.models import (
     Campaign,
-    CampaignBatch,
-    GeographicBoundary,
     TargetUniverse,
 )
 from d1_targeting.quota_tracker import QuotaTracker
@@ -41,11 +36,7 @@ from d1_targeting.target_universe import TargetUniverseManager
 from d1_targeting.types import (
     BatchProcessingStatus,
     CampaignStatus,
-    GeographyLevel,
-    VerticalMarket,
 )
-from database.models import Batch, Target
-from database.session import SessionLocal
 
 
 class TestTargetingIntegrationTask024:

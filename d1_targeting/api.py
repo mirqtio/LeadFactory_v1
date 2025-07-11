@@ -8,7 +8,6 @@ from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -27,22 +26,16 @@ from .schemas import (
     BatchFilterSchema,
     BatchResponseSchema,
     BatchStatusUpdateSchema,
-    BulkOperationResponseSchema,
     CampaignFilterSchema,
-    CampaignMetricsResponseSchema,
     CampaignResponseSchema,
     CreateBatchesSchema,
     CreateCampaignSchema,
     CreateGeographicBoundarySchema,
     CreateTargetUniverseSchema,
-    ErrorResponseSchema,
     GeographicBoundaryResponseSchema,
-    PaginatedResponseSchema,
     PaginationSchema,
     QuotaAllocationResponseSchema,
     RefreshUniverseSchema,
-    TargetingMetricsResponseSchema,
-    TargetUniverseFilterSchema,
     TargetUniverseResponseSchema,
     UniversePriorityResponseSchema,
     UpdateCampaignSchema,

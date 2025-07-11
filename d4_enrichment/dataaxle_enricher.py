@@ -8,7 +8,6 @@ from typing import Dict, Optional, Any
 from d0_gateway.providers.dataaxle import DataAxleClient
 from .models import EnrichmentSource
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
 
 
 @dataclass

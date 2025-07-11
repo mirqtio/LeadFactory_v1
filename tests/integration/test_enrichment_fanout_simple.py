@@ -7,7 +7,6 @@ import pytest
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
 from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime
 
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d4_enrichment.models import EnrichmentSource, MatchConfidence

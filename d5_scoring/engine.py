@@ -14,15 +14,13 @@ Acceptance Criteria:
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
 from .models import ScoreBreakdown
-from .models import ScoringEngine as BaseScoringEngine
 from .models import D5ScoringResult
-from .rules_parser import ComponentRules, ScoringRulesParser, TierRule
-from .types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
+from .rules_parser import ScoringRulesParser
+from .types import ScoringStatus, ScoringVersion
 
 logger = logging.getLogger(__name__)
 

@@ -22,15 +22,11 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
-import json
-import os
 import sys
 from pathlib import Path
 from typing import Dict, List
 
 import pandas as pd
-import pyarrow.csv as pv
-import pyarrow.compute as pc
 import requests
 from requests.exceptions import HTTPError
 import urllib3

@@ -3,14 +3,12 @@ Test core utilities, config, and exceptions
 """
 import logging
 import os
-from datetime import date, datetime, timedelta
-from decimal import Decimal
+from datetime import date
 
 import pytest
 
-from core.config import Settings, get_settings
+from core.config import Settings
 from core.exceptions import (
-    ConfigurationError,
     ExternalAPIError,
     LeadFactoryError,
     NotFoundError,

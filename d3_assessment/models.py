@@ -17,7 +17,6 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 
 # Database compatibility: Use JSON for better SQLite compatibility
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -31,7 +30,6 @@ from .types import (
     AssessmentType,
     CostType,
     InsightCategory,
-    InsightType,
     TechCategory,
 )
 

@@ -8,7 +8,7 @@ Cost: $0.003 per search
 """
 import logging
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from d0_gateway.base import BaseAPIClient
 from d0_gateway.exceptions import (

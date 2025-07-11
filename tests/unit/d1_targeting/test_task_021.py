@@ -6,11 +6,9 @@ Acceptance Criteria:
 - Priority scoring implemented
 - Freshness tracking works
 """
-import os
 import sys
 from datetime import datetime, timedelta
-from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -22,7 +20,7 @@ sys.path.insert(0, "/app")
 
 from d1_targeting.geo_validator import GeoConflict, GeoValidator
 from d1_targeting.target_universe import TargetUniverseManager
-from d1_targeting.types import GeographicConstraint, GeographyLevel, VerticalMarket
+from d1_targeting.types import VerticalMarket
 
 
 class TestTask021AcceptanceCriteria:
@@ -236,11 +234,8 @@ class TestTask021AcceptanceCriteria:
         # Test that we can import and use the models
         from d1_targeting.models import (
             Campaign,
-            CampaignTarget,
-            GeographicBoundary,
             TargetUniverse,
         )
-        from database.models import Target
 
         # Test that models can be instantiated
         universe = TargetUniverse(

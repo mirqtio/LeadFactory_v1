@@ -10,7 +10,6 @@ Acceptance Criteria:
 - Status management ✓
 """
 
-import os
 import sys
 from datetime import datetime, timedelta
 from decimal import Decimal

@@ -4,7 +4,6 @@ PRD v1.2 - Get business hours and additional metadata
 
 Cost: $0.002 per place details call  
 """
-import asyncio
 from decimal import Decimal
 from typing import Any, Dict, Optional
 

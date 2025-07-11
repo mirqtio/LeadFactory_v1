@@ -1,8 +1,7 @@
 """Google Business Profile adapter for trust signal assessment."""
 import os
 import logging
-from typing import Dict, Optional, Tuple
-import asyncio
+from typing import Dict, Optional
 
 from d0_gateway.providers.google_places import GooglePlacesClient
 from d0_gateway.factory import create_client

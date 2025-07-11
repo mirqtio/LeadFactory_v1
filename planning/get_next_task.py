@@ -4,10 +4,9 @@ Get next task to work on based on dependencies and current progress
 """
 import argparse
 import json
-import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 
 class TaskManager:

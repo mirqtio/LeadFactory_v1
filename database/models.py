@@ -4,9 +4,6 @@ Based on PRD specifications for all domains (D0-D11)
 """
 import enum
 import uuid
-from datetime import datetime
-from decimal import Decimal
-from typing import Any, Dict, Optional
 
 from sqlalchemy import (
     DECIMAL,
@@ -16,7 +13,6 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     Date,
-    DateTime,
 )
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import (
@@ -29,11 +25,10 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import INET, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from database.base import Base, UUID
+from database.base import Base
 
 # D6 report models are imported separately for now due to module path issues
 # from d6_reports.models import ReportGeneration, ReportTemplate, ReportSection, ReportDelivery

@@ -12,7 +12,6 @@ from d3_assessment.audit_schema import (
     AuditFinding,
     FindingSeverity,
     FindingCategory,
-    Evidence,
 )
 
 

@@ -8,7 +8,7 @@ assignments, and updates the database with geo_bucket and vert_bucket values.
 
 import asyncio
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 try:
     from prefect import flow, task
@@ -53,7 +53,6 @@ except ImportError:
 
 
 from sqlalchemy import select, update
-from sqlalchemy.orm import Session
 
 from d1_targeting.bucket_loader import get_bucket_loader
 from database.models import Business

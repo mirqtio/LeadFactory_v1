@@ -1,9 +1,7 @@
 """Tests for the scoring engine."""
 import pytest
-import tempfile
-import os
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from d5_scoring.scoring_engine import ScoringEngine
 from d5_scoring.constants import DEFAULT_SCORING_RULES_PATH

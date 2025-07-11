@@ -7,9 +7,7 @@ Cost: $0.003 per analysis
 Output: visual_scores_json, visual_warnings, visual_quickwins columns
 """
 import json
-from typing import Dict, Any, Optional, List
-import base64
-import aiohttp
+from typing import Dict, Any
 
 from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType

@@ -10,7 +10,6 @@ Acceptance Criteria:
 - Status management ✓
 """
 
-import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 

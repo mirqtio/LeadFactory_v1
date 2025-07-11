@@ -13,7 +13,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -64,7 +64,7 @@ class TestTask037AcceptanceCriteria:
         )
 
         assert tracking_id is not None
-        assert tracking_id.startswith(f"track_")
+        assert tracking_id.startswith("track_")
         assert assessment_type.value in tracking_id
 
         # Verify counters were incremented (would check actual prometheus metrics in real test)

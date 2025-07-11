@@ -5,8 +5,6 @@ Revises: 002_analytics_views, 005
 Create Date: 2025-07-10 20:02:50.766360
 
 """
-from alembic import op
-import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.

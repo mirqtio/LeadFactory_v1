@@ -11,13 +11,12 @@ Acceptance Criteria:
 - Run history API ✓
 """
 
-import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from math import ceil
-from typing import Any, Dict, List, Optional
+from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from sqlalchemy import and_, asc, desc, func, or_
+from fastapi import APIRouter, Depends, HTTPException, Path
+from sqlalchemy import and_, asc, desc
 from sqlalchemy.orm import Session
 
 from database.session import get_db
@@ -29,11 +28,9 @@ from .models import (
     PipelineRun,
     PipelineRunStatus,
     PipelineTask,
-    PipelineType,
     VariantAssignment,
 )
 from .schemas import (  # Pipeline schemas; Experiment schemas; Assignment schemas; Common schemas
-    ErrorResponse,
     ExperimentCreateRequest,
     ExperimentListRequest,
     ExperimentListResponse,

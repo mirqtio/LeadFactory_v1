@@ -7,11 +7,11 @@ Cost: $0.00 (free API)
 Output: pagespeed_json column
 """
 import asyncio
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
 from d3_assessment.models import AssessmentType
-from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
+from d3_assessment.exceptions import AssessmentTimeoutError
 from d0_gateway.providers.pagespeed import PageSpeedClient
 from core.logging import get_logger
 

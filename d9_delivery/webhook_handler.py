@@ -20,13 +20,13 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from core.config import get_settings
-from core.exceptions import EmailDeliveryError, ValidationError
+from core.exceptions import ValidationError
 from d9_delivery.compliance import ComplianceManager
 from d9_delivery.models import (
     BounceTracking,
@@ -35,7 +35,6 @@ from d9_delivery.models import (
     DeliveryStatus,
     EmailDelivery,
     EventType,
-    SuppressionList,
 )
 from database.session import SessionLocal
 

@@ -12,16 +12,13 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Index,
-    Integer,
     String,
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from database.base import Base
-from database.models import Business
 
 
 # YelpMetadata class removed per P0-009 - Yelp provider no longer supported

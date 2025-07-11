@@ -6,10 +6,7 @@ Acceptance Criteria:
 - Error handling proper
 - Documentation generated
 """
-import os
 import sys
-from datetime import date, datetime, time
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -148,14 +145,7 @@ class TestTask023AcceptanceCriteriaSimple:
 
         # Test that key schemas exist and can be imported
         from d1_targeting.schemas import (
-            BatchResponseSchema,
-            CampaignResponseSchema,
-            CreateCampaignSchema,
             CreateTargetUniverseSchema,
-            ErrorResponseSchema,
-            QuotaAllocationResponseSchema,
-            TargetUniverseResponseSchema,
-            UpdateTargetUniverseSchema,
         )
 
         # Test that schemas have proper field types

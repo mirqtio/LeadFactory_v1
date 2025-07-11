@@ -27,7 +27,7 @@ class TestHunterSmoke:
         # Search for emails at a known domain
         email, confidence = await client.domain_search("stripe.com")
 
-        print(f"Hunter.io results for stripe.com:")
+        print("Hunter.io results for stripe.com:")
         print(f"  Email: {email}")
         print(f"  Confidence: {confidence}")
 
@@ -38,9 +38,9 @@ class TestHunterSmoke:
         if email:
             assert "@" in email
             assert "stripe.com" in email
-            print(f"✓ Hunter.io domain search successful")
+            print("✓ Hunter.io domain search successful")
         else:
-            print(f"✓ Hunter.io API working but no email found for stripe.com")
+            print("✓ Hunter.io API working but no email found for stripe.com")
 
     @pytest.mark.asyncio
     async def test_hunter_confidence_threshold(self):

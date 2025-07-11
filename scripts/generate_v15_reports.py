@@ -14,7 +14,6 @@ from jinja2 import Template
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from d5_scoring.impact_calculator import calculate_impact
 import pandas as pd
 
 
@@ -976,7 +975,7 @@ def main():
             import traceback
             traceback.print_exc()
     
-    print(f"\n✅ v1.5 report generation complete!")
+    print("\n✅ v1.5 report generation complete!")
     print(f"📁 Reports saved in: {output_dir}")
 
 

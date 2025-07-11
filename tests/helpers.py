@@ -7,7 +7,7 @@ and reduce boilerplate across the test suite.
 
 import asyncio
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest

@@ -5,7 +5,6 @@ Tests core functionality without full dependency installation
 """
 import sys
 import os
-import json
 import shutil
 from pathlib import Path
 

@@ -2,7 +2,6 @@
 Test token bucket rate limiter
 """
 import asyncio
-import time
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest

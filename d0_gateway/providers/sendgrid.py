@@ -1,7 +1,6 @@
 """
 SendGrid API v3 client implementation for email delivery
 """
-import base64
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 

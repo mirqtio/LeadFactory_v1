@@ -1,7 +1,6 @@
 """
 Google PageSpeed Insights API v5 client implementation
 """
-import urllib.parse
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 

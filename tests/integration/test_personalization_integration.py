@@ -16,7 +16,6 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Dict, List
 
 import pytest
 
@@ -498,7 +497,7 @@ class TestPersonalizationIntegration:
         assert (
             avg_content_size > 500
         ), f"Average content size too small: {avg_content_size}"
-        assert total_issues > 0, f"No issues processed across all tests"
+        assert total_issues > 0, "No issues processed across all tests"
 
         print(
             f"✓ Performance acceptable - Avg time: {avg_time:.2f}s, Avg size: {avg_content_size:.0f} chars"
@@ -656,7 +655,7 @@ def test_integration_components_loaded():
 
     # Test component imports
     from d8_personalization.content_generator import AdvancedContentGenerator
-    from d8_personalization.personalizer import EmailPersonalizer, IssueExtractor
+    from d8_personalization.personalizer import IssueExtractor
     from d8_personalization.spam_checker import SpamScoreChecker
     from d8_personalization.subject_lines import SubjectLineGenerator
 

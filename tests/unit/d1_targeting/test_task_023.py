@@ -6,11 +6,9 @@ Acceptance Criteria:
 - Error handling proper
 - Documentation generated
 """
-import os
 import sys
-from datetime import date, datetime, time
-from decimal import Decimal
-from unittest.mock import AsyncMock, Mock, patch
+from datetime import datetime
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -29,11 +27,9 @@ from d1_targeting.schemas import (
     CreateTargetUniverseSchema,
     GeographicConstraintSchema,
     TargetingCriteriaSchema,
-    UpdateTargetUniverseSchema,
 )
 from d1_targeting.types import (
     BatchProcessingStatus,
-    CampaignStatus,
     GeographyLevel,
     VerticalMarket,
 )
@@ -562,9 +558,6 @@ class TestTask023AcceptanceCriteria:
 
         # Test schemas.py
         from d1_targeting.schemas import (
-            BatchResponseSchema,
-            CampaignResponseSchema,
-            CreateCampaignSchema,
             CreateTargetUniverseSchema,
             TargetUniverseResponseSchema,
         )

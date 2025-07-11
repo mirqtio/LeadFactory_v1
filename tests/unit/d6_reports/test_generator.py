@@ -13,7 +13,6 @@ Acceptance Criteria:
 
 import asyncio
 import time
-from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -23,9 +22,9 @@ pytestmark = pytest.mark.slow
 
 # Import the modules to test
 from d6_reports.generator import GenerationOptions, GenerationResult, ReportGenerator
-from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
-from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult
-from d6_reports.template_engine import TemplateEngine, TemplateData
+from d6_reports.prioritizer import PrioritizationResult
+from d6_reports.pdf_converter import PDFOptions, PDFResult
+from d6_reports.template_engine import TemplateData
 
 # Import additional classes from generator module
 from d6_reports import generator as generator_module

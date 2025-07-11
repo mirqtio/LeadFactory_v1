@@ -20,14 +20,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from database.base import Base
-from database.models import Target
 
-from .types import (
-    CampaignStatus,
-    GeographyLevel,
-    TargetQualificationStatus,
-    VerticalMarket,
-)
 
 
 class TargetUniverse(Base):

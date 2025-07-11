@@ -12,18 +12,13 @@ import os
 import sys
 import tempfile
 from decimal import Decimal
-from pathlib import Path
 
-import pytest
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.engine import ConfigurableScoringEngine, ScoringMetrics
+from d5_scoring.engine import ConfigurableScoringEngine
 from d5_scoring.rules_parser import (
-    ComponentRules,
-    ScoringRule,
     ScoringRulesParser,
-    TierRule,
 )
 
 

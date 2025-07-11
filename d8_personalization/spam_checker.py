@@ -102,7 +102,7 @@ class SpamScoreChecker:
 
             return rules
 
-        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
             # Fallback to default rules
             return self._get_fallback_rules()
 

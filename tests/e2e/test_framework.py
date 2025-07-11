@@ -8,11 +8,9 @@ This test verifies that all acceptance criteria are met:
 - Parallel test support ✓
 """
 
-import asyncio
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 

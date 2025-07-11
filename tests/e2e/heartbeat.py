@@ -356,11 +356,10 @@ async def heartbeat_flow() -> Dict[str, Any]:
 
 async def send_heartbeat_alert(level: str, details: Dict[str, Any]):
     """Send heartbeat alerts"""
-    import json
 
     if level == "critical":
         # Critical failures - would page on-call
-        logger.error(f"CRITICAL: Heartbeat detected failures")
+        logger.error("CRITICAL: Heartbeat detected failures")
         logger.error(
             f"Failed services: {[f['service'] for f in details.get('critical_failures', [])]}"
         )
@@ -369,7 +368,7 @@ async def send_heartbeat_alert(level: str, details: Dict[str, Any]):
 
     elif level == "warning":
         # Degraded service - Slack notification
-        logger.warning(f"WARNING: Heartbeat detected degraded services")
+        logger.warning("WARNING: Heartbeat detected degraded services")
         logger.warning(
             f"Affected services: {[w['service'] for w in details.get('warnings', [])]}"
         )

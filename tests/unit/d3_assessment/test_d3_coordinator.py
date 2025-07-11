@@ -11,9 +11,9 @@ Tests all acceptance criteria:
 import asyncio
 import sys
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -27,7 +27,7 @@ from d3_assessment.coordinator import (
     CoordinatorError,
     CoordinatorResult,
 )
-from d3_assessment.models import AssessmentResult, AssessmentSession  # noqa: E402
+from d3_assessment.models import AssessmentResult  # noqa: E402
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
 
 # Mark entire module as xfail for Phase 0.5
@@ -593,7 +593,6 @@ if __name__ == "__main__":
 
         try:
             # Create fixtures manually for direct execution
-            from unittest.mock import AsyncMock, MagicMock
 
             # Mock assessors
             mock_pagespeed = test_instance.mock_pagespeed_assessor()

@@ -3,8 +3,6 @@
 Validate production readiness without complex dependencies
 """
 import sys
-import json
-import yaml
 from pathlib import Path
 
 

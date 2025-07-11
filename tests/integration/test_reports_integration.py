@@ -15,8 +15,7 @@ import asyncio
 import os
 import sys
 import time
-from datetime import datetime
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -43,8 +42,6 @@ except ImportError:
     from d6_reports import (
         FindingPrioritizer,
         GenerationOptions,
-        GenerationResult,
-        PDFConverter,
         PDFOptions,
         ReportGenerator,
         TemplateEngine,

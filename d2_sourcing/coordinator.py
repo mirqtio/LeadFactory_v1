@@ -11,16 +11,14 @@ Acceptance Criteria:
 - Metrics tracked
 """
 import asyncio
-import json
-import logging
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from core.config import get_settings
@@ -30,17 +28,12 @@ from database.session import SessionLocal
 
 from .deduplicator import (
     BusinessDeduplicator,
-    DuplicateMatch,
-    MergeResult,
     find_and_merge_duplicates,
 )
 from .exceptions import (
-    BatchQuotaException,
-    DeduplicationException,
     ErrorRecoveryException,
     SourcingException,
 )
-from .models import SourcedLocation
 # from .yelp_scraper import ScrapingResult, ScrapingStatus, YelpScraper  # Yelp removed per P0-009
 
 # Yelp scraper classes removed per P0-009

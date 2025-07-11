@@ -396,7 +396,7 @@ class TechStackBatchDetector:
                         fetch_content=include_content_fetch,
                     )
                     return website_data["url"], detections
-                except Exception as e:
+                except Exception:
                     return website_data["url"], []
 
         # Run all detections concurrently with rate limiting

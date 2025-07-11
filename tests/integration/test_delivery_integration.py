@@ -14,8 +14,7 @@ Acceptance Criteria Tests:
 import json
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 

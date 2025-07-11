@@ -13,12 +13,10 @@ Acceptance Criteria:
 """
 
 import time
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
 
 from core.config import get_settings
 from main import app

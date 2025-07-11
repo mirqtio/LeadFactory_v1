@@ -19,8 +19,7 @@ import tempfile
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, Generator
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -36,7 +35,6 @@ if str(project_root) not in sys.path:
 
 from core.config import get_settings
 from database.base import Base
-from database.session import get_db
 from stubs.server import app as stub_app
 
 # Import fixtures from fixtures.py to make them available
@@ -144,11 +142,8 @@ def test_db_override(test_db_session):
 @pytest.fixture(scope="session")
 def stub_server():
     """Start stub server for external API mocking"""
-    import threading
 
-    import uvicorn
 
-    from stubs.server import app as stub_app
 
     # Start stub server in background thread
     def run_server():
@@ -235,7 +230,7 @@ def _cleanup_test_data(session):
         session.query(GatewayUsage).delete()
 
         session.commit()
-    except Exception as e:
+    except Exception:
         session.rollback()
         # Continue with cleanup even if some tables don't exist
 

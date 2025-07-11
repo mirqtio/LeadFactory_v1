@@ -11,8 +11,7 @@ Acceptance Criteria Tests:
 - Segment breakdowns ✓
 """
 
-from datetime import date, datetime, timedelta, timezone
-from decimal import Decimal
+from datetime import date, datetime, timezone
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -26,16 +25,12 @@ from d10_analytics.aggregators import (
     CostAnalyzer,
     DailyMetricsAggregator,
     FunnelCalculator,
-    SegmentBreakdownAnalyzer,
 )
 from d10_analytics.models import (
-    AggregationPeriod,
     EventType,
-    FunnelConversion,
     FunnelEvent,
     FunnelStage,
     MetricSnapshot,
-    MetricType,
 )
 from d10_analytics.warehouse import (
     MetricsWarehouse,

@@ -11,8 +11,7 @@ Acceptance Criteria:
 - Spam score tracking ✓
 """
 
-import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 
 import pytest
@@ -29,7 +28,6 @@ from d8_personalization.models import (
     PersonalizationStrategy,
     PersonalizationToken,
     PersonalizationVariable,
-    SpamCategory,
     SpamScoreTracking,
     SubjectLineVariant,
     VariantStatus,

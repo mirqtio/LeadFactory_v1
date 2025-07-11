@@ -1,8 +1,7 @@
 """Tests for Google Sheets integration."""
 import pytest
 import json
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
+from unittest.mock import patch, MagicMock
 
 from scripts.sheet_to_yaml import SheetToYamlConverter
 

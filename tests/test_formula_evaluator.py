@@ -1,6 +1,5 @@
 """Tests for Excel formula evaluator."""
 import pytest
-from unittest.mock import Mock, patch
 import time
 
 from d5_scoring.formula_evaluator import (

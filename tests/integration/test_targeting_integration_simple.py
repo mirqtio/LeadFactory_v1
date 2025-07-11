@@ -6,11 +6,8 @@ Acceptance Criteria:
 - API endpoints work
 - Database state correct
 """
-import os
 import sys
-from datetime import date, datetime, time
-from decimal import Decimal
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi import FastAPI

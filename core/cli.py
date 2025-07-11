@@ -2,7 +2,6 @@
 Command-line interface for LeadFactory
 """
 import asyncio
-from datetime import date
 
 import click
 

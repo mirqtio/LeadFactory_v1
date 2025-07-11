@@ -4,8 +4,7 @@ import logging
 import redis
 from datetime import datetime, timedelta
 from functools import lru_cache
-from typing import Dict, Optional, Tuple
-import asyncio
+from typing import Dict, Optional
 
 from d0_gateway.providers.semrush import SEMrushClient
 from core.config import settings

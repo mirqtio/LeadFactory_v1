@@ -55,7 +55,7 @@ class TestOpenAIVisionSmoke:
         assert len(response["choices"]) > 0
         assert response["choices"][0]["message"]["content"]
 
-        print(f"✓ GPT-4o Vision basic test successful:")
+        print("✓ GPT-4o Vision basic test successful:")
         print(f"  Response: {response['choices'][0]['message']['content']}")
 
     @pytest.mark.asyncio
@@ -123,7 +123,7 @@ Give short bullet phrases only.  Return JSON ONLY."""
             assert isinstance(visual_data["scores"]["visual_appeal"], int)
             assert 0 <= visual_data["scores"]["visual_appeal"] <= 5
 
-            print(f"\n✓ GPT-4o Vision website analysis successful:")
+            print("\n✓ GPT-4o Vision website analysis successful:")
             print(f"  Scores: {visual_data['scores']}")
             print(f"  Warnings: {len(visual_data.get('style_warnings', []))} found")
             print(f"  Quick wins: {len(visual_data.get('quick_wins', []))} found")
@@ -141,9 +141,9 @@ Give short bullet phrases only.  Return JSON ONLY."""
         # Check if model is configured correctly
         assert settings.openai_model == "gpt-4o-mini", "Should use gpt-4o-mini model"
 
-        print(f"\n✓ GPT-4o Vision configuration:")
+        print("\n✓ GPT-4o Vision configuration:")
         print(f"  Model: {settings.openai_model}")
-        print(f"  Estimated cost: $0.003 per analysis")
+        print("  Estimated cost: $0.003 per analysis")
 
     @pytest.mark.asyncio
     async def test_vision_timeout(self):
@@ -152,7 +152,6 @@ Give short bullet phrases only.  Return JSON ONLY."""
 
         # Vision timeout should be 12 seconds as per PRD
         # Test by setting a shorter timeout
-        import asyncio
 
         messages = [{"role": "user", "content": "Test timeout"}]
 

@@ -10,7 +10,6 @@ Acceptance Criteria:
 - Results retrieval API
 - Proper error responses
 """
-import asyncio
 import logging
 import uuid
 from datetime import datetime, timedelta
@@ -20,7 +19,7 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-from .coordinator import AssessmentCoordinator, AssessmentPriority, CoordinatorResult
+from .coordinator import AssessmentCoordinator, CoordinatorResult
 from .schemas import (
     AIInsightsResult,
     AssessmentResults,

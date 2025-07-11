@@ -14,14 +14,14 @@ Acceptance Criteria:
 
 import asyncio
 import time
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import OperationalError
 
 from core.config import get_settings
-from main import app, health_check
+from main import app
 
 client = TestClient(app)
 
@@ -217,7 +217,7 @@ class TestHealthEndpointPerformance:
         
         # All should be fast
         times = [elapsed for _, elapsed in results]
-        assert all(t < 100 for t in times), f"Some concurrent requests exceeded 100ms"
+        assert all(t < 100 for t in times), "Some concurrent requests exceeded 100ms"
 
 
 if __name__ == "__main__":

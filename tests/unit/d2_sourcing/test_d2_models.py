@@ -2,7 +2,6 @@
 Test d2_sourcing domain models
 """
 import uuid
-from datetime import datetime
 
 import pytest
 

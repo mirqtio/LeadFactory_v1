@@ -181,7 +181,6 @@ class TestEnvironmentConfig:
         Acceptance Criteria: Environment variables documented
         """
         # Check that Settings class has proper field definitions
-        from pydantic import Field
         
         settings_fields = Settings.model_fields
         

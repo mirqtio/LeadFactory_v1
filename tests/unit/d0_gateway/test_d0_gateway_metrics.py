@@ -351,7 +351,6 @@ class TestGatewayMetricsIntegration:
     def test_concurrent_metrics_recording(self):
         """Test concurrent metrics recording"""
         import threading
-        import time
 
         metrics = GatewayMetrics()
         results = []

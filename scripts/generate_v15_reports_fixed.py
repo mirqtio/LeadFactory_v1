@@ -12,14 +12,13 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Tuple, Set
+from typing import Dict, Any, List, Tuple
 import yaml
 from jinja2 import Template
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from d5_scoring.impact_calculator import calculate_impact
 
 
 class V15ReportGeneratorFixed:
@@ -145,9 +144,9 @@ class V15ReportGeneratorFixed:
             
             perf_description = f"Your site's Largest Contentful Paint is {lcp:.1f}s "
             if lcp > 2.5:
-                perf_description += f"(exceeds Google's 2.5s target). "
+                perf_description += "(exceeds Google's 2.5s target). "
             else:
-                perf_description += f"(meets Google's 2.5s target). "
+                perf_description += "(meets Google's 2.5s target). "
             
             perf_description += "Research shows every 100ms delay reduces conversions by ~7%."
             
@@ -1167,7 +1166,7 @@ def main():
             import traceback
             traceback.print_exc()
     
-    print(f"\n✅ v1.5 fixed report generation complete!")
+    print("\n✅ v1.5 fixed report generation complete!")
     print(f"📁 Reports saved in: {output_dir}")
 
 

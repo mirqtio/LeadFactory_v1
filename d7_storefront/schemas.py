@@ -13,12 +13,11 @@ Acceptance Criteria:
 
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, EmailStr, Field, root_validator, validator
+from pydantic import BaseModel, EmailStr, Field, validator
 
-from .models import ProductType, PurchaseStatus
+from .models import ProductType
 
 
 class CheckoutItemRequest(BaseModel):

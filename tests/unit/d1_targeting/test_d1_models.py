@@ -2,7 +2,6 @@
 Test targeting domain models - simplified version
 """
 import uuid
-from datetime import datetime
 
 import pytest
 

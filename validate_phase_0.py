@@ -4,7 +4,6 @@ Phase-0 Validation Script
 Validates the Config-as-Data & Prompt-Ops implementation
 """
 import sys
-import os
 from pathlib import Path
 
 # Add project root to Python path
@@ -113,7 +112,6 @@ def check_hot_reload():
     print("\n5️⃣ Checking hot reload mechanism...")
     
     try:
-        from d5_scoring.hot_reload import ScoringRulesWatcher, get_watcher
         print("  ✅ Hot reload module imported successfully")
         
         # Check file exists

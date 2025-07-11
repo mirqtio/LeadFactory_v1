@@ -24,8 +24,7 @@ RUN playwright install --with-deps
 # Copy application code
 COPY --chown=leadfactory:leadfactory . .
 
-# Make scripts executable
-RUN chmod +x scripts/run_coordinator_production.py
+# Scripts will be made executable if needed
 
 # Create required directories
 RUN mkdir -p tmp logs && chown -R leadfactory:leadfactory tmp logs

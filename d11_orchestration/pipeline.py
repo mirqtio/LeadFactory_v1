@@ -12,8 +12,7 @@ Acceptance Criteria:
 """
 
 import asyncio
-import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 try:
@@ -69,7 +68,6 @@ except ImportError:
         pass
 
 
-from core.exceptions import LeadFactoryError
 from core.metrics import MetricsCollector
 
 from .models import PipelineRun, PipelineRunStatus, PipelineType

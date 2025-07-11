@@ -18,11 +18,10 @@ import argparse
 import asyncio
 import json
 import logging
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -496,7 +495,7 @@ async def main():
 
         # Results summary
         results = report["results"]
-        print(f"\n📊 Results Summary:")
+        print("\n📊 Results Summary:")
         print(f"   Emails Sent: {results['emails_sent']}")
         print(f"   Emails Delivered: {results['emails_delivered']}")
         print(f"   Bounces: {results['emails_bounced']}")
@@ -505,7 +504,7 @@ async def main():
 
         # Acceptance criteria
         criteria = report["acceptance_criteria"]
-        print(f"\n📋 Acceptance Criteria:")
+        print("\n📋 Acceptance Criteria:")
         for criterion, met in criteria.items():
             status_emoji = "✅" if met else "❌"
             criterion_name = criterion.replace("_", " ").title()
@@ -513,7 +512,7 @@ async def main():
 
         # System status
         status = report["status"]
-        print(f"\n🔧 System Status:")
+        print("\n🔧 System Status:")
         print(
             f"   Tracking Operational: {'✅' if status['tracking_operational'] else '❌'}"
         )

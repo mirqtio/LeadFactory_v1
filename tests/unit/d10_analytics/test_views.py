@@ -12,7 +12,6 @@ Acceptance Criteria Tests:
 """
 
 from datetime import date, datetime, timezone
-from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from sqlalchemy import create_engine, text

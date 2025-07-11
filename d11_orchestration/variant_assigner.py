@@ -13,7 +13,7 @@ Acceptance Criteria:
 
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from core.exceptions import ValidationError
 

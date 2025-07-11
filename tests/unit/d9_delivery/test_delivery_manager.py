@@ -13,12 +13,11 @@ Acceptance Criteria Tests:
 
 import asyncio
 import uuid
-from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, Mock, patch
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from core.exceptions import EmailDeliveryError, ValidationError
 from d9_delivery.compliance import (
     ComplianceHeaders,
     ComplianceManager,
@@ -30,15 +29,12 @@ from d9_delivery.compliance import (
 from d9_delivery.delivery_manager import (
     DeliveryManager,
     DeliveryRequest,
-    DeliveryResult,
     create_delivery_request,
     send_audit_email,
 )
 from d9_delivery.email_builder import PersonalizationData
 from d9_delivery.models import (
-    DeliveryEvent,
     DeliveryStatus,
-    EmailDelivery,
     EventType,
     SuppressionList,
 )

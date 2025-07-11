@@ -2,7 +2,7 @@
 Hunter.io API stub endpoints
 """
 import random
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Query, HTTPException
 

@@ -1,10 +1,6 @@
 """
 Tests for Phase 0.5 enrichment flow modifications - Task EN-05
 """
-import asyncio
-from dataclasses import dataclass
-from decimal import Decimal
-from typing import Dict, Any, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -12,7 +8,7 @@ import pytest
 from d0_gateway.providers.dataaxle import DataAxleClient
 from d0_gateway.providers.hunter import HunterClient
 from d4_enrichment.coordinator import EnrichmentCoordinator
-from d4_enrichment.dataaxle_enricher import DataAxleEnricher, EnrichmentResult
+from d4_enrichment.dataaxle_enricher import DataAxleEnricher
 from d4_enrichment.hunter_enricher import HunterEnricher
 from d4_enrichment.models import EnrichmentSource
 

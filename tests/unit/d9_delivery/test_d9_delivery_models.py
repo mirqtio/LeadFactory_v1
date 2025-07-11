@@ -11,9 +11,7 @@ Acceptance Criteria Tests:
 - Event timestamps ✓
 """
 
-import uuid
 from datetime import datetime, timedelta, timezone
-from unittest.mock import Mock, patch
 
 import pytest
 from sqlalchemy import create_engine

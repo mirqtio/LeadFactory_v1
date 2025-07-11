@@ -3,10 +3,9 @@ Geographic Validator for detecting conflicts and validating geographic constrain
 """
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
 from geopy.distance import geodesic
-from geopy.exc import GeocoderTimedOut
 
 from core.logging import get_logger
 

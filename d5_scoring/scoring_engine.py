@@ -7,7 +7,6 @@ scoring weights with YAML-based configuration.
 import os
 from pathlib import Path
 from typing import Dict, Optional, Any
-import logging
 
 from core.logging import get_logger
 from prometheus_client import Gauge

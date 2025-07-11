@@ -13,23 +13,17 @@ Acceptance Criteria:
 
 import hashlib
 import os
-import random
 import re
 from dataclasses import dataclass
-from datetime import datetime
-from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
 from .models import (
-    ContentStrategy,
     EmailContentType,
     EmailTemplate,
     PersonalizationStrategy,
-    PersonalizationToken,
-    PersonalizationVariable,
     SubjectLineVariant,
     VariantStatus,
 )
@@ -107,7 +101,7 @@ class SubjectLineGenerator:
         try:
             with open(self.templates_path, "r") as file:
                 return yaml.safe_load(file)
-        except Exception as e:
+        except Exception:
             # Fallback to minimal templates if file not found
             return self._get_fallback_templates()
 

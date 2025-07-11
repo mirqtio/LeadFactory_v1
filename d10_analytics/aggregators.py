@@ -13,11 +13,11 @@ Acceptance Criteria:
 
 import logging
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional
 
-from sqlalchemy import and_, case, func, or_, text
+from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
 from d10_analytics.models import (
@@ -28,8 +28,6 @@ from d10_analytics.models import (
     FunnelStage,
     MetricSnapshot,
     MetricType,
-    TimeSeriesData,
-    generate_uuid,
 )
 
 logger = logging.getLogger(__name__)

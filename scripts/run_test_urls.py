@@ -6,7 +6,7 @@ import asyncio
 import json
 from datetime import datetime
 import httpx
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 # Test URLs to assess - updated with realistic business info for GBP lookups
 TEST_URLS = [

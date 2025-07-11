@@ -16,13 +16,11 @@ import hmac
 import json
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 from core.exceptions import ValidationError
-from d9_delivery.compliance import ComplianceManager
 from d9_delivery.models import (
     BounceTracking,
     BounceType,
@@ -30,7 +28,6 @@ from d9_delivery.models import (
     DeliveryStatus,
     EmailDelivery,
     EventType,
-    SuppressionList,
 )
 from d9_delivery.webhook_handler import (
     SendGridEventType,

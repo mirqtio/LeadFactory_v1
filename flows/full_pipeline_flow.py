@@ -12,7 +12,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 try:
     from prefect import flow, task
@@ -36,15 +36,12 @@ except ImportError:
         return logging.getLogger(__name__)
 
 # Import coordinators and necessary modules
-from database.models import Target
 from d2_sourcing.coordinator import SourcingCoordinator
 from d3_assessment.coordinator import AssessmentCoordinator
-from d4_enrichment.coordinator import EnrichmentCoordinator
 from d5_scoring import ScoringEngine
 from d6_reports.generator import ReportGenerator
 from d8_personalization.content_generator import AdvancedContentGenerator
 from d9_delivery.delivery_manager import DeliveryManager
-from database.session import get_db
 
 
 # Task definitions with error handling and retries
@@ -343,27 +340,27 @@ async def full_pipeline_flow(url: str) -> Dict[str, Any]:
         
         # Stage 1: Target
         business_data = await target_business(url)
-        logger.info(f"Stage 1/6 complete: Targeting ✓")
+        logger.info("Stage 1/6 complete: Targeting ✓")
         
         # Stage 2: Source
         business_data = await source_business_data(business_data)
-        logger.info(f"Stage 2/6 complete: Sourcing ✓")
+        logger.info("Stage 2/6 complete: Sourcing ✓")
         
         # Stage 3: Assess
         business_data = await assess_website(business_data)
-        logger.info(f"Stage 3/6 complete: Assessment ✓")
+        logger.info("Stage 3/6 complete: Assessment ✓")
         
         # Stage 4: Score
         business_data = await calculate_score(business_data)
-        logger.info(f"Stage 4/6 complete: Scoring ✓")
+        logger.info("Stage 4/6 complete: Scoring ✓")
         
         # Stage 5: Report
         business_data = await generate_report(business_data)
-        logger.info(f"Stage 5/6 complete: Report Generation ✓")
+        logger.info("Stage 5/6 complete: Report Generation ✓")
         
         # Stage 6: Deliver
         business_data = await send_email(business_data)
-        logger.info(f"Stage 6/6 complete: Delivery ✓")
+        logger.info("Stage 6/6 complete: Delivery ✓")
         
         # Calculate total execution time
         execution_time = time.time() - start_time

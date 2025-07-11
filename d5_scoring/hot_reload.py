@@ -4,12 +4,10 @@ Hot reload mechanism for scoring rules configuration.
 This module provides file watching and automatic reloading of scoring
 rules when the YAML configuration changes.
 """
-import os
 import threading
 import time
 from pathlib import Path
-from typing import Optional, Callable
-import logging
+from typing import Optional
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
@@ -18,7 +16,6 @@ from core.logging import get_logger
 from core.metrics import metrics
 
 from .rules_schema import validate_rules
-from .constants import DEFAULT_SCORING_RULES_PATH
 from .engine import ConfigurableScoringEngine
 
 logger = get_logger(__name__)

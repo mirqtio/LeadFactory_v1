@@ -12,13 +12,9 @@ Acceptance Criteria:
 """
 
 import asyncio
-import os
 import sys
 import time
-import uuid
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -32,24 +28,18 @@ from d4_enrichment.coordinator import (
     BatchEnrichmentResult,
     EnrichmentCoordinator,
     EnrichmentPriority,
-    EnrichmentProgress,
     enrich_business,
-    enrich_businesses,
 )
-from d4_enrichment.gbp_enricher import GBPDataQuality, GBPEnricher, GBPSearchResult
+from d4_enrichment.gbp_enricher import GBPEnricher, GBPSearchResult
 from d4_enrichment.matchers import BusinessMatcher, MatchConfidence, MatchResult
 from d4_enrichment.models import (
-    EnrichmentRequest,
     EnrichmentResult,
     EnrichmentSource,
-    EnrichmentStatus,
 )
 from d4_enrichment.similarity import (
     AddressSimilarity,
     NameSimilarity,
     PhoneSimilarity,
-    SimilarityResult,
-    WeightedSimilarity,
 )
 
 

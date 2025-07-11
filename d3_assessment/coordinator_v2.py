@@ -5,11 +5,10 @@ Coordinates the 7-assessor stack with proper timeout and error handling
 import asyncio
 import uuid
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Set
+from typing import Dict, Any, List, Optional
 from decimal import Decimal
 
 from d3_assessment.assessors import ASSESSOR_REGISTRY
-from d3_assessment.models import AssessmentResult as AssessmentResultModel
 from core.logging import get_logger
 from database.session import get_db
 

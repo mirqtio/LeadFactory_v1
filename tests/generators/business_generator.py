@@ -14,12 +14,12 @@ Acceptance Criteria:
 import random
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from database.models import Business, GeoType
+from database.models import Business
 
 
 class BusinessScenario(Enum):

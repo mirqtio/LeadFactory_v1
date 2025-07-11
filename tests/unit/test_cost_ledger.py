@@ -1,7 +1,6 @@
 """
 Tests for cost tracking functionality - Phase 0.5 Task GW-04
 """
-import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import MagicMock, patch, AsyncMock
@@ -329,7 +328,6 @@ class TestCostAggregation:
         test_db.commit()
 
         # Query costs manually grouped by day
-        from sqlalchemy import func
 
         # Get all costs for today
         today_costs = (

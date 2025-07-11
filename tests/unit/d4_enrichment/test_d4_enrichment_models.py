@@ -7,10 +7,8 @@ Tests for enrichment models ensuring all acceptance criteria are met:
 - Source attribution
 - Data versioning
 """
-import json
 import sys
-import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 
 import pytest

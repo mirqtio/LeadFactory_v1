@@ -8,8 +8,6 @@ Tests for fuzzy matching system ensuring all acceptance criteria are met:
 - Weighted combination logic
 """
 import sys
-from decimal import Decimal
-from typing import Any, Dict
 
 import pytest
 
@@ -23,15 +21,12 @@ from d4_enrichment.matchers import (
     BusinessMatcher,
     MatchConfidence,
     MatchConfig,
-    MatchResult,
     MatchType,
 )
 from d4_enrichment.similarity import (
     AddressSimilarity,
     NameSimilarity,
     PhoneSimilarity,
-    SimilarityAlgorithm,
-    SimilarityResult,
     WeightedSimilarity,
     ZipSimilarity,
 )

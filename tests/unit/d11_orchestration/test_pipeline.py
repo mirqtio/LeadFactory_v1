@@ -11,10 +11,8 @@ Acceptance Criteria Tests:
 - Retries configured ✓
 """
 
-import asyncio
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -31,10 +29,6 @@ from d11_orchestration.pipeline import (
     trigger_manual_run,
 )
 from d11_orchestration.tasks import (
-    AssessmentTask,
-    DeliveryTask,
-    PersonalizationTask,
-    ScoringTask,
     SourcingTask,
     TargetingTask,
 )

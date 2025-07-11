@@ -8,12 +8,10 @@ import pytest
 pytestmark = pytest.mark.xfail(reason="Gateway integration tests have stubbing issues")
 
 import asyncio
-import time
-from unittest.mock import Mock, patch
 
 from core.config import get_settings
-from d0_gateway.facade import GatewayFacade, get_gateway_facade
-from d0_gateway.factory import GatewayClientFactory, get_gateway_factory
+from d0_gateway.facade import GatewayFacade
+from d0_gateway.factory import GatewayClientFactory
 
 
 class TestGatewayProviderIntegration:
@@ -193,7 +191,7 @@ class TestRateLimitingIntegration:
             await facade.generate_website_insights(mock_data)
             providers_tested.append("openai")
 
-        except Exception as e:
+        except Exception:
             # Some failures expected in test environment
             pass
 

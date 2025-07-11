@@ -14,8 +14,6 @@ Acceptance Criteria:
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Generator, List
-from unittest.mock import MagicMock
 
 import pytest
 from faker import Faker
@@ -33,22 +31,13 @@ from d11_orchestration.models import (
     PipelineRun,
     PipelineRunStatus,
     PipelineType,
-    VariantAssignment,
     VariantType,
 )
 
 # Import models from the database models file
 from database.models import (
-    Batch,
     Business,
-    Email,
-    EmailClick,
-    EmailSuppression,
-    GatewayUsage,
-    Purchase,
-    ScoringResult,
     Target,
-    WebhookEvent,
 )
 
 fake = Faker()

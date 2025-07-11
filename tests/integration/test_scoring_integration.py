@@ -19,21 +19,17 @@ acceptance criteria are met:
 import sys
 import time
 import unittest
-from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List
 
 sys.path.insert(0, "/app")
 
 from d5_scoring.engine import ConfigurableScoringEngine
-from d5_scoring.models import ScoreBreakdown, ScoringEngine, D5ScoringResult
+from d5_scoring.models import ScoringEngine, D5ScoringResult
 from d5_scoring.tiers import (
     LeadTier,
     TierAssignmentEngine,
     assign_lead_tier,
-    create_standard_configuration,
 )
-from d5_scoring.types import ScoreComponent, ScoringTier, ScoringVersion
 from d5_scoring.vertical_overrides import (
     VerticalScoringEngine,
     create_medical_scoring_engine,

@@ -11,16 +11,13 @@ Acceptance Criteria:
 - Segment breakdowns ✓
 """
 
-import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
-from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, func, or_, text
-from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 # from database.session import get_db_session  # Would be used in production
 
@@ -53,13 +50,9 @@ from d10_analytics.aggregators import (
 )
 from d10_analytics.models import (
     AggregationPeriod,
-    EventType,
     FunnelConversion,
     FunnelEvent,
-    FunnelStage,
     MetricSnapshot,
-    MetricType,
-    TimeSeriesData,
     generate_uuid,
 )
 

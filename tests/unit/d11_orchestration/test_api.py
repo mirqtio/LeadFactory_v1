@@ -11,8 +11,6 @@ Acceptance Criteria:
 - Run history API ✓
 """
 
-from datetime import date, datetime
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -31,12 +29,6 @@ from d11_orchestration.models import (
     PipelineRunStatus,
     PipelineType,
     VariantAssignment,
-    VariantType,
-)
-from d11_orchestration.schemas import (
-    ExperimentCreateRequest,
-    ExperimentVariantCreateRequest,
-    PipelineTriggerRequest,
 )
 from database.base import Base
 from database.session import get_db
@@ -58,21 +50,8 @@ def test_db():
     )
 
     # Import Base first
-    from database.base import Base
 
     # Import all model modules to register tables with Base
-    import database.models
-    import d1_targeting.models
-    import d2_sourcing.models
-    import d3_assessment.models
-    import d4_enrichment.models
-    import d5_scoring.models
-    import d6_reports.models
-    import d7_storefront.models
-    import d8_personalization.models
-    import d9_delivery.models
-    import d10_analytics.models
-    import d11_orchestration.models
 
     # Create all tables
     Base.metadata.create_all(bind=engine)

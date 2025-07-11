@@ -10,19 +10,15 @@ Acceptance Criteria:
 - Update timestamps properly
 - Performance optimized
 """
-import hashlib
-import json
-import logging
 import time
-import uuid
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from difflib import SequenceMatcher
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
-from sqlalchemy import and_, func, or_, text
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from core.config import get_settings
@@ -30,7 +26,7 @@ from core.logging import get_logger
 from database.models import Business
 from database.session import SessionLocal
 
-from .exceptions import DataValidationException, DeduplicationException
+from .exceptions import DeduplicationException
 from .models import SourcedLocation
 
 

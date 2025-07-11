@@ -11,7 +11,7 @@ Tests for enrichment coordinator ensuring all acceptance criteria are met:
 import asyncio
 import sys
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -25,7 +25,6 @@ from d4_enrichment.coordinator import (
     enrich_business,
     enrich_businesses,
 )
-from d4_enrichment.gbp_enricher import GBPEnricher
 from d4_enrichment.models import EnrichmentResult, EnrichmentSource, MatchConfidence
 
 sys.path.insert(0, "/app")
