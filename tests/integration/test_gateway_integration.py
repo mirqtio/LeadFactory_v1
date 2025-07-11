@@ -151,8 +151,9 @@ class TestRateLimitingIntegration:
 
         for i in range(3):
             try:
-                result = await facade.search_businesses(
-                    term="test", location="test", limit=1
+                # Use analyze_website instead of removed search_businesses
+                result = await facade.analyze_website(
+                    url="https://example.com", strategy="mobile"
                 )
                 results.append(result)
 
@@ -343,17 +344,22 @@ class TestCacheIntegration:
     async def test_cache_hit_miss_validated_functionality(self, facade):
         """Test cache hit/miss functionality with real requests"""
         # Make the same request twice to test caching
-        search_params = {"term": "test", "location": "test location", "limit": 1}
+        test_url = "https://example.com"
+        test_strategy = "mobile"
 
         try:
             # First request (should be cache miss)
-            result1 = await facade.search_businesses(**search_params)
+            result1 = await facade.analyze_website(
+                url=test_url, strategy=test_strategy
+            )
 
             # Small delay
             await asyncio.sleep(0.1)
 
             # Second request (should be cache hit if caching enabled)
-            result2 = await facade.search_businesses(**search_params)
+            result2 = await facade.analyze_website(
+                url=test_url, strategy=test_strategy
+            )
 
             # Results should be consistent
             assert result1 is not None
@@ -361,14 +367,17 @@ class TestCacheIntegration:
 
             # In stub mode, results should be the same
             if get_settings().use_stubs:
-                assert result1.get("total", 0) == result2.get("total", 0)
+                # Check for consistent scores in PageSpeed results
+                score1 = result1.get("lighthouseResult", {}).get("categories", {}).get("performance", {}).get("score")
+                score2 = result2.get("lighthouseResult", {}).get("categories", {}).get("performance", {}).get("score")
+                assert score1 == score2
 
         except Exception as e:
             # Cache testing may fail in stub environment
             assert (
-                "test" in str(e).lower()
+                "url" in str(e).lower()
                 or "stub" in str(e).lower()
-                or "location" in str(e).lower()
+                or "analyze" in str(e).lower()
             )
 
     @pytest.mark.asyncio
@@ -482,8 +491,9 @@ class TestGatewayIntegrationHealth:
 
         async def make_request(i):
             try:
-                return await facade.search_businesses(
-                    term=f"test_{i}", location="test", limit=1
+                # Use analyze_website for concurrent request testing
+                return await facade.analyze_website(
+                    url=f"https://example{i}.com", strategy="mobile"
                 )
             except Exception as e:
                 return {"error": str(e)}
@@ -508,11 +518,11 @@ class TestGatewayIntegrationHealth:
 
         for i in range(5):
             try:
-                result = await facade.search_businesses(
-                    term="test", location="test location", limit=1
+                result = await facade.analyze_website(
+                    url="https://example-test.com", strategy="mobile"
                 )
 
-                if result and "businesses" in result:
+                if result and "lighthouseResult" in result:
                     success_count += 1
 
             except Exception as e:
@@ -520,7 +530,7 @@ class TestGatewayIntegrationHealth:
 
                 # Errors should be handled gracefully
                 error_msg = str(e).lower()
-                acceptable_errors = ["location", "test", "stub", "invalid", "timeout"]
+                acceptable_errors = ["url", "test", "stub", "invalid", "timeout"]
                 assert any(err in error_msg for err in acceptable_errors)
 
             # Small delay between requests

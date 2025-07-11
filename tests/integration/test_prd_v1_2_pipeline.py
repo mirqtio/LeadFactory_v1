@@ -7,7 +7,7 @@ import pytest
 from typing import Dict, Any
 from decimal import Decimal
 
-from d0_gateway.providers.yelp import YelpClient
+# Yelp has been removed from the codebase
 from d3_assessment.coordinator_v2 import AssessmentCoordinatorV2
 from d4_enrichment.email_enrichment import get_email_enricher
 from d5_scoring.tiers import TierAssignmentEngine
@@ -17,28 +17,10 @@ from core.config import settings
 class TestPRDv12Pipeline:
     """Test full PRD v1.2 pipeline integration"""
 
-    @pytest.mark.asyncio
+    @pytest.mark.skip(reason="Yelp has been removed from the codebase")
     async def test_yelp_sourcing_with_limit(self):
         """Test Yelp sourcing respects 300/day limit"""
-        if not settings.yelp_api_key:
-            pytest.skip("No Yelp API key")
-
-        yelp_client = YelpClient()
-
-        # Search for just 2 businesses to save quota
-        results = await yelp_client.search_businesses(
-            term="restaurant", location="San Francisco, CA", limit=2
-        )
-
-        assert len(results) <= 2
-        assert all(r.get("name") for r in results)
-        assert all(r.get("id") for r in results)
-
-        # Check rate limiter
-        if hasattr(yelp_api.client, "rate_limiter"):
-            tokens = yelp_client.rate_limiter.tokens_available()
-            assert tokens < 300  # Should have used some tokens
-            assert tokens >= 0
+        pass
 
     @pytest.mark.asyncio
     async def test_seven_assessor_stack(self):
@@ -187,23 +169,30 @@ class TestPRDv12Pipeline:
 
     @pytest.mark.asyncio
     async def test_full_pipeline_execution(self):
-        """Test complete pipeline from Yelp → Assessment → Enrichment → Scoring"""
-        if not all([settings.yelp_api_key, settings.google_api_key]):
+        """Test complete pipeline from Mock Business → Assessment → Enrichment → Scoring"""
+        if not settings.google_api_key:
             pytest.skip("Missing required API keys")
 
         print("\n" + "=" * 60)
         print("FULL PRD v1.2 PIPELINE TEST")
         print("=" * 60)
 
-        # Step 1: Yelp sourcing
-        print("\n1. Sourcing from Yelp...")
-        yelp_client = YelpClient()
-        businesses = await yelp_client.search_businesses(
-            term="pizza", location="San Francisco, CA", limit=1
-        )
-        assert len(businesses) > 0
-        business = businesses[0]
-        print(f"   ✓ Found: {business['name']}")
+        # Step 1: Use mock business data instead of Yelp
+        print("\n1. Using mock business data...")
+        # Create a mock business that looks like Yelp data
+        business = {
+            "id": "test-pizza-123",
+            "name": "Test Pizza Place",
+            "phone": "+14155551234",
+            "website": "https://example.com",
+            "address": "123 Main St",
+            "city": "San Francisco",
+            "state": "CA",
+            "rating": 4.5,
+            "user_ratings_total": 100,
+            "categories": ["restaurant", "pizza"]
+        }
+        print(f"   ✓ Using: {business['name']}")
 
         # Step 2: Assessment
         print("\n2. Running 7-assessor stack...")

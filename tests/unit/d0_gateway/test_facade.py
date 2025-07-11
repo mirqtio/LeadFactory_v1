@@ -230,8 +230,6 @@ class TestGatewayFacade:
     def test_single_entry_point_for_all_apis_initialization(self, facade):
         """Test that facade provides single entry point for all APIs"""
         # Should have methods for all API providers
-        assert hasattr(facade, "search_businesses")  # Yelp
-        assert hasattr(facade, "get_business_details")  # Yelp
         assert hasattr(facade, "analyze_website")  # PageSpeed
         assert hasattr(facade, "get_core_web_vitals")  # PageSpeed
         assert hasattr(facade, "generate_website_insights")  # OpenAI
@@ -258,40 +256,6 @@ class TestGatewayFacade:
         assert hasattr(facade, "factory")
         assert hasattr(facade, "metrics")
 
-    @pytest.mark.asyncio
-    async def test_yelp_api_integration(self, facade, mock_factory):
-        """Test Yelp API integration through facade"""
-        # Mock Yelp client
-        mock_yelp_client = AsyncMock()
-        mock_yelp_client.search_businesses.return_value = {
-            "businesses": [{"name": "Test Restaurant"}],
-            "total": 1,
-        }
-        mock_factory.create_client.return_value = mock_yelp_client
-
-        # Test search businesses
-        result = await facade.search_businesses(
-            term="restaurants", location="San Francisco", limit=10
-        )
-
-        # Verify factory was called correctly
-        mock_factory.create_client.assert_called_with("yelp")
-
-        # Verify client method was called
-        # Note: 'attributes' parameter is not passed to YelpClient
-        mock_yelp_client.search_businesses.assert_called_once_with(
-            term="restaurants",
-            location="San Francisco",
-            categories=None,
-            limit=10,
-            offset=0,
-            sort_by="best_match",
-            price=None,
-            open_now=None,
-        )
-
-        # Verify result
-        assert result["businesses"][0]["name"] == "Test Restaurant"
 
     @pytest.mark.asyncio
     async def test_pagespeed_api_integration(self, facade, mock_factory):
@@ -942,7 +906,7 @@ class TestGatewayFacade:
 
         async def test_error_handling():
             try:
-                await facade.search_businesses("test", "location")
+                await facade.analyze_website("https://example.com")
                 assert False, "Should have raised exception"
             except Exception as e:
                 assert "Provider unavailable" in str(e)
@@ -992,10 +956,10 @@ class TestGlobalInstances:
             mock_factory = Mock()
             mock_get_factory.return_value = mock_factory
 
-            create_client("yelp", extra_param="value")
+            create_client("pagespeed", extra_param="value")
 
             mock_factory.create_client.assert_called_once_with(
-                "yelp", extra_param="value"
+                "pagespeed", extra_param="value"
             )
 
         # Test register_provider convenience function
