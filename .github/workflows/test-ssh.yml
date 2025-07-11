@@ -1,0 +1,42 @@
+name: Test SSH Connection
+on:
+  workflow_dispatch:
+
+jobs:
+  test-ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test SSH connection
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          echo "Testing SSH connection to VPS..."
+          
+          # Check if secrets are set
+          echo "Checking secrets..."
+          [ -z "$SSH_PRIVATE_KEY" ] && echo "ERROR: SSH_PRIVATE_KEY is not set" && exit 1
+          [ -z "$SSH_HOST" ] && echo "ERROR: SSH_HOST is not set" && exit 1
+          [ -z "$SSH_PORT" ] && echo "ERROR: SSH_PORT is not set" && exit 1
+          [ -z "$SSH_USER" ] && echo "ERROR: SSH_USER is not set" && exit 1
+          
+          echo "All secrets are set ✓"
+          
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Test key format
+          echo "Testing SSH key format..."
+          ssh-keygen -l -f ~/.ssh/id_rsa || echo "ERROR: Invalid SSH key format"
+          
+          # Add host to known_hosts
+          echo "Adding host to known_hosts..."
+          ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts 2>&1
+          
+          # Test connection
+          echo "Testing SSH connection..."
+          ssh -v -p $SSH_PORT $SSH_USER@$SSH_HOST "echo 'SSH connection successful!'"
