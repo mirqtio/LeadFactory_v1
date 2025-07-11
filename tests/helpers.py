@@ -85,8 +85,7 @@ def create_mock_gateway_facade():
         "create_product",
         "create_price",
         "construct_webhook_event",
-        "get_business_details",
-        "search_businesses",
+        # Yelp methods removed - "get_business_details", "search_businesses"
         "analyze_website",
         "get_pagespeed_insights",
         "send_email",

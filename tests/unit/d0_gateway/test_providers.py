@@ -11,87 +11,10 @@ from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient
 from d0_gateway.providers.sendgrid import SendGridClient
 from d0_gateway.providers.stripe import StripeClient
-from d0_gateway.providers.yelp import YelpClient
+# YelpClient removed - Yelp has been removed from the codebase
 
 
-class TestYelpClient:
-    @pytest.fixture
-    def yelp_client(self):
-        """Create Yelp client for testing"""
-        return YelpClient(api_key="test-key")
-
-    def test_yelp_client_configuration(self, yelp_client):
-        """Test Yelp client configuration"""
-        assert yelp_client.provider == "yelp"
-        assert yelp_client._get_base_url() == "https://api.yelp.com"
-
-        headers = yelp_client._get_headers()
-        assert "Authorization" in headers
-        # API key might be overridden by stub configuration
-        assert "Bearer" in headers["Authorization"]
-        assert headers["Authorization"] in ["Bearer test-key", "Bearer stub-yelp-key"]
-
-        rate_limits = yelp_client.get_rate_limit()
-        assert rate_limits["daily_limit"] == 5000
-        assert rate_limits["burst_limit"] == 10
-
-    def test_yelp_cost_calculation(self, yelp_client):
-        """Test Yelp cost calculation"""
-        # Free tier operations
-        cost = yelp_client.calculate_cost("GET:/v3/businesses/search")
-        assert cost == Decimal("0.000")
-
-        cost = yelp_client.calculate_cost("GET:/v3/businesses/123")
-        assert cost == Decimal("0.000")
-
-        # Other operations
-        cost = yelp_client.calculate_cost("GET:/v3/other")
-        assert cost == Decimal("0.001")
-
-    @pytest.mark.asyncio
-    async def test_search_businesses(self, yelp_client):
-        """Test business search functionality"""
-        # Mock the make_request method
-        yelp_client.make_request = AsyncMock(
-            return_value={
-                "businesses": [{"id": "test-business", "name": "Test Business"}],
-                "total": 1,
-            }
-        )
-
-        result = await yelp_client.search_businesses(
-            location="New York, NY", categories="restaurants", limit=10
-        )
-
-        # Verify request was made with correct parameters
-        yelp_client.make_request.assert_called_once_with(
-            "GET",
-            "/v3/businesses/search",
-            params={
-                "location": "New York, NY",
-                "categories": "restaurants",
-                "limit": 10,
-                "offset": 0,
-            },
-        )
-
-        assert len(result["businesses"]) == 1
-        assert result["total"] == 1
-
-    @pytest.mark.asyncio
-    async def test_batch_search_locations(self, yelp_client):
-        """Test batch location search"""
-        yelp_client.search_businesses = AsyncMock(
-            return_value={"businesses": [{"id": "test", "name": "Test"}]}
-        )
-
-        locations = ["New York, NY", "Los Angeles, CA"]
-        result = await yelp_client.batch_search_locations(locations)
-
-        assert result["total_locations"] == 2
-        assert result["successful_locations"] == 2
-        assert "New York, NY" in result["locations"]
-        assert "Los Angeles, CA" in result["locations"]
+# TestYelpClient removed - Yelp has been removed from the codebase
 
 
 class TestPageSpeedClient:

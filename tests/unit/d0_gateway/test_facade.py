@@ -103,8 +103,8 @@ class TestGatewayFactory:
 
             # Mock client creation by patching the providers dict
             mock_client_class = Mock()
-            with patch.dict(factory._providers, {"yelp": mock_client_class}):
-                factory.create_client("yelp", extra_param="value")
+            with patch.dict(factory._providers, {"pagespeed": mock_client_class}):
+                factory.create_client("pagespeed", extra_param="value")
 
                 # Verify only api_key was passed to client constructor
                 # (BaseAPIClient only accepts api_key in constructor)
@@ -119,18 +119,18 @@ class TestGatewayFactory:
         """Test provider-specific configuration generation"""
         # Mock settings with API keys
         with patch.object(factory, "settings") as mock_settings:
-            mock_settings.yelp_api_key = "yelp-key"
+            mock_settings.sendgrid_api_key = "sendgrid-key"
             mock_settings.pagespeed_api_key = "pagespeed-key"
             mock_settings.openai_api_key = "openai-key"
             mock_settings.api_timeout = 45
             mock_settings.api_max_retries = 5
             mock_settings.debug = False
 
-            # Test Yelp config
-            yelp_config = factory._get_provider_config("yelp")
-            assert yelp_config["api_key"] == "yelp-key"
-            assert yelp_config["timeout"] == 45
-            assert yelp_config["max_retries"] == 5
+            # Test SendGrid config
+            sendgrid_config = factory._get_provider_config("sendgrid")
+            assert sendgrid_config["api_key"] == "sendgrid-key"
+            assert sendgrid_config["timeout"] == 45
+            assert sendgrid_config["max_retries"] == 5
 
             # Test PageSpeed config
             pagespeed_config = factory._get_provider_config("pagespeed")
@@ -169,11 +169,11 @@ class TestGatewayFactory:
     def test_cache_invalidation(self, factory):
         """Test cache invalidation functionality"""
         # Set up cache with mock clients
-        factory._client_cache = {"yelp": Mock(), "pagespeed": Mock(), "openai": Mock()}
+        factory._client_cache = {"sendgrid": Mock(), "pagespeed": Mock(), "openai": Mock()}
 
         # Test specific provider invalidation
-        factory.invalidate_cache("yelp")
-        assert "yelp" not in factory._client_cache
+        factory.invalidate_cache("sendgrid")
+        assert "sendgrid" not in factory._client_cache
         assert "pagespeed" in factory._client_cache
         assert "openai" in factory._client_cache
 
@@ -313,18 +313,10 @@ class TestGatewayFacade:
     async def test_complete_business_analysis_workflow(self, facade, mock_factory):
         """Test complete business analysis workflow"""
         # Mock clients for each step
-        mock_yelp_client = AsyncMock()
         mock_pagespeed_client = AsyncMock()
         mock_openai_client = AsyncMock()
 
         # Set up return values
-        mock_yelp_client.get_business_details.return_value = {
-            "name": "Test Restaurant",
-            "url": "https://testrestaurant.com",
-            "categories": [{"title": "Restaurant"}],
-            "location": {"city": "San Francisco"},
-        }
-
         mock_pagespeed_client.analyze_url.return_value = {
             "lighthouseResult": {"categories": {"performance": {"score": 0.7}}}
         }
@@ -340,23 +332,23 @@ class TestGatewayFacade:
 
         # Configure factory to return appropriate clients
         def create_client_side_effect(provider):
-            if provider == "yelp":
-                return mock_yelp_client
-            elif provider == "pagespeed":
+            if provider == "pagespeed":
                 return mock_pagespeed_client
             elif provider == "openai":
                 return mock_openai_client
 
         mock_factory.create_client.side_effect = create_client_side_effect
 
-        # Run complete analysis
+        # Run complete analysis with a business URL
         result = await facade.complete_business_analysis(
-            business_id="test-business-123", include_email_generation=True
+            business_id="test-business-123",
+            business_url="https://testrestaurant.com",
+            include_email_generation=True
         )
 
         # Verify all components were called
         assert result["business_id"] == "test-business-123"
-        assert result["business_data"]["name"] == "Test Restaurant"
+        assert result["business_data"] is None  # No longer fetches business data
         assert result["website_analysis"]["lighthouseResult"] is not None
         assert len(result["ai_insights"]["ai_recommendations"]) == 1
         assert result["email_content"]["email_subject"] == "Website Performance Report"
@@ -820,14 +812,14 @@ class TestGatewayFacade:
         """Test gateway status reporting"""
         # Mock factory responses
         mock_factory.get_client_status.return_value = {
-            "registered_providers": ["yelp", "pagespeed", "openai"],
-            "cached_clients": ["yelp"],
+            "registered_providers": ["sendgrid", "pagespeed", "openai"],
+            "cached_clients": ["sendgrid"],
             "total_providers": 3,
         }
 
         mock_factory.health_check.return_value = {
             "overall_status": "healthy",
-            "providers": {"yelp": {"status": "healthy"}},
+            "providers": {"sendgrid": {"status": "healthy"}},
         }
 
         # Mock metrics
@@ -847,7 +839,7 @@ class TestGatewayFacade:
         """Test rate limit monitoring across providers"""
         # Mock clients with different rate limits
         mock_clients = {}
-        for provider in ["yelp", "pagespeed", "openai"]:
+        for provider in ["sendgrid", "pagespeed", "openai"]:
             mock_client = Mock()
             mock_client.get_rate_limit.return_value = {
                 "daily_limit": 1000,
@@ -856,14 +848,14 @@ class TestGatewayFacade:
             }
             mock_clients[provider] = mock_client
 
-        mock_factory.get_provider_names.return_value = ["yelp", "pagespeed", "openai"]
+        mock_factory.get_provider_names.return_value = ["sendgrid", "pagespeed", "openai"]
         mock_factory.create_client.side_effect = lambda p: mock_clients[p]
 
         rate_limits = await facade.get_all_rate_limits()
 
         # Verify rate limits for all providers
         assert len(rate_limits) == 3
-        for provider in ["yelp", "pagespeed", "openai"]:
+        for provider in ["sendgrid", "pagespeed", "openai"]:
             assert provider in rate_limits
             assert rate_limits[provider]["daily_limit"] == 1000
             assert rate_limits[provider]["daily_used"] == 150
@@ -871,7 +863,7 @@ class TestGatewayFacade:
     @pytest.mark.asyncio
     async def test_cost_calculation_across_providers(self, facade, mock_factory):
         """Test cost calculation across all providers"""
-        mock_factory.get_provider_names.return_value = ["yelp", "pagespeed", "openai"]
+        mock_factory.get_provider_names.return_value = ["sendgrid", "pagespeed", "openai"]
 
         # Mock clients
         def create_client_mock(provider):
@@ -884,7 +876,7 @@ class TestGatewayFacade:
 
         # Should return costs for all providers
         assert len(costs) == 3
-        assert "yelp" in costs
+        assert "sendgrid" in costs
         assert "pagespeed" in costs
         assert "openai" in costs
 

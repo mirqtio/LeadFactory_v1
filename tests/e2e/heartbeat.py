@@ -145,31 +145,7 @@ class RedisHealthCheck(ServiceHealthCheck):
             return False  # Non-critical, so return False instead of raising
 
 
-class YelpAPIHealthCheck(ServiceHealthCheck):
-    """Check Yelp API credentials and rate limits"""
-
-    def __init__(self):
-        super().__init__("yelp_api", critical=True)
-
-    async def _perform_check(self) -> bool:
-        """Test Yelp API access"""
-        gateway = GatewayFacade()
-
-        # Check rate limit status
-        rate_limit = await gateway.yelp.get_rate_limit_status()
-
-        # Verify we have quota remaining
-        assert rate_limit["daily_remaining"] > 0, "No Yelp API quota remaining"
-
-        # Test minimal search (1 result only)
-        result = await gateway.yelp.search_businesses(
-            location="San Francisco, CA", categories="restaurant", limit=1
-        )
-
-        assert "businesses" in result
-        assert len(result["businesses"]) >= 0  # May be 0 if no results
-
-        return True
+# YelpAPIHealthCheck removed - Yelp has been removed from the codebase
 
 
 class StripeHealthCheck(ServiceHealthCheck):
@@ -312,7 +288,7 @@ async def heartbeat_flow() -> Dict[str, Any]:
     checks = [
         DatabaseHealthCheck(),
         RedisHealthCheck(),
-        YelpAPIHealthCheck(),
+        # YelpAPIHealthCheck removed - Yelp has been removed from the codebase
         StripeHealthCheck(),
         SendGridHealthCheck(),
         OpenAIHealthCheck(),
