@@ -1,32 +1,37 @@
-name: Deploy
-
+name: Deploy to VPS
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
-
+    branches: [ main ]          # ✅ GitHub 'push' trigger syntax
 jobs:
-  test:
-    uses: ./.github/workflows/test.yml
-    
   deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
+    runs-on: ubuntu-latest      # ✅ Public runner
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Deploy notification
-      run: |
-        echo "Deployment would happen here"
-        echo "Branch: ${{ github.ref }}"
-        echo "Commit: ${{ github.sha }}"
-        echo "This is a placeholder for actual deployment steps"
-        
-    # Actual deployment steps would include:
-    # - Building and pushing Docker images
-    # - Updating Kubernetes manifests or cloud services
-    # - Running database migrations
-    # - Health checks
-    # - Rollback on failure
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH agent   # marketplace action = webfactory/ssh-agent
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Remote deploy
+        run: |
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
+            set -e
+            # clone or pull
+            if [ ! -d /srv/leadfactory ]; then
+              sudo mkdir -p /srv/leadfactory && sudo chown $USER /srv/leadfactory
+            fi
+            cd /srv/leadfactory
+            if [ -d .git ]; then
+              git fetch --depth=1 origin main && git reset --hard origin/main
+            else
+              git clone --depth=1 git@github.com:mirqtio/LeadFactory_v1.git .
+            fi
+            docker compose -f docker-compose.prod.yml build
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+          SSH
