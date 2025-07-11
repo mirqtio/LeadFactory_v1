@@ -35,4 +35,17 @@ jobs:
             fi
             docker compose -f docker-compose.prod.yml build
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            
+            # Wait for database to be ready
+            echo "Waiting for database to be ready..."
+            sleep 10
+            
+            # Run database migrations
+            echo "Running database migrations..."
+            docker compose -f docker-compose.prod.yml exec -T web alembic upgrade head
+            
+            # Verify deployment
+            echo "Verifying deployment..."
+            docker compose -f docker-compose.prod.yml ps
+            curl -f http://localhost:8000/health || echo "Health check failed"
           SSH
