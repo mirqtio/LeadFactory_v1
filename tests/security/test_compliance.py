@@ -43,7 +43,6 @@ def test_api_authentication_verification(test_db_session):
     # Test data
     test_business = Business(
         id="auth_test_business",
-        yelp_id="auth_test_yelp",
         name="Auth Test Business",
         website="https://authtest.example.com",
         city="Auth City",
@@ -290,7 +289,6 @@ def test_data_privacy_compliance(test_db_session):
     # Create business with business data (separate from customer data)
     business = Business(
         id="privacy_test_business",
-        yelp_id="privacy_test_yelp",
         name="Privacy Test Business",
         phone=business_phone,
         email=business_email,
@@ -551,7 +549,6 @@ def test_email_compliance(test_db_session):
     # Create test business and email data
     business = Business(
         id="email_compliance_business",
-        yelp_id="email_compliance_yelp",
         name="Email Compliance Test Business",
         email="business@emailcompliance.com",
         website="https://emailcompliance.example.com",
@@ -842,7 +839,6 @@ def test_payment_security(test_db_session):
     # Create test business and payment data
     business = Business(
         id="payment_security_business",
-        yelp_id="payment_security_yelp",
         name="Payment Security Test Business",
         website="https://paymentsec.example.com",
         city="Security City",

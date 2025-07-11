@@ -168,7 +168,7 @@ class DatabaseSetup:
         # Production indexes for performance
         indexes = [
             # Business table indexes
-            "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_business_yelp_id ON business(yelp_id)",
+            # idx_business_yelp_id removed per P0-009 - Yelp no longer supported
             "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_business_created_at ON business(created_at)",
             "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_business_location ON business USING gin(location)",
             # Assessment table indexes

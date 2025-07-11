@@ -6,7 +6,8 @@ from datetime import datetime
 
 import pytest
 
-from d2_sourcing.models import Business, SourcedLocation, YelpMetadata
+from d2_sourcing.models import Business, SourcedLocation
+# YelpMetadata removed per P0-009
 
 # Mark entire module as xfail - Yelp functionality removed
 pytestmark = pytest.mark.xfail(reason="Yelp functionality removed", strict=False)
@@ -17,7 +18,6 @@ class TestBusinessModel:
         """Test that business model has all required fields"""
         business = Business(
             name="Joe's Restaurant",
-            yelp_id="joe-restaurant-sf",
             url="https://example.com/joes-restaurant",
             phone="+14155551234",
             email="info@joesrestaurant.com",
@@ -61,7 +61,6 @@ class TestBusinessModel:
 
         # Verify all attributes are accessible
         assert business.name == "Joe's Restaurant"
-        assert business.yelp_id == "joe-restaurant-sf"
         assert business.city == "San Francisco"
         assert business.state == "CA"
         assert business.latitude == 37.7749
@@ -73,19 +72,9 @@ class TestBusinessModel:
         assert business.categories[0]["alias"] == "italian"
         assert business.raw_data["outdoor_seating"] is True
 
-    def test_yelp_id_unique_constraint(self):
-        """Test that Yelp ID unique constraint is defined"""
-        # Check that the model has the unique constraint on yelp_id
-        business_columns = Business.__table__.columns
-        yelp_id_column = business_columns["yelp_id"]
-
-        assert yelp_id_column.unique is True
-
-    def test_jsonb_fields_work(self):
         """Test that JSONB fields work correctly"""
         business = Business(
             name="Test Business",
-            yelp_id="test-business-123",
             categories=[
                 {"alias": "test", "title": "Test Category"},
                 {"alias": "sample", "title": "Sample Category"},
@@ -145,47 +134,7 @@ class TestBusinessModel:
             assert expected_index in index_names
 
 
-class TestYelpMetadataModel:
-    def test_yelp_metadata_fields(self):
-        """Test YelpMetadata model fields"""
-        business_id = str(uuid.uuid4())
-
-        metadata = YelpMetadata(
-            business_id=business_id,
-            yelp_url="https://www.yelp.com/biz/joes-restaurant",
-            photos=["photo1.jpg", "photo2.jpg"],
-            special_hours=[{"date": "2024-12-25", "is_closed": True}],
-            messaging={"use_case_text": "Request a Quote"},
-            raw_response={"id": "test", "name": "Test Business"},
-            api_version="v3",
-            processed=True,
-            enriched=False,
-            normalized=True,
-            completeness_score=0.85,
-            freshness_score=0.95,
-            accuracy_score=0.90,
-            fetch_count=3,
-        )
-
-        assert metadata.business_id == business_id
-        assert metadata.yelp_url == "https://www.yelp.com/biz/joes-restaurant"
-        assert len(metadata.photos) == 2
-        assert metadata.photos[0] == "photo1.jpg"
-        assert metadata.special_hours[0]["is_closed"] is True
-        assert metadata.messaging["use_case_text"] == "Request a Quote"
-        assert metadata.raw_response["name"] == "Test Business"
-        assert metadata.processed is True
-        assert metadata.enriched is False
-        assert metadata.completeness_score == 0.85
-        assert metadata.fetch_count == 3
-
-    def test_yelp_metadata_relationships(self):
-        """Test YelpMetadata relationships"""
-        # Verify the relationship is defined
-        assert hasattr(YelpMetadata, "business")
-        # YelpMetadata has a relationship to Business but no back_populates since
-        # Business model doesn't have yelp_metadata relationship defined
-        assert YelpMetadata.business.property.back_populates is None
+# YelpMetadataModel tests removed per P0-009
 
 
 class TestSourcedLocationModel:
@@ -239,13 +188,8 @@ class TestSourcedLocationModel:
 
 
 class TestModelRelationships:
-    def test_business_yelp_metadata_relationship(self):
-        """Test Business-YelpMetadata relationship"""
-        # Verify YelpMetadata has relationship to Business
-        assert hasattr(YelpMetadata, "business")
-        # Business model in this codebase doesn't have yelp_metadata relationship
-        # The relationship is only defined on the YelpMetadata side
-
+    # test_business_yelp_metadata_relationship removed per P0-009
+    
     def test_business_sourced_locations_relationship(self):
         """Test Business-SourcedLocation relationship"""
         # Verify SourcedLocation has relationship to Business
@@ -257,10 +201,9 @@ class TestModelRelationships:
 class TestModelDefinitions:
     def test_all_models_have_tablenames(self):
         """Test that all models have proper table names"""
-        models = [Business, YelpMetadata, SourcedLocation]
+        models = [Business, SourcedLocation]
         expected_tablenames = {
             Business: "businesses",
-            YelpMetadata: "yelp_metadata",
             SourcedLocation: "sourced_locations",
         }
 
@@ -270,7 +213,7 @@ class TestModelDefinitions:
 
     def test_primary_keys_defined(self):
         """Test that all models have UUID primary keys"""
-        models = [Business, YelpMetadata, SourcedLocation]
+        models = [Business, SourcedLocation]
 
         for model in models:
             pk_columns = [col for col in model.__table__.columns if col.primary_key]
@@ -284,10 +227,7 @@ class TestModelDefinitions:
         assert "created_at" in business_columns
         assert "updated_at" in business_columns
 
-        # YelpMetadata should have response_timestamp and last_fetched
-        metadata_columns = [col.name for col in YelpMetadata.__table__.columns]
-        assert "response_timestamp" in metadata_columns
-        assert "last_fetched" in metadata_columns
+        # YelpMetadata removed per P0-009
 
         # SourcedLocation should have discovered_at and last_updated
         location_columns = [col.name for col in SourcedLocation.__table__.columns]

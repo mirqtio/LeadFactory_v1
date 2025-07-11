@@ -65,7 +65,6 @@ def test_api_failures_handled(test_db_session):
     # Create test business for API testing
     business = Business(
         id=f"api_fail_business_{uuid4().hex[:8]}",
-        yelp_id=f"api_fail_yelp_{uuid4().hex[:8]}",
         name="API Failure Test Business",
         website="https://apifailtest.example.com",
         city="Error City",
@@ -315,7 +314,6 @@ def test_partial_results_saved(test_db_session):
     for i in range(10):
         business = Business(
             id=f"partial_business_{i}_{uuid4().hex[:8]}",
-            yelp_id=f"partial_yelp_{i}_{uuid4().hex[:8]}",
             name=f"Partial Test Business {i}",
             website=f"https://partial{i}.example.com",
             city="Partial Test City",
@@ -614,7 +612,6 @@ def test_retries_work_properly(test_db_session):
     # Create test business for retry testing
     business = Business(
         id=f"retry_test_business_{uuid4().hex[:8]}",
-        yelp_id=f"retry_test_yelp_{uuid4().hex[:8]}",
         name="Retry Test Business",
         website="https://retrytest.example.com",
         city="Retry City",
@@ -965,7 +962,6 @@ def test_no_data_corruption(test_db_session):
 
     business = Business(
         id=f"consistency_business_{uuid4().hex[:8]}",
-        yelp_id=f"consistency_yelp_{uuid4().hex[:8]}",
         name="Consistency Test Business",
         website="https://consistency.example.com",
         city="Consistency City",
@@ -1007,7 +1003,6 @@ def test_no_data_corruption(test_db_session):
             "name": "duplicate_key_handling",
             "type": "unique_constraint",
             "operations": [
-                "create_business_duplicate_yelp_id",
                 "create_email_duplicate_id",
             ],
             "expected_consistency": "unique_constraints_enforced",
@@ -1125,20 +1120,6 @@ def test_no_data_corruption(test_db_session):
                         test_db_session.add(invalid_email)
                         test_db_session.flush()  # Force constraint check
 
-                    elif operation == "create_business_duplicate_yelp_id":
-                        # Attempt to create business with duplicate yelp_id
-                        duplicate_business = Business(
-                            id=f"duplicate_business_{uuid4().hex[:8]}",
-                            yelp_id=business.yelp_id,  # Duplicate!
-                            name="Duplicate Business",
-                            website="https://duplicate.example.com",
-                            city="Duplicate City",
-                            state="CA",
-                            vertical="retail",
-                        )
-                        test_db_session.add(duplicate_business)
-                        test_db_session.flush()  # Force constraint check
-
                     elif operation == "create_email_duplicate_id":
                         # Attempt to create email with duplicate ID
                         duplicate_email = Email(
@@ -1236,21 +1217,7 @@ def test_no_data_corruption(test_db_session):
                 }
             )
 
-            # Verify unique constraints maintained
-            duplicate_businesses = (
-                test_db_session.query(Business.yelp_id)
-                .group_by(Business.yelp_id)
-                .having(test_db_session.query(Business.yelp_id).count() > 1)
-                .count()
-            )
-
-            consistency_checks.append(
-                {
-                    "check": "unique_constraints_maintained",
-                    "passed": duplicate_businesses == 0,
-                    "details": f"Found {duplicate_businesses} duplicate business yelp_ids",
-                }
-            )
+            # Unique constraint check removed - Business no longer has yelp_id field per P0-009
 
             # Verify referential integrity
             invalid_assessments = (

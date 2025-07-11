@@ -5,17 +5,22 @@ Main FastAPI application entry point
 import core.observability  # noqa: F401  (must be first import)
 
 import time
+from datetime import datetime
 
+import redis
 import uvicorn
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_client import make_asgi_app
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.exceptions import LeadFactoryError
 from core.logging import get_logger
 from core.metrics import CONTENT_TYPE_LATEST, get_metrics_response, metrics
+from database.session import get_db
 
 logger = get_logger(__name__)
 
@@ -86,13 +91,51 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 # Health check endpoint
 @app.get("/health")
-async def health_check():
-    """Health check endpoint for monitoring"""
-    return {
-        "status": "healthy",
+async def health_check(db: Session = Depends(get_db)):
+    """
+    Health check endpoint for monitoring
+    
+    Checks:
+    - Database connectivity
+    - Redis connectivity (if configured)
+    - Returns version and environment info
+    
+    Returns 200 if healthy, 503 if any critical component is down
+    """
+    health_status = {
+        "status": "ok",
+        "timestamp": datetime.utcnow().isoformat(),
         "version": settings.app_version,
         "environment": settings.environment,
     }
+    
+    # Check database connectivity
+    try:
+        # Execute a simple query to verify database connection
+        db.execute(text("SELECT 1"))
+        health_status["database"] = "connected"
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
+        health_status["status"] = "unhealthy"
+        health_status["database"] = "error"
+        # Return 503 Service Unavailable if database is down
+        return JSONResponse(
+            status_code=503,
+            content=health_status
+        )
+    
+    # Check Redis connectivity (only if Redis URL is configured)
+    if settings.redis_url and settings.redis_url != "redis://localhost:6379/0":
+        try:
+            redis_client = redis.from_url(settings.redis_url)
+            redis_client.ping()
+            health_status["redis"] = "connected"
+        except Exception as e:
+            logger.warning(f"Redis health check failed: {e}")
+            # Redis failure is not critical, just log it
+            health_status["redis"] = "error"
+    
+    return health_status
 
 
 # Custom metrics endpoint

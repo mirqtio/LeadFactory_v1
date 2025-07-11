@@ -1,0 +1,38 @@
+#!/bin/bash
+# Script to verify SSH key matching
+
+echo "SSH Key Verification"
+echo "==================="
+echo ""
+
+echo "1. To verify your GitHub secret matches the VPS key:"
+echo ""
+echo "   a) Get the fingerprint of the key on VPS:"
+echo "      ssh-keygen -lf <(echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOTSLrW1SN/qnL9+/avyUQUZ66CM68E662urmSq+j+ie leadfactory_deploy')"
+echo ""
+echo "   b) Get the fingerprint from your private key:"
+echo "      # Save your GitHub SSH_PRIVATE_KEY secret to a file"
+echo "      cat > /tmp/github_key << 'EOF'"
+echo "      [PASTE YOUR SSH_PRIVATE_KEY HERE]"
+echo "      EOF"
+echo "      chmod 600 /tmp/github_key"
+echo "      ssh-keygen -lf /tmp/github_key"
+echo ""
+echo "   c) Compare the fingerprints - they should match!"
+echo ""
+echo "2. If they don't match, you need to either:"
+echo ""
+echo "   Option A: Update GitHub secret with the correct private key"
+echo "   - Use the private key that matches the public key on VPS"
+echo ""
+echo "   Option B: Update VPS with the correct public key"
+echo "   - Extract public key from your GitHub private key:"
+echo "     ssh-keygen -y -f /tmp/github_key"
+echo "   - Replace the key in /home/deploy/.ssh/authorized_keys"
+echo ""
+
+# Also update our GitHub secrets documentation
+echo "3. Also verify your GitHub secrets match what the deploy expects:"
+echo "   - SSH_USER should be: deploy"
+echo "   - SSH_HOST should be: 96.30.197.121"
+echo "   - SSH_PORT should be: 22 (or your custom SSH port)"

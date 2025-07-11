@@ -51,7 +51,7 @@ class ConfigValidator:
             "SECRET_KEY",
             "DATABASE_URL",
             "REDIS_URL",
-            "YELP_API_KEY",
+            # "YELP_API_KEY", removed per P0-009
             "GOOGLE_PAGESPEED_API_KEY",
             "OPENAI_API_KEY",
             "STRIPE_SECRET_KEY",
@@ -204,19 +204,13 @@ class ConfigValidator:
         print("\n🔑 Validating API keys...")
 
         # Validate formats
-        self._validate_yelp_key()
+        # self._validate_yelp_key() removed per P0-009
         self._validate_pagespeed_key()
         self._validate_openai_key()
         self._validate_stripe_keys()
         self._validate_sendgrid_key()
 
-    def _validate_yelp_key(self):
-        """Validate Yelp API key format"""
-        key = self.env_vars.get("YELP_API_KEY", "")
-        if not key.startswith("Bearer "):
-            self.errors.append("YELP_API_KEY must start with 'Bearer '")
-        elif len(key) < 150:
-            self.warnings.append("YELP_API_KEY seems too short")
+    # _validate_yelp_key removed per P0-009
 
     def _validate_pagespeed_key(self):
         """Validate Google PageSpeed API key format"""

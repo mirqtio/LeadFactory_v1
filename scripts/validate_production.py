@@ -27,7 +27,7 @@ def check_config_keys():
         # Check for the field names in the Settings class
         required_keys = [
             "database_url",
-            "yelp_api_key",
+            # "yelp_api_key", removed per P0-009
             "sendgrid_api_key",
             "stripe_secret_key",
             "openai_api_key",

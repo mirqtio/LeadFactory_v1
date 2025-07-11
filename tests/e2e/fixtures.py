@@ -97,7 +97,6 @@ def sample_yelp_businesses(test_db_session, sample_targeting_criteria):
 
         business = Business(
             id=f"test_business_{unique_id}",
-            yelp_id=f"test_yelp_{unique_id}",
             name=f"{fake.company()} {unique_id}",
             phone=fake.phone_number(),
             website=f"https://{fake.domain_name()}",

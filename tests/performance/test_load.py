@@ -309,7 +309,6 @@ def test_5k_business_processing_load(test_db_session, mock_external_services):
     for i in range(5000):
         business = Business(
             id=f"load_test_business_{i:05d}",
-            yelp_id=f"load_test_yelp_{i:05d}",
             name=f"Load Test Restaurant {i+1}",
             phone=f"555-{i:04d}",
             website=f"https://restaurant{i+1}.example.com",
@@ -439,7 +438,6 @@ def test_response_time_measurement(test_db_session, mock_external_services):
     for i in range(100):
         business = Business(
             id=f"response_test_business_{i:03d}",
-            yelp_id=f"response_test_yelp_{i:03d}",
             name=f"Response Test Business {i+1}",
             phone=f"555-9{i:03d}",
             website=f"https://resptest{i+1}.example.com",
@@ -574,7 +572,6 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
     for i in range(500):
         business = Business(
             id=f"bottleneck_test_business_{i:03d}",
-            yelp_id=f"bottleneck_test_yelp_{i:03d}",
             name=f"Bottleneck Test Business {i+1}",
             city="Bottleneck City",
             state="CA",
@@ -740,7 +737,6 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
     for i in range(1000):
         business = Business(
             id=f"resource_test_business_{i:04d}",
-            yelp_id=f"resource_test_yelp_{i:04d}",
             name=f"Resource Test Business {i+1}",
             city="Resource City",
             state="CA",

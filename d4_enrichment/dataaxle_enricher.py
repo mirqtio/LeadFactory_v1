@@ -47,7 +47,7 @@ class DataAxleEnricher:
         Enrich business data using Data Axle API
 
         Args:
-            business_data: Original business data from Yelp
+            business_data: Original business data from sourcing
             business_id: Business ID for tracking
 
         Returns:

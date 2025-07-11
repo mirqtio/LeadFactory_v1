@@ -161,7 +161,7 @@ class EmailEnricher:
         results = {}
 
         for business in businesses:
-            business_id = business.get("id") or business.get("yelp_id")
+            business_id = business.get("id")
             if not business_id:
                 continue
 

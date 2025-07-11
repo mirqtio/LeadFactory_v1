@@ -20,7 +20,7 @@ jobs:
 
       - name: Remote deploy
         run: |
-          ssh -v -o StrictHostKeyChecking=accept-new -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
+          ssh -o StrictHostKeyChecking=accept-new -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
             set -e
             # clone or pull
             if [ ! -d /srv/leadfactory ]; then

@@ -219,7 +219,6 @@ class TestPhase05Integration:
         with SessionLocal() as db:
             business = Business(
                 id="test-123",
-                yelp_id="yelp-123",
                 name=test_business_data["name"],
                 zip_code=test_business_data["zip_code"],
                 categories=test_business_data["categories"],
@@ -324,7 +323,6 @@ class TestPhase05Integration:
             businesses = [
                 Business(
                     id=f"biz-{i}",
-                    yelp_id=f"yelp-{i}",
                     name=f"Business {i}",
                     geo_bucket="high-high-high",
                     vert_bucket="high-high-medium",

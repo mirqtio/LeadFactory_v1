@@ -1,0 +1,86 @@
+name: Deploy with Postgres to VPS
+# Example deployment workflow for P0-012 - adds Postgres container
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to VPS via SSH
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          # Create Docker network if it doesn't exist
+          docker network create leadfactory-net 2>/dev/null || true
+          
+          # Pull and run Postgres with named volume
+          docker pull postgres:15
+          
+          # Stop existing database if running
+          docker stop leadfactory-db || true
+          docker rm leadfactory-db || true
+          
+          # Run Postgres with persistent volume
+          docker run -d \
+            --name leadfactory-db \
+            --network leadfactory-net \
+            --restart unless-stopped \
+            -e POSTGRES_USER=lf \
+            -e POSTGRES_PASSWORD=strongpassword \
+            -e POSTGRES_DB=leadfactory \
+            -v leadfactory-pgdata:/var/lib/postgresql/data \
+            postgres:15
+          
+          # Wait for database to be ready
+          echo "Waiting for database to be ready..."
+          sleep 10
+          
+          # Pull latest app image
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          
+          # Stop existing app container
+          docker stop leadfactory || true
+          docker rm leadfactory || true
+          
+          # Run app container connected to database
+          docker run -d \
+            --name leadfactory \
+            --network leadfactory-net \
+            --restart unless-stopped \
+            -p 8000:8000 \
+            -e DATABASE_URL="postgresql://lf:strongpassword@leadfactory-db:5432/leadfactory" \
+            -e SECRET_KEY="${{ secrets.PROD_SECRET_KEY }}" \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          
+          # Run migrations
+          echo "Running database migrations..."
+          docker exec leadfactory alembic upgrade head
+          
+          # Optional: Set up automated backups
+          # docker run -d \
+          #   --name pg-backup \
+          #   --network leadfactory-net \
+          #   -e POSTGRES_HOST=leadfactory-db \
+          #   -e POSTGRES_USER=lf \
+          #   -e POSTGRES_PASSWORD=strongpassword \
+          #   -e POSTGRES_DB=leadfactory \
+          #   -e SCHEDULE="@daily" \
+          #   -v /backups:/backup \
+          #   schickling/postgres-backup-s3
+    
+    - name: Health check
+      run: |
+        sleep 30
+        curl -f https://${{ secrets.VPS_HOST }}/health || exit 1

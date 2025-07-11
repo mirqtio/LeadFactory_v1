@@ -20,13 +20,14 @@ tenacity==8.2.3
 redis==5.0.1
 
 # API integrations
-stripe==7.8.0
+stripe==7.10.0  # Updated from yanked 7.8.0
 sendgrid==6.11.0
 openai==1.6.1
 
 # Data processing
 pandas==2.1.4
 numpy==1.26.2
+beautifulsoup4==4.12.2  # HTML parsing for assessments
 
 # Geographic data processing
 geopy==2.4.1
@@ -48,6 +49,7 @@ jinja2==3.1.2
 
 # Workflow orchestration
 prefect==2.14.9
+griffe==0.38.1  # Required version for prefect compatibility
 
 # Security
 cryptography==41.0.7
@@ -55,7 +57,7 @@ pyjwt==2.8.0
 passlib[bcrypt]==1.7.4
 
 # Email validation
-email-validator==2.1.0
+email-validator==2.1.1  # Updated from yanked 2.1.0
 
 # Error tracking
 sentry-sdk[fastapi]==1.*

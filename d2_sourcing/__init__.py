@@ -1,7 +1,7 @@
 """
-D2 Sourcing - Yelp data acquisition with deduplication
+D2 Sourcing - Business data acquisition with deduplication
 
-Handles business data sourcing from Yelp API with intelligent deduplication,
+Handles business data sourcing with intelligent deduplication,
 data normalization, and quality scoring.
 """
 
@@ -31,30 +31,26 @@ from .exceptions import (
     ErrorRecoveryException,
     PaginationException,
     SourcingException,
-    YelpAPIException,
-    YelpQuotaExceededException,
-    YelpRateLimitException,
 )
-from .models import SourcedLocation, YelpMetadata
-from .yelp_scraper import (
-    ScrapingResult,
-    ScrapingStatus,
-    YelpScraper,
-    scrape_businesses_by_location,
-    scrape_businesses_by_term,
-)
+from .models import SourcedLocation
+# from .yelp_scraper import (
+#     ScrapingResult,
+#     ScrapingStatus,
+#     YelpScraper,
+#     scrape_businesses_by_location,
+#     scrape_businesses_by_term,
+# )  # Yelp removed per P0-009
 
 __all__ = [
     # Models
     "Business",
-    "YelpMetadata",
     "SourcedLocation",
-    # Scraper
-    "YelpScraper",
-    "ScrapingResult",
-    "ScrapingStatus",
-    "scrape_businesses_by_location",
-    "scrape_businesses_by_term",
+    # Scraper - removed per P0-009
+    # "YelpScraper",
+    # "ScrapingResult",
+    # "ScrapingStatus",
+    # "scrape_businesses_by_location",
+    # "scrape_businesses_by_term",
     # Deduplicator
     "BusinessDeduplicator",
     "DuplicateMatch",
@@ -73,9 +69,6 @@ __all__ = [
     "process_multiple_locations",
     # Exceptions
     "SourcingException",
-    "YelpAPIException",
-    "YelpRateLimitException",
-    "YelpQuotaExceededException",
     "BatchQuotaException",
     "PaginationException",
     "ErrorRecoveryException",

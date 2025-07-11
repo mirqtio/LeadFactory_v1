@@ -1,76 +1,45 @@
-  # CLAUDE.md - Mandatory Rules (NEVER DEVIATE)
+🧱 Code Structure & Modularity
+Never create a file longer than 500 lines of code. If a file approaches this limit, refactor by splitting it into modules or helper files.
+Organize code into clearly separated modules, grouped by feature or responsibility. For agents this looks like:
+agent.py - Main agent definition and execution logic
+tools.py - Tool functions used by the agent
+prompts.py - System prompts
+Use clear, consistent imports (prefer relative imports within packages).
+Use clear, consistent imports (prefer relative imports within packages).
+Use python_dotenv and load_env() for environment variables.
+🧪 Testing & Reliability
+Always create Pytest unit tests for new features (functions, classes, routes, etc).
+After updating any logic, check whether existing unit tests need to be updated. If so, do it.
+Tests should live in a /tests folder mirroring the main app structure.
+Include at least:
+1 test for expected use
+1 edge case
+1 failure case
+✅ Task Completion
+Mark completed tasks in TASK.md immediately after finishing them.
+Add new sub-tasks or TODOs discovered during development to TASK.md under a “Discovered During Work” section.
+📎 Style & Conventions
+Use Python as the primary language.
+Follow PEP8, use type hints, and format with black.
+Use pydantic for data validation.
+Use FastAPI for APIs and SQLAlchemy or SQLModel for ORM if applicable.
+Write docstrings for every function using the Google style:
+def example():
+    """
+    Brief summary.
 
-  ## CRITICAL WORKFLOW RULES
-  1. **After every auto-compact**: IMMEDIATELY review @planning/README.md before doing ANY other work
-  2. **Never work around requirements** - If blocked, ask for clarification, don't improvise
-  3. **Follow the plan precisely** - Use taskmaster_plan.json as the single source of truth
-  4. **Task completion definition**: A task is ONLY complete when ALL of these are met:
-     - ✅ All tests pass in Docker environment 
-     - ✅ Code merged into main branch
-     - ✅ CI shows "conclusion": "success" (not "in_progress" or "failure")
-     - ✅ Task marked "completed" in @planning/task_status.json
-  5. **Test integrity**: Do not make tests fail gracefully when the point is to detect failures
+    Args:
+        param1 (type): Description.
 
-  ## MANDATORY TASK WORKFLOW (NEVER SKIP STEPS)
-  1. **Start**: Run `python3 planning/get_next_task.py` to get next task
-  2. **Begin**: Mark task as "in_progress" in task_status.json  
-  3. **Implement**: Follow acceptance criteria exactly from taskmaster_plan.json
-  4. **Test**: Run tests locally, then in Docker - both MUST pass
-  5. **Commit**: Create descriptive git commit and push to main
-  6. **Verify CI**: Wait for CI status to be "success" (use GitHub API to confirm)
-  7. **Complete**: Mark task "completed" in task_status.json
-  8. **CONTINUE**: Immediately run get_next_task.py and start next task
-  9. **NEVER STOP**: Repeat until all 100 tasks are complete
-
-  ## BLOCKING CONDITIONS (MUST CHECK BEFORE PROCEEDING)
-  - [ ] @planning/README.md has been reviewed (if after auto-compact)
-  - [ ] Current task dependencies are satisfied
-  - [ ] Previous task is fully complete per rule #4
-  - [ ] CI status is "success" for latest commit
-  - [ ] Next task ID retrieved from get_next_task.py
-
-  ## COMPLIANCE VERIFICATION COMMANDS
-  ```bash
-  # Check CI status for latest commit
-  curl -s -H "Accept: application/vnd.github.v3+json" \
-    https://api.github.com/repos/mirqtio/LeadFactory_v1/actions/runs | \
-    jq '.workflow_runs[0] | {name, status, conclusion, head_sha}'
-
-  # Get next task
-  python3 planning/get_next_task.py
-
-  # Run Docker tests
-  docker build -t test-app . && docker run --rm test-app python3 -m pytest [test_path] -v
-
-  FAILURE RECOVERY
-
-  If any step fails:
-  1. DO NOT PROCEED to next task
-  2. FIX THE ISSUE completely
-  3. RE-RUN ALL STEPS from the beginning
-  4. VERIFY COMPLIANCE before continuing
-
-  CONTINUOUS EXECUTION MANDATE
-
-  - NEVER STOP after completing one task
-  - IMMEDIATELY CONTINUE to next task after completion
-  - WORK THROUGH ALL 100 TASKS systematically
-  - ASK FOR PERMISSION only if genuinely blocked
-  - DEFAULT TO CONTINUING work on next available task
-
-  ERROR HANDLING
-
-  - NO WORKAROUNDS - Fix root causes
-  - NO SHORTCUTS - Follow every step
-  - NO ASSUMPTIONS - Verify everything
-  - ASK QUESTIONS only when truly blocked
-
-  ## Key Improvements in This Version:
-
-  1. **Explicit Workflow Steps**: Clear numbered steps that must be followed in order
-  2. **Blocking Conditions**: Checklist format that forces verification
-  3. **Continuous Execution Mandate**: Makes it impossible to stop after one task
-  4. **Specific Commands**: Exact commands to verify compliance
-  5. **Failure Recovery Process**: Clear instructions for when things go wrong
-  6. **CI Verification**: Specific API calls to confirm CI status
-  7. **No Ambiguity**: Every rule is explicit and actionable
+    Returns:
+        type: Description.
+    """
+📚 Documentation & Explainability
+Update README.md when new features are added, dependencies change, or setup steps are modified.
+Comment non-obvious code and ensure everything is understandable to a mid-level developer.
+When writing complex logic, add an inline # Reason: comment explaining the why, not just the what.
+🧠 AI Behavior Rules
+Never assume missing context. Ask questions if uncertain.
+Never hallucinate libraries or functions – only use known, verified Python packages.
+Always confirm file paths and module names exist before referencing them in code or tests.
+Never delete or overwrite existing code unless explicitly instructed to or if part of a task 

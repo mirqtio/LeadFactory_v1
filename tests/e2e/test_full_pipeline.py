@@ -104,7 +104,6 @@ def test_complete_flow_works(
     for i in range(5):
         business = Business(
             id=f"pipeline_business_{i:03d}",
-            yelp_id=f"yelp_pipeline_{i:03d}",
             name=f"Pipeline Restaurant {i+1}",
             phone=f"555-010{i:04d}",
             website=f"https://restaurant{i+1}.example.com",
@@ -789,7 +788,6 @@ def test_full_pipeline_integration(
         # Create business
         business = Business(
             id=f"integration_business_{i:03d}",
-            yelp_id=f"integration_yelp_{i:03d}",
             name=f"Integration Test Business {i+1}",
             website=f"https://business{i+1}.example.com",
             phone=f"555-111{i:04d}",

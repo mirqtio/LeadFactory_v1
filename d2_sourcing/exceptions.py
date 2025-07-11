@@ -12,54 +12,7 @@ class SourcingException(Exception):
     pass
 
 
-class YelpAPIException(SourcingException):
-    """Yelp API specific errors"""
-
-    def __init__(self, message: str, status_code: int = None, error_code: str = None):
-        super().__init__(message)
-        self.status_code = status_code
-        self.error_code = error_code
-
-    def __str__(self):
-        if self.status_code:
-            return f"Yelp API Error {self.status_code}: {super().__str__()}"
-        return super().__str__()
-
-
-class YelpRateLimitException(YelpAPIException):
-    """Yelp API rate limit exceeded"""
-
-    def __init__(self, message: str = "Rate limit exceeded", retry_after: int = None):
-        super().__init__(message, status_code=429)
-        self.retry_after = retry_after
-
-    def __str__(self):
-        if self.retry_after:
-            return f"{super().__str__()} - Retry after {self.retry_after} seconds"
-        return super().__str__()
-
-
-class YelpQuotaExceededException(YelpAPIException):
-    """Daily/monthly quota exceeded"""
-
-    def __init__(self, message: str = "API quota exceeded", quota_type: str = "daily"):
-        super().__init__(message, status_code=429)
-        self.quota_type = quota_type
-
-
-class YelpAuthenticationException(YelpAPIException):
-    """Invalid API key or authentication failure"""
-
-    def __init__(self, message: str = "Authentication failed"):
-        super().__init__(message, status_code=401)
-
-
-class YelpBusinessNotFoundException(YelpAPIException):
-    """Business not found on Yelp"""
-
-    def __init__(self, business_id: str):
-        super().__init__(f"Business not found: {business_id}", status_code=404)
-        self.business_id = business_id
+# Yelp exceptions removed per P0-009 - Yelp provider no longer supported
 
 
 class PaginationException(SourcingException):

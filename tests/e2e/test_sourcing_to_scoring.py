@@ -1,11 +1,11 @@
 """
 End-to-end test for complete sourcing to scoring flow - Task 081
 
-This test validates the complete data pipeline from Yelp business sourcing
+This test validates the complete data pipeline from business sourcing
 through assessment and scoring, ensuring all components work together correctly.
 
 Acceptance Criteria:
-- Yelp → Assessment flow ✓
+- Sourcing → Assessment flow ✓
 - Scoring applied correctly ✓  
 - Data consistency verified ✓
 - Performance benchmarked ✓
@@ -45,7 +45,7 @@ async def test_yelp_to_assessment_flow(
     sample_targeting_criteria,
     performance_monitor,
 ):
-    """Yelp → Assessment flow - Verify complete flow from Yelp sourcing to assessment"""
+    """Sourcing → Assessment flow - Verify complete flow from business sourcing to assessment"""
 
     # Initialize coordinators with session
     sourcing_coordinator = SourcingCoordinator(session=test_db_session)
@@ -57,7 +57,6 @@ async def test_yelp_to_assessment_flow(
     # Create a test business to simulate sourcing output
     test_business = Business(
         id="test-business-001",
-        yelp_id="test-yelp-001",
         name="Test Restaurant NYC",
         website="https://test-restaurant-nyc.com",
         phone="+1-555-123-4567",
@@ -148,7 +147,6 @@ def test_scoring_applied_correctly(
     # Create test business with assessment
     test_business = Business(
         id="test-business-scoring",
-        yelp_id="test-yelp-scoring",
         name="Test Business for Scoring",
         website="https://test-business.com",
         city="New York",
@@ -253,7 +251,6 @@ async def test_data_consistency_verified(
     # Step 1: Create business to simulate sourcing
     test_business = Business(
         id="consistency-test-001",
-        yelp_id="yelp-consistency-001",
         name="Consistency Test Business",
         website="https://consistency-test.com",
         phone="+1-555-999-0001",
@@ -274,7 +271,6 @@ async def test_data_consistency_verified(
 
     # Verify initial data consistency
     initial_business_count = test_db_session.query(Business).count()
-    assert test_business.yelp_id == "yelp-consistency-001"
     assert test_business.name == "Consistency Test Business"
 
     # Step 2: Run assessment
@@ -373,7 +369,6 @@ async def test_performance_benchmarked(
     for i in range(5):
         business = Business(
             id=f"perf-test-{i:03d}",
-            yelp_id=f"yelp-perf-{i:03d}",
             name=f"Performance Test Business {i}",
             website=f"https://perf-test-{i}.com",
             phone=f"+1-555-{i:03d}-0000",
@@ -488,7 +483,6 @@ async def test_complete_sourcing_to_scoring_integration(
     # 1. Create integration test business
     business = Business(
         id="integration-test-001",
-        yelp_id="yelp-integration-001",
         name="Integration Test Restaurant",
         website="https://integration-test-restaurant.com",
         phone="+1-555-INTEGRATION",
@@ -568,7 +562,6 @@ async def test_complete_sourcing_to_scoring_integration(
     # Comprehensive validation
 
     # ✓ Yelp → Assessment flow
-    assert business.yelp_id == "yelp-integration-001"
     assert assessment.business_id == business.id
     assert assessment.pagespeed_score == 92
 

@@ -1,6 +1,22 @@
 """Email builder for audit report teasers."""
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple
 from d3_assessment.audit_schema import AuditFinding, FindingSeverity, FindingCategory
+from d8_personalization.models import EmailTemplate
+
+
+@dataclass
+class PersonalizationData:
+    """Data structure for email personalization"""
+    business_name: str
+    contact_name: Optional[str] = None
+    contact_first_name: Optional[str] = None
+    business_category: Optional[str] = None
+    business_location: Optional[str] = None
+    issues_found: Optional[List[Dict[str, str]]] = None
+    assessment_score: Optional[float] = None
+    report_url: Optional[str] = None
+    custom_data: Optional[Dict[str, Any]] = None
 
 
 def select_email_findings(
@@ -238,3 +254,71 @@ def prepare_email_context(
         )
 
     return context
+
+
+class EmailBuilder:
+    """Email builder with template support"""
+    
+    def __init__(self):
+        self.templates = {}
+        # Add default templates
+        self.templates["audit_teaser"] = EmailTemplate()
+        self.templates["report_ready"] = EmailTemplate()
+    
+    def add_template(self, template: EmailTemplate):
+        """Add a custom template"""
+        if hasattr(template, 'name'):
+            self.templates[template.name] = template
+    
+    def get_template_names(self) -> List[str]:
+        """Get list of available template names"""
+        return list(self.templates.keys())
+    
+    def build_email(self, template_name: str = "audit_teaser", 
+                   personalization: Optional[PersonalizationData] = None,
+                   to_email: Optional[str] = None,
+                   to_name: Optional[str] = None) -> Dict[str, Any]:
+        """Build email from template and personalization data"""
+        if template_name not in self.templates:
+            raise ValueError(f"Template {template_name} not found")
+        
+        # Basic email structure
+        email = {
+            "to": to_email or "test@example.com",
+            "to_name": to_name or personalization.contact_name if personalization else None,
+            "subject": f"Website Analysis for {personalization.business_name}" if personalization else "Website Analysis",
+            "html_content": f"<p>Analysis ready for {personalization.business_name}</p>" if personalization else "<p>Analysis ready</p>",
+            "categories": ["audit", "leadfactory"],
+            "custom_args": {"template": template_name}
+        }
+        
+        return email
+
+
+def create_personalization_data(business_name: str, **kwargs) -> PersonalizationData:
+    """Create personalization data from business info"""
+    return PersonalizationData(business_name=business_name, **kwargs)
+
+
+def build_audit_email(business_name: str, findings: List[AuditFinding], 
+                     contact_email: str, **kwargs) -> Dict[str, Any]:
+    """Build audit email from findings"""
+    # Select key findings for email
+    email_findings = select_email_findings(findings)
+    
+    # Create personalization
+    personalization = PersonalizationData(
+        business_name=business_name,
+        issues_found=[
+            {"title": finding.title, "suggestion": finding.recommendation}
+            for finding in findings[:2]  # First 2 findings
+        ]
+    )
+    
+    # Build email
+    builder = EmailBuilder()
+    return builder.build_email(
+        template_name="audit_teaser",
+        personalization=personalization,
+        to_email=contact_email
+    )

@@ -24,6 +24,9 @@ jobs:
           
           echo "All secrets are set ✓"
           
+          # Show connection details (without exposing sensitive data)
+          echo "Connecting to: $SSH_USER@$SSH_HOST:$SSH_PORT"
+          
           # Setup SSH
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa

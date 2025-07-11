@@ -39,10 +39,11 @@ from .exceptions import (
     DeduplicationException,
     ErrorRecoveryException,
     SourcingException,
-    YelpAPIException,
 )
-from .models import SourcedLocation, YelpMetadata
-from .yelp_scraper import ScrapingResult, ScrapingStatus, YelpScraper
+from .models import SourcedLocation
+# from .yelp_scraper import ScrapingResult, ScrapingStatus, YelpScraper  # Yelp removed per P0-009
+
+# Yelp scraper classes removed per P0-009
 
 
 class CoordinatorStatus(Enum):
@@ -194,7 +195,7 @@ class SourcingCoordinator:
 
         try:
             # Initialize scraper
-            self.scraper = YelpScraper(session=self.session)
+            # self.scraper = YelpScraper(session=self.session)  # Yelp removed - stub for now
 
             self.status = CoordinatorStatus.IDLE
             self.logger.info("Sourcing coordinator initialized successfully")
@@ -299,88 +300,22 @@ class SourcingCoordinator:
             )
 
     async def _process_scraping_phase(self, batch: SourcingBatch):
-        """Process the scraping phase of a batch"""
+        """Process the scraping phase of a batch - Yelp removed per P0-009"""
         self.status = CoordinatorStatus.SCRAPING
         phase_start = time.time()
 
         try:
-            # Build search parameters
-            search_params = {}
-            if batch.categories:
-                search_params["categories"] = batch.categories
-
-            if batch.search_terms:
-                # Process multiple search terms
-                all_businesses = []
-                for term in batch.search_terms:
-                    result = await self.scraper.search_businesses(
-                        location=batch.location,
-                        term=term,
-                        max_results=batch.max_results // len(batch.search_terms),
-                        **search_params,
-                    )
-
-                    if result.status == ScrapingStatus.COMPLETED:
-                        all_businesses.extend(result.businesses)
-                    else:
-                        self.metrics.scraping_errors += 1
-                        if result.status == ScrapingStatus.QUOTA_EXCEEDED:
-                            self.metrics.quota_exceeded_count += 1
-                            raise BatchQuotaException("Scraping quota exceeded")
-
-                # Combine results
-                scraping_result = ScrapingResult(
-                    status=ScrapingStatus.COMPLETED,
-                    total_results=len(all_businesses),
-                    fetched_count=len(all_businesses),
-                    error_count=0,
-                    quota_used=len(batch.search_terms),
-                    duration_seconds=time.time() - phase_start,
-                    businesses=all_businesses,
-                )
-            else:
-                # Single location-based search
-                scraping_result = await self.scraper.search_businesses(
-                    location=batch.location,
-                    max_results=batch.max_results,
-                    **search_params,
-                )
-
-            # Process scraping results
-            if scraping_result.status == ScrapingStatus.COMPLETED:
-                batch.scraped_count = len(scraping_result.businesses)
-                batch.total_expected = scraping_result.total_results
-
-                # Save scraped businesses to database
-                for business_data in scraping_result.businesses:
-                    try:
-                        business_id = await self.scraper.save_business_data(
-                            business_data
-                        )
-                        self.logger.debug(f"Saved business {business_id}")
-                    except Exception as e:
-                        self.logger.warning(f"Failed to save business: {e}")
-                        self.metrics.scraping_errors += 1
-
-                self.metrics.total_businesses_scraped += batch.scraped_count
-
-            else:
-                # Handle scraping failures
-                self.metrics.scraping_errors += 1
-                if scraping_result.status == ScrapingStatus.QUOTA_EXCEEDED:
-                    self.metrics.quota_exceeded_count += 1
-                    raise BatchQuotaException(
-                        "Scraping quota exceeded during batch processing"
-                    )
-                else:
-                    raise SourcingException(
-                        f"Scraping failed: {scraping_result.error_message}"
-                    )
+            # Yelp scraping removed - this would now use DataAxle or other providers
+            # For now, just set empty results
+            batch.scraped_count = 0
+            batch.total_expected = 0
+            
+            self.logger.info(
+                "Scraping phase skipped - Yelp provider removed. "
+                "DataAxle integration pending."
+            )
 
             batch.scraping_time = time.time() - phase_start
-            self.logger.info(
-                f"Scraping phase completed: {batch.scraped_count} businesses in {batch.scraping_time:.2f}s"
-            )
 
         except Exception as e:
             batch.scraping_time = time.time() - phase_start

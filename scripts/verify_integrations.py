@@ -6,7 +6,7 @@ Verifies connectivity and configuration for all external API integrations
 required for LeadFactory production deployment.
 
 Acceptance Criteria:
-- Yelp API connected ✓
+- External APIs connected ✓
 - SendGrid verified ✓
 - Stripe test mode ✓  
 - All APIs responsive ✓
@@ -42,7 +42,7 @@ class IntegrationVerifier:
 
         # Load API keys from environment
         self.api_keys = {
-            "yelp": os.getenv("YELP_API_KEY", ""),
+            # "yelp": removed per P0-009 - Yelp provider no longer supported
             "google_pagespeed": os.getenv("GOOGLE_PAGESPEED_API_KEY", ""),
             "openai": os.getenv("OPENAI_API_KEY", ""),
             "stripe_secret": os.getenv("STRIPE_SECRET_KEY", ""),
@@ -58,87 +58,7 @@ class IntegrationVerifier:
         if self.api_keys["stripe_secret"]:
             stripe.api_key = self.api_keys["stripe_secret"]
 
-    def verify_yelp_integration(self) -> bool:
-        """Verify Yelp Business API integration"""
-        service = "yelp"
-        print(f"🍽️  Verifying {service.upper()} integration...")
-
-        try:
-            if self.use_stubs:
-                url = f"{self.stub_base_url}/yelp/v3/businesses/search"
-                headers = {"Authorization": "Bearer stub_token"}
-            else:
-                url = "https://api.yelp.com/v3/businesses/search"
-                if not self.api_keys["yelp"]:
-                    self.errors.append("YELP_API_KEY not configured")
-                    return False
-                headers = {"Authorization": self.api_keys["yelp"]}
-
-            # Test business search with minimal parameters
-            params = {"term": "restaurant", "location": "San Francisco, CA", "limit": 1}
-
-            start_time = time.time()
-            response = requests.get(url, headers=headers, params=params, timeout=10)
-            response_time = time.time() - start_time
-
-            if response.status_code == 200:
-                data = response.json()
-                businesses = data.get("businesses", [])
-                total_results = data.get("total", 0)
-
-                self.results[service] = {
-                    "status": "connected",
-                    "response_time": response_time,
-                    "details": {
-                        "test_query": params,
-                        "results_returned": len(businesses),
-                        "total_available": total_results,
-                        "api_endpoint": url.split("/v3")[0] + "/v3",
-                        "rate_limit_remaining": response.headers.get(
-                            "RateLimit-Remaining"
-                        ),
-                        "rate_limit_reset": response.headers.get("RateLimit-ResetTime"),
-                    },
-                }
-
-                print(
-                    f"✅ {service.upper()} API connected (response time: {response_time:.3f}s)"
-                )
-                print(
-                    f"   Found {len(businesses)} businesses, {total_results} total available"
-                )
-
-                if response.headers.get("RateLimit-Remaining"):
-                    remaining = int(response.headers.get("RateLimit-Remaining", 0))
-                    print(f"   Rate limit: {remaining} requests remaining")
-                    if remaining < 100:
-                        self.warnings.append(
-                            f"Yelp API rate limit low: {remaining} requests remaining"
-                        )
-
-                return True
-            else:
-                error_detail = (
-                    response.text[:200] if response.text else "No error details"
-                )
-                self.results[service] = {
-                    "status": "error",
-                    "error": f"HTTP {response.status_code}: {error_detail}",
-                }
-                self.errors.append(f"Yelp API returned HTTP {response.status_code}")
-                return False
-
-        except requests.exceptions.ConnectionError:
-            self.results[service] = {
-                "status": "unreachable",
-                "error": "Connection failed",
-            }
-            self.errors.append(f"Cannot connect to Yelp API")
-            return False
-        except Exception as e:
-            self.results[service] = {"status": "error", "error": str(e)}
-            self.errors.append(f"Yelp API verification failed: {e}")
-            return False
+    # verify_yelp_integration removed per P0-009 - Yelp provider no longer supported
 
     def verify_google_pagespeed_integration(self) -> bool:
         """Verify Google PageSpeed Insights API integration"""
@@ -491,11 +411,11 @@ class IntegrationVerifier:
             if not self.test_stub_server():
                 print("⚠️  Continuing without stub server...")
 
-        all_services = ["yelp", "google_pagespeed", "openai", "stripe", "sendgrid"]
+        all_services = ["google_pagespeed", "openai", "stripe", "sendgrid"]  # yelp removed per P0-009
         services_to_verify = services or all_services
 
         verification_methods = {
-            "yelp": self.verify_yelp_integration,
+            # "yelp": removed per P0-009
             "google_pagespeed": self.verify_google_pagespeed_integration,
             "openai": self.verify_openai_integration,
             "stripe": self.verify_stripe_integration,

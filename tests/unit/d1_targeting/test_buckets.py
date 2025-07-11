@@ -135,7 +135,6 @@ class TestBuckets:
         # Create a test business
         business = Business(
             id="test-123",
-            yelp_id="yelp-123",
             name="Test Business",
             city="San Francisco",
             state="CA",

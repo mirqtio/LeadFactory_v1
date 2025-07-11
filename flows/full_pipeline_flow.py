@@ -36,15 +36,15 @@ except ImportError:
         return logging.getLogger(__name__)
 
 # Import coordinators and necessary modules
-from d1_targeting.models import TargetBusiness
+from database.models import Target
 from d2_sourcing.coordinator import SourcingCoordinator
 from d3_assessment.coordinator import AssessmentCoordinator
 from d4_enrichment.coordinator import EnrichmentCoordinator
-from d5_scoring.calculator import ScoreCalculator
+from d5_scoring import ScoringEngine
 from d6_reports.generator import ReportGenerator
-from d8_personalization.generator import PersonalizationGenerator
-from d9_delivery.email_sender import EmailSender
-from database.session import get_db_context
+from d8_personalization.content_generator import AdvancedContentGenerator
+from d9_delivery.delivery_manager import DeliveryManager
+from database.session import get_db
 
 
 # Task definitions with error handling and retries
@@ -182,7 +182,7 @@ async def calculate_score(business_data: Dict[str, Any]) -> Dict[str, Any]:
     logger.info(f"🧮 Calculating score for business: {business_data['id']}")
     
     try:
-        calculator = ScoreCalculator()
+        calculator = ScoringEngine()
         
         # Extract assessment data
         assessment_data = business_data.get("assessment_data", {})
@@ -274,8 +274,8 @@ async def send_email(business_data: Dict[str, Any]) -> Dict[str, Any]:
             email = "test@example.com"
             logger.warning("No email found, using test email")
         
-        sender = EmailSender()
-        personalizer = PersonalizationGenerator()
+        sender = DeliveryManager()
+        personalizer = AdvancedContentGenerator()
         
         # Generate personalized email content
         email_content = await personalizer.generate_email_content(

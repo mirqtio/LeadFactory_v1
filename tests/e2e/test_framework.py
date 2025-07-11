@@ -55,7 +55,6 @@ def test_data_seeding_works(sample_targeting_criteria, sample_yelp_businesses):
 
     # Verify business data
     assert len(sample_yelp_businesses) == 5
-    assert all(b.yelp_id.startswith("test_yelp_") for b in sample_yelp_businesses)
 
     # Verify business data structure
     for business in sample_yelp_businesses:

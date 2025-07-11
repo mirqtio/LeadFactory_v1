@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 from core.config import get_settings
 from core.exceptions import EmailDeliveryError, ValidationError
 from d9_delivery.compliance import ComplianceManager
-from d9_delivery.email_builder import prepare_email_context
+from d9_delivery.email_builder import prepare_email_context, PersonalizationData
 from d9_delivery.models import DeliveryEvent, DeliveryStatus, EmailDelivery, EventType
 from d9_delivery.sendgrid_client import EmailData, SendGridClient, SendGridResponse
 from database.session import SessionLocal

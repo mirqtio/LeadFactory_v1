@@ -31,7 +31,7 @@ from database.models import Business
 from database.session import SessionLocal
 
 from .exceptions import DataValidationException, DeduplicationException
-from .models import SourcedLocation, YelpMetadata
+from .models import SourcedLocation
 
 
 class MatchConfidence(Enum):
@@ -697,10 +697,7 @@ class BusinessDeduplicator:
             primary_business.id, [b.id for b in secondary_businesses]
         )
 
-        # Update Yelp metadata mappings
-        self._update_yelp_metadata(
-            primary_business.id, [b.id for b in secondary_businesses]
-        )
+        # Yelp metadata updates removed per P0-009
 
         self.session.commit()
 
@@ -819,29 +816,7 @@ class BusinessDeduplicator:
                 SourcedLocation.business_id == merged_id
             ).update({"business_id": primary_id, "last_updated": update_time})
 
-    def _update_yelp_metadata(self, primary_id: str, merged_ids: List[str]):
-        """Update Yelp metadata mappings after merge"""
-        # Acceptance Criteria: Update timestamps properly
-        update_time = datetime.utcnow()
-
-        for merged_id in merged_ids:
-            # Check if primary already has Yelp metadata
-            existing_primary = (
-                self.session.query(YelpMetadata)
-                .filter(YelpMetadata.business_id == primary_id)
-                .first()
-            )
-
-            if not existing_primary:
-                # Move the Yelp metadata to primary
-                self.session.query(YelpMetadata).filter(
-                    YelpMetadata.business_id == merged_id
-                ).update({"business_id": primary_id, "last_fetched": update_time})
-            else:
-                # Mark secondary metadata as merged
-                self.session.query(YelpMetadata).filter(
-                    YelpMetadata.business_id == merged_id
-                ).update({"processed": True, "last_fetched": update_time})
+    # _update_yelp_metadata method removed per P0-009
 
     def _mark_for_manual_review(self, cluster: Set[str]):
         """Mark a business cluster for manual review"""

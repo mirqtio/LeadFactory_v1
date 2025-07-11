@@ -24,52 +24,7 @@ from database.base import Base
 from database.models import Business
 
 
-class YelpMetadata(Base):
-    """Yelp-specific metadata for businesses"""
-
-    __tablename__ = "yelp_metadata"
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    business_id = Column(
-        String(36), ForeignKey("businesses.id"), nullable=False, unique=True
-    )
-
-    # Yelp-specific fields
-    yelp_url = Column(String(500), nullable=True)
-    photos = Column(JSON, nullable=True)  # Array of photo URLs
-    special_hours = Column(JSON, nullable=True)  # Special/holiday hours
-    messaging = Column(JSON, nullable=True)  # Messaging info
-
-    # API response metadata
-    raw_response = Column(JSON, nullable=True)  # Full Yelp API response
-    api_version = Column(String(20), nullable=True)
-    response_timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
-
-    # Data processing flags
-    processed = Column(Boolean, nullable=False, default=False)
-    enriched = Column(Boolean, nullable=False, default=False)
-    normalized = Column(Boolean, nullable=False, default=False)
-
-    # Quality metrics
-    completeness_score = Column(Float, nullable=True)  # How complete is the data
-    freshness_score = Column(Float, nullable=True)  # How recent is the data
-    accuracy_score = Column(Float, nullable=True)  # Estimated accuracy
-
-    # Update tracking
-    last_fetched = Column(DateTime, nullable=False, default=datetime.utcnow)
-    fetch_count = Column(Integer, nullable=False, default=1)
-    last_changed = Column(DateTime, nullable=True)
-
-    # Relationships
-    business = relationship("Business")
-
-    __table_args__ = (
-        Index("idx_yelp_metadata_processed", "processed", "enriched"),
-        Index("idx_yelp_metadata_freshness", "last_fetched", "freshness_score"),
-    )
-
-    def __repr__(self):
-        return f"<YelpMetadata(business_id={self.business_id}, processed={self.processed})>"
+# YelpMetadata class removed per P0-009 - Yelp provider no longer supported
 
 
 class SourcedLocation(Base):

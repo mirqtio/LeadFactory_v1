@@ -77,7 +77,6 @@ class HVACNormalVariant(SmokeTestVariant):
             vertical="hvac",
             fixture_data={
                 "name": "SMOKE TEST HVAC Company",
-                "yelp_id": f"smoke_hvac_{int(time.time())}",
                 "email": "smoke-test@example.com",
                 "phone": "+1234567890",
                 "url": "https://example.com",
@@ -110,7 +109,6 @@ class HVACNegativeVariant(SmokeTestVariant):
             vertical="hvac",
             fixture_data={
                 "name": "SMOKE TEST HVAC Slow",
-                "yelp_id": f"smoke_hvac_slow_{int(time.time())}",
                 "email": "smoke-slow@example.com",
                 "phone": "+1234567891",
                 "url": "https://slow-example.com",
@@ -156,7 +154,6 @@ class RestaurantEmailFailVariant(SmokeTestVariant):
             vertical="restaurant",
             fixture_data={
                 "name": "SMOKE TEST Restaurant",
-                "yelp_id": f"smoke_restaurant_{int(time.time())}",
                 "email": "bad@@example",  # Invalid email
                 "phone": "+1234567892",
                 "url": "https://restaurant.example.com",
@@ -189,7 +186,6 @@ class LawyerStripeErrorVariant(SmokeTestVariant):
             vertical="lawyer",
             fixture_data={
                 "name": "SMOKE TEST Law Firm",
-                "yelp_id": f"smoke_lawyer_{int(time.time())}",
                 "email": "smoke-lawyer@example.com",
                 "phone": "+1234567893",
                 "url": "https://lawfirm.example.com",
@@ -225,7 +221,6 @@ class RotatingVerticalVariant(SmokeTestVariant):
             vertical=vertical,
             fixture_data={
                 "name": f"SMOKE TEST {vertical.title()} Business",
-                "yelp_id": f"smoke_{vertical}_{int(time.time())}",
                 "email": f"smoke-{vertical}@example.com",
                 "phone": "+1234567894",
                 "url": f"https://{vertical}.example.com",

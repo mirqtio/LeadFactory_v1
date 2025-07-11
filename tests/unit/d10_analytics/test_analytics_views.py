@@ -95,14 +95,12 @@ class TestAnalyticsViews:
         # Create test data
         business1 = Business(
             id="b1",
-            yelp_id="yelp1",
             name="Test Restaurant",
             geo_bucket="high-high-high",
             vert_bucket="medium-medium-low",
         )
         business2 = Business(
             id="b2",
-            yelp_id="yelp2",
             name="Test Dentist",
             geo_bucket="high-high-high",
             vert_bucket="high-high-medium",
@@ -172,7 +170,6 @@ class TestAnalyticsViews:
         businesses = [
             Business(
                 id=f"b{i}",
-                yelp_id=f"yelp{i}",
                 name=f"Business {i}",
                 geo_bucket="high-high-high",
                 vert_bucket="medium-medium-low",
@@ -183,7 +180,6 @@ class TestAnalyticsViews:
         businesses.append(
             Business(
                 id="b4",
-                yelp_id="yelp4",
                 name="Business 4",
                 geo_bucket="low-low-medium",
                 vert_bucket="high-high-high",
@@ -259,7 +255,6 @@ class TestAnalyticsViews:
         # Create business
         business = Business(
             id="b1",
-            yelp_id="yelp1",
             name="Test Business",
             geo_bucket="high-high-high",
             vert_bucket="high-high-medium",

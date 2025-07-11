@@ -1,0 +1,69 @@
+name: Deploy to VPS
+# Example deployment workflow for P0-004
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to VPS via SSH
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          # Pull latest image
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          
+          # Stop existing container
+          docker stop leadfactory || true
+          docker rm leadfactory || true
+          
+          # Run new container
+          docker run -d \
+            --name leadfactory \
+            --restart unless-stopped \
+            -p 8000:8000 \
+            -e DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}" \
+            -e SECRET_KEY="${{ secrets.PROD_SECRET_KEY }}" \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+    
+    - name: Health check
+      run: |
+        sleep 30
+        curl -f https://${{ secrets.VPS_HOST }}/health || exit 1

@@ -1,4 +1,4 @@
-.PHONY: help install test lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test
+.PHONY: help install test lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test validate-standard validate-wave-b rollback
 
 # Default target
 help:
@@ -148,3 +148,24 @@ prod-status:
 	@curl -s http://localhost:8000/health || echo "Service not responding"
 	@echo ""
 	@docker-compose -f docker-compose.production.yml ps
+
+# Validation targets for PRPs
+validate-standard:
+	@echo "Running standard Wave A validation (80% coverage)..."
+	pytest -m "not phase_future and not slow" -q
+	coverage run -m pytest tests/unit
+	coverage report --fail-under=80
+	python -m py_compile $$(git ls-files "*.py")
+
+validate-wave-b:
+	@echo "Running Wave B validation (95% coverage)..."
+	pytest -m "not phase_future and not slow" -q
+	coverage run -m pytest tests/unit
+	coverage report --fail-under=95
+	python -m py_compile $$(git ls-files "*.py")
+	make docker-test
+
+# Rollback command
+rollback:
+	@echo "Running rollback script..."
+	@bash scripts/rollback.sh || echo "Rollback script not found"

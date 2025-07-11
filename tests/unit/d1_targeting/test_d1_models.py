@@ -23,7 +23,6 @@ class TestBusinessModel:
     def test_business_model_complete(self):
         """Test that business model has all required fields"""
         business = Business(
-            yelp_id="joe-restaurant-sf",
             name="Joe's Restaurant",
             vertical=VerticalMarket.RESTAURANTS.value,
             website="https://joesrestaurant.com",
@@ -52,7 +51,6 @@ class TestBusinessModel:
         assert business.zip_code == "94102"
         assert business.latitude == 37.7749
         assert business.longitude == -122.4194
-        assert business.yelp_id == "joe-restaurant-sf"
 
 
 class TestTargetModel:

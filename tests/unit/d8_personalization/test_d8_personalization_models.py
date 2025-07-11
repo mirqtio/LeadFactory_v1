@@ -82,8 +82,8 @@ def sample_personalization_token(db_session):
     token = PersonalizationToken(
         token_name="business_name",
         token_type="business_info",
-        description="Name of the business from Yelp data",
-        data_source="yelp_business",
+        description="Name of the business from sourced data",
+        data_source="business_data",
         field_path="$.name",
         default_value="your business",
         transformation_rules={"case": "title", "max_length": 100},
