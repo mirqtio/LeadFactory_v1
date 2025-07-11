@@ -382,6 +382,34 @@ pytest -m "not slow and not phase_future" --tb=short
 
 **Rollback**: Revert workflow, Docker, or dependency changes that break existing successful builds
 
+### P0-014 Test Suite Re-Enablement and Coverage Plan
+**Dependencies**: P0-013 (must have green CI before extending)  
+**Goal**: Reintroduce full KEEP test coverage, optimize test structure for CI reliability, and establish a path to restore coverage ≥70%.  
+**Integration Points**:
+- `tests/` structure and pytest config
+- `.github/workflows/test.yml` (if matrix strategy added)
+- `conftest.py` or `pytest.ini` marker logic
+- Formula evaluator test modules
+
+**Tests to Pass**:
+- KEEP suite runs end-to-end in CI (with `xfail` isolation)
+- Test matrix doesn't exceed runner timeout limit
+- Phase 0.5 formula logic does not regress
+
+**Example**: see examples/REFERENCE_MAP.md → P0-014  
+**Reference**: pytest documentation on test collection optimization
+
+**Business Logic**: Phase 0.5 tooling, especially for the CPO, requires confidence in rule, config, and evaluator correctness. Rebuilding full test coverage allows those tools to validate pipeline behavior safely.
+
+**Acceptance Criteria**:
+- [ ] All KEEP tests either run, are `xfail`, or are conditionally skipped with markers
+- [ ] CI test collection time remains under 30 seconds
+- [ ] GitHub Actions workflows pass with full test suite enabled or split
+- [ ] Test time reduced via selective markers or job matrix
+- [ ] Formula evaluator test structure supports partial implementation
+
+**Rollback**: If test re-enable breaks CI, fallback to prior ignore list, isolate failing files, and track re-enable path in PR.
+
 ## Wave B - Expand (Priority P1-P2)
 
 ### P1-010 SEMrush Client & Metrics
