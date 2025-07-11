@@ -64,10 +64,17 @@ jobs:
     - name: Build Docker test image
       run: docker build -f Dockerfile.test -t leadfactory-test .
     
-    - name: Run KEEP test suite directly (not in Docker)
+    - name: Run core unit tests
       run: |
-        # Run the same tests that work in Minimal Test Suite
-        python -m pytest tests/unit/test_core.py tests/unit/test_unit_models.py tests/test_setup.py -v --tb=short
+        python -m pytest -xvs tests/unit/test_core.py --timeout=30
+    
+    - name: Run model tests
+      run: |
+        python -m pytest -xvs tests/unit/test_unit_models.py --timeout=30
+        
+    - name: Run setup tests
+      run: |
+        python -m pytest -xvs tests/test_setup.py --timeout=30
     
     - name: Check test coverage in Docker
       continue-on-error: true
