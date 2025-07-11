@@ -61,31 +61,7 @@ jobs:
     - name: Build Docker test image
       run: docker build -f Dockerfile.test -t leadfactory-test .
     
-    # PRD v1.2: Run smoke tests for all external APIs
-    - name: Run smoke tests (if API keys present)
-      run: |
-        # Check if we have API keys in GitHub secrets
-        if [ -n "${{ secrets.HUNTER_API_KEY }}" ]; then
-          export HUNTER_API_KEY="${{ secrets.HUNTER_API_KEY }}"
-        fi
-        if [ -n "${{ secrets.SEMRUSH_API_KEY }}" ]; then
-          export SEMRUSH_API_KEY="${{ secrets.SEMRUSH_API_KEY }}"
-        fi
-        if [ -n "${{ secrets.SCREENSHOTONE_KEY }}" ]; then
-          export SCREENSHOTONE_KEY="${{ secrets.SCREENSHOTONE_KEY }}"
-          export SCREENSHOTONE_SECRET="${{ secrets.SCREENSHOTONE_SECRET }}"
-        fi
-        if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
-          export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
-        fi
-        if [ -n "${{ secrets.GOOGLE_API_KEY }}" ]; then
-          export GOOGLE_API_KEY="${{ secrets.GOOGLE_API_KEY }}"
-        fi
-        
-        # Always use stubs in CI - smoke tests are now skipped
-        echo "Skipping smoke tests - always using stubs in CI"
-    
-    - name: Run unit tests in Docker (excluding slow tests)
+    - name: Run KEEP test suite in Docker
       run: |
         docker run --rm \
           -e DATABASE_URL=$DATABASE_URL \
@@ -93,17 +69,26 @@ jobs:
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
           leadfactory-test \
-          pytest -x --tb=short --timeout=30 -m "not slow" tests/test_setup.py tests/unit/ --ignore=tests/test_docker_compose.py --ignore=tests/e2e/
+          pytest -m "not slow and not phase_future" --tb=short -q
     
-    - name: Run integration tests with stubs (excluding slow tests)
+    - name: Check test coverage in Docker
       run: |
         docker run --rm \
           -e DATABASE_URL=$DATABASE_URL \
-          -e USE_STUBS=true \
+          -e USE_STUBS=$USE_STUBS \
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
           leadfactory-test \
-          pytest -x --tb=short --timeout=60 -m "not slow" tests/integration/ --ignore=tests/e2e/
+          bash -c "coverage run -m pytest -m 'not slow and not phase_future' -q && coverage report --fail-under=80"
+    
+    - name: Push Docker image to GHCR
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker tag leadfactory-test ghcr.io/${{ github.repository_owner }}/leadfactory-test:latest
+        docker tag leadfactory-test ghcr.io/${{ github.repository_owner }}/leadfactory-test:${{ github.sha }}
+        docker push ghcr.io/${{ github.repository_owner }}/leadfactory-test:latest
+        docker push ghcr.io/${{ github.repository_owner }}/leadfactory-test:${{ github.sha }}
     
     - name: Run docker-compose config validation
       run: |

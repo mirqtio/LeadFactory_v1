@@ -1,0 +1,70 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+*.log
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
+tmp/
+temp/
+logs/
+uploads/
+downloads/
+
+# Documentation
+docs/_build/
+*.md
+!README.md
+!CLAUDE.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+!docker-compose.test.yml
+
+# Misc
+.claude/
+PRPs/
+examples/
+scripts/rollback.sh
+scripts/validate_*.sh
+temp_context_engineering/

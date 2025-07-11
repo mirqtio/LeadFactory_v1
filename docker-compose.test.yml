@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database for testing
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: leadfactory_test
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Stub server for mocking external APIs
+  stub_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    command: python -m stubs.server
+    environment:
+      ENVIRONMENT: test
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test runner service
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/leadfactory_test
+      REDIS_URL: redis://redis:6379/0
+      STUB_SERVER_URL: http://stub_server:8080
+      USE_STUBS: "true"
+      ENVIRONMENT: test
+      PYTHONPATH: /app
+      # Add any other required environment variables
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-SG.test}
+    depends_on:
+      db:
+        condition: service_healthy
+      stub_server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount source code for development
+      - .:/app:ro
+      # Separate volumes for generated files
+      - test_logs:/app/logs
+      - test_tmp:/app/tmp
+    command: ["pytest", "-m", "not slow and not phase_future", "--tb=short", "-q"]
+
+  # Redis for caching (if needed by tests)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_test_data:
+  test_logs:
+  test_tmp:
+
+networks:
+  default:
+    name: leadfactory_test_network
