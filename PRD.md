@@ -28,12 +28,14 @@ You're absolutely right! Let me create a comprehensive master PRD that incorpora
 **Vision**: Build an AI-powered website audit platform that generates revenue through automated audit report sales, starting with $25k MRR within 6 weeks.
 
 **Phase 0 Goals (This Build)**:
-- Process 250,000 businesses daily from Yelp free tier (5,000 API calls × 50 results per call)
+- Process businesses daily from various data sources
 - Score and filter to top 10% (500 qualified leads)
 - Send personalized emails with audit teasers
 - Sell detailed reports at $199 (launch price)
 - Achieve 0.25-0.6% conversion rate
 - Generate first revenue within 48-72 hours
+
+**Note**: Yelp provider was removed in July 2025; see CHANGELOG.
 
 ### 1.2 Development Approach
 - **Single developer** using autonomous AI (Claude Code in Windsurf)

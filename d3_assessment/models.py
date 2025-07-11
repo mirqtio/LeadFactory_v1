@@ -75,7 +75,6 @@ class AssessmentResult(Base):
     # PRD v1.2 new assessment data columns
     bsoup_json = Column(JsonColumn)  # BeautifulSoup extracted data
     semrush_json = Column(JsonColumn)  # SEMrush domain overview
-    yelp_json = Column(JsonColumn)  # Yelp search fields (no extra API call)
     gbp_profile_json = Column(JsonColumn)  # Google Business Profile data
     screenshot_url = Column(Text)  # Full page screenshot URL
     screenshot_thumb_url = Column(Text)  # Thumbnail screenshot URL

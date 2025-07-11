@@ -110,7 +110,7 @@ def get_logger(name: str, **context) -> LoggerAdapter:
         LoggerAdapter instance
 
     Example:
-        logger = get_logger(__name__, domain="d0_gateway", provider="yelp")
+        logger = get_logger(__name__, domain="d0_gateway", provider="pagespeed")
         logger.info("API call successful", status_code=200, duration_ms=150)
     """
     logger = logging.getLogger(name)

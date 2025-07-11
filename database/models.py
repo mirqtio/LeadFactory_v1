@@ -164,7 +164,6 @@ class Business(Base):
     __tablename__ = "businesses"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    yelp_id = Column(String(100), unique=True, nullable=False)
     name = Column(String(255), nullable=False)
     url = Column(String(500))
     phone = Column(String(20))

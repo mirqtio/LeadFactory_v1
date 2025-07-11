@@ -22,7 +22,6 @@ class AssessmentCoordinatorV2:
     - PageSpeed
     - BeautifulSoup
     - SEMrush
-    - YelpSearchFields
     - GBPProfile
     - ScreenshotOne
     - GPT-4o Vision
@@ -33,7 +32,6 @@ class AssessmentCoordinatorV2:
         "pagespeed",
         "beautifulsoup",
         "semrush",
-        "yelp_fields",
         "gbp_profile",
         "screenshot",
         "vision",
@@ -183,13 +181,12 @@ class AssessmentCoordinatorV2:
                             pagespeed_json = $2,
                             bsoup_json = $3,
                             semrush_json = $4,
-                            yelp_json = $5,
-                            gbp_json = $6,
-                            screenshot_url = $7,
-                            vision_scores_json = $8,
-                            vision_warnings = $9,
-                            vision_quickwins = $10,
-                            total_cost_usd = $11,
+                            gbp_json = $5,
+                            screenshot_url = $6,
+                            vision_scores_json = $7,
+                            vision_warnings = $8,
+                            vision_quickwins = $9,
+                            total_cost_usd = $10,
                             updated_at = NOW()
                         WHERE id = $1
                         """,
@@ -197,7 +194,6 @@ class AssessmentCoordinatorV2:
                         assessment_data.get("pagespeed_json"),
                         assessment_data.get("bsoup_json"),
                         assessment_data.get("semrush_json"),
-                        assessment_data.get("yelp_json"),
                         assessment_data.get("gbp_json"),
                         assessment_data.get("screenshot_url"),
                         assessment_data.get("visual_scores_json"),
@@ -212,13 +208,13 @@ class AssessmentCoordinatorV2:
                         INSERT INTO d3_assessment_results (
                             id, business_id, url, domain,
                             pagespeed_json, bsoup_json, semrush_json,
-                            yelp_json, gbp_json, screenshot_url,
+                            gbp_json, screenshot_url,
                             vision_scores_json, vision_warnings, vision_quickwins,
                             total_cost_usd, status, assessment_type,
                             created_at, updated_at
                         ) VALUES (
-                            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                            $11, $12, $13, $14, $15, $16, NOW(), NOW()
+                            $1, $2, $3, $4, $5, $6, $7, $8, $9,
+                            $10, $11, $12, $13, $14, $15, NOW(), NOW()
                         )
                         """,
                         str(uuid.uuid4()),
@@ -228,7 +224,6 @@ class AssessmentCoordinatorV2:
                         assessment_data.get("pagespeed_json"),
                         assessment_data.get("bsoup_json"),
                         assessment_data.get("semrush_json"),
-                        assessment_data.get("yelp_json"),
                         assessment_data.get("gbp_json"),
                         assessment_data.get("screenshot_url"),
                         assessment_data.get("visual_scores_json"),

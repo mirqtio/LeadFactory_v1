@@ -17,7 +17,6 @@ class ResponseCache:
 
     # Provider-specific cache TTL (time to live) in seconds
     CACHE_TTL = {
-        "yelp": 3600,  # 1 hour for business data
         "pagespeed": 7200,  # 2 hours for performance data
         "openai": 86400,  # 24 hours for AI insights
         "sendgrid": 300,  # 5 minutes for email status

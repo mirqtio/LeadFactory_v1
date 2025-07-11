@@ -181,9 +181,9 @@ scoring_components:
         points: 1.5
         description: "High review volume (100+)"
       
-      - condition: "yelp_rating >= 4.0 or google_rating >= 4.0"
+      - condition: "google_rating >= 4.0"
         points: 1.5
-        description: "High rating on major platforms"
+        description: "High rating on Google"
 
   # New: Food Quality & Service (12 points - restaurant-specific)
   food_and_service:
