@@ -22,20 +22,9 @@ async def run_all_smoke_tests():
 
     results = {}
 
-    # Test 1: Yelp API
-    print("\n1. Testing Yelp API...")
-    if settings.yelp_api_key:
-        try:
-            from test_smoke_yelp import TestYelpSmoke
-
-            test = TestYelpSmoke()
-            await test.test_yelp_search()
-            await test.test_yelp_rate_limit()
-            results["yelp"] = "✓ PASS"
-        except Exception as e:
-            results["yelp"] = f"✗ FAIL: {e}"
-    else:
-        results["yelp"] = "⚠️  SKIP: No API key"
+    # Test 1: Yelp API - REMOVED
+    # Yelp has been removed from the codebase
+    results["yelp"] = "⚠️  SKIP: Yelp removed from codebase"
 
     # Test 2: Hunter.io API
     print("\n2. Testing Hunter.io API...")

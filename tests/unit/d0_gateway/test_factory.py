@@ -18,7 +18,7 @@ from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient
 from d0_gateway.providers.sendgrid import SendGridClient
 from d0_gateway.providers.stripe import StripeClient
-from d0_gateway.providers.yelp import YelpClient
+# YelpClient removed - Yelp has been removed from the codebase
 
 
 class TestGatewayClientFactory:
@@ -34,7 +34,7 @@ class TestGatewayClientFactory:
         with patch("d0_gateway.factory.get_settings") as mock_settings:
             # Mock settings
             mock_settings.return_value = Mock(
-                yelp_api_key="test-yelp-key",
+                # yelp_api_key removed - Yelp has been removed from the codebase
                 pagespeed_api_key="test-pagespeed-key",
                 openai_api_key="test-openai-key",
                 sendgrid_api_key="test-sendgrid-key",
@@ -84,7 +84,7 @@ class TestGatewayClientFactory:
 
         # Check all expected providers are registered
         expected_providers = [
-            "yelp",
+            # "yelp" removed - Yelp has been removed from the codebase
             "pagespeed",
             "openai",
             "sendgrid",
@@ -95,7 +95,7 @@ class TestGatewayClientFactory:
         for provider in expected_providers:
             assert provider in providers
 
-        assert len(providers) == 7
+        assert len(providers) == 6
 
     def test_create_sendgrid_client(self, factory):
         """Test creating SendGrid client through factory"""
@@ -118,7 +118,7 @@ class TestGatewayClientFactory:
     def test_create_all_provider_clients(self, factory):
         """Test that factory can create all registered provider instances"""
         provider_classes = {
-            "yelp": YelpClient,
+            # "yelp": YelpClient, - removed
             "pagespeed": PageSpeedClient,
             "openai": OpenAIClient,
             "sendgrid": SendGridClient,
@@ -151,7 +151,7 @@ class TestGatewayClientFactory:
 
         assert "Unknown provider 'invalid_provider'" in str(exc_info.value)
         assert (
-            "Available: yelp, pagespeed, openai, sendgrid, stripe, dataaxle, hunter"
+            "Available: pagespeed, openai, sendgrid, stripe, dataaxle, hunter"
             in str(exc_info.value)
         )
 
@@ -211,7 +211,7 @@ class TestGatewayClientFactory:
 
         status = factory.get_client_status()
 
-        assert status["total_providers"] == 7
+        assert status["total_providers"] == 6
         assert sorted(status["registered_providers"]) == [
             "dataaxle",
             "hunter",
@@ -219,7 +219,7 @@ class TestGatewayClientFactory:
             "pagespeed",
             "sendgrid",
             "stripe",
-            "yelp",
+            # "yelp" removed
         ]
         assert "sendgrid" in status["cached_clients"]
         assert "stripe" in status["cached_clients"]
@@ -238,9 +238,9 @@ class TestGatewayClientFactory:
             assert health["overall_status"] == "healthy"
 
             # Should check all providers
-            assert len(health["providers"]) == 7
+            assert len(health["providers"]) == 6
             for provider in [
-                "yelp",
+                # "yelp" removed
                 "pagespeed",
                 "openai",
                 "sendgrid",
