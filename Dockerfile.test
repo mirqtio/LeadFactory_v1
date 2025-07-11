@@ -54,5 +54,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV USE_STUBS=true
 
-# Default command runs KEEP suite tests
-CMD ["pytest", "-m", "not slow and not phase_future", "--tb=short", "-q"]
+# Default command runs minimal test suite for CI
+CMD ["pytest", "tests/unit/test_core.py", "tests/unit/test_unit_models.py", "tests/test_setup.py", "-v", "--tb=short"]

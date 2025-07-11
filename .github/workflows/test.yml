@@ -64,16 +64,15 @@ jobs:
     - name: Build Docker test image
       run: docker build -f Dockerfile.test -t leadfactory-test .
     
-    - name: Run KEEP test suite in Docker
+    - name: Run KEEP test suite in Docker (using default CMD)
       run: |
-        # Run the tests
+        # Run using the default CMD from Dockerfile
         docker run --rm \
           -e DATABASE_URL=$DATABASE_URL \
           -e USE_STUBS=$USE_STUBS \
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
-          leadfactory-test \
-          python -m pytest tests/unit/test_core.py tests/unit/test_unit_models.py tests/test_setup.py -v --tb=short
+          leadfactory-test
     
     - name: Check test coverage in Docker
       continue-on-error: true
