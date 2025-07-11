@@ -2,6 +2,14 @@
 
 AI-powered website audit platform that generates revenue through automated audit report sales.
 
+## System Requirements
+
+- **Python**: 3.11.0 (exactly - match CI environment)
+- **Docker**: ≥ 20.10
+- **Docker Compose**: ≥ 2.0
+- **PostgreSQL**: 15 (via Docker)
+- **Operating System**: Linux/macOS (Windows via WSL2)
+
 ## Quick Start
 
 ```bash
