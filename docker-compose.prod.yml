@@ -7,6 +7,8 @@ services:
     restart: always
     ports:
       - "8000:8000"
+    mem_limit: 512m
+    memswap_limit: 512m
     environment:
       - DATABASE_URL=postgresql://leadfactory:${DB_PASSWORD:-leadfactory}@db:5432/leadfactory
       - REDIS_URL=redis://redis:6379
@@ -32,6 +34,8 @@ services:
     image: postgres:15-alpine
     container_name: leadfactory_db
     restart: always
+    mem_limit: 512m
+    memswap_limit: 512m
     environment:
       - POSTGRES_USER=leadfactory
       - POSTGRES_PASSWORD=${DB_PASSWORD:-leadfactory}

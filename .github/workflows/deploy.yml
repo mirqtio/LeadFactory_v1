@@ -40,9 +40,10 @@ jobs:
             echo "Waiting for database to be ready..."
             sleep 10
             
-            # Run database migrations
+            # Run database migrations with reduced memory usage
             echo "Running database migrations..."
-            docker compose -f docker-compose.prod.yml exec -T web alembic upgrade head
+            # Use run instead of exec to avoid keeping the web container running
+            docker compose -f docker-compose.prod.yml run --rm -T web alembic upgrade head
             
             # Verify deployment
             echo "Verifying deployment..."
