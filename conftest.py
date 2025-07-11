@@ -6,7 +6,6 @@ when dealing with unimplemented features.
 """
 import pytest
 import re
-from pathlib import Path
 
 
 def pytest_collection_modifyitems(config, items):
