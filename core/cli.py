@@ -99,7 +99,7 @@ def run_stubs():
 @cli.command()
 @click.option(
     "--provider",
-    type=click.Choice(["yelp", "pagespeed", "stripe", "sendgrid", "openai"]),
+    type=click.Choice(["pagespeed", "stripe", "sendgrid", "openai"]),
     help="Provider to check",
 )
 def check_api(provider: str):
@@ -173,7 +173,6 @@ def env_info():
     click.echo(f"Database: {settings.database_url}")
     click.echo(f"Use stubs: {settings.use_stubs}")
     click.echo(f"Email limit: {settings.max_daily_emails}/day")
-    click.echo(f"Yelp limit: {settings.max_daily_yelp_calls}/day")
     click.echo(f"Report price: ${settings.report_price_cents / 100:.2f}")
 
 

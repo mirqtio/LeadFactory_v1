@@ -14,7 +14,7 @@ from .metrics import GatewayMetrics
 class GatewayFacade:
     """
     Unified facade for all external API operations.
-    Provides a single entry point for Yelp, PageSpeed, and OpenAI APIs.
+    Provides a single entry point for PageSpeed, OpenAI, SendGrid, and Stripe APIs.
     """
 
     def __init__(self, factory: Optional[GatewayClientFactory] = None):
@@ -30,77 +30,6 @@ class GatewayFacade:
 
         self.logger.info("Gateway facade initialized")
 
-    # Yelp API Methods
-    async def search_businesses(
-        self,
-        term: str,
-        location: str,
-        categories: Optional[str] = None,
-        limit: int = 20,
-        offset: int = 0,
-        sort_by: str = "best_match",
-        price: Optional[str] = None,
-        open_now: Optional[bool] = None,
-        attributes: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """
-        Search for businesses using Yelp API
-
-        Args:
-            term: Search term (e.g., "restaurants", "coffee")
-            location: Location (e.g., "San Francisco, CA", "10001")
-            categories: Business categories (e.g., "restaurants,bars")
-            limit: Number of results to return (max 50)
-            offset: Offset for pagination
-            sort_by: Sort order (best_match, rating, review_count, distance)
-            price: Price filter (1, 2, 3, 4 representing $, $$, $$$, $$$$)
-            open_now: Filter for businesses open now
-            attributes: Additional attributes filter
-
-        Returns:
-            Yelp search results
-        """
-        try:
-            client = self.factory.create_client("yelp")
-            result = await client.search_businesses(
-                location=location,
-                categories=categories,
-                term=term,
-                limit=limit,
-                offset=offset,
-                sort_by=sort_by,
-                price=price,
-                open_now=open_now
-                # Note: 'attributes' is not supported by YelpClient
-            )
-
-            self.logger.info(f"Yelp search completed: {term} in {location}")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Yelp search failed: {e}")
-            raise
-
-    async def get_business_details(self, business_id: str) -> Dict[str, Any]:
-        """
-        Get detailed information about a specific business
-
-        Args:
-            business_id: Yelp business ID
-
-        Returns:
-            Business details
-        """
-        try:
-            client = self.factory.create_client("yelp")
-            result = await client.get_business_details(business_id)
-
-            self.logger.info(f"Yelp business details retrieved: {business_id}")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Failed to get business details: {e}")
-            raise
 
     # PageSpeed API Methods
     async def analyze_website(
@@ -872,11 +801,11 @@ class GatewayFacade:
         include_email_generation: bool = False,
     ) -> Dict[str, Any]:
         """
-        Complete analysis workflow: Yelp → PageSpeed → AI insights
+        Complete analysis workflow: PageSpeed → AI insights
 
         Args:
-            business_id: Yelp business ID
-            business_url: Business website URL (if not in Yelp data)
+            business_id: Business ID
+            business_url: Business website URL
             include_email_generation: Whether to generate email content
 
         Returns:
@@ -892,15 +821,12 @@ class GatewayFacade:
         }
 
         try:
-            # Step 1: Get business details from Yelp
-            business_data = await self.get_business_details(business_id)
-            analysis_results["business_data"] = business_data
-
-            # Extract website URL
-            website_url = business_url or business_data.get("url")
-            if not website_url:
-                analysis_results["errors"].append("No website URL found")
+            # Step 1: Check website URL
+            if not business_url:
+                analysis_results["errors"].append("No website URL provided")
                 return analysis_results
+            
+            website_url = business_url
 
             # Step 2: Analyze website with PageSpeed
             try:
@@ -909,10 +835,11 @@ class GatewayFacade:
 
                 # Step 3: Generate AI insights
                 try:
+                    # Use business_id as name since we don't have business data
                     business_context = {
-                        "name": business_data.get("name"),
-                        "categories": business_data.get("categories", []),
-                        "location": business_data.get("location", {}),
+                        "name": business_id,
+                        "categories": [],
+                        "location": {},
                     }
 
                     ai_insights = await self.generate_website_insights(
@@ -926,7 +853,7 @@ class GatewayFacade:
                     ):
                         try:
                             email_content = await self.generate_personalized_email(
-                                business_name=business_data.get("name", "Business"),
+                                business_name=business_id,
                                 website_issues=ai_insights["ai_recommendations"],
                                 recipient_name=None,
                             )

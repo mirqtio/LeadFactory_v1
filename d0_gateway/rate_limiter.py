@@ -19,11 +19,6 @@ class RateLimiter:
 
     # Provider-specific rate limits
     PROVIDER_LIMITS = {
-        "yelp": {
-            "daily_limit": 300,
-            "burst_limit": 10,
-            "window_seconds": 1,
-        },  # PRD v1.2: 300/day
         "pagespeed": {"daily_limit": 25000, "burst_limit": 50, "window_seconds": 1},
         "openai": {"daily_limit": 10000, "burst_limit": 20, "window_seconds": 1},
         "sendgrid": {"daily_limit": 100000, "burst_limit": 100, "window_seconds": 1},

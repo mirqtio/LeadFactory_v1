@@ -394,21 +394,15 @@ scoring_components:
     weight: 5.0
     description: "Missing or incomplete business listing information"
     rules:
-      - condition: "gbp_json.get('missing_hours', False) == True or yelp_json.get('hours', {}) == {}"
+      - condition: "gbp_json.get('missing_hours', False) == True"
         points: -1.5
         description: "Missing business hours (listing_gap)"
         
-      - condition: "yelp_json.get('review_count', 0) < 5"
-        points: -1.0
-        description: "Low Yelp reviews (listing_gap)"
         
       - condition: "gbp_json.get('place_id') != '' and gbp_json.get('verified', False)"
         points: 2.0
         description: "Verified Google Business Profile"
         
-      - condition: "yelp_json.get('review_count', 0) >= 50"
-        points: 1.5
-        description: "Strong Yelp presence"
 
   # Decision Maker Access (8 points max)
   decision_maker_access:

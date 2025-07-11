@@ -159,7 +159,7 @@ class CampaignSettings:
 class TargetSource:
     """Source information for a target"""
 
-    provider: str  # yelp, google, manual, etc.
+    provider: str  # google, manual, etc.
     external_id: Optional[str] = None
     discovered_at: Optional[datetime] = None
     last_updated: Optional[datetime] = None

@@ -94,7 +94,7 @@ class GatewayClientFactory:
         Create or retrieve a client for the specified provider
 
         Args:
-            provider: Provider name (yelp, pagespeed, openai)
+            provider: Provider name (pagespeed, openai, sendgrid, stripe)
             use_cache: Whether to use cached instances
             **kwargs: Additional configuration for the client
 
@@ -158,10 +158,7 @@ class GatewayClientFactory:
         config = {}
 
         # Provider-specific configuration
-        if provider == "yelp":
-            config["api_key"] = getattr(self.settings, "yelp_api_key", None)
-
-        elif provider == "pagespeed":
+        if provider == "pagespeed":
             config["api_key"] = getattr(self.settings, "pagespeed_api_key", None)
 
         elif provider == "openai":

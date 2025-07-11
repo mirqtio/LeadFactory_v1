@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Optional, Union
 class APIProvider(str, Enum):
     """Supported API providers"""
 
-    YELP = "yelp"
     PAGESPEED = "pagespeed"
     OPENAI = "openai"
     SENDGRID = "sendgrid"
