@@ -1,12 +1,13 @@
 """
+Integration Tests for Scoring System - Task 049
+"""
 import pytest
 
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
 
-Integration Tests for Scoring System - Task 049
-
+"""
 Comprehensive integration tests for the complete scoring pipeline ensuring all
 acceptance criteria are met:
 - Full scoring flow works
@@ -183,7 +184,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         )
         self.assertIsInstance(
             medical_result,
-            ScoringResult,
+            D5ScoringResult,
             "Medical engine should return D5ScoringResult",
         )
 

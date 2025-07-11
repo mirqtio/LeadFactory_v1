@@ -15,58 +15,8 @@ def client():
     return TestClient(app)
 
 
-class TestYelpStubs:
-    def test_yelp_search_success(self, client):
-        """Test Yelp search returns businesses"""
-        response = client.get(
-            "/v3/businesses/search",
-            params={
-                "location": "New York, NY",
-                "categories": "restaurant",
-                "limit": 10,
-                "offset": 0,
-            },
-            headers={"Authorization": "Bearer test-key"},
-        )
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "businesses" in data
-        assert "total" in data
-        assert len(data["businesses"]) == 10
-
-        # Check business structure
-        business = data["businesses"][0]
-        assert "id" in business
-        assert business["id"].startswith("stub-yelp-")
-        assert "name" in business
-        assert "rating" in business
-        assert 3.0 <= business["rating"] <= 5.0
-        assert "location" in business
-        assert "phone" in business
-
-    def test_yelp_search_pagination(self, client):
-        """Test Yelp search pagination"""
-        # First page
-        response1 = client.get(
-            "/v3/businesses/search",
-            params={"location": "NYC", "limit": 50, "offset": 0},
-        )
-        assert response1.status_code == 200
-        data1 = response1.json()
-
-        # Second page
-        response2 = client.get(
-            "/v3/businesses/search",
-            params={"location": "NYC", "limit": 50, "offset": 50},
-        )
-        assert response2.status_code == 200
-        data2 = response2.json()
-
-        # Should have different businesses
-        ids1 = {b["id"] for b in data1["businesses"]}
-        ids2 = {b["id"] for b in data2["businesses"]}
-        assert len(ids1.intersection(ids2)) == 0
+# Yelp has been removed from the codebase - these tests are no longer needed
+# class TestYelpStubs - removed
 
 
 class TestPageSpeedStubs:

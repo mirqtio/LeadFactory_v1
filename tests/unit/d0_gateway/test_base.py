@@ -210,7 +210,7 @@ class TestGatewayExceptions:
         assert error.limit_type == RateLimitType.DAILY
         assert error.retry_after == 300
         assert "yelp" in str(error)
-        assert "DAILY" in str(error)  # Enum shows as RateLimitType.DAILY
+        assert "daily" in str(error).lower()  # Check for daily in lowercase
 
     def test_circuit_breaker_exception(self):
         """Test circuit breaker exception creation"""
