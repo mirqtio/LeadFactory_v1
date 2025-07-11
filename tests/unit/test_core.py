@@ -50,6 +50,10 @@ class TestConfig:
 
     def test_environment_override(self, monkeypatch):
         """Test environment variable override"""
+        # Clear any cached settings
+        from core.config import get_settings
+        get_settings.cache_clear()
+        
         monkeypatch.setenv("ENVIRONMENT", "production")
         monkeypatch.setenv("USE_STUBS", "false")
         monkeypatch.setenv("SECRET_KEY", "production-secret")
