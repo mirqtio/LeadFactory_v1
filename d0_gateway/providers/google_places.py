@@ -2,7 +2,7 @@
 Google Places API client for business profile data
 PRD v1.2 - Get business hours and additional metadata
 
-Cost: $0.002 per place details call  
+Cost: $0.002 per place details call
 """
 from decimal import Decimal
 from typing import Any, Dict, Optional

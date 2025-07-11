@@ -5,7 +5,7 @@ with performance optimization and scheduled refresh capabilities.
 
 Acceptance Criteria:
 - Funnel view created ✓
-- Cohort retention view ✓  
+- Cohort retention view ✓
 - Performance optimized ✓
 - Refresh scheduled ✓
 
@@ -39,9 +39,9 @@ def get_views_sql():
         # Fallback SQL if file not found (for testing)
         return """
         -- Simplified materialized views for testing
-        
+
         CREATE MATERIALIZED VIEW IF NOT EXISTS funnel_analysis_mv AS
-        SELECT 
+        SELECT
             DATE(NOW()) as cohort_date,
             'default_campaign' as campaign_id,
             'targeting' as from_stage,
@@ -58,12 +58,12 @@ def get_views_sql():
             10000 as total_funnel_cost_cents,
             8.5 as avg_funnel_time_hours,
             NOW() as last_updated;
-            
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_funnel_analysis_mv_pk 
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_funnel_analysis_mv_pk
         ON funnel_analysis_mv (cohort_date, campaign_id, from_stage, to_stage);
-        
+
         CREATE MATERIALIZED VIEW IF NOT EXISTS cohort_retention_mv AS
-        SELECT 
+        SELECT
             DATE(NOW()) as cohort_date,
             'default_campaign' as campaign_id,
             'Day 0' as retention_period,
@@ -77,10 +77,10 @@ def get_views_sql():
             5.0 as events_per_user,
             1.0 as retention_ratio,
             NOW() as last_updated;
-            
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_cohort_retention_mv_pk 
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_cohort_retention_mv_pk
         ON cohort_retention_mv (cohort_date, campaign_id, retention_period);
-        
+
         -- Create refresh log table
         CREATE TABLE IF NOT EXISTS materialized_view_refresh_log (
             id SERIAL PRIMARY KEY,
@@ -91,7 +91,7 @@ def get_views_sql():
             error_message TEXT,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
-        
+
         -- Create refresh functions
         CREATE OR REPLACE FUNCTION refresh_funnel_analysis_mv()
         RETURNS void AS $$
@@ -99,14 +99,14 @@ def get_views_sql():
             REFRESH MATERIALIZED VIEW funnel_analysis_mv;
         END;
         $$ LANGUAGE plpgsql;
-        
+
         CREATE OR REPLACE FUNCTION refresh_cohort_retention_mv()
         RETURNS void AS $$
         BEGIN
             REFRESH MATERIALIZED VIEW cohort_retention_mv;
         END;
         $$ LANGUAGE plpgsql;
-        
+
         CREATE OR REPLACE FUNCTION refresh_all_analytics_views()
         RETURNS void AS $$
         BEGIN

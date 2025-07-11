@@ -247,7 +247,7 @@ class GatewayClientFactory:
         for provider_name in self._providers:
             try:
                 # Try to create a client (without caching for health check)
-                client = self.create_client(provider_name, use_cache=False)
+                self.create_client(provider_name, use_cache=False)
 
                 # Basic connectivity check
                 provider_status = {

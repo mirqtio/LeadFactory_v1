@@ -98,7 +98,7 @@ def parse_currency(amount_str: str) -> int:
 
 def chunk_list(lst: List[T], chunk_size: int) -> List[List[T]]:
     """Split list into chunks of specified size"""
-    return [lst[i : i + chunk_size] for i in range(0, len(lst), chunk_size)]
+    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
 def deep_merge(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
@@ -181,7 +181,7 @@ def extract_domain(url: str) -> Optional[str]:
         if domain.startswith("www."):
             domain = domain[4:]
         return domain
-    except:
+    except Exception:
         return None
 
 

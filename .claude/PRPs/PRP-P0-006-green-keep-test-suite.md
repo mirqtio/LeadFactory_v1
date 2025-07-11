@@ -76,18 +76,11 @@ All core tests passing
 
 ## Validation Commands
 ```bash
-# Run specific tests for this task
-pytest New: `tests/test_marker_policy.py` - collects tests and asserts no un-marked failures -xvs
+# Run task-specific tests
+# New: `tests/test_marker_policy.py` - collects tests and asserts no un-marked failures
 
-# Verify no existing tests broken
-pytest -m "not phase_future and not slow" -q
-
-# Check coverage meets Wave A requirement
-coverage run -m pytest tests/unit
-coverage report --fail-under=80
-
-# Lint-level compile check
-python -m py_compile $(git ls-files "*.py")
+# Run standard validation
+bash scripts/validate_wave_a.sh
 ```
 
 ## Rollback Strategy
@@ -231,6 +224,7 @@ The original Phase-0 PRDs (June 2025) assumed **Yelp-centric sourcing**, a **sin
 - **$199 Pricing**: Use $399 launch price
 - **Simple Email Templates**: Use LLM-powered personalization
 - **Basic scoring only**: Implement full multi-metric assessment
+- **Supabase**: Continue using self-hosted Postgres on VPS
 
 ---
 

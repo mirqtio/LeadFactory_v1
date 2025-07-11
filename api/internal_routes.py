@@ -47,31 +47,31 @@ async def reload_scoring_rules(
 ) -> Dict[str, Any]:
     """
     Reload scoring rules from YAML configuration.
-    
+
     This endpoint allows hot-reloading of scoring configuration
     without restarting the service.
-    
+
     Returns:
         JSON with reload status and details
     """
     start_time = time.time()
-    
+
     try:
         # Get the scoring engine instance
         # In production, this would be injected via dependency
         from d5_scoring import get_scoring_engine
         engine = get_scoring_engine()
-        
+
         if not isinstance(engine, ConfigurableScoringEngine):
             raise HTTPException(
                 status_code=501,
                 detail="Scoring engine does not support hot reload"
             )
-        
+
         # Get current configuration info
         old_version = engine.rules_parser.schema.version if engine.rules_parser.schema else "unknown"
         old_file = engine.rules_parser.rules_file
-        
+
         # Validate new configuration first
         try:
             new_schema = validate_rules(old_file)
@@ -92,13 +92,13 @@ async def reload_scoring_rules(
                 status_code=400,
                 detail=f"Configuration validation failed: {str(e)}"
             )
-        
+
         # Perform reload
         engine.reload_rules()
-        
+
         # Calculate reload time
         reload_time = time.time() - start_time
-        
+
         reload_requests.labels(endpoint='reload_rules', status='success').inc()
         logger.info(
             f"Scoring rules reloaded successfully in {reload_time:.3f}s",
@@ -110,7 +110,7 @@ async def reload_scoring_rules(
                 "reload_time_seconds": reload_time
             }
         )
-        
+
         return {
             "status": "success",
             "message": "Scoring rules reloaded successfully",
@@ -122,7 +122,7 @@ async def reload_scoring_rules(
                 "timestamp": time.time()
             }
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -150,35 +150,35 @@ async def scoring_health_check(
 ) -> Dict[str, Any]:
     """
     Check health of scoring system.
-    
+
     Returns:
         JSON with scoring system health status
     """
     try:
         from d5_scoring import get_scoring_engine
         engine = get_scoring_engine()
-        
+
         # Check if engine has valid configuration
         has_config = False
         config_version = "unknown"
-        
+
         if hasattr(engine, 'rules_parser') and engine.rules_parser.schema:
             has_config = True
             config_version = engine.rules_parser.schema.version
-        
+
         # Try a test score calculation
         test_data = {
             'company_info': {'name_quality': True},
             'online_presence': {'website_quality': True}
         }
-        
+
         can_score = False
         try:
             result = engine.calculate_score(test_data)
             can_score = 'total_score' in result
-        except:
+        except Exception:
             pass
-        
+
         return {
             "status": "healthy" if has_config and can_score else "unhealthy",
             "details": {
@@ -188,7 +188,7 @@ async def scoring_health_check(
                 "engine_type": engine.__class__.__name__
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Health check failed: {e}", exc_info=True)
         return {
@@ -208,5 +208,5 @@ def _get_git_sha() -> str:
             check=True
         )
         return result.stdout.strip()[:8]
-    except:
+    except Exception:
         return "unknown"

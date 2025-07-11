@@ -29,7 +29,6 @@ class GatewayFacade:
 
         self.logger.info("Gateway facade initialized")
 
-
     # PageSpeed API Methods
     async def analyze_website(
         self, url: str, strategy: str = "mobile", categories: Optional[List[str]] = None
@@ -824,7 +823,7 @@ class GatewayFacade:
             if not business_url:
                 analysis_results["errors"].append("No website URL provided")
                 return analysis_results
-            
+
             website_url = business_url
 
             # Step 2: Analyze website with PageSpeed
@@ -934,7 +933,7 @@ class GatewayFacade:
 
         for provider in self.factory.get_provider_names():
             try:
-                client = self.factory.create_client(provider)
+                self.factory.create_client(provider)
                 # This would typically query metrics for actual costs
                 # For now, return estimated costs
                 costs[provider] = Decimal("0.00")

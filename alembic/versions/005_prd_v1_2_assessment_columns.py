@@ -23,14 +23,14 @@ def upgrade():
     # Get the context to determine database type
     bind = op.get_bind()
     dialect_name = bind.dialect.name
-    
+
     # Use appropriate JSON type based on database
     if dialect_name == 'postgresql':
         json_type = postgresql.JSONB(astext_type=sa.Text())
     else:
         # For SQLite and other databases, use Text type
         json_type = sa.Text()
-    
+
     # Add columns to businesses table
     op.add_column("businesses", sa.Column("domain_hash", sa.Text(), nullable=True))
     op.add_column("businesses", sa.Column("phone_hash", sa.Text(), nullable=True))

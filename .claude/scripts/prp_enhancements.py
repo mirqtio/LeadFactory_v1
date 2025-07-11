@@ -18,7 +18,7 @@ BUSINESS_LOGIC = {
     "P0-010": "Fresh clone + install must succeed for new devs and CI.",
     "P0-011": "Automated prod deploy removes human error and provides rollback point.",
     "P0-012": "Local DB on VPS avoids external dependency while you evaluate Supabase.",
-    
+
     "P1-010": "SEO snapshot is a client-value driver and upsell hook.",
     "P1-020": "Core Web Vitals & accessibility scores are industry benchmarks demanded by prospects.",
     "P1-030": "Visual trust cues correlate with conversion; automated scoring yields scalable insights.",
@@ -27,7 +27,7 @@ BUSINESS_LOGIC = {
     "P1-060": "Prevent invoice shock and keep unit economics predictable.",
     "P1-070": "Purchased enrichment fills firmographic gaps essential for lead resale.",
     "P1-080": "Processing by vertical maximises ROI under budget caps.",
-    
+
     "P2-010": "Transparency on CPL/CAC drives pricing and spend decisions.",
     "P2-020": "Buyers want a visually digestible cost story.",
     "P2-030": "Higher personalisation lifts open & click rates.",
@@ -49,7 +49,7 @@ OUTCOME_CRITERIA = {
     "P0-010": "`pip install -r requirements.txt` succeeds in clean venv; `pip check` green; version pins documented.",
     "P0-011": "GH Actions deploy job completes; container responds 200 on `/health`; restart policy is `always`; SSH key auth works.",
     "P0-012": "Postgres service starts with named volume; app connects; `alembic upgrade head` runs during deploy; data survives container restart.",
-    
+
     "P1-010": "Stubbed unit tests pass; live smoke test fetches all six metrics; metrics appear in PDF section \"SEO Snapshot\".",
     "P1-020": "Headless run completes ≤ 30 s; returns 5 scores; cached 7 days; results populate assessment row and PDF.",
     "P1-030": "Screenshot captured; 9 rubric scores (0-100) persisted; PDF shows coloured bar chart per dimension.",
@@ -58,7 +58,7 @@ OUTCOME_CRITERIA = {
     "P1-060": "Flow halts when simulated spend > cap; Slack (or log) warning emitted; admin override flag tested.",
     "P1-070": "Stub test passes; live smoke returns ≥ 10 firmographic fields; enrichment merged into business record.",
     "P1-080": "Prefect schedule runs; summary email lists processed counts per bucket; respects guardrails.",
-    
+
     "P2-010": "`/analytics/unit_econ?date=…` returns CPL, CAC, ROI; SQL view tested; response cached 24 h.",
     "P2-020": "New 2-page section renders pie, bar, gauge charts; PDF snapshot test diff < 2%.",
     "P2-030": "For sample lead, builder returns 5 subjects / 3 bodies with placeholders filled; deterministic stub for tests; live emails sent in SendGrid sandbox.",
@@ -90,7 +90,7 @@ def merge_enrichment_data(self, existing_data, new_data):
     return merged
 ```
 """,
-    
+
     "P0-002": """
 ## Example: Prefect Pipeline Flow
 
@@ -107,7 +107,7 @@ def full_pipeline_flow(url: str):
     return {"status": "complete", "report_id": report.id}
 ```
 """,
-    
+
     "P0-009": """
 ## Example: Yelp Removal Check
 
@@ -150,11 +150,11 @@ def test_migrations_current():
     # Run upgrade to head
     alembic_cfg = Config("alembic.ini")
     upgrade(alembic_cfg, "head")
-    
+
     # Check for model changes
     context = MigrationContext.configure(connection)
     diff = compare_metadata(context, target_metadata)
-    
+
     assert len(diff) == 0, f"Uncommitted changes: {diff}"
 ```
 """,
@@ -202,7 +202,7 @@ async def health_check(db: Session = Depends(get_db)):
 ```python
 class GatewayCostLedger(Base):
     __tablename__ = "gateway_cost_ledger"
-    
+
     id = Column(UUID, primary_key=True, default=uuid4)
     provider = Column(String, nullable=False)
     operation = Column(String, nullable=False)
@@ -210,7 +210,7 @@ class GatewayCostLedger(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
     business_id = Column(UUID, ForeignKey("businesses.id"))
     response_time_ms = Column(Integer)
-    
+
     __table_args__ = (
         Index("idx_cost_ledger_daily", "provider", "timestamp"),
     )
@@ -233,7 +233,7 @@ ROLLBACK_STRATEGIES = {
     "P0-010": "Restore previous requirements.txt",
     "P0-011": "Delete deploy.yml workflow",
     "P0-012": "Stop postgres container, keep volume for data recovery",
-    
+
     "P1-010": "Feature flag ENABLE_SEMRUSH=false",
     "P1-020": "Remove lighthouse.py and uninstall Playwright",
     "P1-030": "Feature flag ENABLE_VISUAL_ANALYSIS=false",
@@ -242,7 +242,7 @@ ROLLBACK_STRATEGIES = {
     "P1-060": "Set all guardrail limits to None",
     "P1-070": "Feature flag ENABLE_DATAAXLE=false",
     "P1-080": "Disable Prefect schedule",
-    
+
     "P2-010": "Drop unit economics views",
     "P2-020": "Remove economics section from PDF template",
     "P2-030": "Revert to V1 email templates",

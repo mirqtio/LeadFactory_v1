@@ -133,7 +133,7 @@ class BaseAPIClient(ABC):
                 try:
                     error_data = response.json()
                     error_msg = error_data.get("message", error_msg)
-                except:
+                except Exception:
                     error_msg = response.text or error_msg
 
                 raise ExternalAPIError(
@@ -202,7 +202,7 @@ class BaseAPIClient(ABC):
         """Perform a health check on the API"""
         try:
             # Simple test request to verify connectivity
-            response = await self.make_request("GET", "health")
+            await self.make_request("GET", "health")
             return {
                 "provider": self.provider,
                 "status": "healthy",

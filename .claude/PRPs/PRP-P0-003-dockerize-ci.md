@@ -96,18 +96,13 @@ Entire KEEP suite must pass **inside** the Docker image.
 
 ## Validation Commands
 ```bash
-# Run specific tests for this task
-pytest `docker build -f Dockerfile.test -t leadfactory-test .` succeeds `docker run leadfactory-test pytest -q` shows 0 failures Entire KEEP suite must pass inside the Docker image -xvs
+# Run task-specific tests
+`docker build -f Dockerfile.test -t leadfactory-test .` succeeds
+`docker run leadfactory-test pytest -q` shows 0 failures
+Entire KEEP suite must pass inside the Docker image
 
-# Verify no existing tests broken
-pytest -m "not phase_future and not slow" -q
-
-# Check coverage meets Wave A requirement
-coverage run -m pytest tests/unit
-coverage report --fail-under=80
-
-# Lint-level compile check
-python -m py_compile $(git ls-files "*.py")
+# Run standard validation
+bash scripts/validate_wave_a.sh
 
 # Docker/deployment specific validation
 docker build -f Dockerfile.test -t leadfactory-test .
@@ -254,6 +249,7 @@ The original Phase-0 PRDs (June 2025) assumed **Yelp-centric sourcing**, a **sin
 - **$199 Pricing**: Use $399 launch price
 - **Simple Email Templates**: Use LLM-powered personalization
 - **Basic scoring only**: Implement full multi-metric assessment
+- **Supabase**: Continue using self-hosted Postgres on VPS
 
 ---
 
