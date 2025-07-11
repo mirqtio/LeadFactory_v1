@@ -82,15 +82,15 @@ class TestConfig:
         """Test API key generation for stubs"""
         settings = Settings(use_stubs=True)
 
-        assert settings.get_api_key("yelp") == "stub-yelp-key"
+        assert settings.get_api_key("google") == "stub-google-key"
         assert settings.get_api_key("stripe") == "stub-stripe-key"
 
     def test_get_api_key_missing(self):
         """Test missing API key raises error"""
-        settings = Settings(use_stubs=False, yelp_api_key=None)
+        settings = Settings(use_stubs=False, google_api_key=None)
 
         with pytest.raises(ValueError, match="API key not configured"):
-            settings.get_api_key("yelp")
+            settings.get_api_key("google")
 
 
 class TestLogging:
