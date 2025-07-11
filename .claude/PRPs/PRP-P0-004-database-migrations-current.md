@@ -49,11 +49,11 @@ def test_migrations_current():
     # Run upgrade to head
     alembic_cfg = Config("alembic.ini")
     upgrade(alembic_cfg, "head")
-    
+
     # Check for model changes
     context = MigrationContext.configure(connection)
     diff = compare_metadata(context, target_metadata)
-    
+
     assert len(diff) == 0, f"Uncommitted changes: {diff}"
 ```
 

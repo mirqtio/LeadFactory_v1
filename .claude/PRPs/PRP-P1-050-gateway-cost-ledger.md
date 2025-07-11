@@ -47,7 +47,7 @@ Every external API request inserts a ledger row with `cost_usd`; daily aggregati
 ```python
 class GatewayCostLedger(Base):
     __tablename__ = "gateway_cost_ledger"
-    
+
     id = Column(UUID, primary_key=True, default=uuid4)
     provider = Column(String, nullable=False)
     operation = Column(String, nullable=False)
@@ -55,7 +55,7 @@ class GatewayCostLedger(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
     business_id = Column(UUID, ForeignKey("businesses.id"))
     response_time_ms = Column(Integer)
-    
+
     __table_args__ = (
         Index("idx_cost_ledger_daily", "provider", "timestamp"),
     )

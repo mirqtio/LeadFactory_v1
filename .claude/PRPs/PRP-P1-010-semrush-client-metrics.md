@@ -10,9 +10,7 @@ SEO snapshot is a client-value driver and upsell hook.
 Add SEMrush provider with 6 key metrics
 
 ## Dependencies
-- All P0-*
-
-**Note**: Depends on All P0-* completing successfully in the same CI run.
+- None
 
 ## Outcome-Focused Acceptance Criteria
 Stubbed unit tests pass; live smoke test fetches all six metrics; metrics appear in PDF section "SEO Snapshot".

@@ -10,9 +10,16 @@ Transparency on CPL/CAC drives pricing and spend decisions.
 Cost/revenue analytics API
 
 ## Dependencies
-- All P1-*
+- P1-010
+- P1-020
+- P1-030
+- P1-040
+- P1-050
+- P1-060
+- P1-070
+- P1-080
 
-**Note**: Depends on All P1-* completing successfully in the same CI run.
+**Note**: Depends on P1-010, P1-020, P1-030, P1-040, P1-050, P1-060, P1-070, P1-080 completing successfully in the same CI run.
 
 ## Outcome-Focused Acceptance Criteria
 `/analytics/unit_econ?date=…` returns CPL, CAC, ROI; SQL view tested; response cached 24 h.

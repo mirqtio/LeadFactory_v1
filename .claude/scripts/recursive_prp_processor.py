@@ -96,10 +96,22 @@ class InitialMDParser:
             tests_to_pass = self._extract_list(task_content, "Tests to Pass")
             acceptance_criteria = self._extract_list(task_content, "Acceptance Criteria")
 
+            # Parse dependencies, handling "All P0-*" and "All P1-*" patterns
+            dep_list = []
+            if dependencies and dependencies != 'None':
+                if dependencies == "All P0-*":
+                    # Expand to all P0 tasks we've seen so far
+                    dep_list = [t.priority for t in tasks if t.priority.startswith("P0-")]
+                elif dependencies == "All P1-*":
+                    # Expand to all P1 tasks we've seen so far
+                    dep_list = [t.priority for t in tasks if t.priority.startswith("P1-")]
+                else:
+                    dep_list = dependencies.split(', ')
+            
             task = Task(
                 priority=priority,
                 title=title,
-                dependencies=dependencies.split(', ') if dependencies and dependencies != 'None' else [],
+                dependencies=dep_list,
                 goal=goal,
                 integration_points=integration_points,
                 tests_to_pass=tests_to_pass,
