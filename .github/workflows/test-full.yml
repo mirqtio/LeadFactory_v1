@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 60
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -45,7 +45,7 @@ jobs:
         docker-compose --version
     
     - name: Cache dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
@@ -118,7 +118,7 @@ jobs:
         echo "This workflow runs all tests including slow and Phase 0.5 tests"
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: full-test-results

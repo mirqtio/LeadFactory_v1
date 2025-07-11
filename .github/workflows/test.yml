@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -36,7 +36,7 @@ jobs:
         docker-compose --version
     
     - name: Cache dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
@@ -103,7 +103,7 @@ jobs:
         python -m pytest -xvs --tb=short --timeout=30 -m "not slow" --cov=. --cov-report=xml --cov-report=term-missing
     
     - name: Upload coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       if: always()
       with:
         file: ./coverage.xml

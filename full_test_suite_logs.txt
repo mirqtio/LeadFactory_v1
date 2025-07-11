@@ -1,0 +1,28 @@
+﻿2025-07-11T19:00:10.1296488Z Current runner version: '2.326.0'
+2025-07-11T19:00:10.1320176Z ##[group]Runner Image Provisioner
+2025-07-11T19:00:10.1321057Z Hosted Compute Agent
+2025-07-11T19:00:10.1321634Z Version: 20250710.361
+2025-07-11T19:00:10.1322189Z Commit: 1aa91963755b73deaa955e512f5de173acfde7a8
+2025-07-11T19:00:10.1322936Z Build Date: 2025-07-10T18:39:53Z
+2025-07-11T19:00:10.1323564Z ##[endgroup]
+2025-07-11T19:00:10.1324088Z ##[group]Operating System
+2025-07-11T19:00:10.1324687Z Ubuntu
+2025-07-11T19:00:10.1325164Z 24.04.2
+2025-07-11T19:00:10.1325676Z LTS
+2025-07-11T19:00:10.1326083Z ##[endgroup]
+2025-07-11T19:00:10.1326637Z ##[group]Runner Image
+2025-07-11T19:00:10.1327186Z Image: ubuntu-24.04
+2025-07-11T19:00:10.1327951Z Version: 20250629.1.0
+2025-07-11T19:00:10.1329039Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20250629.1/images/ubuntu/Ubuntu2404-Readme.md
+2025-07-11T19:00:10.1330567Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20250629.1
+2025-07-11T19:00:10.1331589Z ##[endgroup]
+2025-07-11T19:00:10.1332661Z ##[group]GITHUB_TOKEN Permissions
+2025-07-11T19:00:10.1334486Z Contents: read
+2025-07-11T19:00:10.1335031Z Metadata: read
+2025-07-11T19:00:10.1335513Z Packages: read
+2025-07-11T19:00:10.1336085Z ##[endgroup]
+2025-07-11T19:00:10.1338244Z Secret source: Actions
+2025-07-11T19:00:10.1338928Z Prepare workflow directory
+2025-07-11T19:00:10.1713537Z Prepare all required actions
+2025-07-11T19:00:10.1757592Z Getting action download info
+2025-07-11T19:00:10.6404597Z ##[error]This request has been automatically failed because it uses a deprecated version of `actions/upload-artifact: v3`. Learn more: https://github.blog/changelog/2024-04-16-deprecation-notice-v3-of-the-artifact-actions/
