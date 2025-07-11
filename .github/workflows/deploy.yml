@@ -23,6 +23,7 @@ jobs:
           ssh -o StrictHostKeyChecking=accept-new -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
             set -e
             # Clone or pull repository
+            echo "Starting deployment..."
             if [ ! -d /srv/leadfactory ]; then
               sudo mkdir -p /srv/leadfactory && sudo chown $USER /srv/leadfactory
             fi
