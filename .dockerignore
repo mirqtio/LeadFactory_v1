@@ -49,6 +49,7 @@ docs/_build/
 *.md
 !README.md
 !CLAUDE.md
+!PRD.md
 
 # CI/CD
 .github/
