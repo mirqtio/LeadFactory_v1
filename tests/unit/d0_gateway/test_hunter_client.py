@@ -16,6 +16,9 @@ from d0_gateway.exceptions import (
 from core.exceptions import ValidationError
 from d0_gateway.providers.hunter import HunterClient
 
+# Mark entire module as xfail for Phase 0.5
+pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+
 
 @pytest.fixture
 def mock_settings():

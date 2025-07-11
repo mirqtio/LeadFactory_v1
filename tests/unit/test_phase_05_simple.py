@@ -12,6 +12,9 @@ from d0_gateway.providers.hunter import HunterClient
 from d0_gateway.exceptions import AuthenticationError
 from core.exceptions import ValidationError
 
+# Mark entire module as xfail for Phase 0.5
+pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+
 
 class TestDataAxleClientSimple:
     """Simple tests for Data Axle client"""

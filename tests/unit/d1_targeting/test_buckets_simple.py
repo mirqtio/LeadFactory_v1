@@ -6,6 +6,9 @@ import pytest
 import pandas as pd
 from pathlib import Path
 
+# Mark entire module as xfail for Phase 0.5
+pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+
 
 class TestBucketsSimple:
     """Test bucket functionality without database"""

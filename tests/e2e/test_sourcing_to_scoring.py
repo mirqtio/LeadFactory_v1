@@ -34,6 +34,9 @@ from d5_scoring.models import ScoringEngine
 # Import models
 from database.models import Business, ScoringResult, Target
 
+# Mark entire module as xfail - Yelp sourcing removed
+pytestmark = pytest.mark.xfail(reason="Yelp sourcing functionality removed", strict=False)
+
 
 @pytest.mark.e2e
 async def test_yelp_to_assessment_flow(

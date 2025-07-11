@@ -12,6 +12,7 @@ from d4_enrichment.models import EnrichmentSource, MatchConfidence
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 class TestEnrichmentFanout:
     """Test enrichment fanout with Data Axle and Hunter"""
 

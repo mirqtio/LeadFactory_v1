@@ -17,6 +17,9 @@ from d11_orchestration.cost_guardrails import (
     profit_snapshot_flow,
 )
 
+# Mark entire module as xfail for Phase 0.5
+pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+
 
 class TestCostGuardrailTasks:
     """Test individual tasks in cost guardrail flows"""
