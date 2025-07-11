@@ -94,11 +94,6 @@ jobs:
       run: |
         python -m pytest -xvs --tb=short --timeout=30 tests/test_docker_compose.py -k "not integration and not test_volumes_created"
     
-    - name: Run local tests as fallback (excluding slow tests)
-      if: failure()
-      run: |
-        python -m pytest -xvs --tb=short --timeout=30 -m "not slow" --cov=. --cov-report=xml --cov-report=term-missing
-    
     - name: Upload coverage
       uses: codecov/codecov-action@v4
       if: always()
