@@ -72,7 +72,7 @@ jobs:
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
           leadfactory-test \
-          python -m pytest -m "not slow and not phase_future" --tb=short -q
+          python -m pytest -m "not slow and not phase_future" --tb=short -q -n auto --maxfail=5
     
     - name: Check test coverage in Docker
       run: |
@@ -82,7 +82,7 @@ jobs:
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
           leadfactory-test \
-          bash -c "coverage run -m pytest -m 'not slow and not phase_future' -q && coverage report --fail-under=80 || true"
+          bash -c "coverage run -m pytest -m 'not slow and not phase_future' -q -n auto && coverage report --fail-under=80 || true"
     
     - name: Push Docker image to GHCR
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
