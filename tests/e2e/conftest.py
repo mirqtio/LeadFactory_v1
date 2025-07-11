@@ -306,7 +306,7 @@ def mock_external_services(stub_server):
     with patch.dict(
         os.environ,
         {
-            "YELP_API_URL": f"{stub_server}/yelp",
+            # "YELP_API_URL": f"{stub_server}/yelp",  # Yelp removed
             "OPENAI_API_URL": f"{stub_server}/openai",
             "SENDGRID_API_URL": f"{stub_server}/sendgrid",
             "STRIPE_API_URL": f"{stub_server}/stripe",

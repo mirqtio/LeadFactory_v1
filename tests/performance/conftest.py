@@ -63,7 +63,7 @@ def test_db_session() -> Generator:
 @pytest.fixture(scope="function")
 def mock_external_services():
     """Mock external services for performance testing"""
-    with patch("d0_gateway.providers.yelp.YelpClient") as mock_yelp, patch(
+    with patch(
         "d0_gateway.providers.pagespeed.PageSpeedClient"
     ) as mock_pagespeed, patch(
         "d0_gateway.providers.openai.OpenAIClient"
@@ -71,12 +71,7 @@ def mock_external_services():
         "d0_gateway.providers.sendgrid.SendGridClient"
     ) as mock_sendgrid:
         # Configure mock responses for consistent performance testing
-        mock_yelp.return_value.search_businesses.return_value = {
-            "businesses": [
-                {"id": f"test_yelp_{i}", "name": f"Test Business {i}"}
-                for i in range(100)
-            ]
-        }
+        # Yelp removed from codebase
 
         mock_pagespeed.return_value.analyze_page.return_value = {
             "score": 85,
@@ -93,7 +88,7 @@ def mock_external_services():
         }
 
         yield {
-            "yelp": mock_yelp,
+            # "yelp": mock_yelp,  # Yelp removed
             "pagespeed": mock_pagespeed,
             "openai": mock_openai,
             "sendgrid": mock_sendgrid,
