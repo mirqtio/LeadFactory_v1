@@ -102,6 +102,18 @@ class Settings(BaseSettings):
 
     # Phase 0.5 - Cost control
     cost_budget_usd: float = Field(default=1000.0)
+    
+    # Wave A/B feature flags for P0-005
+    enable_emails: bool = Field(default=True)  # Wave A core feature
+    enable_semrush: bool = Field(default=False)  # Wave B
+    enable_lighthouse: bool = Field(default=False)  # Wave B
+    enable_visual_analysis: bool = Field(default=False)  # Wave B
+    enable_llm_audit: bool = Field(default=False)  # Wave B
+    enable_cost_tracking: bool = Field(default=False)  # Wave B
+    use_dataaxle: bool = Field(default=False)  # Wave B
+    enable_cost_guardrails: bool = Field(default=False)  # Wave B
+    daily_budget_cap: float = Field(default=100.0)  # USD
+    per_lead_cap: float = Field(default=2.50)  # USD
 
     @field_validator("environment")
     @classmethod
@@ -125,6 +137,11 @@ class Settings(BaseSettings):
         # Force stubs in CI environment
         if os.getenv("CI") == "true" or info.data.get("environment") == "test":
             return True
+        
+        # Reject stubs in production
+        if info.data.get("environment") == "production" and v:
+            raise ValueError("USE_STUBS cannot be true in production environment")
+        
         return v
 
     @field_validator("secret_key")
@@ -203,6 +220,30 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",  # Ignore extra environment variables
     )
+    
+    def model_dump(self, **kwargs):
+        """Override to mask sensitive fields when serializing"""
+        data = super().model_dump(**kwargs)
+        
+        # List of fields to mask
+        sensitive_fields = [
+            "secret_key", "openai_api_key", "sendgrid_api_key", 
+            "stripe_secret_key", "stripe_publishable_key", "stripe_webhook_secret",
+            "hunter_api_key", "data_axle_api_key", "semrush_api_key",
+            "screenshotone_key", "screenshotone_secret", "google_api_key"
+        ]
+        
+        # Mask sensitive values
+        for field in sensitive_fields:
+            if field in data and data[field]:
+                # Keep first 4 chars for identification
+                value = str(data[field])
+                if len(value) > 4:
+                    data[field] = value[:4] + "*" * (len(value) - 4)
+                else:
+                    data[field] = "*" * len(value)
+        
+        return data
 
 
 @lru_cache()
