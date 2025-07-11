@@ -5,7 +5,8 @@ import uuid
 
 import pytest
 
-from d2_sourcing.models import Business, SourcedLocation
+from database.models import Business
+from d2_sourcing.models import SourcedLocation
 # YelpMetadata removed per P0-009
 
 # Mark entire module as xfail - Yelp functionality removed
