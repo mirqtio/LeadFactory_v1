@@ -353,6 +353,35 @@ pytest -m "not slow and not phase_future" --tb=short
 
 **Rollback**: Stop postgres container, keep volume for data recovery
 
+### P0-013 CI/CD Pipeline Stabilization
+**Dependencies**: P0-012 (must preserve prior fixes and compatibility)  
+**Goal**: Fix all CI/CD issues to achieve green builds across all workflows  
+**Integration Points**:
+- `.github/workflows/*.yml` – CI configuration files
+- `Dockerfile` – Final production container definition
+- `Dockerfile.test` – CI-only test image
+- `requirements.txt` / `requirements-dev.txt` – Dependency boundaries and separation
+
+**Tests to Pass**:
+- Linting workflow completes without errors
+- Minimal test suite runs without failure
+- Docker build completes in CI
+- Deploy workflow runs migrations successfully (CI + manual verification)
+
+**Example**: see examples/REFERENCE_MAP.md → P0-013  
+**Reference**: GitHub Actions documentation, Docker best practices
+
+**Business Logic**: A stable CI/CD pipeline is critical for reliable deployment, preventing regressions, and maintaining development velocity. Without consistently passing CI, we cannot safely release changes or rely on automation for testing and deploys.
+
+**Acceptance Criteria**:
+- [ ] All GitHub Actions workflows pass: `lint`, `test-minimal`, `test`, `docker`, and `deploy`
+- [ ] Production Docker image builds successfully with all required dependencies
+- [ ] Alembic migrations run successfully inside the production container
+- [ ] Test dependencies are properly separated from production dependencies
+- [ ] No linting errors block CI
+
+**Rollback**: Revert workflow, Docker, or dependency changes that break existing successful builds
+
 ## Wave B - Expand (Priority P1-P2)
 
 ### P1-010 SEMrush Client & Metrics
