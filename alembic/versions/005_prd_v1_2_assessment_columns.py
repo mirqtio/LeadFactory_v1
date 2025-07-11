@@ -20,54 +20,65 @@ depends_on = None
 
 
 def upgrade():
+    # Get the context to determine database type
+    bind = op.get_bind()
+    dialect_name = bind.dialect.name
+    
+    # Use appropriate JSON type based on database
+    if dialect_name == 'postgresql':
+        json_type = postgresql.JSONB(astext_type=sa.Text())
+    else:
+        # For SQLite and other databases, use Text type
+        json_type = sa.Text()
+    
     # Add columns to businesses table
     op.add_column("businesses", sa.Column("domain_hash", sa.Text(), nullable=True))
     op.add_column("businesses", sa.Column("phone_hash", sa.Text(), nullable=True))
 
-    # Add columns to d3_assessment_results table
+    # Add columns to assessment_results table (note: table name from initial migration)
     op.add_column(
-        "d3_assessment_results",
-        sa.Column("bsoup_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        "assessment_results",
+        sa.Column("bsoup_json", json_type, nullable=True),
     )
     op.add_column(
-        "d3_assessment_results",
+        "assessment_results",
         sa.Column(
-            "semrush_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            "semrush_json", json_type, nullable=True
         ),
     )
     op.add_column(
-        "d3_assessment_results",
-        sa.Column("yelp_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        "assessment_results",
+        sa.Column("yelp_json", json_type, nullable=True),
     )
     op.add_column(
-        "d3_assessment_results",
+        "assessment_results",
         sa.Column(
-            "gbp_profile_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            "gbp_profile_json", json_type, nullable=True
         ),
     )
     op.add_column(
-        "d3_assessment_results", sa.Column("screenshot_url", sa.Text(), nullable=True)
+        "assessment_results", sa.Column("screenshot_url", sa.Text(), nullable=True)
     )
     op.add_column(
-        "d3_assessment_results",
+        "assessment_results",
         sa.Column("screenshot_thumb_url", sa.Text(), nullable=True),
     )
     op.add_column(
-        "d3_assessment_results",
+        "assessment_results",
         sa.Column(
-            "visual_scores_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            "visual_scores_json", json_type, nullable=True
         ),
     )
     op.add_column(
-        "d3_assessment_results",
+        "assessment_results",
         sa.Column(
-            "visual_warnings", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            "visual_warnings", json_type, nullable=True
         ),
     )
     op.add_column(
-        "d3_assessment_results",
+        "assessment_results",
         sa.Column(
-            "visual_quickwins", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            "visual_quickwins", json_type, nullable=True
         ),
     )
 
@@ -81,16 +92,16 @@ def downgrade():
     # Drop index
     op.drop_index("idx_business_domain_hash", table_name="businesses")
 
-    # Drop columns from d3_assessment_results
-    op.drop_column("d3_assessment_results", "visual_quickwins")
-    op.drop_column("d3_assessment_results", "visual_warnings")
-    op.drop_column("d3_assessment_results", "visual_scores_json")
-    op.drop_column("d3_assessment_results", "screenshot_thumb_url")
-    op.drop_column("d3_assessment_results", "screenshot_url")
-    op.drop_column("d3_assessment_results", "gbp_profile_json")
-    op.drop_column("d3_assessment_results", "yelp_json")
-    op.drop_column("d3_assessment_results", "semrush_json")
-    op.drop_column("d3_assessment_results", "bsoup_json")
+    # Drop columns from assessment_results
+    op.drop_column("assessment_results", "visual_quickwins")
+    op.drop_column("assessment_results", "visual_warnings")
+    op.drop_column("assessment_results", "visual_scores_json")
+    op.drop_column("assessment_results", "screenshot_thumb_url")
+    op.drop_column("assessment_results", "screenshot_url")
+    op.drop_column("assessment_results", "gbp_profile_json")
+    op.drop_column("assessment_results", "yelp_json")
+    op.drop_column("assessment_results", "semrush_json")
+    op.drop_column("assessment_results", "bsoup_json")
 
     # Drop columns from businesses
     op.drop_column("businesses", "phone_hash")
