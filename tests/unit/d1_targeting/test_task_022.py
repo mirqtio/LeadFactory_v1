@@ -14,6 +14,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 

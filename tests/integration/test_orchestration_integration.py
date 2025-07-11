@@ -16,6 +16,9 @@ from datetime import date, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

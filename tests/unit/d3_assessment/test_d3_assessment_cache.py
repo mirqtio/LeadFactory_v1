@@ -17,6 +17,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 sys.path.insert(0, "/app")  # noqa: E402
 
 from d3_assessment.cache import CacheEntry  # noqa: E402

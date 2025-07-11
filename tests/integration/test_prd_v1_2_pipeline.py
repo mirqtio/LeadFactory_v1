@@ -4,6 +4,9 @@ Tests Yelp sourcing → 7-assessor stack → Email enrichment → Cost tracking
 """
 import asyncio
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from typing import Dict, Any
 from decimal import Decimal
 

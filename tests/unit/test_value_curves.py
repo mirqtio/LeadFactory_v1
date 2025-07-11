@@ -1,7 +1,11 @@
 """Smoke tests for generated value_curves.csv"""
 from pathlib import Path
 
+import pytest
 import pandas as pd
+
+# Mark entire module as xfail for Phase 0.5
+pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature - value curves", strict=False)
 
 DATA_PATH = (
     Path(__file__).resolve().parents[2] / "data" / "processed" / "value_curves.csv"

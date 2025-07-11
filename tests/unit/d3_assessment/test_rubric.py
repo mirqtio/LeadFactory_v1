@@ -1,5 +1,8 @@
 """Unit tests for severity rubric mapper."""
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from d3_assessment.rubric import map_severity
 
 

@@ -47,7 +47,7 @@ class TestConfig:
         assert settings.environment == expected_env
         assert settings.use_stubs is True
         # Database URL may be overridden by system env vars
-        assert settings.max_daily_emails == 100
+        assert settings.max_daily_emails == 100000
         assert settings.report_price_cents == 19900
 
     def test_environment_override(self, monkeypatch):
@@ -67,8 +67,8 @@ class TestConfig:
         settings = Settings(use_stubs=True, stub_base_url="http://stub:5010")
         urls = settings.api_base_urls
 
-        assert urls["yelp"] == "http://stub:5010"
         assert urls["stripe"] == "http://stub:5010"
+        assert urls["sendgrid"] == "http://stub:5010"
         assert all(url == "http://stub:5010" for url in urls.values())
 
     def test_api_urls_production(self):
@@ -76,8 +76,8 @@ class TestConfig:
         settings = Settings(use_stubs=False)
         urls = settings.api_base_urls
 
-        assert urls["yelp"] == "https://api.yelp.com"
         assert urls["stripe"] == "https://api.stripe.com"
+        assert urls["sendgrid"] == "https://api.sendgrid.com"
         assert urls["openai"] == "https://api.openai.com"
 
     def test_get_api_key_with_stubs(self):

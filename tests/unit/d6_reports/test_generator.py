@@ -18,6 +18,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 # Import the modules to test
 from d6_reports.generator import GenerationOptions, GenerationResult, ReportGenerator
 from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult

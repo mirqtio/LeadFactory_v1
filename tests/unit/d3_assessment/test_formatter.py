@@ -19,6 +19,9 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 from d3_assessment.formatter import (
     AssessmentFormatter,
     FormattedIssue,

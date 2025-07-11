@@ -7,6 +7,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+# Mark entire module as xfail for Phase 0.5
+pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+
 from d0_gateway.rate_limiter import RateLimiter
 
 

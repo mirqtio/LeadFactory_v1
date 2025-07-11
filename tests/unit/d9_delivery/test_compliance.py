@@ -21,6 +21,9 @@ from unittest.mock import MagicMock, Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker

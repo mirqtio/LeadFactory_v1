@@ -112,7 +112,7 @@ class EngineConfig(BaseModel):
 class ScoringRulesSchema(BaseModel):
     """Root schema for the scoring rules document."""
 
-    version: str = Field(..., regex=r'^\d+\.\d+$', description="Configuration version")
+    version: str = Field(..., pattern=r'^\d+\.\d+$', description="Configuration version")
     tiers: Dict[str, TierConfig] = Field(..., description="Tier configurations")
     components: Dict[str, ComponentConfig] = Field(..., description="Component configurations")
     formulas: Optional[Dict[str, str]] = Field(default=None, description="Excel formulas for scoring")

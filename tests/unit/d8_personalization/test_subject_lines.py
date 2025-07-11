@@ -16,6 +16,9 @@ from datetime import datetime
 from decimal import Decimal
 
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 import yaml
 
 from d8_personalization.models import (

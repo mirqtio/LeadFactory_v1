@@ -5,6 +5,9 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from prometheus_client import REGISTRY
 
 from d0_gateway.providers.openai import OpenAIClient

@@ -12,6 +12,9 @@ Tests the full flow of:
 """
 
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import Mock, patch

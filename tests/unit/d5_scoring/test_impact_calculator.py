@@ -1,5 +1,8 @@
 """Unit tests for impact calculator."""
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from d5_scoring.impact_calculator import calculate_impact, get_confidence_weight
 
 

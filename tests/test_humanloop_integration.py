@@ -2,6 +2,9 @@
 Test Humanloop integration and prompt loading
 """
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from pathlib import Path
 
 from d0_gateway.providers.humanloop import HumanloopClient

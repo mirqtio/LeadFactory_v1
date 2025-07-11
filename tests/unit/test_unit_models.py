@@ -44,7 +44,6 @@ class TestBusinessModel:
     def test_create_business(self, test_session):
         """Test creating a business entity"""
         business = Business(
-            yelp_id="test-yelp-123",
             name="Test Restaurant",
             url="https://test.com",
             phone="+1234567890",
@@ -59,7 +58,7 @@ class TestBusinessModel:
         test_session.commit()
 
         # Query back
-        saved = test_session.query(Business).filter_by(yelp_id="test-yelp-123").first()
+        saved = test_session.query(Business).filter_by(name="Test Restaurant").first()
         assert saved is not None
         assert saved.name == "Test Restaurant"
         assert saved.rating == Decimal("4.5")
@@ -69,7 +68,7 @@ class TestBusinessModel:
         """Test business relationships with other models"""
         # Create business
         business = Business(
-            yelp_id="test-yelp-456", name="Test Business", vertical="medical"
+            name="Test Business", vertical="medical"
         )
         test_session.add(business)
         test_session.commit()
@@ -146,7 +145,7 @@ class TestEmailModels:
     def test_email_lifecycle(self, test_session):
         """Test email status progression"""
         # Create business
-        business = Business(yelp_id="test-789", name="Test Biz")
+        business = Business(name="Test Biz")
         test_session.add(business)
         test_session.commit()
 
@@ -184,7 +183,7 @@ class TestPurchaseModel:
     def test_purchase_flow(self, test_session):
         """Test purchase creation and status"""
         # Create business
-        business = Business(yelp_id="test-purchase", name="Purchase Test")
+        business = Business(name="Purchase Test")
         test_session.add(business)
         test_session.commit()
 

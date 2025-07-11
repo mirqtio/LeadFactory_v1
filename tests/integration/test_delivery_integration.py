@@ -19,6 +19,9 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 from d9_delivery.compliance import ComplianceManager
 from d9_delivery.models import (
     BounceTracking,

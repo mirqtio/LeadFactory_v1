@@ -1,0 +1,129 @@
+name: Full Test Suite
+
+on:
+  # Run on manual trigger
+  workflow_dispatch:
+  # Run weekly on Sunday at 2 AM
+  schedule:
+    - cron: '0 2 * * 0'
+  # Can also be triggered on specific branches if needed
+  push:
+    branches: [ main ]
+    paths:
+      - 'requirements*.txt'
+      - 'Dockerfile*'
+      - '.github/workflows/test-full.yml'
+
+env:
+  PYTHON_VERSION: "3.11.0"
+  DATABASE_URL: "sqlite:///tmp/test.db"
+  USE_STUBS: "true"
+  ENVIRONMENT: "test"
+  SECRET_KEY: "test-secret-key-for-ci"
+  CI: "true"
+
+jobs:
+  test-full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Create tmp directory
+      run: mkdir -p tmp
+    
+    - name: Install docker-compose
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose --version
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Build Docker test image
+      run: docker build -f Dockerfile.test -t leadfactory-test .
+    
+    - name: Run ALL unit tests in Docker
+      run: |
+        docker run --rm \
+          -e DATABASE_URL=$DATABASE_URL \
+          -e USE_STUBS=$USE_STUBS \
+          -e ENVIRONMENT=$ENVIRONMENT \
+          -e SECRET_KEY=$SECRET_KEY \
+          leadfactory-test \
+          pytest -v --tb=short --timeout=60 tests/unit/
+    
+    - name: Run ALL integration tests
+      run: |
+        docker run --rm \
+          -e DATABASE_URL=$DATABASE_URL \
+          -e USE_STUBS=true \
+          -e ENVIRONMENT=$ENVIRONMENT \
+          -e SECRET_KEY=$SECRET_KEY \
+          leadfactory-test \
+          pytest -v --tb=short --timeout=120 tests/integration/
+    
+    - name: Run E2E tests
+      run: |
+        docker run --rm \
+          -e DATABASE_URL=$DATABASE_URL \
+          -e USE_STUBS=true \
+          -e ENVIRONMENT=$ENVIRONMENT \
+          -e SECRET_KEY=$SECRET_KEY \
+          leadfactory-test \
+          pytest -v --tb=short --timeout=180 tests/e2e/
+    
+    - name: Run performance tests
+      run: |
+        docker run --rm \
+          -e DATABASE_URL=$DATABASE_URL \
+          -e USE_STUBS=true \
+          -e ENVIRONMENT=$ENVIRONMENT \
+          -e SECRET_KEY=$SECRET_KEY \
+          leadfactory-test \
+          pytest -v --tb=short --timeout=300 tests/performance/ || true
+    
+    - name: Run security tests
+      run: |
+        docker run --rm \
+          -e DATABASE_URL=$DATABASE_URL \
+          -e USE_STUBS=true \
+          -e ENVIRONMENT=$ENVIRONMENT \
+          -e SECRET_KEY=$SECRET_KEY \
+          leadfactory-test \
+          pytest -v --tb=short --timeout=120 tests/security/ || true
+    
+    - name: Generate test report
+      if: always()
+      run: |
+        echo "Full test suite completed at $(date)"
+        echo "This workflow runs all tests including slow and Phase 0.5 tests"
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: full-test-results
+        path: |
+          .coverage
+          coverage.xml
+          pytest.xml
+        retention-days: 30

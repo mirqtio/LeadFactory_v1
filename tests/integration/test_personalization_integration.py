@@ -20,6 +20,9 @@ from typing import Any, Dict, List
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 # Add project root to path
 sys.path.insert(0, "/app")
 

@@ -1,5 +1,8 @@
 """Unit tests for SEMrush adapter."""
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime, timedelta
 import responses

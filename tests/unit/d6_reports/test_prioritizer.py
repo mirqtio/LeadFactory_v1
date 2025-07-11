@@ -16,6 +16,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 # Import the modules to test
 try:
     from d6_reports.finding_scorer import FindingScore, FindingScorer

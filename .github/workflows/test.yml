@@ -85,7 +85,7 @@ jobs:
         # Always use stubs in CI - smoke tests are now skipped
         echo "Skipping smoke tests - always using stubs in CI"
     
-    - name: Run unit tests in Docker
+    - name: Run unit tests in Docker (excluding slow tests)
       run: |
         docker run --rm \
           -e DATABASE_URL=$DATABASE_URL \
@@ -93,9 +93,9 @@ jobs:
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
           leadfactory-test \
-          pytest -x --tb=short --timeout=30 tests/test_setup.py tests/unit/ --ignore=tests/test_docker_compose.py --ignore=tests/e2e/
+          pytest -x --tb=short --timeout=30 -m "not slow" tests/test_setup.py tests/unit/ --ignore=tests/test_docker_compose.py --ignore=tests/e2e/
     
-    - name: Run integration tests with stubs
+    - name: Run integration tests with stubs (excluding slow tests)
       run: |
         docker run --rm \
           -e DATABASE_URL=$DATABASE_URL \
@@ -103,16 +103,16 @@ jobs:
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
           leadfactory-test \
-          pytest -x --tb=short --timeout=60 tests/integration/ --ignore=tests/e2e/
+          pytest -x --tb=short --timeout=60 -m "not slow" tests/integration/ --ignore=tests/e2e/
     
     - name: Run docker-compose config validation
       run: |
         pytest -xvs --tb=short --timeout=30 tests/test_docker_compose.py -k "not integration and not test_volumes_created"
     
-    - name: Run local tests as fallback
+    - name: Run local tests as fallback (excluding slow tests)
       if: failure()
       run: |
-        pytest -xvs --tb=short --timeout=30 --cov=. --cov-report=xml --cov-report=term-missing
+        pytest -xvs --tb=short --timeout=30 -m "not slow" --cov=. --cov-report=xml --cov-report=term-missing
     
     - name: Upload coverage
       uses: codecov/codecov-action@v3

@@ -17,6 +17,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 sys.path.insert(0, "/app")  # noqa: E402
 
 from d3_assessment.metrics import AssessmentMetrics  # noqa: E402

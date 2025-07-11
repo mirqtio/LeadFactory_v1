@@ -6,6 +6,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 from d0_gateway.providers.pagespeed import PageSpeedClient
 
 

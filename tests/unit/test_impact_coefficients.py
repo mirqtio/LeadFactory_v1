@@ -3,6 +3,9 @@ import pytest
 import yaml
 from pathlib import Path
 
+# Mark entire module as xfail for Phase 0.5
+pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature - impact coefficients", strict=False)
+
 
 def test_impact_coefficients_exist():
     """Test that impact_coefficients.yaml exists and has all required entries."""

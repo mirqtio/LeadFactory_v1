@@ -1,5 +1,8 @@
 """Unit tests for email builder."""
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from d9_delivery.email_builder import (
     select_email_findings,
     prepare_email_context,

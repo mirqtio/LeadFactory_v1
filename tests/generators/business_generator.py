@@ -871,7 +871,6 @@ class BusinessGenerator:
         # Create business object
         business = Business(
             id=business_id or str(uuid.uuid4()),
-            yelp_id=f"yelp_{self.random.randint(100000, 999999)}",
             name=business_name,
             url=contact["website"],
             phone=contact["phone"],

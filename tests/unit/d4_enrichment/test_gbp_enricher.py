@@ -13,6 +13,9 @@ import sys
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 from d4_enrichment.gbp_enricher import (
     BatchGBPEnricher,
     GBPDataQuality,

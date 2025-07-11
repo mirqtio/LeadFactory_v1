@@ -5,6 +5,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 from d0_gateway.metrics import GatewayMetrics
 
 

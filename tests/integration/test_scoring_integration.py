@@ -1,4 +1,10 @@
 """
+import pytest
+
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 Integration Tests for Scoring System - Task 049
 
 Comprehensive integration tests for the complete scoring pipeline ensuring all

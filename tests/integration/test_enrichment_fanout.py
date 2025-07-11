@@ -4,6 +4,9 @@ Task EN-05: Test Data Axle first, Hunter fallback, cost tracking
 """
 import os
 import pytest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 

@@ -13,6 +13,9 @@ from typing import Any, Dict
 
 import pytest
 
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
+
 sys.path.insert(0, "/app")
 
 from d4_enrichment.matchers import (
