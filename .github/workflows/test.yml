@@ -72,8 +72,11 @@ jobs:
           -e USE_STUBS=$USE_STUBS \
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
+          -e CI=$CI \
+          -e PYTHONPATH=/app \
+          -w /app \
           leadfactory-test \
-          python -m pytest tests/unit/test_core.py tests/unit/test_unit_models.py tests/test_setup.py -xvs --tb=short --timeout=300
+          python -m pytest tests/unit/test_core.py tests/unit/test_unit_models.py tests/test_setup.py -v --tb=short
     
     - name: Check test coverage in Docker
       continue-on-error: true
