@@ -44,6 +44,9 @@ RUN pip install coverage
 # Switch to non-root user
 USER leadfactory
 
+# Set working directory
+WORKDIR /app
+
 # Set test environment
 ENV ENVIRONMENT=test
 ENV PYTHONPATH=/app

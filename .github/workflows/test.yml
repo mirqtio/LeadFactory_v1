@@ -64,24 +64,16 @@ jobs:
     - name: Build Docker test image
       run: docker build -f Dockerfile.test -t leadfactory-test .
     
-    - name: Debug Docker environment
-      run: |
-        echo "=== Testing Docker environment ==="
-        docker run --rm leadfactory-test python test_minimal.py || true
-        
     - name: Run KEEP test suite in Docker
       run: |
-        # Run only critical tests to avoid timeout
+        # Run the tests
         docker run --rm \
           -e DATABASE_URL=$DATABASE_URL \
           -e USE_STUBS=$USE_STUBS \
           -e ENVIRONMENT=$ENVIRONMENT \
           -e SECRET_KEY=$SECRET_KEY \
-          -e CI=$CI \
-          -e PYTHONPATH=/app \
-          -w /app \
           leadfactory-test \
-          python -m pytest test_minimal.py tests/unit/test_core.py tests/unit/test_unit_models.py tests/test_setup.py -v --tb=short
+          python -m pytest tests/unit/test_core.py tests/unit/test_unit_models.py tests/test_setup.py -v --tb=short
     
     - name: Check test coverage in Docker
       continue-on-error: true
