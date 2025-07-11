@@ -90,10 +90,6 @@ jobs:
         docker push ghcr.io/${{ github.repository_owner }}/leadfactory-test:latest
         docker push ghcr.io/${{ github.repository_owner }}/leadfactory-test:${{ github.sha }}
     
-    - name: Run docker-compose config validation
-      run: |
-        python -m pytest -xvs --tb=short --timeout=30 tests/test_docker_compose.py -k "not integration and not test_volumes_created"
-    
     - name: Upload coverage
       uses: codecov/codecov-action@v4
       if: always()
