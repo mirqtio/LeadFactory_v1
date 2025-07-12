@@ -38,13 +38,23 @@ jobs:
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
     
+    - name: Initialize test database
+      run: |
+        python -c "from database.base import Base; from database.session import engine; Base.metadata.create_all(bind=engine)"
+    
+    - name: Start stub server
+      run: |
+        python -m stubs.server &
+        sleep 3
+        curl -f http://localhost:5010/health || exit 1
+    
     - name: Run minimal tests
       run: |
-        python -m pytest tests/unit/test_core.py tests/unit/test_health_endpoint.py -xvs
+        python -m pytest tests/unit/test_core.py tests/unit/test_health_endpoint.py -xvs --tb=short
     
-    - name: Run additional stable tests
+    - name: Run all stable tests
       run: |
-        # These tests have been verified to pass consistently
+        # Run all tests in one go to avoid duplicate runs
         python -m pytest \
           tests/unit/test_core.py \
           tests/unit/test_health_endpoint.py \
@@ -55,7 +65,7 @@ jobs:
           tests/unit/d8_personalization/test_d8_personalization_models.py \
           tests/unit/d1_targeting/test_d1_models.py \
           tests/unit/d2_sourcing/test_d2_models.py \
-          -xvs
+          -xvs --tb=short --log-cli-level=ERROR
     
     - name: Generate coverage report
       continue-on-error: true
