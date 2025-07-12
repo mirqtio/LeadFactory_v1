@@ -274,7 +274,7 @@ async def update_lead(
 @handle_api_errors
 async def delete_lead(
     lead_id: str,
-    req: Request,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -393,6 +393,7 @@ async def get_audit_trail(
 async def update_enrichment_status(
     lead_id: str,
     status: EnrichmentStatusEnum,
+    request: Request,
     task_id: Optional[str] = None,
     error: Optional[str] = None,
     db: Session = Depends(get_db)
