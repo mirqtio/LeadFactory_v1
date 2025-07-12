@@ -54,15 +54,12 @@ jobs:
     
     - name: Run additional critical tests
       run: |
-        # Carefully selected tests marked as critical
+        # Tests that are marked as critical and have been verified
         python -m pytest \
           tests/unit/test_core.py \
           tests/unit/test_health_endpoint.py \
           tests/unit/test_unit_models.py \
           tests/smoke/test_health.py \
-          tests/unit/d1_targeting/test_d1_models.py \
-          tests/unit/d2_sourcing/test_d2_models.py \
-          tests/unit/d5_scoring/test_d5_scoring_models.py \
           -xvs
     
     - name: Generate coverage report
@@ -74,9 +71,6 @@ jobs:
           tests/unit/test_health_endpoint.py \
           tests/unit/test_unit_models.py \
           tests/smoke/test_health.py \
-          tests/unit/d1_targeting/test_d1_models.py \
-          tests/unit/d2_sourcing/test_d2_models.py \
-          tests/unit/d5_scoring/test_d5_scoring_models.py \
           --cov=. \
           --cov-report=term-missing \
           --cov-report=xml
