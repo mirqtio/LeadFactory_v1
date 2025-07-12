@@ -7,12 +7,12 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from datetime import datetime
 
 from database.base import Base
-from database.models import Lead, AuditLogLead, EnrichmentStatus, AuditAction
+from lead_explorer.models import Lead, AuditLogLead, EnrichmentStatus, AuditAction
 
 # Import all models to ensure foreign key references are available
 try:
     import database.models
-    import lead_explorer.models if hasattr(__import__('lead_explorer'), 'models') else None
+    import lead_explorer.models
 except ImportError:
     pass
 

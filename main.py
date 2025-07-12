@@ -12,6 +12,7 @@ import uvicorn
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -171,6 +172,7 @@ from d7_storefront.api import router as storefront_router
 from d10_analytics.api import router as analytics_router
 from d11_orchestration.api import router as orchestration_router
 from api.lineage import router as lineage_router
+from lead_explorer.api import router as lead_explorer_router
 
 # Register domain routers
 app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])
@@ -184,6 +186,15 @@ app.include_router(analytics_router)
 app.include_router(orchestration_router)
 # Note: lineage router already includes prefix in router definition
 app.include_router(lineage_router)
+# Lead Explorer router
+app.include_router(lead_explorer_router, prefix="/api/v1", tags=["lead_explorer"])
+
+# Template Studio (P0-024)
+if settings.enable_template_studio:
+    from api.template_studio import router as template_studio_router
+    app.include_router(template_studio_router)
+    # Mount static files for Template Studio UI
+    app.mount("/static/template_studio", StaticFiles(directory="static/template_studio"), name="template_studio")
 
 
 if __name__ == "__main__":

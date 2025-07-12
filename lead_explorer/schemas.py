@@ -70,7 +70,7 @@ class CreateLeadSchema(BaseModel):
             
         return v
     
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def validate_lead_data(cls, values):
         """Ensure at least email or domain is provided"""
         email = values.get('email')
@@ -154,7 +154,7 @@ class QuickAddLeadSchema(BaseModel):
             
         return v
     
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def validate_quick_add_data(cls, values):
         """Ensure at least email or domain is provided for enrichment"""
         email = values.get('email')
@@ -186,7 +186,7 @@ class PaginationSchema(BaseModel):
     skip: int = Field(0, ge=0, description="Number of records to skip")
     limit: int = Field(100, ge=1, le=1000, description="Number of records to return")
     sort_by: str = Field("created_at", description="Field to sort by")
-    sort_order: str = Field("desc", regex="^(asc|desc)$", description="Sort order")
+    sort_order: str = Field("desc", pattern="^(asc|desc)$", description="Sort order")
 
 
 class LeadListResponseSchema(BaseModel):

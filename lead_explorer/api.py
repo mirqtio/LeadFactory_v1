@@ -138,7 +138,7 @@ async def create_lead(
     - Logs create action in audit trail
     - Returns 201 with lead data
     """
-    logger.info("Creating new lead", email=request.email, domain=request.domain)
+    logger.info(f"Creating new lead with email={request.email}, domain={request.domain}")
 
     user_context = get_user_context(req)
     lead_repo = LeadRepository(db)
@@ -175,10 +175,8 @@ async def list_leads(
     - enrichment_status: Current enrichment status
     - search: Search in email, domain, company, contact name
     """
-    logger.info("Listing leads with filters", 
-               is_manual=filters.is_manual,
-               enrichment_status=filters.enrichment_status,
-               search=filters.search)
+    logger.info(f"Listing leads with filters: is_manual={filters.is_manual}, "
+               f"enrichment_status={filters.enrichment_status}, search={filters.search}")
 
     lead_repo = LeadRepository(db)
 
@@ -311,8 +309,7 @@ async def quick_add_lead(
 
     Creates a lead and immediately starts enrichment process.
     """
-    logger.info("Quick-adding lead with enrichment", 
-               email=request.email, domain=request.domain)
+    logger.info(f"Quick-adding lead with enrichment: email={request.email}, domain={request.domain}")
 
     user_context = get_user_context(req)
     lead_repo = LeadRepository(db)
@@ -395,8 +392,7 @@ async def update_enrichment_status(
     
     Used by enrichment coordinators to update status.
     """
-    logger.info(f"Updating enrichment status for lead: {lead_id}", 
-               status=status.value, task_id=task_id)
+    logger.info(f"Updating enrichment status for lead: {lead_id}, status={status.value}, task_id={task_id}")
 
     lead_repo = LeadRepository(db)
     
