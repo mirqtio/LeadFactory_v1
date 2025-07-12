@@ -22,7 +22,7 @@ from core.logging import get_logger
 from core.config import settings
 from database.session import get_db
 from database.models import Lead
-from d5_scoring.engine import ScoringEngine
+# from d5_scoring.engine import ScoringEngine  # Not used, would use in production
 
 logger = get_logger("scoring_playground", domain="scoring")
 

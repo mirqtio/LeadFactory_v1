@@ -116,6 +116,7 @@ class Settings(BaseSettings):
     per_lead_cap: float = Field(default=2.50)  # USD
     enable_report_lineage: bool = Field(default=True)  # P0-023
     enable_template_studio: bool = Field(default=True)  # P0-024
+    enable_scoring_playground: bool = Field(default=True)  # P0-025
 
     @field_validator("environment")
     @classmethod

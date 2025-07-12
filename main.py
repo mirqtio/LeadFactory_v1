@@ -208,6 +208,13 @@ if settings.enable_template_studio:
     # Mount static files for Template Studio UI
     app.mount("/static/template_studio", StaticFiles(directory="static/template_studio"), name="template_studio")
 
+# Scoring Playground (P0-025)
+if settings.enable_scoring_playground:
+    from api.scoring_playground import router as scoring_playground_router
+    app.include_router(scoring_playground_router)
+    # Mount static files for Scoring Playground UI
+    app.mount("/static/scoring-playground", StaticFiles(directory="static/scoring-playground"), name="scoring_playground")
+
 
 if __name__ == "__main__":
     uvicorn.run(
