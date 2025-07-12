@@ -190,3 +190,4 @@ pipeline_results_*.json
 scoring_results_*.json
 *_summary.json
 validation_report.json
+coverage.json
