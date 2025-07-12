@@ -4,18 +4,13 @@ API dependencies
 
 from typing import Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from database.connection import SessionLocal
+from database.session import get_db as sync_get_db
 
 
-async def get_db() -> AsyncSession:
+def get_db():
     """Get database session"""
-    async with SessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+    # Use the sync database session from database.session
+    return sync_get_db()
 
 
 async def get_current_user_optional() -> Optional[str]:

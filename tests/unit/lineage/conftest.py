@@ -8,6 +8,9 @@ from sqlalchemy.orm import sessionmaker
 
 from database.base import Base
 
+# Import common fixtures from parent
+from tests.unit.d6_reports.conftest import db_session, test_report_template, test_client
+
 
 @pytest.fixture
 async def async_db_session(db_session):
