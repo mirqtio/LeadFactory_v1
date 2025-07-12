@@ -3,42 +3,54 @@ source = .
 omit = 
     */tests/*
     */test_*
-    */__pycache__/*
+    */.venv/*
     */venv/*
     */env/*
-    */.venv/*
+    */migrations/*
     */alembic/*
     */stubs/*
+    */scripts/*
+    */__pycache__/*
+    */site-packages/*
     setup.py
-    main.py
+    conftest.py
+    */docs/*
+    */examples/*
+    */PRPs/*
+    */temp_*/*
+    */.claude/*
+    */.github/*
+    diagnose_*.py
+    diagnose_*.sh
 
 [report]
 precision = 2
 show_missing = True
 skip_covered = False
+fail_under = 80
 
 exclude_lines =
-    # Standard pragma
+    # Have to re-enable the standard pragma
     pragma: no cover
     
-    # Debug-only code
+    # Don't complain about missing debug-only code:
     def __repr__
     if self\.debug
     
-    # Defensive programming
+    # Don't complain if tests don't hit defensive assertion code:
     raise AssertionError
     raise NotImplementedError
     
-    # Non-runnable code
+    # Don't complain if non-runnable code isn't run:
     if 0:
+    if False:
     if __name__ == .__main__.:
     
-    # Abstract methods
-    @abstract
+    # Type checking
+    if TYPE_CHECKING:
+    
+    # Ignore abstract methods
     @abstractmethod
 
 [html]
 directory = htmlcov
-
-[xml]
-output = coverage.xml

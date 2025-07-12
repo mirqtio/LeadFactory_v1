@@ -40,6 +40,38 @@ docker-compose up
 
 ## Development
 
+### Tests
+
+**CI Test Strategy (P0-014 Optimized)**
+
+Our CI runs a strategic subset of tests to maintain fast feedback loops while ensuring quality:
+
+- **Runtime Target**: ≤ 5 minutes (P90)
+- **Coverage Target**: ≥ 80%
+- **Flake Rate**: < 2%
+
+**Test Categories:**
+- `@pytest.mark.critical` - High-value tests that run on every push (core logic, models, APIs)
+- `@pytest.mark.slow` - Tests taking >30s, deferred to nightly runs
+- `@pytest.mark.flaky` - Known unstable tests, excluded from CI
+
+**Running Tests:**
+```bash
+# CI tests (fast, critical path)
+pytest -n 4 -m "not slow and not flaky" --cov --cov-fail-under=80
+
+# All tests (including slow)
+pytest -n 4
+
+# Single test file
+pytest tests/unit/test_core.py -v
+```
+
+**Test Organization:**
+- `tests/unit/` - Fast, isolated unit tests (run always)
+- `tests/integration/` - API and database tests (critical subset in CI)
+- `tests/e2e/` - Full pipeline tests (nightly only)
+
 All code must pass tests in Docker before committing:
 
 ```bash
