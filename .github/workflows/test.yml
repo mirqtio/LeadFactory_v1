@@ -52,38 +52,37 @@ jobs:
         # These tests passed in P0-013
         python -m pytest tests/unit/test_core.py tests/unit/test_health_endpoint.py -xvs
     
-    - name: Run additional critical tests
+    - name: Run all unit tests
       run: |
-        # Run all tests marked as critical, but exclude the new ones for now
-        python -m pytest \
-          tests/unit/test_core.py \
-          tests/unit/test_health_endpoint.py \
-          tests/unit/test_unit_models.py \
-          tests/smoke/test_health.py \
-          tests/integration/test_stub_server.py \
-          tests/unit/d6_reports/test_d6_reports_models.py \
-          tests/unit/d8_personalization/test_d8_personalization_models.py \
+        # Run all unit tests except those in pytest.ini ignore list
+        python -m pytest tests/unit \
+          --ignore=tests/unit/d10_analytics/test_d10_models.py \
+          --ignore=tests/unit/d10_analytics/test_warehouse.py \
+          --ignore=tests/unit/d11_orchestration/test_bucket_flow.py \
+          --ignore=tests/unit/d11_orchestration/test_pipeline.py \
+          --ignore=tests/unit/d9_delivery/test_delivery_manager.py \
+          --ignore=tests/unit/d9_delivery/test_sendgrid.py \
           --ignore=tests/unit/test_utils_extended.py \
           --ignore=tests/unit/test_config_extended.py \
-          -xvs
+          -x --tb=short -q
     
     - name: Generate coverage report
-      continue-on-error: true
       run: |
-        # Run with coverage but don't fail on threshold
-        python -m pytest \
-          tests/unit/test_core.py \
-          tests/unit/test_health_endpoint.py \
-          tests/unit/test_unit_models.py \
-          tests/smoke/test_health.py \
-          tests/integration/test_stub_server.py \
-          tests/unit/d6_reports/test_d6_reports_models.py \
-          tests/unit/d8_personalization/test_d8_personalization_models.py \
+        # Run all unit tests with coverage
+        # Note: Coverage is currently ~67%, working towards 80% target
+        python -m pytest tests/unit \
+          --ignore=tests/unit/d10_analytics/test_d10_models.py \
+          --ignore=tests/unit/d10_analytics/test_warehouse.py \
+          --ignore=tests/unit/d11_orchestration/test_bucket_flow.py \
+          --ignore=tests/unit/d11_orchestration/test_pipeline.py \
+          --ignore=tests/unit/d9_delivery/test_delivery_manager.py \
+          --ignore=tests/unit/d9_delivery/test_sendgrid.py \
           --ignore=tests/unit/test_utils_extended.py \
           --ignore=tests/unit/test_config_extended.py \
           --cov=. \
-          --cov-report=term-missing \
-          --cov-report=xml
+          --cov-report=term \
+          --cov-report=xml \
+          -q
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
