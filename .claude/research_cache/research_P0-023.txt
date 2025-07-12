@@ -1,0 +1,187 @@
+# Research Context for P0-023 - Lineage Panel
+
+## Key Findings
+
+### Audit Trail Implementation
+- **SQLAlchemy Event System**: Use SQLAlchemy's event system through listen() or listens_for() decorators to intercept database operations
+- **Key Events**: after_insert, after_update, before_delete for tracking all mutations
+- **Separate Audit Tables**: Best practice is to separate audit tables, potentially in different schema
+- **SQLAlchemy-Continuum**: Popular library for versioning and auditing (actively maintained as of May 2024)
+- **Essential Fields**: action type, timestamp, user information, old/new values
+
+### Data Lineage Tracking
+- **OpenLineage Standard**: Industry standard for lineage metadata collection, widely adopted in 2024
+- **Metadata Storage**: Centralized metadata repository for scalable lineage tracking
+- **Event Capture**: Track API requests/responses, data transformations, source/destination metadata
+- **Python Libraries**: NetworkX for graph analysis, DataHub for metadata management
+- **Integration Pattern**: Middleware layer in FastAPI to capture lineage events
+
+### Gzip Compression Best Practices
+- **Compression Levels**: 0-9, with 9 being default (highest compression but slowest)
+- **Streaming for Large Files**: Use chunk_size=4096 for memory efficiency
+- **File Handling**: Always use binary mode ('rb'/'wb') with context managers
+- **Compression Ratios**: Typically 3:1 to 4:1 for text/JSON data
+- **Performance**: Consider python-isal for improved performance if needed
+
+### FastAPI JSON Viewer
+- **Built-in Support**: FastAPI includes Swagger UI and ReDoc for interactive JSON viewing
+- **Custom Response Classes**: JSONResponse, ORJSONResponse, UJSONResponse for optimization
+- **Custom Implementation**: Can create custom HTML responses with JavaScript for specialized viewers
+- **Performance**: ORJSONResponse recommended for best JSON serialization performance
+
+## Authoritative Sources
+
+### SQLAlchemy Audit Trail
+- SQLAlchemy Event System Documentation: https://docs.sqlalchemy.org/en/20/orm/session_events.html
+- SQLAlchemy-Continuum PyPI: https://pypi.org/project/SQLAlchemy-Continuum/
+- PostgreSQL-Audit Documentation: https://postgresql-audit.readthedocs.io/en/latest/sqlalchemy.html
+
+### Data Lineage
+- OpenLineage Specification: https://openlineage.io/docs/
+- OpenLineage API Documentation: https://openlineage.io/apidocs/openapi/
+- DataHub Lineage Documentation: https://docs.datahub.com/docs/lineage/openlineage
+
+### Gzip Compression
+- Python gzip Documentation: https://docs.python.org/3/library/gzip.html
+- Python zlib Documentation: https://docs.python.org/3/library/zlib.html
+
+### FastAPI
+- FastAPI Custom Response Documentation: https://fastapi.tiangolo.com/advanced/custom-response/
+- FastAPI JSON Encoder Documentation: https://fastapi.tiangolo.com/tutorial/encoder/
+- FastAPI Response Model Documentation: https://fastapi.tiangolo.com/tutorial/response-model/
+
+## Current Best Practices
+
+### Audit Trail Pattern
+```python
+from sqlalchemy import event
+from sqlalchemy.orm import Session
+from datetime import datetime
+
+@event.listens_for(Session, "after_bulk_insert")
+@event.listens_for(Session, "after_bulk_update")
+@event.listens_for(Session, "after_bulk_delete")
+def receive_after_bulk_operation(update_context):
+    # Log bulk operations to audit trail
+    pass
+
+class AuditMixin:
+    """Mixin for models that need audit trail"""
+    
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+    
+    def create_audit_entry(self, action, user_id, details=None):
+        """Create audit log entry for this record"""
+        audit_entry = AuditLog(
+            table_name=self.__tablename__,
+            record_id=self.id,
+            action=action,
+            user_id=user_id,
+            timestamp=datetime.utcnow(),
+            details=details
+        )
+        return audit_entry
+```
+
+### Lineage Tracking Pattern
+```python
+from fastapi import FastAPI, Request
+from typing import Dict, Any
+import uuid
+from datetime import datetime
+
+class LineageMiddleware:
+    async def __call__(self, request: Request, call_next):
+        # Generate lineage tracking ID
+        lineage_id = str(uuid.uuid4())
+        
+        # Capture request metadata
+        lineage_data = {
+            "lineage_id": lineage_id,
+            "timestamp": datetime.utcnow(),
+            "endpoint": request.url.path,
+            "method": request.method,
+        }
+        
+        # Process request
+        response = await call_next(request)
+        
+        # Store lineage information
+        await store_lineage(lineage_data)
+        
+        return response
+```
+
+### Gzip Compression Pattern
+```python
+import gzip
+import json
+from typing import Dict, Any
+
+def compress_json_data(data: Dict[Any, Any], max_size_mb: float = 2.0) -> bytes:
+    """Compress JSON data with size limit"""
+    json_str = json.dumps(data)
+    compressed = gzip.compress(json_str.encode('utf-8'), compresslevel=6)
+    
+    # Check size limit
+    size_mb = len(compressed) / (1024 * 1024)
+    if size_mb > max_size_mb:
+        raise ValueError(f"Compressed size {size_mb:.2f}MB exceeds limit {max_size_mb}MB")
+    
+    return compressed
+
+def decompress_json_data(compressed_data: bytes) -> Dict[Any, Any]:
+    """Decompress gzipped JSON data"""
+    decompressed = gzip.decompress(compressed_data)
+    return json.loads(decompressed.decode('utf-8'))
+```
+
+## Common Pitfalls
+
+### Audit Trail
+- Audit records in same transaction can be lost on rollback - consider separate session
+- Not capturing enough context (user, timestamp, old values)
+- Performance impact of synchronous audit logging
+- Not implementing proper access controls on audit data
+
+### Data Lineage
+- Incomplete lineage capture missing intermediate steps
+- Not standardizing lineage format across systems
+- Performance overhead of detailed lineage tracking
+- Lack of visualization tools for lineage graphs
+
+### Gzip Compression
+- Using compression level 9 when speed is important (use 6 for balance)
+- Not using streaming for large files leading to memory issues
+- Forgetting to handle compression errors
+- Not checking compressed size before storage
+
+## Recent Updates (2024)
+
+### SQLAlchemy
+- SQLAlchemy 2.0+ has improved event system performance
+- Better async support for audit trail implementations
+- Enhanced bulk operation tracking capabilities
+
+### Data Lineage
+- OpenLineage becoming de facto standard
+- Better integration with cloud platforms (AWS DataZone, GCP Data Catalog)
+- Improved real-time lineage tracking capabilities
+
+### FastAPI
+- Enhanced performance with newer JSON serialization libraries
+- Better support for streaming responses
+- Improved async handling for large data operations
+
+## Implementation Recommendations
+
+### For Lineage Panel (P0-023)
+1. **Database Schema**: Create report_lineage table with proper indexes on lead_id, pipeline_run_id
+2. **Audit Trail**: Use SQLAlchemy events for automatic tracking, separate audit connection for reliability
+3. **JSON Viewer**: Use FastAPI's built-in Swagger UI or implement custom viewer with syntax highlighting
+4. **Compression**: Use gzip level 6 for balance of speed/size, implement streaming for large logs
+5. **Performance**: Implement caching for frequently accessed lineage data, use async operations
+6. **Security**: Ensure read-only access for viewers, implement proper authentication
+7. **Testing**: Mock gzip operations in tests, use deterministic test data for compression ratios

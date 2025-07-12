@@ -1,0 +1,102 @@
+# Research Context for P0-024 - Template Studio
+
+## Key Findings
+- Monaco Editor is the web technology-based code editor that powers VS Code, ideal for building web-based development environments
+- Custom language support for Jinja2 is achievable through Monaco's monarch tokenization system
+- PyGithub library provides comprehensive GitHub API integration for creating pull requests programmatically
+- Web Workers configuration is critical for Monaco editor performance in production
+- Bundle size optimization is important - can disable unused languages and features
+
+## Authoritative Sources
+- Monaco Editor Official Documentation: https://microsoft.github.io/monaco-editor/api/index.html
+- Monaco Editor GitHub Repository: https://github.com/microsoft/monaco-editor
+- PyGithub Documentation: https://pygithub.readthedocs.io/en/latest/introduction.html
+- GitHub REST API - Pull Requests: https://docs.github.com/en/rest/pulls/pulls#create-a-pull-request
+- FastAPI WebSockets Tutorial: https://fastapi.tiangolo.com/tutorial/websockets/
+
+## Current Best Practices
+
+### Monaco Editor Integration
+- Use @monaco-editor/react for React applications or CDN for vanilla JS
+- Configure self.MonacoEnvironment and getWorker() for proper Web Worker loading
+- Implement lazy loading to improve initial page load time
+- Use ESM builds when importing only a subset of features
+- Set up proper webpack configuration with monaco-editor-webpack-plugin
+
+### Jinja2 Syntax Highlighting
+- Register custom language with Monaco using monarch tokenization
+- Define token patterns for Jinja2 syntax: `{#...#}`, `{%...%}`, `{{...}}`
+- Create custom theme tokens for highlighting Jinja2 elements
+- Inspect tokens using Monaco's built-in "Inspect Tokens" command for debugging
+
+### GitHub API Integration
+- Use PyGithub library for Python-based GitHub API interactions
+- Authenticate using personal access tokens with appropriate scopes
+- Create pull requests with repo.create_pull() method
+- Include semantic commit messages and descriptive PR bodies
+- Handle rate limiting and error responses gracefully
+
+### Testing Strategies
+- Mock external API calls (GitHub API) in unit tests
+- Use deterministic test data for template preview rendering
+- Test Web Worker configuration in both development and production modes
+- Verify syntax highlighting with various Jinja2 constructs
+- Test authentication and authorization flows
+
+## Common Pitfalls
+- Monaco Editor cannot run VS Code extensions - functionality must be reimplemented
+- Large bundle size if all languages are included - use tree shaking
+- Web Worker configuration issues in production environments
+- GitHub API rate limiting (5000 requests/hour for authenticated requests)
+- Cross-origin issues when loading Monaco from CDN
+- Memory leaks if Monaco instances aren't properly disposed
+
+## Recent Updates
+- Monaco Editor continues active development with regular updates
+- PyGithub added support for Python 3.13 (late 2024)
+- GitHub API now supports fine-grained personal access tokens
+- Monaco editor webpack plugin provides better bundle optimization
+- React integration simplified with @monaco-editor/react package
+
+## Implementation Recommendations
+
+### Architecture
+1. Backend API (FastAPI):
+   - `/api/templates/` - List templates with git metadata
+   - `/api/templates/{id}/preview` - Render template with sample data
+   - `/api/templates/{id}/propose` - Create GitHub PR with changes
+   - WebSocket endpoint for real-time preview updates
+
+2. Frontend Components:
+   - Template list view with git SHA/version display
+   - Monaco editor component with Jinja2 language support
+   - Live preview pane with debounced rendering
+   - Diff viewer for proposed changes
+   - PR creation form with commit message input
+
+### Security Considerations
+- Implement proper authentication for mutation endpoints
+- Validate Jinja2 templates to prevent injection attacks
+- Use read-only mode for viewers (non-admin users)
+- Sanitize preview data to prevent XSS
+- Rate limit preview rendering to prevent DoS
+
+### Performance Optimizations
+- Cache template metadata to reduce git operations
+- Implement preview debouncing (300-500ms)
+- Use CDN for Monaco editor assets
+- Lazy load Monaco editor only when needed
+- Cache rendered previews for unchanged templates
+
+### Integration Patterns
+- Use GitPython for local git operations (listing templates, reading files)
+- PyGithub for GitHub API operations (creating PRs)
+- Jinja2 for template rendering with sandboxed environment
+- FastAPI dependency injection for auth checks
+- WebSocket for real-time preview updates
+
+### Tools and Libraries
+- **Backend**: FastAPI, PyGithub, GitPython, Jinja2, python-multipart
+- **Frontend**: Monaco Editor (CDN or npm), axios/fetch for API calls
+- **Testing**: pytest, pytest-asyncio, responses (for mocking GitHub API)
+- **Development**: Docker for consistent environment, pre-commit hooks

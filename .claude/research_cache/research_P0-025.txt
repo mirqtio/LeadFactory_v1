@@ -1,0 +1,167 @@
+# Research Context for P0-025 - Scoring Playground
+
+## Key Findings
+
+### Google Sheets API Integration (2024)
+- **Service Account Authentication** is the recommended approach for backend/server applications
+- Requires enabling both Google Sheets API and Google Drive API (sheets are stored in Drive)
+- Service accounts need explicit sharing permissions for each spreadsheet
+- Libraries: `google-api-python-client`, `google-auth-httplib2`, `google-auth-oauthlib`
+- Alternative simplified library: `gspread` with built-in service account support
+
+### Weight Vector Validation Best Practices
+- **Sum-to-1 Constraint**: Use L1 normalization: `weights / weights.sum()`
+- **Validation Formula**: `z_i = u_i / sum(u_j)` where u is your weight vector
+- **Tolerance**: Task specifies ± 0.005 tolerance for sum validation (0.995 to 1.005)
+- **Error Handling**: Must catch ZeroDivisionError when weights sum to zero
+- **Lower Bounds**: May need additional logic if minimum weight constraints exist
+
+### YAML Configuration Management
+- YAML ranked 4th most popular data format among developers in 2024 (21% usage)
+- 45% increase in YAML file usage for configuration management in past year
+- Validation approaches:
+  - JSON Schema validation (convert YAML to JSON, validate against schema)
+  - `yamllint` for syntax checking
+  - `yamale` for schema-based validation
+  - Pydantic models for runtime validation
+
+### Google Sheets Data Validation API
+- `SetDataValidationRequest` can apply validation rules to cell ranges
+- `ValidationConditionType` supports various validation types including numeric constraints
+- Can set custom error messages and input hints
+- Supports both strict and non-strict validation modes
+
+## Authoritative Sources
+
+### Official Documentation URLs
+- Google Sheets API Python Quickstart: https://developers.google.com/sheets/api/quickstart/python
+- Google Sheets API Reference: https://developers.google.com/sheets/api/reference/rest
+- Authentication Guide: https://docs.gspread.org/en/latest/oauth2.html
+- Data Validation Operations: https://developers.google.com/sheets/api/samples/data
+- Service Account Setup: https://developers.google.com/zero-touch/guides/customer/quickstart/python-service-account
+
+### Security Guidelines
+- OAuth 2.0 Security Best Practices: https://cloud.google.com/appengine/docs/legacy/standard/python/refdocs/google.appengine.api.validation
+- Service Account Key Management: https://mljar.com/blog/authenticate-python-google-sheets-service-account-json-credentials/
+
+## Current Best Practices
+
+### Framework-specific Patterns
+1. **Service Account Setup**:
+   - Create project in Google Cloud Console
+   - Enable Sheets and Drive APIs
+   - Create service account with JSON key
+   - Share spreadsheet with service account email
+   - Store credentials securely (environment variables or secrets manager)
+
+2. **API Integration Pattern**:
+   ```python
+   # Using gspread (recommended for simplicity)
+   import gspread
+   from google.oauth2.service_account import Credentials
+   
+   scopes = ['https://www.googleapis.com/auth/spreadsheets']
+   creds = Credentials.from_service_account_file('path/to/key.json', scopes=scopes)
+   client = gspread.authorize(creds)
+   ```
+
+3. **Weight Validation Pattern**:
+   ```python
+   def validate_weights(weights: dict) -> bool:
+       total = sum(weights.values())
+       return 0.995 <= total <= 1.005  # ± 0.005 tolerance
+   ```
+
+### Testing Strategies
+- Mock Google Sheets API calls using `unittest.mock`
+- Create test spreadsheet with known data for integration tests
+- Use deterministic weight sets for validation testing
+- Test edge cases: empty weights, zero sum, negative values
+
+### Error Handling Approaches
+- Catch `gspread.exceptions.APIError` for rate limiting
+- Implement exponential backoff for API calls
+- Validate spreadsheet permissions before operations
+- Provide clear error messages for weight validation failures
+
+## Common Pitfalls
+
+### Known Issues to Avoid
+1. **Authentication Issues**:
+   - Not sharing spreadsheet with service account email
+   - Using wrong API scopes
+   - Expired or invalid credentials
+
+2. **Rate Limiting**:
+   - Google Sheets API has quotas: 100 requests per 100 seconds
+   - Batch operations recommended for bulk updates
+
+3. **Weight Validation Edge Cases**:
+   - Floating point precision issues (use decimal tolerance)
+   - Empty or null weight values
+   - Negative weights requiring special handling
+
+### Performance Considerations
+- Cache Google Sheets data locally to minimize API calls
+- Use batch operations for multiple cell updates
+- Implement pagination for large datasets
+- Consider read/write quotas in cost calculations
+
+### Security Vulnerabilities
+- Never commit service account keys to version control
+- Use least-privilege principle for API scopes
+- Sanitize user input before writing to sheets
+- Implement audit logging for all weight changes
+
+## Recent Updates
+
+### Breaking Changes in Dependencies
+- `oauth2client` deprecated in favor of `google-auth` library
+- gspread v6.0+ requires Python 3.8+
+- Google Sheets API v4 is current (no v5 yet)
+
+### New Features to Leverage
+- Batch update methods for improved performance
+- Named ranges support for better maintainability
+- Data validation rules can be copied between sheets
+- Conditional formatting API for visual feedback
+
+### Deprecated Patterns to Avoid
+- Using `oauth2client.service_account` (use `google.oauth2.service_account`)
+- Direct HTTP requests instead of client libraries
+- Storing credentials in code or config files
+
+## Implementation Recommendations
+
+### Specific Approach Based on Research
+1. **Architecture**:
+   - Use gspread library for simplified Google Sheets integration
+   - Implement weight validation as a separate validation layer
+   - Store YAML configurations in version control
+   - Use Pydantic models for weight vector schema validation
+
+2. **Workflow**:
+   - Import current weights from YAML to Google Sheets
+   - Allow real-time editing with immediate validation feedback
+   - Calculate score deltas on cached sample data
+   - Generate YAML diff and create GitHub PR via API
+
+### Integration Patterns to Follow
+- Service-oriented architecture with clear separation of concerns
+- Repository pattern for weight storage and retrieval
+- Observer pattern for real-time sheet change detection
+- Command pattern for weight update operations
+
+### Tools and Libraries to Use
+- **Google Sheets Integration**: `gspread` (v6.1.2+)
+- **Authentication**: `google-auth` and `google-auth-oauthlib`
+- **YAML Processing**: `PyYAML` or `ruamel.yaml` for comment preservation
+- **Validation**: `pydantic` for schema validation
+- **GitHub Integration**: `PyGithub` or GitHub REST API
+- **Testing**: `pytest` with `pytest-mock` for API mocking
+
+### Caching Strategy
+- Cache the 100-lead sample in Redis/memory with 1-hour TTL
+- Store calculated scores to avoid redundant computations
+- Implement cache invalidation on weight updates
+- Use ETag headers for Google Sheets data freshness

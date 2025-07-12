@@ -1,0 +1,257 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://anthrasite.com/schemas/design-tokens.json",
+  "title": "Anthrasite Design System Tokens Schema",
+  "description": "JSON schema for validating Anthrasite Design System design tokens structure and values",
+  "type": "object",
+  "required": ["colors", "typography", "spacing", "animation", "breakpoints"],
+  "additionalProperties": false,
+  "properties": {
+    "colors": {
+      "type": "object",
+      "description": "Color tokens organized by semantic categories",
+      "required": ["primary", "status", "functional"],
+      "additionalProperties": false,
+      "properties": {
+        "primary": {
+          "type": "object",
+          "description": "Primary brand colors",
+          "minProperties": 3,
+          "maxProperties": 3,
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "$ref": "#/definitions/colorToken"
+            }
+          },
+          "additionalProperties": false
+        },
+        "status": {
+          "type": "object",
+          "description": "Semantic status colors",
+          "minProperties": 3,
+          "maxProperties": 3,
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "$ref": "#/definitions/statusColorToken"
+            }
+          },
+          "additionalProperties": false
+        },
+        "functional": {
+          "type": "object",
+          "description": "Functional UI colors",
+          "minProperties": 4,
+          "maxProperties": 4,
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "$ref": "#/definitions/colorToken"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "description": "Typography tokens including font family and scale",
+      "required": ["fontFamily", "scale"],
+      "additionalProperties": false,
+      "properties": {
+        "fontFamily": {
+          "type": "string",
+          "description": "Primary font family stack",
+          "minLength": 1
+        },
+        "scale": {
+          "type": "object",
+          "description": "Typography scale with size, weight, and line height combinations",
+          "minProperties": 9,
+          "maxProperties": 9,
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "$ref": "#/definitions/typographyToken"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "spacing": {
+      "type": "object",
+      "description": "Spacing tokens following 8px base unit system",
+      "required": ["base", "scale"],
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "type": "string",
+          "description": "Base spacing unit",
+          "pattern": "^8px$"
+        },
+        "scale": {
+          "type": "object",
+          "description": "Spacing scale values",
+          "minProperties": 7,
+          "maxProperties": 7,
+          "patternProperties": {
+            "^[a-z0-9]+$": {
+              "$ref": "#/definitions/spacingToken"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "animation": {
+      "type": "object",
+      "description": "Animation timing tokens",
+      "required": ["duration", "easing"],
+      "additionalProperties": false,
+      "properties": {
+        "duration": {
+          "type": "object",
+          "description": "Animation duration values",
+          "minProperties": 4,
+          "maxProperties": 4,
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "$ref": "#/definitions/durationToken"
+            }
+          },
+          "additionalProperties": false
+        },
+        "easing": {
+          "type": "object",
+          "description": "Animation easing functions",
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "$ref": "#/definitions/easingToken"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "breakpoints": {
+      "type": "object",
+      "description": "Responsive breakpoint definitions",
+      "minProperties": 3,
+      "maxProperties": 3,
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "$ref": "#/definitions/breakpointToken"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "colorToken": {
+      "type": "object",
+      "description": "Basic color token with value and optional metadata",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string",
+          "description": "Hex color value",
+          "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+        },
+        "usage": {
+          "type": "string",
+          "description": "Usage description for the color",
+          "minLength": 1
+        },
+        "contrast": {
+          "type": "object",
+          "description": "WCAG contrast ratios against other colors",
+          "patternProperties": {
+            "^[a-z_][a-z0-9_]*$": {
+              "type": "string",
+              "pattern": "^[0-9]+\\.?[0-9]*:1$"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "statusColorToken": {
+      "type": "object",
+      "description": "Status color token with required usage description",
+      "required": ["value", "usage"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string",
+          "description": "Hex color value",
+          "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+        },
+        "usage": {
+          "type": "string",
+          "description": "Required usage description for status colors",
+          "minLength": 1
+        },
+        "contrast": {
+          "type": "object",
+          "description": "WCAG contrast ratios against other colors",
+          "patternProperties": {
+            "^[a-z_][a-z0-9_]*$": {
+              "type": "string",
+              "pattern": "^[0-9]+\\.?[0-9]*:1$"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "typographyToken": {
+      "type": "object",
+      "description": "Typography token with size, weight, and line height",
+      "required": ["size", "weight", "lineHeight"],
+      "additionalProperties": false,
+      "properties": {
+        "size": {
+          "type": "string",
+          "description": "Font size with px unit",
+          "pattern": "^[0-9]+px$"
+        },
+        "weight": {
+          "type": "string",
+          "description": "Font weight as numeric string",
+          "pattern": "^[1-9][0-9]{2}$"
+        },
+        "lineHeight": {
+          "type": "string",
+          "description": "Line height as decimal number",
+          "pattern": "^[0-9]+(\\.[0-9]+)?$"
+        }
+      }
+    },
+    "spacingToken": {
+      "type": "string",
+      "description": "Spacing value in pixels, must be multiple of 8",
+      "pattern": "^(8|16|24|32|40|48|56|64|72|80|88|96)px$"
+    },
+    "durationToken": {
+      "type": "string",
+      "description": "Animation duration in milliseconds",
+      "pattern": "^[0-9]+ms$"
+    },
+    "easingToken": {
+      "type": "string",
+      "description": "CSS easing function",
+      "enum": [
+        "ease",
+        "ease-in",
+        "ease-out", 
+        "ease-in-out",
+        "linear"
+      ]
+    },
+    "breakpointToken": {
+      "type": "string",
+      "description": "Responsive breakpoint in pixels",
+      "pattern": "^[0-9]+px$"
+    }
+  }
+}

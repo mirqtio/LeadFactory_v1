@@ -1,0 +1,45 @@
+# Research Context for P0-026 - Governance
+
+## Key Findings
+- FastAPI provides multiple approaches for RBAC: middleware-based, JWT with OAuth2, and dependency-based implementations
+- Audit logging commonly implemented using SQLAlchemy events (after_flush, before_insert, before_update)
+- Tamper-proof logs require checksums/hashes (SHA-256 recommended) stored with each audit entry
+- Modern implementations (2024) emphasize using FastAPI dependencies for role checking rather than middleware for better granularity
+- SQLAlchemy-Continuum and sqlalchemy-audit are mature libraries for audit trails
+
+## Authoritative Sources
+- FastAPI Advanced Dependencies: https://fastapi.tiangolo.com/advanced/advanced-dependencies/
+- FastAPI Security Tutorial: https://fastapi.tiangolo.com/tutorial/security/
+- SQLAlchemy Events Documentation: https://docs.sqlalchemy.org/en/20/core/event.html
+- PostgreSQL-Audit Integration: https://postgresql-audit.readthedocs.io/en/latest/sqlalchemy.html
+
+## Current Best Practices
+- Use FastAPI Depends() for role-based access control on individual endpoints
+- Store roles as database enum types for consistency
+- Implement audit logging using SQLAlchemy event listeners
+- Calculate content hash using SHA-256 for tamper detection
+- Store audit entries with: user_id, timestamp, action, object_type, object_id, details_json, content_hash
+- Use UTC timestamps for all audit entries
+- Implement read-only audit tables (no UPDATE/DELETE permissions)
+
+## Common Pitfalls
+- Avoid using middleware for RBAC - it's too coarse-grained for complex permissions
+- Don't store sensitive data in audit logs without encryption
+- Avoid mutable audit tables - use database permissions to prevent modifications
+- Don't forget to audit failed authorization attempts
+- Avoid synchronous audit writes that could slow down API responses
+
+## Recent Updates
+- FastAPI 0.100+ has improved dependency injection for security
+- SQLAlchemy 2.0 has better async support for audit logging
+- JWT libraries now recommend RS256 over HS256 for production
+- PostgreSQL 15+ has better JSON indexing for audit detail fields
+
+## Implementation Recommendations
+- Create a RoleChecker dependency that validates user roles from JWT/session
+- Use SQLAlchemy declarative_base for audit_log_global table
+- Implement content hashing in a before_flush event listener
+- Store audit details as JSONB for flexible schema
+- Create database-level constraints to prevent audit tampering
+- Use async SQLAlchemy sessions for non-blocking audit writes
+- Implement a separate audit database connection pool for reliability

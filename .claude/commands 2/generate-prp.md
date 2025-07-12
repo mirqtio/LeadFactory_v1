@@ -50,25 +50,6 @@ uv run pytest tests/ -v
 
 ```
 
-### Missing-Checks Validation Framework
-Every PRP must include comprehensive post-execution validation covering these 9 areas:
-
-1. **Local Test Suite Pre-commit Hook**: Pre-commit hooks preventing broken commits
-2. **Recursive CI-log Triage Loop**: Automated CI failure handling and retry
-3. **Branch Protection & Required Status Checks**: GitHub API configuration
-4. **Security & Supply-chain Guard-rails**: Dependency scanning, CVE detection
-5. **Performance/Regression Budgets**: Benchmark baselines and budget gates
-6. **Visual Regression & Accessibility Loops**: UI consistency and WCAG compliance (UI tasks)
-7. **Database Migration Sanity**: Reversible migration testing (DB tasks)
-8. **Style-guide Enforcement**: Automated brand consistency checks (UI tasks)
-9. **Release & Rollback Discipline**: Safe deployment with rollback procedures
-
-**Required by Task Type**:
-- **Backend/API**: #1, #3, #4 (+ #2, #5 recommended)
-- **UI/Frontend**: #1, #3, #6, #8 (+ #4, #5 recommended)  
-- **Database**: #1, #3, #7 (+ #4, #5 recommended)
-- **CI/DevOps**: #1, #2, #3, #4, #9 (+ #5 recommended)
-
 *** CRITICAL AFTER YOU ARE DONE RESEARCHING AND EXPLORING THE CODEBASE BEFORE YOU START WRITING THE PRP ***
 
 *** ULTRATHINK ABOUT THE PRP AND PLAN YOUR APPROACH THEN START WRITING THE PRP ***
@@ -82,9 +63,6 @@ Save as: `PRPs/{feature-name}.md`
 - [ ] References existing patterns
 - [ ] Clear implementation path
 - [ ] Error handling documented
-- [ ] Missing-checks validation framework included for task type
-- [ ] Post-execution validation comprehensive (not just "tests pass")
-- [ ] Security, performance, and accessibility considerations addressed
 
 Score the PRP on a scale of 1-10 (confidence level to succeed in one-pass implementation using claude codes)
 

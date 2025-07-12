@@ -1,8 +1,8 @@
-# Execute PRP (Recursive Mode)
+# Execute PRP (Recursive Mode with Completion Validation)
 
-Execute a PRP file with automatic continuation to the next PRP after successful completion.
+Execute PRP files with automatic continuation after successful completion validation.
 
-## PRP File: $ARGUMENTS
+## PRP Files: $ARGUMENTS (space-separated PRP IDs like "P0-021 P0-022", defaults to all pending in dependency order)
 
 ## Critical Context Included in Every PRP
 
@@ -38,37 +38,67 @@ Each PRP now automatically includes:
    - Implement all the code
    - Follow CLAUDE.md rules strictly
 
-5. **Validate**
+5. **Validate Implementation**
    - Run each validation command from the PRP
    - Fix any failures
    - Re-run until all pass
    - Verify CI is green after pushing
 
-6. **Complete**
-   - Ensure all checklist items done
-   - Run final validation suite
-   - Update .claude/prp_progress.json with completion status
-   - Commit changes with descriptive message referencing the PRP
+6. **PRP Completion Validation (MANDATORY)**
+   **CRITICAL: PRP is NOT complete until this passes with 100% score**
+   
+   Invoke the PRP Completion Validator:
+   ```
+   Task: PRP Completion Validation for {task_id}
+   
+   Use .claude/prompts/prp_completion_validator.md to validate this PRP implementation.
+   
+   Provide:
+   1. Original PRP: .claude/PRPs/PRP-{task_id}-*.md
+   2. Implementation evidence: code files, test results, documentation
+   3. CI status and validation outputs
+   
+   Score across all dimensions (must achieve 100/100):
+   - Acceptance Criteria (30%)
+   - Technical Implementation (25%) 
+   - Test Coverage (20%)
+   - Validation Framework (15%)
+   - Documentation (10%)
+   
+   If score < 100%, return structured feedback with specific gaps.
+   Only proceed when validation score = 100/100.
+   ```
 
-7. **Continue Recursively**
-   - After successful completion, automatically run:
-     ```bash
-     python .claude/scripts/recursive_prp_processor.py execute
-     ```
-   - This will find and execute the next PRP in sequence
-   - Continue until all PRPs are complete or a failure occurs
+7. **Iterate Until Perfect**
+   - If validation score < 100%, address ALL identified gaps
+   - Fix specific issues provided in validation feedback  
+   - Re-run validation until achieving 100% score
+   - DO NOT proceed to next PRP until current one scores 100%
+
+8. **Complete Current PRP**
+   - Update .claude/prp_progress.json with "completed" status
+   - Commit changes with message: "Complete {task_id}: {title} - Validated 100%"
+   - Verify CI remains green
+
+9. **Continue Recursively**
+   - After achieving 100% validation score, automatically continue to next PRP
+   - Process PRPs in dependency order (check INITIAL.md dependencies)
+   - Continue until all specified PRPs are complete or a failure occurs
 
 ## Failure Handling
-- If a task fails, update progress.json with "failed" status
-- Stop recursive execution
-- Report the failure clearly
-- Do NOT continue to next PRP on failure
+- If PRP completion validation fails (score < 100%), do NOT proceed to next PRP
+- Address all gaps identified by validator
+- If unable to achieve 100% after multiple attempts, update progress.json with "failed" status
+- Stop recursive execution and report specific blockers
+- Do NOT continue to next PRP until current one achieves 100% validation
 
-## Success Criteria
-- All tests in the PRP pass
-- All acceptance criteria met
-- CI shows green after push
+## Success Criteria (Per PRP)
+- All acceptance criteria fully implemented and tested
+- PRP Completion Validation score: 100/100
+- All tests passing in CI 
+- No regression in existing functionality
+- Rollback procedure tested and documented
 - Progress tracked in .claude/prp_progress.json
-- Automatic continuation to next PRP
+- Automatic continuation to next PRP only after 100% validation
 
 Note: This recursive execution follows the Wave A → Wave B sequence defined in INITIAL.md

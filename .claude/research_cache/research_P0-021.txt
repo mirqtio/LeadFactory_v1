@@ -1,0 +1,161 @@
+# Research Context for P0-021 - Lead Explorer
+
+## Key Findings
+
+### Current State Analysis
+- No existing Lead model in the codebase - the system uses Business and Target models
+- Business model (d2_sourcing) represents enriched business data
+- Target model (d1_targeting) represents targeting criteria and geographic boundaries
+- No audit logging infrastructure currently exists
+- FastAPI is already set up with SQLAlchemy models and Pydantic schemas
+- Database uses UUID strings for primary keys (not integers)
+
+### FastAPI CRUD Best Practices (2024)
+1. **Async Session Management**: Use asyncio extension for non-blocking database operations
+2. **Dependency Injection Pattern**: Use FastAPI's dependency system for session management
+3. **Repository Pattern**: Organize CRUD operations in dedicated repository classes
+4. **Error Handling**: Comprehensive error handling with proper HTTP status codes
+5. **Validation**: Use Pydantic models for request/response validation
+
+### Pydantic Validation Best Practices
+1. Use type annotations for automatic validation
+2. Leverage Field() for extra validation constraints
+3. Implement custom validators for complex business logic
+4. Use strict mode appropriately for data type enforcement
+5. Create separate models for create, update, and response operations
+
+### Audit Logging Patterns
+1. **Middleware-Based Approach**: Capture all mutations at the HTTP request level
+2. **SQLAlchemy Event Listeners**: Capture database-level changes automatically
+3. **Dedicated Audit Table**: Store user_id, action, timestamp, object details
+4. **Immutable Records**: Use checksums/hashes for tamper-proof logging
+5. **Async-First**: Ensure audit logging doesn't block main operations
+
+## Authoritative Sources
+- FastAPI SQL Databases Tutorial: https://fastapi.tiangolo.com/tutorial/sql-databases/
+- FastAPI Advanced Dependencies: https://fastapi.tiangolo.com/advanced/advanced-dependencies/
+- SQLAlchemy 2.0 Async Documentation: https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
+- Pydantic V2 Validators: https://docs.pydantic.dev/latest/concepts/validators/
+- FastAPI WebSockets Tutorial: https://fastapi.tiangolo.com/tutorial/websockets/
+
+## Current Best Practices
+
+### FastAPI CRUD Pattern
+```python
+# Repository pattern with async SQLAlchemy
+class LeadRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def create(self, lead_data: dict) -> Lead:
+        lead = Lead(**lead_data)
+        self.session.add(lead)
+        await self.session.commit()
+        await self.session.refresh(lead)
+        return lead
+    
+    async def get(self, lead_id: str) -> Optional[Lead]:
+        result = await self.session.execute(
+            select(Lead).where(Lead.id == lead_id)
+        )
+        return result.scalar_one_or_none()
+```
+
+### Audit Logging Pattern
+```python
+# SQLAlchemy event listener for automatic audit logging
+@event.listens_for(Lead, "after_insert")
+@event.listens_for(Lead, "after_update")
+@event.listens_for(Lead, "after_delete")
+def create_audit_log(mapper, connection, target):
+    audit_log = AuditLogLead(
+        lead_id=target.id,
+        action=get_action_from_state(target),
+        user_id=get_current_user_id(),
+        timestamp=datetime.utcnow(),
+        changes=get_changes(target)
+    )
+    connection.execute(audit_log_table.insert().values(**audit_log))
+```
+
+### Testing Strategies
+- Use pytest with async fixtures for database sessions
+- Create test factories for generating test data
+- Mock external API calls in unit tests
+- Use database transactions that rollback for test isolation
+
+## Common Pitfalls
+1. **Not using async properly**: Mixing sync and async database operations
+2. **Session management**: Not properly closing sessions or using wrong scope
+3. **N+1 queries**: Not using eager loading for relationships
+4. **Missing indexes**: Not adding indexes for frequently queried fields
+5. **Audit log performance**: Synchronous audit logging blocking main operations
+
+## Recent Updates
+- SQLAlchemy 2.0 has significant changes in query syntax
+- Pydantic V2 has breaking changes from V1 (faster validation)
+- FastAPI now has better WebSocket support for real-time features
+- New async database drivers provide better performance
+
+## Implementation Recommendations
+
+### Lead Model Design
+1. Create a new Lead model separate from Business/Target
+2. Include fields: id (UUID), email, domain, name, is_manual, enrichment_status
+3. Add relationship to Business model for enriched data
+4. Add created_by field for tracking who created the lead
+
+### CRUD API Structure
+```
+/api/leads/
+  GET    /         - List leads with pagination and filters
+  POST   /         - Create new lead
+  GET    /{id}     - Get lead details
+  PUT    /{id}     - Update lead
+  DELETE /{id}     - Soft delete lead
+  POST   /quick-add - Quick add with immediate enrichment
+```
+
+### Audit Trail Implementation
+1. Create audit_log_leads table with columns:
+   - id (UUID)
+   - lead_id (FK)
+   - user_id (who made the change)
+   - action (create/update/delete)
+   - timestamp
+   - old_values (JSON)
+   - new_values (JSON)
+   - ip_address
+   - user_agent
+
+2. Use SQLAlchemy event listeners for automatic capture
+3. Store audit logs asynchronously to avoid blocking
+
+### Quick-Add Enrichment Flow
+1. Accept email + domain in Quick-Add form
+2. Create lead with enrichment_status='pending'
+3. Queue enrichment task to Celery/background worker
+4. Store task_id in lead record
+5. Update enrichment_status='in_progress' when task starts
+6. Update to 'completed' or 'failed' when done
+
+### UI Considerations
+1. Use design tokens from design/design_tokens.json
+2. Implement "manual / test" badge using is_manual field
+3. Add filters for is_manual, enrichment_status
+4. Show audit trail in expandable section
+5. Real-time status updates via WebSocket or polling
+
+### Security Considerations
+1. Implement proper authentication (check existing auth system)
+2. Add authorization checks for CRUD operations
+3. Validate email format and domain
+4. Sanitize all inputs to prevent XSS
+5. Use parameterized queries (SQLAlchemy does this by default)
+
+### Performance Optimizations
+1. Add indexes on: email, domain, is_manual, enrichment_status, created_at
+2. Use pagination for list endpoint (limit/offset or cursor-based)
+3. Cache frequently accessed leads in Redis
+4. Use select_related for eager loading relationships
+5. Batch audit log writes if volume is high

@@ -1,0 +1,54 @@
+# Research Context for P0-020 - Design System Token Extraction
+
+## Key Findings
+- Design tokens are the single source of truth for design decisions (colors, spacing, typography, etc.) stored in a platform-agnostic format
+- CSS custom properties (CSS variables) are the recommended foundation for web implementation of design tokens
+- Automated extraction tools like Superposition, Project Wallace, and Token CSS can analyze existing CSS/HTML to extract tokens
+- The W3C Design Tokens Community Group is developing a standard JSON format for token exchange
+- Token extraction should categorize values into core groups: colors, typography, spacing, shadows, borders, and animations
+- Hierarchical naming conventions are critical for maintainability and scalability
+
+## Authoritative Sources
+- W3C Design Tokens Format Module: https://tr.designtokens.org/format/
+- W3C Design Tokens Community Group: https://www.w3.org/community/design-tokens/
+- MDN CSS Custom Properties: https://developer.mozilla.org/en-US/docs/Web/CSS/--*
+- Project Wallace CSS Design Tokens Analyzer: https://www.projectwallace.com/design-tokens
+- CSS-Tricks Design Tokens Guide: https://css-tricks.com/what-are-design-tokens/
+
+## Current Best Practices
+- Use CSS custom properties defined at :root level for global tokens
+- Implement hierarchical token structure (global → theme → component)
+- Follow naming conventions like BEM or use descriptive semantic names
+- Extract tokens for: colors, typography (font-family, size, weight, line-height), spacing, borders, shadows, animations
+- Generate JSON output with proper categorization and metadata
+- Validate extracted values against WCAG 2.1 AA contrast requirements
+- Use automated tools to analyze existing CSS and extract potential tokens
+- Maintain backwards compatibility with fallback values
+
+## Common Pitfalls
+- Hardcoding values instead of using token references
+- Inconsistent naming conventions across token categories
+- Not validating color contrast ratios for accessibility
+- Creating too many granular tokens instead of using scales
+- Missing documentation for token usage and purpose
+- Not versioning tokens or tracking changes
+- Extracting implementation-specific values instead of design decisions
+
+## Recent Updates
+- W3C Design Tokens Format Module still in draft (not yet standard)
+- Tools like Token CSS now auto-convert token names to CSS custom properties
+- AI-powered extraction tools emerging for visual design analysis
+- Increased focus on cross-platform token formats (web, iOS, Android)
+- Style Dictionary by Amazon remains popular for token transformation
+
+## Implementation Recommendations
+1. Analyze existing styleguide.html using automated extraction tools
+2. Extract CSS custom properties and inline styles
+3. Categorize tokens into standard groups (colors, typography, spacing, etc.)
+4. Generate JSON output following W3C draft format where applicable
+5. Include metadata for each token (description, category, usage guidelines)
+6. Validate all color combinations for WCAG 2.1 AA compliance
+7. Create utility classes or mixins that reference the tokens
+8. Document token naming conventions and usage patterns
+9. Use scales for spacing/sizing tokens (e.g., 4px base with multipliers)
+10. Consider future extensibility for theme variations

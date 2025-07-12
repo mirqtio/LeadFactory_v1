@@ -1,0 +1,105 @@
+# Research Context for P0-014
+
+## Key Findings
+- pytest markers (skip, xfail) should be used strategically with clear reasons documented
+- pytest-xdist enables parallel test execution but requires careful configuration in CI environments
+- Achieving 95% coverage requires prioritizing critical code, using branch coverage, and gradual improvement
+- GitHub Actions optimization requires balancing parallelization overhead with actual speedup
+- Test independence is crucial for reliable parallel execution
+
+## Authoritative Sources
+- pytest documentation on skip/xfail: https://docs.pytest.org/en/stable/how-to/skipping.html
+- pytest documentation on custom markers: https://docs.pytest.org/en/stable/example/markers.html
+- pytest-xdist GitHub repository: https://github.com/pytest-dev/pytest-xdist
+- Coverage.py documentation: https://coverage.readthedocs.io/
+- pytest-cov PyPI: https://pypi.org/project/pytest-cov/
+
+## Current Best Practices
+
+### Marker Usage Patterns
+- Use `@pytest.mark.skip(reason="...")` for tests that cannot run in certain environments
+- Use `@pytest.mark.xfail(reason="...")` for tests expected to fail due to known issues
+- Always provide clear reasons for skip/xfail decisions
+- Use strict=True with xfail when unexpected passes should fail the suite
+- Implement conditional marking based on system conditions: `@pytest.mark.xfail(sys.platform == "win32", reason="bug in 3rd party library")`
+- Regular review cycles to re-enable previously marked tests
+
+### Parallel Execution Strategies
+- Start with `pytest -n auto` to use all available cores
+- Monitor resource usage and adjust worker count based on system capacity
+- Ensure complete test independence - no shared state between tests
+- Use isolated data sets and fixtures with fresh setup for each test
+- Consider pytest-split for maintaining test order when needed
+- Expect overhead - 6 cores typically gives 3x speedup, not 6x
+
+### Coverage Improvement Approach
+- Use pytest-cov plugin with `--cov` flag for targeted coverage
+- Enable branch coverage with `--cov-branch` for conditional logic
+- Use `--cov-report term-missing` to identify untested lines
+- Prioritize coverage by component criticality:
+  - Core business logic: 90-100%
+  - API endpoints: 85-95%
+  - Utility functions: 70-80%
+- Implement gradual improvement - set baseline and increase incrementally
+- Track coverage trends over time in CI/CD
+
+### CI/CD Optimization
+- Minimize plugin usage to reduce overhead
+- Cache dependencies aggressively in GitHub Actions
+- Consider test sharding carefully - overhead can outweigh benefits
+- Use matrix strategy for large test suites
+- Separate slow tests with markers and run in different workflows
+- Target <10 minute CI runs for PR builds
+
+## Common Pitfalls
+- Overusing skip markers leading to forgotten tests
+- Not documenting skip/xfail reasons clearly
+- Assuming linear speedup with parallel execution
+- Tests with hidden dependencies causing flaky parallel runs
+- All job steps re-running for each test shard in GitHub Actions
+- Setting coverage thresholds too high too quickly
+- Not separating test dependencies from production dependencies
+
+## Recent Updates
+- pytest-xdist continues to be the primary parallel testing solution
+- pytest-split gaining adoption for order-dependent test suites
+- Coverage.py 7.x series provides improved branch coverage analysis
+- GitHub Actions runners now support more cores for better parallelization
+- Increased focus on test isolation for reliable parallel execution
+
+## Implementation Recommendations
+
+### Phase 1: Marker Organization
+1. Audit all existing xfail markers and document reasons
+2. Create custom markers for test categories: `@pytest.mark.slow`, `@pytest.mark.integration`, `@pytest.mark.unit`
+3. Implement marker inheritance for test classes
+4. Add marker validation to conftest.py
+
+### Phase 2: Parallel Execution Setup
+1. Install pytest-xdist as dev dependency
+2. Configure optimal worker count based on CI environment
+3. Identify and fix test interdependencies
+4. Implement test database isolation for parallel runs
+5. Add `--dist loadscope` for class-based test grouping
+
+### Phase 3: Coverage Enhancement
+1. Set initial coverage baseline from current state
+2. Configure pytest-cov with branch coverage enabled
+3. Add coverage gates to CI with gradual threshold increases
+4. Generate HTML coverage reports for detailed analysis
+5. Focus on untested conditional logic and error paths
+
+### Phase 4: CI/CD Optimization
+1. Implement test collection caching
+2. Create separate workflows for unit vs integration tests
+3. Use GitHub Actions matrix for test parallelization
+4. Configure dependency caching with proper cache keys
+5. Add timing reports to identify slow tests
+
+### Tools and Libraries
+- pytest >= 7.0 (latest stable)
+- pytest-xdist >= 3.0 for parallel execution
+- pytest-cov >= 4.0 for coverage reporting
+- pytest-timeout for preventing hanging tests
+- pytest-randomly for ensuring test independence
+- coverage[toml] for configuration via pyproject.toml

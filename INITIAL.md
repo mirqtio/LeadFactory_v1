@@ -21,6 +21,91 @@ Two-phase implementation to stabilize the existing LeadFactory codebase, then ex
 - All sensitive data must be masked in logs
 - CI must remain green after each PRP merge
 
+## CI Contract & Merge Requirements
+
+**No PR merges unless ALL of the following pass:**
+```bash
+docker build -f Dockerfile.test -t leadfactory-test .
+docker run leadfactory-test pytest -q
+docker run leadfactory-test ruff check .
+docker run leadfactory-test mypy .
+```
+
+**Additional Requirements:**
+- Implementers must iterate until all tests pass in Docker environment
+- `xfail` markers are NOT allowed in Wave A (P0) tasks
+- If CI fails post-merge, immediate fix or revert required
+- Visual regression tests must pass for UI-related changes (via Storybook/Chromatic)
+
+## PRP Completion Validation
+
+**MANDATORY: No PRP is considered complete until it passes validation:**
+
+Every PRP implementation MUST achieve a 100% validation score before merge. The implementer must:
+
+1. **Request Validation**: When you believe the PRP is complete, invoke the PRP Completion Validator:
+   - Provide the original PRP document
+   - Show all code changes, test results, and documentation
+   - Include evidence of CI passing and rollback testing
+
+2. **Address All Gaps**: The validator will identify any gaps between PRP requirements and implementation:
+   - Missing acceptance criteria
+   - Incomplete test coverage  
+   - Performance targets not met
+   - Missing validation frameworks
+   - Documentation gaps
+
+3. **Iterate Until Perfect**: Continue the cycle of:
+   - Receive validation feedback with specific gaps
+   - Fix all identified issues
+   - Request re-validation
+   - Repeat until achieving 100/100 score
+
+4. **Final Completion**: A PRP is only complete when:
+   - Validation score: 100/100
+   - Zero HIGH or CRITICAL severity gaps
+   - All CI checks passing
+   - Rollback procedure tested and documented
+
+**Validation Dimensions (see .claude/prompts/prp_completion_validator.md):**
+- Acceptance Criteria (30%): Every criterion fully implemented and tested
+- Technical Implementation (25%): Code quality, architecture, performance
+- Test Coverage (20%): Coverage targets met, all test types present
+- Validation Framework (15%): Pre-commit hooks, CI gates, monitoring
+- Documentation (10%): API docs, configuration, rollback procedures
+
+**Automatic Failures:**
+- Missing security tests
+- Performance regression
+- Breaking existing functionality
+- CI not passing
+- Coverage below 70%
+
+## Security Baseline
+
+All PRPs must enforce these security requirements:
+
+**API Security:**
+- Strict CSP headers on all new routes: `Content-Security-Policy: default-src 'self'`
+- CORS configuration limited to approved domains only
+- Rate limiting on all public endpoints (100 req/min default)
+- Input validation with Pydantic schemas on all endpoints
+
+**Dependency Security:**
+- Dependabot alerts must be resolved before merge
+- Security scanning via `bandit` in pre-commit hooks
+- No new dependencies with known CVEs (Trivy scan in CI)
+
+**Data Protection:**
+- PII must be masked in logs using existing `mask_sensitive_data()` utility
+- Audit logs must be immutable (enforced at DB level)
+- Encryption at rest for sensitive data (via SQLAlchemy encrypted fields)
+
+**Authentication & Authorization:**
+- All mutating endpoints must use `RoleChecker` dependency (from P0-026)
+- API keys must be stored in environment variables, never in code
+- Session tokens expire after 24 hours
+
 ## Success Criteria
 
 **Wave A Complete When:**
@@ -409,6 +494,263 @@ pytest -m "not slow and not phase_future" --tb=short
 - [ ] Formula evaluator test structure supports partial implementation
 
 **Rollback**: If test re-enable breaks CI, fallback to prior ignore list, isolate failing files, and track re-enable path in PR.
+
+### P0-020 Design System Token Extraction
+**Dependencies**: P0-014 (requires stable CI for UI task validation)  
+**Goal**: Extract machine-readable design tokens from HTML style guide for UI component validation  
+**Integration Points**:
+- Create `design/design_tokens.json` (≤2KB)
+- Move `design/styleguide.html` to proper location
+- Update design system references in documentation
+
+**Tests to Pass**:
+- `pytest tests/unit/design/test_design_tokens.py` (token validation)
+- Design token JSON schema validation
+- Style guide accessibility compliance tests
+
+**Example**: see examples/REFERENCE_MAP.md → P0-020  
+**Reference**: Anthrasite Design System HTML guide, CSS custom properties documentation
+
+**Business Logic**: UI tasks in Wave B require validated design tokens to prevent hardcoded colors, spacing, and typography values. Extracting tokens from the comprehensive HTML style guide ensures consistency across all UI components and enables automated style guide enforcement.
+
+**Acceptance Criteria**:
+- [ ] Design tokens extracted to `design/design_tokens.json` 
+- [ ] All colors, spacing, typography, and animation values tokenized
+- [ ] JSON schema validates token structure and naming conventions
+- [ ] Style guide moved to `design/styleguide.html` with updated references
+- [ ] Token validation prevents hardcoded hex values in UI code
+- [ ] WCAG 2.1 AA contrast ratios documented and validated
+- [ ] Design system documentation updated with token usage examples
+- [ ] Storybook setup with design token addon for visual documentation
+- [ ] Chromatic integration for visual regression testing (fail on color delta > ΔE 5)
+- [ ] Token enforcement linter preventing hardcoded colors/spacing in `src/`
+- [ ] CI job validates token extraction matches source styleguide
+- [ ] Pre-commit hook blocks hardcoded hex/rgb values unless prefixed `--synthesis-`
+
+**CI Token Regeneration Check**:
+```yaml
+jobs:
+  token_regen:
+    steps:
+      - run: python scripts/extract_tokens.py > design/design_tokens.auto.json
+      - run: diff -q design/design_tokens.json design/design_tokens.auto.json
+```
+
+**Rollback**: Remove design tokens file and revert to inline CSS values
+
+### P0-021 Lead Explorer
+**Dependencies**: P0-020  
+**Goal**: Give the CPO a /leads console that supports full CRUD and an audit-log, plus a Quick-Add form that immediately kicks off async enrichment  
+**Integration Points**:
+- CRUD API & UI – list, create, update, soft-delete leads
+- Quick-Add – email + domain → enrichment task queued
+- Badging – is_manual + "manual / test" chip in table rows
+- Audit Trail – every mutation → audit_log_leads row
+
+**Tests to Pass**:
+- POST/GET/PUT/DELETE endpoints return 2xx & validate schemas
+- Quick-Add sets enrichment_status=in_progress and persists task-id
+- CPO console table shows manual badge; filters by is_manual
+- ≥80% coverage on lead_explorer code
+- CI green, KEEP suite unaffected
+
+**Example**: see examples/REFERENCE_MAP.md → P0-021  
+**Reference**: FastAPI SQL databases tutorial - https://fastapi.tiangolo.com/tutorial/sql-databases/
+
+**Business Logic**: Manual seeding keeps demos moving and lets business users validate downstream flows before automated sources are live.
+
+**Acceptance Criteria**:
+- [ ] CRUD endpoints implemented with proper validation
+- [ ] Quick-Add form queues enrichment tasks correctly
+- [ ] Manual leads display "manual / test" badge
+- [ ] Audit trail captures all mutations
+- [ ] Test coverage ≥80% on lead_explorer module
+- [ ] Playwright smoke test: opens page → filters → creates lead → sees badge
+- [ ] Visual regression test via Chromatic/Storybook for lead table UI
+- [ ] Background task queue explicitly uses Prefect (specify in docs)
+- [ ] CI recursion: PR must pass all tests in Docker before merge
+- [ ] Viewer role gets 403 on mutations (tie-in with P0-026 governance)
+- [ ] Pagination performance test with 10k mock leads
+
+**Rollback**: Remove lead_explorer module and revert API routes
+
+### P0-022 Batch Report Runner
+**Dependencies**: P0-021  
+**Goal**: Enable the CPO to pick any set of leads, preview cost, and launch a bulk report run with real-time progress  
+**Integration Points**:
+- Lead table with filters + multi-select
+- Template/version picker (default = latest)
+- Cost Preview = lead-count × blended rate (from costs.json)
+- Start run → WebSocket progress bar (≥1 msg / 2s)
+- Resilient: failing lead ≠ failing batch
+
+**Tests to Pass**:
+- Preview within ±5% of actual spend
+- Batch status endpoints < 500ms
+- Progress pushes throttle correctly
+- Failed leads logged; batch continues
+- ≥80% coverage on batch_runner
+
+**Example**: see examples/REFERENCE_MAP.md → P0-022  
+**Reference**: FastAPI WebSockets tutorial - https://fastapi.tiangolo.com/tutorial/websockets/
+
+**Business Logic**: Bulk processing is the CPO's core "job-to-be-done" and must respect cost guardrails.
+
+**Acceptance Criteria**:
+- [ ] Lead multi-select with filters working
+- [ ] Cost preview accurate within ±5%
+- [ ] WebSocket progress updates every 2 seconds
+- [ ] Failed leads don't stop batch processing
+- [ ] Test coverage ≥80% on batch_runner module
+- [ ] Cost guardrail stub check (raises if ENABLE_COST_GUARDRAILS=true)
+- [ ] Playwright test: opens WebSocket, asserts 5+ progress messages during stub run
+- [ ] Stale batch auto-cleanup via cron job (mark FAILED after 24h)
+- [ ] CI must be green in Docker before merge (explicit iteration requirement)
+- [ ] Visual regression test for progress bar UI component
+
+**Rollback**: Remove batch_runner module and WebSocket endpoints
+
+### P0-023 Lineage Panel
+**Dependencies**: P0-022  
+**Goal**: Persist and surface the {lead_id, pipeline_run_id, template_version_id} triplet for every PDF, with click-through to raw inputs  
+**Integration Points**:
+- SQLAlchemy report_lineage table (+ migration)
+- Write lineage row at end of PDF generation
+- /lineage API + console panel
+- Read-only JSON viewer for pipeline logs
+- Download gzipped raw-input bundle (≤2MB)
+
+**Tests to Pass**:
+- 100% of new PDFs have lineage row
+- Log viewer loads < 500ms
+- Download obeys size ceiling
+- ≥80% coverage on lineage_panel
+
+**Example**: see examples/REFERENCE_MAP.md → P0-023  
+**Reference**: Python gzip documentation - https://docs.python.org/3/library/gzip.html
+
+**Business Logic**: Enables lightning-fast debugging, compliance audits, and transparent customer support.
+
+**Acceptance Criteria**:
+- [ ] Report lineage table created with proper schema
+- [ ] Every PDF generation creates lineage record
+- [ ] JSON log viewer loads quickly
+- [ ] Raw input downloads compressed and size-limited
+- [ ] Test coverage ≥80% on lineage_panel module
+- [ ] PII redaction for sensitive fields (email, phone) in raw inputs
+- [ ] Encryption at rest for lineage data using SQLAlchemy encrypted fields
+- [ ] Backfill script: `python scripts/backfill_lineage.py --days=30`
+- [ ] Read-only API role enforced, DELETE/UPDATE returns 405
+- [ ] Visual regression test for JSON viewer UI
+- [ ] CI schema diff check ensures lineage capture doesn't break
+
+**Rollback**: Drop report_lineage table and remove API endpoints
+
+### P0-024 Template Studio
+**Dependencies**: P0-023  
+**Goal**: Web-based Jinja2 editor with live preview and GitHub PR workflow — no developer required for daily copy tweaks  
+**Integration Points**:
+- List all templates + git SHA/version
+- Monaco editor (CDN) with Jinja2 syntax
+- Preview pane (lead_id=1) renders < 500ms
+- "Propose changes" → new branch, commit, GH PR; diff viewer
+
+**Tests to Pass**:
+- Git metadata appears in list
+- Valid auth required for mutations; viewers are read-only
+- PR body includes semantic commit msg
+- Diff view shows additions/deletions
+- ≥80% coverage on template_studio
+
+**Example**: see examples/REFERENCE_MAP.md → P0-024  
+**Reference**: Monaco Editor API - https://microsoft.github.io/monaco-editor/api/index.html, GitHub Create PR API - https://docs.github.com/en/rest/pulls/pulls#create-a-pull-request
+
+**Business Logic**: Web-based template editing empowers non-developers to make copy changes without deployment friction.
+
+**Acceptance Criteria**:
+- [ ] Template list shows git metadata
+- [ ] Monaco editor supports Jinja2 syntax highlighting
+- [ ] Preview renders in under 500ms
+- [ ] GitHub PR created with proper diff
+- [ ] Test coverage ≥80% on template_studio module
+- [ ] Strict CSP header: `Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net`
+- [ ] GitHub Action PR bot runs `pytest d6_reports/templates` on new templates
+- [ ] Visual regression test for template preview frame
+- [ ] Rate limiting: max 20 preview requests/sec returns 429
+- [ ] Jinja2 autoescape enabled, double-escaped content flagged in tests
+- [ ] OWASP ZAP scan in CI for XSS vulnerabilities
+
+**Rollback**: Remove template_studio module and UI components
+
+### P0-025 Scoring Playground
+**Dependencies**: P0-024  
+**Goal**: Safely experiment with YAML weight vectors in Google Sheets, see deltas on a 100-lead sample, and raise a PR with new weights  
+**Integration Points**:
+- "Import weights" → copies current YAML to Sheet weights_preview
+- UI grid shows live Sheet edits (Sheets API)
+- "Re-score sample 100" → delta table in console
+- "Propose diff" → updates YAML + GitHub PR
+
+**Tests to Pass**:
+- Sum(weights) must equal 1 ± 0.005 else error
+- Delta table renders < 1s (cached sample)
+- PR includes before/after YAML diff
+- ≥80% coverage on scoring_playground
+
+**Example**: see examples/REFERENCE_MAP.md → P0-025  
+**Reference**: Google Sheets API Python Quickstart - https://developers.google.com/sheets/api/quickstart/python
+
+**Business Logic**: Allows safe experimentation with scoring weights using familiar spreadsheet interface.
+
+**Acceptance Criteria**:
+- [ ] Weights import to Google Sheets correctly
+- [ ] Weight sum validation enforced
+- [ ] Delta calculations render quickly
+- [ ] GitHub PR includes proper YAML diff
+- [ ] Test coverage ≥80% on scoring_playground module
+- [ ] Sheets quota guard: stop polling after 3 quota errors, show UI toast
+- [ ] Optimistic locking: PR branch includes SHA of YAML at import time
+- [ ] CI fails if base YAML changed during concurrent edits
+- [ ] Sample leads anonymized or consent verified for PII protection
+- [ ] Performance regression test with 10x sample size behind feature flag
+- [ ] Rate limit on Sheets API calls (max 100/min)
+
+**Rollback**: Remove scoring_playground module and Sheets integration
+
+### P0-026 Governance
+**Dependencies**: P0-025  
+**Goal**: Ship single-tenant RBAC ("Admin" vs "Viewer") and a global immutable audit-trail covering every mutation in the CPO console  
+**Integration Points**:
+- Role table + enum (admin, viewer)
+- Router dependency that checks role before any POST/PUT/DELETE
+- audit_log_global table: {user_id, action, object_type, object_id, ts, details}
+- Viewer gets 403 on all mutating endpoints
+
+**Tests to Pass**:
+- All mutating endpoints blocked for viewer role in tests
+- 100% of successful mutations insert audit row
+- Tamper-proof: content hash & checksum stored
+- ≥80% coverage on governance module
+
+**Example**: see examples/REFERENCE_MAP.md → P0-026  
+**Reference**: FastAPI Advanced Dependencies - https://fastapi.tiangolo.com/advanced/advanced-dependencies/
+
+**Business Logic**: RBAC and audit trails ensure proper access control and compliance for enterprise deployments.
+
+**Acceptance Criteria**:
+- [ ] Role-based access control implemented
+- [ ] Viewers receive 403 on mutations
+- [ ] All mutations create audit log entries
+- [ ] Audit logs include tamper-proof checksums
+- [ ] Test coverage ≥80% on governance module
+- [ ] Automated test sweep iterates all routers, asserts POST/PUT/DELETE have RoleChecker
+- [ ] Log retention policy: 365 days → S3 cold storage via cron job
+- [ ] CI test verifies rotation job doesn't delete within retention window
+- [ ] Admin escalation flow documented, viewer→admin upgrade audited
+- [ ] Cross-module compatibility test: run KEEP suite with ENABLE_RBAC=false
+- [ ] < 100ms performance overhead verified in load tests
+
+**Rollback**: Drop role and audit_log_global tables, remove RBAC middleware
 
 ## Wave B - Expand (Priority P1-P2)
 

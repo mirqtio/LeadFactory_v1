@@ -39,6 +39,13 @@ You are an independent JUDGE evaluating a Product Requirements Prompt (PRP) for 
 - 2: Some poor technical choices
 - 1: Bad practices or anti-patterns
 
+### 6. Missing-Checks Validation (1-5)
+- 5: All required validation frameworks present for task type (pre-commit, CI automation, security, performance, accessibility, etc.)
+- 4: Most validation frameworks present with minor gaps
+- 3: Basic validation but missing important frameworks
+- 2: Significant validation gaps (only "tests pass")
+- 1: No comprehensive post-execution validation
+
 ## Response Format
 
 ```
@@ -48,6 +55,7 @@ SCORES:
 - Coverage: X/5
 - Policy Compliance: X/5
 - Technical Quality: X/5
+- Missing-Checks Validation: X/5
 
 OVERALL: X.X/5 (average)
 
@@ -57,7 +65,7 @@ STRENGTHS:
 CONCERNS:
 - [List any scores below 4 with brief explanation]
 
-RECOMMENDATION: PASS/FAIL (require ≥4.0 average and no dimension <3)
+RECOMMENDATION: PASS/FAIL (require ≥4.0 average and no dimension <4)
 ```
 
 ## Example PRPs for Calibration

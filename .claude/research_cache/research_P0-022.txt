@@ -1,0 +1,53 @@
+# Research Context for P0-022
+
+## Key Findings
+- FastAPI WebSockets provide robust real-time bidirectional communication, ideal for progress tracking in batch processing
+- Connection Manager pattern is essential for managing multiple WebSocket connections efficiently
+- Batch processing at HTTP layer using aiohttp enables asynchronous processing with better performance
+- Cost calculation should leverage caching, process pools for CPU-intensive tasks, and proper async/sync route handling
+- WebSocket connections should implement authentication, compression, and proper error handling for production readiness
+- Progress throttling (≥1 msg/2s) prevents overwhelming clients while maintaining responsive updates
+
+## Authoritative Sources
+- FastAPI WebSockets Documentation: https://fastapi.tiangolo.com/advanced/websockets/
+- FastAPI Testing WebSockets: https://fastapi.tiangolo.com/advanced/testing-websockets/
+- FastAPI Best Practices: https://github.com/zhanymkanov/fastapi-best-practices
+- Batch API Implementation Guide: https://dev.to/manukanne/implement-a-batch-route-using-fastapi-444d
+
+## Current Best Practices
+- Use ConnectionManager class to track active WebSocket connections
+- Implement background tasks for long-running batch processes
+- Use Redis/RabbitMQ for multi-instance WebSocket communication
+- Apply compression (permessage-deflate) to reduce bandwidth
+- Monitor metrics with Prometheus/Grafana for performance tracking
+- Implement proper authentication and session renewal for long-lived connections
+- Use process pools for CPU-intensive cost calculations
+- Cache dependency results within request scope
+
+## Common Pitfalls
+- Not handling WebSocketDisconnect exceptions properly
+- Blocking operations in async routes causing event loop freezes
+- Missing reconnection logic for dropped connections
+- Inadequate error handling for partial message delivery
+- Not implementing proper cost guardrails and limits
+- Failing to separate CPU-intensive tasks from I/O operations
+- Hardcoding cost calculations instead of using configurable rates
+
+## Recent Updates
+- Batch processing APIs now offer 50% cost reduction for async operations
+- FastAPI's improved async handling makes WebSocket implementations more efficient
+- New monitoring patterns focus on active connections rather than CPU/memory
+- WebSocket auto-scaling based on connection count is now best practice
+- Message brokers are essential for production multi-instance deployments
+
+## Implementation Recommendations
+- Create a robust ConnectionManager class with connection tracking and broadcast capabilities
+- Implement WebSocket endpoint with proper error handling and reconnection support
+- Use background tasks with Celery/Prefect for batch processing execution
+- Calculate costs using configurable rates from costs.json with ±5% accuracy
+- Implement progress updates with throttling (max 1 message per 2 seconds)
+- Add comprehensive logging for failed leads without stopping batch
+- Use pydantic models for request/response validation
+- Implement proper test coverage with WebSocket test client
+- Add monitoring for connection counts, message rates, and processing times
+- Design resilient system where individual lead failures don't affect batch completion
