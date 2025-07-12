@@ -9,6 +9,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import ValidationError
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -39,6 +41,9 @@ from .schemas import (
 
 # Initialize logger
 logger = get_logger("lead_explorer_api", domain="lead_explorer")
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 # Create router
 router = APIRouter()
@@ -123,6 +128,7 @@ def handle_api_errors(func):
 
 # Lead CRUD endpoints
 @router.post("/leads", response_model=LeadResponseSchema, status_code=201)
+@limiter.limit("10/second")
 @handle_api_errors
 async def create_lead(
     request: CreateLeadSchema, 
@@ -230,6 +236,7 @@ async def get_lead(lead_id: str, db: Session = Depends(get_db)):
 
 
 @router.put("/leads/{lead_id}", response_model=LeadResponseSchema)
+@limiter.limit("10/second")
 @handle_api_errors
 async def update_lead(
     lead_id: str,
@@ -263,6 +270,7 @@ async def update_lead(
 
 
 @router.delete("/leads/{lead_id}", response_model=LeadResponseSchema)
+@limiter.limit("10/second")
 @handle_api_errors
 async def delete_lead(
     lead_id: str,
@@ -298,6 +306,7 @@ async def delete_lead(
 
 
 @router.post("/leads/quick-add", response_model=QuickAddResponseSchema, status_code=201)
+@limiter.limit("10/second")
 @handle_api_errors
 async def quick_add_lead(
     request: QuickAddLeadSchema,
@@ -379,6 +388,7 @@ async def get_audit_trail(
 
 
 @router.put("/leads/{lead_id}/enrichment-status")
+@limiter.limit("10/second")
 @handle_api_errors
 async def update_enrichment_status(
     lead_id: str,

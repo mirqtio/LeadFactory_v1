@@ -13,6 +13,8 @@ from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -31,6 +33,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# Add rate limiting error handler
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS middleware
 app.add_middleware(
@@ -173,6 +178,10 @@ from d10_analytics.api import router as analytics_router
 from d11_orchestration.api import router as orchestration_router
 from api.lineage import router as lineage_router
 from lead_explorer.api import router as lead_explorer_router
+from lead_explorer.api import limiter
+
+# Add limiter to app state
+app.state.limiter = limiter
 
 # Register domain routers
 app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])
