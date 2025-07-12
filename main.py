@@ -179,6 +179,7 @@ from d11_orchestration.api import router as orchestration_router
 from api.lineage import router as lineage_router
 from lead_explorer.api import router as lead_explorer_router
 from lead_explorer.api import limiter
+from batch_runner.api import router as batch_runner_router
 
 # Add limiter to app state
 app.state.limiter = limiter
@@ -197,6 +198,8 @@ app.include_router(orchestration_router)
 app.include_router(lineage_router)
 # Lead Explorer router
 app.include_router(lead_explorer_router, prefix="/api/v1", tags=["lead_explorer"])
+# Batch Runner router
+app.include_router(batch_runner_router, prefix="/api", tags=["batch_runner"])
 
 # Template Studio (P0-024)
 if settings.enable_template_studio:

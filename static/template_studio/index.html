@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeadFactory Template Studio</title>
+    
+    <!-- Monaco Editor -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Template Studio</h1>
+            <div class="user-info">
+                <span id="userRole">Admin</span>
+            </div>
+        </header>
+        
+        <div class="main-container">
+            <!-- Template List -->
+            <aside class="template-list">
+                <h2>Templates</h2>
+                <div id="templateList" class="template-items">
+                    <!-- Templates will be loaded here -->
+                </div>
+            </aside>
+            
+            <!-- Editor Section -->
+            <section class="editor-section">
+                <div class="editor-header">
+                    <h3 id="currentTemplate">Select a template</h3>
+                    <div class="editor-actions">
+                        <button id="validateBtn" class="btn btn-secondary">Validate</button>
+                        <button id="previewBtn" class="btn btn-primary">Preview</button>
+                        <button id="saveBtn" class="btn btn-success" disabled>Propose Changes</button>
+                    </div>
+                </div>
+                <div id="editor" class="monaco-editor"></div>
+            </section>
+            
+            <!-- Preview Section -->
+            <section class="preview-section">
+                <div class="preview-header">
+                    <h3>Preview</h3>
+                    <div class="preview-info">
+                        <span id="renderTime">-</span>
+                        <span id="previewStatus">Ready</span>
+                    </div>
+                </div>
+                <iframe id="preview" class="preview-frame"></iframe>
+            </section>
+        </div>
+        
+        <!-- PR Dialog -->
+        <div id="prDialog" class="dialog" style="display: none;">
+            <div class="dialog-content">
+                <h3>Create Pull Request</h3>
+                <form id="prForm">
+                    <div class="form-group">
+                        <label for="commitMessage">Commit Message:</label>
+                        <input type="text" id="commitMessage" required 
+                               placeholder="Update hero section copy">
+                    </div>
+                    <div class="form-group">
+                        <label for="prDescription">Description:</label>
+                        <textarea id="prDescription" rows="4" 
+                                  placeholder="Describe your changes..."></textarea>
+                    </div>
+                    <div class="dialog-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closePRDialog()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create PR</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    
+    <!-- Application Script -->
+    <script src="editor.js"></script>
+</body>
+</html>
