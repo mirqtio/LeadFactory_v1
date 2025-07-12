@@ -233,6 +233,19 @@ httpx==0.25.2           # WebSocket testing
 
 ## Validation Framework
 
+
+### CI Validation (MANDATORY)
+**CI Validation = Code merged to main + GitHub Actions logs verified + All errors resolved + Solid green CI run**
+
+This means:
+1. Code must be merged to the main branch (not just pushed)
+2. GitHub Actions logs must be checked to confirm successful workflow completion
+3. Any errors that appear during CI must be resolved
+4. The final CI run must show all green checkmarks with no failures
+5. This verification must be done by reviewing the actual GitHub Actions logs, not just assumed
+
+**This is a mandatory requirement for PRP completion.**
+
 ### Pre-Deployment Validation
 1. **Code Quality**
    ```bash
