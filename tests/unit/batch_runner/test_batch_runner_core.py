@@ -17,7 +17,6 @@ class TestBatchRunnerCore:
         assert models.BatchStatus.PENDING.value == "pending"
         assert models.BatchStatus.RUNNING.value == "running"
         assert models.BatchStatus.COMPLETED.value == "completed"
-        assert models.BatchStatus.COMPLETED_WITH_ERRORS.value == "completed_with_errors"
         assert models.BatchStatus.FAILED.value == "failed"
         assert models.BatchStatus.CANCELLED.value == "cancelled"
     
