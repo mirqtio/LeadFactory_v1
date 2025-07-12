@@ -6,7 +6,6 @@ the DesignTokenValidator class and CLI functionality.
 """
 
 import json
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -200,7 +199,7 @@ class TestDesignTokenValidator:
         
         is_valid, errors = validator.validate_completeness(valid_tokens)
         assert not is_valid
-        assert any("Expected 4 functional colors, got 3" in error for error in errors)
+        assert any("Token count mismatch for colors.functional: expected 4, got 3" in error for error in errors)
 
     def test_validate_all_valid_tokens(self, validator, valid_tokens, tmp_path):
         """Test complete validation with valid tokens."""
@@ -270,10 +269,10 @@ class TestMainFunction:
         }
         
         with open(tokens_file, 'w') as f:
-            json.dump(tokens_file, f, separators=(',', ':'))
+            json.dump(valid_tokens, f, separators=(',', ':'))
         
         with patch('sys.argv', ['validate_tokens.py', str(tokens_file)]):
-            with patch('sys.exit') as mock_exit:
+            with patch('sys.exit'):
                 main()
                 # Should exit with 0 for success, but our test file might not be perfect
                 # Just verify the function runs without exceptions

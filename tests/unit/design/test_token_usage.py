@@ -75,7 +75,7 @@ class TestTokenUsage:
         assert "warning" in colors.status.warning.usage.lower() or "medium" in colors.status.warning.usage.lower()
         
         assert colors.status.success.usage is not None
-        assert "success" in colors.status.success.usage.lower() or "positive" in colors.status.success.lower()
+        assert "success" in colors.status.success.usage.lower() or "positive" in colors.status.success.usage.lower()
 
     def test_color_token_contrast_data(self):
         """Test that color tokens include contrast information where available."""
