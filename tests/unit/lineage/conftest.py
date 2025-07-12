@@ -3,44 +3,62 @@ Test configuration for lineage unit tests
 """
 
 import pytest
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.pool import StaticPool
+from fastapi.testclient import TestClient
 
 from database.base import Base
+from d6_reports.models import ReportTemplate, ReportGeneration, ReportType, TemplateFormat
 
-# Import common fixtures from parent
+
+@pytest.fixture(scope="function")
+def db_session():
+    """Create a database session for testing"""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        echo=False,
+        poolclass=StaticPool,
+        connect_args={"check_same_thread": False}
+    )
+    Base.metadata.create_all(engine)
+
+    Session = scoped_session(sessionmaker(bind=engine))
+    session = Session()
+
+    yield session
+
+    session.close()
+    Session.remove()
+    Base.metadata.drop_all(engine)
+    engine.dispose()
 
 
 @pytest.fixture
-async def async_db_session(db_session):
-    """
-    Create an async database session for async tests
-    Uses the sync session's bind URL
-    """
-    # Get database URL from sync session
-    db_url = str(db_session.bind.url)
-    
-    # Convert to async URL (sqlite -> sqlite+aiosqlite)
-    if db_url.startswith("sqlite"):
-        async_db_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
-    else:
-        # For other databases, add appropriate async driver
-        async_db_url = db_url
-    
-    # Create async engine
-    engine = create_async_engine(async_db_url, echo=False)
-    
-    # Create tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    
-    # Create session
-    async_session_factory = sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
+def test_report_template(db_session):
+    """Create a test report template"""
+    template = ReportTemplate(
+        id="test-template-001",
+        name="test_template",
+        display_name="Test Template",
+        description="Test template for unit tests",
+        template_type=ReportType.BUSINESS_AUDIT,
+        format=TemplateFormat.HTML,
+        version="1.0.0",
+        html_template="<html>{{content}}</html>",
+        css_styles="body { font-family: Arial; }",
+        is_active=True,
+        is_default=True,
+        supports_mobile=True,
+        supports_print=True,
     )
-    
-    async with async_session_factory() as session:
-        yield session
-        await session.rollback()
-    
-    await engine.dispose()
+    db_session.add(template)
+    db_session.commit()
+    return template
+
+
+@pytest.fixture
+def test_client():
+    """Create a test client for API testing"""
+    from main import app
+    return TestClient(app)
