@@ -32,6 +32,9 @@ from sqlalchemy.sql import func
 
 from database.base import Base
 
+# Import lineage models to ensure they're registered
+from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
+
 
 def generate_uuid():
     """Generate a new UUID"""

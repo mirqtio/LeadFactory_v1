@@ -433,3 +433,104 @@ class DailyCostAggregate(Base):
             unique=True,
         ),
     )
+
+
+# Lead Explorer models - added for P0-021
+class EnrichmentStatus(str, enum.Enum):
+    """Status of lead enrichment process"""
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress" 
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class AuditAction(str, enum.Enum):
+    """Types of audit actions"""
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+
+
+class Lead(Base):
+    """Lead model for managing prospect data with enrichment tracking."""
+    __tablename__ = "leads"
+    
+    # Primary identification
+    id = Column(String, primary_key=True, default=generate_uuid)
+    
+    # Core lead data
+    email = Column(String(255), nullable=True, index=True)
+    domain = Column(String(255), nullable=True, index=True)
+    company_name = Column(String(500), nullable=True)
+    contact_name = Column(String(255), nullable=True)
+    
+    # Enrichment tracking
+    enrichment_status = Column(
+        SQLEnum(EnrichmentStatus),
+        nullable=False,
+        default=EnrichmentStatus.PENDING,
+        index=True
+    )
+    enrichment_task_id = Column(String(255), nullable=True, index=True)
+    enrichment_error = Column(Text, nullable=True)
+    
+    # Metadata
+    is_manual = Column(Boolean, nullable=False, default=False, index=True)
+    source = Column(String(100), nullable=True)
+    
+    # Soft delete
+    is_deleted = Column(Boolean, nullable=False, default=False, index=True)
+    
+    # Timestamps
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now(), index=True)
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=func.now(), onupdate=func.now())
+    deleted_at = Column(TIMESTAMP, nullable=True)
+    
+    # User tracking
+    created_by = Column(String(255), nullable=True)
+    updated_by = Column(String(255), nullable=True)
+    deleted_by = Column(String(255), nullable=True)
+    
+    # Additional indexes for performance
+    __table_args__ = (
+        Index('ix_leads_email_domain', 'email', 'domain'),
+        Index('ix_leads_enrichment_lookup', 'enrichment_status', 'enrichment_task_id'),
+        Index('ix_leads_active_manual', 'is_deleted', 'is_manual'),
+        Index('ix_leads_created_status', 'created_at', 'enrichment_status'),
+        UniqueConstraint('email', name='uq_leads_email'),
+        UniqueConstraint('domain', name='uq_leads_domain'),
+    )
+
+
+class AuditLogLead(Base):
+    """Immutable audit log for all Lead mutations."""
+    __tablename__ = "audit_log_leads"
+    
+    # Primary key
+    id = Column(String, primary_key=True, default=generate_uuid)
+    
+    # Reference to the lead
+    lead_id = Column(String, nullable=False, index=True)
+    
+    # Audit metadata
+    action = Column(SQLEnum(AuditAction), nullable=False, index=True)
+    timestamp = Column(TIMESTAMP, nullable=False, server_default=func.now(), index=True)
+    
+    # User context
+    user_id = Column(String(255), nullable=True)
+    user_ip = Column(String(45), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    
+    # Change data
+    old_values = Column(Text, nullable=True)
+    new_values = Column(Text, nullable=True)
+    
+    # Tamper detection
+    checksum = Column(String(64), nullable=False)
+    
+    # Performance indexes
+    __table_args__ = (
+        Index('ix_audit_leads_lead_id_timestamp', 'lead_id', 'timestamp'),
+        Index('ix_audit_leads_action_timestamp', 'action', 'timestamp'),
+        Index('ix_audit_leads_user_timestamp', 'user_id', 'timestamp'),
+    )

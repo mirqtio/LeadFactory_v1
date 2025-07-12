@@ -114,6 +114,7 @@ class Settings(BaseSettings):
     enable_cost_guardrails: bool = Field(default=False)  # Wave B
     daily_budget_cap: float = Field(default=100.0)  # USD
     per_lead_cap: float = Field(default=2.50)  # USD
+    enable_report_lineage: bool = Field(default=True)  # P0-023
 
     @field_validator("environment")
     @classmethod
