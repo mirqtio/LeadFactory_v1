@@ -60,6 +60,8 @@ jobs:
           tests/unit/test_health_endpoint.py \
           tests/unit/test_unit_models.py \
           tests/smoke/test_health.py \
+          tests/unit/test_utils_extended.py \
+          tests/unit/test_config_extended.py \
           -xvs
     
     - name: Generate coverage report
@@ -71,6 +73,8 @@ jobs:
           tests/unit/test_health_endpoint.py \
           tests/unit/test_unit_models.py \
           tests/smoke/test_health.py \
+          tests/unit/test_utils_extended.py \
+          tests/unit/test_config_extended.py \
           --cov=. \
           --cov-report=term-missing \
           --cov-report=xml
