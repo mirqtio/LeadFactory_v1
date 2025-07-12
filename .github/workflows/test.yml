@@ -53,6 +53,7 @@ jobs:
           tests/integration/test_stub_server.py \
           tests/unit/d6_reports/test_d6_reports_models.py \
           tests/unit/d8_personalization/test_d8_personalization_models.py \
+          tests/unit/d1_targeting/test_d1_models.py \
           -xvs
     
     - name: Generate coverage report
@@ -67,6 +68,7 @@ jobs:
           tests/integration/test_stub_server.py \
           tests/unit/d6_reports/test_d6_reports_models.py \
           tests/unit/d8_personalization/test_d8_personalization_models.py \
+          tests/unit/d1_targeting/test_d1_models.py \
           --cov=. \
           --cov-report=term \
           --cov-report=xml
