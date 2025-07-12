@@ -1,6 +1,6 @@
 """Extended tests for core.utils to increase coverage."""
 import pytest
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from core.utils import (
     parse_currency,
     chunk_list,

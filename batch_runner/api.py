@@ -4,11 +4,10 @@ FastAPI endpoints for Batch Report Runner
 Provides REST API for batch processing with cost preview, progress tracking,
 and WebSocket real-time updates.
 """
-import asyncio
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks, Query
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, BackgroundTasks, Query
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -21,7 +20,7 @@ from database.session import SessionLocal
 from .models import BatchReport, BatchReportLead, BatchStatus, LeadProcessingStatus
 from .cost_calculator import get_cost_calculator
 from .websocket_manager import get_connection_manager, handle_websocket_connection
-from .processor import get_batch_processor, start_batch_processing
+from .processor import start_batch_processing
 from .schemas import (
     CreateBatchSchema,
     BatchPreviewSchema,
@@ -31,7 +30,6 @@ from .schemas import (
     StartBatchSchema,
     PaginationSchema,
     BatchFilterSchema,
-    ErrorResponseSchema,
     HealthCheckResponseSchema
 )
 

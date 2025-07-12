@@ -5,9 +5,9 @@ Provides accurate cost estimation for batch report processing
 by analyzing lead requirements and provider rates.
 """
 import json
-from decimal import Decimal, ROUND_HALF_UP
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime, timedelta
+from decimal import Decimal
+from typing import Dict, List, Optional
+from datetime import datetime
 from pathlib import Path
 
 from core.config import get_settings

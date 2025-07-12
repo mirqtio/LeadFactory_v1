@@ -15,7 +15,7 @@ import sys
 import json
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Tuple
 import time
 import subprocess
 from pydantic import BaseModel, Field, validator
@@ -246,47 +246,47 @@ class PRPGenerator:
         # Gate 1: Schema validation
         schema_valid = self._validate_schema(task)
         if not schema_valid:
-            print(f"  ❌ Gate 1 (Schema) failed")
+            print("  ❌ Gate 1 (Schema) failed")
             return False
-        print(f"  ✓ Gate 1 (Schema) passed")
+        print("  ✓ Gate 1 (Schema) passed")
         
         # Gate 2: Policy validation
         policy_valid = self._validate_policy(task, prp_content)
         if not policy_valid:
-            print(f"  ❌ Gate 2 (Policy) failed")
+            print("  ❌ Gate 2 (Policy) failed")
             return False
-        print(f"  ✓ Gate 2 (Policy) passed")
+        print("  ✓ Gate 2 (Policy) passed")
         
         # Gate 3: Lint check (if Python files mentioned)
         if any('.py' in ip for ip in task.integration_points):
             lint_valid = self._validate_lint(task)
             if not lint_valid:
-                print(f"  ❌ Gate 3 (Lint) failed")
+                print("  ❌ Gate 3 (Lint) failed")
                 return False
-        print(f"  ✓ Gate 3 (Lint) passed")
+        print("  ✓ Gate 3 (Lint) passed")
         
         # Gate 4: CRITIC review
         critic_valid = self._validate_critic(task, prp_content)
         if not critic_valid:
-            print(f"  ❌ Gate 4 (CRITIC) failed")
+            print("  ❌ Gate 4 (CRITIC) failed")
             return False
-        print(f"  ✓ Gate 4 (CRITIC) passed")
+        print("  ✓ Gate 4 (CRITIC) passed")
         
         # Gate 5: Judge scoring
         judge_valid = self._validate_judge(task, prp_content)
         if not judge_valid:
-            print(f"  ❌ Gate 5 (Judge) failed")
+            print("  ❌ Gate 5 (Judge) failed")
             return False
-        print(f"  ✓ Gate 5 (Judge) passed")
+        print("  ✓ Gate 5 (Judge) passed")
         
         # Gate 6: Missing-checks validation
         missing_checks_valid = self._validate_missing_checks(task, prp_content)
         if not missing_checks_valid:
-            print(f"  ❌ Gate 6 (Missing-Checks) failed")
+            print("  ❌ Gate 6 (Missing-Checks) failed")
             return False
-        print(f"  ✓ Gate 6 (Missing-Checks) passed")
+        print("  ✓ Gate 6 (Missing-Checks) passed")
         
-        print(f"  🎉 All six validation gates passed!")
+        print("  🎉 All six validation gates passed!")
         return True
     
     def _validate_schema(self, task: Task) -> bool:
@@ -328,7 +328,7 @@ class PRPGenerator:
             # Check if ruff is available
             result = subprocess.run(['which', 'ruff'], capture_output=True)
             if result.returncode != 0:
-                print(f"    Warning: ruff not found, skipping lint check")
+                print("    Warning: ruff not found, skipping lint check")
                 return True
             
             # For now, just return True - in real impl would check actual files
@@ -343,7 +343,7 @@ class PRPGenerator:
             # Load CRITIC prompt
             critic_prompt_path = Path(".claude/prompts/critic_review.md")
             if not critic_prompt_path.exists():
-                print(f"    Warning: CRITIC prompt not found, skipping")
+                print("    Warning: CRITIC prompt not found, skipping")
                 return True
             
             with open(critic_prompt_path, 'r') as f:
@@ -351,7 +351,7 @@ class PRPGenerator:
             
             # In production, this would call Claude with the CRITIC prompt
             # For now, simulate success
-            print(f"    CRITIC review: Checking clarity, completeness, feasibility...")
+            print("    CRITIC review: Checking clarity, completeness, feasibility...")
             return True
         except Exception as e:
             print(f"    CRITIC validation error: {e}")
@@ -363,7 +363,7 @@ class PRPGenerator:
             # Load judge prompt
             judge_prompt_path = Path(".claude/prompts/judge_scoring.md")
             if not judge_prompt_path.exists():
-                print(f"    Warning: Judge prompt not found, skipping")
+                print("    Warning: Judge prompt not found, skipping")
                 return True
             
             with open(judge_prompt_path, 'r') as f:
@@ -386,7 +386,7 @@ class PRPGenerator:
             # Load missing-checks prompt
             missing_checks_path = Path(".claude/prompts/missing_checks_validator.md")
             if not missing_checks_path.exists():
-                print(f"    Warning: Missing-checks prompt not found, skipping")
+                print("    Warning: Missing-checks prompt not found, skipping")
                 return True
             
             with open(missing_checks_path, 'r') as f:
@@ -409,7 +409,7 @@ class PRPGenerator:
                 print(f"    Missing {missing_count} critical validation frameworks")
                 return False
             
-            print(f"    All required validation frameworks present")
+            print("    All required validation frameworks present")
             return True
         except Exception as e:
             print(f"    Missing-checks validation error: {e}")
@@ -696,7 +696,7 @@ class PRPExecutor:
             
             # Run CRITIC self-review if available
             if attempt > 0:
-                print(f"Running CRITIC self-review...")
+                print("Running CRITIC self-review...")
                 critic_command = f"claude critic-review {prp_path}"
                 print(f"Would execute: {critic_command}")
             
@@ -705,7 +705,7 @@ class PRPExecutor:
             
             if success:
                 # Run judge for quality check
-                print(f"Running LLM judge...")
+                print("Running LLM judge...")
                 judge_command = f"claude judge-prp {prp_path}"
                 print(f"Would execute: {judge_command}")
                 # Simulate judge score
@@ -715,7 +715,7 @@ class PRPExecutor:
                 if judge_score >= 4.0:
                     break
                 else:
-                    print(f"Judge score too low, regenerating...")
+                    print("Judge score too low, regenerating...")
                     success = False
 
         if success:

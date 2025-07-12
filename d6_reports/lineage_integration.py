@@ -8,7 +8,6 @@ from typing import Dict, Any, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
 from d6_reports.lineage.tracker import LineageData, LineageTracker
 from d6_reports.models import ReportGeneration, ReportStatus
 

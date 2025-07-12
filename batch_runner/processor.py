@@ -7,11 +7,10 @@ and integration with d6_reports for individual report generation.
 import asyncio
 import uuid
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from core.config import get_settings

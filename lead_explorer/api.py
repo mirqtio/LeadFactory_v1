@@ -4,7 +4,7 @@ FastAPI endpoints for Lead Explorer Domain
 Provides REST API for lead management with CRUD operations,
 audit logging, and enrichment tracking.
 """
-from typing import Any, Dict, List, Optional
+from typing import Dict, Optional
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -33,8 +33,6 @@ from .schemas import (
     PaginationSchema,
     LeadListResponseSchema,
     AuditTrailResponseSchema,
-    ErrorResponseSchema,
-    ValidationErrorSchema,
     HealthCheckResponseSchema,
     EnrichmentStatusEnum
 )
@@ -131,8 +129,8 @@ def handle_api_errors(func):
 @limiter.limit("10/second")
 @handle_api_errors
 async def create_lead(
-    request: CreateLeadSchema, 
-    req: Request,
+    lead_data: CreateLeadSchema, 
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -144,19 +142,19 @@ async def create_lead(
     - Logs create action in audit trail
     - Returns 201 with lead data
     """
-    logger.info(f"Creating new lead with email={request.email}, domain={request.domain}")
+    logger.info(f"Creating new lead with email={lead_data.email}, domain={lead_data.domain}")
 
-    user_context = get_user_context(req)
+    user_context = get_user_context(request)
     lead_repo = LeadRepository(db)
 
     # Create the lead (audit logging handled by event listeners)
     lead = lead_repo.create_lead(
-        email=request.email,
-        domain=request.domain,
-        company_name=request.company_name,
-        contact_name=request.contact_name,
-        is_manual=request.is_manual,
-        source=request.source,
+        email=lead_data.email,
+        domain=lead_data.domain,
+        company_name=lead_data.company_name,
+        contact_name=lead_data.contact_name,
+        is_manual=lead_data.is_manual,
+        source=lead_data.source,
         created_by=user_context["user_id"]
     )
 
@@ -240,8 +238,8 @@ async def get_lead(lead_id: str, db: Session = Depends(get_db)):
 @handle_api_errors
 async def update_lead(
     lead_id: str,
-    request: UpdateLeadSchema,
-    req: Request,
+    lead_data: UpdateLeadSchema,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -249,11 +247,11 @@ async def update_lead(
     """
     logger.info(f"Updating lead: {lead_id}")
 
-    user_context = get_user_context(req)
+    user_context = get_user_context(request)
     lead_repo = LeadRepository(db)
 
     # Apply updates (audit logging handled by event listeners)
-    update_data = request.dict(exclude_unset=True)
+    update_data = lead_data.dict(exclude_unset=True)
     updated_lead = lead_repo.update_lead(
         lead_id=lead_id,
         updates=update_data,
@@ -282,7 +280,7 @@ async def delete_lead(
     """
     logger.info(f"Deleting lead: {lead_id}")
 
-    user_context = get_user_context(req)
+    user_context = get_user_context(request)
     lead_repo = LeadRepository(db)
 
     # Get current lead before deletion
@@ -309,8 +307,8 @@ async def delete_lead(
 @limiter.limit("10/second")
 @handle_api_errors
 async def quick_add_lead(
-    request: QuickAddLeadSchema,
-    req: Request,
+    lead_data: QuickAddLeadSchema,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -318,17 +316,17 @@ async def quick_add_lead(
 
     Creates a lead and immediately starts enrichment process.
     """
-    logger.info(f"Quick-adding lead with enrichment: email={request.email}, domain={request.domain}")
+    logger.info(f"Quick-adding lead with enrichment: email={lead_data.email}, domain={lead_data.domain}")
 
-    user_context = get_user_context(req)
+    user_context = get_user_context(request)
     lead_repo = LeadRepository(db)
 
     # Create the lead (audit logging handled by event listeners)
     lead = lead_repo.create_lead(
-        email=request.email,
-        domain=request.domain,
-        company_name=request.company_name,
-        contact_name=request.contact_name,
+        email=lead_data.email,
+        domain=lead_data.domain,
+        company_name=lead_data.company_name,
+        contact_name=lead_data.contact_name,
         is_manual=True,  # Quick-add leads are manual
         source="quick_add",
         created_by=user_context["user_id"]
@@ -474,9 +472,9 @@ async def lead_explorer_health_check(db: Session = Depends(get_db)):
 
         # Get basic stats
         from database.models import Lead
-        total_leads = db.query(Lead).filter(Lead.is_deleted == False).count()
+        total_leads = db.query(Lead).filter(~Lead.is_deleted).count()
         manual_leads = db.query(Lead).filter(
-            Lead.is_deleted == False, Lead.is_manual == True
+            ~Lead.is_deleted, Lead.is_manual
         ).count()
 
         return HealthCheckResponseSchema(

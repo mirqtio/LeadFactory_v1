@@ -7,7 +7,7 @@ pagination, and filtering capabilities.
 from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime
 
-from sqlalchemy import and_, or_, desc, asc, func
+from sqlalchemy import or_, desc, asc
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 

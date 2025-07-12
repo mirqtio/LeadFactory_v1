@@ -2,7 +2,7 @@
 import os
 import pytest
 from unittest import mock
-from core.config import Settings, get_settings
+from core.config import Settings
 
 pytestmark = pytest.mark.critical
 

@@ -12,7 +12,6 @@ Tests cover:
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 import pytest
 from bs4 import BeautifulSoup
@@ -365,7 +364,6 @@ class TestDesignTokenExtractor:
             """)
         
         # Mock Path to return our test directory
-        import os
         original_file = extract_tokens.__file__
         try:
             # Temporarily change __file__ to point to our test directory

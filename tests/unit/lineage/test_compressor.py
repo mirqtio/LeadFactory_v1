@@ -2,7 +2,6 @@
 Unit tests for lineage data compression
 """
 
-import json
 import pytest
 
 from d6_reports.lineage.compressor import (

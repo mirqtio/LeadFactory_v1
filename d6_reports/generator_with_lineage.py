@@ -2,16 +2,13 @@
 Report generator with lineage integration
 """
 
-import uuid
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
 from d6_reports.generator import ReportGenerator, GenerationOptions, GenerationResult
 from d6_reports.lineage_integration import LineageCapture
-from d6_reports.lineage.tracker import LineageData
 from d6_reports.models import ReportGeneration, ReportStatus
 
 

@@ -2,9 +2,8 @@
 Core unit tests for Batch Runner module focusing on high coverage
 """
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch
 from datetime import datetime
-from decimal import Decimal
 
 from batch_runner import models, schemas
 

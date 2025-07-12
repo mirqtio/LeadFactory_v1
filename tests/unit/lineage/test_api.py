@@ -4,7 +4,6 @@ Unit tests for lineage API endpoints
 
 import json
 from datetime import datetime, timedelta
-from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient

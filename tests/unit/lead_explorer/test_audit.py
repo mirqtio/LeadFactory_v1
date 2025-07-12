@@ -1,11 +1,9 @@
 """
 Test Lead Explorer audit system
 """
-import pytest
 import json
 import hashlib
-from unittest.mock import Mock, patch
-from datetime import datetime
+from unittest.mock import patch
 
 from database.models import Lead, AuditLogLead, EnrichmentStatus, AuditAction
 from lead_explorer.audit import (

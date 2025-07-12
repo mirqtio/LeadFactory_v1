@@ -7,7 +7,7 @@ with proper indexing for performance.
 import enum
 import uuid
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Optional
 
 from sqlalchemy import Column, String, Integer, DECIMAL, TIMESTAMP, Boolean, Text, JSON, ForeignKey
 from sqlalchemy import Enum as SQLEnum

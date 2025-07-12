@@ -4,10 +4,9 @@ Shared test configuration for Lead Explorer tests
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from datetime import datetime
 
 from database.base import Base
-from lead_explorer.models import Lead, AuditLogLead, EnrichmentStatus, AuditAction
+from lead_explorer.models import Lead, AuditLogLead, AuditAction
 
 # Import all models to ensure foreign key references are available
 try:

@@ -2,9 +2,8 @@
 Integration tests for Batch Runner module
 """
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, AsyncMock
 from datetime import datetime
-from decimal import Decimal
 
 from batch_runner.models import BatchReport, BatchReportLead, BatchStatus, LeadProcessingStatus
 from batch_runner.schemas import (

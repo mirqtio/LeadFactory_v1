@@ -6,7 +6,6 @@ import os
 import subprocess
 import time
 import pytest
-import psycopg2
 from sqlalchemy import create_engine, text
 
 

@@ -2,10 +2,8 @@
 Test Lead Explorer repository functionality
 """
 import pytest
-from datetime import datetime
-from sqlalchemy.exc import IntegrityError
 
-from database.models import Lead, AuditLogLead, EnrichmentStatus, AuditAction
+from database.models import EnrichmentStatus, AuditAction
 from lead_explorer.repository import LeadRepository, AuditRepository
 
 

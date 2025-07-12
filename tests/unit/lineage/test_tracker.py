@@ -3,13 +3,12 @@ Unit tests for lineage tracker
 """
 
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from d6_reports.lineage.tracker import LineageData, LineageTracker
-from d6_reports.lineage.models import ReportLineage, ReportLineageAudit
+from d6_reports.lineage.models import ReportLineage
 from d6_reports.models import ReportGeneration, ReportType
 
 

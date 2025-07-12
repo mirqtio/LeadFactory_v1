@@ -1,12 +1,10 @@
 """
 Test Lead Explorer enrichment coordinator
 """
-import pytest
-import asyncio
 from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime
 
-from database.models import Lead, EnrichmentStatus
+from database.models import EnrichmentStatus
 from lead_explorer.enrichment_coordinator import (
     EnrichmentCoordinator,
     get_enrichment_coordinator,

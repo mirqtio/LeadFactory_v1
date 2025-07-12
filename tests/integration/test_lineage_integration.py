@@ -2,16 +2,13 @@
 Integration tests for lineage tracking across the report generation pipeline
 """
 
-import uuid
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from d6_reports.lineage_integration import LineageCapture, create_report_with_lineage
 from d6_reports.models import ReportGeneration, ReportStatus
-from d6_reports.lineage.models import ReportLineage
 
 
 class TestLineageIntegration:
@@ -117,7 +114,6 @@ class TestLineageIntegration:
         assert success is True  # Lineage capture itself succeeded
 
         # Verify error was captured in lineage
-        from d6_reports.lineage.models import ReportLineage
         lineage = await async_db_session.execute(
             f"SELECT * FROM report_lineage WHERE report_generation_id = '{report.id}'"
         )

@@ -2,13 +2,12 @@
 Test Lead Explorer API endpoints
 """
 import pytest
-import json
 from unittest.mock import Mock, patch, AsyncMock
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
 from lead_explorer.api import router
-from database.models import Lead, EnrichmentStatus
+from database.models import EnrichmentStatus
 
 
 @pytest.fixture
