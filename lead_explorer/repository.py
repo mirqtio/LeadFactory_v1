@@ -49,8 +49,7 @@ class LeadRepository:
             self.db.commit()
             self.db.refresh(lead)
             
-            logger.info(f"Created lead {lead.id}", 
-                       email=email, domain=domain, is_manual=is_manual)
+            logger.info(f"Created lead {lead.id} - email: {email}, domain: {domain}, is_manual: {is_manual}")
             
             return lead
             

@@ -76,10 +76,7 @@ async def track_requests(request: Request, call_next):
 async def leadfactory_error_handler(request: Request, exc: LeadFactoryError):
     """Handle custom LeadFactory errors"""
     logger.error(
-        "LeadFactory error",
-        error_code=exc.error_code,
-        details=exc.details,
-        path=request.url.path,
+        f"LeadFactory error - error_code: {exc.error_code}, details: {exc.details}, path: {request.url.path}"
     )
     return JSONResponse(status_code=exc.status_code, content=exc.to_dict())
 
@@ -87,7 +84,7 @@ async def leadfactory_error_handler(request: Request, exc: LeadFactoryError):
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors"""
-    logger.exception("Unexpected error", path=request.url.path, exc_info=exc)
+    logger.exception(f"Unexpected error - path: {request.url.path}", exc_info=exc)
     return JSONResponse(
         status_code=500,
         content={"error": "INTERNAL_ERROR", "message": "An unexpected error occurred"},

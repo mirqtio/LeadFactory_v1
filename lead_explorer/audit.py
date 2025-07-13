@@ -97,8 +97,7 @@ def create_audit_log(session: Session, lead_id: str, action: AuditAction,
         session.add(audit_log)
         # Don't commit here - let the main transaction handle it
         
-        logger.info(f"Created audit log for lead {lead_id}", 
-                   action=action.value, user_id=user_context.get("user_id"))
+        logger.info(f"Created audit log for lead {lead_id} - action: {action.value}, user_id: {user_context.get('user_id')}")
         
     except Exception as e:
         logger.error(f"Failed to create audit log for lead {lead_id}: {str(e)}")
