@@ -226,13 +226,17 @@ class TestLeadRepository:
     
     def test_list_leads_sorting(self, db_session):
         """Test sorting leads"""
-        import time
+        from datetime import datetime, timedelta
         repo = LeadRepository(db_session)
         
-        # Create leads at different times
-        lead1 = repo.create_lead(email="first@example.com", is_manual=True)
-        time.sleep(0.01)  # Small delay to ensure different timestamps
-        lead2 = repo.create_lead(email="second@example.com", is_manual=True)
+        # Create leads with different emails for deterministic sorting
+        lead1 = repo.create_lead(email="alpha@example.com", is_manual=True)
+        lead2 = repo.create_lead(email="beta@example.com", is_manual=True)
+        
+        # Manually update created_at to ensure different timestamps
+        lead1.created_at = datetime.utcnow() - timedelta(minutes=1)
+        lead2.created_at = datetime.utcnow()
+        db_session.commit()
         
         # Test descending (default)
         leads, count = repo.list_leads(sort_by="created_at", sort_order="desc")
@@ -241,6 +245,11 @@ class TestLeadRepository:
         # Test ascending
         leads, count = repo.list_leads(sort_by="created_at", sort_order="asc")
         assert leads[0].id == lead1.id  # Oldest first
+        
+        # Test sorting by email as a fallback test
+        leads, count = repo.list_leads(sort_by="email", sort_order="asc")
+        assert leads[0].email == "alpha@example.com"
+        assert leads[1].email == "beta@example.com"
     
     def test_update_lead(self, db_session, created_lead):
         """Test updating a lead"""

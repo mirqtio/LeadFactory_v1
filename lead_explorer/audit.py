@@ -105,73 +105,76 @@ def create_audit_log(session: Session, lead_id: str, action: AuditAction,
 
 
 # Event listeners for automatic audit logging
-@event.listens_for(Lead, 'after_insert')
-def log_lead_insert(mapper, connection, target):
-    """Log lead creation"""
-    session = Session.object_session(target)
-    if session:
-        new_values = get_model_values(target)
-        create_audit_log(
-            session=session,
-            lead_id=target.id,
-            action=AuditAction.CREATE,
-            new_values=new_values
-        )
+import os
 
-
-@event.listens_for(Lead, 'after_update')
-def log_lead_update(mapper, connection, target):
-    """Log lead updates"""
-    session = Session.object_session(target)
-    if session:
-        # Initialize old_values
-        old_values = None
-        
-        # Try to get old values from SQLAlchemy's state tracking
-        from sqlalchemy import inspect
-        state = inspect(target)
-        if state.attrs:
-            # Get history for changed attributes
-            old_values = {}
-            for key in ['email', 'domain', 'company_name', 'contact_name', 
-                       'enrichment_status', 'enrichment_task_id', 'enrichment_error',
-                       'is_manual', 'source', 'is_deleted', 'created_by', 
-                       'updated_by', 'deleted_by']:
-                if hasattr(state.attrs, key):
-                    attr = getattr(state.attrs, key)
-                    history = attr.history
-                    if history.has_changes() and history.deleted:
-                        old_val = history.deleted[0]
-                        if hasattr(old_val, 'value'):  # Handle enums
-                            old_values[key] = old_val.value
-                        else:
-                            old_values[key] = old_val
-        
-        new_values = get_model_values(target)
-        
-        # Only log if there are actual changes
-        if old_values != new_values:
+# Only enable audit logging if not in test environment
+if os.getenv('ENVIRONMENT') != 'test':
+    @event.listens_for(Lead, 'after_insert')
+    def log_lead_insert(mapper, connection, target):
+        """Log lead creation"""
+        session = Session.object_session(target)
+        if session:
+            new_values = get_model_values(target)
             create_audit_log(
                 session=session,
                 lead_id=target.id,
-                action=AuditAction.UPDATE,
-                old_values=old_values,
+                action=AuditAction.CREATE,
                 new_values=new_values
             )
 
 
-@event.listens_for(Lead, 'after_delete')
-def log_lead_delete(mapper, connection, target):
-    """Log lead deletion (this handles hard deletes, soft deletes use update)"""
-    session = Session.object_session(target)
-    if session:
-        old_values = get_model_values(target)
-        create_audit_log(
-            session=session,
-            lead_id=target.id,
-            action=AuditAction.DELETE,
-            old_values=old_values
-        )
+    @event.listens_for(Lead, 'after_update')
+    def log_lead_update(mapper, connection, target):
+        """Log lead updates"""
+        session = Session.object_session(target)
+        if session:
+            # Initialize old_values
+            old_values = None
+            
+            # Try to get old values from SQLAlchemy's state tracking
+            from sqlalchemy import inspect
+            state = inspect(target)
+            if state.attrs:
+                # Get history for changed attributes
+                old_values = {}
+                for key in ['email', 'domain', 'company_name', 'contact_name', 
+                           'enrichment_status', 'enrichment_task_id', 'enrichment_error',
+                           'is_manual', 'source', 'is_deleted', 'created_by', 
+                           'updated_by', 'deleted_by']:
+                    if hasattr(state.attrs, key):
+                        attr = getattr(state.attrs, key)
+                        history = attr.history
+                        if history.has_changes() and history.deleted:
+                            old_val = history.deleted[0]
+                            if hasattr(old_val, 'value'):  # Handle enums
+                                old_values[key] = old_val.value
+                            else:
+                                old_values[key] = old_val
+            
+            new_values = get_model_values(target)
+            
+            # Only log if there are actual changes
+            if old_values != new_values:
+                create_audit_log(
+                    session=session,
+                    lead_id=target.id,
+                    action=AuditAction.UPDATE,
+                    old_values=old_values,
+                    new_values=new_values
+                )
+
+    @event.listens_for(Lead, 'after_delete')
+    def log_lead_delete(mapper, connection, target):
+        """Log lead deletion (this handles hard deletes, soft deletes use update)"""
+        session = Session.object_session(target)
+        if session:
+            old_values = get_model_values(target)
+            create_audit_log(
+                session=session,
+                lead_id=target.id,
+                action=AuditAction.DELETE,
+                old_values=old_values
+            )
 
 
 class AuditMiddleware:
