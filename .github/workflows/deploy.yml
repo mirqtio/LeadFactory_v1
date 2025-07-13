@@ -31,7 +31,7 @@ jobs:
             if [ -d .git ]; then
               git fetch --depth=1 origin main && git reset --hard origin/main
             else
-              git clone --depth=1 git@github.com:mirqtio/LeadFactory_v1.git .
+              git clone --depth=1 https://github.com/mirqtio/LeadFactory_v1.git .
             fi
             docker compose -f docker-compose.prod.yml build
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
