@@ -41,6 +41,8 @@ jobs:
     - name: Initialize test database
       run: |
         python -c "from database.base import Base; from database.session import engine; Base.metadata.create_all(bind=engine)"
+        # Run alembic migrations to create new tables
+        alembic upgrade head
     
     - name: Start stub server
       run: |
