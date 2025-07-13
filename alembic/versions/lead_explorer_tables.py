@@ -30,18 +30,10 @@ def upgrade() -> None:
         print("Lead tables already exist, skipping creation")
         return
     
-    # Handle ENUMs differently for PostgreSQL vs SQLite
-    if dialect_name == 'postgresql':
-        # Check if types already exist before creating
-        op.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enrichmentstatus') THEN CREATE TYPE enrichmentstatus AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED'); END IF; END$$;")
-        op.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'auditaction') THEN CREATE TYPE auditaction AS ENUM ('CREATE', 'UPDATE', 'DELETE'); END IF; END$$;")
-        # Create ENUM types for PostgreSQL - don't let SQLAlchemy auto-create them
-        enrichmentstatus_enum = sa.Enum('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', name='enrichmentstatus', create_type=False)
-        auditaction_enum = sa.Enum('CREATE', 'UPDATE', 'DELETE', name='auditaction', create_type=False)
-    else:
-        # Use String columns for SQLite and other databases
-        enrichmentstatus_enum = sa.String(length=20)
-        auditaction_enum = sa.String(length=10)
+    # Use String types for all databases to avoid enum conflicts
+    # The application models handle the enum validation
+    enrichmentstatus_enum = sa.String(length=20)
+    auditaction_enum = sa.String(length=10)
     
     # Create leads table
     op.create_table('leads',
@@ -107,10 +99,6 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Drop Lead and AuditLogLead tables"""
     
-    # Get the bind to check database type
-    bind = op.get_bind()
-    dialect_name = bind.dialect.name
-    
     # Drop audit_log_leads table and indexes
     op.drop_index(op.f('ix_audit_log_leads_timestamp'), table_name='audit_log_leads')
     op.drop_index(op.f('ix_audit_log_leads_action'), table_name='audit_log_leads')
@@ -133,8 +121,3 @@ def downgrade() -> None:
     op.drop_index('ix_leads_enrichment_lookup', table_name='leads')
     op.drop_index('ix_leads_email_domain', table_name='leads')
     op.drop_table('leads')
-    
-    # Drop ENUM types if PostgreSQL
-    if dialect_name == 'postgresql':
-        op.execute('DROP TYPE IF EXISTS enrichmentstatus')
-        op.execute('DROP TYPE IF EXISTS auditaction')
