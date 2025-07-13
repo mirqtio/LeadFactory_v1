@@ -50,7 +50,7 @@ security = HTTPBearer()
 
 class UserCreate(BaseModel):
     """Request to create a new user"""
-    email: EmailStr
+    email: EmailStr  # EmailStr provides email validation
     name: str
     role: UserRole = UserRole.VIEWER
 

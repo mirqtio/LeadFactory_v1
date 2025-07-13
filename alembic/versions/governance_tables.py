@@ -40,8 +40,8 @@ def upgrade() -> None:
             sa.Column('deactivated_at', sa.TIMESTAMP(), nullable=True),
             sa.Column('deactivated_by', sa.String(), nullable=True),
             sa.PrimaryKeyConstraint('id'),
-            sa.UniqueConstraint('email'),
-            sa.CheckConstraint("email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$'", name='valid_email'),
+            sa.UniqueConstraint('email')
+            # Email validation handled at application layer for cross-database compatibility
         )
     else:
         # SQLite and other databases: Use simple string for role

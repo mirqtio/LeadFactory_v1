@@ -44,7 +44,8 @@ class User(Base):
     
     __table_args__ = (
         Index('idx_users_email_active', 'email', 'is_active'),
-        CheckConstraint('email ~* \'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$\'', name='valid_email'),
+        # Note: Email validation is database-specific, handled in application layer
+        # PostgreSQL would use: CheckConstraint('email ~* ...', name='valid_email')
     )
 
 
