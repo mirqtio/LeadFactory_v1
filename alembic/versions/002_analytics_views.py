@@ -123,23 +123,23 @@ def upgrade():
     # Get the SQL for creating materialized views
     views_sql = get_views_sql()
 
-    # Execute the SQL to create materialized views
-    # Split on semicolons and execute each statement separately
-    statements = [stmt.strip() for stmt in views_sql.split(";") if stmt.strip()]
-
-    for statement in statements:
-        # Skip comments and empty statements
-        if statement.startswith("--") or not statement.strip():
-            continue
-
-        try:
-            op.execute(text(statement))
-        except Exception as e:
-            print(
-                f"Warning: Could not execute statement: {statement[:100]}... Error: {e}"
-            )
-            # Continue with other statements
-            continue
+    # For PostgreSQL, we need to execute the entire SQL file as one block
+    # to preserve PL/pgSQL function definitions that contain semicolons
+    try:
+        # Check if we're using PostgreSQL
+        bind = op.get_bind()
+        if bind.dialect.name == 'postgresql':
+            # Execute the entire SQL file at once for PostgreSQL
+            op.execute(text(views_sql))
+        else:
+            # For other databases (like SQLite in tests), use the fallback SQL
+            # or skip materialized views entirely
+            print("Skipping materialized views for non-PostgreSQL database")
+            # Could optionally create simplified tables for testing
+    except Exception as e:
+        print(f"Error creating analytics views: {e}")
+        # Re-raise to fail the migration properly
+        raise
 
     print("Analytics materialized views created successfully")
 
