@@ -7,6 +7,8 @@ import threading
 import time
 import requests
 import uvicorn
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 from core.config import get_settings
 
 
@@ -85,3 +87,51 @@ def test_settings():
     assert settings.environment == "test"
     assert settings.use_stubs is True
     return settings
+
+
+@pytest.fixture
+def test_report_template():
+    """Create a test report template"""
+    from d6_reports.models import ReportTemplate, ReportType, TemplateFormat
+    
+    template = ReportTemplate(
+        id="test-template-001",
+        name="test_template",
+        display_name="Test Template",
+        description="Test template for integration tests",
+        template_type=ReportType.BUSINESS_AUDIT,
+        format=TemplateFormat.HTML,
+        version="1.0.0",
+        html_template="<html>{{content}}</html>",
+        css_styles="body { font-family: Arial; }",
+        is_active=True,
+    )
+    return template
+
+
+@pytest.fixture
+async def async_db_session():
+    """Create an async database session for testing"""
+    from database.base import Base
+    
+    # Use in-memory SQLite for tests
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",
+        echo=False,
+    )
+    
+    # Create tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    # Create session
+    async_session_maker = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+    
+    async with async_session_maker() as session:
+        yield session
+        await session.rollback()
+    
+    # Clean up
+    await engine.dispose()
