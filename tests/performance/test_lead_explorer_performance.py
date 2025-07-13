@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from main import app
 from database.session import SessionLocal
 from lead_explorer.repository import LeadRepository
+from lead_explorer.models import Lead
 
 
 class TestLeadExplorerPerformance:
@@ -31,22 +32,35 @@ class TestLeadExplorerPerformance:
     def sample_lead(self, db_session):
         """Create a sample lead for testing"""
         repo = LeadRepository(db_session)
+        
+        # Try to find existing lead first
+        existing_lead = db_session.query(Lead).filter_by(email="perf-test@example.com").first()
+        if existing_lead:
+            yield existing_lead
+            return
+            
+        # Create new lead with unique email/domain
+        unique_suffix = str(int(time.time() * 1000))
         lead = repo.create_lead(
-            email="perf-test@example.com",
-            domain="example.com",
+            email=f"perf-test-{unique_suffix}@example.com",
+            domain=f"perf-test-{unique_suffix}.example.com",
             company_name="Performance Test Corp"
         )
         db_session.commit()
         yield lead
         # Cleanup
-        db_session.delete(lead)
-        db_session.commit()
+        try:
+            db_session.delete(lead)
+            db_session.commit()
+        except Exception:
+            db_session.rollback()
     
     def test_create_lead_performance(self, client):
         """Test POST /leads response time < 500ms"""
+        unique_suffix = str(int(time.time() * 1000))
         data = {
-            "email": f"test-{time.time()}@example.com",
-            "domain": "example.com",
+            "email": f"test-{unique_suffix}@example.com",
+            "domain": f"test-{unique_suffix}.com",
             "company_name": "Test Company"
         }
         
