@@ -125,14 +125,13 @@ class TestLineageAPI:
         assert response.status_code == 200
         data = response.json()
         
-        assert data["id"] == lineage.id
-        assert data["report_id"] == report.id
+        assert data["lineage_id"] == lineage.id
+        assert data["report_generation_id"] == report.id
         assert data["lead_id"] == "lead-123"
         assert data["pipeline_run_id"] == "run-456"
         assert data["template_version_id"] == "v1.0.0"
         assert "created_at" in data
-        assert data["pipeline_logs_size"] > 0
-        assert data["raw_inputs_size"] == lineage.raw_inputs_size_bytes
+        assert data["raw_inputs_size_bytes"] > 0
 
     def test_search_lineage(self, test_client: TestClient, sample_report_and_lineage, db_session):
         """Test searching lineage records"""

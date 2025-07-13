@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/lineage", tags=["lineage"])
 
 
 @router.get("/{report_id}", response_model=LineageResponse)
-async def get_lineage_by_report(
+def get_lineage_by_report(
     report_id: str,
     request: Request,
     db: Session = Depends(get_db),
@@ -63,7 +63,7 @@ async def get_lineage_by_report(
 
 
 @router.get("/search", response_model=list[LineageResponse])
-async def search_lineage(
+def search_lineage(
     lead_id: Optional[str] = Query(None, description="Filter by lead ID"),
     pipeline_run_id: Optional[str] = Query(None, description="Filter by pipeline run ID"),
     start_date: Optional[str] = Query(None, description="Filter by start date (ISO format)"),
@@ -119,7 +119,7 @@ async def search_lineage(
 
 
 @router.get("/{lineage_id}/logs", response_model=LineageLogsResponse)
-async def view_lineage_logs(
+def view_lineage_logs(
     lineage_id: str,
     request: Request,
     db: Session = Depends(get_db),
@@ -130,7 +130,7 @@ async def view_lineage_logs(
     Loads in < 500ms as per requirement
     """
     # Get lineage record
-    lineage = await db.get(ReportLineage, lineage_id)
+    lineage = db.query(ReportLineage).filter(ReportLineage.id == lineage_id).first()
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
     
@@ -166,7 +166,7 @@ async def view_lineage_logs(
 
 
 @router.get("/{lineage_id}/download")
-async def download_raw_inputs(
+def download_raw_inputs(
     lineage_id: str,
     request: Request,
     db: Session = Depends(get_db),
@@ -178,7 +178,7 @@ async def download_raw_inputs(
     import io
     
     # Get lineage record
-    lineage = await db.get(ReportLineage, lineage_id)
+    lineage = db.query(ReportLineage).filter(ReportLineage.id == lineage_id).first()
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
     
