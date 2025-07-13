@@ -43,7 +43,10 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    import os
+    
+    # Get URL from environment or config
+    url = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -62,7 +65,14 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    import os
+    
     configuration = config.get_section(config.config_ini_section, {})
+
+    # Override with DATABASE_URL from environment if available
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        configuration["sqlalchemy.url"] = database_url
 
     # Add SQLite specific connection args
     url = configuration.get("sqlalchemy.url", "")
