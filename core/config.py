@@ -117,6 +117,7 @@ class Settings(BaseSettings):
     enable_report_lineage: bool = Field(default=True)  # P0-023
     enable_template_studio: bool = Field(default=True)  # P0-024
     enable_scoring_playground: bool = Field(default=True)  # P0-025
+    enable_governance: bool = Field(default=True)  # P0-026
 
     @field_validator("environment")
     @classmethod

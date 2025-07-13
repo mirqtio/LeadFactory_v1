@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Governance Console</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .governance-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .stats-card h6 {
+            color: #6c757d;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .stats-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .user-table, .audit-table {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .role-badge {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .role-admin {
+            background-color: #dc3545;
+            color: white;
+        }
+        .role-viewer {
+            background-color: #6c757d;
+            color: white;
+        }
+        .audit-entry {
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+        .audit-entry.mutation {
+            border-left-color: #ffc107;
+        }
+        .audit-entry.deletion {
+            border-left-color: #dc3545;
+        }
+        .timestamp {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .object-ref {
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .search-filters {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .integrity-valid {
+            color: #28a745;
+        }
+        .integrity-invalid {
+            color: #dc3545;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-shield-lock"></i> Governance Console
+            </a>
+            <span class="navbar-text text-white">
+                Role-Based Access Control & Audit Trail
+            </span>
+        </div>
+    </nav>
+
+    <div class="governance-container">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h6>Total Users</h6>
+                    <div class="value" id="total-users">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h6>Active Admins</h6>
+                    <div class="value text-danger" id="admin-count">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h6>Active Viewers</h6>
+                    <div class="value text-secondary" id="viewer-count">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h6>Mutations Today</h6>
+                    <div class="value text-warning" id="mutations-today">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-panel" type="button">
+                    <i class="bi bi-people"></i> User Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit-panel" type="button">
+                    <i class="bi bi-journal-text"></i> Audit Trail
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Users Panel -->
+            <div class="tab-pane fade show active" id="users-panel" role="tabpanel">
+                <div class="user-table">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>User Management</h5>
+                        <button class="btn btn-primary" onclick="showCreateUserModal()">
+                            <i class="bi bi-person-plus"></i> Add User
+                        </button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Audit Trail Panel -->
+            <div class="tab-pane fade" id="audit-panel" role="tabpanel">
+                <!-- Search Filters -->
+                <div class="search-filters">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">User</label>
+                            <select class="form-select" id="filter-user">
+                                <option value="">All Users</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Action</label>
+                            <select class="form-select" id="filter-action">
+                                <option value="">All Actions</option>
+                                <option value="CREATE">Create</option>
+                                <option value="UPDATE">Update</option>
+                                <option value="DELETE">Delete</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Object Type</label>
+                            <select class="form-select" id="filter-object-type">
+                                <option value="">All Types</option>
+                                <option value="User">User</option>
+                                <option value="Lead">Lead</option>
+                                <option value="Report">Report</option>
+                                <option value="Template">Template</option>
+                                <option value="Weight">Weight</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" onclick="searchAuditLogs()">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audit Log Table -->
+                <div class="audit-table">
+                    <h5>Audit Trail</h5>
+                    <div id="audit-entries">
+                        <div class="text-center text-muted">Loading audit logs...</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button class="btn btn-sm btn-secondary" id="prev-page" onclick="loadPreviousPage()">
+                            Previous
+                        </button>
+                        <span id="page-info">Page 1</span>
+                        <button class="btn btn-sm btn-secondary" id="next-page" onclick="loadNextPage()">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="new-user-email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" id="new-user-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" id="new-user-role">
+                            <option value="viewer">Viewer</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createUser()">Create User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Role Modal -->
+    <div class="modal fade" id="changeRoleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change User Role</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Change role for: <strong id="change-role-email"></strong></p>
+                    <input type="hidden" id="change-role-user-id">
+                    <div class="mb-3">
+                        <label class="form-label">New Role</label>
+                        <select class="form-select" id="change-role-new-role">
+                            <option value="viewer">Viewer</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason (required)</label>
+                        <textarea class="form-control" id="change-role-reason" rows="3" 
+                                  placeholder="Please provide a reason for this role change (minimum 10 characters)" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" onclick="changeUserRole()">Change Role</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = '/api/governance';
+        let currentPage = 0;
+        const pageSize = 100;
+        let allUsers = [];
+
+        // Mock auth token (in production, use real auth)
+        const authToken = 'Bearer mock-admin-token';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadUsers();
+            loadAuditLogs();
+        });
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const users = await fetchAPI('/users');
+                const adminCount = users.filter(u => u.role === 'admin' && u.is_active).length;
+                const viewerCount = users.filter(u => u.role === 'viewer' && u.is_active).length;
+                
+                document.getElementById('total-users').textContent = users.filter(u => u.is_active).length;
+                document.getElementById('admin-count').textContent = adminCount;
+                document.getElementById('viewer-count').textContent = viewerCount;
+                
+                // Load today's mutations count
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const auditQuery = {
+                    start_date: today.toISOString(),
+                    limit: 1000
+                };
+                
+                const logs = await fetchAPI('/audit/query', 'POST', auditQuery);
+                document.getElementById('mutations-today').textContent = logs.length;
+                
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const users = await fetchAPI('/users');
+                allUsers = users;
+                
+                const tbody = document.getElementById('users-tbody');
+                tbody.innerHTML = '';
+                
+                users.forEach(user => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.name}</td>
+                        <td><span class="role-badge role-${user.role}">${user.role.toUpperCase()}</span></td>
+                        <td>${user.is_active ? '<span class="text-success">Active</span>' : '<span class="text-danger">Inactive</span>'}</td>
+                        <td class="timestamp">${new Date(user.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning" onclick="showChangeRoleModal('${user.id}', '${user.email}', '${user.role}')">
+                                <i class="bi bi-shield"></i>
+                            </button>
+                            ${user.is_active ? `
+                                <button class="btn btn-sm btn-outline-danger" onclick="deactivateUser('${user.id}')">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            ` : ''}
+                        </td>
+                    `;
+                });
+                
+                // Populate user filter
+                const userFilter = document.getElementById('filter-user');
+                userFilter.innerHTML = '<option value="">All Users</option>';
+                users.forEach(user => {
+                    userFilter.innerHTML += `<option value="${user.id}">${user.email}</option>`;
+                });
+                
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                document.getElementById('users-tbody').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load users</td></tr>';
+            }
+        }
+
+        // Load audit logs
+        async function loadAuditLogs() {
+            try {
+                const query = {
+                    user_id: document.getElementById('filter-user').value || undefined,
+                    action: document.getElementById('filter-action').value || undefined,
+                    object_type: document.getElementById('filter-object-type').value || undefined,
+                    offset: currentPage * pageSize,
+                    limit: pageSize
+                };
+                
+                const logs = await fetchAPI('/audit/query', 'POST', query);
+                
+                const container = document.getElementById('audit-entries');
+                container.innerHTML = '';
+                
+                if (logs.length === 0) {
+                    container.innerHTML = '<div class="text-center text-muted">No audit logs found</div>';
+                    return;
+                }
+                
+                logs.forEach(log => {
+                    const entryClass = log.action === 'DELETE' ? 'deletion' : 'mutation';
+                    const entry = document.createElement('div');
+                    entry.className = `audit-entry ${entryClass}`;
+                    entry.innerHTML = `
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${log.user_email}</strong> 
+                                <span class="role-badge role-${log.user_role}">${log.user_role}</span>
+                                ${log.action} 
+                                <span class="object-ref">${log.object_type}${log.object_id ? ':' + log.object_id.substring(0, 8) : ''}</span>
+                                at <span class="object-ref">${log.endpoint}</span>
+                            </div>
+                            <div>
+                                <span class="timestamp">${new Date(log.timestamp).toLocaleString()}</span>
+                                ${log.duration_ms ? `<span class="badge bg-secondary">${log.duration_ms}ms</span>` : ''}
+                            </div>
+                        </div>
+                        ${log.ip_address ? `<div class="timestamp">IP: ${log.ip_address}</div>` : ''}
+                    `;
+                    container.appendChild(entry);
+                });
+                
+                document.getElementById('page-info').textContent = `Page ${currentPage + 1}`;
+                document.getElementById('prev-page').disabled = currentPage === 0;
+                document.getElementById('next-page').disabled = logs.length < pageSize;
+                
+            } catch (error) {
+                console.error('Failed to load audit logs:', error);
+                document.getElementById('audit-entries').innerHTML = '<div class="text-center text-danger">Failed to load audit logs</div>';
+            }
+        }
+
+        // Create user
+        async function createUser() {
+            const email = document.getElementById('new-user-email').value;
+            const name = document.getElementById('new-user-name').value;
+            const role = document.getElementById('new-user-role').value;
+            
+            if (!email || !name) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                await fetchAPI('/users', 'POST', { email, name, role });
+                bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+                loadUsers();
+                loadStats();
+                showSuccess('User created successfully');
+            } catch (error) {
+                showError('Failed to create user: ' + error.message);
+            }
+        }
+
+        // Show create user modal
+        function showCreateUserModal() {
+            document.getElementById('new-user-email').value = '';
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-role').value = 'viewer';
+            new bootstrap.Modal(document.getElementById('createUserModal')).show();
+        }
+
+        // Show change role modal
+        function showChangeRoleModal(userId, email, currentRole) {
+            document.getElementById('change-role-user-id').value = userId;
+            document.getElementById('change-role-email').textContent = email;
+            document.getElementById('change-role-new-role').value = currentRole;
+            document.getElementById('change-role-reason').value = '';
+            new bootstrap.Modal(document.getElementById('changeRoleModal')).show();
+        }
+
+        // Change user role
+        async function changeUserRole() {
+            const userId = document.getElementById('change-role-user-id').value;
+            const newRole = document.getElementById('change-role-new-role').value;
+            const reason = document.getElementById('change-role-reason').value;
+            
+            if (!reason || reason.length < 10) {
+                alert('Please provide a reason (minimum 10 characters)');
+                return;
+            }
+            
+            try {
+                await fetchAPI(`/users/${userId}/role`, 'PUT', { new_role: newRole, reason });
+                bootstrap.Modal.getInstance(document.getElementById('changeRoleModal')).hide();
+                loadUsers();
+                loadStats();
+                showSuccess('Role changed successfully');
+            } catch (error) {
+                showError('Failed to change role: ' + error.message);
+            }
+        }
+
+        // Deactivate user
+        async function deactivateUser(userId) {
+            if (!confirm('Are you sure you want to deactivate this user?')) {
+                return;
+            }
+            
+            try {
+                await fetchAPI(`/users/${userId}`, 'DELETE');
+                loadUsers();
+                loadStats();
+                showSuccess('User deactivated successfully');
+            } catch (error) {
+                showError('Failed to deactivate user: ' + error.message);
+            }
+        }
+
+        // Search audit logs
+        function searchAuditLogs() {
+            currentPage = 0;
+            loadAuditLogs();
+        }
+
+        // Pagination
+        function loadPreviousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadAuditLogs();
+            }
+        }
+
+        function loadNextPage() {
+            currentPage++;
+            loadAuditLogs();
+        }
+
+        // API helper
+        async function fetchAPI(endpoint, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Authorization': authToken,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            const response = await fetch(API_BASE + endpoint, options);
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'API request failed');
+            }
+            
+            return response.json();
+        }
+
+        // Show notifications
+        function showSuccess(message) {
+            // In production, use a proper notification library
+            alert('✅ ' + message);
+        }
+
+        function showError(message) {
+            // In production, use a proper notification library
+            alert('❌ ' + message);
+        }
+    </script>
+</body>
+</html>

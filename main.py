@@ -215,6 +215,20 @@ if settings.enable_scoring_playground:
     # Mount static files for Scoring Playground UI
     app.mount("/static/scoring-playground", StaticFiles(directory="static/scoring-playground"), name="scoring_playground")
 
+# Governance (P0-026)
+if settings.enable_governance:
+    from api.governance import router as governance_router
+    from api.audit_middleware import AuditLoggingMiddleware
+    
+    # Add audit logging middleware
+    app.add_middleware(AuditLoggingMiddleware)
+    
+    # Add governance router
+    app.include_router(governance_router)
+    
+    # Mount static files for Governance UI
+    app.mount("/static/governance", StaticFiles(directory="static/governance"), name="governance")
+
 
 if __name__ == "__main__":
     uvicorn.run(
