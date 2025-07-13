@@ -162,7 +162,7 @@ class LeadRepository:
             self.db.commit()
             self.db.refresh(lead)
             
-            logger.info(f"Updated lead {lead_id}", updates=list(updates.keys()))
+            logger.info(f"Updated lead {lead_id} - fields updated: {list(updates.keys())}")
             
             return lead
             
@@ -273,7 +273,7 @@ class AuditRepository:
             self.db.commit()
             self.db.refresh(audit_log)
             
-            logger.info(f"Created audit log for lead {lead_id}", action=action.value)
+            logger.info(f"Created audit log for lead {lead_id} - action: {action.value}")
             
             return audit_log
             
