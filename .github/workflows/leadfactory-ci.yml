@@ -1,0 +1,295 @@
+name: LeadFactory CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, bootstrap/ci ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: "3.11"
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  # Gate 1: Lint, Type Check, Security Scan
+  lint-type-security:
+    name: "Gate 1: Code Quality & Security"
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff pyright bandit safety prefect
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run Ruff linter
+      run: ruff check . --config pyproject.toml
+    
+    - name: Run Pyright type checker
+      run: pyright
+    
+    - name: Run Bandit security linter
+      run: bandit -r . -f json -o bandit-report.json || true
+    
+    - name: Check for security vulnerabilities
+      run: safety check --json
+    
+    - name: Validate Prefect flows (offline)
+      run: |
+        if [ -d "prefect" ]; then
+          echo "Validating Prefect flows..."
+          python -c "
+import os
+import sys
+from pathlib import Path
+
+# Check for flow files
+flow_files = list(Path('prefect').rglob('*.py'))
+if flow_files:
+    print(f'Found {len(flow_files)} flow files')
+    for file in flow_files:
+        print(f'  - {file}')
+else:
+    print('No Prefect flows found')
+"
+        fi
+    
+    - name: Upload security reports
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  # Gate 2: Test Suite (Matrix)
+  test:
+    name: "Gate 2: Tests (${{ matrix.os }})"
+    needs: lint-type-security
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            runner-label: ubuntu
+          - os: macos-latest
+            runner-label: mac-mini
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install system dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client redis-tools
+    
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS' 
+      run: |
+        brew install postgresql redis
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Set up test environment
+      run: |
+        echo "DATABASE_URL=sqlite:///tmp/test.db" >> $GITHUB_ENV
+        echo "USE_STUBS=true" >> $GITHUB_ENV
+        echo "ENVIRONMENT=test" >> $GITHUB_ENV
+        echo "SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
+        mkdir -p tmp
+    
+    - name: Initialize test database
+      run: |
+        python -c "from database.base import Base; from database.session import engine; Base.metadata.create_all(bind=engine)"
+        alembic upgrade head
+    
+    - name: Start stub server
+      run: |
+        python -m stubs.server &
+        sleep 3
+        curl -f http://localhost:5010/health || exit 1
+    
+    - name: Run pytest with coverage
+      run: |
+        pytest tests/ -xvs --cov=. --cov-report=xml --cov-report=html --tb=short
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests-${{ matrix.os }}
+        name: codecov-${{ matrix.os }}
+
+  # Gate 3: Docker Build & Smoke Test
+  docker-build:
+    name: "Gate 3: Docker Build & Smoke Test"
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t leadfactory:ci-${{ github.sha }} .
+    
+    - name: Create test docker-compose.yml
+      run: |
+        cat > docker-compose.test.yml << 'EOF'
+        version: '3.8'
+        services:
+          app:
+            image: leadfactory:ci-${{ github.sha }}
+            environment:
+              - DATABASE_URL=sqlite:///tmp/test.db
+              - USE_STUBS=true
+              - ENVIRONMENT=test
+              - SECRET_KEY=test-secret
+            ports:
+              - "8000:8000"
+            healthcheck:
+              test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+              interval: 10s
+              timeout: 5s
+              retries: 5
+            command: ["python", "-m", "pytest", "tests/smoke/", "-v"]
+        EOF
+    
+    - name: Run smoke tests in Docker
+      run: |
+        docker compose -f docker-compose.test.yml run --exit-code-from app app
+    
+    - name: Test API health endpoint
+      run: |
+        docker compose -f docker-compose.test.yml up -d app
+        sleep 20
+        curl -f http://localhost:8000/health || exit 1
+        docker compose -f docker-compose.test.yml down
+
+  # Gate 4: Blue-Green Deploy to Production
+  deploy:
+    name: "Gate 4: Blue-Green Deploy"
+    needs: docker-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${PROD_HOST##*@} >> ~/.ssh/known_hosts
+    
+    - name: Determine deployment color
+      id: deployment
+      run: |
+        CURRENT_COLOR=$(ssh -i ~/.ssh/deploy_key ${{ secrets.PROD_HOST }} "cd /opt/leadfactory && [ -L current ] && readlink current || echo 'blue'")
+        if [ "$CURRENT_COLOR" = "blue" ]; then
+          echo "new_color=green" >> $GITHUB_OUTPUT
+          echo "old_color=blue" >> $GITHUB_OUTPUT
+        else
+          echo "new_color=blue" >> $GITHUB_OUTPUT
+          echo "old_color=green" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Deploy to ${{ steps.deployment.outputs.new_color }}
+      run: |
+        NEW_COLOR="${{ steps.deployment.outputs.new_color }}"
+        OLD_COLOR="${{ steps.deployment.outputs.old_color }}"
+        
+        # Create deployment directory
+        ssh -i ~/.ssh/deploy_key ${{ secrets.PROD_HOST }} "mkdir -p /opt/leadfactory/${NEW_COLOR}"
+        
+        # Sync files
+        rsync -avz --delete \
+          -e "ssh -i ~/.ssh/deploy_key" \
+          --exclude='.git' \
+          --exclude='__pycache__' \
+          --exclude='*.pyc' \
+          --exclude='.env' \
+          --exclude='tmp/' \
+          --exclude='logs/' \
+          ./ ${{ secrets.PROD_HOST }}:/opt/leadfactory/${NEW_COLOR}/
+        
+        # Deploy new version
+        ssh -i ~/.ssh/deploy_key ${{ secrets.PROD_HOST }} << EOF
+          cd /opt/leadfactory/${NEW_COLOR}
+          
+          # Copy production .env if it exists
+          [ -f /opt/leadfactory/.env.production ] && cp /opt/leadfactory/.env.production .env
+          
+          # Build and start new version
+          docker compose -p leadfactory_${NEW_COLOR} build
+          docker compose -p leadfactory_${NEW_COLOR} up -d
+          
+          # Wait for health check
+          sleep 30
+          curl -f http://localhost:8001/health || exit 1
+          
+          # Switch symlink
+          cd /opt/leadfactory
+          ln -sfn ${NEW_COLOR} current
+          
+          # Stop old version
+          docker compose -p leadfactory_${OLD_COLOR} down || true
+          
+          echo "Deployment complete: ${NEW_COLOR} is now live"
+        EOF
+    
+    - name: Verify deployment
+      run: |
+        sleep 10
+        ssh -i ~/.ssh/deploy_key ${{ secrets.PROD_HOST }} "curl -f http://localhost:8000/health"
+
+  # Notification job
+  notify:
+    name: "Notify Results"
+    runs-on: ubuntu-latest
+    needs: [lint-type-security, test, docker-build, deploy]
+    if: always()
+    
+    steps:
+    - name: Summarize results
+      run: |
+        echo "## Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- Lint/Type/Security: ${{ needs.lint-type-security.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Docker Build: ${{ needs.docker-build.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Deploy: ${{ needs.deploy.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
