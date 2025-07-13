@@ -59,7 +59,7 @@ def sample_template(db_session):
         version="1.0.0",
         html_template="""
         <h1>Business Report for {{ lead.company_name }}</h1>
-        <p>Website: {{ lead.website }}</p>
+        <p>Domain: {{ lead.domain }}</p>
         <p>Score: {{ score }}</p>
         <ul>
         {% for rec in recommendations %}
@@ -79,13 +79,10 @@ def sample_template(db_session):
     lead = Lead(
         id="1",
         company_name="Test Business Inc.",
-        website="https://testbusiness.com",
-        phone="(555) 123-4567",
         email="test@testbusiness.com",
-        street_address="123 Test St",
-        city="Test City",
-        state="CA",
-        zip_code="12345"
+        domain="testbusiness.com",
+        contact_name="John Doe",
+        source="test"
     )
     db_session.add(lead)
     
@@ -306,7 +303,7 @@ index abc123..def456 100644
         xss_lead = Lead(
             id="xss-test",
             company_name="<script>alert('XSS')</script>",
-            website="https://example.com"
+            domain="example.com"
         )
         db_session.add(xss_lead)
         db_session.commit()
