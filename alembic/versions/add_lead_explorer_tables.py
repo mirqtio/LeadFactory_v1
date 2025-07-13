@@ -1,16 +1,16 @@
 """Add Lead and AuditLogLead tables for Lead Explorer
 
-Revision ID: lead_explorer_001
-Revises: 01dbf243d224
-Create Date: 2025-07-12 12:00:00.000000
+Revision ID: add_lead_explorer_001
+Revises: c1cdcf290cb2
+Create Date: 2025-07-13 12:00:00.000000
 
 """
 from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = 'lead_explorer_001'
-down_revision = '01dbf243d224'
+revision = 'add_lead_explorer_001'
+down_revision = 'c1cdcf290cb2'
 branch_labels = None
 depends_on = None
 
@@ -18,29 +18,24 @@ depends_on = None
 def upgrade() -> None:
     """Create Lead and AuditLogLead tables"""
     
-    # Get the bind to check database type
-    bind = op.get_bind()
-    dialect_name = bind.dialect.name
-    
     # Use String types for all databases to avoid enum conflicts
     # The application models handle the enum validation
     enrichmentstatus_enum = sa.String(length=20)
     auditaction_enum = sa.String(length=10)
     
-    # Create leads table if it doesn't exist
-    try:
-        op.create_table('leads',
+    # Create leads table
+    op.create_table('leads',
         sa.Column('id', sa.String(), nullable=False),
         sa.Column('email', sa.String(length=255), nullable=True),
         sa.Column('domain', sa.String(length=255), nullable=True),
         sa.Column('company_name', sa.String(length=500), nullable=True),
         sa.Column('contact_name', sa.String(length=255), nullable=True),
-        sa.Column('enrichment_status', enrichmentstatus_enum, nullable=False, default='PENDING'),
+        sa.Column('enrichment_status', enrichmentstatus_enum, nullable=False, server_default='PENDING'),
         sa.Column('enrichment_task_id', sa.String(length=255), nullable=True),
         sa.Column('enrichment_error', sa.Text(), nullable=True),
-        sa.Column('is_manual', sa.Boolean(), nullable=False, default=False),
+        sa.Column('is_manual', sa.Boolean(), nullable=False, server_default=sa.text('false')),
         sa.Column('source', sa.String(length=100), nullable=True),
-        sa.Column('is_deleted', sa.Boolean(), nullable=False, default=False),
+        sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default=sa.text('false')),
         sa.Column('created_at', sa.TIMESTAMP(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('updated_at', sa.TIMESTAMP(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
@@ -87,9 +82,6 @@ def upgrade() -> None:
     op.create_index(op.f('ix_audit_log_leads_lead_id'), 'audit_log_leads', ['lead_id'], unique=False)
     op.create_index(op.f('ix_audit_log_leads_action'), 'audit_log_leads', ['action'], unique=False)
     op.create_index(op.f('ix_audit_log_leads_timestamp'), 'audit_log_leads', ['timestamp'], unique=False)
-    except Exception as e:
-        print(f"Tables might already exist: {e}")
-        pass
 
 
 def downgrade() -> None:
