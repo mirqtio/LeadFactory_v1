@@ -23,15 +23,15 @@ def upgrade() -> None:
     
     # Create users table
     if dialect_name == 'postgresql':
-        # PostgreSQL specific: Create user role enum
-        op.execute("CREATE TYPE userrole AS ENUM ('admin', 'viewer')")
+        # PostgreSQL specific: Create user role enum if it doesn't exist
+        op.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'userrole') THEN CREATE TYPE userrole AS ENUM ('admin', 'viewer'); END IF; END$$;")
         
         # Create users table with PostgreSQL specific types
         op.create_table('users',
             sa.Column('id', sa.String(), nullable=False),
             sa.Column('email', sa.String(length=255), nullable=False),
             sa.Column('name', sa.String(length=255), nullable=False),
-            sa.Column('role', sa.Enum('admin', 'viewer', name='userrole'), nullable=False),
+            sa.Column('role', sa.Enum('admin', 'viewer', name='userrole', create_type=False), nullable=False),
             sa.Column('api_key_hash', sa.String(length=255), nullable=True),
             sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
             sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
