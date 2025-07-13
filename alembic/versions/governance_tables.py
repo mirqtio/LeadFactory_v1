@@ -1,105 +1,111 @@
 """Create governance tables for RBAC and audit logging
 
-Revision ID: governance_tables
-Revises: lead_explorer_tables
+Revision ID: governance_tables_001
+Revises: lead_explorer_001
 Create Date: 2024-01-13 12:00:00.000000
 
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+from sqlalchemy import String
 
 # revision identifiers, used by Alembic.
-revision = 'governance_tables'
-down_revision = 'lead_explorer_tables'
+revision = 'governance_tables_001'
+down_revision = 'lead_explorer_001'
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
-    # Create user role enum
-    op.execute("CREATE TYPE userrole AS ENUM ('admin', 'viewer')")
+    # Get the bind to check database type
+    bind = op.get_bind()
+    dialect_name = bind.dialect.name
     
     # Create users table
-    op.create_table('users',
-        sa.Column('id', postgresql.UUID(as_uuid=True), server_default=sa.text('gen_random_uuid()'), nullable=False),
-        sa.Column('email', sa.String(length=255), nullable=False),
-        sa.Column('name', sa.String(length=255), nullable=False),
-        sa.Column('role', postgresql.ENUM('admin', 'viewer', name='userrole'), nullable=False),
-        sa.Column('api_key_hash', sa.String(length=255), nullable=True),
-        sa.Column('is_active', sa.Boolean(), nullable=False, default=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('created_by', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column('deactivated_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('deactivated_by', postgresql.UUID(as_uuid=True), nullable=True),
-        sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('email'),
-        sa.CheckConstraint("email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$'", name='valid_email'),
-    )
+    if dialect_name == 'postgresql':
+        # PostgreSQL specific: Create user role enum
+        op.execute("CREATE TYPE userrole AS ENUM ('admin', 'viewer')")
+        
+        # Create users table with PostgreSQL specific types
+        op.create_table('users',
+            sa.Column('id', sa.String(), nullable=False),
+            sa.Column('email', sa.String(length=255), nullable=False),
+            sa.Column('name', sa.String(length=255), nullable=False),
+            sa.Column('role', sa.Enum('admin', 'viewer', name='userrole'), nullable=False),
+            sa.Column('api_key_hash', sa.String(length=255), nullable=True),
+            sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
+            sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
+            sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=True),
+            sa.Column('created_by', sa.String(), nullable=True),
+            sa.Column('deactivated_at', sa.TIMESTAMP(), nullable=True),
+            sa.Column('deactivated_by', sa.String(), nullable=True),
+            sa.PrimaryKeyConstraint('id'),
+            sa.UniqueConstraint('email'),
+            sa.CheckConstraint("email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$'", name='valid_email'),
+        )
+    else:
+        # SQLite and other databases: Use simple string for role
+        op.create_table('users',
+            sa.Column('id', sa.String(), nullable=False),
+            sa.Column('email', sa.String(length=255), nullable=False),
+            sa.Column('name', sa.String(length=255), nullable=False),
+            sa.Column('role', sa.String(length=20), nullable=False),  # Use string instead of enum
+            sa.Column('api_key_hash', sa.String(length=255), nullable=True),
+            sa.Column('is_active', sa.Boolean(), nullable=False, server_default='1'),
+            sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+            sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+            sa.Column('created_by', sa.String(), nullable=True),
+            sa.Column('deactivated_at', sa.TIMESTAMP(), nullable=True),
+            sa.Column('deactivated_by', sa.String(), nullable=True),
+            sa.PrimaryKeyConstraint('id'),
+            sa.UniqueConstraint('email'),
+            # Skip email validation check constraint for SQLite
+        )
+    
     op.create_index('idx_users_email_active', 'users', ['email', 'is_active'], unique=False)
 
     # Create audit_log_global table
     op.create_table('audit_log_global',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('timestamp', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+        sa.Column('user_id', sa.String(), nullable=False),
         sa.Column('user_email', sa.String(length=255), nullable=False),
-        sa.Column('user_role', postgresql.ENUM('admin', 'viewer', name='userrole'), nullable=False),
+        sa.Column('user_role', sa.String(length=20), nullable=False),  # Use string instead of enum
         sa.Column('action', sa.String(length=50), nullable=False),
         sa.Column('method', sa.String(length=10), nullable=False),
         sa.Column('endpoint', sa.String(length=255), nullable=False),
-        sa.Column('object_type', sa.String(length=100), nullable=False),
-        sa.Column('object_id', sa.String(length=255), nullable=True),
-        sa.Column('request_data', sa.Text(), nullable=True),
-        sa.Column('response_status', sa.Integer(), nullable=False),
-        sa.Column('response_data', sa.Text(), nullable=True),
-        sa.Column('content_hash', sa.String(length=64), nullable=False),
-        sa.Column('checksum', sa.String(length=64), nullable=False),
-        sa.Column('duration_ms', sa.Integer(), nullable=True),
         sa.Column('ip_address', sa.String(length=45), nullable=True),
-        sa.Column('user_agent', sa.String(length=500), nullable=True),
-        sa.Column('details', sa.Text(), nullable=True),
-        sa.PrimaryKeyConstraint('id'),
-        sa.CheckConstraint('false', name='no_update_allowed'),  # Prevent updates
+        sa.Column('user_agent', sa.Text(), nullable=True),
+        sa.Column('request_id', sa.String(length=36), nullable=True),
+        sa.Column('status_code', sa.Integer(), nullable=True),
+        sa.Column('request_body', sa.Text(), nullable=True),
+        sa.Column('response_summary', sa.Text(), nullable=True),
+        sa.Column('duration_ms', sa.Integer(), nullable=True),
+        sa.Column('error_message', sa.Text(), nullable=True),
+        sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('idx_audit_user_timestamp', 'audit_log_global', ['user_id', 'timestamp'], unique=False)
-    op.create_index('idx_audit_object', 'audit_log_global', ['object_type', 'object_id'], unique=False)
-    op.create_index('idx_audit_timestamp', 'audit_log_global', ['timestamp'], unique=False)
-    op.create_index('idx_audit_action', 'audit_log_global', ['action', 'timestamp'], unique=False)
-
-    # Create role_change_log table
-    op.create_table('role_change_log',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('changed_by_id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('old_role', postgresql.ENUM('admin', 'viewer', name='userrole'), nullable=False),
-        sa.Column('new_role', postgresql.ENUM('admin', 'viewer', name='userrole'), nullable=False),
-        sa.Column('reason', sa.Text(), nullable=False),
-        sa.PrimaryKeyConstraint('id'),
-        sa.CheckConstraint('false', name='no_update_allowed'),  # Prevent updates
-    )
-    op.create_index('idx_role_change_user', 'role_change_log', ['user_id', 'timestamp'], unique=False)
-
-    # Insert default admin user
-    op.execute("""
-        INSERT INTO users (email, name, role, is_active)
-        VALUES ('admin@leadfactory.com', 'Default Admin', 'admin', true)
-    """)
+    
+    # Create indexes for audit_log_global
+    op.create_index('idx_audit_global_timestamp', 'audit_log_global', ['timestamp'], unique=False)
+    op.create_index('idx_audit_global_user', 'audit_log_global', ['user_id', 'timestamp'], unique=False)
+    op.create_index('idx_audit_global_action', 'audit_log_global', ['action', 'timestamp'], unique=False)
+    op.create_index('idx_audit_global_endpoint', 'audit_log_global', ['endpoint', 'timestamp'], unique=False)
+    op.create_index('idx_audit_global_request_id', 'audit_log_global', ['request_id'], unique=False)
 
 
 def downgrade() -> None:
-    op.drop_index('idx_role_change_user', table_name='role_change_log')
-    op.drop_table('role_change_log')
-    
-    op.drop_index('idx_audit_action', table_name='audit_log_global')
-    op.drop_index('idx_audit_timestamp', table_name='audit_log_global')
-    op.drop_index('idx_audit_object', table_name='audit_log_global')
-    op.drop_index('idx_audit_user_timestamp', table_name='audit_log_global')
+    # Drop tables
+    op.drop_index('idx_audit_global_request_id', table_name='audit_log_global')
+    op.drop_index('idx_audit_global_endpoint', table_name='audit_log_global')
+    op.drop_index('idx_audit_global_action', table_name='audit_log_global')
+    op.drop_index('idx_audit_global_user', table_name='audit_log_global')
+    op.drop_index('idx_audit_global_timestamp', table_name='audit_log_global')
     op.drop_table('audit_log_global')
     
     op.drop_index('idx_users_email_active', table_name='users')
     op.drop_table('users')
     
-    op.execute('DROP TYPE userrole')
+    # Drop enum type if PostgreSQL
+    bind = op.get_bind()
+    if bind.dialect.name == 'postgresql':
+        op.execute("DROP TYPE userrole")
