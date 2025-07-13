@@ -40,6 +40,19 @@ jobs:
             echo "Waiting for database to be ready..."
             sleep 10
             
+            # Fix migration state if needed
+            echo "Checking migration state..."
+            docker compose -f docker-compose.prod.yml run --rm -T web python -c "
+from database.session import engine
+from sqlalchemy import text
+with engine.connect() as conn:
+    # Mark these migrations as applied if tables already exist
+    conn.execute(text(\"INSERT INTO alembic_version (version_num) VALUES ('lead_explorer_001') ON CONFLICT (version_num) DO NOTHING\"))
+    conn.execute(text(\"INSERT INTO alembic_version (version_num) VALUES ('governance_tables_001') ON CONFLICT (version_num) DO NOTHING\"))
+    conn.commit()
+    print('Migration state fixed')
+"
+            
             # Run database migrations with reduced memory usage
             echo "Running database migrations..."
             # Use run instead of exec to avoid keeping the web container running
