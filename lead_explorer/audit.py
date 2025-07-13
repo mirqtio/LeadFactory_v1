@@ -124,25 +124,28 @@ def log_lead_update(mapper, connection, target):
     """Log lead updates"""
     session = Session.object_session(target)
     if session:
-        # Get the original values from the session's identity map
-        history = session.get_transaction()._changes
+        # Initialize old_values
         old_values = None
         
         # Try to get old values from SQLAlchemy's state tracking
-        state: InstanceState = target.__dict__.get('_sa_instance_state')
-        if state and hasattr(state, 'committed_state'):
-            # Get committed state if available
+        from sqlalchemy import inspect
+        state = inspect(target)
+        if state.attrs:
+            # Get history for changed attributes
             old_values = {}
             for key in ['email', 'domain', 'company_name', 'contact_name', 
                        'enrichment_status', 'enrichment_task_id', 'enrichment_error',
                        'is_manual', 'source', 'is_deleted', 'created_by', 
                        'updated_by', 'deleted_by']:
-                if hasattr(state.committed_state, key):
-                    old_val = getattr(state.committed_state, key)
-                    if hasattr(old_val, 'value'):  # Handle enums
-                        old_values[key] = old_val.value
-                    else:
-                        old_values[key] = old_val
+                if hasattr(state.attrs, key):
+                    attr = getattr(state.attrs, key)
+                    history = attr.history
+                    if history.has_changes() and history.deleted:
+                        old_val = history.deleted[0]
+                        if hasattr(old_val, 'value'):  # Handle enums
+                            old_values[key] = old_val.value
+                        else:
+                            old_values[key] = old_val
         
         new_values = get_model_values(target)
         
