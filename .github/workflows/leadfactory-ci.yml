@@ -57,19 +57,19 @@ jobs:
         if [ -d "prefect" ]; then
           echo "Validating Prefect flows..."
           python -c "
-import os
-import sys
-from pathlib import Path
-
-# Check for flow files
-flow_files = list(Path('prefect').rglob('*.py'))
-if flow_files:
-    print(f'Found {len(flow_files)} flow files')
-    for file in flow_files:
-        print(f'  - {file}')
-else:
-    print('No Prefect flows found')
-"
+        import os
+        import sys
+        from pathlib import Path
+        
+        # Check for flow files
+        flow_files = list(Path('prefect').rglob('*.py'))
+        if flow_files:
+            print(f'Found {len(flow_files)} flow files')
+            for file in flow_files:
+                print(f'  - {file}')
+        else:
+            print('No Prefect flows found')
+        "
         fi
     
     - name: Upload security reports
