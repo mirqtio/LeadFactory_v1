@@ -415,7 +415,9 @@ class TestQuickAddLeadAPI:
     async def test_quick_add_lead_success(self, mock_repo_class, mock_get_db, mock_get_coordinator, client, mock_lead_repo):
         """Test successful quick-add lead"""
         # Setup mocks
-        mock_get_db.return_value.__enter__.return_value = Mock()
+        mock_db = Mock()
+        mock_db.refresh = Mock()  # Mock the refresh method to do nothing
+        mock_get_db.return_value.__enter__.return_value = mock_db
         mock_repo_class.return_value = mock_lead_repo
         
         mock_lead = Mock()
