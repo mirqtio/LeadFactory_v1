@@ -37,7 +37,7 @@ from core.logging import get_logger
 from core.config import settings
 from database.session import get_db
 from database.governance_models import User, UserRole, AuditLog, RoleChangeLog
-from core.security import mask_sensitive_data
+from core.utils import mask_sensitive_data
 
 logger = get_logger("governance", domain="governance")
 
