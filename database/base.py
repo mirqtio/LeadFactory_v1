@@ -1,6 +1,6 @@
 """Base class for SQLAlchemy models"""
 import uuid
-from sqlalchemy import String, TypeDecorator
+from sqlalchemy import String, TypeDecorator, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID as PostgreSQL_UUID
 from sqlalchemy.orm import declarative_base
 
@@ -40,3 +40,40 @@ class UUID(TypeDecorator):
 
 
 Base = declarative_base()
+
+
+class DatabaseAgnosticEnum(TypeDecorator):
+    """
+    Database-agnostic Enum type.
+    Uses native ENUM for PostgreSQL, String for other databases.
+    """
+    
+    impl = String
+    cache_ok = True
+    
+    def __init__(self, enum_class, *args, **kwargs):
+        self.enum_class = enum_class
+        super().__init__(*args, **kwargs)
+    
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            # For PostgreSQL, use native ENUM
+            return dialect.type_descriptor(
+                SQLEnum(self.enum_class, create_type=False)
+            )
+        else:
+            # For other databases, use String
+            max_len = max(len(item.value) for item in self.enum_class)
+            return dialect.type_descriptor(String(max_len))
+    
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        if isinstance(value, self.enum_class):
+            return value.value
+        return value
+    
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        return self.enum_class(value)

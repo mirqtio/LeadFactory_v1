@@ -14,7 +14,7 @@ from sqlalchemy import (
     UniqueConstraint, CheckConstraint, Integer
 )
 from sqlalchemy.sql import func
-from database.base import Base, UUID
+from database.base import Base, UUID, DatabaseAgnosticEnum
 import uuid
 
 
@@ -31,7 +31,7 @@ class User(Base):
     id = Column(UUID(), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String(255), nullable=False, unique=True, index=True)
     name = Column(String(255), nullable=False)
-    role = Column(Enum(UserRole), nullable=False, default=UserRole.VIEWER)
+    role = Column(DatabaseAgnosticEnum(UserRole), nullable=False, default=UserRole.VIEWER)
     api_key_hash = Column(String(255), nullable=True)  # For API access
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -57,7 +57,7 @@ class AuditLog(Base):
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     user_id = Column(UUID(), nullable=False, index=True)
     user_email = Column(String(255), nullable=False)  # Denormalized for historical accuracy
-    user_role = Column(Enum(UserRole), nullable=False)  # Role at time of action
+    user_role = Column(DatabaseAgnosticEnum(UserRole), nullable=False)  # Role at time of action
     
     # Action details
     action = Column(String(50), nullable=False)  # CREATE, UPDATE, DELETE, etc.
@@ -132,8 +132,8 @@ class RoleChangeLog(Base):
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     user_id = Column(UUID(), nullable=False, index=True)
     changed_by_id = Column(UUID(), nullable=False)
-    old_role = Column(Enum(UserRole), nullable=False)
-    new_role = Column(Enum(UserRole), nullable=False)
+    old_role = Column(DatabaseAgnosticEnum(UserRole), nullable=False)
+    new_role = Column(DatabaseAgnosticEnum(UserRole), nullable=False)
     reason = Column(Text, nullable=False)
     
     __table_args__ = (

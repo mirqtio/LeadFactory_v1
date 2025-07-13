@@ -28,7 +28,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from database.base import Base
+from database.base import Base, DatabaseAgnosticEnum
 
 # D6 report models are imported separately for now due to module path issues
 # from d6_reports.models import ReportGeneration, ReportTemplate, ReportSection, ReportDelivery
@@ -466,7 +466,7 @@ class Lead(Base):
     
     # Enrichment tracking
     enrichment_status = Column(
-        SQLEnum(EnrichmentStatus),
+        DatabaseAgnosticEnum(EnrichmentStatus),
         nullable=False,
         default=EnrichmentStatus.PENDING,
         index=True
