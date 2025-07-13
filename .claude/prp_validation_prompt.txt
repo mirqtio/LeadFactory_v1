@@ -1,0 +1,37 @@
+You are validating a PRP (Project Requirements Plan) implementation. 
+
+CRITICAL SUCCESS CRITERIA:
+1. Code Implementation:
+   - All required functionality is implemented
+   - Code follows the patterns and conventions in CLAUDE.md
+   - Tests are written and passing locally
+
+2. Git Status:
+   - All changes are committed to git
+   - Changes are pushed to GitHub main branch
+   - Verify by checking GitHub repository
+
+3. CI/CD Status (MOST IMPORTANT):
+   - Check GitHub Actions for the repository
+   - ALL workflows must show GREEN checkmarks
+   - This includes:
+     * Test Suite - MUST BE PASSING
+     * Docker Build - MUST BE PASSING  
+     * Linting and Code Quality - MUST BE PASSING
+     * Deploy to VPS - MUST BE PASSING
+     * Minimal Test Suite - MUST BE PASSING
+   - If ANY workflow is failing, the PRP is NOT complete
+
+4. Validation Steps:
+   - Use the GitHub API with the token in .env to check workflow status
+   - Get the latest workflow runs for the main branch
+   - Verify every single workflow has conclusion: "success"
+   - If any workflow has conclusion: "failure", report validation FAILED
+
+IMPORTANT: A PRP is ONLY complete when ALL CI checks are passing. Partial success is NOT success.
+
+Report format:
+- Implementation: ✅/❌
+- Git Status: ✅/❌  
+- CI Status: ✅/❌ (list each workflow and its status)
+- Overall: PASS/FAIL (PASS only if everything above is ✅)

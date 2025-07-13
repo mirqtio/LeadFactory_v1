@@ -1,3 +1,13 @@
+🚨🚨🚨 CRITICAL: Definition of "Complete" 🚨🚨🚨
+A task is ONLY complete when:
+- Code is implemented and validated
+- Pushed to GitHub main branch  
+- ALL CI checks pass GREEN (not just some)
+- This includes Test Suite, Docker Build, Linting, Deploy to VPS - EVERYTHING
+- If CI was green before and isn't now, the changes broke it and must be fixed
+- NEVER mark a task as complete if ANY CI check is failing
+- "Deploy to VPS passing" does NOT mean the task is complete if Test Suite is failing
+
 🧱 Code Structure & Modularity
 Never create a file longer than 500 lines of code. If a file approaches this limit, refactor by splitting it into modules or helper files.
 Organize code into clearly separated modules, grouped by feature or responsibility. For agents this looks like:
