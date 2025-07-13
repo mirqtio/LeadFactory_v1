@@ -88,7 +88,7 @@ class TestCreateLeadSchema:
         with pytest.raises(ValidationError) as exc_info:
             CreateLeadSchema(**data)
         
-        assert "Invalid domain format" in str(exc_info.value)
+        assert "Domain must contain at least one dot" in str(exc_info.value)
     
     def test_create_lead_schema_domain_validation_cases(self):
         """Test various domain validation cases"""
