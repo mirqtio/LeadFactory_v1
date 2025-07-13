@@ -110,3 +110,19 @@ class TimeSeriesData(Base):
             postgresql_using='gin'
         )
     )
+
+
+# Add dataclass imports at top of file after other imports
+from dataclasses import dataclass
+from typing import Optional, Dict, Any, List
+
+
+@dataclass
+class FunnelConversion:
+    """Data class for funnel conversion metrics"""
+    funnel_stage: str
+    total_count: int
+    success_count: int
+    conversion_rate: float
+    avg_duration_seconds: Optional[float] = None
+    metadata: Optional[Dict[str, Any]] = None

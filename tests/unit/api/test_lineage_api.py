@@ -115,7 +115,7 @@ class TestLineageAPI:
         report, lineage = sample_report_and_lineage
 
         # Override the get_db dependency
-        from database.session import get_db
+        from api.dependencies import get_db
         def override_get_db():
             yield db_session
         test_client.app.dependency_overrides[get_db] = override_get_db
@@ -138,7 +138,7 @@ class TestLineageAPI:
         """Test searching lineage records"""
         report, lineage = sample_report_and_lineage
 
-        from database.session import get_db
+        from api.dependencies import get_db
         def override_get_db():
             yield db_session
         test_client.app.dependency_overrides[get_db] = override_get_db
@@ -166,7 +166,7 @@ class TestLineageAPI:
         """Test viewing pipeline logs"""
         report, lineage = sample_report_and_lineage
 
-        from database.session import get_db
+        from api.dependencies import get_db
         def override_get_db():
             yield db_session
         test_client.app.dependency_overrides[get_db] = override_get_db
@@ -185,7 +185,7 @@ class TestLineageAPI:
         """Test downloading compressed raw inputs"""
         report, lineage = sample_report_and_lineage
 
-        from database.session import get_db
+        from api.dependencies import get_db
         def override_get_db():
             yield db_session
         test_client.app.dependency_overrides[get_db] = override_get_db
@@ -203,7 +203,7 @@ class TestLineageAPI:
 
     def test_get_panel_stats(self, test_client: TestClient, sample_report_and_lineage, db_session):
         """Test getting lineage panel statistics"""
-        from database.session import get_db
+        from api.dependencies import get_db
         def override_get_db():
             yield db_session
         test_client.app.dependency_overrides[get_db] = override_get_db
@@ -220,7 +220,7 @@ class TestLineageAPI:
 
     def test_error_handling(self, test_client: TestClient, db_session):
         """Test error handling for non-existent resources"""
-        from database.session import get_db
+        from api.dependencies import get_db
         def override_get_db():
             yield db_session
         test_client.app.dependency_overrides[get_db] = override_get_db
@@ -241,7 +241,7 @@ class TestLineageAPI:
         """Test that API calls create audit logs"""
         report, lineage = sample_report_and_lineage
 
-        from database.session import get_db
+        from api.dependencies import get_db
         def override_get_db():
             yield db_session
         test_client.app.dependency_overrides[get_db] = override_get_db
