@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+from sqlalchemy import text
 
 from d6_reports.lineage_integration import LineageCapture, create_report_with_lineage
 from d6_reports.models import ReportGeneration, ReportStatus
@@ -69,7 +70,7 @@ class TestLineageIntegration:
 
         # Verify lineage was captured
         lineage = await async_db_session.execute(
-            "SELECT * FROM report_lineage WHERE report_generation_id = :id",
+            text("SELECT * FROM report_lineage WHERE report_generation_id = :id"),
             {"id": report.id}
         )
         lineage_record = lineage.first()
@@ -115,7 +116,8 @@ class TestLineageIntegration:
 
         # Verify error was captured in lineage
         lineage = await async_db_session.execute(
-            f"SELECT * FROM report_lineage WHERE report_generation_id = '{report.id}'"
+            text("SELECT * FROM report_lineage WHERE report_generation_id = :id"),
+            {"id": report.id}
         )
         lineage_record = lineage.first()
 
@@ -208,12 +210,12 @@ class TestLineageIntegration:
 
         # Verify all reports have lineage
         result = await async_db_session.execute(
-            """
+            text("""
             SELECT COUNT(*) as total,
                    COUNT(l.id) as with_lineage
             FROM d6_report_generations r
             LEFT JOIN report_lineage l ON r.id = l.report_generation_id
-            """
+            """)
         )
         counts = result.first()
 
