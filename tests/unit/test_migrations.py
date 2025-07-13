@@ -205,6 +205,10 @@ class TestMigrations:
                 'experiment_assignments',  # Legacy table from initial migration
                 'experiments',  # Legacy table from initial migration
                 'pipeline_runs',  # Legacy table from initial migration
+                'batch_reports',  # Created by migration but model is BatchReport
+                'batch_report_leads',  # Created by migration but model is BatchReportLead
+                'audit_log_global',  # Created by migration but model is AuditLogGlobal
+                'users',  # Created by migration but model is User
             }
             
             extra_in_db = extra_in_db - legacy_tables
