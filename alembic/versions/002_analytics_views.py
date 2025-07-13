@@ -151,7 +151,7 @@ def upgrade():
             sa.Column('last_updated', sa.TIMESTAMP(), nullable=True),
             sa.PrimaryKeyConstraint('cohort_date', 'campaign_id', 'from_stage', 'to_stage')
         )
-        
+
         op.create_table('cohort_retention_mv',
             sa.Column('cohort_date', sa.Date(), nullable=False),
             sa.Column('campaign_id', sa.String(), nullable=False),
@@ -168,7 +168,7 @@ def upgrade():
             sa.Column('last_updated', sa.TIMESTAMP(), nullable=True),
             sa.PrimaryKeyConstraint('cohort_date', 'campaign_id', 'retention_period')
         )
-        
+
         op.create_table('materialized_view_refresh_log',
             sa.Column('id', sa.Integer(), nullable=False),
             sa.Column('view_name', sa.String(length=255), nullable=False),
@@ -201,7 +201,7 @@ def downgrade():
     """Drop analytics materialized views and supporting infrastructure"""
 
     bind = op.get_bind()
-    
+
     # Drop tables or views depending on what was created
     if bind.dialect.name == 'postgresql':
         # Drop materialized views
@@ -220,7 +220,7 @@ def downgrade():
         # Drop placeholder tables
         op.drop_table('funnel_analysis_mv')
         op.drop_table('cohort_retention_mv')
-    
+
     # Drop refresh log table
     op.execute(text("DROP TABLE IF EXISTS materialized_view_refresh_log CASCADE"))
 

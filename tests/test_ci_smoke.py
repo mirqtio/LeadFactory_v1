@@ -23,14 +23,14 @@ def test_imports_work():
     # Core imports
     from core.config import Settings
     from core.exceptions import LeadFactoryError
-    
+
     # Database imports
     from database.base import Base
     from database.models import Business
-    
+
     # Gateway imports
     from d0_gateway.base import BaseAPIClient
-    
+
     assert Settings is not None
     assert LeadFactoryError is not None
     assert Base is not None

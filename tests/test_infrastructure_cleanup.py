@@ -26,16 +26,16 @@ class TestInfrastructureCleanup:
         # Set CI environment variable
         env = os.environ.copy()
         env['CI'] = 'true'
-        
+
         # Run pytest collection with CI mode
         cmd = ['pytest', '-m', 'slow', '--collect-only', '-q']
         result = subprocess.run(cmd, capture_output=True, text=True, env=env)
-        
+
         # In CI mode with -m slow, we should collect the slow tests
         # But with -m "not slow", they should be excluded
         cmd_exclude = ['pytest', '-m', 'not slow and not phase_future', '--collect-only', '-q']
         result_exclude = subprocess.run(cmd_exclude, capture_output=True, text=True, env=env)
-        
+
         # Parse the output to get test counts
         output_lines = result_exclude.stdout.strip().split('\n')
         for line in output_lines:
@@ -51,7 +51,7 @@ class TestInfrastructureCleanup:
         # Look for tests with phase_future or phase05 xfail markers
         cmd = ['grep', '-r', 'pytestmark.*xfail.*[Pp]hase', 'tests/']
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         # Should find phase 0.5 tests marked as xfail
         assert result.returncode == 0, "Should find phase 0.5 tests marked as xfail"
         assert len(result.stdout.strip().split('\n')) > 10, "Should have multiple phase 0.5 tests marked"
@@ -59,17 +59,17 @@ class TestInfrastructureCleanup:
     def test_collection_time_under_5_seconds(self):
         """Test that test collection completes in under 5 seconds"""
         start_time = time.time()
-        
+
         # Run test collection
         cmd = ['pytest', '--collect-only', '-q']
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         elapsed_time = time.time() - start_time
-        
+
         assert result.returncode == 0, "Test collection should succeed"
         # Relaxed from 5s to 20s - CI environments can be slower
         assert elapsed_time < 20.0, f"Test collection took {elapsed_time:.2f}s, expected < 20s"
-        
+
         # Also check the reported collection time in output
         for line in result.stdout.strip().split('\n'):
             if 'collected in' in line:
@@ -89,7 +89,7 @@ class TestInfrastructureCleanup:
         # Run test collection excluding ignored files
         cmd = ['pytest', '--collect-only', '-q', '--tb=short']
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         # Check stderr for import errors
         if result.stderr:
             # Some warnings are OK, but not import errors
@@ -100,7 +100,7 @@ class TestInfrastructureCleanup:
         """Test that all required markers are defined in pytest.ini"""
         with open('pytest.ini', 'r') as f:
             content = f.read()
-        
+
         # Check for required markers
         required_markers = ['slow', 'phase_future', 'integration', 'unit', 'e2e']
         for marker in required_markers:
@@ -116,7 +116,7 @@ class TestInfrastructureCleanup:
                 if line.startswith('--ignore=tests/') and line.endswith('.py'):
                     filepath = line.replace('--ignore=', '')
                     ignored_files.append(filepath)
-        
+
         # Check each ignored file
         phase05_count = 0
         for filepath in ignored_files:
@@ -125,7 +125,7 @@ class TestInfrastructureCleanup:
                     content = f.read()
                     if 'pytestmark = pytest.mark.xfail(reason="Phase 0.5' in content:
                         phase05_count += 1
-        
+
         # Most ignored files should be Phase 0.5
         if len(ignored_files) > 0:
             assert phase05_count >= len(ignored_files) // 2, \

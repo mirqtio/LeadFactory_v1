@@ -43,13 +43,13 @@ def upgrade() -> None:
         sa.CheckConstraint('compression_ratio >= 0 AND compression_ratio <= 100', name='check_compression_ratio_range'),
         sa.CheckConstraint('access_count >= 0', name='check_access_count_non_negative')
     )
-    
+
     # Create indexes for report_lineage
     op.create_index('idx_lineage_report_id', 'report_lineage', ['report_generation_id'])
     op.create_index('idx_lineage_lead_id', 'report_lineage', ['lead_id'])
     op.create_index('idx_lineage_pipeline_run', 'report_lineage', ['pipeline_run_id'])
     op.create_index('idx_lineage_created_at', 'report_lineage', ['created_at'])
-    
+
     # Create report_lineage_audit table
     op.create_table(
         'report_lineage_audit',
@@ -63,7 +63,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id'),
         sa.ForeignKeyConstraint(['lineage_id'], ['report_lineage.id'], ondelete='CASCADE')
     )
-    
+
     # Create indexes for report_lineage_audit
     op.create_index('idx_lineage_audit_lineage_id', 'report_lineage_audit', ['lineage_id'])
     op.create_index('idx_lineage_audit_user_id', 'report_lineage_audit', ['user_id'])

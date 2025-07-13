@@ -84,7 +84,7 @@ def handle_api_errors(func):
             if hasattr(value, 'headers'):  # This is the Request object
                 request = value
                 break
-        
+
         if request:
             user_context = get_user_context(request)
             AuditContext.set_user_context(
@@ -92,7 +92,7 @@ def handle_api_errors(func):
                 user_ip=user_context["user_ip"],
                 user_agent=user_context["user_agent"]
             )
-        
+
         try:
             return await func(*args, **kwargs)
         except HTTPException:
@@ -130,7 +130,7 @@ def handle_api_errors(func):
 @limiter.limit("10/second")
 @handle_api_errors
 async def create_lead(
-    lead_data: CreateLeadSchema, 
+    lead_data: CreateLeadSchema,
     request: Request,
     db: Session = Depends(get_db)
 ):
@@ -335,14 +335,14 @@ async def quick_add_lead(
 
     # Start real enrichment process using enrichment coordinator
     coordinator = get_enrichment_coordinator()
-    
+
     lead_data = {
         "id": lead.id,
         "email": lead.email,
         "domain": lead.domain,
         "company_name": lead.company_name
     }
-    
+
     enrichment_task_id = await coordinator.start_enrichment(lead.id, lead_data)
 
     # Refresh lead to get updated enrichment status
@@ -405,11 +405,11 @@ async def update_enrichment_status(
     logger.info(f"Updating enrichment status for lead: {lead_id}, status={status.value}, task_id={task_id}")
 
     lead_repo = LeadRepository(db)
-    
+
     # Convert schema enum to database enum
     from database.models import EnrichmentStatus
     db_status = EnrichmentStatus(status.value)
-    
+
     success = lead_repo.update_enrichment_status(
         lead_id=lead_id,
         status=db_status,

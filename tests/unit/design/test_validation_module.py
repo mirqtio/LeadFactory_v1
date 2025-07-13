@@ -65,13 +65,13 @@ class TestDesignTokenValidator:
             "spacing": {
                 "base": "8px",
                 "scale": {
-                    "xs": "8px", "sm": "16px", "md": "24px", 
+                    "xs": "8px", "sm": "16px", "md": "24px",
                     "lg": "32px", "xl": "48px", "2xl": "64px", "3xl": "80px"
                 }
             },
             "animation": {
                 "duration": {
-                    "micro": "150ms", "standard": "200ms", 
+                    "micro": "150ms", "standard": "200ms",
                     "page": "300ms", "data": "400ms"
                 },
                 "easing": {
@@ -93,10 +93,10 @@ class TestDesignTokenValidator:
         """Test validator initialization with custom schema."""
         schema_file = tmp_path / "custom_schema.json"
         schema = {"type": "object", "properties": {}}
-        
+
         with open(schema_file, 'w') as f:
             json.dump(schema, f)
-        
+
         validator = DesignTokenValidator(str(schema_file))
         assert validator.schema == schema
 
@@ -109,7 +109,7 @@ class TestDesignTokenValidator:
     def test_validate_schema_invalid_tokens(self, validator):
         """Test schema validation with invalid tokens."""
         invalid_tokens = {"invalid": "structure"}
-        
+
         is_valid, errors = validator.validate_schema(invalid_tokens)
         assert not is_valid
         assert len(errors) > 0
@@ -118,7 +118,7 @@ class TestDesignTokenValidator:
         """Test file size validation with valid file."""
         test_file = tmp_path / "test.json"
         test_file.write_text("test content")
-        
+
         is_valid, errors = validator.validate_file_size(str(test_file), 1000)
         assert is_valid
         assert len(errors) == 0
@@ -127,7 +127,7 @@ class TestDesignTokenValidator:
         """Test file size validation with oversized file."""
         test_file = tmp_path / "test.json"
         test_file.write_text("x" * 1000)
-        
+
         is_valid, errors = validator.validate_file_size(str(test_file), 100)
         assert not is_valid
         assert len(errors) > 0
@@ -144,7 +144,7 @@ class TestDesignTokenValidator:
         """Test color contrast validation."""
         # Add contrast data to test tokens
         valid_tokens["colors"]["primary"]["anthracite"]["contrast"] = {"white": "20.4:1"}
-        
+
         is_valid, errors = validator.validate_color_contrast(valid_tokens)
         assert is_valid
         # May have warnings about missing contrast data
@@ -158,7 +158,7 @@ class TestDesignTokenValidator:
     def test_validate_spacing_system_invalid_base(self, validator, valid_tokens):
         """Test spacing system validation with invalid base."""
         valid_tokens["spacing"]["base"] = "10px"
-        
+
         is_valid, errors = validator.validate_spacing_system(valid_tokens)
         assert not is_valid
         assert any("base must be '8px'" in error for error in errors)
@@ -166,7 +166,7 @@ class TestDesignTokenValidator:
     def test_validate_spacing_system_non_multiple_of_8(self, validator, valid_tokens):
         """Test spacing system validation with non-8px-multiple values."""
         valid_tokens["spacing"]["scale"]["invalid"] = "10px"
-        
+
         is_valid, errors = validator.validate_spacing_system(valid_tokens)
         assert not is_valid
         assert any("not a multiple of 8px" in error for error in errors)
@@ -182,7 +182,7 @@ class TestDesignTokenValidator:
         # Make h1 smaller than h2
         valid_tokens["typography"]["scale"]["h1"]["size"] = "20px"
         valid_tokens["typography"]["scale"]["h2"]["size"] = "30px"
-        
+
         is_valid, errors = validator.validate_typography_hierarchy(valid_tokens)
         assert not is_valid
         assert any("h2 should be larger than h3" not in error for error in errors)
@@ -196,7 +196,7 @@ class TestDesignTokenValidator:
     def test_validate_completeness_missing_colors(self, validator, valid_tokens):
         """Test completeness validation with missing colors."""
         del valid_tokens["colors"]["functional"]["dark"]
-        
+
         is_valid, errors = validator.validate_completeness(valid_tokens)
         assert not is_valid
         assert any("Token count mismatch for colors.functional: expected 4, got 3" in error for error in errors)
@@ -206,7 +206,7 @@ class TestDesignTokenValidator:
         tokens_file = tmp_path / "tokens.json"
         with open(tokens_file, 'w') as f:
             json.dump(valid_tokens, f)
-        
+
         all_valid, results = validator.validate_all(valid_tokens, str(tokens_file))
         assert all_valid
         assert all(isinstance(errors, list) for errors in results.values())
@@ -214,7 +214,7 @@ class TestDesignTokenValidator:
     def test_validate_all_invalid_tokens(self, validator):
         """Test complete validation with invalid tokens."""
         invalid_tokens = {"invalid": "structure"}
-        
+
         all_valid, results = validator.validate_all(invalid_tokens)
         assert not all_valid
         assert len(results["schema"]) > 0
@@ -227,7 +227,7 @@ class TestValidateTokensFile:
         """Test validating a valid tokens file."""
         # Use the actual project tokens file
         tokens_file = Path(__file__).parent.parent.parent.parent / "design" / "design_tokens.json"
-        
+
         if tokens_file.exists():
             result = validate_tokens_file(str(tokens_file), verbose=False)
             assert result
@@ -241,7 +241,7 @@ class TestValidateTokensFile:
         """Test validating a file with invalid JSON."""
         invalid_file = tmp_path / "invalid.json"
         invalid_file.write_text("{invalid json")
-        
+
         result = validate_tokens_file(str(invalid_file), verbose=False)
         assert not result
 
@@ -267,10 +267,10 @@ class TestMainFunction:
             "animation": {"duration": {f"d{i}": f"{100+i*50}ms" for i in range(4)}, "easing": {"out": "ease-out"}},
             "breakpoints": {"mobile": "640px", "tablet": "1024px", "desktop": "1200px"}
         }
-        
+
         with open(tokens_file, 'w') as f:
             json.dump(valid_tokens, f, separators=(',', ':'))
-        
+
         with patch('sys.argv', ['validate_tokens.py', str(tokens_file)]):
             with patch('sys.exit'):
                 main()

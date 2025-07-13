@@ -125,7 +125,7 @@ def _truncate_lineage_data(data: Dict[str, Any]) -> Dict[str, Any]:
                     sample_inputs[key] = f"<truncated: {type(value).__name__}>"
 
             truncated["raw_inputs_sample"] = sample_inputs
-    
+
     # Check all other fields and truncate large ones
     for key, value in data.items():
         if key not in truncated and key not in ["pipeline_logs", "raw_inputs"]:

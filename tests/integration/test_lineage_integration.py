@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+from sqlalchemy import text
 
 from d6_reports.lineage_integration import LineageCapture, create_report_with_lineage
 from d6_reports.models import ReportGeneration, ReportStatus
@@ -34,7 +35,7 @@ class TestLineageIntegration:
 
         # Simulate pipeline execution with lineage capture
         lineage_capture = LineageCapture(async_db_session)
-        
+
         # Load existing pipeline context
         lineage_capture._pipeline_context[pipeline_run_id] = {
             "lead_id": "business-123",
@@ -69,11 +70,11 @@ class TestLineageIntegration:
 
         # Verify lineage was captured
         lineage = await async_db_session.execute(
-            "SELECT * FROM report_lineage WHERE report_generation_id = :id",
+            text("SELECT * FROM report_lineage WHERE report_generation_id = :id"),
             {"id": report.id}
         )
         lineage_record = lineage.first()
-        
+
         assert lineage_record is not None
 
     @pytest.mark.asyncio
@@ -99,7 +100,7 @@ class TestLineageIntegration:
 
         # Log error event
         lineage_capture.log_pipeline_event(
-            pipeline_run_id, "error", "PDF generation failed", 
+            pipeline_run_id, "error", "PDF generation failed",
             {"error": "Timeout exceeded"}
         )
 
@@ -115,10 +116,11 @@ class TestLineageIntegration:
 
         # Verify error was captured in lineage
         lineage = await async_db_session.execute(
-            f"SELECT * FROM report_lineage WHERE report_generation_id = '{report.id}'"
+            text("SELECT * FROM report_lineage WHERE report_generation_id = :id"),
+            {"id": report.id}
         )
         lineage_record = lineage.first()
-        
+
         assert lineage_record is not None
         # Compressed data should contain error information
 
@@ -127,9 +129,9 @@ class TestLineageIntegration:
         """Test lineage integration with actual report generator"""
         # This would require mocking the ReportGenerator to use lineage capture
         # For now, we'll test the lineage capture service directly
-        
+
         lineage_capture = LineageCapture(async_db_session)
-        
+
         # Start pipeline
         pipeline_run_id = await lineage_capture.start_pipeline(
             lead_id="business-gen",
@@ -141,12 +143,12 @@ class TestLineageIntegration:
         lineage_capture.log_pipeline_event(
             pipeline_run_id, "info", "Initializing report generator"
         )
-        
+
         lineage_capture.add_raw_input(
-            pipeline_run_id, "pagespeed_data", 
+            pipeline_run_id, "pagespeed_data",
             {"performance_score": 85, "fcp": 1.2}
         )
-        
+
         lineage_capture.log_pipeline_event(
             pipeline_run_id, "info", "Template rendered successfully"
         )
@@ -169,7 +171,7 @@ class TestLineageIntegration:
 
         assert success is True
 
-    @pytest.mark.asyncio 
+    @pytest.mark.asyncio
     async def test_100_percent_capture_requirement(self, async_db_session, test_report_template):
         """Test that 100% of new PDFs have lineage row captured"""
         captured_count = 0
@@ -208,15 +210,15 @@ class TestLineageIntegration:
 
         # Verify all reports have lineage
         result = await async_db_session.execute(
-            """
+            text("""
             SELECT COUNT(*) as total,
                    COUNT(l.id) as with_lineage
             FROM d6_report_generations r
             LEFT JOIN report_lineage l ON r.id = l.report_generation_id
-            """
+            """)
         )
         counts = result.first()
-        
+
         assert counts.total == total_count
         assert counts.with_lineage == total_count
 
@@ -234,7 +236,7 @@ class TestLineageIntegration:
         # Mock compression to fail
         with patch("d6_reports.lineage.tracker.compress_lineage_data") as mock_compress:
             mock_compress.side_effect = Exception("Compression failed")
-            
+
             lineage_capture = LineageCapture(async_db_session)
             pipeline_run_id = await lineage_capture.start_pipeline(
                 lead_id="business-noblock",

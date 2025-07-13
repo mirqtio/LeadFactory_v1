@@ -34,21 +34,21 @@ class TestMarkerPolicy:
             "--tb=no",
             "-q"
         ]
-        
+
         # Run the test suite
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         # Load the JSON report
         try:
             with open("/tmp/test_results.json", "r") as f:
                 report = json.load(f)
         except FileNotFoundError:
             pytest.skip("JSON report not generated - pytest-json-report may not be installed")
-        
+
         # Check for failures
         summary = report.get("summary", {})
         tests = report.get("tests", [])
-        
+
         # Find any failed tests that aren't marked
         unmarked_failures = []
         for test in tests:
@@ -57,18 +57,18 @@ class TestMarkerPolicy:
                 markers = test.get("keywords", [])
                 if "xfail" not in markers and "phase_future" not in markers:
                     unmarked_failures.append(test.get("nodeid"))
-        
+
         # Assert no unmarked failures
         assert len(unmarked_failures) == 0, (
             f"Found {len(unmarked_failures)} unmarked test failures:\n" +
             "\n".join(unmarked_failures) +
             "\n\nThese tests should be marked with @pytest.mark.xfail or @pytest.mark.phase_future"
         )
-        
+
         # Check that we have a reasonable number of passing tests
         passed = summary.get("passed", 0)
         assert passed > 100, f"Expected at least 100 passing tests, got {passed}"
-        
+
         # Verify no actual failures (only xfailed/xpassed)
         failed = summary.get("failed", 0)
         errors = summary.get("error", 0)
@@ -96,9 +96,9 @@ class TestMarkerPolicy:
             "--collect-only",
             "-q"
         ]
-        
+
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         # Should find some phase_future tests
         assert "deselected" in result.stdout or "collected" in result.stdout, (
             "No phase_future tests found - marker may not be working"

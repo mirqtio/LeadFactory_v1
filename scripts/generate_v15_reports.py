@@ -19,31 +19,31 @@ import pandas as pd
 
 class V15ReportGenerator:
     """Generate revenue-focused reports following v1.5 methodology"""
-    
+
     def __init__(self):
         # Load configuration files
         self.severity_rubric = self._load_severity_rubric()
         self.impact_coefficients = self._load_yaml('config/impact_coefficients.yaml')
         self.confidence_sources = self._load_yaml('config/confidence_sources.yaml')
         self.online_dependence = self._load_yaml('config/online_dependence.yaml')
-        
+
         # Load value curves data
         try:
             self.value_curves = pd.read_csv('data/processed/value_curves.csv')
         except:
             self.value_curves = None
-    
+
     def _load_yaml(self, path: str) -> Dict:
         """Load YAML configuration file"""
         with open(path, 'r') as f:
             return yaml.safe_load(f)
-    
+
     def _load_severity_rubric(self) -> Dict[str, Dict[int, str]]:
         """Parse severity rubric markdown into structured data"""
         rubric = {}
         current_category = None
         current_severity = None
-        
+
         with open('config/severity_rubric.md', 'r') as f:
             for line in f:
                 line = line.strip()
@@ -56,20 +56,20 @@ class V15ReportGenerator:
                     current_severity = severity_num
                 elif line.startswith('- ') and current_category and current_severity:
                     rubric[current_category][current_severity].append(line[2:])
-        
+
         return rubric
-    
+
     def _calculate_confidence(self, sources: List[str]) -> float:
         """Calculate confidence score based on data sources"""
         confidence = 0.0
         weights = self.confidence_sources.get('source_weights', {})
-        
+
         for source in sources:
             confidence += weights.get(source, 0.5)
-        
+
         # Normalize to 0-1 range
         return min(confidence / len(sources) if sources else 0.5, 1.0)
-    
+
     def _get_severity_from_score(self, score: int, category: str) -> int:
         """Map performance score to severity level"""
         if category == 'performance':
@@ -88,11 +88,11 @@ class V15ReportGenerator:
             elif score >= 60: return 2
             elif score >= 40: return 3
             else: return 4
-    
+
     def _extract_findings(self, assessment_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Extract findings with severity and impact calculations"""
         findings = []
-        
+
         # Extract from PageSpeed results
         pagespeed = assessment_data.get('pagespeed_results', {})
         if pagespeed:
@@ -108,7 +108,7 @@ class V15ReportGenerator:
                 'score': perf_score,
                 'sources': ['pagespeed']
             })
-            
+
             # SEO finding
             seo_score = pagespeed.get('seo_score', 50)
             severity = self._get_severity_from_score(seo_score, 'seo')
@@ -121,7 +121,7 @@ class V15ReportGenerator:
                 'score': seo_score,
                 'sources': ['pagespeed']
             })
-            
+
             # Accessibility finding
             a11y_score = pagespeed.get('accessibility_score', 50)
             if a11y_score < 90:
@@ -135,7 +135,7 @@ class V15ReportGenerator:
                     'score': a11y_score,
                     'sources': ['pagespeed']
                 })
-        
+
         # Add visual/UX finding if mobile score is low
         if pagespeed and pagespeed.get('performance_score', 100) < 60:
             findings.append({
@@ -147,41 +147,41 @@ class V15ReportGenerator:
                 'score': 40,
                 'sources': ['pagespeed']
             })
-        
+
         return findings
-    
-    def _calculate_revenue_impact(self, finding: Dict[str, Any], base_revenue: float, 
+
+    def _calculate_revenue_impact(self, finding: Dict[str, Any], base_revenue: float,
                                   confidence: float) -> Tuple[float, float, float]:
         """Calculate revenue impact range for a finding"""
         category = finding['category']
         severity = finding['severity']
-        
+
         # Get impact coefficient
         beta = self.impact_coefficients.get(category, {}).get(str(severity), 0.001)
-        
+
         # Calculate mid-point impact
         impact_mid = beta * base_revenue
-        
+
         # Calculate range based on confidence
         range_factor = 1 - confidence
         impact_low = impact_mid * (1 - range_factor)
         impact_high = impact_mid * (1 + range_factor)
-        
+
         return impact_low, impact_mid, impact_high
-    
+
     def _get_online_dependence(self, industry: str) -> float:
         """Get omega (online dependence) factor for industry"""
         omega_map = self.online_dependence.get('industry_omega', {})
         return omega_map.get(industry, omega_map.get('default', 0.5))
-    
-    def _prioritize_opportunities(self, findings: List[Dict[str, Any]], 
+
+    def _prioritize_opportunities(self, findings: List[Dict[str, Any]],
                                   revenue_impacts: Dict[str, Tuple[float, float, float]]) -> List[Dict[str, Any]]:
         """Create priority opportunities list with dollar impacts"""
         opportunities = []
-        
+
         for finding in findings:
             impact_low, impact_mid, impact_high = revenue_impacts[finding['id']]
-            
+
             # Determine complexity based on category and severity
             if finding['severity'] == 1:
                 complexity = 'Low'
@@ -189,7 +189,7 @@ class V15ReportGenerator:
                 complexity = 'Medium'
             else:
                 complexity = 'High'
-            
+
             opportunities.append({
                 'id': finding['id'],
                 'title': finding['title'],
@@ -201,21 +201,21 @@ class V15ReportGenerator:
                 'category': finding['category'],
                 'dependency': 'None' if finding['category'] != 'technical' else 'Technical team required'
             })
-        
+
         # Sort by impact (descending)
         opportunities.sort(key=lambda x: x['impact_mid'], reverse=True)
-        
+
         return opportunities[:5]  # Top 5 opportunities
-    
+
     def _resolve_location(self, url: str, existing_location: str) -> str:
         """Resolve location from various sources"""
         if existing_location and existing_location != "Unknown":
             return existing_location
-        
+
         # In production, would use SEMrush API, WHOIS, etc.
         # For now, return a placeholder
         return "United States"
-    
+
     def _get_gbp_data(self, business_name: str, url: str) -> Dict[str, Any]:
         """Fetch Google Business Profile data (placeholder)"""
         # In production, would call Google Places API
@@ -228,15 +228,15 @@ class V15ReportGenerator:
             'hours_listed': True,
             'photos_count': 12
         }
-    
+
     def _calculate_overall_score(self, findings: List[Dict[str, Any]]) -> int:
         """Calculate weighted overall score"""
         if not findings:
             return 75
-        
+
         total_score = 0
         total_weight = 0
-        
+
         # Weight by category importance
         category_weights = {
             'performance': 0.3,
@@ -245,17 +245,17 @@ class V15ReportGenerator:
             'technical': 0.15,
             'trust': 0.1
         }
-        
+
         for finding in findings:
             category = finding['category']
             score = finding.get('score', 50)
             weight = category_weights.get(category, 0.1)
-            
+
             total_score += score * weight
             total_weight += weight
-        
+
         return int(total_score / total_weight) if total_weight > 0 else 75
-    
+
     def _get_tier_from_score(self, score: int) -> Tuple[str, str]:
         """Get tier letter and CSS class from score"""
         if score >= 90:
@@ -266,17 +266,17 @@ class V15ReportGenerator:
             return 'C', 'tier-c'
         else:
             return 'D', 'tier-d'
-    
-    def generate_report(self, assessment_data: Dict[str, Any], business: Dict[str, Any], 
+
+    def generate_report(self, assessment_data: Dict[str, Any], business: Dict[str, Any],
                         output_path: Path) -> str:
         """Generate v1.5 compliant HTML report"""
-        
+
         # Extract and enrich business data
         business_name = business.get('business_name', 'Unknown Business')
         url = business.get('url', '')
         industry = business.get('vertical', 'default')
         location = self._resolve_location(url, business.get('location', 'Unknown'))
-        
+
         # Get value curve data for revenue estimation
         try:
             naics_code = self._get_naics_for_industry(industry)
@@ -284,22 +284,22 @@ class V15ReportGenerator:
         except:
             # Fallback to default
             base_revenue = 500000  # $500k default
-        
+
         # Extract findings with severity
         findings = self._extract_findings(assessment_data)
-        
+
         # Calculate confidence
         all_sources = []
         for finding in findings:
             all_sources.extend(finding.get('sources', []))
         confidence = self._calculate_confidence(list(set(all_sources)))
-        
+
         # Calculate revenue impacts
         revenue_impacts = {}
         total_impact_low = 0
         total_impact_mid = 0
         total_impact_high = 0
-        
+
         for finding in findings:
             impact_low, impact_mid, impact_high = self._calculate_revenue_impact(
                 finding, base_revenue, confidence
@@ -308,17 +308,17 @@ class V15ReportGenerator:
             total_impact_low += impact_low
             total_impact_mid += impact_mid
             total_impact_high += impact_high
-        
+
         # Get priority opportunities
         opportunities = self._prioritize_opportunities(findings, revenue_impacts)
-        
+
         # Get GBP data
         gbp_data = self._get_gbp_data(business_name, url)
-        
+
         # Calculate overall score
         overall_score = self._calculate_overall_score(findings)
         tier, tier_class = self._get_tier_from_score(overall_score)
-        
+
         # Extract tech stack (clean up formatting)
         tech_stack = assessment_data.get('tech_stack_results', [])
         tech_list = []
@@ -327,11 +327,11 @@ class V15ReportGenerator:
                 tech_list.append(tech.get('name', str(tech)))
             else:
                 tech_list.append(str(tech))
-        
+
         # Create HTML report
         html_template = self._get_report_template()
         template = Template(html_template)
-        
+
         html_content = template.render(
             # Business info
             business_name=business_name,
@@ -339,49 +339,49 @@ class V15ReportGenerator:
             industry=industry.replace('_', ' ').title(),
             location=location,
             assessment_date=datetime.now().strftime('%B %d, %Y'),
-            
+
             # Scores and tiers
             overall_score=overall_score,
             tier=f"Tier {tier}",
             tier_class=tier_class,
             confidence_percent=int(confidence * 100),
-            
+
             # Revenue impact
             base_revenue=f"{base_revenue:,.0f}",
             total_impact_low=f"{total_impact_low:,.0f}",
             total_impact_mid=f"{total_impact_mid:,.0f}",
             total_impact_high=f"{total_impact_high:,.0f}",
-            
+
             # Individual scores
             performance_score=assessment_data.get('pagespeed_results', {}).get('performance_score', 0),
             seo_score=assessment_data.get('pagespeed_results', {}).get('seo_score', 0),
             accessibility_score=assessment_data.get('pagespeed_results', {}).get('accessibility_score', 0),
             best_practices_score=assessment_data.get('pagespeed_results', {}).get('best_practices_score', 0),
-            
+
             # GBP data
             gbp_rating=gbp_data['rating'],
             gbp_reviews=gbp_data['review_count'],
             gbp_claimed='Yes' if gbp_data['claimed'] else 'No',
-            
+
             # Priority opportunities
             opportunities=opportunities,
-            
+
             # Tech stack
             tech_stack=tech_list,
-            
+
             # Email summary
             email_summary=self._generate_email_summary(
                 business_name, overall_score, total_impact_mid, opportunities
             )
         )
-        
+
         # Save report
         report_filename = output_path / f"report_{business['business_id']}_v15.html"
         with open(report_filename, 'w') as f:
             f.write(html_content)
-        
+
         return str(report_filename)
-    
+
     def _get_naics_for_industry(self, industry: str) -> str:
         """Map industry to NAICS code"""
         mapping = {
@@ -397,33 +397,33 @@ class V15ReportGenerator:
             'default': '54'
         }
         return mapping.get(industry, '54')
-    
+
     def _get_median_revenue(self, naics_code: str, location: str) -> float:
         """Get median revenue from value curves data"""
         if self.value_curves is None:
             return 500000  # Default
-        
+
         # Try to find matching value curve entry
         # For now, use a simple lookup or default
         return 500000  # $500k default
-    
-    def _generate_email_summary(self, business_name: str, overall_score: int, 
+
+    def _generate_email_summary(self, business_name: str, overall_score: int,
                                 total_impact: float, opportunities: List[Dict]) -> str:
         """Generate email summary paragraph"""
         top_opp = opportunities[0] if opportunities else None
-        
+
         summary = f"Our comprehensive analysis of {business_name}'s digital presence reveals "
         summary += f"an overall score of {overall_score}/100 with potential revenue gains of "
         summary += f"${total_impact:,.0f} annually through targeted improvements. "
-        
+
         if top_opp:
             summary += f"The highest-impact opportunity is {top_opp['title'].lower()}, "
             summary += f"which alone could drive ${top_opp['impact_mid']:,.0f} in additional revenue. "
-        
+
         summary += "Our team can typically implement these improvements within 4-6 weeks."
-        
+
         return summary
-    
+
     def _get_report_template(self) -> str:
         """Get the v1.5 compliant HTML template"""
         return '''<!DOCTYPE html>
@@ -935,46 +935,46 @@ class V15ReportGenerator:
 def main():
     """Generate v1.5 reports for existing assessment data"""
     print("🚀 Starting v1.5 Report Generation")
-    
+
     # Find existing assessment JSON files
     assessment_files = list(Path('.').glob('pipeline_results_*/assessment_*.json'))
-    
+
     if not assessment_files:
         print("❌ No assessment files found")
         return
-    
+
     print(f"📊 Found {len(assessment_files)} assessment files")
-    
+
     # Get output directory
     output_dir = Path("pipeline_results_20250624_172032")
     if not output_dir.exists():
         output_dir = Path("reports_v15")
         output_dir.mkdir(exist_ok=True)
-    
+
     # Initialize generator
     generator = V15ReportGenerator()
-    
+
     # Process each assessment
     for assessment_file in assessment_files:
         print(f"\n📄 Processing {assessment_file.name}...")
-        
+
         try:
             # Load assessment data
             with open(assessment_file, 'r') as f:
                 data = json.load(f)
-            
+
             assessment_results = data['results']
             business = data['business']
-            
+
             # Generate v1.5 report
             report_path = generator.generate_report(assessment_results, business, output_dir)
             print(f"✅ Generated: {report_path}")
-            
+
         except Exception as e:
             print(f"❌ Error processing {assessment_file.name}: {e}")
             import traceback
             traceback.print_exc()
-    
+
     print("\n✅ v1.5 report generation complete!")
     print(f"📁 Reports saved in: {output_dir}")
 

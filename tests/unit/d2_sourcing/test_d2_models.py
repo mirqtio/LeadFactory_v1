@@ -189,7 +189,7 @@ class TestSourcedLocationModel:
 
 class TestModelRelationships:
     # test_business_yelp_metadata_relationship removed per P0-009
-    
+
     def test_business_sourced_locations_relationship(self):
         """Test Business-SourcedLocation relationship"""
         # Verify SourcedLocation has relationship to Business

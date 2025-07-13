@@ -32,7 +32,7 @@ class LeadProcessingStatusEnum(str, Enum):
 # Base schemas
 class BaseResponseSchema(BaseModel):
     """Base response schema with common fields"""
-    
+
     class Config:
         from_attributes = True
 
@@ -42,20 +42,20 @@ class CreateBatchSchema(BaseModel):
     """Schema for creating batch cost preview"""
     lead_ids: List[str] = Field(..., min_items=1, max_items=1000, description="List of lead IDs to process")
     template_version: str = Field(default="v1", description="Report template version")
-    
+
     @validator('lead_ids')
     def validate_lead_ids(cls, v):
         """Validate lead IDs format"""
         if not v:
             raise ValueError("At least one lead ID is required")
-        
+
         if len(v) > 1000:
             raise ValueError("Maximum 1000 leads per batch")
-        
+
         # Check for duplicates
         if len(v) != len(set(v)):
             raise ValueError("Duplicate lead IDs are not allowed")
-        
+
         return v
 
 
@@ -71,16 +71,16 @@ class StartBatchSchema(BaseModel):
     retry_failed: bool = Field(True, description="Whether to retry failed leads")
     retry_count: Optional[int] = Field(3, ge=0, le=5, description="Maximum retry attempts")
     created_by: Optional[str] = Field(None, description="User who created the batch")
-    
+
     @validator('lead_ids')
     def validate_lead_ids(cls, v):
         """Validate lead IDs format"""
         if len(v) > 1000:
             raise ValueError("Maximum 1000 leads per batch")
-        
+
         if len(v) != len(set(v)):
             raise ValueError("Duplicate lead IDs are not allowed")
-        
+
         return v
 
 
@@ -91,7 +91,7 @@ class BatchFilterSchema(BaseModel):
     template_version: Optional[str] = Field(None, description="Filter by template version")
     created_after: Optional[datetime] = Field(None, description="Filter by creation date")
     created_before: Optional[datetime] = Field(None, description="Filter by creation date")
-    
+
     @validator('status')
     def validate_status(cls, v):
         """Validate status values"""
@@ -145,7 +145,7 @@ class BatchResponseSchema(BaseModel):
     completed_at: Optional[datetime] = Field(description="Completion timestamp")
     created_by: Optional[str] = Field(description="User who created the batch")
     error_message: Optional[str] = Field(description="Error message if failed")
-    
+
     class Config:
         from_attributes = True
 

@@ -17,7 +17,7 @@ depends_on = None
 
 def upgrade() -> None:
     """Create BatchReport and BatchReportLead tables"""
-    
+
     # Create batch_reports table
     op.create_table('batch_reports',
         sa.Column('id', sa.String(), nullable=False),
@@ -38,12 +38,12 @@ def upgrade() -> None:
         sa.Column('created_by', sa.String(length=255), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
-    
+
     # Create indexes for batch_reports
     op.create_index('ix_batch_reports_status', 'batch_reports', ['status'])
     op.create_index('ix_batch_reports_created_at', 'batch_reports', ['created_at'])
     op.create_index('ix_batch_reports_created_by_status', 'batch_reports', ['created_by', 'status'])
-    
+
     # Create batch_report_leads table
     op.create_table('batch_report_leads',
         sa.Column('id', sa.String(), nullable=False),
@@ -63,7 +63,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['batch_id'], ['batch_reports.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id')
     )
-    
+
     # Create indexes for batch_report_leads
     op.create_index('ix_batch_report_leads_batch_id_status', 'batch_report_leads', ['batch_id', 'status'])
     op.create_index('ix_batch_report_leads_lead_id', 'batch_report_leads', ['lead_id'])
@@ -73,21 +73,21 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Drop BatchReport and BatchReportLead tables"""
-    
+
     # Drop indexes first
     op.drop_index('ix_batch_report_leads_batch_id_created_at', 'batch_report_leads')
     op.drop_index('ix_batch_report_leads_created_at', 'batch_report_leads')
     op.drop_index('ix_batch_report_leads_lead_id', 'batch_report_leads')
     op.drop_index('ix_batch_report_leads_batch_id_status', 'batch_report_leads')
-    
+
     op.drop_index('ix_batch_reports_created_by_status', 'batch_reports')
     op.drop_index('ix_batch_reports_created_at', 'batch_reports')
     op.drop_index('ix_batch_reports_status', 'batch_reports')
-    
+
     # Drop tables
     op.drop_table('batch_report_leads')
     op.drop_table('batch_reports')
-    
+
     # Drop enums
     op.execute("DROP TYPE IF EXISTS leadprocessingstatus")
     op.execute("DROP TYPE IF EXISTS batchstatus")

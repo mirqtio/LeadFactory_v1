@@ -42,7 +42,7 @@ class PRPSchema(BaseModel):
     tests_to_pass: List[str]
     validation_commands: List[str] = Field(..., min_items=1)
     rollback_strategy: str = Field(..., min_length=5)
-    
+
     @validator('dependencies', each_item=True)
     def validate_dependency_format(cls, v):
         if v != 'None' and not re.match(r'^P\d+-\d{3}$', v):
@@ -130,7 +130,7 @@ class InitialMDParser:
                     dep_list = [t.priority for t in tasks if t.priority.startswith("P1-")]
                 else:
                     dep_list = dependencies.split(', ')
-            
+
             task = Task(
                 priority=priority,
                 title=title,
@@ -184,7 +184,7 @@ class PRPGenerator:
         self.claude_md_content = self._load_file("CLAUDE.md")
         self.current_state_content = self._load_file("CURRENT_STATE.md")
         self.reference_map = self._load_reference_map()
-        
+
         # Policy rules for OPA-style validation
         self.policy_rules = [
             (r'deprecated/', 'Deprecated code path banned by CURRENT_STATE.md'),
@@ -228,35 +228,35 @@ class PRPGenerator:
 
         # Build PRP content
         prp_content = self._build_prp_content(task)
-        
+
         # Validate before writing
         validation_passed = self._validate_prp(task, prp_content)
-        
+
         if validation_passed:
             with open(prp_path, 'w') as f:
                 f.write(prp_content)
             return prp_path, True
         else:
             return prp_path, False
-    
+
     def _validate_prp(self, task: Task, prp_content: str) -> bool:
         """Run six-gate validation pipeline on PRP"""
         print(f"\nRunning six-gate validation for PRP {task.priority}...")
-        
+
         # Gate 1: Schema validation
         schema_valid = self._validate_schema(task)
         if not schema_valid:
             print("  ❌ Gate 1 (Schema) failed")
             return False
         print("  ✓ Gate 1 (Schema) passed")
-        
+
         # Gate 2: Policy validation
         policy_valid = self._validate_policy(task, prp_content)
         if not policy_valid:
             print("  ❌ Gate 2 (Policy) failed")
             return False
         print("  ✓ Gate 2 (Policy) passed")
-        
+
         # Gate 3: Lint check (if Python files mentioned)
         if any('.py' in ip for ip in task.integration_points):
             lint_valid = self._validate_lint(task)
@@ -264,31 +264,31 @@ class PRPGenerator:
                 print("  ❌ Gate 3 (Lint) failed")
                 return False
         print("  ✓ Gate 3 (Lint) passed")
-        
+
         # Gate 4: CRITIC review
         critic_valid = self._validate_critic(task, prp_content)
         if not critic_valid:
             print("  ❌ Gate 4 (CRITIC) failed")
             return False
         print("  ✓ Gate 4 (CRITIC) passed")
-        
+
         # Gate 5: Judge scoring
         judge_valid = self._validate_judge(task, prp_content)
         if not judge_valid:
             print("  ❌ Gate 5 (Judge) failed")
             return False
         print("  ✓ Gate 5 (Judge) passed")
-        
+
         # Gate 6: Missing-checks validation
         missing_checks_valid = self._validate_missing_checks(task, prp_content)
         if not missing_checks_valid:
             print("  ❌ Gate 6 (Missing-Checks) failed")
             return False
         print("  ✓ Gate 6 (Missing-Checks) passed")
-        
+
         print("  🎉 All six validation gates passed!")
         return True
-    
+
     def _validate_schema(self, task: Task) -> bool:
         """Validate PRP data against schema"""
         try:
@@ -306,14 +306,14 @@ class PRPGenerator:
                 'validation_commands': ['bash scripts/validate_wave_a.sh'] if task.wave == 'A' else ['bash scripts/validate_wave_b.sh'],
                 'rollback_strategy': ROLLBACK_STRATEGIES.get(task.priority, 'git revert commit')
             }
-            
+
             # Validate with pydantic
             PRPSchema(**prp_data)
             return True
         except Exception as e:
             print(f"    Schema error: {e}")
             return False
-    
+
     def _validate_policy(self, task: Task, prp_content: str) -> bool:
         """Check policy rules (simplified OPA-style)"""
         for pattern, message in self.policy_rules:
@@ -321,7 +321,7 @@ class PRPGenerator:
                 print(f"    Policy violation: {message}")
                 return False
         return True
-    
+
     def _validate_lint(self, task: Task) -> bool:
         """Run ruff on Python files if available"""
         try:
@@ -330,13 +330,13 @@ class PRPGenerator:
             if result.returncode != 0:
                 print("    Warning: ruff not found, skipping lint check")
                 return True
-            
+
             # For now, just return True - in real impl would check actual files
             return True
         except Exception as e:
             print(f"    Lint check error: {e}")
             return True  # Don't fail on lint errors
-    
+
     def _validate_critic(self, task: Task, prp_content: str) -> bool:
         """Run CRITIC self-review on PRP"""
         try:
@@ -345,10 +345,10 @@ class PRPGenerator:
             if not critic_prompt_path.exists():
                 print("    Warning: CRITIC prompt not found, skipping")
                 return True
-            
+
             with open(critic_prompt_path, 'r') as f:
                 critic_prompt = f.read()
-            
+
             # In production, this would call Claude with the CRITIC prompt
             # For now, simulate success
             print("    CRITIC review: Checking clarity, completeness, feasibility...")
@@ -356,7 +356,7 @@ class PRPGenerator:
         except Exception as e:
             print(f"    CRITIC validation error: {e}")
             return False
-    
+
     def _validate_judge(self, task: Task, prp_content: str) -> bool:
         """Run LLM judge scoring on PRP"""
         try:
@@ -365,21 +365,21 @@ class PRPGenerator:
             if not judge_prompt_path.exists():
                 print("    Warning: Judge prompt not found, skipping")
                 return True
-            
+
             with open(judge_prompt_path, 'r') as f:
                 judge_prompt = f.read()
-            
+
             # In production, this would call Claude with the judge prompt
             # For now, simulate scoring
             simulated_score = 4.2  # Would come from actual judge
             print(f"    Judge score: {simulated_score}/5")
-            
+
             # Require ≥4.0 average and no dimension <4
             return simulated_score >= 4.0
         except Exception as e:
             print(f"    Judge validation error: {e}")
             return False
-    
+
     def _validate_missing_checks(self, task: Task, prp_content: str) -> bool:
         """Run missing-checks validation framework"""
         try:
@@ -388,38 +388,38 @@ class PRPGenerator:
             if not missing_checks_path.exists():
                 print("    Warning: Missing-checks prompt not found, skipping")
                 return True
-            
+
             with open(missing_checks_path, 'r') as f:
                 missing_checks_prompt = f.read()
-            
+
             # Determine task type for validation requirements
             task_type = self._determine_task_type(task)
-            
+
             # In production, this would validate against the 9-point framework
             # For now, check basic requirements exist in PRP content
             required_checks = self._get_required_checks(task_type)
             missing_count = 0
-            
+
             for check in required_checks:
                 if not self._check_validation_present(prp_content, check):
                     print(f"    Missing validation: {check}")
                     missing_count += 1
-            
+
             if missing_count > 0:
                 print(f"    Missing {missing_count} critical validation frameworks")
                 return False
-            
+
             print("    All required validation frameworks present")
             return True
         except Exception as e:
             print(f"    Missing-checks validation error: {e}")
             return False
-    
+
     def _determine_task_type(self, task: Task) -> str:
         """Determine task type for validation requirements"""
         goal_lower = task.goal.lower()
         title_lower = task.title.lower()
-        
+
         if any(keyword in goal_lower or keyword in title_lower for keyword in ['ui', 'frontend', 'component', 'template', 'react']):
             return 'ui'
         elif any(keyword in goal_lower or keyword in title_lower for keyword in ['database', 'migration', 'alembic', 'schema']):
@@ -428,11 +428,11 @@ class PRPGenerator:
             return 'ci_devops'
         else:
             return 'backend'
-    
+
     def _get_required_checks(self, task_type: str) -> List[str]:
         """Get required validation checks for task type"""
         base_checks = ['pre_commit_hooks', 'branch_protection', 'security_scanning']
-        
+
         if task_type == 'ui':
             return base_checks + ['visual_regression', 'accessibility', 'style_guide']
         elif task_type == 'database':
@@ -441,7 +441,7 @@ class PRPGenerator:
             return base_checks + ['ci_auto_triage', 'release_gates']
         else:
             return base_checks + ['performance_testing']
-    
+
     def _check_validation_present(self, prp_content: str, check_type: str) -> bool:
         """Check if validation type is present in PRP content"""
         check_patterns = {
@@ -456,7 +456,7 @@ class PRPGenerator:
             'release_gates': ['release', 'rollback', 'staging'],
             'performance_testing': ['performance', 'benchmark', 'budget']
         }
-        
+
         patterns = check_patterns.get(check_type, [])
         return any(pattern.lower() in prp_content.lower() for pattern in patterns)
 
@@ -689,20 +689,20 @@ class PRPExecutor:
                 wait_time = 2 ** attempt  # Exponential backoff: 2s, 4s, 8s
                 print(f"\nRetrying after {wait_time}s (attempt {attempt + 1}/{max_retries + 1})...")
                 time.sleep(wait_time)
-            
+
             # Execute using Claude (this would be the actual Claude command)
             claude_command = f"claude execute-prp {prp_path}"
             print(f"Would execute: {claude_command}")
-            
+
             # Run CRITIC self-review if available
             if attempt > 0:
                 print("Running CRITIC self-review...")
                 critic_command = f"claude critic-review {prp_path}"
                 print(f"Would execute: {critic_command}")
-            
+
             # Simulate execution (replace with actual Claude call)
             success = self._simulate_execution(task)
-            
+
             if success:
                 # Run judge for quality check
                 print("Running LLM judge...")
@@ -711,7 +711,7 @@ class PRPExecutor:
                 # Simulate judge score
                 judge_score = 4.5  # Would come from actual judge
                 print(f"Judge score: {judge_score}/5")
-                
+
                 if judge_score >= 4.0:
                     break
                 else:
@@ -759,7 +759,7 @@ def main():
         print("\nGenerating PRPs...")
         generated = 0
         failed = 0
-        
+
         for task in tasks:
             prp_path, success = generator.generate_prp(task)
             if success:
@@ -768,7 +768,7 @@ def main():
             else:
                 print(f"✗ Failed to generate {prp_path}")
                 failed += 1
-        
+
         print(f"\nGeneration complete: {generated} succeeded, {failed} failed")
 
     elif command == "execute":

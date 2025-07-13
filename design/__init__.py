@@ -47,7 +47,7 @@ class TypographyToken(NamedTuple):
 
 class ColorCategory:
     """Container for color tokens in a category."""
-    
+
     def __init__(self, color_data: Dict[str, Any]):
         for name, data in color_data.items():
             # Convert hyphens to underscores for valid Python attributes
@@ -65,21 +65,21 @@ class ColorCategory:
 
 class TypographyScale:
     """Container for typography scale tokens."""
-    
+
     def __init__(self, scale_data: Dict[str, Dict[str, str]]):
         for name, data in scale_data.items():
             # Convert hyphens to underscores for valid Python attributes
             attr_name = name.replace('-', '_')
             setattr(self, attr_name, TypographyToken(
                 size=data['size'],
-                weight=data['weight'], 
+                weight=data['weight'],
                 lineHeight=data['lineHeight']
             ))
 
 
 class SpacingScale:
     """Container for spacing scale tokens."""
-    
+
     def __init__(self, scale_data: Dict[str, str]):
         for name, value in scale_data.items():
             # Convert special names for valid Python attributes
@@ -89,7 +89,7 @@ class SpacingScale:
 
 class AnimationTokens:
     """Container for animation tokens."""
-    
+
     def __init__(self, animation_data: Dict[str, Dict[str, str]]):
         self.duration = type('Duration', (), animation_data['duration'])()
         # Convert hyphenated keys to underscored attributes
@@ -102,7 +102,7 @@ class AnimationTokens:
 
 class BreakpointTokens:
     """Container for responsive breakpoint tokens."""
-    
+
     def __init__(self, breakpoint_data: Dict[str, str]):
         for name, value in breakpoint_data.items():
             setattr(self, name, value)
@@ -190,7 +190,7 @@ def validate_tokens() -> bool:
     required_structure: Dict[str, Any] = {
         'colors': {
             'primary': 3,    # Expected number of primary colors
-            'status': 3,     # Expected number of status colors  
+            'status': 3,     # Expected number of status colors
             'functional': 4  # Expected number of functional colors
         },
         'typography': {
@@ -204,7 +204,7 @@ def validate_tokens() -> bool:
         },
         'breakpoints': 3     # Expected number of breakpoints
     }
-    
+
     # Validate color counts
     colors_req = required_structure['colors']
     if isinstance(colors_req, dict):
@@ -212,7 +212,7 @@ def validate_tokens() -> bool:
             actual_count = len(tokens['colors'][category])
             if actual_count != expected_count:
                 raise ValueError(f"Expected {expected_count} {category} colors, got {actual_count}")
-    
+
     # Validate typography scale count
     scale_count = len(tokens['typography']['scale'])
     typography_req = required_structure['typography']
@@ -220,7 +220,7 @@ def validate_tokens() -> bool:
         expected_scale_count = typography_req['scale']
         if scale_count != expected_scale_count:
             raise ValueError(f"Expected {expected_scale_count} typography scales, got {scale_count}")
-    
+
     # Validate spacing scale count
     spacing_count = len(tokens['spacing']['scale'])
     spacing_req = required_structure['spacing']
@@ -228,7 +228,7 @@ def validate_tokens() -> bool:
         expected_spacing_count = spacing_req['scale']
         if spacing_count != expected_spacing_count:
             raise ValueError(f"Expected {expected_spacing_count} spacing scales, got {spacing_count}")
-        
+
     # Validate animation duration count
     duration_count = len(tokens['animation']['duration'])
     animation_req = required_structure['animation']
@@ -236,26 +236,26 @@ def validate_tokens() -> bool:
         expected_duration_count = animation_req['duration']
         if duration_count != expected_duration_count:
             raise ValueError(f"Expected {expected_duration_count} animation durations, got {duration_count}")
-        
+
     # Validate breakpoint count
     breakpoint_count = len(tokens['breakpoints'])
     expected_breakpoint_count = required_structure['breakpoints']
     if breakpoint_count != expected_breakpoint_count:
         raise ValueError(f"Expected {expected_breakpoint_count} breakpoints, got {breakpoint_count}")
-    
+
     return True
 
 
 # Export main components
 __all__ = [
     'tokens',
-    'colors', 
+    'colors',
     'typography',
     'spacing',
     'animation',
     'breakpoints',
     'get_color_value',
-    'get_typography_css', 
+    'get_typography_css',
     'get_spacing_value',
     'validate_tokens',
     'ColorToken',

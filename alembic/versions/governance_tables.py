@@ -7,7 +7,6 @@ Create Date: 2024-01-13 12:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy import String
 
 # revision identifiers, used by Alembic.
 revision = 'governance_tables_001'
@@ -20,13 +19,13 @@ def upgrade() -> None:
     # Get the bind to check database type
     bind = op.get_bind()
     dialect_name = bind.dialect.name
-    
+
     # Create users table with exception handling
     try:
         if dialect_name == 'postgresql':
             # PostgreSQL specific: Create user role enum if it doesn't exist
             op.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'userrole') THEN CREATE TYPE userrole AS ENUM ('admin', 'viewer'); END IF; END$$;")
-            
+
             # Create users table with PostgreSQL specific types
             op.create_table('users',
                 sa.Column('id', sa.String(), nullable=False),
@@ -62,7 +61,7 @@ def upgrade() -> None:
                 sa.UniqueConstraint('email'),
                 # Skip email validation check constraint for SQLite
             )
-        
+
         op.create_index('idx_users_email_active', 'users', ['email', 'is_active'], unique=False)
 
         # Create audit_log_global table
@@ -85,7 +84,7 @@ def upgrade() -> None:
             sa.Column('error_message', sa.Text(), nullable=True),
             sa.PrimaryKeyConstraint('id')
         )
-        
+
         # Create indexes for audit_log_global
         op.create_index('idx_audit_global_timestamp', 'audit_log_global', ['timestamp'], unique=False)
         op.create_index('idx_audit_global_user', 'audit_log_global', ['user_id', 'timestamp'], unique=False)
@@ -105,10 +104,10 @@ def downgrade() -> None:
     op.drop_index('idx_audit_global_user', table_name='audit_log_global')
     op.drop_index('idx_audit_global_timestamp', table_name='audit_log_global')
     op.drop_table('audit_log_global')
-    
+
     op.drop_index('idx_users_email_active', table_name='users')
     op.drop_table('users')
-    
+
     # Drop enum type if PostgreSQL
     bind = op.get_bind()
     if bind.dialect.name == 'postgresql':

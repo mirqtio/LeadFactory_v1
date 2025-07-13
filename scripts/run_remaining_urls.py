@@ -41,7 +41,7 @@ STATUS_ENDPOINT = f"{API_BASE_URL}/api/v1/assessments"
 async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]) -> str:
     """Trigger assessment for a business URL"""
     print(f"\n📊 Triggering assessment for {business['business_name']}...")
-    
+
     payload = {
         "business_id": business["business_id"],
         "url": business["url"],
@@ -52,12 +52,12 @@ async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]
             "location": business["location"]
         }
     }
-    
+
     response = await client.post(ASSESSMENT_ENDPOINT, json=payload)
     if response.status_code != 200:
         print(f"❌ Failed to trigger assessment: {response.text}")
         return None
-        
+
     data = response.json()
     session_id = data["session_id"]
     print(f"✅ Assessment started with session ID: {session_id}")
@@ -81,18 +81,18 @@ async def get_assessment_results(client: httpx.AsyncClient, session_id: str) -> 
 async def wait_for_completion(client: httpx.AsyncClient, session_id: str, business_name: str) -> bool:
     """Wait for assessment to complete"""
     print(f"⏳ Waiting for {business_name} assessment to complete...")
-    
+
     max_attempts = 60  # 5 minutes max
     for attempt in range(max_attempts):
         status = await check_assessment_status(client, session_id)
-        
+
         if status["status"] in ["completed", "failed", "partial"]:
             print(f"✅ Assessment {status['status']} for {business_name}")
             return True
-            
+
         print(f"   Progress: {status.get('progress', 'Processing...')} ({attempt+1}/{max_attempts})")
         await asyncio.sleep(5)  # Check every 5 seconds
-    
+
     print(f"❌ Assessment timed out for {business_name}")
     return False
 
@@ -100,12 +100,12 @@ async def wait_for_completion(client: httpx.AsyncClient, session_id: str, busine
 def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str, Any], output_dir: Path):
     """Generate a simple HTML report from assessment results"""
     print(f"\n📝 Generating HTML report for {business['business_name']}...")
-    
+
     # Extract key data
     pagespeed = assessment_results.get("pagespeed_results", {})
     tech_stack = assessment_results.get("tech_stack_results", [])
     ai_insights = assessment_results.get("ai_insights_results", {})
-    
+
     # Create simple HTML report
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -216,7 +216,7 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
             <p><strong>Assessment Date:</strong> {datetime.now().strftime('%B %d, %Y')}</p>
         </div>
 """
-    
+
     # Add PageSpeed scores if available
     if pagespeed:
         html_content += """
@@ -252,7 +252,7 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
             </div>
 """
         html_content += "</div>"
-        
+
         # Add opportunities
         opportunities = pagespeed.get('opportunities', [])
         if opportunities:
@@ -267,7 +267,7 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
             {f"<p><strong>Potential Impact:</strong> {opp.get('displayValue', '')}</p>" if opp.get('displayValue') else ''}
         </div>
 """
-    
+
     # Add tech stack
     if tech_stack:
         html_content += """
@@ -278,7 +278,7 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
             tech_name = tech.get('name', tech) if isinstance(tech, dict) else str(tech)
             html_content += f'            <div class="tech-item">{tech_name}</div>\n'
         html_content += "        </div>"
-    
+
     # Add AI insights
     if ai_insights and ai_insights.get('recommendations'):
         html_content += """
@@ -292,7 +292,7 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
             {f"<p><strong>Priority:</strong> {rec.get('priority', 'Medium')}</p>" if rec.get('priority') else ''}
         </div>
 """
-    
+
     # Close HTML
     html_content += """
         <div class="footer">
@@ -302,7 +302,7 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
     </div>
 </body>
 </html>"""
-    
+
     # Save HTML file
     html_filename = output_dir / f"report_{business['business_id']}.html"
     with open(html_filename, 'w') as f:
@@ -313,17 +313,17 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
 async def save_assessment_data(session_id: str, business: Dict[str, Any], results: Dict[str, Any], output_dir: Path):
     """Save assessment results to JSON file"""
     filename = output_dir / f"assessment_{business['business_id']}_{session_id}.json"
-    
+
     output = {
         "session_id": session_id,
         "business": business,
         "results": results,
         "generated_at": datetime.utcnow().isoformat()
     }
-    
+
     with open(filename, 'w') as f:
         json.dump(output, f, indent=2, default=str)
-    
+
     print(f"💾 Assessment data saved to {filename}")
 
 
@@ -334,26 +334,26 @@ async def run_pipeline_for_business(client: httpx.AsyncClient, business: Dict[st
     print(f"🌐 URL: {business['url']}")
     print(f"📊 Industry: {business['vertical']}")
     print(f"{'='*60}")
-    
+
     # Step 1: Trigger assessment
     session_id = await trigger_assessment(client, business)
     if not session_id:
         return
-    
+
     # Step 2: Wait for completion
     if not await wait_for_completion(client, session_id, business["business_name"]):
         return
-    
+
     # Step 3: Get results
     try:
         results = await get_assessment_results(client, session_id)
-        
+
         # Step 4: Save assessment data
         await save_assessment_data(session_id, business, results, output_dir)
-        
+
         # Step 5: Generate HTML report
         generate_html_report(business, results, output_dir)
-        
+
         # Print summary
         print(f"\n📊 Summary for {business['business_name']}:")
         if results.get("pagespeed_results"):
@@ -361,15 +361,15 @@ async def run_pipeline_for_business(client: httpx.AsyncClient, business: Dict[st
             print(f"   Performance Score: {ps.get('performance_score', 'N/A')}/100")
             print(f"   SEO Score: {ps.get('seo_score', 'N/A')}/100")
             print(f"   Accessibility Score: {ps.get('accessibility_score', 'N/A')}/100")
-        
+
         if results.get("tech_stack_results"):
             print(f"   Technologies Found: {len(results['tech_stack_results'])}")
-        
+
         if results.get("ai_insights_results"):
             ai = results["ai_insights_results"]
             recs = ai.get("recommendations", [])
             print(f"   AI Recommendations: {len(recs)}")
-            
+
     except Exception as e:
         print(f"❌ Pipeline failed for {business['business_name']}: {e}")
         import traceback
@@ -381,11 +381,11 @@ async def main():
     print("🚀 Running assessments for remaining URLs")
     print(f"📍 API URL: {API_BASE_URL}")
     print(f"🔗 Processing {len(REMAINING_URLS)} URLs")
-    
+
     # Use the same output directory as before
     output_dir = Path("pipeline_results_20250624_172032")
     print(f"📁 Output directory: {output_dir}")
-    
+
     async with httpx.AsyncClient(timeout=300.0) as client:
         # First check if API is available
         try:
@@ -398,19 +398,19 @@ async def main():
             print(f"❌ Cannot connect to API: {e}")
             print("Please run: python -m uvicorn main:app --reload")
             return
-        
+
         # Process each business
         for business in REMAINING_URLS:
             await run_pipeline_for_business(client, business, output_dir)
-            
+
             # Small delay between businesses
             await asyncio.sleep(2)
-    
+
     print(f"\n{'='*60}")
     print("✅ Remaining assessments completed!")
     print(f"📁 All results saved in: {output_dir.absolute()}")
     print(f"{'='*60}")
-    
+
     # List all generated files
     print("\n📋 All generated files in directory:")
     for file in sorted(output_dir.iterdir()):

@@ -33,14 +33,14 @@ class TestLineagePerformance:
             "pipeline_run_id": "run-perf",
             "pipeline_logs": [f"Event {i}: Processing step {i % 10}" for i in range(10000)],
             "raw_inputs": {
-                f"field_{i}": f"value_{i % 100}" * 10 
+                f"field_{i}": f"value_{i % 100}" * 10
                 for i in range(1000)
             },
         }
 
         # Compress to ~1.5MB
         compressed = gzip.compress(json.dumps(large_data).encode('utf-8'), compresslevel=6)
-        
+
         lineage = ReportLineage(
             report_generation_id=report.id,
             lead_id="lead-perf",
@@ -65,18 +65,18 @@ class TestLineagePerformance:
 
         # Test multiple times to ensure consistency
         load_times = []
-        
+
         for _ in range(5):
             start_time = time.time()
             response = test_client.get(f"/api/lineage/{large_lineage.id}/logs")
             load_time = time.time() - start_time
-            
+
             assert response.status_code == 200
             load_times.append(load_time)
 
         # All attempts should be under 500ms
         assert all(t < 0.5 for t in load_times), f"Load times: {load_times}"
-        
+
         # Average should be well under 500ms
         avg_time = sum(load_times) / len(load_times)
         assert avg_time < 0.5, f"Average load time: {avg_time:.3f}s"
@@ -99,7 +99,7 @@ class TestLineagePerformance:
 
         # Compress with high compression
         compressed = gzip.compress(json.dumps(huge_data).encode('utf-8'), compresslevel=9)
-        
+
         # Ensure it's under 2MB
         assert len(compressed) <= 2 * 1024 * 1024
 
@@ -119,7 +119,7 @@ class TestLineagePerformance:
 
         # Download and verify size
         response = test_client.get(f"/api/lineage/{lineage.id}/download")
-        
+
         assert response.status_code == 200
         assert len(response.content) <= 2 * 1024 * 1024  # ≤2MB
 
@@ -143,7 +143,7 @@ class TestLineagePerformance:
                 pipeline_end_time=datetime.utcnow() - timedelta(minutes=i),
             )
             db_session.add(lineage)
-        
+
         db_session.commit()
 
         # Test search performance
@@ -158,7 +158,7 @@ class TestLineagePerformance:
     def test_concurrent_access(self, test_client: TestClient, large_lineage):
         """Test multiple concurrent requests maintain performance"""
         import concurrent.futures
-        
+
         def make_request():
             start_time = time.time()
             response = test_client.get(f"/api/lineage/{large_lineage.id}/logs")
@@ -172,7 +172,7 @@ class TestLineagePerformance:
 
         # All should succeed
         assert all(status == 200 for status, _ in results)
-        
+
         # All should be under 500ms
         times = [elapsed for _, elapsed in results]
         assert all(t < 0.5 for t in times), f"Request times: {times}"

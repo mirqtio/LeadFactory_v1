@@ -66,16 +66,16 @@ def minimal_pipeline_flow(business_name: str = "Test Business") -> str:
     """
     # Log start
     print(f"Starting pipeline for: {business_name}")
-    
+
     # Chain tasks
     business = target_business(business_name)
     business = assess_website(business)
     business = generate_report(business)
-    
+
     # Log metrics
     print(f"Pipeline complete. Score: {business['assessment']['score']}")
     print(f"PDF generated at: {business['report']['pdf_path']}")
-    
+
     # Return JSON result
     return json.dumps(business, indent=2)
 

@@ -47,14 +47,14 @@ class DatabaseAgnosticEnum(TypeDecorator):
     Database-agnostic Enum type.
     Uses native ENUM for PostgreSQL, String for other databases.
     """
-    
+
     impl = String
     cache_ok = True
-    
+
     def __init__(self, enum_class, *args, **kwargs):
         self.enum_class = enum_class
         super().__init__(*args, **kwargs)
-    
+
     def load_dialect_impl(self, dialect):
         if dialect.name == "postgresql":
             # For PostgreSQL, use native ENUM
@@ -65,14 +65,14 @@ class DatabaseAgnosticEnum(TypeDecorator):
             # For other databases, use String
             max_len = max(len(item.value) for item in self.enum_class)
             return dialect.type_descriptor(String(max_len))
-    
+
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
         if isinstance(value, self.enum_class):
             return value.value
         return value
-    
+
     def process_result_value(self, value, dialect):
         if value is None:
             return value

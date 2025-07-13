@@ -32,12 +32,12 @@ async def get_lineage_by_report(
     Retrieve lineage data for a specific report generation
     """
     tracker = LineageTracker(db)
-    
+
     # Get lineage data
     lineage = await tracker.get_lineage_by_report(report_id)
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found for this report")
-    
+
     # Record access
     await tracker.record_access(
         lineage_id=lineage.id,
@@ -46,7 +46,7 @@ async def get_lineage_by_report(
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("User-Agent"),
     )
-    
+
     return LineageResponse(
         lineage_id=lineage.id,
         report_generation_id=lineage.report_generation_id,
@@ -75,7 +75,7 @@ async def search_lineage(
     Search lineage records by various criteria
     """
     from datetime import datetime
-    
+
     # Parse dates if provided
     start_dt = None
     end_dt = None
@@ -84,13 +84,13 @@ async def search_lineage(
             start_dt = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid start_date format")
-    
+
     if end_date:
         try:
             end_dt = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid end_date format")
-    
+
     tracker = LineageTracker(db)
     results = await tracker.search_lineage(
         lead_id=lead_id,
@@ -99,7 +99,7 @@ async def search_lineage(
         end_date=end_dt,
         limit=limit,
     )
-    
+
     return [
         LineageResponse(
             lineage_id=lineage.id,
@@ -133,7 +133,7 @@ async def view_lineage_logs(
     lineage = await db.get(ReportLineage, lineage_id)
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
-    
+
     # Record access
     tracker = LineageTracker(db)
     await tracker.record_access(
@@ -143,18 +143,18 @@ async def view_lineage_logs(
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("User-Agent"),
     )
-    
+
     # Decompress raw inputs
     decompressed_data = {}
     truncated = False
-    
+
     if lineage.raw_inputs_compressed:
         decompressed_data = decompress_lineage_data(lineage.raw_inputs_compressed)
-        
+
         # Check if data was truncated
         if "pipeline_logs_truncated" in decompressed_data or "raw_inputs_truncated" in decompressed_data:
             truncated = True
-    
+
     return LineageLogsResponse(
         lineage_id=lineage_id,
         pipeline_logs=lineage.pipeline_logs or decompressed_data.get("pipeline_logs", {}),
@@ -176,12 +176,12 @@ async def download_raw_inputs(
     Download compressed raw inputs (≤2MB with gzip)
     """
     import io
-    
+
     # Get lineage record
     lineage = await db.get(ReportLineage, lineage_id)
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
-    
+
     # Record access
     tracker = LineageTracker(db)
     await tracker.record_access(
@@ -191,12 +191,12 @@ async def download_raw_inputs(
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("User-Agent"),
     )
-    
+
     # Return compressed data directly
     if lineage.raw_inputs_compressed:
         # Create a file-like object from the compressed data
         file_obj = io.BytesIO(lineage.raw_inputs_compressed)
-        
+
         return StreamingResponse(
             file_obj,
             media_type="application/gzip",

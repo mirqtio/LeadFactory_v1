@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 class ScoringRulesFileHandler(FileSystemEventHandler):
     """Handles file system events for scoring rules YAML."""
-    
+
     def __init__(
         self,
         engine: ConfigurableScoringEngine,
@@ -40,20 +40,20 @@ class ScoringRulesFileHandler(FileSystemEventHandler):
         self.debounce_seconds = debounce_seconds
         self._reload_timer: Optional[threading.Timer] = None
         self._lock = threading.Lock()
-    
+
     def on_modified(self, event):
         """Handle file modification event."""
         if isinstance(event, FileModifiedEvent) and event.src_path.endswith('.yaml'):
             logger.info(f"Detected change in {event.src_path}")
             self._schedule_reload()
-    
+
     def _schedule_reload(self):
         """Schedule a reload after debounce period."""
         with self._lock:
             # Cancel existing timer if any
             if self._reload_timer and self._reload_timer.is_alive():
                 self._reload_timer.cancel()
-            
+
             # Schedule new reload
             self._reload_timer = threading.Timer(
                 self.debounce_seconds,
@@ -61,32 +61,32 @@ class ScoringRulesFileHandler(FileSystemEventHandler):
             )
             self._reload_timer.daemon = True
             self._reload_timer.start()
-    
+
     def _perform_reload(self):
         """Perform the actual reload."""
         start_time = time.time()
-        
+
         try:
             logger.info("Reloading scoring rules...")
-            
+
             # First validate the new configuration
             config_path = self.engine.rules_parser.rules_file
             validate_rules(config_path)
-            
+
             # If validation passes, reload
             self.engine.reload_rules()
-            
+
             # Track success metrics
             duration = time.time() - start_time
             metrics.track_config_reload("scoring_rules", duration, status="success")
-            
+
             logger.info("Scoring rules reloaded successfully")
-            
+
         except Exception as e:
             # Track failure metrics
             duration = time.time() - start_time
             metrics.track_config_reload("scoring_rules", duration, status="failure")
-            
+
             logger.error(
                 f"Failed to reload scoring rules: {e}",
                 extra={
@@ -97,7 +97,7 @@ class ScoringRulesFileHandler(FileSystemEventHandler):
                     "timestamp": time.time()
                 }
             )
-    
+
     def _get_git_sha(self) -> str:
         """Get current git SHA if available."""
         try:
@@ -115,7 +115,7 @@ class ScoringRulesFileHandler(FileSystemEventHandler):
 
 class ScoringRulesWatcher:
     """Watches scoring rules file for changes and triggers reload."""
-    
+
     def __init__(
         self,
         engine: ConfigurableScoringEngine,
@@ -136,43 +136,43 @@ class ScoringRulesWatcher:
         self.observer = Observer()
         self.handler = ScoringRulesFileHandler(engine, debounce_seconds)
         self._started = False
-    
+
     def start(self):
         """Start watching for file changes."""
         if self._started:
             logger.warning("Watcher already started")
             return
-        
+
         # Watch the directory containing the config file
         watch_dir = self.config_path.parent
-        
+
         self.observer.schedule(
             self.handler,
             str(watch_dir),
             recursive=False
         )
-        
+
         self.observer.start()
         self._started = True
-        
+
         logger.info(f"Started watching {self.config_path} for changes")
-    
+
     def stop(self):
         """Stop watching for file changes."""
         if not self._started:
             return
-        
+
         self.observer.stop()
         self.observer.join()
         self._started = False
-        
+
         logger.info("Stopped watching for file changes")
-    
+
     def __enter__(self):
         """Context manager entry."""
         self.start()
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
         self.stop()
@@ -194,7 +194,7 @@ def get_watcher(engine: ConfigurableScoringEngine) -> ScoringRulesWatcher:
         ScoringRulesWatcher instance
     """
     global _watcher_instance
-    
+
     with _watcher_lock:
         if _watcher_instance is None:
             _watcher_instance = ScoringRulesWatcher(engine)
@@ -215,7 +215,7 @@ def start_watching(engine: ConfigurableScoringEngine):
 def stop_watching():
     """Stop watching scoring rules for changes."""
     global _watcher_instance
-    
+
     with _watcher_lock:
         if _watcher_instance:
             _watcher_instance.stop()

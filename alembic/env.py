@@ -44,7 +44,7 @@ def run_migrations_offline() -> None:
 
     """
     import os
-    
+
     # Get URL from environment or config
     url = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -66,7 +66,7 @@ def run_migrations_online() -> None:
 
     """
     import os
-    
+
     configuration = config.get_section(config.config_ini_section, {})
 
     # Override with DATABASE_URL from environment if available

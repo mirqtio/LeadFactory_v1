@@ -48,7 +48,7 @@ class TestCompressor:
 
         # Should achieve good compression on repetitive data
         assert ratio > 50  # At least 50% compression
-        
+
         # Verify decompression
         decompressed = decompress_lineage_data(compressed)
         assert decompressed["lead_id"] == large_data["lead_id"]
@@ -59,11 +59,11 @@ class TestCompressor:
         """Test compression respects size limit"""
         import random
         import string
-        
+
         # Create data that's hard to compress and exceeds 2MB
         # Use random data that doesn't compress well
         random_data = ''.join(random.choices(string.ascii_letters + string.digits, k=3*1024*1024))
-        
+
         huge_data = {
             "lead_id": "test-123",
             "pipeline_run_id": "run-456",
@@ -161,7 +161,7 @@ class TestCompressor:
         # Less compressible data (random)
         import random
         import string
-        
+
         random_data = {
             "random": "".join(random.choices(string.ascii_letters, k=1000))
         }

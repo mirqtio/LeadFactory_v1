@@ -81,7 +81,7 @@ class TestLineageModels:
             pipeline_end_time=datetime.utcnow(),
         )
         db_session.add(lineage2)
-        
+
         with pytest.raises(IntegrityError):
             db_session.commit()
 
@@ -232,10 +232,10 @@ class TestLineageModels:
             raw_inputs_size_bytes=-100,  # Invalid
         )
         db_session.add(lineage)
-        
+
         with pytest.raises(IntegrityError):
             db_session.commit()
-        
+
         db_session.rollback()
 
         # Test compression_ratio out of range
@@ -249,6 +249,6 @@ class TestLineageModels:
             compression_ratio=150.0,  # Invalid (> 100)
         )
         db_session.add(lineage2)
-        
+
         with pytest.raises(IntegrityError):
             db_session.commit()

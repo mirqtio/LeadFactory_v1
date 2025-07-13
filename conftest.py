@@ -30,9 +30,9 @@ def pytest_collection_modifyitems(config, items):
         r'test_pipeline\.py',  # Phase 0.5 orchestration pipeline
         r'test_delivery_manager|test_sendgrid',  # Phase 0.5 delivery with import issues
     ]
-    
+
     phase05_regex = re.compile('|'.join(phase05_patterns), re.IGNORECASE)
-    
+
     for item in items:
         # Check if the test file path matches Phase 0.5 patterns
         if phase05_regex.search(str(item.fspath)):

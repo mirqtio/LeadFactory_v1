@@ -121,10 +121,10 @@ class TestLineageAPI:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{report.id}")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["id"] == lineage.id
         assert data["report_id"] == report.id
         assert data["lead_id"] == "lead-123"
@@ -172,10 +172,10 @@ class TestLineageAPI:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{lineage.id}/logs")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["lineage_id"] == lineage.id
         assert data["report_id"] == report.id
         assert "logs" in data
@@ -191,11 +191,11 @@ class TestLineageAPI:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{lineage.id}/download")
-        
+
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/gzip"
         assert "attachment" in response.headers["content-disposition"]
-        
+
         # Verify content is valid gzip
         decompressed = gzip.decompress(response.content)
         data = json.loads(decompressed)
@@ -209,10 +209,10 @@ class TestLineageAPI:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get("/api/lineage/panel/stats")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["total_records"] == 1
         assert "recent_records_24h" in data
         assert "template_distribution" in data
@@ -248,22 +248,22 @@ class TestLineageAPI:
 
         # View lineage
         test_client.get(f"/api/lineage/{report.id}")
-        
+
         # Check audit log was created
         audit = db_session.query(ReportLineageAudit).filter(
             ReportLineageAudit.lineage_id == lineage.id
         ).first()
-        
+
         assert audit is not None
         assert audit.action == "view_lineage"
 
         # View logs
         test_client.get(f"/api/lineage/{lineage.id}/logs")
-        
+
         # Check second audit log
         audits = db_session.query(ReportLineageAudit).filter(
             ReportLineageAudit.lineage_id == lineage.id
         ).all()
-        
+
         assert len(audits) == 2
         assert audits[1].action == "view_logs"

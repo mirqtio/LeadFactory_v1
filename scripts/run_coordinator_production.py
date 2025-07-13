@@ -140,7 +140,7 @@ async def main():
         print("✅ PRODUCTION ASSESSMENT COMPLETE")
         print("=" * 80)
         print(f"📁 Output directory: {output_dir}/")
-        
+
     except Exception as e:
         logger.error(f"An unexpected error occurred in the main pipeline: {str(e)}", exc_info=True)
         print(f"\n❌ An unexpected error occurred: {str(e)}")

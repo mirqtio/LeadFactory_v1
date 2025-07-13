@@ -22,10 +22,8 @@ Admin Escalation Flow:
 """
 import time
 import json
-import hashlib
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List, Callable
-from functools import wraps
+from datetime import datetime
+from typing import Optional, Dict, Any, List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -34,7 +32,6 @@ from sqlalchemy import desc
 from pydantic import BaseModel, Field, EmailStr
 
 from core.logging import get_logger
-from core.config import settings
 from database.session import get_db
 from database.governance_models import User, UserRole, AuditLog, RoleChangeLog
 from core.utils import mask_sensitive_data
@@ -126,10 +123,10 @@ def get_current_user(
 
 class RoleChecker:
     """Dependency to check user role for mutations"""
-    
+
     def __init__(self, allowed_roles: List[UserRole]):
         self.allowed_roles = allowed_roles
-    
+
     def __call__(self, current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in self.allowed_roles:
             logger.warning(
@@ -165,11 +162,11 @@ async def create_audit_log(
         # Get previous checksum for chaining
         last_entry = db.query(AuditLog).order_by(desc(AuditLog.id)).first()
         previous_checksum = last_entry.checksum if last_entry else None
-        
+
         # Mask sensitive data
         masked_request = mask_sensitive_data(request_body) if request_body else None
         masked_response = mask_sensitive_data(response_body) if response_body else None
-        
+
         # Determine action from method
         action_map = {
             "POST": "CREATE",
@@ -178,7 +175,7 @@ async def create_audit_log(
             "DELETE": "DELETE"
         }
         action = action_map.get(request.method, request.method)
-        
+
         # Create audit entry
         audit_entry = AuditLog(
             user_id=user.id,
@@ -197,14 +194,14 @@ async def create_audit_log(
             user_agent=request.headers.get("User-Agent"),
             details=None
         )
-        
+
         # Calculate hashes
         audit_entry.content_hash = audit_entry.calculate_content_hash()
         audit_entry.checksum = audit_entry.calculate_checksum(previous_checksum)
-        
+
         db.add(audit_entry)
         db.commit()
-        
+
         logger.info(
             "Audit log created",
             audit_id=audit_entry.id,
@@ -212,7 +209,7 @@ async def create_audit_log(
             action=action,
             endpoint=str(request.url.path)
         )
-        
+
     except Exception as e:
         logger.error(f"Failed to create audit log - error: {str(e)}")
         # Don't fail the request if audit logging fails
@@ -229,7 +226,7 @@ async def create_user(
 ) -> UserResponse:
     """Create a new user (admin only)"""
     start_time = time.time()
-    
+
     # Check if user already exists
     existing = db.query(User).filter(User.email == user_data.email).first()
     if existing:
@@ -237,7 +234,7 @@ async def create_user(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with this email already exists"
         )
-    
+
     # Create user
     new_user = User(
         email=user_data.email,
@@ -245,13 +242,13 @@ async def create_user(
         role=user_data.role,
         created_by=current_user.id
     )
-    
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
+
     response = Response(status_code=status.HTTP_201_CREATED)
-    
+
     # Create audit log
     await create_audit_log(
         db=db,
@@ -264,7 +261,7 @@ async def create_user(
         object_type="User",
         object_id=new_user.id
     )
-    
+
     return UserResponse(
         id=str(new_user.id),
         email=new_user.email,
@@ -284,12 +281,12 @@ async def list_users(
 ) -> List[UserResponse]:
     """List all users"""
     query = db.query(User)
-    
+
     if is_active is not None:
         query = query.filter(User.is_active == is_active)
-    
+
     users = query.order_by(User.created_at.desc()).all()
-    
+
     return [
         UserResponse(
             id=str(user.id),
@@ -314,7 +311,7 @@ async def change_user_role(
 ) -> UserResponse:
     """Change user role (admin only)"""
     start_time = time.time()
-    
+
     # Get user
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -322,16 +319,16 @@ async def change_user_role(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     old_role = user.role
-    
+
     # Prevent self-demotion
     if str(user.id) == str(current_user.id) and role_change.new_role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot demote your own account"
         )
-    
+
     # Log role change
     role_log = RoleChangeLog(
         user_id=user.id,
@@ -341,16 +338,16 @@ async def change_user_role(
         reason=role_change.reason
     )
     db.add(role_log)
-    
+
     # Update role
     user.role = role_change.new_role
     user.updated_at = datetime.utcnow()
-    
+
     db.commit()
     db.refresh(user)
-    
+
     response = Response(status_code=status.HTTP_200_OK)
-    
+
     # Create audit log
     await create_audit_log(
         db=db,
@@ -363,7 +360,7 @@ async def change_user_role(
         object_type="User",
         object_id=user_id
     )
-    
+
     return UserResponse(
         id=str(user.id),
         email=user.email,
@@ -384,7 +381,7 @@ async def deactivate_user(
 ) -> Dict[str, str]:
     """Deactivate a user (admin only)"""
     start_time = time.time()
-    
+
     # Get user
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -392,23 +389,23 @@ async def deactivate_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     # Prevent self-deactivation
     if str(user.id) == str(current_user.id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot deactivate your own account"
         )
-    
+
     # Deactivate user
     user.is_active = False
     user.deactivated_at = datetime.utcnow()
     user.deactivated_by = current_user.id
-    
+
     db.commit()
-    
+
     response = Response(status_code=status.HTTP_200_OK)
-    
+
     # Create audit log
     await create_audit_log(
         db=db,
@@ -421,7 +418,7 @@ async def deactivate_user(
         object_type="User",
         object_id=user_id
     )
-    
+
     return {"status": "User deactivated successfully"}
 
 
@@ -435,28 +432,28 @@ async def query_audit_logs(
     """Query audit logs with filters"""
     # Build query
     q = db.query(AuditLog)
-    
+
     if query.user_id:
         q = q.filter(AuditLog.user_id == query.user_id)
-    
+
     if query.object_type:
         q = q.filter(AuditLog.object_type == query.object_type)
-    
+
     if query.object_id:
         q = q.filter(AuditLog.object_id == query.object_id)
-    
+
     if query.action:
         q = q.filter(AuditLog.action == query.action)
-    
+
     if query.start_date:
         q = q.filter(AuditLog.timestamp >= query.start_date)
-    
+
     if query.end_date:
         q = q.filter(AuditLog.timestamp <= query.end_date)
-    
+
     # Order by timestamp desc and apply pagination
     logs = q.order_by(desc(AuditLog.timestamp)).offset(query.offset).limit(query.limit).all()
-    
+
     return [
         AuditLogEntry(
             id=log.id,
@@ -490,19 +487,19 @@ async def verify_audit_integrity(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Audit entry not found"
         )
-    
+
     # Recalculate content hash
     calculated_hash = entry.calculate_content_hash()
     content_valid = calculated_hash == entry.content_hash
-    
+
     # Get previous entry to verify chain
     previous = db.query(AuditLog).filter(AuditLog.id < audit_id).order_by(desc(AuditLog.id)).first()
     previous_checksum = previous.checksum if previous else None
-    
+
     # Recalculate checksum
     calculated_checksum = entry.calculate_checksum(previous_checksum)
     chain_valid = calculated_checksum == entry.checksum
-    
+
     return {
         "audit_id": audit_id,
         "content_valid": content_valid,

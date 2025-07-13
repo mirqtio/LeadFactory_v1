@@ -16,14 +16,14 @@ class ReportGeneratorWithLineage(ReportGenerator):
     """
     Extended report generator that captures lineage information
     """
-    
+
     def __init__(self, session: Optional[AsyncSession] = None, **kwargs):
         super().__init__(**kwargs)
         self.session = session
         self._pipeline_run_id = None
         self._lineage_capture = None
         self._report_generation_id = None
-        
+
     async def generate_report(
         self, business_id: str, options: Optional[GenerationOptions] = None
     ) -> GenerationResult:
@@ -33,10 +33,10 @@ class ReportGeneratorWithLineage(ReportGenerator):
         if not self.session:
             # No session provided, fall back to regular generation
             return await super().generate_report(business_id, options)
-            
+
         # Initialize lineage capture
         self._lineage_capture = LineageCapture(self.session)
-        
+
         # Start pipeline
         template_version = options.template_name if options else "default"
         self._pipeline_run_id = await self._lineage_capture.start_pipeline(
@@ -48,7 +48,7 @@ class ReportGeneratorWithLineage(ReportGenerator):
                 "started_at": datetime.utcnow().isoformat(),
             }
         )
-        
+
         # Create report generation record
         report = ReportGeneration(
             business_id=business_id,
@@ -63,7 +63,7 @@ class ReportGeneratorWithLineage(ReportGenerator):
         self.session.add(report)
         await self.session.commit()
         self._report_generation_id = report.id
-        
+
         # Log start event
         self._lineage_capture.log_pipeline_event(
             self._pipeline_run_id,
@@ -71,15 +71,15 @@ class ReportGeneratorWithLineage(ReportGenerator):
             f"Started report generation for business {business_id}",
             {"report_id": self._report_generation_id}
         )
-        
+
         try:
             # Call parent generate_report
             result = await super().generate_report(business_id, options)
-            
+
             # Update report status
             report.status = ReportStatus.COMPLETED if result.success else ReportStatus.FAILED
             report.completed_at = datetime.utcnow()
-            
+
             if result.success:
                 # Capture successful generation data
                 self._lineage_capture.add_raw_input(
@@ -93,11 +93,11 @@ class ReportGeneratorWithLineage(ReportGenerator):
                         "warnings": result.warnings,
                     }
                 )
-                
+
                 if result.pdf_result and result.pdf_result.success:
                     report.file_size_bytes = result.pdf_result.file_size
                     report.generation_time_seconds = result.generation_time_seconds
-                    
+
                     # Add PDF metadata to lineage
                     self._lineage_capture.add_raw_input(
                         self._pipeline_run_id,
@@ -110,9 +110,9 @@ class ReportGeneratorWithLineage(ReportGenerator):
             else:
                 report.error_message = result.error_message
                 report.failed_at = datetime.utcnow()
-                
+
             await self.session.commit()
-            
+
             # Capture lineage on completion
             await self._lineage_capture.capture_on_completion(
                 report_generation_id=self._report_generation_id,
@@ -120,16 +120,16 @@ class ReportGeneratorWithLineage(ReportGenerator):
                 success=result.success,
                 error_data={"error": result.error_message} if not result.success else None
             )
-            
+
             return result
-            
+
         except Exception as e:
             # Handle errors and capture lineage
             report.status = ReportStatus.FAILED
             report.error_message = str(e)
             report.failed_at = datetime.utcnow()
             await self.session.commit()
-            
+
             # Capture lineage for failure
             await self._lineage_capture.capture_on_completion(
                 report_generation_id=self._report_generation_id,
@@ -137,7 +137,7 @@ class ReportGeneratorWithLineage(ReportGenerator):
                 success=False,
                 error_data={"error": str(e), "type": type(e).__name__}
             )
-            
+
             raise
 
 

@@ -9,7 +9,7 @@ from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
 from database.base import Base
-from d6_reports.models import ReportTemplate, ReportGeneration, ReportType, TemplateFormat
+from d6_reports.models import ReportTemplate, ReportType, TemplateFormat
 
 
 @pytest.fixture(scope="function")

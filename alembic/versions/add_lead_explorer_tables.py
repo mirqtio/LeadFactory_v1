@@ -17,12 +17,12 @@ depends_on = None
 
 def upgrade() -> None:
     """Create Lead and AuditLogLead tables"""
-    
+
     # Use String types for all databases to avoid enum conflicts
     # The application models handle the enum validation
     enrichmentstatus_enum = sa.String(length=20)
     auditaction_enum = sa.String(length=10)
-    
+
     # Create leads table
     op.create_table('leads',
         sa.Column('id', sa.String(), nullable=False),
@@ -46,7 +46,7 @@ def upgrade() -> None:
         sa.UniqueConstraint('email', name='uq_leads_email'),
         sa.UniqueConstraint('domain', name='uq_leads_domain')
     )
-    
+
     # Create indexes for leads table
     op.create_index('ix_leads_email_domain', 'leads', ['email', 'domain'])
     op.create_index('ix_leads_enrichment_lookup', 'leads', ['enrichment_status', 'enrichment_task_id'])
@@ -59,7 +59,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_leads_is_manual'), 'leads', ['is_manual'], unique=False)
     op.create_index(op.f('ix_leads_is_deleted'), 'leads', ['is_deleted'], unique=False)
     op.create_index(op.f('ix_leads_created_at'), 'leads', ['created_at'], unique=False)
-    
+
     # Create audit_log_leads table
     op.create_table('audit_log_leads',
         sa.Column('id', sa.String(), nullable=False),
@@ -74,7 +74,7 @@ def upgrade() -> None:
         sa.Column('checksum', sa.String(length=64), nullable=False),
         sa.PrimaryKeyConstraint('id')
     )
-    
+
     # Create indexes for audit_log_leads table
     op.create_index('ix_audit_leads_lead_id_timestamp', 'audit_log_leads', ['lead_id', 'timestamp'])
     op.create_index('ix_audit_leads_action_timestamp', 'audit_log_leads', ['action', 'timestamp'])
@@ -86,7 +86,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Drop Lead and AuditLogLead tables"""
-    
+
     # Drop audit_log_leads table and indexes
     op.drop_index(op.f('ix_audit_log_leads_timestamp'), table_name='audit_log_leads')
     op.drop_index(op.f('ix_audit_log_leads_action'), table_name='audit_log_leads')
@@ -95,7 +95,7 @@ def downgrade() -> None:
     op.drop_index('ix_audit_leads_action_timestamp', table_name='audit_log_leads')
     op.drop_index('ix_audit_leads_lead_id_timestamp', table_name='audit_log_leads')
     op.drop_table('audit_log_leads')
-    
+
     # Drop leads table and indexes
     op.drop_index(op.f('ix_leads_created_at'), table_name='leads')
     op.drop_index(op.f('ix_leads_is_deleted'), table_name='leads')

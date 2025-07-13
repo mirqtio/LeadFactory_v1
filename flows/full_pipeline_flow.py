@@ -21,17 +21,17 @@ try:
 except ImportError:
     # Fallback for environments without Prefect
     PREFECT_AVAILABLE = False
-    
+
     def flow(*args, **kwargs):
         def decorator(func):
             return func
         return decorator
-    
+
     def task(*args, **kwargs):
         def decorator(func):
             return func
         return decorator
-    
+
     def get_run_logger():
         return logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ async def target_business(url: str) -> Dict[str, Any]:
     """
     logger = get_run_logger()
     logger.info(f"🎯 Targeting business from URL: {url}")
-    
+
     try:
         # Simple targeting logic for MVP
         # In production, this would use the full targeting system
@@ -71,17 +71,17 @@ async def target_business(url: str) -> Dict[str, Any]:
             "targeted_at": datetime.utcnow().isoformat(),
             "status": "targeted"
         }
-        
+
         logger.info(f"✅ Successfully targeted business: {business_data['id']}")
         return business_data
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to target business: {e}")
         raise
 
 
 @task(
-    name="source_business_data", 
+    name="source_business_data",
     retries=3,
     retry_delay_seconds=120,
     timeout_seconds=600
@@ -94,26 +94,26 @@ async def source_business_data(business_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     logger = get_run_logger()
     logger.info(f"🔍 Sourcing data for business: {business_data['id']}")
-    
+
     try:
         coordinator = SourcingCoordinator()
-        
+
         # Source business information
         sourcing_result = await coordinator.source_single_business(
             business_url=business_data['url'],
             include_enrichment=True
         )
-        
+
         # Merge sourced data with targeting data
         business_data.update({
             "sourced_data": sourcing_result,
             "sourced_at": datetime.utcnow().isoformat(),
             "source_status": "completed"
         })
-        
+
         logger.info(f"✅ Successfully sourced data for business: {business_data['id']}")
         return business_data
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to source business data: {e}")
         business_data["source_status"] = "failed"
@@ -136,10 +136,10 @@ async def assess_website(business_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     logger = get_run_logger()
     logger.info(f"📊 Assessing website for business: {business_data['id']}")
-    
+
     try:
         coordinator = AssessmentCoordinator()
-        
+
         # Run comprehensive assessment
         assessment_result = await coordinator.assess_business(
             business_id=business_data['id'],
@@ -147,14 +147,14 @@ async def assess_website(business_data: Dict[str, Any]) -> Dict[str, Any]:
             assessment_types=["pagespeed", "tech_stack", "seo_basics"],
             priority="high"
         )
-        
+
         business_data["assessment_data"] = assessment_result
         business_data["assessed_at"] = datetime.utcnow().isoformat()
         business_data["assessment_status"] = "completed"
-        
+
         logger.info(f"✅ Successfully assessed website: {business_data['id']}")
         return business_data
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to assess website: {e}")
         business_data["assessment_status"] = "failed"
@@ -177,27 +177,27 @@ async def calculate_score(business_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     logger = get_run_logger()
     logger.info(f"🧮 Calculating score for business: {business_data['id']}")
-    
+
     try:
         calculator = ScoringEngine()
-        
+
         # Extract assessment data
         assessment_data = business_data.get("assessment_data", {})
-        
+
         # Calculate comprehensive score
         score_result = await calculator.calculate_score(
             assessment_data=assessment_data,
             business_type=business_data.get("sourced_data", {}).get("industry", "general")
         )
-        
+
         business_data["score"] = score_result["overall_score"]
         business_data["score_details"] = score_result
         business_data["score_tier"] = score_result.get("tier", "standard")
         business_data["scored_at"] = datetime.utcnow().isoformat()
-        
+
         logger.info(f"✅ Score calculated: {score_result['overall_score']}/100 ({score_result.get('tier', 'standard')})")
         return business_data
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to calculate score: {e}")
         # Use default score if calculation fails
@@ -221,10 +221,10 @@ async def generate_report(business_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     logger = get_run_logger()
     logger.info(f"📄 Generating report for business: {business_data['id']}")
-    
+
     try:
         generator = ReportGenerator()
-        
+
         # Generate PDF report
         report_path = await generator.generate_report(
             business_id=business_data['id'],
@@ -233,14 +233,14 @@ async def generate_report(business_data: Dict[str, Any]) -> Dict[str, Any]:
             score_data=business_data.get("score_details", {}),
             tier=business_data.get("score_tier", "standard")
         )
-        
+
         business_data["report_path"] = report_path
         business_data["report_generated_at"] = datetime.utcnow().isoformat()
         business_data["report_status"] = "completed"
-        
+
         logger.info(f"✅ Report generated: {report_path}")
         return business_data
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to generate report: {e}")
         business_data["report_status"] = "failed"
@@ -262,7 +262,7 @@ async def send_email(business_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     logger = get_run_logger()
     logger.info(f"📧 Sending email for business: {business_data['id']}")
-    
+
     try:
         # Get email from sourced data or use default
         email = business_data.get("sourced_data", {}).get("email")
@@ -270,10 +270,10 @@ async def send_email(business_data: Dict[str, Any]) -> Dict[str, Any]:
             # In test mode, use a placeholder
             email = "test@example.com"
             logger.warning("No email found, using test email")
-        
+
         sender = DeliveryManager()
         personalizer = AdvancedContentGenerator()
-        
+
         # Generate personalized email content
         email_content = await personalizer.generate_email_content(
             business_name=business_data.get("name", "Business Owner"),
@@ -281,7 +281,7 @@ async def send_email(business_data: Dict[str, Any]) -> Dict[str, Any]:
             tier=business_data.get("score_tier", "standard"),
             key_insights=business_data.get("assessment_data", {}).get("insights", [])
         )
-        
+
         # Send email with report attachment
         email_result = await sender.send_assessment_email(
             to_email=email,
@@ -289,15 +289,15 @@ async def send_email(business_data: Dict[str, Any]) -> Dict[str, Any]:
             body=email_content["body"],
             report_path=business_data.get("report_path")
         )
-        
+
         business_data["email_sent"] = True
         business_data["email_sent_at"] = datetime.utcnow().isoformat()
         business_data["email_id"] = email_result.get("message_id")
         business_data["delivery_status"] = "completed"
-        
+
         logger.info(f"✅ Email sent successfully to: {email}")
         return business_data
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to send email: {e}")
         business_data["email_sent"] = False
@@ -331,40 +331,40 @@ async def full_pipeline_flow(url: str) -> Dict[str, Any]:
     """
     logger = get_run_logger()
     start_time = time.time()
-    
+
     logger.info(f"🚀 Starting full pipeline for URL: {url}")
-    
+
     try:
         # Execute pipeline stages in sequence
         # Each stage adds data to the business_data dictionary
-        
+
         # Stage 1: Target
         business_data = await target_business(url)
         logger.info("Stage 1/6 complete: Targeting ✓")
-        
+
         # Stage 2: Source
         business_data = await source_business_data(business_data)
         logger.info("Stage 2/6 complete: Sourcing ✓")
-        
+
         # Stage 3: Assess
         business_data = await assess_website(business_data)
         logger.info("Stage 3/6 complete: Assessment ✓")
-        
+
         # Stage 4: Score
         business_data = await calculate_score(business_data)
         logger.info("Stage 4/6 complete: Scoring ✓")
-        
+
         # Stage 5: Report
         business_data = await generate_report(business_data)
         logger.info("Stage 5/6 complete: Report Generation ✓")
-        
+
         # Stage 6: Deliver
         business_data = await send_email(business_data)
         logger.info("Stage 6/6 complete: Delivery ✓")
-        
+
         # Calculate total execution time
         execution_time = time.time() - start_time
-        
+
         # Final result
         result = {
             "status": "complete",
@@ -377,18 +377,18 @@ async def full_pipeline_flow(url: str) -> Dict[str, Any]:
             "timestamp": datetime.utcnow().isoformat(),
             "full_data": business_data  # Include all intermediate data
         }
-        
+
         logger.info(f"✅ Pipeline completed successfully in {execution_time:.2f} seconds")
         logger.info(f"📊 Final score: {result['score']}/100")
         logger.info(f"📄 Report: {result['report_path']}")
         logger.info(f"📧 Email sent: {result['email_sent']}")
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"❌ Pipeline failed: {e}")
         execution_time = time.time() - start_time
-        
+
         # Return partial result on failure
         return {
             "status": "failed",
@@ -416,12 +416,12 @@ async def run_pipeline(url: str) -> Dict[str, Any]:
 # Allow running as script for testing
 if __name__ == "__main__":
     import sys
-    
+
     if len(sys.argv) > 1:
         url = sys.argv[1]
     else:
         url = "https://example.com"
-    
+
     print(f"Running full pipeline for: {url}")
     result = asyncio.run(run_pipeline(url))
     print(f"Pipeline result: {result}")

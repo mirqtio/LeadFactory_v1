@@ -33,7 +33,7 @@ class BaseResponseSchema(BaseModel):
     id: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -47,38 +47,38 @@ class CreateLeadSchema(BaseModel):
     contact_name: Optional[str] = Field(None, max_length=255, description="Contact person name")
     is_manual: bool = Field(False, description="Whether this is a manually added lead")
     source: Optional[str] = Field(None, max_length=100, description="Lead source (manual, csv_upload, etc.)")
-    
+
     @validator('domain')
     def validate_domain(cls, v):
         """Validate domain format"""
         if v is None:
             return v
-        
+
         v = v.lower().strip()
-        
+
         # Basic domain validation
         if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$', v):
             raise ValueError('Invalid domain format')
-        
+
         # Must contain at least one dot
         if '.' not in v:
             raise ValueError('Domain must contain at least one dot')
-            
+
         # Cannot start or end with dot
         if v.startswith('.') or v.endswith('.'):
             raise ValueError('Domain cannot start or end with a dot')
-            
+
         return v
-    
+
     @root_validator(skip_on_failure=True)
     def validate_lead_data(cls, values):
         """Ensure at least email or domain is provided"""
         email = values.get('email')
         domain = values.get('domain')
-        
+
         if not email and not domain:
             raise ValueError('Either email or domain must be provided')
-            
+
         return values
 
 
@@ -89,24 +89,24 @@ class UpdateLeadSchema(BaseModel):
     company_name: Optional[str] = Field(None, max_length=500)
     contact_name: Optional[str] = Field(None, max_length=255)
     source: Optional[str] = Field(None, max_length=100)
-    
+
     @validator('domain')
     def validate_domain(cls, v):
         """Validate domain format"""
         if v is None:
             return v
-        
+
         v = v.lower().strip()
-        
+
         if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$', v):
             raise ValueError('Invalid domain format')
-        
+
         if '.' not in v:
             raise ValueError('Domain must contain at least one dot')
-            
+
         if v.startswith('.') or v.endswith('.'):
             raise ValueError('Domain cannot start or end with a dot')
-            
+
         return v
 
 
@@ -134,35 +134,35 @@ class QuickAddLeadSchema(BaseModel):
     domain: Optional[str] = Field(None, min_length=3, max_length=255)
     company_name: Optional[str] = Field(None, max_length=500)
     contact_name: Optional[str] = Field(None, max_length=255)
-    
+
     @validator('domain')
     def validate_domain(cls, v):
         """Validate domain format"""
         if v is None:
             return v
-        
+
         v = v.lower().strip()
-        
+
         if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$', v):
             raise ValueError('Invalid domain format')
-        
+
         if '.' not in v:
             raise ValueError('Domain must contain at least one dot')
-            
+
         if v.startswith('.') or v.endswith('.'):
             raise ValueError('Domain cannot start or end with a dot')
-            
+
         return v
-    
+
     @root_validator(skip_on_failure=True)
     def validate_quick_add_data(cls, values):
         """Ensure at least email or domain is provided for enrichment"""
         email = values.get('email')
         domain = values.get('domain')
-        
+
         if not email and not domain:
             raise ValueError('Either email or domain must be provided for enrichment')
-            
+
         return values
 
 

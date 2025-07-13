@@ -515,7 +515,7 @@ def create_standard_configuration(gate_threshold: float = 0.0) -> TierConfigurat
     """
     # TODO Phase 0.5: Re-enable gate threshold logic
     # For Phase 0, all leads pass (gate_threshold = 0.0)
-    
+
     # Standard boundaries matching scoring_rules.yaml
     boundaries = [
         TierBoundary(LeadTier.A, 80.0, 100.0, "Tier A: 80-100 points"),

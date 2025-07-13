@@ -27,7 +27,7 @@ from bs4 import BeautifulSoup
 
 class DesignTokenExtractor:
     """Extracts design tokens from Anthrasite Design System HTML styleguide."""
-    
+
     def __init__(self, html_path: str):
         """
         Initialize extractor with HTML file path.
@@ -52,55 +52,55 @@ class DesignTokenExtractor:
             "status": {},
             "functional": {}
         }
-        
+
         # Extract from color swatches
         color_swatches = self.soup.find_all('div', class_='color-swatch')
-        
+
         for swatch in color_swatches:
             color_box = swatch.find('div', class_='color-box')
             color_details = swatch.find('div', class_='color-details')
-            
+
             if not color_box or not color_details:
                 continue
-                
+
             # Extract background color from style attribute
             style = color_box.get('style', '')
             color_match = re.search(r'background:\s*([^;]+)', style)
             if not color_match:
                 continue
-                
+
             color_value = color_match.group(1).strip()
-            
+
             # Extract name and usage
             name_elem = color_details.find('div', class_='color-name')
             usage_elem = color_details.find('div', class_='color-usage')
-            
+
             if not name_elem:
                 continue
-                
+
             name = name_elem.get_text().strip()
             usage = usage_elem.get_text().strip() if usage_elem else ""
-            
+
             # Categorize colors and normalize names
             color_key = self._normalize_color_name(name)
             color_data = {"value": color_value}
-            
+
             if usage:
                 color_data["usage"] = usage
-                
+
             if name.lower() in ['anthracite', 'pure white', 'white', 'synthesis blue']:
                 colors["primary"][color_key] = color_data
             elif name.lower() in ['critical red', 'warning amber', 'success green']:
                 colors["status"][color_key] = color_data
             else:
                 colors["functional"][color_key] = color_data
-                
+
         # Add missing 4th functional color from CSS (dark text color)
         colors["functional"]["dark-text"] = {
             "value": "#2d3748",
             "usage": "Primary text color for light backgrounds"
         }
-        
+
         return colors
 
     def extract_contrast_ratios(self) -> Dict[str, Dict[str, str]]:
@@ -111,12 +111,12 @@ class DesignTokenExtractor:
             dict: Contrast ratios for color combinations.
         """
         contrast_data: Dict[str, Dict[str, str]] = {}
-        
+
         # Find the accessibility table
         accessibility_section = self.soup.find('h2', string='Accessibility')
         if not accessibility_section:
             return contrast_data
-            
+
         # Look for the contrast table after the accessibility heading
         table = None
         current = accessibility_section.find_next_sibling()
@@ -125,26 +125,26 @@ class DesignTokenExtractor:
                 table = current if current.name == 'table' else current.find('table')
                 break
             current = current.find_next_sibling()
-            
+
         if not table:
             return contrast_data
-            
+
         rows = table.find_all('tr')[1:]  # Skip header row
-        
+
         for row in rows:
             cells = row.find_all('td')
             if len(cells) >= 3:
                 combination = cells[0].get_text().strip()
                 ratio = cells[1].get_text().strip()
                 level = cells[2].get_text().strip()
-                
+
                 # Normalize combination name for key
                 key = combination.lower().replace(' on ', '_on_').replace(' ', '_')
                 contrast_data[key] = {
                     "ratio": ratio,
                     "level": level
                 }
-                
+
         return contrast_data
 
     def extract_typography(self) -> Dict[str, Any]:
@@ -158,7 +158,7 @@ class DesignTokenExtractor:
             "fontFamily": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             "scale": {}
         }
-        
+
         # Define the typography scale as per PRP specification
         type_scale = {
             "display": {"size": "72px", "weight": "300", "lineHeight": "0.9"},
@@ -171,7 +171,7 @@ class DesignTokenExtractor:
             "body-small": {"size": "14px", "weight": "400", "lineHeight": "1.6"},
             "caption": {"size": "12px", "weight": "500", "lineHeight": "1.4"}
         }
-        
+
         typography["scale"] = type_scale
         return typography
 
@@ -186,7 +186,7 @@ class DesignTokenExtractor:
             "base": "8px",
             "scale": {
                 "xs": "8px",
-                "sm": "16px", 
+                "sm": "16px",
                 "md": "24px",
                 "lg": "32px",
                 "xl": "48px",
@@ -205,7 +205,7 @@ class DesignTokenExtractor:
         return {
             "duration": {
                 "micro": "150ms",
-                "standard": "200ms", 
+                "standard": "200ms",
                 "page": "300ms",
                 "data": "400ms"
             },
@@ -224,7 +224,7 @@ class DesignTokenExtractor:
         """
         return {
             "mobile": "640px",
-            "tablet": "1024px", 
+            "tablet": "1024px",
             "desktop": "1200px"
         }
 
@@ -241,18 +241,18 @@ class DesignTokenExtractor:
         # Convert to lowercase, replace spaces with hyphens, remove special chars
         normalized = re.sub(r'[^\w\s-]', '', name.lower())
         normalized = re.sub(r'\s+', '-', normalized.strip())
-        
+
         # Handle specific cases
         name_map = {
             'pure-white': 'white',
-            'critical-red': 'critical', 
+            'critical-red': 'critical',
             'warning-amber': 'warning',
             'success-green': 'success',
             'neutral-gray': 'neutral',
             'light-background': 'light-bg',
             'border-gray': 'border'
         }
-        
+
         return name_map.get(normalized, normalized)
 
     def extract_all_tokens(self) -> Dict[str, Any]:
@@ -269,7 +269,7 @@ class DesignTokenExtractor:
             "animation": self.extract_animation(),
             "breakpoints": self.extract_breakpoints()
         }
-        
+
         # Add contrast ratios to color tokens
         contrast_ratios = self.extract_contrast_ratios()
         for color_category in self.tokens["colors"].values():
@@ -280,7 +280,7 @@ class DesignTokenExtractor:
                         if "contrast" not in color_data:
                             color_data["contrast"] = {}
                         color_data["contrast"].update({contrast_key: contrast_info["ratio"]})
-        
+
         return self.tokens
 
     def save_tokens(self, output_path: str, minify: bool = True) -> None:
@@ -292,15 +292,15 @@ class DesignTokenExtractor:
             minify (bool): Whether to minify the JSON output.
         """
         output_file = Path(output_path)
-        
+
         with open(output_file, 'w', encoding='utf-8') as f:
             if minify:
                 json.dump(self.tokens, f, separators=(',', ':'))
             else:
                 json.dump(self.tokens, f, indent=2)
-                
+
         print(f"Design tokens saved to {output_file}")
-        
+
         # Check file size constraint
         file_size = output_file.stat().st_size
         if file_size > 2048:  # 2KB limit
@@ -315,25 +315,25 @@ def main() -> None:
     script_dir = Path(__file__).parent
     html_path = script_dir / "styleguide.html"
     output_path = script_dir / "design_tokens.json"
-    
+
     if not html_path.exists():
         raise FileNotFoundError(f"Styleguide not found at {html_path}")
-    
+
     # Extract tokens
     extractor = DesignTokenExtractor(str(html_path))
     tokens = extractor.extract_all_tokens()
-    
+
     # Save minified version
     extractor.save_tokens(str(output_path), minify=True)
-    
+
     # Validate token completeness
     colors = tokens["colors"]
     total_colors = sum(len(category) for category in colors.values())
-    
+
     print("\nExtraction Summary:")
     print(f"- Colors: {total_colors} total")
     print(f"  - Primary: {len(colors['primary'])}")
-    print(f"  - Status: {len(colors['status'])}")  
+    print(f"  - Status: {len(colors['status'])}")
     print(f"  - Functional: {len(colors['functional'])}")
     print(f"- Typography scale: {len(tokens['typography']['scale'])} levels")
     print(f"- Spacing scale: {len(tokens['spacing']['scale'])} levels")

@@ -1,0 +1,53 @@
+# Ruff configuration for LeadFactory
+
+# Python version target
+target-version = "py311"
+
+# Line length (matching black default)
+line-length = 120
+
+# Exclude paths
+exclude = [
+    ".git",
+    ".ruff_cache",
+    "__pycache__",
+    "build",
+    "dist",
+    "venv",
+    ".venv",
+    "*.egg-info",
+    ".pytest_cache",
+    ".mypy_cache",
+    "node_modules",
+]
+
+[lint]
+# Enable specific rule sets
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings  
+    "F",     # pyflakes
+]
+
+# Ignore specific rules
+ignore = [
+    "E203",  # Whitespace before ':' (conflicts with black)
+    "E501",  # Line too long (handled by formatter)
+    "E402",  # Module level import not at top of file
+    "E701",  # Multiple statements on one line (colon)
+    "E712",  # Comparison to True/False (SQLAlchemy filters need this)
+    "E722",  # Do not use bare except (sometimes needed)
+    "F401",  # Unused imports (ok in __init__.py files)
+    "F402",  # Import shadowed by loop variable
+    "F403",  # Star imports used
+    "F405",  # May be undefined from star imports
+    "F821",  # Undefined name (false positives in tests)
+    "F841",  # Local variable assigned but never used
+    "W293",  # Blank line contains whitespace
+    "W291",  # Trailing whitespace
+]
+
+[lint.per-file-ignores]
+# Ignore import violations in specific files
+"__init__.py" = ["F401"]
+"tests/*" = ["F841"]  # Allow unused variables in tests
