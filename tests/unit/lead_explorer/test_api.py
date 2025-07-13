@@ -416,30 +416,34 @@ class TestQuickAddLeadAPI:
         """Test successful quick-add lead"""
         # Setup mocks
         mock_db = Mock()
-        # Make refresh a no-op function that accepts any arguments
-        mock_db.refresh = lambda x: None
+        # Mock db.refresh to be a Mock object that does nothing when called
+        mock_db.refresh = Mock()
         mock_get_db.return_value.__enter__.return_value = mock_db
         mock_repo_class.return_value = mock_lead_repo
         
-        # Create mock lead object
-        mock_lead = Mock()
-        mock_lead.id = "test-id"
-        mock_lead.email = "test@example.com"
-        mock_lead.domain = "example.com"
-        mock_lead.company_name = "Test Corp"
-        mock_lead.contact_name = "John Doe"
-        mock_lead.is_manual = True
-        mock_lead.source = "quick_add"
-        mock_lead.enrichment_status = EnrichmentStatus.IN_PROGRESS
-        mock_lead.enrichment_task_id = "task-123"
-        mock_lead.enrichment_error = None
-        mock_lead.is_deleted = False
-        mock_lead.deleted_at = None
-        mock_lead.created_by = None
-        mock_lead.updated_by = None
-        mock_lead.deleted_by = None
-        mock_lead.created_at = "2023-01-01T00:00:00"
-        mock_lead.updated_at = "2023-01-01T00:00:00"
+        # Create mock lead object that won't trigger SQLAlchemy state inspection
+        # Use a plain object instead of Mock to avoid SQLAlchemy introspection issues
+        class MockLead:
+            def __init__(self):
+                self.id = "test-id"
+                self.email = "test@example.com"
+                self.domain = "example.com"
+                self.company_name = "Test Corp"
+                self.contact_name = "John Doe"
+                self.is_manual = True
+                self.source = "quick_add"
+                self.enrichment_status = EnrichmentStatus.IN_PROGRESS
+                self.enrichment_task_id = "task-123"
+                self.enrichment_error = None
+                self.is_deleted = False
+                self.deleted_at = None
+                self.created_by = None
+                self.updated_by = None
+                self.deleted_by = None
+                self.created_at = "2023-01-01T00:00:00"
+                self.updated_at = "2023-01-01T00:00:00"
+        
+        mock_lead = MockLead()
         
         mock_lead_repo.create_lead.return_value = mock_lead
         
