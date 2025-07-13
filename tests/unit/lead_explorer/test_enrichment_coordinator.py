@@ -211,8 +211,11 @@ class TestEnrichmentCoordinator:
         
         await coordinator._enrich_lead_async("test-lead", lead_data, "task-123")
         
-        # Should update status to IN_PROGRESS, then COMPLETED
-        assert coordinator._update_lead_status.call_count == 2
+        # Should update status to COMPLETED (IN_PROGRESS is set in start_enrichment, not _enrich_lead_async)
+        assert coordinator._update_lead_status.call_count == 1
+        coordinator._update_lead_status.assert_called_with(
+            "test-lead", EnrichmentStatus.COMPLETED, "task-123"
+        )
         
         # Should call email enrichment
         coordinator.email_enricher.enrich_email.assert_called_once()
