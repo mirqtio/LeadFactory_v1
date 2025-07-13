@@ -133,10 +133,9 @@ class RoleChecker:
     def __call__(self, current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in self.allowed_roles:
             logger.warning(
-                "Access denied",
-                user_id=str(current_user.id),
-                user_role=current_user.role.value,
-                required_roles=[r.value for r in self.allowed_roles]
+                f"Access denied - user_id: {str(current_user.id)}, "
+                f"user_role: {current_user.role.value}, "
+                f"required_roles: {[r.value for r in self.allowed_roles]}"
             )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -215,7 +214,7 @@ async def create_audit_log(
         )
         
     except Exception as e:
-        logger.error("Failed to create audit log", error=str(e))
+        logger.error(f"Failed to create audit log - error: {str(e)}")
         # Don't fail the request if audit logging fails
         db.rollback()
 

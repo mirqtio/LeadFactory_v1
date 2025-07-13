@@ -194,6 +194,16 @@ class TestUserManagement:
         # Mock no existing user
         mock_db.query().filter().first.return_value = None
         
+        # Mock the refresh behavior to set required fields
+        def mock_refresh(obj):
+            if hasattr(obj, 'email') and obj.email == "newuser@test.com":
+                obj.is_active = True
+                obj.created_at = datetime.utcnow()
+                obj.updated_at = datetime.utcnow()
+                obj.id = "new-user-id"
+        
+        mock_db.refresh = mock_refresh
+        
         from api.governance import UserCreate
         user_data = UserCreate(
             email="newuser@test.com",
@@ -254,10 +264,11 @@ class TestUserManagement:
         mock_db = Mock(spec=Session)
         mock_user = Mock()
         
+        now = datetime.utcnow()
         users = [
-            User(id="1", email="user1@test.com", name="User 1", role=UserRole.ADMIN, is_active=True),
-            User(id="2", email="user2@test.com", name="User 2", role=UserRole.VIEWER, is_active=True),
-            User(id="3", email="user3@test.com", name="User 3", role=UserRole.VIEWER, is_active=False)
+            User(id="1", email="user1@test.com", name="User 1", role=UserRole.ADMIN, is_active=True, created_at=now, updated_at=now),
+            User(id="2", email="user2@test.com", name="User 2", role=UserRole.VIEWER, is_active=True, created_at=now, updated_at=now),
+            User(id="3", email="user3@test.com", name="User 3", role=UserRole.VIEWER, is_active=False, created_at=now, updated_at=now)
         ]
         
         mock_db.query().order_by().all.return_value = users
@@ -280,10 +291,15 @@ class TestUserManagement:
             role=UserRole.ADMIN
         )
         
+        now = datetime.utcnow()
         target_user = User(
             id="target-id",
             email="target@test.com",
-            role=UserRole.VIEWER
+            name="Target User",
+            role=UserRole.VIEWER,
+            is_active=True,
+            created_at=now,
+            updated_at=now
         )
         mock_db.query().filter().first.return_value = target_user
         
