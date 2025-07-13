@@ -12,6 +12,7 @@ Acceptance Criteria:
 """
 
 import enum
+from enum import Enum
 import uuid
 from datetime import datetime
 
@@ -44,6 +45,14 @@ class FunnelStage(enum.Enum):
     PRIORITIZATION = "Prioritization"
     REPORTING = "Reporting"
     PAYMENT = "Payment"
+
+
+class AggregationPeriod(enum.Enum):
+    """Time period for aggregations"""
+    HOURLY = "hourly"
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
 
 
 class EventType(enum.Enum):

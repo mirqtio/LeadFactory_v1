@@ -177,7 +177,7 @@ class TestD10AnalyticsCoverage:
     
     def test_import_analytics_modules(self):
         """Import analytics modules"""
-        # from d10_analytics import aggregators  # Has missing AggregationPeriod import
+        from d10_analytics import aggregators
         from d10_analytics import warehouse
         from d10_analytics import api
         from d10_analytics import models
