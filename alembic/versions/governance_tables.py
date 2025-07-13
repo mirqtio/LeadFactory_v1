@@ -21,13 +21,16 @@ def upgrade() -> None:
     bind = op.get_bind()
     dialect_name = bind.dialect.name
     
-    # Check if tables already exist
-    inspector = sa.inspect(bind)
-    existing_tables = inspector.get_table_names()
-    
-    if 'users' in existing_tables:
+    # Check if this migration has already been applied by checking for the users table
+    try:
+        # Try to execute a simple query on the users table
+        result = bind.execute(sa.text("SELECT 1 FROM users LIMIT 1"))
+        result.close()
         print("Governance tables already exist, skipping creation")
         return
+    except:
+        # Table doesn't exist, proceed with creation
+        pass
     
     # Create users table
     if dialect_name == 'postgresql':
