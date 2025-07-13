@@ -416,14 +416,13 @@ class TestQuickAddLeadAPI:
         """Test successful quick-add lead"""
         # Setup mocks
         mock_db = Mock()
-        mock_db.refresh = Mock()  # Mock the refresh method to do nothing
+        # Make refresh a no-op function that accepts any arguments
+        mock_db.refresh = lambda x: None
         mock_get_db.return_value.__enter__.return_value = mock_db
         mock_repo_class.return_value = mock_lead_repo
         
-        # Create a proper mock that won't break SQLAlchemy introspection
-        from unittest.mock import MagicMock
-        mock_lead = MagicMock()
-        mock_lead.__class__.__name__ = "Lead"  # SQLAlchemy needs this
+        # Create mock lead object
+        mock_lead = Mock()
         mock_lead.id = "test-id"
         mock_lead.email = "test@example.com"
         mock_lead.domain = "example.com"
