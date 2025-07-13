@@ -70,6 +70,7 @@ class TestEnvironmentConfig:
             settings = Settings()
             assert settings.use_stubs is True  # Should be forced to True
 
+    @pytest.mark.skipif(os.getenv("CI") == "true", reason="CI forces use_stubs=True")
     def test_development_allows_stub_choice(self):
         """
         Test that development environment allows choosing stub mode
