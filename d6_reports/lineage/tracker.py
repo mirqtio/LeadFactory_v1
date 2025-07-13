@@ -65,7 +65,7 @@ class LineageTracker:
             }
 
             # Compress the data
-            compressed_data, compression_ratio = await compress_lineage_data(data_to_compress)
+            compressed_data, compression_ratio = compress_lineage_data(data_to_compress)
 
             # Create lineage record
             lineage = ReportLineage(
@@ -82,14 +82,14 @@ class LineageTracker:
             )
 
             self.session.add(lineage)
-            await self.session.commit()
+            self.session.commit()
 
             return lineage
 
         except Exception as e:
             # Log error but don't fail report generation
             print(f"Failed to capture lineage: {e}")
-            await self.session.rollback()
+            self.session.rollback()
             return None
 
     def record_access(
@@ -126,17 +126,17 @@ class LineageTracker:
             self.session.add(audit)
 
             # Update lineage access tracking
-            lineage = await self.session.get(ReportLineage, lineage_id)
+            lineage = self.session.get(ReportLineage, lineage_id)
             if lineage:
                 lineage.record_access(user_id, ip_address)
 
-            await self.session.commit()
+            self.session.commit()
 
             return audit
 
         except Exception as e:
             print(f"Failed to record lineage access: {e}")
-            await self.session.rollback()
+            self.session.rollback()
             return None
 
     def get_lineage_by_report(self, report_generation_id: str) -> Optional[ReportLineage]:

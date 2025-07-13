@@ -8,7 +8,7 @@ import sys
 from typing import Any, Dict
 
 
-async def compress_lineage_data(
+def compress_lineage_data(
     data: Dict[str, Any], max_size_mb: float = 2.0
 ) -> tuple[bytes, float]:
     """
@@ -34,7 +34,7 @@ async def compress_lineage_data(
     if size_mb > max_size_mb:
         # Truncate data and retry
         truncated_data = _truncate_lineage_data(data)
-        return await compress_lineage_data(truncated_data, max_size_mb)
+        return compress_lineage_data(truncated_data, max_size_mb)
 
     # Calculate compression ratio
     compression_ratio = (
