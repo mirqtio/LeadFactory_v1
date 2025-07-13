@@ -13,9 +13,9 @@ from sqlalchemy import (
     Column, String, DateTime, Enum, Text, Index, Boolean, 
     UniqueConstraint, CheckConstraint, Integer
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-from database.base import Base
+from database.base import Base, UUID
+import uuid
 
 
 class UserRole(str, enum.Enum):
@@ -28,7 +28,7 @@ class User(Base):
     """User model with role-based access control"""
     __tablename__ = "users"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id = Column(UUID(), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String(255), nullable=False, unique=True, index=True)
     name = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.VIEWER)
@@ -38,9 +38,9 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Audit fields
-    created_by = Column(UUID(as_uuid=True), nullable=True)
+    created_by = Column(UUID(), nullable=True)
     deactivated_at = Column(DateTime(timezone=True), nullable=True)
-    deactivated_by = Column(UUID(as_uuid=True), nullable=True)
+    deactivated_by = Column(UUID(), nullable=True)
     
     __table_args__ = (
         Index('idx_users_email_active', 'email', 'is_active'),
@@ -54,7 +54,7 @@ class AuditLog(Base):
     
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id = Column(UUID(), nullable=False, index=True)
     user_email = Column(String(255), nullable=False)  # Denormalized for historical accuracy
     user_role = Column(Enum(UserRole), nullable=False)  # Role at time of action
     
@@ -129,8 +129,8 @@ class RoleChangeLog(Base):
     
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
-    changed_by_id = Column(UUID(as_uuid=True), nullable=False)
+    user_id = Column(UUID(), nullable=False, index=True)
+    changed_by_id = Column(UUID(), nullable=False)
     old_role = Column(Enum(UserRole), nullable=False)
     new_role = Column(Enum(UserRole), nullable=False)
     reason = Column(Text, nullable=False)

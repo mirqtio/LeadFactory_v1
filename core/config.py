@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     screenshotone_key: Optional[str] = Field(default=None)
     screenshotone_secret: Optional[str] = Field(default=None)
     screenshotone_rate_limit_per_sec: int = Field(default=2)
+    
+    # Humanloop (for vision assessment)
+    humanloop_api_key: Optional[str] = Field(default=None)
 
     # Email settings
     from_email: str = Field(default="noreply@leadfactory.com")
