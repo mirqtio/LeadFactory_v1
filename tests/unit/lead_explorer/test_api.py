@@ -2,7 +2,8 @@
 Test Lead Explorer API endpoints
 """
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from datetime import datetime
+from unittest.mock import Mock, MagicMock, patch, AsyncMock
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
@@ -409,41 +410,39 @@ class TestDeleteLeadAPI:
 class TestQuickAddLeadAPI:
     """Test POST /leads/quick-add endpoint"""
     
+    @patch('sqlalchemy.orm.session.Session.refresh')
     @patch('lead_explorer.api.get_enrichment_coordinator')
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
-    async def test_quick_add_lead_success(self, mock_repo_class, mock_get_db, mock_get_coordinator, client, mock_lead_repo):
+    async def test_quick_add_lead_success(self, mock_repo_class, mock_get_db, mock_get_coordinator, mock_session_refresh, client, mock_lead_repo):
         """Test successful quick-add lead"""
         # Setup mocks
         mock_db = Mock()
-        # Mock db.refresh to be a Mock object that does nothing when called
-        mock_db.refresh = Mock()
         mock_get_db.return_value.__enter__.return_value = mock_db
         mock_repo_class.return_value = mock_lead_repo
         
-        # Create mock lead object that won't trigger SQLAlchemy state inspection
-        # Use a plain object instead of Mock to avoid SQLAlchemy introspection issues
-        class MockLead:
-            def __init__(self):
-                self.id = "test-id"
-                self.email = "test@example.com"
-                self.domain = "example.com"
-                self.company_name = "Test Corp"
-                self.contact_name = "John Doe"
-                self.is_manual = True
-                self.source = "quick_add"
-                self.enrichment_status = EnrichmentStatus.IN_PROGRESS
-                self.enrichment_task_id = "task-123"
-                self.enrichment_error = None
-                self.is_deleted = False
-                self.deleted_at = None
-                self.created_by = None
-                self.updated_by = None
-                self.deleted_by = None
-                self.created_at = "2023-01-01T00:00:00"
-                self.updated_at = "2023-01-01T00:00:00"
+        # Mock the session refresh to do nothing
+        mock_session_refresh.return_value = None
         
-        mock_lead = MockLead()
+        # Create a mock lead object 
+        mock_lead = Mock()
+        mock_lead.id = "test-id"
+        mock_lead.email = "test@example.com"
+        mock_lead.domain = "example.com"
+        mock_lead.company_name = "Test Corp"
+        mock_lead.contact_name = "John Doe"
+        mock_lead.is_manual = True
+        mock_lead.source = "quick_add"
+        mock_lead.enrichment_status = EnrichmentStatus.IN_PROGRESS
+        mock_lead.enrichment_task_id = "task-123"
+        mock_lead.enrichment_error = None
+        mock_lead.is_deleted = False
+        mock_lead.deleted_at = None
+        mock_lead.created_by = None
+        mock_lead.updated_by = None
+        mock_lead.deleted_by = None
+        mock_lead.created_at = "2023-01-01T00:00:00"
+        mock_lead.updated_at = "2023-01-01T00:00:00"
         
         mock_lead_repo.create_lead.return_value = mock_lead
         
@@ -491,13 +490,16 @@ class TestHealthCheckAPI:
         assert "timestamp" in data
         assert "message" in data
     
+    @patch('lead_explorer.api.text')
     @patch('lead_explorer.api.get_db')
-    def test_health_check_database_error(self, mock_get_db, client):
+    def test_health_check_database_error(self, mock_get_db, mock_text, client):
         """Test health check with database error"""
         # Setup mocks to raise exception
         mock_db = Mock()
         mock_db.execute.side_effect = Exception("Database error")
         mock_get_db.return_value.__enter__.return_value = mock_db
+        # Make text() return a simple object
+        mock_text.return_value = "SELECT 1"
         
         # Make request
         response = client.get("/api/v1/lead-explorer/health")
@@ -526,8 +528,17 @@ class TestAuditTrailAPI:
         mock_audit_repo = Mock()
         mock_audit_log = Mock()
         mock_audit_log.id = "audit-id"
-        mock_audit_log.action = "CREATE"
-        mock_audit_log.timestamp = "2023-01-01T00:00:00"
+        mock_audit_log.lead_id = "test-id"
+        mock_audit_log.action = "create"  # lowercase for enum
+        mock_audit_log.timestamp = datetime(2023, 1, 1, 0, 0, 0)
+        mock_audit_log.created_at = datetime(2023, 1, 1, 0, 0, 0)
+        mock_audit_log.updated_at = datetime(2023, 1, 1, 0, 0, 0)
+        mock_audit_log.user_id = "test-user"
+        mock_audit_log.user_ip = "127.0.0.1"
+        mock_audit_log.user_agent = "test-agent"
+        mock_audit_log.old_values = {}
+        mock_audit_log.new_values = {"email": "test@example.com"}
+        mock_audit_log.checksum = "abc123"
         mock_audit_repo.get_audit_trail.return_value = [mock_audit_log]
         mock_audit_repo_class.return_value = mock_audit_repo
         

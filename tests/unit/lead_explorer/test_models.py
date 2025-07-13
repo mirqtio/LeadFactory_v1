@@ -142,16 +142,17 @@ class TestLeadModel:
     
     def test_lead_timestamps(self, db_session):
         """Test that timestamps are set correctly"""
-        before_creation = datetime.utcnow()
+        before_creation = datetime.utcnow().replace(microsecond=0)
         
         lead = Lead(email="test@example.com", is_manual=True)
         db_session.add(lead)
         db_session.commit()
         
-        after_creation = datetime.utcnow()
+        after_creation = datetime.utcnow().replace(microsecond=0)
         
-        assert before_creation <= lead.created_at <= after_creation
-        assert before_creation <= lead.updated_at <= after_creation
+        # SQLite doesn't store microseconds, so we compare without them
+        assert before_creation <= lead.created_at.replace(microsecond=0) <= after_creation
+        assert before_creation <= lead.updated_at.replace(microsecond=0) <= after_creation
         assert lead.created_at == lead.updated_at  # Should be same initially
 
 
@@ -236,7 +237,7 @@ class TestAuditLogLeadModel:
     
     def test_audit_log_timestamp_auto_generation(self, db_session, created_lead):
         """Test that timestamp is automatically generated"""
-        before_creation = datetime.utcnow()
+        before_creation = datetime.utcnow().replace(microsecond=0)
         
         audit_log = AuditLogLead(
             lead_id=created_lead.id,
@@ -247,9 +248,10 @@ class TestAuditLogLeadModel:
         db_session.add(audit_log)
         db_session.commit()
         
-        after_creation = datetime.utcnow()
+        after_creation = datetime.utcnow().replace(microsecond=0)
         
-        assert before_creation <= audit_log.timestamp <= after_creation
+        # SQLite doesn't store microseconds, so we compare without them
+        assert before_creation <= audit_log.timestamp.replace(microsecond=0) <= after_creation
     
     def test_audit_log_id_generation(self, db_session, created_lead):
         """Test that audit log IDs are auto-generated UUIDs"""

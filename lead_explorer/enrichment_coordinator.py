@@ -44,8 +44,7 @@ class EnrichmentCoordinator:
         """
         task_id = str(uuid.uuid4())
         
-        logger.info(f"Starting enrichment for lead {lead_id}", 
-                   task_id=task_id, lead_data=lead_data)
+        logger.info(f"Starting enrichment for lead {lead_id} - task_id: {task_id}, lead_data: {lead_data}")
         
         # Update lead status to IN_PROGRESS
         self._update_lead_status(lead_id, EnrichmentStatus.IN_PROGRESS, task_id)
@@ -90,10 +89,7 @@ class EnrichmentCoordinator:
                 "email_source": email_source
             })
             
-            logger.info(f"Enrichment completed for lead {lead_id}", 
-                       task_id=task_id, 
-                       enriched_email=bool(enriched_email),
-                       email_source=email_source)
+            logger.info(f"Enrichment completed for lead {lead_id} - task_id: {task_id}, enriched_email: {bool(enriched_email)}, email_source: {email_source}")
             
         except Exception as e:
             # Mark enrichment as failed
@@ -107,8 +103,7 @@ class EnrichmentCoordinator:
                 "error": str(e)
             })
             
-            logger.error(f"Enrichment failed for lead {lead_id}", 
-                        task_id=task_id, error=str(e))
+            logger.error(f"Enrichment failed for lead {lead_id} - task_id: {task_id}, error: {str(e)}")
     
     def _prepare_business_data(self, lead_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -167,7 +162,7 @@ class EnrichmentCoordinator:
                 
                 if updates:
                     lead_repo.update_lead(lead_id, updates)
-                    logger.info(f"Updated lead {lead_id} with enriched data", updates=updates)
+                    logger.info(f"Updated lead {lead_id} with enriched data - updates: {updates}")
                     
         except Exception as e:
             logger.error(f"Failed to update lead {lead_id} with enrichment: {str(e)}")
