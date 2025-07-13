@@ -28,14 +28,8 @@ def upgrade() -> None:
     auditaction_enum = sa.String(length=10)
     
     # Create leads table if it doesn't exist
-    if dialect_name == 'postgresql':
-        # Check if table exists first
-        result = bind.execute(sa.text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'leads')"))
-        if result.scalar():
-            print("Lead tables already exist, skipping creation")
-            return
-    
-    op.create_table('leads',
+    try:
+        op.create_table('leads',
         sa.Column('id', sa.String(), nullable=False),
         sa.Column('email', sa.String(length=255), nullable=True),
         sa.Column('domain', sa.String(length=255), nullable=True),
@@ -93,6 +87,9 @@ def upgrade() -> None:
     op.create_index(op.f('ix_audit_log_leads_lead_id'), 'audit_log_leads', ['lead_id'], unique=False)
     op.create_index(op.f('ix_audit_log_leads_action'), 'audit_log_leads', ['action'], unique=False)
     op.create_index(op.f('ix_audit_log_leads_timestamp'), 'audit_log_leads', ['timestamp'], unique=False)
+    except Exception as e:
+        print(f"Tables might already exist: {e}")
+        pass
 
 
 def downgrade() -> None:

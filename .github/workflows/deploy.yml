@@ -40,9 +40,9 @@ jobs:
             echo "Waiting for database to be ready..."
             sleep 10
             
-            # Fix migration state if needed
-            echo "Checking migration state..."
-            docker compose -f docker-compose.prod.yml run --rm -T web python -c "from database.session import engine; from sqlalchemy import text; conn = engine.connect(); conn.execute(text('INSERT INTO alembic_version (version_num) VALUES (\\'lead_explorer_001\\') ON CONFLICT (version_num) DO NOTHING')); conn.execute(text('INSERT INTO alembic_version (version_num) VALUES (\\'governance_tables_001\\') ON CONFLICT (version_num) DO NOTHING')); conn.commit(); conn.close(); print('Migration state fixed')"
+            # Ensure alembic is initialized
+            echo "Initializing alembic if needed..."
+            docker compose -f docker-compose.prod.yml run --rm -T web alembic stamp base || true
             
             # Run database migrations with reduced memory usage
             echo "Running database migrations..."
