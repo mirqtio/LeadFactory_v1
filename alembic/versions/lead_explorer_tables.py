@@ -22,6 +22,14 @@ def upgrade() -> None:
     bind = op.get_bind()
     dialect_name = bind.dialect.name
     
+    # Check if tables already exist
+    inspector = sa.inspect(bind)
+    existing_tables = inspector.get_table_names()
+    
+    if 'leads' in existing_tables:
+        print("Lead tables already exist, skipping creation")
+        return
+    
     # Handle ENUMs differently for PostgreSQL vs SQLite
     if dialect_name == 'postgresql':
         # Check if types already exist before creating
