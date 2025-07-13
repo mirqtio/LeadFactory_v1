@@ -226,10 +226,12 @@ class TestLeadRepository:
     
     def test_list_leads_sorting(self, db_session):
         """Test sorting leads"""
+        import time
         repo = LeadRepository(db_session)
         
         # Create leads at different times
         lead1 = repo.create_lead(email="first@example.com", is_manual=True)
+        time.sleep(0.01)  # Small delay to ensure different timestamps
         lead2 = repo.create_lead(email="second@example.com", is_manual=True)
         
         # Test descending (default)
