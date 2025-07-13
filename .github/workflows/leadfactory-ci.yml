@@ -41,7 +41,7 @@ jobs:
         pip install -r requirements-dev.txt
     
     - name: Run Ruff linter
-      run: ruff check . --config pyproject.toml
+      run: ruff check .
     
     - name: Run Pyright type checker
       run: pyright
