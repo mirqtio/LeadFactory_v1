@@ -22,6 +22,7 @@ from core.config import Settings
 class TestEnvironmentConfig:
     """Test environment configuration and stub enforcement"""
 
+    @pytest.mark.skipif(os.getenv("CI") == "true", reason="CI forces use_stubs=True")
     def test_production_rejects_use_stubs(self):
         """
         Test that production environment rejects USE_STUBS=true
