@@ -298,6 +298,9 @@ class AuditRepository:
 
     def verify_audit_integrity(self, audit_id: str) -> bool:
         """Verify audit log integrity"""
+        import json
+        import hashlib
+        
         audit_log = (
             self.db.query(AuditLogLead)
             .filter(AuditLogLead.id == audit_id)
@@ -306,5 +309,17 @@ class AuditRepository:
         
         if not audit_log:
             return False
-            
-        return audit_log.verify_checksum()
+        
+        # Recalculate checksum
+        data = {
+            'lead_id': audit_log.lead_id,
+            'action': audit_log.action.value if audit_log.action else None,
+            'timestamp': audit_log.timestamp.isoformat() if audit_log.timestamp else None,
+            'user_id': audit_log.user_id,
+            'old_values': audit_log.old_values,
+            'new_values': audit_log.new_values,
+        }
+        content = json.dumps(data, sort_keys=True)
+        expected_checksum = hashlib.sha256(content.encode()).hexdigest()
+        
+        return audit_log.checksum == expected_checksum
