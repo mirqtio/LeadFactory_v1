@@ -21,6 +21,14 @@ def upgrade() -> None:
     bind = op.get_bind()
     dialect_name = bind.dialect.name
     
+    # Check if tables already exist
+    inspector = sa.inspect(bind)
+    existing_tables = inspector.get_table_names()
+    
+    if 'users' in existing_tables:
+        print("Governance tables already exist, skipping creation")
+        return
+    
     # Create users table
     if dialect_name == 'postgresql':
         # PostgreSQL specific: Create user role enum if it doesn't exist
