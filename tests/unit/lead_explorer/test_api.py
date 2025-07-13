@@ -420,7 +420,10 @@ class TestQuickAddLeadAPI:
         mock_get_db.return_value.__enter__.return_value = mock_db
         mock_repo_class.return_value = mock_lead_repo
         
-        mock_lead = Mock()
+        # Create a proper mock that won't break SQLAlchemy introspection
+        from unittest.mock import MagicMock
+        mock_lead = MagicMock()
+        mock_lead.__class__.__name__ = "Lead"  # SQLAlchemy needs this
         mock_lead.id = "test-id"
         mock_lead.email = "test@example.com"
         mock_lead.domain = "example.com"
