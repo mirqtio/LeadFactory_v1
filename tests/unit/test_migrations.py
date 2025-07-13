@@ -42,7 +42,8 @@ class TestMigrations:
     def alembic_config(self, temp_db_path):
         """Create Alembic configuration with test database"""
         # Get the alembic.ini path
-        ini_path = Path(__file__).parent.parent.parent / "alembic.ini"
+        project_root = Path(__file__).parent.parent.parent
+        ini_path = project_root / "alembic.ini"
 
         if not ini_path.exists():
             pytest.skip("alembic.ini not found")
@@ -51,6 +52,10 @@ class TestMigrations:
 
         # Override database URL to use temporary SQLite database
         cfg.set_main_option("sqlalchemy.url", f"sqlite:///{temp_db_path}")
+        
+        # Make sure script_location is absolute path
+        script_location = project_root / "alembic"
+        cfg.set_main_option("script_location", str(script_location))
 
         return cfg
 
@@ -70,17 +75,25 @@ class TestMigrations:
         Acceptance Criteria: alembic upgrade head runs cleanly
         """
         # Run upgrade to head
-        command.upgrade(alembic_config, "head")
+        try:
+            command.upgrade(alembic_config, "head")
+        except Exception as e:
+            # If migrations fail, check if it's due to missing alembic directory
+            import traceback
+            pytest.fail(f"Migration failed: {e}\n{traceback.format_exc()}")
 
-        # Verify tables were created
+        # Need to close any existing connections and create a new one
+        test_engine.dispose()
+        
+        # Create a fresh inspector with a new connection
         inspector = inspect(test_engine)
         tables = inspector.get_table_names()
 
         # Should have alembic_version table
-        assert "alembic_version" in tables, "alembic_version table not created"
+        assert "alembic_version" in tables, f"alembic_version table not created. Found tables: {sorted(tables)}"
 
         # Should have some application tables
-        assert len(tables) > 1, "No application tables created"
+        assert len(tables) > 1, f"No application tables created. Only found: {sorted(tables)}"
 
         print(f"✓ Alembic upgrade head succeeded, created {len(tables)} tables")
 
