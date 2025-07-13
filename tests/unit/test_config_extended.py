@@ -78,6 +78,7 @@ class TestExtendedConfig:
             settings = Settings()
             assert settings.debug is True
 
+    @pytest.mark.skipif(os.getenv("CI") == "true", reason="CI forces use_stubs=True")
     def test_use_stubs_configuration(self):
         """Test stub configuration."""
         # With stubs enabled
