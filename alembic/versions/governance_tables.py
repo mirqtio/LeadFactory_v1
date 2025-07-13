@@ -22,14 +22,18 @@ def upgrade() -> None:
     dialect_name = bind.dialect.name
     
     # Check if this migration has already been applied by checking for the users table
+    from sqlalchemy.exc import ProgrammingError, OperationalError
     try:
         # Try to execute a simple query on the users table
         result = bind.execute(sa.text("SELECT 1 FROM users LIMIT 1"))
         result.close()
         print("Governance tables already exist, skipping creation")
         return
-    except:
+    except (ProgrammingError, OperationalError):
         # Table doesn't exist, proceed with creation
+        # For PostgreSQL, we need to rollback the failed transaction
+        if dialect_name == 'postgresql':
+            bind.execute(sa.text("ROLLBACK"))
         pass
     
     # Create users table
