@@ -19,7 +19,7 @@ TEST_URLS = [
         "address": "5811 Summitview Ave"
     },
     {
-        "business_id": "test_002", 
+        "business_id": "test_002",
         "business_name": "Northtown Coffee",
         "url": "https://www.northtowncoffeehouse.com",
         "vertical": "retail",
@@ -76,7 +76,7 @@ TEST_URLS = [
     },
     {
         "business_id": "test_009",
-        "business_name": "Selah Schools", 
+        "business_name": "Selah Schools",
         "url": "https://www.selahschools.org",
         "vertical": "nonprofit",
         "location": "Selah, WA",
@@ -93,7 +93,7 @@ STATUS_ENDPOINT = f"{API_BASE_URL}/api/v1/assessments"
 async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]) -> str:
     """Trigger assessment for a business URL"""
     print(f"\n📊 Triggering assessment for {business['business_name']}...")
-    
+
     payload = {
         "business_id": business["business_id"],
         "url": business["url"],
@@ -112,12 +112,12 @@ async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]
             "state": business["location"].split(",")[1].strip() if "," in business["location"] else ""
         }
     }
-    
+
     response = await client.post(ASSESSMENT_ENDPOINT, json=payload)
     if response.status_code != 200:
         print(f"❌ Failed to trigger assessment: {response.text}")
         return None
-        
+
     data = response.json()
     session_id = data["session_id"]
     print(f"✅ Assessment started with session ID: {session_id}")
@@ -141,18 +141,18 @@ async def get_assessment_results(client: httpx.AsyncClient, session_id: str) -> 
 async def wait_for_completion(client: httpx.AsyncClient, session_id: str, business_name: str) -> bool:
     """Wait for assessment to complete"""
     print(f"⏳ Waiting for {business_name} assessment to complete...")
-    
+
     max_attempts = 60  # 5 minutes max
     for attempt in range(max_attempts):
         status = await check_assessment_status(client, session_id)
-        
+
         if status["status"] in ["completed", "failed", "partial"]:
             print(f"✅ Assessment {status['status']} for {business_name}")
             return True
-            
+
         print(f"   Progress: {status.get('progress', 'Processing...')} ({attempt+1}/{max_attempts})")
         await asyncio.sleep(5)  # Check every 5 seconds
-    
+
     print(f"❌ Assessment timed out for {business_name}")
     return False
 
@@ -160,17 +160,17 @@ async def wait_for_completion(client: httpx.AsyncClient, session_id: str, busine
 async def save_results(session_id: str, business: Dict[str, Any], results: Dict[str, Any]):
     """Save assessment results to file"""
     filename = f"assessment_{business['business_id']}_{session_id}.json"
-    
+
     output = {
         "session_id": session_id,
         "business": business,
         "results": results,
         "generated_at": datetime.utcnow().isoformat()
     }
-    
+
     with open(filename, 'w') as f:
         json.dump(output, f, indent=2, default=str)
-    
+
     print(f"💾 Results saved to {filename}")
 
 
@@ -179,7 +179,7 @@ async def main():
     print("🚀 Starting LeadFactory Assessment Tests")
     print(f"📍 API URL: {API_BASE_URL}")
     print(f"🔗 Testing {len(TEST_URLS)} URLs")
-    
+
     async with httpx.AsyncClient(timeout=60.0) as client:
         # First check if API is available
         try:
@@ -192,34 +192,34 @@ async def main():
             print(f"❌ Cannot connect to API: {e}")
             print("Please run: python -m uvicorn main:app --reload")
             return
-        
+
         # Trigger assessments for all URLs
         sessions = []
         for business in TEST_URLS:
             session_id = await trigger_assessment(client, business)
             if session_id:
                 sessions.append((session_id, business))
-        
+
         if not sessions:
             print("❌ No assessments were triggered successfully")
             return
-        
+
         # Wait for all assessments to complete
         print(f"\n⏳ Waiting for {len(sessions)} assessments to complete...")
         completed = []
-        
+
         for session_id, business in sessions:
             if await wait_for_completion(client, session_id, business["business_name"]):
                 completed.append((session_id, business))
-        
+
         # Get and save results
         print(f"\n📥 Retrieving results for {len(completed)} completed assessments...")
-        
+
         for session_id, business in completed:
             try:
                 results = await get_assessment_results(client, session_id)
                 await save_results(session_id, business, results)
-                
+
                 # Print summary
                 print(f"\n📊 Summary for {business['business_name']}:")
                 if results.get("pagespeed_results"):
@@ -227,18 +227,18 @@ async def main():
                     print(f"   Performance Score: {ps.get('performance_score', 'N/A')}/100")
                     print(f"   SEO Score: {ps.get('seo_score', 'N/A')}/100")
                     print(f"   Accessibility Score: {ps.get('accessibility_score', 'N/A')}/100")
-                
+
                 if results.get("tech_stack_results"):
                     print(f"   Technologies Found: {len(results['tech_stack_results'])}")
-                
+
                 if results.get("ai_insights_results"):
                     ai = results["ai_insights_results"]
                     recs = ai.get("recommendations", [])
                     print(f"   AI Recommendations: {len(recs)}")
-                    
+
             except Exception as e:
                 print(f"❌ Failed to get results for {business['business_name']}: {e}")
-    
+
     print("\n✅ Assessment test completed!")
     print("📁 Check the generated JSON files for detailed results")
 

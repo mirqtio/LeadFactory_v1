@@ -23,11 +23,11 @@ def capture_lighthouse_metrics(url: str) -> dict:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context()
         page = context.new_page()
-        
+
         # Navigate and wait for load
         page.goto(url)
         page.wait_for_load_state("networkidle")
-        
+
         # Capture basic metrics (simplified)
         metrics = {
             "url": url,
@@ -44,7 +44,7 @@ def capture_lighthouse_metrics(url: str) -> dict:
                 "pwa": 0
             }
         }
-        
+
         browser.close()
         return metrics
 

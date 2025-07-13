@@ -110,7 +110,7 @@ async def health_check(db: Session = Depends(get_db)):
         "version": settings.app_version,
         "environment": settings.environment,
     }
-    
+
     # Check database connectivity
     try:
         # Execute a simple query to verify database connection
@@ -125,7 +125,7 @@ async def health_check(db: Session = Depends(get_db)):
             status_code=503,
             content=health_status
         )
-    
+
     # Check Redis connectivity (only if Redis URL is configured)
     if settings.redis_url and settings.redis_url != "redis://localhost:6379/0":
         try:
@@ -136,7 +136,7 @@ async def health_check(db: Session = Depends(get_db)):
             logger.warning(f"Redis health check failed: {e}")
             # Redis failure is not critical, just log it
             health_status["redis"] = "error"
-    
+
     return health_status
 
 
@@ -216,13 +216,13 @@ if settings.enable_scoring_playground:
 if settings.enable_governance:
     from api.governance import router as governance_router
     from api.audit_middleware import AuditLoggingMiddleware
-    
+
     # Add audit logging middleware
     app.add_middleware(AuditLoggingMiddleware)
-    
+
     # Add governance router
     app.include_router(governance_router)
-    
+
     # Mount static files for Governance UI
     app.mount("/static/governance", StaticFiles(directory="static/governance"), name="governance")
 

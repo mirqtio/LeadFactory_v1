@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import text
 
 from d6_reports.lineage.models import ReportLineage, ReportLineageAudit
 
@@ -62,10 +61,10 @@ class TestLineageAPIv2:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{lineage.report_generation_id}")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["id"] == lineage.id
         assert data["report_id"] == lineage.report_generation_id
         assert data["lead_id"] == "lead-123"
@@ -106,7 +105,7 @@ class TestLineageAPIv2:
         assert response.status_code == 200
         results = response.json()
         assert len(results) == 3
-        
+
         # Should be ordered by created_at descending
         assert results[0]["lead_id"] == "lead-0"
         assert results[1]["lead_id"] == "lead-1"
@@ -155,10 +154,10 @@ class TestLineageAPIv2:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{lineage.id}/logs")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["lineage_id"] == lineage.id
         assert data["report_id"] == lineage.report_generation_id
         assert "logs" in data
@@ -182,12 +181,12 @@ class TestLineageAPIv2:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{lineage.id}/download")
-        
+
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/gzip"
         assert "attachment" in response.headers["content-disposition"]
         assert f"lineage_{lineage.id}_raw_inputs.json.gz" in response.headers["content-disposition"]
-        
+
         # Verify content is valid gzip
         decompressed = gzip.decompress(response.content)
         data = json.loads(decompressed)
@@ -224,10 +223,10 @@ class TestLineageAPIv2:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get("/api/lineage/panel/stats")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["total_records"] == 5
         assert data["recent_records_24h"] >= 4  # At least 4 created in last 24h
         assert len(data["template_distribution"]) == 2
@@ -245,7 +244,7 @@ class TestLineageAPIv2:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.delete(f"/api/lineage/{lineage.id}")
-        
+
         assert response.status_code == 200
         assert "deleted successfully" in response.json()["message"]
 

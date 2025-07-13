@@ -258,30 +258,30 @@ def prepare_email_context(
 
 class EmailBuilder:
     """Email builder with template support"""
-    
+
     def __init__(self):
         self.templates = {}
         # Add default templates
         self.templates["audit_teaser"] = EmailTemplate()
         self.templates["report_ready"] = EmailTemplate()
-    
+
     def add_template(self, template: EmailTemplate):
         """Add a custom template"""
         if hasattr(template, 'name'):
             self.templates[template.name] = template
-    
+
     def get_template_names(self) -> List[str]:
         """Get list of available template names"""
         return list(self.templates.keys())
-    
-    def build_email(self, template_name: str = "audit_teaser", 
+
+    def build_email(self, template_name: str = "audit_teaser",
                    personalization: Optional[PersonalizationData] = None,
                    to_email: Optional[str] = None,
                    to_name: Optional[str] = None) -> Dict[str, Any]:
         """Build email from template and personalization data"""
         if template_name not in self.templates:
             raise ValueError(f"Template {template_name} not found")
-        
+
         # Basic email structure
         email = {
             "to": to_email or "test@example.com",
@@ -291,7 +291,7 @@ class EmailBuilder:
             "categories": ["audit", "leadfactory"],
             "custom_args": {"template": template_name}
         }
-        
+
         return email
 
 
@@ -300,12 +300,12 @@ def create_personalization_data(business_name: str, **kwargs) -> Personalization
     return PersonalizationData(business_name=business_name, **kwargs)
 
 
-def build_audit_email(business_name: str, findings: List[AuditFinding], 
+def build_audit_email(business_name: str, findings: List[AuditFinding],
                      contact_email: str, **kwargs) -> Dict[str, Any]:
     """Build audit email from findings"""
     # Select key findings for email
     email_findings = select_email_findings(findings)
-    
+
     # Create personalization
     personalization = PersonalizationData(
         business_name=business_name,
@@ -314,7 +314,7 @@ def build_audit_email(business_name: str, findings: List[AuditFinding],
             for finding in findings[:2]  # First 2 findings
         ]
     )
-    
+
     # Build email
     builder = EmailBuilder()
     return builder.build_email(

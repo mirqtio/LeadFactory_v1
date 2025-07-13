@@ -35,7 +35,7 @@ formula_errors = Counter(
 
 class FormulaEvaluator:
     """Evaluates Excel-style formulas for scoring calculations."""
-    
+
     def __init__(self, cache_size: int = FORMULA_CACHE_SIZE):
         """
         Initialize the formula evaluator.
@@ -46,13 +46,13 @@ class FormulaEvaluator:
         self.cache_size = cache_size
         self._formula_cache: Dict[str, Model] = {}
         self._clear_cache()
-    
+
     def _clear_cache(self):
         """Clear the formula cache."""
         self._formula_cache.clear()
         # Reset LRU cache
         self._compile_formula.cache_clear()
-    
+
     @lru_cache(maxsize=FORMULA_CACHE_SIZE)
     def _compile_formula(self, formula: str) -> Model:
         """
@@ -66,16 +66,16 @@ class FormulaEvaluator:
         """
         # Create a minimal Excel model
         model = Model()
-        
+
         # Add the formula to cell A1
         model.cells['Sheet1!A1'] = XLCell('Sheet1!A1', formula=formula)
-        
+
         # Compile the model
         compiler = ModelCompiler()
         compiler.compile(model)
-        
+
         return model
-    
+
     def _prepare_context(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare data context for formula evaluation.
@@ -89,26 +89,26 @@ class FormulaEvaluator:
             Dictionary mapping cell references to values
         """
         context = {}
-        
+
         # Map data to cells starting from A2
         # A1 contains the formula, A2 onwards contain data
         for i, (key, value) in enumerate(data.items(), start=2):
             cell_ref = f'Sheet1!A{i}'
-            
+
             # Create named range for easier reference
             named_ref = key.upper()
-            
+
             # Store both cell reference and named range
             context[cell_ref] = value
             context[named_ref] = value
-            
+
             # Also store in row format for array formulas
             col_letter = chr(ord('A') + (i - 2) % 26)
             row_num = 2 + (i - 2) // 26
             context[f'Sheet1!{col_letter}{row_num}'] = value
-        
+
         return context
-    
+
     @formula_evaluation_time.labels(formula_type='excel').time()
     def evaluate(
         self,
@@ -133,28 +133,28 @@ class FormulaEvaluator:
         """
         if not formula:
             return None
-        
+
         # Normalize formula
         formula = formula.strip()
         if not formula.startswith('='):
             formula = '=' + formula
-        
+
         start_time = time.time()
-        
+
         try:
             # Get or compile the formula
             model = self._compile_formula(formula)
-            
+
             # Check timeout
             if time.time() - start_time > timeout:
                 raise TimeoutError(f"Formula compilation exceeded {timeout}s timeout")
-            
+
             # Prepare context
             context = self._prepare_context(data)
-            
+
             # Create evaluator with context
             evaluator = Evaluator(model)
-            
+
             # Set cell values from context
             for cell_ref, value in context.items():
                 if cell_ref.startswith('Sheet1!'):
@@ -163,20 +163,20 @@ class FormulaEvaluator:
                     except:
                         # Cell might not exist, ignore
                         pass
-            
+
             # Check timeout again
             if time.time() - start_time > timeout:
                 raise TimeoutError(f"Formula evaluation exceeded {timeout}s timeout")
-            
+
             # Evaluate the formula cell
             result = evaluator.get_cell_value('Sheet1!A1')
-            
+
             # Convert result to Python type
             if hasattr(result, 'value'):
                 result = result.value
-            
+
             return result
-            
+
         except TimeoutError:
             formula_errors.labels(error_type='timeout').inc()
             raise
@@ -187,7 +187,7 @@ class FormulaEvaluator:
                 "data_keys": list(data.keys())
             })
             raise ValueError(f"Formula evaluation failed: {str(e)}")
-    
+
     def validate_formula(self, formula: str) -> List[str]:
         """
         Validate an Excel formula and return any errors.
@@ -199,32 +199,32 @@ class FormulaEvaluator:
             List of validation errors (empty if valid)
         """
         errors = []
-        
+
         if not formula:
             errors.append("Formula cannot be empty")
             return errors
-        
+
         # Normalize formula
         formula = formula.strip()
         if not formula.startswith('='):
             formula = '=' + formula
-        
+
         try:
             # Try to compile the formula
             self._compile_formula(formula)
-            
+
             # Check for unsupported functions
             unsupported = self._check_unsupported_functions(formula)
             if unsupported:
                 errors.append(
                     f"Unsupported Excel functions: {', '.join(unsupported)}"
                 )
-            
+
         except Exception as e:
             errors.append(f"Invalid formula syntax: {str(e)}")
-        
+
         return errors
-    
+
     def _check_unsupported_functions(self, formula: str) -> List[str]:
         """
         Check for Excel functions that xlcalculator doesn't support.
@@ -242,19 +242,19 @@ class FormulaEvaluator:
             'RANDARRAY', 'LET', 'LAMBDA', 'BYROW', 'BYCOL',
             'TEXTJOIN', 'IFS', 'SWITCH', 'MAXIFS', 'MINIFS'
         ]
-        
+
         # Extract function names from formula
         function_pattern = r'\b([A-Z]+)\s*\('
         found_functions = re.findall(function_pattern, formula.upper())
-        
+
         # Check which ones are unsupported
         unsupported_found = [
-            func for func in found_functions 
+            func for func in found_functions
             if func in unsupported_functions
         ]
-        
+
         return unsupported_found
-    
+
     def suggest_alternatives(self, unsupported_function: str) -> str:
         """
         Suggest alternatives for unsupported Excel functions.
@@ -274,7 +274,7 @@ class FormulaEvaluator:
             'MINIFS': 'Use MIN with IF array formula',
             'TEXTJOIN': 'Use CONCATENATE or & operator',
         }
-        
+
         return alternatives.get(
             unsupported_function.upper(),
             f"No direct alternative for {unsupported_function}"
@@ -288,10 +288,10 @@ _evaluator_instance: Optional[FormulaEvaluator] = None
 def get_formula_evaluator() -> FormulaEvaluator:
     """Get or create the global formula evaluator instance."""
     global _evaluator_instance
-    
+
     if _evaluator_instance is None:
         _evaluator_instance = FormulaEvaluator()
-    
+
     return _evaluator_instance
 
 

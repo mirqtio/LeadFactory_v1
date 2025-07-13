@@ -135,7 +135,7 @@ class D5ScoringResult(Base):
         if score >= 80:
             self.tier = "A"
         elif score >= 60:
-            self.tier = "B"  
+            self.tier = "B"
         elif score >= 40:
             self.tier = "C"
         else:

@@ -74,10 +74,10 @@ class TestLineageTracker:
         # Disable feature flag
         with patch("d6_reports.lineage.tracker.settings") as mock_settings:
             mock_settings.ENABLE_REPORT_LINEAGE = False
-            
+
             tracker = LineageTracker(async_db_session)
             lineage = await tracker.capture_lineage(report.id, lineage_data)
-            
+
             assert lineage is None
 
     @pytest.mark.asyncio
@@ -96,7 +96,7 @@ class TestLineageTracker:
 
         tracker = LineageTracker(async_db_session)
         lineage = await tracker.capture_lineage("invalid-report-id", lineage_data)
-        
+
         # Should return None on error
         assert lineage is None
 

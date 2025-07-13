@@ -6,12 +6,11 @@ Provides role-based access control and immutable audit trail
 import enum
 import hashlib
 import json
-from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional
 
 from sqlalchemy import (
-    Column, String, DateTime, Enum, Text, Index, Boolean, 
-    UniqueConstraint, CheckConstraint, Integer
+    Column, String, DateTime, Text, Index, Boolean,
+    CheckConstraint, Integer
 )
 from sqlalchemy.sql import func
 from database.base import Base, UUID, DatabaseAgnosticEnum
@@ -27,7 +26,7 @@ class UserRole(str, enum.Enum):
 class User(Base):
     """User model with role-based access control"""
     __tablename__ = "users"
-    
+
     id = Column(UUID(), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String(255), nullable=False, unique=True, index=True)
     name = Column(String(255), nullable=False)
@@ -36,12 +35,12 @@ class User(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
+
     # Audit fields
     created_by = Column(UUID(), nullable=True)
     deactivated_at = Column(DateTime(timezone=True), nullable=True)
     deactivated_by = Column(UUID(), nullable=True)
-    
+
     __table_args__ = (
         Index('idx_users_email_active', 'email', 'is_active'),
         # Note: Email validation is database-specific, handled in application layer
@@ -52,37 +51,37 @@ class User(Base):
 class AuditLog(Base):
     """Immutable audit log for all mutations"""
     __tablename__ = "audit_log_global"
-    
+
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     user_id = Column(UUID(), nullable=False, index=True)
     user_email = Column(String(255), nullable=False)  # Denormalized for historical accuracy
     user_role = Column(DatabaseAgnosticEnum(UserRole), nullable=False)  # Role at time of action
-    
+
     # Action details
     action = Column(String(50), nullable=False)  # CREATE, UPDATE, DELETE, etc.
     method = Column(String(10), nullable=False)  # POST, PUT, DELETE, etc.
     endpoint = Column(String(255), nullable=False)  # API endpoint
     object_type = Column(String(100), nullable=False)  # Model/resource type
     object_id = Column(String(255), nullable=True)  # ID of affected object
-    
+
     # Request/response data
     request_data = Column(Text, nullable=True)  # JSON of request body (PII masked)
     response_status = Column(Integer, nullable=False)  # HTTP status code
     response_data = Column(Text, nullable=True)  # JSON of response (PII masked)
-    
+
     # Audit trail integrity
     content_hash = Column(String(64), nullable=False)  # SHA256 of all fields
     checksum = Column(String(64), nullable=False)  # SHA256 including previous entry
-    
+
     # Performance tracking
     duration_ms = Column(Integer, nullable=True)  # Request duration in milliseconds
-    
+
     # Additional context
     ip_address = Column(String(45), nullable=True)  # IPv4 or IPv6
     user_agent = Column(String(500), nullable=True)
     details = Column(Text, nullable=True)  # Additional JSON context
-    
+
     __table_args__ = (
         Index('idx_audit_user_timestamp', 'user_id', 'timestamp'),
         Index('idx_audit_object', 'object_type', 'object_id'),
@@ -91,7 +90,7 @@ class AuditLog(Base):
         # Prevent any updates to audit logs
         CheckConstraint('false', name='no_update_allowed'),
     )
-    
+
     def calculate_content_hash(self) -> str:
         """Calculate SHA256 hash of audit entry content"""
         content = {
@@ -114,7 +113,7 @@ class AuditLog(Base):
         }
         content_str = json.dumps(content, sort_keys=True, default=str)
         return hashlib.sha256(content_str.encode()).hexdigest()
-    
+
     def calculate_checksum(self, previous_checksum: Optional[str] = None) -> str:
         """Calculate chained checksum including previous entry"""
         if previous_checksum:
@@ -127,7 +126,7 @@ class AuditLog(Base):
 class RoleChangeLog(Base):
     """Track all role changes for compliance"""
     __tablename__ = "role_change_log"
-    
+
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     user_id = Column(UUID(), nullable=False, index=True)
@@ -135,7 +134,7 @@ class RoleChangeLog(Base):
     old_role = Column(DatabaseAgnosticEnum(UserRole), nullable=False)
     new_role = Column(DatabaseAgnosticEnum(UserRole), nullable=False)
     reason = Column(Text, nullable=False)
-    
+
     __table_args__ = (
         Index('idx_role_change_user', 'user_id', 'timestamp'),
         # Prevent any updates

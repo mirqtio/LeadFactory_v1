@@ -30,7 +30,7 @@ class TestTokenUsage:
         assert hasattr(design, 'spacing')
         assert hasattr(design, 'animation')
         assert hasattr(design, 'breakpoints')
-        
+
         # Test that tokens is a dictionary
         assert isinstance(tokens, dict)
         assert len(tokens) > 0
@@ -41,12 +41,12 @@ class TestTokenUsage:
         assert hasattr(colors.primary, 'anthracite')
         assert hasattr(colors.primary, 'white')
         assert hasattr(colors.primary, 'synthesis_blue')  # Note: hyphen becomes underscore
-        
+
         # Test status color access
         assert hasattr(colors.status, 'critical')
         assert hasattr(colors.status, 'warning')
         assert hasattr(colors.status, 'success')
-        
+
         # Test functional color access
         assert hasattr(colors.functional, 'neutral')
         assert hasattr(colors.functional, 'light_bg')  # Note: hyphen becomes underscore
@@ -59,7 +59,7 @@ class TestTokenUsage:
         assert colors.primary.anthracite.value == "#0a0a0a"
         assert colors.primary.white.value == "#ffffff"
         assert colors.primary.synthesis_blue.value == "#0066ff"
-        
+
         # Test status colors
         assert colors.status.critical.value == "#dc2626"
         assert colors.status.warning.value == "#f59e0b"
@@ -70,10 +70,10 @@ class TestTokenUsage:
         # Test that status colors have usage descriptions
         assert colors.status.critical.usage is not None
         assert "critical" in colors.status.critical.usage.lower()
-        
+
         assert colors.status.warning.usage is not None
         assert "warning" in colors.status.warning.usage.lower() or "medium" in colors.status.warning.usage.lower()
-        
+
         assert colors.status.success.usage is not None
         assert "success" in colors.status.success.usage.lower() or "positive" in colors.status.success.usage.lower()
 
@@ -81,7 +81,7 @@ class TestTokenUsage:
         """Test that color tokens include contrast information where available."""
         # Check if any colors have contrast data
         has_contrast = False
-        
+
         for category in [colors.primary, colors.status, colors.functional]:
             for attr_name in dir(category):
                 if not attr_name.startswith('_'):
@@ -93,7 +93,7 @@ class TestTokenUsage:
                         for ratio in color_token.contrast.values():
                             assert isinstance(ratio, str)
                             assert ':1' in ratio
-        
+
         # At least some colors should have contrast data
         assert has_contrast, "No colors found with contrast information"
 
@@ -102,7 +102,7 @@ class TestTokenUsage:
         # Test font family access
         assert hasattr(typography, 'fontFamily')
         assert isinstance(typography.fontFamily, str)
-        
+
         # Test scale access
         assert hasattr(typography, 'scale')
         assert hasattr(typography.scale, 'display')
@@ -120,7 +120,7 @@ class TestTokenUsage:
         assert display.size == "72px"
         assert display.weight == "300"
         assert display.lineHeight == "0.9"
-        
+
         # Test h1 typography
         h1 = typography.scale.h1
         assert isinstance(h1, TypographyToken)
@@ -133,7 +133,7 @@ class TestTokenUsage:
         # Test base spacing
         assert hasattr(spacing, 'base')
         assert spacing.base == "8px"
-        
+
         # Test scale access
         assert hasattr(spacing, 'scale')
         assert hasattr(spacing.scale, 'xs')
@@ -148,7 +148,7 @@ class TestTokenUsage:
         """Test that spacing values follow 8px base unit system."""
         # Test base value
         assert spacing.base == "8px"
-        
+
         # Test scale values
         assert spacing.scale.xs == "8px"
         assert spacing.scale.sm == "16px"
@@ -166,7 +166,7 @@ class TestTokenUsage:
         assert hasattr(animation.duration, 'standard')
         assert hasattr(animation.duration, 'page')
         assert hasattr(animation.duration, 'data')
-        
+
         # Test easing access
         assert hasattr(animation, 'easing')
         assert hasattr(animation.easing, 'out')
@@ -179,7 +179,7 @@ class TestTokenUsage:
         assert animation.duration.standard == "200ms"
         assert animation.duration.page == "300ms"
         assert animation.duration.data == "400ms"
-        
+
         # Test easing functions
         assert animation.easing.out == "ease-out"
         assert animation.easing.in_out == "ease-in-out"
@@ -202,12 +202,12 @@ class TestTokenUsage:
         assert get_color_value('primary', 'anthracite') == "#0a0a0a"
         assert get_color_value('primary', 'white') == "#ffffff"
         assert get_color_value('primary', 'synthesis-blue') == "#0066ff"
-        
+
         # Test status colors
         assert get_color_value('status', 'critical') == "#dc2626"
         assert get_color_value('status', 'warning') == "#f59e0b"
         assert get_color_value('status', 'success') == "#10b981"
-        
+
         # Test functional colors
         assert get_color_value('functional', 'neutral') == "#6b7280"
 
@@ -216,7 +216,7 @@ class TestTokenUsage:
         # Test invalid category
         with pytest.raises(KeyError):
             get_color_value('invalid', 'anthracite')
-        
+
         # Test invalid color name
         with pytest.raises(KeyError):
             get_color_value('primary', 'invalid')
@@ -228,13 +228,13 @@ class TestTokenUsage:
         assert "font-size: 72px" in display_css
         assert "font-weight: 300" in display_css
         assert "line-height: 0.9" in display_css
-        
+
         # Test h1 typography CSS
         h1_css = get_typography_css('h1')
         assert "font-size: 48px" in h1_css
         assert "font-weight: 400" in h1_css
         assert "line-height: 1.1" in h1_css
-        
+
         # Test body typography CSS
         body_css = get_typography_css('body')
         assert "font-size: 16px" in body_css
@@ -244,11 +244,11 @@ class TestTokenUsage:
     def test_get_typography_css_format(self):
         """Test that get_typography_css returns valid CSS format."""
         css = get_typography_css('h1')
-        
+
         # Should contain CSS property-value pairs
         assert ":" in css
         assert ";" in css
-        
+
         # Should contain all three properties
         properties = css.split(';')
         property_names = []
@@ -256,7 +256,7 @@ class TestTokenUsage:
             if prop.strip():
                 name = prop.split(':')[0].strip()
                 property_names.append(name)
-        
+
         assert 'font-size' in property_names
         assert 'font-weight' in property_names
         assert 'line-height' in property_names
@@ -289,12 +289,12 @@ class TestTokenUsage:
         # Test that color tokens are ColorToken instances
         color_token = colors.primary.anthracite
         assert isinstance(color_token, ColorToken)
-        
+
         # Test namedtuple fields
         assert hasattr(color_token, 'value')
         assert hasattr(color_token, 'usage')
         assert hasattr(color_token, 'contrast')
-        
+
         # Test that we can access fields by index
         assert color_token[0] == color_token.value
         assert color_token[1] == color_token.usage
@@ -305,12 +305,12 @@ class TestTokenUsage:
         # Test that typography tokens are TypographyToken instances
         type_token = typography.scale.h1
         assert isinstance(type_token, TypographyToken)
-        
+
         # Test namedtuple fields
         assert hasattr(type_token, 'size')
         assert hasattr(type_token, 'weight')
         assert hasattr(type_token, 'lineHeight')
-        
+
         # Test that we can access fields by index
         assert type_token[0] == type_token.size
         assert type_token[1] == type_token.weight
@@ -335,7 +335,7 @@ class TestTokenUsage:
             'border_radius': "8px",
             'transition': f"all {animation.duration.standard} {animation.easing.out}"
         }
-        
+
         # Verify button styles are generated correctly
         assert button_styles['background_color'] == "#0066ff"
         assert button_styles['color'] == "#ffffff"
@@ -352,7 +352,7 @@ class TestTokenUsage:
             'tablet': f"@media (min-width: {breakpoints.mobile}) and (max-width: {breakpoints.tablet})",
             'desktop': f"@media (min-width: {breakpoints.desktop})"
         }
-        
+
         # Verify media queries are generated correctly
         assert media_queries['mobile'] == "@media (max-width: 640px)"
         assert media_queries['tablet'] == "@media (min-width: 640px) and (max-width: 1024px)"
@@ -367,7 +367,7 @@ class TestTokenUsage:
             'success': colors.status.success.value,
             'info': colors.primary.synthesis_blue.value
         }
-        
+
         # Verify semantic color mapping
         assert alert_colors['error'] == "#dc2626"
         assert alert_colors['warning'] == "#f59e0b"
@@ -385,7 +385,7 @@ class TestTokenUsage:
             'body_text': get_typography_css('body'),
             'caption': get_typography_css('caption')
         }
-        
+
         # Verify all typography styles are generated
         for style_name, css in article_typography.items():
             assert isinstance(css, str)
@@ -402,7 +402,7 @@ class TestTokenUsage:
             'inner_spacing': spacing.scale.sm,
             'section_gap': spacing.scale.xl
         }
-        
+
         # Verify spacing values
         assert card_spacing['margin_bottom'] == "32px"
         assert card_spacing['padding'] == "24px"
@@ -418,7 +418,7 @@ class TestTokenUsage:
             'page_transition': f"opacity {animation.duration.page} {animation.easing.out}",
             'data_loading': f"opacity {animation.duration.data} {animation.easing.in_out}"
         }
-        
+
         # Verify animation specifications
         assert ui_animations['hover_effect'] == "transform 150ms ease-out"
         assert ui_animations['modal_slide'] == "transform 200ms ease-in-out"
@@ -429,10 +429,10 @@ class TestTokenUsage:
         """Test that all expected items are exported from the module."""
         expected_exports = [
             'tokens', 'colors', 'typography', 'spacing', 'animation', 'breakpoints',
-            'get_color_value', 'get_typography_css', 'get_spacing_value', 
+            'get_color_value', 'get_typography_css', 'get_spacing_value',
             'validate_tokens', 'ColorToken', 'TypographyToken'
         ]
-        
+
         for export_name in expected_exports:
             assert hasattr(design, export_name), f"Missing export: {export_name}"
             assert export_name in design.__all__, f"Export not in __all__: {export_name}"
@@ -463,7 +463,7 @@ class TestTokenUsage:
                 spacing.scale.xl
             ]
         }
-        
+
         # Verify theme structure
         assert theme['colors']['primary'] == "#0066ff"
         assert theme['fonts']['family'].startswith("-apple-system")

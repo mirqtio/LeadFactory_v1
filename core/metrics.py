@@ -277,7 +277,7 @@ class MetricsCollector:
     def track_cache_miss(self, cache_type: str = "redis"):
         """Track cache miss"""
         cache_misses.labels(cache_type=cache_type).inc()
-        
+
     def track_prompt_request(
         self,
         prompt_slug: str,
@@ -291,10 +291,10 @@ class MetricsCollector:
         """Track Humanloop prompt request metrics"""
         # Track request count
         prompt_requests.labels(prompt_slug=prompt_slug, model=model, status=status).inc()
-        
+
         # Track duration
         prompt_duration.labels(prompt_slug=prompt_slug, model=model).observe(duration)
-        
+
         # Track token usage
         prompt_tokens_used.labels(
             prompt_slug=prompt_slug, model=model, token_type="input"
@@ -302,10 +302,10 @@ class MetricsCollector:
         prompt_tokens_used.labels(
             prompt_slug=prompt_slug, model=model, token_type="output"
         ).inc(tokens_output)
-        
+
         # Track cost
         prompt_cost_usd.labels(prompt_slug=prompt_slug, model=model).inc(cost)
-        
+
     def track_config_reload(self, config_type: str, duration: float, status: str = "success"):
         """Track configuration reload metrics"""
         config_reload_total.labels(config_type=config_type, status=status).inc()

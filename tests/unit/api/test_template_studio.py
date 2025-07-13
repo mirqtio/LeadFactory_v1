@@ -2,9 +2,7 @@
 Unit tests for Template Studio API (P0-024)
 """
 
-import json
-from datetime import datetime
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -74,7 +72,7 @@ def sample_template(db_session):
         supports_print=True,
     )
     db_session.add(template)
-    
+
     # Add a sample lead
     lead = Lead(
         id="1",
@@ -88,7 +86,7 @@ def sample_template(db_session):
         zip_code="12345"
     )
     db_session.add(lead)
-    
+
     db_session.commit()
     return template
 
@@ -104,7 +102,7 @@ class TestTemplateStudioAPI:
             "abc123def456",  # Git SHA
             "2025-01-12T10:00:00+00:00"  # Git date
         ]
-        
+
         # Override the get_db dependency
         from database.session import get_db
         def override_get_db():
@@ -112,11 +110,11 @@ class TestTemplateStudioAPI:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get("/api/template-studio/templates")
-        
+
         assert response.status_code == 200
         templates = response.json()
         assert len(templates) == 1
-        
+
         template = templates[0]
         assert template["id"] == sample_template.id
         assert template["name"] == sample_template.name
@@ -132,10 +130,10 @@ class TestTemplateStudioAPI:
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/template-studio/templates/{sample_template.id}")
-        
+
         assert response.status_code == 200
         detail = response.json()
-        
+
         assert detail["id"] == sample_template.id
         assert detail["content"] == sample_template.html_template
         assert detail["css_styles"] == sample_template.css_styles
@@ -155,10 +153,10 @@ class TestTemplateStudioAPI:
         }
 
         response = test_client.post("/api/template-studio/preview", json=preview_request)
-        
+
         assert response.status_code == 200
         result = response.json()
-        
+
         assert "Test Business Inc." in result["rendered_html"]
         assert "https://testbusiness.com" in result["rendered_html"]
         assert result["render_time_ms"] < 500  # Performance requirement
@@ -177,10 +175,10 @@ class TestTemplateStudioAPI:
         }
 
         response = test_client.post("/api/template-studio/preview", json=preview_request)
-        
+
         assert response.status_code == 200
         result = response.json()
-        
+
         assert result["rendered_html"] == ""
         assert len(result["errors"]) > 0
         assert "syntax error" in result["errors"][0].lower()
@@ -198,10 +196,10 @@ class TestTemplateStudioAPI:
         }
 
         response = test_client.post("/api/template-studio/preview", json=preview_request)
-        
+
         assert response.status_code == 200
         result = response.json()
-        
+
         # With autoescape, undefined variables should not cause errors
         assert result["rendered_html"] != ""
         assert len(result["errors"]) == 0
@@ -230,7 +228,7 @@ class TestTemplateStudioAPI:
         # Mock git operations
         mock_run.return_value = MagicMock(returncode=0)
         mock_check_output.return_value = "abc123def456"
-        
+
         from database.session import get_db
         def override_get_db():
             yield db_session
@@ -244,10 +242,10 @@ class TestTemplateStudioAPI:
         }
 
         response = test_client.post("/api/template-studio/propose-changes", json=proposal)
-        
+
         assert response.status_code == 200
         result = response.json()
-        
+
         assert "pr_url" in result
         assert "branch_name" in result
         assert "template-update-" in result["branch_name"]
@@ -266,17 +264,17 @@ index abc123..def456 100644
 -<p>Old content</p>
 +<p>New content</p>
  <p>Footer</p>"""
-        
+
         from database.session import get_db
         def override_get_db():
             yield db_session
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/template-studio/diff/{sample_template.id}")
-        
+
         assert response.status_code == 200
         diff = response.json()
-        
+
         assert diff["template_id"] == sample_template.id
         assert diff["has_changes"] is True
         assert len(diff["additions"]) > 0
@@ -317,10 +315,10 @@ index abc123..def456 100644
         }
 
         response = test_client.post("/api/template-studio/preview", json=preview_request)
-        
+
         assert response.status_code == 200
         result = response.json()
-        
+
         # Should be escaped
         assert "&lt;script&gt;" in result["rendered_html"]
         assert "<script>" not in result["rendered_html"]

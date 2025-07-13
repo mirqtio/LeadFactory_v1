@@ -302,7 +302,7 @@ class SourcingCoordinator:
             # For now, just set empty results
             batch.scraped_count = 0
             batch.total_expected = 0
-            
+
             self.logger.info(
                 "Scraping phase skipped - Yelp provider removed. "
                 "DataAxle integration pending."

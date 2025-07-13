@@ -4,13 +4,11 @@ FastAPI endpoints for Report Lineage Panel
 Provides REST API for viewing report generation lineage,
 including pipeline logs and raw input downloads.
 """
-import gzip
 import json
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Response, Query
-from fastapi.responses import StreamingResponse
 from sqlalchemy import text, or_
 from sqlalchemy.orm import Session
 
@@ -35,14 +33,14 @@ async def get_lineage_by_report_id(
     Response time: <500ms
     """
     logger.info(f"Getting lineage for report_id: {report_id}")
-    
+
     lineage = db.query(ReportLineage).filter(
         ReportLineage.report_generation_id == report_id
     ).first()
-    
+
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
-    
+
     # Log access for audit
     audit = ReportLineageAudit(
         lineage_id=lineage.id,
@@ -51,7 +49,7 @@ async def get_lineage_by_report_id(
     )
     db.add(audit)
     db.commit()
-    
+
     return {
         "id": lineage.id,
         "report_id": lineage.report_generation_id,
@@ -77,7 +75,7 @@ async def search_lineage(
     Search lineage records with filtering.
     """
     query = db.query(ReportLineage)
-    
+
     # Apply filters
     filters = []
     if lead_id:
@@ -86,16 +84,16 @@ async def search_lineage(
         filters.append(ReportLineage.pipeline_run_id == pipeline_run_id)
     if template_version_id:
         filters.append(ReportLineage.template_version_id == template_version_id)
-    
+
     if filters:
         query = query.filter(or_(*filters))
-    
+
     # Order by creation date descending
     query = query.order_by(ReportLineage.created_at.desc())
-    
+
     # Apply pagination
     lineages = query.offset(skip).limit(limit).all()
-    
+
     return [
         {
             "id": lineage.id,
@@ -124,10 +122,10 @@ async def get_pipeline_logs(
     lineage = db.query(ReportLineage).filter(
         ReportLineage.id == lineage_id
     ).first()
-    
+
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
-    
+
     # Log access
     audit = ReportLineageAudit(
         lineage_id=lineage.id,
@@ -136,13 +134,13 @@ async def get_pipeline_logs(
     )
     db.add(audit)
     db.commit()
-    
+
     # Parse and return logs
     try:
         logs = json.loads(lineage.pipeline_logs) if lineage.pipeline_logs else {}
     except json.JSONDecodeError:
         logs = {"error": "Invalid JSON in pipeline logs"}
-    
+
     return {
         "lineage_id": lineage_id,
         "report_id": lineage.report_generation_id,
@@ -164,13 +162,13 @@ async def download_raw_inputs(
     lineage = db.query(ReportLineage).filter(
         ReportLineage.id == lineage_id
     ).first()
-    
+
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
-    
+
     if not lineage.raw_inputs_compressed:
         raise HTTPException(status_code=404, detail="No raw inputs available")
-    
+
     # Log download
     audit = ReportLineageAudit(
         lineage_id=lineage.id,
@@ -179,7 +177,7 @@ async def download_raw_inputs(
     )
     db.add(audit)
     db.commit()
-    
+
     # Return compressed data as download
     return Response(
         content=lineage.raw_inputs_compressed,
@@ -199,7 +197,7 @@ async def get_lineage_stats(
     """
     # Get counts
     total_count = db.query(ReportLineage).count()
-    
+
     # Get recent count (last 24 hours)
     recent_count = db.execute(
         text("""
@@ -208,7 +206,7 @@ async def get_lineage_stats(
         WHERE created_at >= datetime('now', '-1 day')
         """)
     ).scalar()
-    
+
     # Get template version distribution
     template_stats = db.execute(
         text("""
@@ -219,7 +217,7 @@ async def get_lineage_stats(
         LIMIT 5
         """)
     ).fetchall()
-    
+
     # Get total storage used
     total_storage = db.execute(
         text("""
@@ -227,12 +225,12 @@ async def get_lineage_stats(
         FROM report_lineage
         """)
     ).scalar() or 0
-    
+
     return {
         "total_records": total_count,
         "recent_records_24h": recent_count or 0,
         "template_distribution": [
-            {"version": row[0], "count": row[1]} 
+            {"version": row[0], "count": row[1]}
             for row in template_stats
         ],
         "total_storage_mb": round(total_storage / (1024 * 1024), 2)
@@ -250,10 +248,10 @@ async def delete_lineage(
     lineage = db.query(ReportLineage).filter(
         ReportLineage.id == lineage_id
     ).first()
-    
+
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
-    
+
     # Log deletion
     audit = ReportLineageAudit(
         lineage_id=lineage.id,
@@ -261,9 +259,9 @@ async def delete_lineage(
         accessed_at=datetime.utcnow()
     )
     db.add(audit)
-    
+
     # Delete the lineage record
     db.delete(lineage)
     db.commit()
-    
+
     return {"message": f"Lineage {lineage_id} deleted successfully"}

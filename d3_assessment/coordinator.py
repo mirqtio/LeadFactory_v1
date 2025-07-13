@@ -98,7 +98,7 @@ class AssessmentCoordinator:
         self.llm_generator = LLMInsightGenerator()
         self.email_enricher = get_email_enricher()
         self.logger = logger
-        
+
         # Initialize assessors from registry
         self.assessors = {}
         for name, assessor_class in ASSESSOR_REGISTRY.items():
@@ -369,7 +369,7 @@ class AssessmentCoordinator:
             # Use the new assessor interface
             try:
                 result = await self.pagespeed_assessor.assess(
-                    url=url, 
+                    url=url,
                     business_data=business_data or {"business_id": business_id}
                 )
             except Exception as e:
@@ -383,7 +383,7 @@ class AssessmentCoordinator:
                 if hasattr(self, 'logger'):
                     self.logger.error(f"{error_msg}\n{tb}")
                 raise
-            
+
             # Convert BaseAssessor result to AssessmentResult
             return AssessmentResult(
                 id=str(uuid.uuid4()),
@@ -464,7 +464,7 @@ class AssessmentCoordinator:
             base_assessment.total_cost_usd = insights.total_cost_usd
 
             return base_assessment
-            
+
         elif assessment_type == AssessmentType.BUSINESS_INFO:
             # Use GBP assessor from registry
             if "gbp_profile" in self.assessors:
@@ -473,7 +473,7 @@ class AssessmentCoordinator:
                         url=url,
                         business_data=business_data or {"business_id": business_id}
                     )
-                    
+
                     # Convert BaseAssessor result to AssessmentResult
                     return AssessmentResult(
                         id=str(uuid.uuid4()),

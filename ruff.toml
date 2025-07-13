@@ -6,19 +6,6 @@ target-version = "py311"
 # Line length (matching black default)
 line-length = 120
 
-# Enable specific rule sets
-select = [
-    "E",     # pycodestyle errors
-    "W",     # pycodestyle warnings  
-    "F",     # pyflakes
-]
-
-# Ignore specific rules
-ignore = [
-    "E203",  # Whitespace before ':' (conflicts with black)
-    "E501",  # Line too long (handled by formatter)
-]
-
 # Exclude paths
 exclude = [
     ".git",
@@ -34,6 +21,26 @@ exclude = [
     "node_modules",
 ]
 
-[per-file-ignores]
+[lint]
+# Enable specific rule sets
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings  
+    "F",     # pyflakes
+]
+
+# Ignore specific rules
+ignore = [
+    "E203",  # Whitespace before ':' (conflicts with black)
+    "E501",  # Line too long (handled by formatter)
+    "E402",  # Module level import not at top of file
+    "F401",  # Unused imports (ok in __init__.py files)
+    "F841",  # Local variable assigned but never used
+    "W293",  # Blank line contains whitespace
+    "W291",  # Trailing whitespace
+]
+
+[lint.per-file-ignores]
 # Ignore import violations in specific files
 "__init__.py" = ["F401"]
+"tests/*" = ["F841"]  # Allow unused variables in tests

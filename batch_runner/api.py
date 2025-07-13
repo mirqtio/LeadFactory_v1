@@ -107,7 +107,7 @@ async def preview_batch_cost(
     # Validate lead IDs exist
     from lead_explorer.repository import LeadRepository
     lead_repo = LeadRepository(db)
-    
+
     valid_leads = []
     for lead_id in request.lead_ids:
         lead = lead_repo.get_lead_by_id(lead_id)
@@ -115,25 +115,25 @@ async def preview_batch_cost(
             valid_leads.append(lead_id)
         else:
             logger.warning(f"Lead {lead_id} not found for batch preview")
-    
+
     if not valid_leads:
         raise HTTPException(status_code=400, detail="No valid leads found")
-    
+
     if len(valid_leads) != len(request.lead_ids):
         logger.warning(f"Only {len(valid_leads)} of {len(request.lead_ids)} leads are valid")
 
     # Calculate cost preview
     cost_calculator = get_cost_calculator()
     cost_preview = cost_calculator.calculate_batch_preview(
-        valid_leads, 
+        valid_leads,
         request.template_version
     )
-    
+
     # Validate against budget
     budget_validation = cost_calculator.validate_budget(
         cost_preview["cost_breakdown"]["total_cost"]
     )
-    
+
     # Prepare response
     preview = BatchPreviewSchema(
         lead_count=len(valid_leads),
@@ -148,10 +148,10 @@ async def preview_batch_cost(
         budget_warning=budget_validation.get("warning_message"),
         accuracy_note=cost_preview["accuracy_note"]
     )
-    
+
     metrics.increment_counter("batch_runner_previews_generated")
     logger.info(f"Cost preview generated: ${cost_preview['cost_breakdown']['total_cost']:.2f} for {len(valid_leads)} leads")
-    
+
     return preview
 
 
@@ -169,20 +169,20 @@ async def start_batch_processing_endpoint(
     Creates batch record and starts processing in background with WebSocket URL.
     """
     logger.info(f"Starting batch processing for {len(request.lead_ids)} leads")
-    
+
     # Validate leads again
     from lead_explorer.repository import LeadRepository
     lead_repo = LeadRepository(db)
-    
+
     valid_leads = []
     for lead_id in request.lead_ids:
         lead = lead_repo.get_lead_by_id(lead_id)
         if lead:
             valid_leads.append(lead_id)
-    
+
     if not valid_leads:
         raise HTTPException(status_code=400, detail="No valid leads found")
-    
+
     # Create batch record
     batch = BatchReport(
         name=request.name,
@@ -197,14 +197,14 @@ async def start_batch_processing_endpoint(
         created_by=request.created_by,
         websocket_url=f"/api/v1/batch/{None}/progress"  # Will be updated with actual ID
     )
-    
+
     db.add(batch)
     db.commit()
     db.refresh(batch)
-    
+
     # Update WebSocket URL with actual batch ID
     batch.websocket_url = f"/api/v1/batch/{batch.id}/progress"
-    
+
     # Create lead records
     for i, lead_id in enumerate(valid_leads):
         batch_lead = BatchReportLead(
@@ -215,15 +215,15 @@ async def start_batch_processing_endpoint(
             max_retries=request.retry_count or 3
         )
         db.add(batch_lead)
-    
+
     db.commit()
-    
+
     # Start background processing
     background_tasks.add_task(start_batch_processing, batch.id)
-    
+
     metrics.increment_counter("batch_runner_batches_started")
     logger.info(f"Batch {batch.id} created and processing started")
-    
+
     return BatchResponseSchema(
         id=batch.id,
         name=batch.name,
@@ -263,7 +263,7 @@ async def get_batch_status(
     batch = db.query(BatchReport).filter_by(id=batch_id).first()
     if not batch:
         raise HTTPException(status_code=404, detail="Batch not found")
-    
+
     # Get recent lead results for context
     recent_leads = (
         db.query(BatchReportLead)
@@ -272,7 +272,7 @@ async def get_batch_status(
         .limit(5)
         .all()
     )
-    
+
     recent_results = []
     for lead in recent_leads:
         recent_results.append({
@@ -282,7 +282,7 @@ async def get_batch_status(
             "processing_duration_ms": lead.processing_duration_ms,
             "completed_at": lead.completed_at.isoformat() if lead.completed_at else None
         })
-    
+
     # Get error summary
     error_counts = {}
     if batch.failed_leads > 0:
@@ -293,7 +293,7 @@ async def get_batch_status(
             .all()
         )
         error_counts = {error_code: count for error_code, count in error_query}
-    
+
     return BatchStatusResponseSchema(
         batch_id=batch.id,
         status=batch.status.value,
@@ -327,31 +327,31 @@ async def list_batches(
     logger.debug("Listing batches")
 
     query = db.query(BatchReport)
-    
+
     # Apply filters
     if filters.status:
         status_values = [BatchStatus(s) for s in filters.status]
         query = query.filter(BatchReport.status.in_(status_values))
-    
+
     if filters.created_by:
         query = query.filter(BatchReport.created_by == filters.created_by)
-    
+
     if filters.template_version:
         query = query.filter(BatchReport.template_version == filters.template_version)
-    
+
     if filters.created_after:
         query = query.filter(BatchReport.created_at >= filters.created_after)
-    
+
     if filters.created_before:
         query = query.filter(BatchReport.created_at <= filters.created_before)
-    
+
     # Get total count
     total_count = query.count()
-    
+
     # Apply sorting and pagination
     query = query.order_by(BatchReport.created_at.desc())
     batches = query.offset(pagination.skip).limit(pagination.limit).all()
-    
+
     # Convert to response format
     batch_list = []
     for batch in batches:
@@ -375,7 +375,7 @@ async def list_batches(
             created_by=batch.created_by,
             error_message=batch.error_message
         ))
-    
+
     # Calculate pagination info
     page_info = {
         "current_page": (pagination.skip // pagination.limit) + 1,
@@ -384,7 +384,7 @@ async def list_batches(
         "has_next": pagination.skip + pagination.limit < total_count,
         "has_previous": pagination.skip > 0
     }
-    
+
     return BatchListResponseSchema(
         batches=batch_list,
         total_count=total_count,
@@ -407,38 +407,38 @@ async def cancel_batch(
     batch = db.query(BatchReport).filter_by(id=batch_id).first()
     if not batch:
         raise HTTPException(status_code=404, detail="Batch not found")
-    
+
     if batch.status not in [BatchStatus.PENDING, BatchStatus.RUNNING]:
         raise HTTPException(status_code=400, detail="Batch cannot be cancelled in current status")
-    
+
     # Mark batch as cancelled
     batch.status = BatchStatus.CANCELLED
     batch.completed_at = datetime.utcnow()
     batch.error_message = "Cancelled by user"
-    
+
     # Mark pending leads as skipped
     pending_leads = (
         db.query(BatchReportLead)
         .filter_by(batch_id=batch_id, status=LeadProcessingStatus.PENDING)
         .all()
     )
-    
+
     for lead in pending_leads:
         lead.status = LeadProcessingStatus.SKIPPED
-    
+
     db.commit()
-    
+
     # Broadcast cancellation
     connection_manager = get_connection_manager()
     await connection_manager.broadcast_error(
-        batch_id, 
-        "Batch processing cancelled by user", 
+        batch_id,
+        "Batch processing cancelled by user",
         "USER_CANCELLED"
     )
-    
+
     metrics.increment_counter("batch_runner_batches_cancelled")
     logger.info(f"Batch {batch_id} cancelled successfully")
-    
+
     return {"message": "Batch cancelled successfully"}
 
 
@@ -451,12 +451,12 @@ async def websocket_batch_progress(websocket: WebSocket, batch_id: str):
     Throttled to 1 message per 2 seconds to prevent client overwhelm
     """
     logger.info(f"WebSocket connection requested for batch {batch_id}")
-    
+
     # Extract user ID from query params if available
     user_id = None
     if hasattr(websocket, 'query_params'):
         user_id = websocket.query_params.get("user_id")
-    
+
     await handle_websocket_connection(websocket, batch_id, user_id)
 
 
@@ -470,15 +470,15 @@ async def batch_runner_health_check(db: Session = Depends(get_db)):
     try:
         # Test database connection
         db.execute("SELECT 1")
-        
+
         # Get basic stats
         total_batches = db.query(BatchReport).count()
         running_batches = db.query(BatchReport).filter_by(status=BatchStatus.RUNNING).count()
-        
+
         # Check WebSocket manager
         connection_manager = get_connection_manager()
         ws_stats = connection_manager.get_stats()
-        
+
         return HealthCheckResponseSchema(
             status="ok",
             timestamp=datetime.utcnow(),
@@ -501,9 +501,9 @@ async def get_batch_analytics(
     Get batch processing analytics and statistics
     """
     from datetime import timedelta
-    
+
     start_date = datetime.utcnow() - timedelta(days=days)
-    
+
     # Aggregate statistics
     stats_query = db.query(
         db.func.count(BatchReport.id).label("total_batches"),
@@ -516,7 +516,7 @@ async def get_batch_analytics(
     ).filter(
         BatchReport.created_at >= start_date
     ).first()
-    
+
     # Status breakdown
     status_query = (
         db.query(BatchReport.status, db.func.count(BatchReport.id))
@@ -524,9 +524,9 @@ async def get_batch_analytics(
         .group_by(BatchReport.status)
         .all()
     )
-    
+
     status_breakdown = {status.value: count for status, count in status_query}
-    
+
     return {
         "period_days": days,
         "start_date": start_date.isoformat(),

@@ -3,7 +3,7 @@ Test Lead Explorer API endpoints
 """
 import pytest
 from datetime import datetime
-from unittest.mock import Mock, MagicMock, patch, AsyncMock
+from unittest.mock import Mock, patch, AsyncMock
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
@@ -45,7 +45,7 @@ def mock_audit_repo():
 
 class TestCreateLeadAPI:
     """Test POST /leads endpoint"""
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_create_lead_success(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -53,7 +53,7 @@ class TestCreateLeadAPI:
         # Setup mocks
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
-        
+
         mock_lead = Mock()
         mock_lead.id = "test-id"
         mock_lead.email = "test@example.com"
@@ -72,9 +72,9 @@ class TestCreateLeadAPI:
         mock_lead.deleted_by = None
         mock_lead.created_at = "2023-01-01T00:00:00"
         mock_lead.updated_at = "2023-01-01T00:00:00"
-        
+
         mock_lead_repo.create_lead.return_value = mock_lead
-        
+
         # Make request
         response = client.post(
             "/api/v1/lead-explorer/leads",
@@ -87,17 +87,17 @@ class TestCreateLeadAPI:
                 "source": "manual"
             }
         )
-        
+
         # Verify response
         assert response.status_code == 201
         data = response.json()
         assert data["email"] == "test@example.com"
         assert data["domain"] == "example.com"
         assert data["company_name"] == "Test Corp"
-        
+
         # Verify repository was called
         mock_lead_repo.create_lead.assert_called_once()
-    
+
     def test_create_lead_validation_error(self, client):
         """Test validation error when no email or domain provided"""
         response = client.post(
@@ -107,9 +107,9 @@ class TestCreateLeadAPI:
                 "is_manual": True
             }
         )
-        
+
         assert response.status_code == 422
-    
+
     def test_create_lead_invalid_email(self, client):
         """Test validation error for invalid email"""
         response = client.post(
@@ -119,9 +119,9 @@ class TestCreateLeadAPI:
                 "is_manual": True
             }
         )
-        
+
         assert response.status_code == 422
-    
+
     def test_create_lead_invalid_domain(self, client):
         """Test validation error for invalid domain"""
         response = client.post(
@@ -131,13 +131,13 @@ class TestCreateLeadAPI:
                 "is_manual": True
             }
         )
-        
+
         assert response.status_code == 422
 
 
 class TestListLeadsAPI:
     """Test GET /leads endpoint"""
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_list_leads_success(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -145,7 +145,7 @@ class TestListLeadsAPI:
         # Setup mocks
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
-        
+
         mock_lead = Mock()
         mock_lead.id = "test-id"
         mock_lead.email = "test@example.com"
@@ -164,12 +164,12 @@ class TestListLeadsAPI:
         mock_lead.deleted_by = None
         mock_lead.created_at = "2023-01-01T00:00:00"
         mock_lead.updated_at = "2023-01-01T00:00:00"
-        
+
         mock_lead_repo.list_leads.return_value = ([mock_lead], 1)
-        
+
         # Make request
         response = client.get("/api/v1/lead-explorer/leads")
-        
+
         # Verify response
         assert response.status_code == 200
         data = response.json()
@@ -177,7 +177,7 @@ class TestListLeadsAPI:
         assert len(data["leads"]) == 1
         assert data["leads"][0]["email"] == "test@example.com"
         assert "page_info" in data
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_list_leads_with_filters(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -186,7 +186,7 @@ class TestListLeadsAPI:
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
         mock_lead_repo.list_leads.return_value = ([], 0)
-        
+
         # Make request with filters
         response = client.get(
             "/api/v1/lead-explorer/leads",
@@ -196,13 +196,13 @@ class TestListLeadsAPI:
                 "search": "test"
             }
         )
-        
+
         # Verify response
         assert response.status_code == 200
-        
+
         # Verify repository was called with filters
         mock_lead_repo.list_leads.assert_called_once()
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_list_leads_pagination(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -211,7 +211,7 @@ class TestListLeadsAPI:
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
         mock_lead_repo.list_leads.return_value = ([], 0)
-        
+
         # Make request with pagination
         response = client.get(
             "/api/v1/lead-explorer/leads",
@@ -222,14 +222,14 @@ class TestListLeadsAPI:
                 "sort_order": "desc"
             }
         )
-        
+
         # Verify response
         assert response.status_code == 200
 
 
 class TestGetLeadAPI:
     """Test GET /leads/{lead_id} endpoint"""
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_get_lead_success(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -237,7 +237,7 @@ class TestGetLeadAPI:
         # Setup mocks
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
-        
+
         mock_lead = Mock()
         mock_lead.id = "test-id"
         mock_lead.email = "test@example.com"
@@ -256,18 +256,18 @@ class TestGetLeadAPI:
         mock_lead.deleted_by = None
         mock_lead.created_at = "2023-01-01T00:00:00"
         mock_lead.updated_at = "2023-01-01T00:00:00"
-        
+
         mock_lead_repo.get_lead_by_id.return_value = mock_lead
-        
+
         # Make request
         response = client.get("/api/v1/lead-explorer/leads/test-id")
-        
+
         # Verify response
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == "test-id"
         assert data["email"] == "test@example.com"
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_get_lead_not_found(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -276,17 +276,17 @@ class TestGetLeadAPI:
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
         mock_lead_repo.get_lead_by_id.return_value = None
-        
+
         # Make request
         response = client.get("/api/v1/lead-explorer/leads/non-existent")
-        
+
         # Verify response
         assert response.status_code == 404
 
 
 class TestUpdateLeadAPI:
     """Test PUT /leads/{lead_id} endpoint"""
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_update_lead_success(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -294,7 +294,7 @@ class TestUpdateLeadAPI:
         # Setup mocks
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
-        
+
         mock_lead = Mock()
         mock_lead.id = "test-id"
         mock_lead.email = "updated@example.com"
@@ -313,9 +313,9 @@ class TestUpdateLeadAPI:
         mock_lead.deleted_by = None
         mock_lead.created_at = "2023-01-01T00:00:00"
         mock_lead.updated_at = "2023-01-01T00:00:00"
-        
+
         mock_lead_repo.update_lead.return_value = mock_lead
-        
+
         # Make request
         response = client.put(
             "/api/v1/lead-explorer/leads/test-id",
@@ -324,13 +324,13 @@ class TestUpdateLeadAPI:
                 "company_name": "Updated Corp"
             }
         )
-        
+
         # Verify response
         assert response.status_code == 200
         data = response.json()
         assert data["email"] == "updated@example.com"
         assert data["company_name"] == "Updated Corp"
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_update_lead_not_found(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -339,20 +339,20 @@ class TestUpdateLeadAPI:
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
         mock_lead_repo.update_lead.return_value = None
-        
+
         # Make request
         response = client.put(
             "/api/v1/lead-explorer/leads/non-existent",
             json={"company_name": "Updated Corp"}
         )
-        
+
         # Verify response
         assert response.status_code == 404
 
 
 class TestDeleteLeadAPI:
     """Test DELETE /leads/{lead_id} endpoint"""
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_delete_lead_success(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -360,7 +360,7 @@ class TestDeleteLeadAPI:
         # Setup mocks
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
-        
+
         mock_lead = Mock()
         mock_lead.id = "test-id"
         mock_lead.email = "test@example.com"
@@ -379,18 +379,18 @@ class TestDeleteLeadAPI:
         mock_lead.deleted_by = None
         mock_lead.created_at = "2023-01-01T00:00:00"
         mock_lead.updated_at = "2023-01-01T00:00:00"
-        
+
         mock_lead_repo.get_lead_by_id.return_value = mock_lead
         mock_lead_repo.soft_delete_lead.return_value = True
-        
+
         # Make request
         response = client.delete("/api/v1/lead-explorer/leads/test-id")
-        
+
         # Verify response
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == "test-id"
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_delete_lead_not_found(self, mock_repo_class, mock_get_db, client, mock_lead_repo):
@@ -399,17 +399,17 @@ class TestDeleteLeadAPI:
         mock_get_db.return_value.__enter__.return_value = Mock()
         mock_repo_class.return_value = mock_lead_repo
         mock_lead_repo.get_lead_by_id.return_value = None
-        
+
         # Make request
         response = client.delete("/api/v1/lead-explorer/leads/non-existent")
-        
+
         # Verify response
         assert response.status_code == 404
 
 
 class TestQuickAddLeadAPI:
     """Test POST /leads/quick-add endpoint"""
-    
+
     @patch('sqlalchemy.orm.session.Session.refresh')
     @patch('lead_explorer.api.get_enrichment_coordinator')
     @patch('lead_explorer.api.get_db')
@@ -420,11 +420,11 @@ class TestQuickAddLeadAPI:
         mock_db = Mock()
         mock_get_db.return_value.__enter__.return_value = mock_db
         mock_repo_class.return_value = mock_lead_repo
-        
+
         # Mock the session refresh to do nothing
         mock_session_refresh.return_value = None
-        
-        # Create a mock lead object 
+
+        # Create a mock lead object
         mock_lead = Mock()
         mock_lead.id = "test-id"
         mock_lead.email = "test@example.com"
@@ -443,13 +443,13 @@ class TestQuickAddLeadAPI:
         mock_lead.deleted_by = None
         mock_lead.created_at = "2023-01-01T00:00:00"
         mock_lead.updated_at = "2023-01-01T00:00:00"
-        
+
         mock_lead_repo.create_lead.return_value = mock_lead
-        
+
         mock_coordinator = AsyncMock()
         mock_coordinator.start_enrichment.return_value = "task-123"
         mock_get_coordinator.return_value = mock_coordinator
-        
+
         # Make request
         response = client.post(
             "/api/v1/lead-explorer/leads/quick-add",
@@ -459,7 +459,7 @@ class TestQuickAddLeadAPI:
                 "company_name": "Test Corp"
             }
         )
-        
+
         # Verify response
         assert response.status_code == 201
         data = response.json()
@@ -470,7 +470,7 @@ class TestQuickAddLeadAPI:
 
 class TestHealthCheckAPI:
     """Test GET /health endpoint"""
-    
+
     @patch('lead_explorer.api.get_db')
     def test_health_check_success(self, mock_get_db, client):
         """Test successful health check"""
@@ -478,10 +478,10 @@ class TestHealthCheckAPI:
         mock_db = Mock()
         mock_db.query.return_value.filter.return_value.count.return_value = 5
         mock_get_db.return_value.__enter__.return_value = mock_db
-        
+
         # Make request
         response = client.get("/api/v1/lead-explorer/health")
-        
+
         # Verify response
         assert response.status_code == 200
         data = response.json()
@@ -489,7 +489,7 @@ class TestHealthCheckAPI:
         assert data["database"] == "connected"
         assert "timestamp" in data
         assert "message" in data
-    
+
     @patch('lead_explorer.api.text')
     @patch('lead_explorer.api.get_db')
     def test_health_check_database_error(self, mock_get_db, mock_text, client):
@@ -500,17 +500,17 @@ class TestHealthCheckAPI:
         mock_get_db.return_value.__enter__.return_value = mock_db
         # Make text() return a simple object
         mock_text.return_value = "SELECT 1"
-        
+
         # Make request
         response = client.get("/api/v1/lead-explorer/health")
-        
+
         # Verify response
         assert response.status_code == 503
 
 
 class TestAuditTrailAPI:
     """Test GET /leads/{lead_id}/audit-trail endpoint"""
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     @patch('lead_explorer.api.AuditRepository')
@@ -518,13 +518,13 @@ class TestAuditTrailAPI:
         """Test successful audit trail retrieval"""
         # Setup mocks
         mock_get_db.return_value.__enter__.return_value = Mock()
-        
+
         mock_lead_repo = Mock()
         mock_lead = Mock()
         mock_lead.id = "test-id"
         mock_lead_repo.get_lead_by_id.return_value = mock_lead
         mock_lead_repo_class.return_value = mock_lead_repo
-        
+
         mock_audit_repo = Mock()
         mock_audit_log = Mock()
         mock_audit_log.id = "audit-id"
@@ -541,17 +541,17 @@ class TestAuditTrailAPI:
         mock_audit_log.checksum = "abc123"
         mock_audit_repo.get_audit_trail.return_value = [mock_audit_log]
         mock_audit_repo_class.return_value = mock_audit_repo
-        
+
         # Make request
         response = client.get("/api/v1/lead-explorer/leads/test-id/audit-trail")
-        
+
         # Verify response
         assert response.status_code == 200
         data = response.json()
         assert data["lead_id"] == "test-id"
         assert data["total_count"] == 1
         assert len(data["audit_logs"]) == 1
-    
+
     @patch('lead_explorer.api.get_db')
     @patch('lead_explorer.api.LeadRepository')
     def test_get_audit_trail_lead_not_found(self, mock_repo_class, mock_get_db, client):
@@ -561,9 +561,9 @@ class TestAuditTrailAPI:
         mock_repo = Mock()
         mock_repo.get_lead_by_id.return_value = None
         mock_repo_class.return_value = mock_repo
-        
+
         # Make request
         response = client.get("/api/v1/lead-explorer/leads/non-existent/audit-trail")
-        
+
         # Verify response
         assert response.status_code == 404

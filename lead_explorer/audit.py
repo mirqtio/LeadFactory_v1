@@ -11,7 +11,6 @@ from datetime import datetime
 
 from sqlalchemy import event
 from sqlalchemy.orm import Session
-from sqlalchemy.orm.state import InstanceState
 
 from core.logging import get_logger
 from database.models import Lead, AuditLogLead, AuditAction
@@ -22,10 +21,10 @@ logger = get_logger("lead_explorer_audit")
 class AuditContext:
     """Thread-local context for audit information"""
     _context = {}
-    
+
     @classmethod
-    def set_user_context(cls, user_id: Optional[str] = None, 
-                        user_ip: Optional[str] = None, 
+    def set_user_context(cls, user_id: Optional[str] = None,
+                        user_ip: Optional[str] = None,
                         user_agent: Optional[str] = None):
         """Set user context for current thread"""
         cls._context = {
@@ -33,12 +32,12 @@ class AuditContext:
             "user_ip": user_ip,
             "user_agent": user_agent
         }
-    
+
     @classmethod
     def get_user_context(cls) -> Dict[str, Optional[str]]:
         """Get user context for current thread"""
         return cls._context.copy()
-    
+
     @classmethod
     def clear_user_context(cls):
         """Clear user context"""
@@ -64,13 +63,13 @@ def get_model_values(instance: Lead) -> Dict[str, Any]:
     }
 
 
-def create_audit_log(session: Session, lead_id: str, action: AuditAction, 
+def create_audit_log(session: Session, lead_id: str, action: AuditAction,
                     old_values: Optional[Dict[str, Any]] = None,
                     new_values: Optional[Dict[str, Any]] = None):
     """Create an audit log entry with tamper detection"""
     try:
         user_context = AuditContext.get_user_context()
-        
+
         audit_log = AuditLogLead(
             lead_id=lead_id,
             action=action,
@@ -80,7 +79,7 @@ def create_audit_log(session: Session, lead_id: str, action: AuditAction,
             old_values=json.dumps(old_values) if old_values else None,
             new_values=json.dumps(new_values) if new_values else None
         )
-        
+
         # Calculate checksum for tamper detection
         timestamp_str = audit_log.timestamp.isoformat() if audit_log.timestamp else datetime.utcnow().isoformat()
         data = {
@@ -93,12 +92,12 @@ def create_audit_log(session: Session, lead_id: str, action: AuditAction,
         }
         content = json.dumps(data, sort_keys=True)
         audit_log.checksum = hashlib.sha256(content.encode()).hexdigest()
-        
+
         session.add(audit_log)
         # Don't commit here - let the main transaction handle it
-        
+
         logger.info(f"Created audit log for lead {lead_id} - action: {action.value}, user_id: {user_context.get('user_id')}")
-        
+
     except Exception as e:
         logger.error(f"Failed to create audit log for lead {lead_id}: {str(e)}")
         # Don't raise - audit logging failure should not break the main operation
@@ -130,16 +129,16 @@ if os.getenv('ENVIRONMENT') != 'test':
         if session:
             # Initialize old_values
             old_values = None
-            
+
             # Try to get old values from SQLAlchemy's state tracking
             from sqlalchemy import inspect
             state = inspect(target)
             if state.attrs:
                 # Get history for changed attributes
                 old_values = {}
-                for key in ['email', 'domain', 'company_name', 'contact_name', 
+                for key in ['email', 'domain', 'company_name', 'contact_name',
                            'enrichment_status', 'enrichment_task_id', 'enrichment_error',
-                           'is_manual', 'source', 'is_deleted', 'created_by', 
+                           'is_manual', 'source', 'is_deleted', 'created_by',
                            'updated_by', 'deleted_by']:
                     if hasattr(state.attrs, key):
                         attr = getattr(state.attrs, key)
@@ -150,9 +149,9 @@ if os.getenv('ENVIRONMENT') != 'test':
                                 old_values[key] = old_val.value
                             else:
                                 old_values[key] = old_val
-            
+
             new_values = get_model_values(target)
-            
+
             # Only log if there are actual changes
             if old_values != new_values:
                 create_audit_log(
@@ -179,29 +178,29 @@ if os.getenv('ENVIRONMENT') != 'test':
 
 class AuditMiddleware:
     """Middleware to automatically set audit context from request headers"""
-    
+
     def __init__(self, app):
         self.app = app
-    
+
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
             # Extract user context from headers
             headers = dict(scope.get("headers", []))
             user_id = headers.get(b"x-user-id", b"").decode("utf-8") or None
             user_agent = headers.get(b"user-agent", b"").decode("utf-8") or None
-            
+
             # Get client IP (considering proxies)
             user_ip = None
             if "client" in scope and scope["client"]:
                 user_ip = scope["client"][0]
-            
+
             # Set audit context
             AuditContext.set_user_context(
                 user_id=user_id,
                 user_ip=user_ip,
                 user_agent=user_agent
             )
-        
+
         try:
             await self.app(scope, receive, send)
         finally:
@@ -223,7 +222,7 @@ def verify_audit_integrity(session: Session, audit_id: str) -> bool:
         audit_log = session.query(AuditLogLead).filter_by(id=audit_id).first()
         if not audit_log:
             return False
-        
+
         # Recalculate checksum
         data = {
             'lead_id': audit_log.lead_id,
@@ -235,9 +234,9 @@ def verify_audit_integrity(session: Session, audit_id: str) -> bool:
         }
         content = json.dumps(data, sort_keys=True)
         expected_checksum = hashlib.sha256(content.encode()).hexdigest()
-        
+
         return audit_log.checksum == expected_checksum
-    
+
     except Exception as e:
         logger.error(f"Error verifying audit integrity for {audit_id}: {str(e)}")
         return False
@@ -246,7 +245,7 @@ def verify_audit_integrity(session: Session, audit_id: str) -> bool:
 def get_audit_summary(session: Session, lead_id: str) -> Dict[str, Any]:
     """Get audit summary for a lead"""
     audit_logs = session.query(AuditLogLead).filter_by(lead_id=lead_id).all()
-    
+
     return {
         "total_events": len(audit_logs),
         "create_events": len([log for log in audit_logs if log.action == AuditAction.CREATE]),

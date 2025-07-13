@@ -23,7 +23,7 @@ class TestYelpPurge:
         # Search for Yelp imports
         cmd = ['grep', '-r', '--include=*.py', '-E', 'from.*[Yy]elp|import.*[Yy]elp', '.']
         result = subprocess.run(cmd, capture_output=True, text=True, cwd='.')
-        
+
         # Filter out comments and this test file
         if result.stdout:
             lines = result.stdout.strip().split('\n')
@@ -39,14 +39,14 @@ class TestYelpPurge:
                         active_imports.append(line)
                 else:
                     active_imports.append(line)
-            
+
             assert len(active_imports) == 0, "Found active Yelp imports:\n" + "\n".join(active_imports)
 
     def test_no_yelp_classes(self):
         """Test that there are no Yelp class definitions"""
         cmd = ['grep', '-r', '--include=*.py', '-E', 'class.*[Yy]elp', '.']
         result = subprocess.run(cmd, capture_output=True, text=True, cwd='.')
-        
+
         if result.stdout:
             lines = result.stdout.strip().split('\n')
             active_classes = []
@@ -57,7 +57,7 @@ class TestYelpPurge:
                 # Skip commented lines
                 if '#' not in line or line.strip().index('#') > line.strip().index('class'):
                     active_classes.append(line)
-            
+
             assert len(active_classes) == 0, "Found active Yelp classes:\n" + "\n".join(active_classes)
 
     def test_no_yelp_models(self):
@@ -65,7 +65,7 @@ class TestYelpPurge:
         # Check for YelpMetadata or yelp-related table names
         cmd = ['grep', '-r', '--include=*.py', '-E', 'YelpMetadata|__tablename__.*yelp', '.']
         result = subprocess.run(cmd, capture_output=True, text=True, cwd='.')
-        
+
         if result.stdout:
             lines = result.stdout.strip().split('\n')
             active_models = []
@@ -77,14 +77,14 @@ class TestYelpPurge:
                 if 'alembic/versions' in line:
                     continue
                 active_models.append(line)
-            
+
             assert len(active_models) == 0, "Found active Yelp models:\n" + "\n".join(active_models)
 
     def test_no_yelp_exceptions(self):
         """Test that there are no Yelp-specific exceptions"""
         cmd = ['grep', '-r', '--include=*.py', '-E', '[Yy]elp.*Exception', '.']
         result = subprocess.run(cmd, capture_output=True, text=True, cwd='.')
-        
+
         if result.stdout:
             lines = result.stdout.strip().split('\n')
             active_exceptions = []
@@ -96,7 +96,7 @@ class TestYelpPurge:
                 if 'test_yelp_purge.py' in line:
                     continue
                 active_exceptions.append(line)
-            
+
             assert len(active_exceptions) == 0, "Found active Yelp exceptions:\n" + "\n".join(active_exceptions)
 
     def test_no_yelp_in_stub_server(self):
@@ -105,11 +105,11 @@ class TestYelpPurge:
         if os.path.exists(stub_path):
             with open(stub_path, 'r') as f:
                 content = f.read()
-            
+
             # Check for Yelp routes
             assert '/yelp' not in content.lower() or all(
-                line.strip().startswith('#') 
-                for line in content.split('\n') 
+                line.strip().startswith('#')
+                for line in content.split('\n')
                 if '/yelp' in line.lower()
             ), "Found Yelp routes in stub server"
 
@@ -117,7 +117,7 @@ class TestYelpPurge:
         """Test that there are no Yelp API key references in code"""
         cmd = ['grep', '-r', '--include=*.py', '-iE', 'yelp_api_key|YELP_API_KEY', '.']
         result = subprocess.run(cmd, capture_output=True, text=True, cwd='.')
-        
+
         if result.stdout:
             lines = result.stdout.strip().split('\n')
             active_keys = []
@@ -129,14 +129,14 @@ class TestYelpPurge:
                 if 'test_yelp_purge.py' in line:
                     continue
                 active_keys.append(line)
-            
+
             assert len(active_keys) == 0, "Found active Yelp API key references:\n" + "\n".join(active_keys)
 
     def test_no_yelp_id_usage(self):
         """Test that yelp_id is not used in active code"""
         cmd = ['grep', '-r', '--include=*.py', 'yelp_id', '.']
         result = subprocess.run(cmd, capture_output=True, text=True, cwd='.')
-        
+
         if result.stdout:
             lines = result.stdout.strip().split('\n')
             active_usage = []
@@ -151,19 +151,19 @@ class TestYelpPurge:
                 if 'test_yelp_purge.py' in line:
                     continue
                 active_usage.append(line)
-            
+
             assert len(active_usage) == 0, "Found active yelp_id usage:\n" + "\n".join(active_usage)
 
     def test_documentation_only_yelp_references(self):
         """Test that Yelp references in docs are marked as removed"""
         # Check key documentation files
         docs_to_check = ['README.md', 'CHANGELOG.md', 'PRD.md']
-        
+
         for doc in docs_to_check:
             if os.path.exists(doc):
                 with open(doc, 'r') as f:
                     content = f.read()
-                
+
                 if 'yelp' in content.lower():
                     # Should mention that Yelp was removed
                     assert any(phrase in content.lower() for phrase in [

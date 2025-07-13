@@ -172,7 +172,7 @@ class ConfigurableScoringEngine:
 
             # Calculate overall score (normalized to 0-100)
             max_possible_score = self.rules_parser.engine_config.get("max_score", 100.0)
-            
+
             # Check if there's a formula for overall score calculation
             if hasattr(self.rules_parser, 'schema') and self.rules_parser.schema and \
                hasattr(self.rules_parser.schema, 'formulas') and self.rules_parser.schema.formulas:
@@ -185,7 +185,7 @@ class ConfigurableScoringEngine:
                             'total_weighted_score': total_weighted_score,
                             'total_weight': total_weight,
                             'max_score': max_possible_score,
-                            **{f'component_{k}': v['weighted_score'] 
+                            **{f'component_{k}': v['weighted_score']
                                for k, v in component_results.items()}
                         }
                         overall_score = evaluate_formula(overall_formula, formula_data)

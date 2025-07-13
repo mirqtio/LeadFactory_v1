@@ -524,10 +524,10 @@ class EnrichmentCoordinator:
         field from each provider.
         """
         merged = {}
-        
+
         # Process both existing and new data
         all_items = []
-        
+
         # Convert existing_data to list of (field, value) tuples
         if existing_data:
             for field, value in existing_data.items():
@@ -540,8 +540,8 @@ class EnrichmentCoordinator:
                         'provider': 'internal',
                         'collected_at': datetime.utcnow()
                     }))
-        
-        # Convert new_data to list of (field, value) tuples  
+
+        # Convert new_data to list of (field, value) tuples
         if new_data:
             for field, value in new_data.items():
                 if isinstance(value, dict) and 'provider' in value:
@@ -550,15 +550,15 @@ class EnrichmentCoordinator:
                     # Handle legacy format
                     all_items.append((field, {
                         'value': value,
-                        'provider': 'internal', 
+                        'provider': 'internal',
                         'collected_at': datetime.utcnow()
                     }))
-        
+
         # Merge by (field, provider) keeping freshest
         for field, value in all_items:
             provider = value.get('provider', 'internal')
             key = (field, provider)
-            
+
             # Convert collected_at to datetime if it's a string
             collected_at = value.get('collected_at', datetime.utcnow())
             if isinstance(collected_at, str):
@@ -566,7 +566,7 @@ class EnrichmentCoordinator:
                     collected_at = datetime.fromisoformat(collected_at.replace('Z', '+00:00'))
                 except:
                     collected_at = datetime.utcnow()
-            
+
             # Keep the value if we don't have it yet or if it's newer
             if key not in merged:
                 merged[key] = {
@@ -584,7 +584,7 @@ class EnrichmentCoordinator:
                         )
                     except:
                         existing_collected_at = datetime.min
-                        
+
                 if collected_at > existing_collected_at:
                     merged[key] = {
                         'field': field,
@@ -592,7 +592,7 @@ class EnrichmentCoordinator:
                         'value': value.get('value', value),
                         'collected_at': collected_at
                     }
-        
+
         return merged
 
     def generate_cache_key(
@@ -610,23 +610,23 @@ class EnrichmentCoordinator:
             'v1',  # Version for cache invalidation
             business_id
         ]
-        
+
         # Add source if provided
         if source:
             components.append(source)
-        
+
         # Add any additional kwargs in sorted order for determinism
         if kwargs:
             sorted_kwargs = sorted(kwargs.items())
             for key, value in sorted_kwargs:
                 components.append(f"{key}:{value}")
-        
+
         # Join components and create hash for shorter key
         raw_key = ':'.join(str(c) for c in components)
-        
+
         # Use SHA256 for consistent length and avoid collisions
         key_hash = hashlib.sha256(raw_key.encode()).hexdigest()[:16]
-        
+
         # Return readable prefix with hash
         return f"enrich:{business_id[:8]}:{key_hash}"
 

@@ -28,7 +28,7 @@ class TestLineageAPI:
 
         # Create lineage with compressed data
         import gzip
-        
+
         raw_data = {
             "lead_id": "lead-123",
             "pipeline_run_id": "run-456",
@@ -59,10 +59,10 @@ class TestLineageAPI:
         report, lineage = sample_lineage
 
         response = test_client.get(f"/api/lineage/{report.id}")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["id"] == lineage.id
         assert data["report_id"] == report.id
         assert data["lead_id"] == "lead-123"
@@ -75,7 +75,7 @@ class TestLineageAPI:
     def test_get_lineage_not_found(self, test_client: TestClient):
         """Test retrieving non-existent lineage"""
         response = test_client.get("/api/lineage/invalid-report-id")
-        
+
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
@@ -99,7 +99,7 @@ class TestLineageAPI:
                 pipeline_end_time=datetime.utcnow() - timedelta(days=i),
             )
             db_session.add(lineage)
-        
+
         db_session.commit()
 
         # Search by lead_id
@@ -129,10 +129,10 @@ class TestLineageAPI:
         report, lineage = sample_lineage
 
         response = test_client.get(f"/api/lineage/{lineage.id}/logs")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["lineage_id"] == lineage.id
         assert data["report_id"] == report.id
         assert "logs" in data
@@ -148,12 +148,12 @@ class TestLineageAPI:
         report, lineage = sample_lineage
 
         response = test_client.get(f"/api/lineage/{lineage.id}/download")
-        
+
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/gzip"
         assert "attachment" in response.headers["content-disposition"]
         assert f"lineage_{lineage.id}_raw_inputs.json.gz" in response.headers["content-disposition"]
-        
+
         # Verify content is valid gzip
         import gzip
         decompressed = gzip.decompress(response.content)
@@ -191,34 +191,34 @@ class TestLineageAPI:
 
         # View lineage
         test_client.get(f"/api/lineage/{report.id}")
-        
+
         # Check audit log was created
         audit = db_session.query(ReportLineageAudit).filter(
             ReportLineageAudit.lineage_id == lineage.id
         ).first()
-        
+
         assert audit is not None
         assert audit.action == "view_lineage"
 
         # View logs
         test_client.get(f"/api/lineage/{lineage.id}/logs")
-        
+
         # Check second audit log
         audits = db_session.query(ReportLineageAudit).filter(
             ReportLineageAudit.lineage_id == lineage.id
         ).all()
-        
+
         assert len(audits) == 2
         assert audits[1].action == "view_logs"
 
         # Download
         test_client.get(f"/api/lineage/{lineage.id}/download")
-        
+
         # Check third audit log
         audits = db_session.query(ReportLineageAudit).filter(
             ReportLineageAudit.lineage_id == lineage.id
         ).all()
-        
+
         assert len(audits) == 3
         assert audits[2].action == "download"
 
@@ -228,10 +228,10 @@ class TestLineageAPI:
 
         import time
         start_time = time.time()
-        
+
         response = test_client.get(f"/api/lineage/{lineage.id}/logs")
-        
+
         elapsed_time = time.time() - start_time
-        
+
         assert response.status_code == 200
         assert elapsed_time < 0.5  # Should load in under 500ms

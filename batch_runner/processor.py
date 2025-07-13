@@ -54,21 +54,21 @@ class LeadProcessingResult:
 
 class BatchProcessor:
     """Main batch processing engine"""
-    
+
     def __init__(self):
         self.settings = get_settings()
         self.connection_manager = get_connection_manager()
         self.cost_calculator = get_cost_calculator()
         self.report_generator = ReportGenerator()
-        
+
         # Processing configuration
         self.max_concurrent_leads = getattr(self.settings, 'BATCH_MAX_CONCURRENT_LEADS', 5)
         self.default_timeout_seconds = 30
         self.max_retries = 3
-        
+
         # Thread pool for CPU-bound tasks
         self.thread_pool = ThreadPoolExecutor(max_workers=self.max_concurrent_leads)
-    
+
     async def process_batch(self, batch_id: str) -> BatchProcessingResult:
         """
         Process a complete batch of leads
@@ -81,50 +81,50 @@ class BatchProcessor:
         """
         logger.info(f"Starting batch processing for {batch_id}")
         start_time = datetime.utcnow()
-        
+
         try:
             # Get batch and validate
             with SessionLocal() as db:
                 batch = db.query(BatchReport).filter_by(id=batch_id).first()
                 if not batch:
                     raise ValueError(f"Batch {batch_id} not found")
-                
+
                 if batch.status != BatchStatus.PENDING:
                     raise ValueError(f"Batch {batch_id} is not in pending status")
-                
+
                 # Mark batch as running
                 batch.status = BatchStatus.RUNNING
                 batch.started_at = start_time
                 db.commit()
-            
+
             # Broadcast start notification
             await self.connection_manager.broadcast_progress(batch_id, {
                 "status": "started",
                 "message": "Batch processing started",
                 "started_at": start_time.isoformat()
             })
-            
+
             # Get leads to process
             leads_to_process = await self._get_batch_leads(batch_id)
             if not leads_to_process:
                 raise ValueError(f"No leads found for batch {batch_id}")
-            
+
             logger.info(f"Processing {len(leads_to_process)} leads for batch {batch_id}")
-            
+
             # Process leads with concurrency control
             results = await self._process_leads_concurrently(batch_id, leads_to_process)
-            
+
             # Calculate final statistics
             successful = sum(1 for r in results if r.success)
             failed = sum(1 for r in results if not r.success)
             total_cost = sum(r.actual_cost or 0 for r in results)
-            
+
             # Update batch completion
             end_time = datetime.utcnow()
             duration = (end_time - start_time).total_seconds()
-            
+
             await self._complete_batch(batch_id, successful, failed, total_cost, end_time)
-            
+
             # Broadcast completion
             await self.connection_manager.broadcast_completion(batch_id, {
                 "status": "completed",
@@ -135,9 +135,9 @@ class BatchProcessor:
                 "duration_seconds": duration,
                 "completed_at": end_time.isoformat()
             })
-            
+
             logger.info(f"Batch {batch_id} completed: {successful} successful, {failed} failed")
-            
+
             return BatchProcessingResult(
                 batch_id=batch_id,
                 total_leads=len(results),
@@ -147,19 +147,19 @@ class BatchProcessor:
                 total_cost=total_cost,
                 duration_seconds=duration
             )
-            
+
         except Exception as e:
             logger.error(f"Batch processing failed for {batch_id}: {str(e)}")
-            
+
             # Mark batch as failed
             await self._fail_batch(batch_id, str(e))
-            
+
             # Broadcast error
             await self.connection_manager.broadcast_error(batch_id, str(e), "BATCH_PROCESSING_ERROR")
-            
+
             end_time = datetime.utcnow()
             duration = (end_time - start_time).total_seconds()
-            
+
             return BatchProcessingResult(
                 batch_id=batch_id,
                 total_leads=0,
@@ -170,7 +170,7 @@ class BatchProcessor:
                 duration_seconds=duration,
                 error_message=str(e)
             )
-    
+
     async def _get_batch_leads(self, batch_id: str) -> List[BatchReportLead]:
         """Get all leads for a batch, ordered by processing order"""
         with SessionLocal() as db:
@@ -182,39 +182,39 @@ class BatchProcessor:
                 .all()
             )
             return leads
-    
+
     async def _process_leads_concurrently(self, batch_id: str, leads: List[BatchReportLead]) -> List[LeadProcessingResult]:
         """Process leads with controlled concurrency"""
         semaphore = asyncio.Semaphore(self.max_concurrent_leads)
         tasks = []
-        
+
         for lead in leads:
             task = asyncio.create_task(
                 self._process_single_lead_with_semaphore(semaphore, batch_id, lead)
             )
             tasks.append(task)
-        
+
         # Process with progress updates
         results = []
         completed_count = 0
-        
+
         for task in asyncio.as_completed(tasks):
             try:
                 result = await task
                 results.append(result)
                 completed_count += 1
-                
+
                 # Update progress
                 progress_percentage = (completed_count / len(leads)) * 100
-                
+
                 await self._update_batch_progress(
-                    batch_id, completed_count, 
+                    batch_id, completed_count,
                     sum(1 for r in results if r.success),
                     sum(1 for r in results if not r.success),
                     progress_percentage,
                     result.lead_id
                 )
-                
+
                 # Broadcast progress update (throttled)
                 await self.connection_manager.broadcast_progress(batch_id, {
                     "processed": completed_count,
@@ -229,7 +229,7 @@ class BatchProcessor:
                         "error": result.error_message
                     }
                 })
-                
+
             except Exception as e:
                 logger.error(f"Error processing lead in batch {batch_id}: {str(e)}")
                 # Create failed result for error case
@@ -239,51 +239,51 @@ class BatchProcessor:
                     error_message=str(e),
                     error_code="PROCESSING_ERROR"
                 ))
-        
+
         return results
-    
-    async def _process_single_lead_with_semaphore(self, semaphore: asyncio.Semaphore, 
+
+    async def _process_single_lead_with_semaphore(self, semaphore: asyncio.Semaphore,
                                                  batch_id: str, batch_lead: BatchReportLead) -> LeadProcessingResult:
         """Process single lead with concurrency control"""
         async with semaphore:
             return await self._process_single_lead(batch_id, batch_lead)
-    
+
     async def _process_single_lead(self, batch_id: str, batch_lead: BatchReportLead) -> LeadProcessingResult:
         """Process a single lead with error isolation"""
         lead_id = batch_lead.lead_id
         start_time = datetime.utcnow()
-        
+
         try:
             logger.debug(f"Processing lead {lead_id} in batch {batch_id}")
-            
+
             # Mark lead as processing
             await self._update_lead_status(batch_lead.id, LeadProcessingStatus.PROCESSING, start_time)
-            
+
             # Get lead data
             lead_data = await self._get_lead_data(lead_id)
             if not lead_data:
                 raise ValueError(f"Lead {lead_id} not found or deleted")
-            
+
             # Generate report using d6_reports
             report_result = await self._generate_report_for_lead(lead_data)
-            
+
             # Calculate actual cost (simplified for now)
             actual_cost = await self._calculate_actual_cost(lead_data, report_result)
-            
+
             end_time = datetime.utcnow()
             processing_time_ms = int((end_time - start_time).total_seconds() * 1000)
-            
+
             # Mark lead as completed
             await self._update_lead_completion(
-                batch_lead.id, 
+                batch_lead.id,
                 report_result.get("report_url"),
                 actual_cost,
                 report_result.get("quality_score"),
                 end_time
             )
-            
+
             logger.debug(f"Successfully processed lead {lead_id}")
-            
+
             return LeadProcessingResult(
                 lead_id=lead_id,
                 success=True,
@@ -292,13 +292,13 @@ class BatchProcessor:
                 processing_time_ms=processing_time_ms,
                 quality_score=report_result.get("quality_score")
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to process lead {lead_id}: {str(e)}")
-            
+
             end_time = datetime.utcnow()
             processing_time_ms = int((end_time - start_time).total_seconds() * 1000)
-            
+
             # Check if lead should be retried
             if batch_lead.is_retryable:
                 await self._schedule_retry(batch_lead.id)
@@ -306,7 +306,7 @@ class BatchProcessor:
             else:
                 await self._update_lead_failure(batch_lead.id, str(e), "PROCESSING_FAILED", end_time)
                 error_code = "PROCESSING_FAILED"
-            
+
             return LeadProcessingResult(
                 lead_id=lead_id,
                 success=False,
@@ -314,17 +314,17 @@ class BatchProcessor:
                 error_message=str(e),
                 error_code=error_code
             )
-    
+
     async def _get_lead_data(self, lead_id: str) -> Optional[Dict[str, Any]]:
         """Get lead data for report generation"""
         try:
             with SessionLocal() as db:
                 lead_repo = LeadRepository(db)
                 lead = lead_repo.get_lead_by_id(lead_id)
-                
+
                 if not lead:
                     return None
-                
+
                 return {
                     "id": lead.id,
                     "email": lead.email,
@@ -337,19 +337,19 @@ class BatchProcessor:
         except Exception as e:
             logger.error(f"Error getting lead data for {lead_id}: {str(e)}")
             return None
-    
+
     async def _generate_report_for_lead(self, lead_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate report for a single lead using d6_reports"""
         try:
             # Run report generation in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
-            
+
             generation_options = GenerationOptions(
                 include_pdf=True,
                 include_html=True,
                 timeout_seconds=self.default_timeout_seconds
             )
-            
+
             # Generate report using d6_reports
             result = await loop.run_in_executor(
                 self.thread_pool,
@@ -357,26 +357,26 @@ class BatchProcessor:
                 lead_data,
                 generation_options
             )
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Report generation failed for lead {lead_data.get('id')}: {str(e)}")
             raise
-    
+
     def _generate_report_sync(self, lead_data: Dict[str, Any], options: GenerationOptions) -> Dict[str, Any]:
         """Synchronous report generation wrapper"""
         try:
             # This would integrate with the actual d6_reports generator
             # For now, simulate report generation
-            
+
             business_id = lead_data.get("id")
             report_url = f"/reports/{business_id}/{uuid.uuid4()}.pdf"
-            
+
             # Simulate processing time
             import time
             time.sleep(0.1)  # Simulate some processing
-            
+
             return {
                 "success": True,
                 "report_url": report_url,
@@ -384,28 +384,28 @@ class BatchProcessor:
                 "generation_time_ms": 100,
                 "file_size_bytes": 1024 * 50  # 50KB mock
             }
-            
+
         except Exception as e:
             logger.error(f"Sync report generation failed: {str(e)}")
             raise
-    
+
     async def _calculate_actual_cost(self, lead_data: Dict[str, Any], report_result: Dict[str, Any]) -> float:
         """Calculate actual cost for lead processing"""
         try:
             # Use cost calculator to estimate actual cost
             # This would track actual API calls made during processing
-            
+
             # For now, use a simplified calculation
             base_cost = 0.25  # Base report generation cost
             enrichment_cost = 0.15 if lead_data.get("enrichment_status") != "completed" else 0
             assessment_cost = 0.30  # Assessment and analysis
-            
+
             return base_cost + enrichment_cost + assessment_cost
-            
+
         except Exception as e:
             logger.warning(f"Error calculating actual cost: {str(e)}")
             return 0.50  # Default cost estimate
-    
+
     async def _update_lead_status(self, batch_lead_id: str, status: LeadProcessingStatus, timestamp: datetime):
         """Update lead processing status"""
         try:
@@ -418,9 +418,9 @@ class BatchProcessor:
                     db.commit()
         except SQLAlchemyError as e:
             logger.error(f"Error updating lead status {batch_lead_id}: {str(e)}")
-    
-    async def _update_lead_completion(self, batch_lead_id: str, report_url: Optional[str], 
-                                    actual_cost: Optional[float], quality_score: Optional[float], 
+
+    async def _update_lead_completion(self, batch_lead_id: str, report_url: Optional[str],
+                                    actual_cost: Optional[float], quality_score: Optional[float],
                                     completed_at: datetime):
         """Update lead completion with results"""
         try:
@@ -431,8 +431,8 @@ class BatchProcessor:
                     db.commit()
         except SQLAlchemyError as e:
             logger.error(f"Error updating lead completion {batch_lead_id}: {str(e)}")
-    
-    async def _update_lead_failure(self, batch_lead_id: str, error_message: str, 
+
+    async def _update_lead_failure(self, batch_lead_id: str, error_message: str,
                                   error_code: str, failed_at: datetime):
         """Update lead failure with error details"""
         try:
@@ -443,7 +443,7 @@ class BatchProcessor:
                     db.commit()
         except SQLAlchemyError as e:
             logger.error(f"Error updating lead failure {batch_lead_id}: {str(e)}")
-    
+
     async def _schedule_retry(self, batch_lead_id: str):
         """Schedule lead for retry"""
         try:
@@ -455,8 +455,8 @@ class BatchProcessor:
                     logger.info(f"Scheduled retry {batch_lead.retry_count} for lead {batch_lead_id}")
         except SQLAlchemyError as e:
             logger.error(f"Error scheduling retry for {batch_lead_id}: {str(e)}")
-    
-    async def _update_batch_progress(self, batch_id: str, processed: int, successful: int, 
+
+    async def _update_batch_progress(self, batch_id: str, processed: int, successful: int,
                                    failed: int, progress_percentage: float, current_lead_id: str):
         """Update batch progress statistics"""
         try:
@@ -467,8 +467,8 @@ class BatchProcessor:
                     db.commit()
         except SQLAlchemyError as e:
             logger.error(f"Error updating batch progress {batch_id}: {str(e)}")
-    
-    async def _complete_batch(self, batch_id: str, successful: int, failed: int, 
+
+    async def _complete_batch(self, batch_id: str, successful: int, failed: int,
                             total_cost: float, completed_at: datetime):
         """Mark batch as completed with final statistics"""
         try:
@@ -481,7 +481,7 @@ class BatchProcessor:
                     batch.failed_leads = failed
                     batch.actual_cost_usd = total_cost
                     batch.progress_percentage = 100.0
-                    
+
                     # Update results summary
                     batch.results_summary = {
                         "total_leads": batch.total_leads,
@@ -492,12 +492,12 @@ class BatchProcessor:
                         "cost_per_lead": float(total_cost / batch.total_leads) if batch.total_leads > 0 else 0,
                         "duration_seconds": batch.duration_seconds
                     }
-                    
+
                     db.commit()
                     logger.info(f"Batch {batch_id} marked as completed")
         except SQLAlchemyError as e:
             logger.error(f"Error completing batch {batch_id}: {str(e)}")
-    
+
     async def _fail_batch(self, batch_id: str, error_message: str):
         """Mark batch as failed"""
         try:

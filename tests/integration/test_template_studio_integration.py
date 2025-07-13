@@ -105,16 +105,16 @@ class TestTemplateStudioIntegration:
             "Business Audit Report",
             "Premium Business Audit Report"
         )
-        
+
         preview_request = {
             "template_content": modified_content,
             "lead_id": test_lead.id
         }
-        
+
         response = test_client.post("/api/template-studio/preview", json=preview_request)
         assert response.status_code == 200
         preview = response.json()
-        
+
         assert "Premium Business Audit Report" in preview["rendered_html"]
         assert "Acme Corporation" in preview["rendered_html"]
         assert preview["render_time_ms"] < 500
@@ -139,7 +139,7 @@ class TestTemplateStudioIntegration:
                 "template_content": template_content,
                 "lead_id": "1"
             })
-            
+
             assert response.status_code == 200
             result = response.json()
             assert len(result["errors"]) > 0
@@ -174,7 +174,7 @@ class TestTemplateStudioIntegration:
 
         assert response.status_code == 200
         result = response.json()
-        
+
         # Check that dangerous content is escaped
         html = result["rendered_html"]
         assert "<img src=x onerror=alert" not in html

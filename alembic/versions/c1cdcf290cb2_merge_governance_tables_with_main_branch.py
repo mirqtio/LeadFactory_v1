@@ -5,8 +5,6 @@ Revises: e468c64e4301, governance_tables_001
 Create Date: 2025-07-12 21:14:27.004388
 
 """
-from alembic import op
-import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
