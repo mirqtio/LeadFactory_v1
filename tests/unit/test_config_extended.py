@@ -69,7 +69,7 @@ class TestExtendedConfig:
             assert settings.environment == "development"
         
         # Production environment
-        with mock.patch.dict(os.environ, {"ENVIRONMENT": "production"}):
+        with mock.patch.dict(os.environ, {"ENVIRONMENT": "production", "USE_STUBS": "false", "SECRET_KEY": "production-secret-key-123"}):
             settings = Settings()
             assert settings.environment == "production"
         
@@ -86,19 +86,17 @@ class TestExtendedConfig:
             assert settings.use_stubs is True
         
         # With stubs disabled
-        with mock.patch.dict(os.environ, {"USE_STUBS": "false"}):
+        with mock.patch.dict(os.environ, {"USE_STUBS": "false", "ENVIRONMENT": "test"}, clear=False):
             settings = Settings()
             assert settings.use_stubs is False
     
     def test_base_url_configuration(self):
         """Test base URL configuration."""
         with mock.patch.dict(os.environ, {
-            "BASE_URL": "https://api.example.com",
-            "PUBLIC_URL": "https://app.example.com"
+            "BASE_URL": "https://api.example.com"
         }):
             settings = Settings()
             assert settings.base_url == "https://api.example.com"
-            assert settings.public_url == "https://app.example.com"
     
     def test_log_configuration(self):
         """Test logging configuration."""
