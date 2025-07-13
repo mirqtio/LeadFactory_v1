@@ -219,11 +219,11 @@ def setup_audit_logging():
 
 def verify_audit_integrity(session: Session, audit_id: str) -> bool:
     """Verify the integrity of an audit log entry"""
-    audit_log = session.query(AuditLogLead).filter_by(id=audit_id).first()
-    if not audit_log:
-        return False
-    
     try:
+        audit_log = session.query(AuditLogLead).filter_by(id=audit_id).first()
+        if not audit_log:
+            return False
+        
         # Recalculate checksum
         data = {
             'lead_id': audit_log.lead_id,

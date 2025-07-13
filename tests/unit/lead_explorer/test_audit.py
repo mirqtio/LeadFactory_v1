@@ -76,7 +76,8 @@ class TestGetModelValues:
         lead = Lead(
             email="test@example.com", 
             is_manual=True, 
-            enrichment_status=EnrichmentStatus.PENDING
+            enrichment_status=EnrichmentStatus.PENDING,
+            is_deleted=False
         )
         
         values = get_model_values(lead)
