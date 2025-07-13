@@ -34,7 +34,10 @@ ignore = [
     "E203",  # Whitespace before ':' (conflicts with black)
     "E501",  # Line too long (handled by formatter)
     "E402",  # Module level import not at top of file
+    "E712",  # Comparison to True/False (SQLAlchemy filters need this)
+    "E722",  # Do not use bare except (sometimes needed)
     "F401",  # Unused imports (ok in __init__.py files)
+    "F821",  # Undefined name (false positives in tests)
     "F841",  # Local variable assigned but never used
     "W293",  # Blank line contains whitespace
     "W291",  # Trailing whitespace
