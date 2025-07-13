@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from core.config import settings
 from d6_reports.lineage.compressor import compress_lineage_data
@@ -31,10 +31,10 @@ class LineageTracker:
     Tracks and manages report generation lineage
     """
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: Session):
         self.session = session
 
-    async def capture_lineage(
+    def capture_lineage(
         self,
         report_generation_id: str,
         lineage_data: LineageData,
@@ -92,7 +92,7 @@ class LineageTracker:
             await self.session.rollback()
             return None
 
-    async def record_access(
+    def record_access(
         self,
         lineage_id: str,
         action: str,
@@ -139,7 +139,7 @@ class LineageTracker:
             await self.session.rollback()
             return None
 
-    async def get_lineage_by_report(self, report_generation_id: str) -> Optional[ReportLineage]:
+    def get_lineage_by_report(self, report_generation_id: str) -> Optional[ReportLineage]:
         """
         Get lineage data for a report generation
 
@@ -151,14 +151,14 @@ class LineageTracker:
         """
         from sqlalchemy import select
 
-        result = await self.session.execute(
+        result = self.session.execute(
             select(ReportLineage).where(
                 ReportLineage.report_generation_id == report_generation_id
             )
         )
         return result.scalar_one_or_none()
 
-    async def search_lineage(
+    def search_lineage(
         self,
         lead_id: Optional[str] = None,
         pipeline_run_id: Optional[str] = None,
@@ -197,5 +197,5 @@ class LineageTracker:
 
         query = query.order_by(ReportLineage.created_at.desc()).limit(limit)
 
-        result = await self.session.execute(query)
+        result = self.session.execute(query)
         return result.scalars().all()

@@ -58,7 +58,7 @@ def sample_template(db_session):
         format=TemplateFormat.HTML,
         version="1.0.0",
         html_template="""
-        <h1>Business Report for {{ lead.business_name }}</h1>
+        <h1>Business Report for {{ lead.company_name }}</h1>
         <p>Website: {{ lead.website }}</p>
         <p>Score: {{ score }}</p>
         <ul>
@@ -78,7 +78,7 @@ def sample_template(db_session):
     # Add a sample lead
     lead = Lead(
         id="1",
-        business_name="Test Business Inc.",
+        company_name="Test Business Inc.",
         website="https://testbusiness.com",
         phone="(555) 123-4567",
         email="test@testbusiness.com",
@@ -305,14 +305,14 @@ index abc123..def456 100644
         # Create a lead with XSS attempt
         xss_lead = Lead(
             id="xss-test",
-            business_name="<script>alert('XSS')</script>",
+            company_name="<script>alert('XSS')</script>",
             website="https://example.com"
         )
         db_session.add(xss_lead)
         db_session.commit()
 
         preview_request = {
-            "template_content": "<h1>{{ lead.business_name }}</h1>",
+            "template_content": "<h1>{{ lead.company_name }}</h1>",
             "lead_id": "xss-test"
         }
 

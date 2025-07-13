@@ -6,7 +6,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from api.dependencies import get_db, get_current_user_optional
 from d6_reports.lineage.compressor import decompress_lineage_data
@@ -25,7 +25,7 @@ router = APIRouter(prefix="/api/lineage", tags=["lineage"])
 async def get_lineage_by_report(
     report_id: str,
     request: Request,
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
     current_user: Optional[str] = Depends(get_current_user_optional),
 ):
     """
@@ -34,12 +34,12 @@ async def get_lineage_by_report(
     tracker = LineageTracker(db)
     
     # Get lineage data
-    lineage = await tracker.get_lineage_by_report(report_id)
+    lineage = tracker.get_lineage_by_report(report_id)
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found for this report")
     
     # Record access
-    await tracker.record_access(
+    tracker.record_access(
         lineage_id=lineage.id,
         action="view",
         user_id=current_user,
@@ -69,7 +69,7 @@ async def search_lineage(
     start_date: Optional[str] = Query(None, description="Filter by start date (ISO format)"),
     end_date: Optional[str] = Query(None, description="Filter by end date (ISO format)"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum results"),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ):
     """
     Search lineage records by various criteria
@@ -92,7 +92,7 @@ async def search_lineage(
             raise HTTPException(status_code=400, detail="Invalid end_date format")
     
     tracker = LineageTracker(db)
-    results = await tracker.search_lineage(
+    results = tracker.search_lineage(
         lead_id=lead_id,
         pipeline_run_id=pipeline_run_id,
         start_date=start_dt,
@@ -122,7 +122,7 @@ async def search_lineage(
 async def view_lineage_logs(
     lineage_id: str,
     request: Request,
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
     current_user: Optional[str] = Depends(get_current_user_optional),
 ):
     """
@@ -136,7 +136,7 @@ async def view_lineage_logs(
     
     # Record access
     tracker = LineageTracker(db)
-    await tracker.record_access(
+    tracker.record_access(
         lineage_id=lineage_id,
         action="view_logs",
         user_id=current_user,
@@ -169,7 +169,7 @@ async def view_lineage_logs(
 async def download_raw_inputs(
     lineage_id: str,
     request: Request,
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
     current_user: Optional[str] = Depends(get_current_user_optional),
 ):
     """
@@ -184,7 +184,7 @@ async def download_raw_inputs(
     
     # Record access
     tracker = LineageTracker(db)
-    await tracker.record_access(
+    tracker.record_access(
         lineage_id=lineage_id,
         action="download",
         user_id=current_user,
