@@ -27,8 +27,9 @@ def upgrade() -> None:
         # Create ENUM types for PostgreSQL
         enrichmentstatus_enum = sa.Enum('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', name='enrichmentstatus')
         auditaction_enum = sa.Enum('CREATE', 'UPDATE', 'DELETE', name='auditaction')
-        op.execute("CREATE TYPE enrichmentstatus AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED')")
-        op.execute("CREATE TYPE auditaction AS ENUM ('CREATE', 'UPDATE', 'DELETE')")
+        # Check if types already exist before creating
+        op.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enrichmentstatus') THEN CREATE TYPE enrichmentstatus AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED'); END IF; END$$;")
+        op.execute("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'auditaction') THEN CREATE TYPE auditaction AS ENUM ('CREATE', 'UPDATE', 'DELETE'); END IF; END$$;")
     else:
         # Use String columns for SQLite and other databases
         enrichmentstatus_enum = sa.String(length=20)
