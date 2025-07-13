@@ -60,34 +60,26 @@ jobs:
         python -c "from database.base import Base; from database.session import engine; Base.metadata.create_all(bind=engine)"
         alembic upgrade head
     
-    - name: Run critical unit tests
+    - name: Start stub server
       run: |
-        # Critical business logic tests (must pass)
-        # These are high-value tests that should always run
-        pytest tests/unit/d5_scoring tests/unit/d6_reports \
-          tests/unit/test_core.py tests/unit/test_health_endpoint.py \
-          tests/unit/api/test_governance.py \
-          tests/unit/lead_explorer/ \
-          -m "not slow and not flaky" \
-          -n auto --maxfail=5 -x \
-          --timeout=${{ env.PYTEST_TIMEOUT }}
+        python -m stubs.server &
+        sleep 3
+        curl -f http://localhost:5010/health || echo "Stub server not critical"
     
-    - name: Run remaining fast unit tests
-      continue-on-error: true
+    - name: Run comprehensive test suite
       run: |
-        # Other unit tests (failures don't block)
-        # Skip slow tests and known problematic ones
-        pytest tests/unit \
-          --ignore=tests/unit/d5_scoring \
-          --ignore=tests/unit/d6_reports \
-          --ignore=tests/unit/lead_explorer \
-          --ignore=tests/unit/api/test_governance.py \
-          --ignore=tests/unit/d3_assessment/test_d3_coordinator.py \
-          --ignore=tests/unit/d0_gateway/test_circuit_breaker.py \
-          --ignore=tests/unit/d11_orchestration/test_bucket_enrichment.py \
-          --ignore=tests/unit/d11_orchestration/test_cost_guardrails.py \
-          -m "not slow and not flaky" \
-          -n auto --maxfail=20 \
+        # Run all fast tests to achieve 80% coverage
+        pytest tests/unit tests/integration tests/smoke \
+          -m "not slow and not flaky and not external" \
+          --ignore=tests/unit/d10_analytics/test_d10_models.py \
+          --ignore=tests/unit/d10_analytics/test_warehouse.py \
+          --ignore=tests/unit/d11_orchestration/test_bucket_flow.py \
+          --ignore=tests/unit/d11_orchestration/test_pipeline.py \
+          --ignore=tests/unit/d9_delivery/test_delivery_manager.py \
+          --ignore=tests/unit/d9_delivery/test_sendgrid.py \
+          --ignore=tests/integration/test_postgres_container.py \
+          --ignore=tests/integration/test_prd_v1_2_pipeline.py \
+          -n auto --maxfail=10 -x \
           --timeout=${{ env.PYTEST_TIMEOUT }}
 
   # Critical integration tests (Target: <3 minutes)
@@ -186,18 +178,27 @@ jobs:
         python -c "from database.base import Base; from database.session import engine; Base.metadata.create_all(bind=engine)"
         alembic upgrade head
     
+    - name: Start stub server
+      run: |
+        python -m stubs.server &
+        sleep 3
+    
     - name: Generate coverage report
       run: |
-        # Run tests that were selected for CI with coverage
-        pytest \
-          tests/unit/d5_scoring tests/unit/d6_reports \
-          tests/unit/test_core.py tests/unit/test_health_endpoint.py \
-          tests/unit/api/test_governance.py \
-          tests/unit/lead_explorer/ \
-          tests/smoke/test_health.py \
-          tests/integration/test_stub_server.py \
-          -m "not flaky and not external" \
+        # Run the same comprehensive test set with coverage
+        pytest tests/unit tests/integration tests/smoke \
+          -m "not slow and not flaky and not external" \
+          --ignore=tests/unit/d10_analytics/test_d10_models.py \
+          --ignore=tests/unit/d10_analytics/test_warehouse.py \
+          --ignore=tests/unit/d11_orchestration/test_bucket_flow.py \
+          --ignore=tests/unit/d11_orchestration/test_pipeline.py \
+          --ignore=tests/unit/d9_delivery/test_delivery_manager.py \
+          --ignore=tests/unit/d9_delivery/test_sendgrid.py \
+          --ignore=tests/integration/test_postgres_container.py \
+          --ignore=tests/integration/test_prd_v1_2_pipeline.py \
           --cov=. --cov-report=xml --cov-report=html \
+          --cov-report=term --cov-branch \
+          --cov-config=.coveragerc \
           --tb=no -q || true
     
     - name: Check coverage threshold

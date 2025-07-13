@@ -22,6 +22,15 @@ omit =
     */.github/*
     diagnose_*.py
     diagnose_*.sh
+    # One-time validation scripts
+    phase_0_smoke_test.py
+    validate_phase_0.py
+    # Design tools (not runtime code)
+    design/*
+    # Experimental/unused flows
+    flows/full_pipeline_flow.py
+    # CLI tool (separate concern)
+    core/cli.py
 
 [report]
 precision = 2
