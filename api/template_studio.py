@@ -14,7 +14,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from jinja2 import Template, TemplateSyntaxError, UndefinedError
+from jinja2 import Template, TemplateSyntaxError, UndefinedError, Undefined, Environment
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -26,6 +26,24 @@ from d6_reports.models import ReportTemplate
 from database.models import Lead
 
 logger = get_logger("template_studio", domain="template_studio")
+
+
+class SilentUndefined(Undefined):
+    """Undefined subclass that returns empty string instead of raising errors"""
+    def _fail_with_undefined_error(self, *args, **kwargs):
+        return ''
+    
+    def __str__(self):
+        return ''
+    
+    def __unicode__(self):
+        return ''
+    
+    def __bool__(self):
+        return False
+    
+    def __repr__(self):
+        return ''
 
 # Create router with prefix
 router = APIRouter(prefix="/api/template-studio", tags=["template_studio"])
@@ -237,36 +255,27 @@ async def preview_template(
         if not lead:
             # Use default sample data
             lead_data = {
-                "business_name": "Sample Business Inc.",
-                "website": "https://example.com",
-                "phone": "(555) 123-4567",
+                "company_name": "Sample Business Inc.",
+                "domain": "example.com",
+                "contact_name": "John Doe",
                 "email": "contact@example.com",
-                "address": {
-                    "street": "123 Main St",
-                    "city": "Anytown",
-                    "state": "CA",
-                    "zip": "12345"
-                }
+                "source": "sample"
             }
         else:
             lead_data = {
-                "business_name": lead.business_name,
-                "website": lead.website,
-                "phone": lead.phone,
+                "company_name": lead.company_name,
+                "domain": lead.domain,
+                "contact_name": lead.contact_name,
                 "email": lead.email,
-                "address": {
-                    "street": lead.street_address,
-                    "city": lead.city,
-                    "state": lead.state,
-                    "zip": lead.zip_code
-                }
+                "source": lead.source
             }
         
-        # Create Jinja2 template with autoescape
-        template = Template(
-            preview_req.template_content,
-            autoescape=True
+        # Create Jinja2 environment with silent undefined
+        env = Environment(
+            autoescape=True,
+            undefined=SilentUndefined
         )
+        template = env.from_string(preview_req.template_content)
         
         # Render with sample data
         context = {

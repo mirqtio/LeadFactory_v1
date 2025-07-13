@@ -199,8 +199,9 @@ class TestTemplateStudioAPI:
         assert response.status_code == 200
         result = response.json()
         
-        # With autoescape, undefined variables should not cause errors
-        assert result["rendered_html"] != ""
+        # With autoescape and SilentUndefined, undefined variables should not cause errors
+        # The rendered HTML will be empty since the template is just "{{ undefined_variable }}"
+        assert result["rendered_html"] == ""
         assert len(result["errors"]) == 0
 
     def test_preview_rate_limiting(self, test_client: TestClient, db_session):
@@ -225,7 +226,9 @@ class TestTemplateStudioAPI:
     def test_propose_changes_creates_pr(self, mock_check_output, mock_run, test_client: TestClient, sample_template, db_session):
         """Test creating GitHub PR with template changes"""
         # Mock git operations
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_run_result = MagicMock(returncode=0)
+        mock_run_result.stdout = "abc123def456"
+        mock_run.return_value = mock_run_result
         mock_check_output.return_value = "abc123def456"
         
         from database.session import get_db
@@ -250,11 +253,12 @@ class TestTemplateStudioAPI:
         assert "template-update-" in result["branch_name"]
         assert result["commit_sha"] == "abc123de"
 
-    @patch('api.template_studio.subprocess.check_output')
+    @patch('api.template_studio.subprocess.run')
     def test_get_template_diff(self, mock_subprocess, test_client: TestClient, sample_template, db_session):
         """Test getting diff for template changes"""
         # Mock git diff output
-        mock_subprocess.return_value = """diff --git a/templates/test.html b/templates/test.html
+        mock_result = MagicMock()
+        mock_result.stdout = """diff --git a/templates/test.html b/templates/test.html
 index abc123..def456 100644
 --- a/templates/test.html
 +++ b/templates/test.html
@@ -263,6 +267,7 @@ index abc123..def456 100644
 -<p>Old content</p>
 +<p>New content</p>
  <p>Footer</p>"""
+        mock_subprocess.return_value = mock_result
         
         from database.session import get_db
         def override_get_db():

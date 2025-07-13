@@ -126,3 +126,18 @@ class FunnelConversion:
     conversion_rate: float
     avg_duration_seconds: Optional[float] = None
     metadata: Optional[Dict[str, Any]] = None
+
+
+@dataclass
+class MetricSnapshot:
+    """Data class for metric snapshots"""
+    metric_name: str
+    metric_type: str
+    value: float
+    timestamp: datetime
+    period_type: Optional[str] = None
+    period_start: Optional[datetime] = None
+    period_end: Optional[datetime] = None
+    funnel_stage: Optional[str] = None
+    campaign_id: Optional[str] = None
+    tags: Optional[Dict[str, Any]] = None

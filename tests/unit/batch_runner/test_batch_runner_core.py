@@ -93,10 +93,13 @@ class TestBatchRunnerCore:
             failed_leads=1,
             progress_percentage=50.0,
             template_version="v1",
+            estimated_cost_usd=5.00,
+            actual_cost_usd=None,
+            websocket_url="/ws/batch/batch-123",
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
             started_at=datetime.utcnow(),
             completed_at=None,
+            created_by="test_user",
             error_message=None
         )
         
@@ -127,7 +130,10 @@ class TestBatchRunnerCore:
             successful=45,
             failed=5,
             progress_percentage=50.0,
-            current_lead="lead-50"
+            current_lead="lead-50",
+            message="Processing leads",
+            error_message=None,
+            error_code=None
         )
         
         assert schema.type == "progress"
@@ -214,6 +220,7 @@ class TestBatchRunnerCore:
         schema = schemas.BatchResponseSchema(
             id="batch-123",
             name="Test",
+            description="Test batch",
             status="completed",
             total_leads=10,
             processed_leads=10,
@@ -221,7 +228,14 @@ class TestBatchRunnerCore:
             failed_leads=0,
             progress_percentage=100.0,
             template_version="v1",
-            created_at=datetime(2024, 1, 1, 10, 0, 0)
+            estimated_cost_usd=10.00,
+            actual_cost_usd=9.50,
+            websocket_url="/ws/batch/batch-123",
+            created_at=datetime(2024, 1, 1, 10, 0, 0),
+            started_at=datetime(2024, 1, 1, 10, 0, 0),
+            completed_at=datetime(2024, 1, 1, 10, 30, 0),
+            created_by="test_user",
+            error_message=None
         )
         
         # Should be JSON serializable
