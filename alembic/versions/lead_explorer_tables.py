@@ -18,6 +18,22 @@ depends_on = None
 def upgrade() -> None:
     """Create Lead and AuditLogLead tables"""
     
+    # Get the bind to check database type
+    bind = op.get_bind()
+    dialect_name = bind.dialect.name
+    
+    # Handle ENUMs differently for PostgreSQL vs SQLite
+    if dialect_name == 'postgresql':
+        # Create ENUM types for PostgreSQL
+        enrichmentstatus_enum = sa.Enum('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', name='enrichmentstatus')
+        auditaction_enum = sa.Enum('CREATE', 'UPDATE', 'DELETE', name='auditaction')
+        op.execute("CREATE TYPE enrichmentstatus AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED')")
+        op.execute("CREATE TYPE auditaction AS ENUM ('CREATE', 'UPDATE', 'DELETE')")
+    else:
+        # Use String columns for SQLite and other databases
+        enrichmentstatus_enum = sa.String(length=20)
+        auditaction_enum = sa.String(length=10)
+    
     # Create leads table
     op.create_table('leads',
         sa.Column('id', sa.String(), nullable=False),
@@ -25,7 +41,7 @@ def upgrade() -> None:
         sa.Column('domain', sa.String(length=255), nullable=True),
         sa.Column('company_name', sa.String(length=500), nullable=True),
         sa.Column('contact_name', sa.String(length=255), nullable=True),
-        sa.Column('enrichment_status', sa.Enum('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', name='enrichmentstatus'), nullable=False, default='PENDING'),
+        sa.Column('enrichment_status', enrichmentstatus_enum, nullable=False, default='PENDING'),
         sa.Column('enrichment_task_id', sa.String(length=255), nullable=True),
         sa.Column('enrichment_error', sa.Text(), nullable=True),
         sa.Column('is_manual', sa.Boolean(), nullable=False, default=False),
@@ -59,7 +75,7 @@ def upgrade() -> None:
     op.create_table('audit_log_leads',
         sa.Column('id', sa.String(), nullable=False),
         sa.Column('lead_id', sa.String(), nullable=False),
-        sa.Column('action', sa.Enum('CREATE', 'UPDATE', 'DELETE', name='auditaction'), nullable=False),
+        sa.Column('action', auditaction_enum, nullable=False),
         sa.Column('timestamp', sa.TIMESTAMP(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('user_id', sa.String(length=255), nullable=True),
         sa.Column('user_ip', sa.String(length=45), nullable=True),
@@ -81,6 +97,10 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Drop Lead and AuditLogLead tables"""
+    
+    # Get the bind to check database type
+    bind = op.get_bind()
+    dialect_name = bind.dialect.name
     
     # Drop audit_log_leads table and indexes
     op.drop_index(op.f('ix_audit_log_leads_timestamp'), table_name='audit_log_leads')
@@ -104,3 +124,8 @@ def downgrade() -> None:
     op.drop_index('ix_leads_enrichment_lookup', table_name='leads')
     op.drop_index('ix_leads_email_domain', table_name='leads')
     op.drop_table('leads')
+    
+    # Drop ENUM types if PostgreSQL
+    if dialect_name == 'postgresql':
+        op.execute('DROP TYPE IF EXISTS enrichmentstatus')
+        op.execute('DROP TYPE IF EXISTS auditaction')
