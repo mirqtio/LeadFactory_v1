@@ -217,8 +217,7 @@ class LeadRepository:
                 
             self.db.commit()
             
-            logger.info(f"Updated enrichment status for lead {lead_id}",
-                       status=status.value, task_id=task_id)
+            logger.info(f"Updated enrichment status for lead {lead_id} - status: {status.value}, task_id: {task_id}")
             return True
             
         except SQLAlchemyError as e:
