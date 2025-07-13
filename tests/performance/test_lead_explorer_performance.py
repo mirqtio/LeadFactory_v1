@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from main import app
 from database.session import SessionLocal
 from lead_explorer.repository import LeadRepository
+from lead_explorer.models import Lead
 
 
 class TestLeadExplorerPerformance:
@@ -56,9 +57,10 @@ class TestLeadExplorerPerformance:
     
     def test_create_lead_performance(self, client):
         """Test POST /leads response time < 500ms"""
+        unique_suffix = str(int(time.time() * 1000))
         data = {
-            "email": f"test-{time.time()}@example.com",
-            "domain": "example.com",
+            "email": f"test-{unique_suffix}@example.com",
+            "domain": f"test-{unique_suffix}.com",
             "company_name": "Test Company"
         }
         
