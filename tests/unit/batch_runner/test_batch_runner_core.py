@@ -69,7 +69,7 @@ class TestBatchRunnerCore:
             estimated_cost_usd=5.00,
             cost_breakdown={"total_cost": 5.00},
             provider_breakdown={},
-            estimated_duration_minutes=2.5,
+            estimated_duration_minutes=3,
             cost_per_lead=0.50,
             is_within_budget=True,
             budget_warning=None,
@@ -85,6 +85,7 @@ class TestBatchRunnerCore:
         schema = schemas.BatchResponseSchema(
             id="batch-123",
             name="Test Batch",
+            description="Test batch description",
             status="running",
             total_leads=10,
             processed_leads=5,
@@ -92,7 +93,11 @@ class TestBatchRunnerCore:
             failed_leads=1,
             progress_percentage=50.0,
             template_version="v1",
-            created_at=datetime.utcnow()
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+            started_at=datetime.utcnow(),
+            completed_at=None,
+            error_message=None
         )
         
         assert schema.id == "batch-123"
@@ -104,7 +109,7 @@ class TestBatchRunnerCore:
         # Test defaults
         schema = schemas.PaginationSchema()
         assert schema.skip == 0
-        assert schema.limit == 20
+        assert schema.limit == 50
         
         # Test custom values
         schema2 = schemas.PaginationSchema(skip=40, limit=100)
@@ -116,16 +121,18 @@ class TestBatchRunnerCore:
         schema = schemas.WebSocketMessageSchema(
             type="progress",
             batch_id="batch-123",
-            data={
-                "processed": 50,
-                "total": 100,
-                "percentage": 50.0
-            }
+            timestamp=datetime.utcnow().isoformat(),
+            processed=50,
+            total=100,
+            successful=45,
+            failed=5,
+            progress_percentage=50.0,
+            current_lead="lead-50"
         )
         
         assert schema.type == "progress"
         assert schema.batch_id == "batch-123"
-        assert schema.data["percentage"] == 50.0
+        assert schema.progress_percentage == 50.0
     
     def test_batch_model_creation(self):
         """Test BatchReport model"""

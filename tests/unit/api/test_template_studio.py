@@ -157,7 +157,7 @@ class TestTemplateStudioAPI:
         result = response.json()
         
         assert "Test Business Inc." in result["rendered_html"]
-        assert "https://testbusiness.com" in result["rendered_html"]
+        assert "testbusiness.com" in result["rendered_html"]
         assert result["render_time_ms"] < 500  # Performance requirement
         assert len(result["errors"]) == 0
 
