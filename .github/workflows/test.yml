@@ -69,6 +69,12 @@ jobs:
           tests/unit/d2_sourcing/test_d2_models.py \
           tests/unit/d3_assessment/test_d3_assessment_models.py \
           tests/unit/d4_enrichment/test_d4_enrichment_models.py \
+          tests/unit/lead_explorer/test_schemas.py \
+          tests/unit/lead_explorer/test_repository.py \
+          tests/unit/lead_explorer/test_api.py \
+          tests/unit/lead_explorer/test_audit.py \
+          tests/unit/lead_explorer/test_enrichment_coordinator.py \
+          tests/unit/api/test_governance.py \
           -xvs --tb=short --log-cli-level=ERROR
     
     - name: Generate coverage report
@@ -87,6 +93,12 @@ jobs:
           tests/unit/d2_sourcing/test_d2_models.py \
           tests/unit/d3_assessment/test_d3_assessment_models.py \
           tests/unit/d4_enrichment/test_d4_enrichment_models.py \
+          tests/unit/lead_explorer/test_schemas.py \
+          tests/unit/lead_explorer/test_repository.py \
+          tests/unit/lead_explorer/test_api.py \
+          tests/unit/lead_explorer/test_audit.py \
+          tests/unit/lead_explorer/test_enrichment_coordinator.py \
+          tests/unit/api/test_governance.py \
           --cov=. \
           --cov-report=term \
           --cov-report=xml
