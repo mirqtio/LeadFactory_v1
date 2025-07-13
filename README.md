@@ -42,7 +42,7 @@ docker-compose up
 
 ### Tests
 
-**CI Test Strategy (P0-014 Optimized)**
+**CI Test Strategy (PRP-014 Optimized)**
 
 Our CI runs a strategic subset of tests to maintain fast feedback loops while ensuring quality:
 
@@ -50,27 +50,46 @@ Our CI runs a strategic subset of tests to maintain fast feedback loops while en
 - **Coverage Target**: ≥ 80%
 - **Flake Rate**: < 2%
 
+**Test Execution Strategy:**
+
+1. **Every Push/PR** (`.github/workflows/test.yml`):
+   - Unit tests for critical business logic (d5_scoring, d6_reports, governance, lead_explorer)
+   - Essential integration tests (health, database, stub server)
+   - Parallel execution with pytest-xdist
+   - Total runtime: <5 minutes
+
+2. **Nightly** (`.github/workflows/test-nightly.yml`):
+   - Complete test suite including slow tests (>1s)
+   - External API tests
+   - Performance benchmarks
+   - Full regression coverage
+
 **Test Categories:**
-- `@pytest.mark.critical` - High-value tests that run on every push (core logic, models, APIs)
-- `@pytest.mark.slow` - Tests taking >30s, deferred to nightly runs
-- `@pytest.mark.flaky` - Known unstable tests, excluded from CI
+- `@pytest.mark.critical` - Must-run tests for core functionality
+- `@pytest.mark.slow` - Tests taking >1s, deferred to nightly
+- `@pytest.mark.flaky` - Unstable tests excluded from CI
+- `@pytest.mark.external` - Tests requiring external APIs (nightly only)
 
 **Running Tests:**
 ```bash
 # CI tests (fast, critical path)
-pytest -n 4 -m "not slow and not flaky" --cov --cov-fail-under=80
+pytest -n auto -m "not slow and not flaky" --timeout=300
 
-# All tests (including slow)
-pytest -n 4
+# Critical tests only
+pytest -m critical
 
-# Single test file
-pytest tests/unit/test_core.py -v
+# All tests including slow ones
+pytest -n auto --timeout=600
+
+# Single test file with coverage
+pytest tests/unit/test_core.py -v --cov=. --cov-report=term
 ```
 
 **Test Organization:**
-- `tests/unit/` - Fast, isolated unit tests (run always)
-- `tests/integration/` - API and database tests (critical subset in CI)
-- `tests/e2e/` - Full pipeline tests (nightly only)
+- `tests/unit/` - Fast, isolated unit tests (strategic subset in CI)
+- `tests/integration/` - API and database tests (critical only in CI)
+- `tests/performance/` - Performance benchmarks (nightly only)
+- `tests/smoke/` - Basic functionality tests (health checks in CI)
 
 All code must pass tests in Docker before committing:
 
