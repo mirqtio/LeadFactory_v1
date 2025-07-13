@@ -82,6 +82,13 @@ jobs:
           --junitxml=test-results/performance-tests.xml \
           || echo "Some performance tests failed"
     
+    - name: Run comprehensive coverage test
+      run: |
+        pytest tests/comprehensive/test_full_coverage.py \
+          --cov=. --cov-append --cov-report=xml --cov-report=html \
+          --junitxml=test-results/comprehensive-tests.xml \
+          || echo "Some comprehensive tests failed"
+    
     - name: Generate final coverage report
       run: |
         coverage report --fail-under=80
@@ -117,5 +124,6 @@ jobs:
         echo "- ✅ All smoke tests" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Performance tests" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ External API tests" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Comprehensive coverage tests (targeting 100%)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Coverage report and detailed results available in artifacts." >> $GITHUB_STEP_SUMMARY
