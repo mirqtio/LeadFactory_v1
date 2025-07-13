@@ -81,12 +81,12 @@ class TestExtendedConfig:
     def test_use_stubs_configuration(self):
         """Test stub configuration."""
         # With stubs enabled
-        with mock.patch.dict(os.environ, {"USE_STUBS": "true"}):
+        with mock.patch.dict(os.environ, {"USE_STUBS": "true"}, clear=True):
             settings = Settings()
             assert settings.use_stubs is True
 
         # With stubs disabled
-        with mock.patch.dict(os.environ, {"USE_STUBS": "false", "ENVIRONMENT": "test"}, clear=False):
+        with mock.patch.dict(os.environ, {"USE_STUBS": "false", "ENVIRONMENT": "test"}, clear=True):
             settings = Settings()
             assert settings.use_stubs is False
 
