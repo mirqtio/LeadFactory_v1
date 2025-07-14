@@ -68,12 +68,13 @@ class TestExtendedConfig:
             settings = Settings()
             assert settings.environment == "development"
         
-        # Production environment
+        # Production environment - need to clear CI env var to allow USE_STUBS=false
         with mock.patch.dict(os.environ, {
             "ENVIRONMENT": "production", 
             "USE_STUBS": "false", 
-            "SECRET_KEY": "production-secret-key-123-very-secure-key"
-        }):
+            "SECRET_KEY": "production-secret-key-123-very-secure-key",
+            "CI": ""  # Clear CI environment variable
+        }, clear=True):
             settings = Settings()
             assert settings.environment == "production"
         
