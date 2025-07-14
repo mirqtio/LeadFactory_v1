@@ -9,12 +9,47 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Create coverage directory
+      run: mkdir -p coverage
     
     - name: Build test image
-      run: docker build -f Dockerfile.test -t leadfactory-test .
+      run: |
+        docker build -f Dockerfile.test -t leadfactory-test . || {
+          echo "Docker build failed. Checking for common issues..."
+          echo "Current directory contents:"
+          ls -la
+          echo "Dockerfile.test contents:"
+          head -20 Dockerfile.test
+          exit 1
+        }
+    
+    - name: Start services
+      run: |
+        docker-compose -f docker-compose.test.yml up -d postgres stub-server
+        
+        # Wait for services to be ready
+        echo "Waiting for PostgreSQL to be ready..."
+        timeout 60 bash -c 'until docker-compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do sleep 1; done' || {
+          echo "PostgreSQL failed to start. Container logs:"
+          docker-compose -f docker-compose.test.yml logs postgres
+          exit 1
+        }
+        
+        echo "Waiting for stub server to be ready..."
+        timeout 60 bash -c 'until curl -f http://localhost:5010/health; do sleep 1; done' || {
+          echo "Stub server failed to start. Container logs:"
+          docker-compose -f docker-compose.test.yml logs stub-server
+          exit 1
+        }
     
     - name: Run tests in Docker
       run: |
@@ -25,29 +60,63 @@ jobs:
           --cov-report=term-missing \
           --cov-report=xml:coverage.xml \
           --junitxml=junit.xml \
-          --cov-config=.coveragerc
+          --cov-config=.coveragerc || {
+          echo "Tests failed. Container logs:"
+          docker-compose -f docker-compose.test.yml logs test
+          exit 1
+        }
     
     - name: Extract test results
       if: always()
       run: |
-        docker cp $(docker-compose -f docker-compose.test.yml ps -q test):/app/coverage.xml ./coverage.xml || true
-        docker cp $(docker-compose -f docker-compose.test.yml ps -q test):/app/junit.xml ./junit.xml || true
+        # Create test results directory
+        mkdir -p test-results
+        
+        # Get the test container ID (use the most recent one)
+        CONTAINER_ID=$(docker-compose -f docker-compose.test.yml ps -q test | head -1)
+        
+        # Copy test results if container exists
+        if [ ! -z "$CONTAINER_ID" ]; then
+          echo "Extracting results from container $CONTAINER_ID"
+          docker cp $CONTAINER_ID:/app/coverage.xml ./test-results/coverage.xml || echo "No coverage.xml found"
+          docker cp $CONTAINER_ID:/app/junit.xml ./test-results/junit.xml || echo "No junit.xml found"
+        else
+          echo "No test container found, checking for files in mounted volume..."
+          # Check if files exist in the mounted volume
+          if [ -f "./coverage/coverage.xml" ]; then
+            cp ./coverage/coverage.xml ./test-results/coverage.xml
+          fi
+          if [ -f "./coverage.xml" ]; then
+            cp ./coverage.xml ./test-results/coverage.xml
+          fi
+          if [ -f "./junit.xml" ]; then
+            cp ./junit.xml ./test-results/junit.xml
+          fi
+        fi
+        
+        # List what we found
+        echo "Test results directory contents:"
+        ls -la test-results/ || echo "No test-results directory"
     
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
+      if: always()
       with:
-        file: ./coverage.xml
+        file: ./test-results/coverage.xml
         flags: unittests
         name: codecov-umbrella
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
         path: |
-          junit.xml
-          coverage.xml
+          test-results/
+          coverage/
+        retention-days: 5
     
     - name: Clean up
       if: always()

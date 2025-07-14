@@ -17,11 +17,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
-      target: base
+      target: test
     ports:
       - "5010:5010"
     environment:
       USE_STUBS: "true"
+      PYTHONPATH: /app
+      ENVIRONMENT: test
+      SECRET_KEY: test-secret-key-for-ci
+      CI: "true"
     command: python -m uvicorn stubs.server:app --host 0.0.0.0 --port 5010
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5010/health"]
@@ -49,4 +53,5 @@ services:
       CI: "true"
     volumes:
       - ./coverage:/app/coverage
-    command: pytest -m "not slow and not phase_future" --tb=short --cov=. --cov-report=html:coverage/html --cov-report=term --cov-report=xml:coverage.xml --cov-config=.coveragerc
+      - ./test-results:/app/test-results
+    command: pytest -m "not slow and not phase_future" --tb=short --cov=. --cov-report=html:coverage/html --cov-report=term --cov-report=xml:coverage.xml --junitxml=junit.xml --cov-config=.coveragerc

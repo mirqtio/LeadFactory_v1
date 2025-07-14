@@ -1,0 +1,74 @@
+name: Validate Setup
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: Validate Environment Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Validate Docker setup
+      run: |
+        docker --version
+        docker-compose --version
+        
+    - name: Check required files exist
+      run: |
+        echo "Checking for required files..."
+        test -f Dockerfile.test || { echo "Missing Dockerfile.test"; exit 1; }
+        test -f docker-compose.test.yml || { echo "Missing docker-compose.test.yml"; exit 1; }
+        test -f requirements.txt || { echo "Missing requirements.txt"; exit 1; }
+        test -f requirements-dev.txt || { echo "Missing requirements-dev.txt"; exit 1; }
+        test -f .coveragerc || { echo "Missing .coveragerc"; exit 1; }
+        test -f pytest.ini || { echo "Missing pytest.ini"; exit 1; }
+        echo "All required files found!"
+        
+    - name: Validate Dockerfile syntax
+      run: |
+        docker build -f Dockerfile.test --target base -t leadfactory-validate-base . || {
+          echo "Dockerfile.test base stage failed to build"
+          exit 1
+        }
+        echo "Dockerfile.test base stage builds successfully"
+        
+    - name: Test stub server health
+      run: |
+        # Build and start just the stub server
+        docker-compose -f docker-compose.test.yml build stub-server
+        docker-compose -f docker-compose.test.yml up -d stub-server
+        
+        # Wait for it to be ready
+        timeout 30 bash -c 'until curl -f http://localhost:5010/health; do sleep 1; done' || {
+          echo "Stub server health check failed"
+          docker-compose -f docker-compose.test.yml logs stub-server
+          exit 1
+        }
+        
+        echo "Stub server is healthy!"
+        
+    - name: Test PostgreSQL
+      run: |
+        # Start PostgreSQL
+        docker-compose -f docker-compose.test.yml up -d postgres
+        
+        # Wait for it to be ready
+        timeout 30 bash -c 'until docker-compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do sleep 1; done' || {
+          echo "PostgreSQL failed to start"
+          docker-compose -f docker-compose.test.yml logs postgres
+          exit 1
+        }
+        
+        echo "PostgreSQL is ready!"
+        
+    - name: Clean up
+      if: always()
+      run: docker-compose -f docker-compose.test.yml down -v

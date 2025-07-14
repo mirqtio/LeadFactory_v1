@@ -15,6 +15,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -24,11 +25,11 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
     
     - name: Log in to Container Registry
       if: github.event_name != 'pull_request'
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -36,7 +37,7 @@ jobs:
     
     - name: Extract metadata
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
@@ -47,21 +48,36 @@ jobs:
           type=sha
     
     - name: Build test image
-      run: docker build -f Dockerfile.test -t leadfactory:test .
+      run: |
+        docker build -f Dockerfile.test -t leadfactory:test . || {
+          echo "Docker build failed. Checking for common issues..."
+          echo "Current directory contents:"
+          ls -la
+          echo "Dockerfile.test contents:"
+          head -20 Dockerfile.test
+          exit 1
+        }
     
     - name: Run essential tests in built image
       run: |
+        # Create tmp directory for SQLite
+        mkdir -p tmp
+        
         docker run --rm \
           -e DATABASE_URL=sqlite:///tmp/test.db \
           -e USE_STUBS=true \
           -e ENVIRONMENT=test \
           -e SECRET_KEY=test-secret-key-for-ci \
           -e PYTHONPATH=/app \
+          -e CI=true \
           leadfactory:test \
-          python -m pytest -x --tb=short tests/test_setup.py tests/unit/test_unit_models.py tests/unit/test_core.py --ignore=tests/test_docker_compose.py --ignore=tests/integration/
+          python -m pytest -x --tb=short tests/test_setup.py tests/unit/test_unit_models.py tests/unit/test_core.py --ignore=tests/test_docker_compose.py --ignore=tests/integration/ || {
+          echo "Essential tests failed"
+          exit 1
+        }
     
     - name: Build production image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v5
       if: success()
       with:
         context: .
@@ -71,3 +87,4 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        platforms: linux/amd64
