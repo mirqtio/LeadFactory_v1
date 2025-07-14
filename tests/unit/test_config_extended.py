@@ -69,7 +69,11 @@ class TestExtendedConfig:
             assert settings.environment == "development"
         
         # Production environment
-        with mock.patch.dict(os.environ, {"ENVIRONMENT": "production", "USE_STUBS": "false", "SECRET_KEY": "production-secret-key-123"}):
+        with mock.patch.dict(os.environ, {
+            "ENVIRONMENT": "production", 
+            "USE_STUBS": "false", 
+            "SECRET_KEY": "production-secret-key-123-very-secure-key"
+        }):
             settings = Settings()
             assert settings.environment == "production"
         

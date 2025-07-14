@@ -2,6 +2,7 @@
 Lineage API routes
 """
 
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -34,8 +35,6 @@ def search_lineage(
     """
     Search lineage records by various criteria
     """
-    from datetime import datetime
-    
     # Parse dates if provided
     start_dt = None
     end_dt = None
@@ -229,7 +228,6 @@ def get_panel_stats(
     """
     Get lineage panel statistics for dashboard
     """
-    from datetime import timedelta
     from sqlalchemy import func, select
     from d6_reports.models import ReportTemplate
     
