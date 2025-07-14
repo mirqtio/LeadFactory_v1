@@ -73,10 +73,7 @@ def test_client(db_session):
     from database.session import get_db
     
     def override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
+        yield db_session
     
     app.dependency_overrides[get_db] = override_get_db
     
