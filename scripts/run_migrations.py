@@ -42,6 +42,11 @@ def run_migrations(database_url: str) -> bool:
     print("🔄 Running database migrations...")
 
     try:
+        # Skip migrations for SQLite in-memory databases
+        if database_url.startswith("sqlite:///:memory:"):
+            print("⚠️  Skipping migrations for in-memory SQLite database")
+            return True
+            
         # Configure Alembic
         alembic_cfg = Config("alembic.ini")
         alembic_cfg.set_main_option("sqlalchemy.url", database_url)
