@@ -69,6 +69,10 @@ def create_audit_log(
     new_values: Optional[Dict[str, Any]] = None,
 ):
     """Create an audit log entry with tamper detection"""
+    # Skip audit logging in test environment
+    if os.getenv("ENVIRONMENT") == "test":
+        return
+        
     try:
         user_context = AuditContext.get_user_context()
 

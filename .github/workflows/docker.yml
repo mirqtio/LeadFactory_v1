@@ -97,22 +97,11 @@ jobs:
             echo 'Python version:' && python --version &&
             echo 'Working directory:' && pwd &&
             echo 'App structure:' && ls -la /app/ &&
-            echo 'Python path:' && python -c 'import sys; print(\"\\n\".join(sys.path))' &&
+            echo 'Python path:' && python -c 'import sys; print(sys.path)' &&
             
             echo '🗄️ Setting up test database with SQLite...' &&
-            python -c '
-import os
-os.makedirs(\"/app/tmp\", exist_ok=True)
-try:
-    from database.base import Base
-    from sqlalchemy import create_engine
-    print(\"Creating SQLite database...\")
-    engine = create_engine(\"sqlite:///app/tmp/test.db\", echo=False)
-    Base.metadata.create_all(engine)
-    print(\"✅ Database schema created successfully\")
-except Exception as e:
-    print(f\"⚠️ Database setup failed (continuing with tests): {e}\")
-            ' &&
+            python -c \"import os; os.makedirs('/app/tmp', exist_ok=True); print('✅ Temp directory created')\" &&
+            python -c \"from database.base import Base; from sqlalchemy import create_engine; engine = create_engine('sqlite:///app/tmp/test.db', echo=False); Base.metadata.create_all(engine); print('✅ Database schema created')\" || echo '⚠️ Database setup failed' &&
             
             echo '🏗️ Starting stub server for tests...' &&
             echo 'Checking stubs module:' &&
