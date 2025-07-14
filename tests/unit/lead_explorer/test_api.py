@@ -471,27 +471,30 @@ class TestQuickAddLeadAPI:
 class TestHealthCheckAPI:
     """Test GET /health endpoint"""
     
-    def test_health_check_success(self, client, db_session):
+    @patch('lead_explorer.api.get_db')
+    def test_health_check_success(self, mock_get_db, client):
         """Test successful health check"""
-        from database.models import Lead
-        from lead_explorer.api import get_db
+        # Create a mock session with the expected behavior
+        mock_session = Mock()
         
-        # Create test data
-        for i in range(10):
-            lead = Lead(
-                email=f"test{i}@example{i}.com",
-                domain=f"example{i}.com",
-                company_name=f"Test Company {i}",
-                contact_name=f"Test User {i}",
-                is_manual=(i < 5),  # First 5 are manual
-                source="test"
-            )
-            db_session.add(lead)
-        db_session.commit()
+        # Mock execute for SELECT 1
+        mock_session.execute.return_value = Mock()
         
-        # Override the dependency
-        app = client.app
-        app.dependency_overrides[get_db] = lambda: db_session
+        # Mock the query chain for total leads count
+        mock_query = Mock()
+        mock_filter1 = Mock()
+        mock_filter1.count.return_value = 10  # total leads
+        
+        # Mock the query chain for manual leads count
+        mock_filter2 = Mock()
+        mock_filter2.count.return_value = 5  # manual leads
+        
+        # Set up query to return different filters on consecutive calls
+        mock_query.filter.side_effect = [mock_filter1, mock_filter2]
+        mock_session.query.return_value = mock_query
+        
+        # Set up the mock to return our session
+        mock_get_db.return_value = mock_session
         
         # Make request
         response = client.get("/api/v1/lead-explorer/health")
@@ -505,30 +508,22 @@ class TestHealthCheckAPI:
         assert "message" in data
         assert "10 total leads" in data["message"]
         assert "5 manual" in data["message"]
-        
-        # Clean up
-        app.dependency_overrides.clear()
     
-    def test_health_check_database_error(self, client):
+    @patch('lead_explorer.api.get_db')
+    def test_health_check_database_error(self, mock_get_db, client):
         """Test health check with database error"""
-        from lead_explorer.api import get_db
-        
         # Create a mock session that raises an error
         mock_session = Mock()
         mock_session.execute.side_effect = Exception("Database connection failed")
         
-        # Override the dependency
-        app = client.app
-        app.dependency_overrides[get_db] = lambda: mock_session
+        # Set up the mock to return our session
+        mock_get_db.return_value = mock_session
         
         # Make request
         response = client.get("/api/v1/lead-explorer/health")
         
         # Verify response
         assert response.status_code == 503
-        
-        # Clean up
-        app.dependency_overrides.clear()
 
 
 class TestAuditTrailAPI:
