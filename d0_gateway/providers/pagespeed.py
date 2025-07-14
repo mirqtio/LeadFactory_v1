@@ -10,13 +10,13 @@ from ..base import BaseAPIClient
 class PageSpeedClient(BaseAPIClient):
     """Google PageSpeed Insights API v5 client"""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, allow_test_mode: bool = False):
         from core.config import get_settings
 
         settings = get_settings()
 
-        # Check if PageSpeed is enabled
-        if not settings.enable_pagespeed:
+        # Check if PageSpeed is enabled (bypass for testing or when using stubs in test environment)
+        if not settings.enable_pagespeed and not (settings.environment == "test" and settings.use_stubs) and not allow_test_mode:
             raise RuntimeError("PageSpeed client initialized but ENABLE_PAGESPEED=false")
 
         super().__init__(provider="pagespeed", api_key=api_key)

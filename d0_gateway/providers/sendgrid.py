@@ -10,13 +10,13 @@ from ..base import BaseAPIClient
 class SendGridClient(BaseAPIClient):
     """SendGrid API v3 client for email delivery"""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, allow_test_mode: bool = False):
         from core.config import get_settings
 
         settings = get_settings()
 
-        # Check if SendGrid is enabled
-        if not settings.enable_sendgrid:
+        # Check if SendGrid is enabled (bypass for testing or when using stubs in test environment)
+        if not settings.enable_sendgrid and not (settings.environment == "test" and settings.use_stubs) and not allow_test_mode:
             raise RuntimeError("SendGrid client initialized but ENABLE_SENDGRID=false")
 
         super().__init__(provider="sendgrid", api_key=api_key)

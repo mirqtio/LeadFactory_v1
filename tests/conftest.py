@@ -19,26 +19,60 @@ def stub_server_session():
     Start stub server once per test session if USE_STUBS is enabled.
     This ensures the stub server is available for all tests.
     """
-    # Override STUB_BASE_URL for local testing vs CI
-    if os.environ.get("CI") != "true" and not os.environ.get("STUB_BASE_URL"):
+    # Detect if we're running in Docker or CI vs local environment
+    is_docker_or_ci = (
+        os.environ.get("CI") == "true" or
+        os.path.exists("/.dockerenv") or
+        os.environ.get("DOCKER_ENV") == "true"
+    )
+    
+    # Set appropriate stub base URL based on environment
+    if is_docker_or_ci:
+        # In Docker/CI, use container hostname
+        if not os.environ.get("STUB_BASE_URL"):
+            os.environ["STUB_BASE_URL"] = "http://stub-server:5010"
+    else:
+        # Local environment, always use localhost
         os.environ["STUB_BASE_URL"] = "http://localhost:5010"
     
+    # Force USE_STUBS=true for all tests
+    os.environ["USE_STUBS"] = "true"
+    os.environ["ENVIRONMENT"] = "test"
+    
+    # Clear settings cache to ensure new environment variables are picked up
+    get_settings.cache_clear()
     settings = get_settings()
 
     if not settings.use_stubs:
         yield
         return
 
-    # Check if stub server is already running
+    # For Docker/CI environments, assume stub server is managed externally
+    if is_docker_or_ci:
+        # Wait for external stub server to be ready
+        max_attempts = 30
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(f"{settings.stub_base_url}/health", timeout=2)
+                if response.status_code == 200:
+                    yield
+                    return
+            except Exception:
+                pass
+            time.sleep(0.5)
+        
+        pytest.fail(f"External stub server not available at {settings.stub_base_url}")
+
+    # For local environment, check if stub server is already running locally
     try:
         response = requests.get(f"{settings.stub_base_url}/health", timeout=1)
         if response.status_code == 200:
             yield
-            return  # Server already running
+            return  # Server already running locally
     except Exception:
         pass
 
-    # Start stub server in background thread
+    # Start stub server in background thread for local testing
     from stubs.server import app as stub_app
 
     def run_server():
@@ -47,8 +81,8 @@ def stub_server_session():
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
 
-    # Wait for server to be ready
-    max_attempts = 30
+    # Wait for local server to be ready
+    max_attempts = 50
     for attempt in range(max_attempts):
         try:
             response = requests.get(f"{settings.stub_base_url}/health", timeout=1)
@@ -58,7 +92,7 @@ def stub_server_session():
             pass
         time.sleep(0.1)
     else:
-        pytest.fail(f"Stub server failed to start at {settings.stub_base_url}")
+        pytest.fail(f"Local stub server failed to start at {settings.stub_base_url}")
 
     yield
 
@@ -73,6 +107,8 @@ def provider_stub(monkeypatch):
     monkeypatch.setenv("USE_STUBS", "true")
     monkeypatch.setenv("ENVIRONMENT", "test")
 
+    # Clear cache to ensure environment changes are picked up
+    get_settings.cache_clear()
     settings = get_settings()
 
     if not settings.use_stubs:
@@ -97,6 +133,8 @@ def provider_stub(monkeypatch):
 @pytest.fixture
 def test_settings():
     """Provide test-specific settings"""
+    # Clear cache to ensure latest environment variables are used
+    get_settings.cache_clear()
     settings = get_settings()
     # Ensure test environment
     assert settings.environment == "test"
