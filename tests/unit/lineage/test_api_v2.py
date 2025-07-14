@@ -17,8 +17,19 @@ class TestLineageAPIv2:
     """Test suite for lineage API endpoints"""
 
     @pytest.fixture
-    def sample_lineage_data(self, db_session):
+    def sample_lineage_data(self, db_session, test_report_template):
         """Create sample lineage data for tests"""
+        from d6_reports.models import ReportGeneration
+        
+        # First create the report generation
+        report = ReportGeneration(
+            id="report-001",
+            business_id="business-123",
+            template_id=test_report_template.id,
+        )
+        db_session.add(report)
+        db_session.commit()
+        
         # Create lineage with compressed data
         raw_data = {
             "lead_id": "lead-123",
@@ -29,7 +40,7 @@ class TestLineageAPIv2:
         compressed_data = gzip.compress(json.dumps(raw_data).encode('utf-8'))
 
         lineage = ReportLineage(
-            report_generation_id="report-001",
+            report_generation_id=report.id,
             lead_id="lead-123",
             pipeline_run_id="run-456",
             template_version_id="v1.0.0",
