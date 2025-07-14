@@ -8,27 +8,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Clear pre-loaded SSH keys
-        run: ssh-add -D
-        shell: bash
-
-      - name: Set up SSH agent   # marketplace action = webfactory/ssh-agent
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Verify SSH key
-        run: ssh-add -l
-        shell: bash
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Show fingerprint of the key we're using
+          ssh-keygen -l -f ~/.ssh/deploy_key
 
       - name: Add VPS to known_hosts
         run: |
-          mkdir -p ~/.ssh
           ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Remote deploy
         run: |
-          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
             set -e
             # Clone or pull repository
             echo "Starting deployment..."
