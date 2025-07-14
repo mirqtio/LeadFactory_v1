@@ -495,6 +495,40 @@ pytest -m "not slow and not phase_future" --tb=short
 
 **Rollback**: If test re-enable breaks CI, fallback to prior ignore list, isolate failing files, and track re-enable path in PR.
 
+### P0-015 Test Coverage Enhancement to 80%
+**Dependencies**: P0-014 (must have test suite running before enhancing coverage)  
+**Goal**: Increase test coverage from 57% to 80% while maintaining CI runtime under 5 minutes  
+**Integration Points**:
+- All modules with <40% coverage (gateway providers, targeting, batch runner)
+- Test infrastructure: mock factories, fixtures, utilities
+- Coverage configuration in `.coveragerc`
+- CI coverage gates in `.github/workflows/test.yml`
+
+**Tests to Pass**:
+- `pytest --cov=. --cov-report=term-missing` shows ≥80% coverage
+- All CI checks remain green (no regressions)
+- CI runtime stays under 5 minutes
+- No flaky tests in 10 consecutive runs
+
+**Example**: see examples/REFERENCE_MAP.md → P0-015  
+**Reference**: pytest-cov documentation, testing best practices guide
+
+**Business Logic**: Production readiness requires high test coverage to prevent regressions, ensure code quality, and maintain confidence in deployments. The 80% target balances thoroughness with development velocity.
+
+**Acceptance Criteria**:
+- [ ] Overall test coverage ≥80% (currently 57.37%)
+- [ ] All gateway providers have >70% coverage with mock HTTP responses
+- [ ] D1 targeting modules (geo_validator, quota_tracker, batch_scheduler) reach >70%
+- [ ] Batch runner modules achieve >70% coverage
+- [ ] Mock factory system created for external dependencies
+- [ ] Test utilities for async operations implemented
+- [ ] CI enforces 80% coverage requirement (fails if below)
+- [ ] Coverage report published to PR comments
+- [ ] No critical business logic paths below 70% coverage
+- [ ] Performance: test suite completes in <5 minutes
+
+**Rollback**: Lower coverage requirement to 70% if 80% proves infeasible within timeline
+
 ### P0-020 Design System Token Extraction
 **Dependencies**: P0-014 (requires stable CI for UI task validation)  
 **Goal**: Extract machine-readable design tokens from HTML style guide for UI component validation  
