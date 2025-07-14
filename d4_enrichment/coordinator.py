@@ -516,22 +516,26 @@ class EnrichmentCoordinator:
 
     def merge_enrichment_data(
         self, existing_data: Dict[str, Any], new_data: Dict[str, Any]
-    ) -> Dict[Tuple[str, str], Any]:
+    ) -> Dict[str, Any]:
         """
-        Merge enrichment data by (field, provider) with freshest collected_at
+        Merge enrichment data by (field, provider) with freshest collected_at.
         
-        Prevents duplicates and ensures we keep the most recent data for each
-        field from each provider.
+        Args:
+            existing_data: Previously collected enrichment data
+            new_data: New enrichment data to merge
+            
+        Returns:
+            Merged data with no duplicates, keeping freshest values
         """
         merged = {}
         
-        # Process both existing and new data
+        # Combine all data items for deduplication
         all_items = []
         
-        # Convert existing_data to list of (field, value) tuples
+        # Process existing data
         if existing_data:
             for field, value in existing_data.items():
-                if isinstance(value, dict) and 'provider' in value:
+                if isinstance(value, dict) and 'provider' in value and 'collected_at' in value:
                     all_items.append((field, value))
                 else:
                     # Handle legacy format - assume internal provider
@@ -541,10 +545,10 @@ class EnrichmentCoordinator:
                         'collected_at': datetime.utcnow()
                     }))
         
-        # Convert new_data to list of (field, value) tuples  
+        # Process new data
         if new_data:
             for field, value in new_data.items():
-                if isinstance(value, dict) and 'provider' in value:
+                if isinstance(value, dict) and 'provider' in value and 'collected_at' in value:
                     all_items.append((field, value))
                 else:
                     # Handle legacy format
@@ -555,6 +559,7 @@ class EnrichmentCoordinator:
                     }))
         
         # Merge by (field, provider) keeping freshest
+        provider_field_map = {}
         for field, value in all_items:
             provider = value.get('provider', 'internal')
             key = (field, provider)
@@ -568,15 +573,14 @@ class EnrichmentCoordinator:
                     collected_at = datetime.utcnow()
             
             # Keep the value if we don't have it yet or if it's newer
-            if key not in merged:
-                merged[key] = {
-                    'field': field,
-                    'provider': provider,
+            if key not in provider_field_map:
+                provider_field_map[key] = {
                     'value': value.get('value', value),
+                    'provider': provider,
                     'collected_at': collected_at
                 }
             else:
-                existing_collected_at = merged[key].get('collected_at', datetime.min)
+                existing_collected_at = provider_field_map[key].get('collected_at', datetime.min)
                 if isinstance(existing_collected_at, str):
                     try:
                         existing_collected_at = datetime.fromisoformat(
@@ -586,49 +590,44 @@ class EnrichmentCoordinator:
                         existing_collected_at = datetime.min
                         
                 if collected_at > existing_collected_at:
-                    merged[key] = {
-                        'field': field,
-                        'provider': provider,
+                    provider_field_map[key] = {
                         'value': value.get('value', value),
+                        'provider': provider,
                         'collected_at': collected_at
                     }
         
+        # Convert back to flat structure
+        for (field, provider), value in provider_field_map.items():
+            merged[field] = value
+            
         return merged
 
     def generate_cache_key(
-        self, business_id: str, source: Optional[str] = None, **kwargs
+        self, business_id: str, provider: str, timestamp: Optional[datetime] = None
     ) -> str:
         """
-        Generate a unique cache key for enrichment data
+        Generate unique cache key including business, provider, and time window.
         
-        Prevents cache key collisions by including business_id, source,
-        and any additional parameters in a deterministic way.
+        Args:
+            business_id: Unique business identifier
+            provider: Data provider name (e.g., 'google_places', 'pagespeed')
+            timestamp: Optional timestamp for time-windowed caching
+            
+        Returns:
+            Unique cache key that prevents collisions
         """
-        # Create a list of components for the key
-        components = [
-            'enrichment',
-            'v1',  # Version for cache invalidation
-            business_id
-        ]
+        # Ensure business_id is properly sanitized
+        safe_business_id = hashlib.sha256(business_id.encode()).hexdigest()[:16]
         
-        # Add source if provided
-        if source:
-            components.append(source)
+        # Include provider to prevent cross-provider collisions
+        safe_provider = provider.lower().replace(' ', '_')
         
-        # Add any additional kwargs in sorted order for determinism
-        if kwargs:
-            sorted_kwargs = sorted(kwargs.items())
-            for key, value in sorted_kwargs:
-                components.append(f"{key}:{value}")
+        # Add time window for cache invalidation (hourly buckets)
+        if timestamp is None:
+            timestamp = datetime.utcnow()
+        time_bucket = timestamp.strftime('%Y%m%d%H')
         
-        # Join components and create hash for shorter key
-        raw_key = ':'.join(str(c) for c in components)
-        
-        # Use SHA256 for consistent length and avoid collisions
-        key_hash = hashlib.sha256(raw_key.encode()).hexdigest()[:16]
-        
-        # Return readable prefix with hash
-        return f"enrich:{business_id[:8]}:{key_hash}"
+        return f"enrichment:v1:{safe_business_id}:{safe_provider}:{time_bucket}"
 
 
 # Convenience function for single business enrichment
