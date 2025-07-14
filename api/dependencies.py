@@ -4,13 +4,16 @@ API dependencies
 
 from typing import Optional
 
-from database.session import get_db as sync_get_db
+from database.session import SessionLocal
 
 
 def get_db():
     """Get database session"""
-    # Use the sync database session from database.session
-    return sync_get_db()
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 async def get_current_user_optional() -> Optional[str]:

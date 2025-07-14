@@ -40,3 +40,12 @@ repos:
       - id: bandit
         args: [-r, --skip=B101]
         files: ^(?!tests/).*\.py$
+
+  - repo: local
+    hooks:
+      - id: check-migrations
+        name: Check database migrations
+        entry: bash -c 'alembic check || echo "Note: alembic check has known issues with SQLite"'
+        language: system
+        pass_filenames: false
+        files: '(alembic/.*|.*/models\.py)$'

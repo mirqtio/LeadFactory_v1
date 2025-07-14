@@ -57,11 +57,15 @@ def stub_server_session():
 
 
 @pytest.fixture(autouse=True)
-def provider_stub():
+def provider_stub(monkeypatch):
     """
     Fixture to ensure stubs are always used in tests.
     This fixture runs automatically for all tests and fails loudly if stubs are disabled.
     """
+    # Force USE_STUBS=true for all tests
+    monkeypatch.setenv("USE_STUBS", "true")
+    monkeypatch.setenv("ENVIRONMENT", "test")
+    
     settings = get_settings()
     
     if not settings.use_stubs:
@@ -72,6 +76,12 @@ def provider_stub():
     
     # Verify stub configuration
     assert settings.stub_base_url, "Stub base URL must be configured"
+    
+    # Verify all provider flags are auto-disabled
+    assert settings.enable_gbp is False, "GBP should be disabled when using stubs"
+    assert settings.enable_pagespeed is False, "PageSpeed should be disabled when using stubs"
+    assert settings.enable_sendgrid is False, "SendGrid should be disabled when using stubs"
+    assert settings.enable_openai is False, "OpenAI should be disabled when using stubs"
     
     yield
     
