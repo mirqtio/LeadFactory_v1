@@ -31,7 +31,13 @@ except ImportError:
 @pytest.fixture(scope="function")
 def db_session():
     """Create a database session for testing"""
-    engine = create_engine("sqlite:///:memory:", echo=False)
+    from sqlalchemy.pool import StaticPool
+    engine = create_engine(
+        "sqlite:///:memory:", 
+        echo=False,
+        poolclass=StaticPool,
+        connect_args={"check_same_thread": False}
+    )
     Base.metadata.create_all(engine)
 
     Session = scoped_session(sessionmaker(bind=engine))

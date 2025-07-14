@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from database.base import Base
 from d6_reports.models import ReportTemplate, ReportGeneration, ReportType, TemplateFormat
+from d6_reports.lineage.models import ReportLineage, ReportLineageAudit
 
 
 @pytest.fixture(scope="function")

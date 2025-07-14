@@ -31,11 +31,10 @@ class TestFullPipelineFlow:
         """Mock all coordinator dependencies"""
         with patch('flows.full_pipeline_flow.SourcingCoordinator') as mock_sourcing, \
              patch('flows.full_pipeline_flow.AssessmentCoordinator') as mock_assessment, \
-             patch('flows.full_pipeline_flow.EnrichmentCoordinator') as mock_enrichment, \
-             patch('flows.full_pipeline_flow.ScoreCalculator') as mock_scorer, \
+             patch('flows.full_pipeline_flow.ScoringEngine') as mock_scorer, \
              patch('flows.full_pipeline_flow.ReportGenerator') as mock_report, \
-             patch('flows.full_pipeline_flow.PersonalizationGenerator') as mock_personalizer, \
-             patch('flows.full_pipeline_flow.EmailSender') as mock_email:
+             patch('flows.full_pipeline_flow.AdvancedContentGenerator') as mock_personalizer, \
+             patch('flows.full_pipeline_flow.DeliveryManager') as mock_email:
             
             # Configure sourcing coordinator
             mock_sourcing_instance = AsyncMock()
@@ -79,9 +78,9 @@ class TestFullPipelineFlow:
             })
             mock_assessment.return_value = mock_assessment_instance
             
-            # Configure score calculator
+            # Configure scoring engine
             mock_scorer_instance = AsyncMock()
-            mock_scorer_instance.calculate_score = AsyncMock(return_value={
+            mock_scorer_instance.score_lead = AsyncMock(return_value={
                 "overall_score": 78,
                 "tier": "standard",
                 "breakdown": {
@@ -161,7 +160,7 @@ class TestFullPipelineFlow:
         # Verify coordinators were called correctly
         mock_coordinators['sourcing'].source_single_business.assert_called_once()
         mock_coordinators['assessment'].assess_business.assert_called_once()
-        mock_coordinators['scorer'].calculate_score.assert_called_once()
+        mock_coordinators['scorer'].score_lead.assert_called_once()
         mock_coordinators['report'].generate_report.assert_called_once()
         mock_coordinators['personalizer'].generate_email_content.assert_called_once()
         mock_coordinators['email'].send_assessment_email.assert_called_once()
