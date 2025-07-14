@@ -4,7 +4,6 @@ Continuous dashboard updater that runs in the background and updates the AI CTO 
 with real CI status every 30 seconds.
 """
 
-import os
 import signal
 import subprocess
 import sys

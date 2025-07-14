@@ -2,7 +2,6 @@
 Tests for environment configuration and provider feature flags
 Tests for P0-005: Environment & Stub Wiring
 """
-import os
 
 import pytest
 from pydantic import SecretStr, ValidationError

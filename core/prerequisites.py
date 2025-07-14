@@ -22,12 +22,11 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
-import psycopg2
 from packaging import version
 from packaging.version import InvalidVersion
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 from sqlalchemy import create_engine, text
 
 from core.config import get_settings
@@ -218,7 +217,7 @@ class PrerequisiteValidator:
                     else:
                         check.passed = False
                         check.message = f"❌ Docker Compose {compose_version} found, but ≥ 2.0 required"
-                except InvalidVersion as e:
+                except InvalidVersion:
                     check.passed = False
                     check.message = f"❌ Invalid Docker Compose version format: {compose_version}"
             else:
@@ -311,7 +310,7 @@ class PrerequisiteValidator:
 
         if not missing_required:
             check.passed = True
-            check.message = f"✅ All required environment variables found"
+            check.message = "✅ All required environment variables found"
             if missing_optional:
                 check.message += f" (optional missing: {len(missing_optional)})"
         else:

@@ -37,7 +37,7 @@ def main():
         return
 
     updater.update_dashboard()
-    print(f"📊 Dashboard updated - http://localhost:8502/ai_cto_dashboard.html")
+    print("📊 Dashboard updated - http://localhost:8502/ai_cto_dashboard.html")
 
 
 if __name__ == "__main__":

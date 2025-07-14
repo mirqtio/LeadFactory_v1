@@ -151,7 +151,7 @@ class FormulaEvaluator:
                 if cell_ref.startswith("Sheet1!"):
                     try:
                         evaluator.set_cell_value(cell_ref, value)
-                    except:
+                    except Exception:
                         # Cell might not exist, ignore
                         pass
 

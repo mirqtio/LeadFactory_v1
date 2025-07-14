@@ -154,9 +154,10 @@ class TestGBPSmoke:
 
 if __name__ == "__main__":
     # Run smoke tests
-    asyncio.run(test_gbp_find_place())
-    asyncio.run(test_gbp_place_details())
-    asyncio.run(test_gbp_missing_hours_detection())
-    asyncio.run(test_gbp_cost_tracking())
-    asyncio.run(test_gbp_error_handling())
-    asyncio.run(test_gbp_fields_extraction())
+    test_instance = TestGBPSmoke()
+    asyncio.run(test_instance.test_gbp_find_place())
+    asyncio.run(test_instance.test_gbp_place_details())
+    asyncio.run(test_instance.test_gbp_missing_hours_detection())
+    asyncio.run(test_instance.test_gbp_cost_tracking())
+    asyncio.run(test_instance.test_gbp_error_handling())
+    asyncio.run(test_instance.test_gbp_fields_extraction())

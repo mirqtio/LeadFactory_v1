@@ -201,7 +201,7 @@ class TemplateEngine:
             if isinstance(date_obj, str):
                 try:
                     date_obj = datetime.fromisoformat(date_obj.replace("Z", "+00:00"))
-                except:
+                except Exception:
                     return date_obj
 
             if isinstance(date_obj, datetime):

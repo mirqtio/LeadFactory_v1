@@ -98,7 +98,7 @@ class ScoringRulesFileHandler(FileSystemEventHandler):
 
             result = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True)
             return result.stdout.strip()[:8]
-        except:
+        except Exception:
             return "unknown"
 
 

@@ -40,7 +40,6 @@ except ImportError:
 
 
 # Import coordinators and necessary modules
-from d2_sourcing.coordinator import SourcingCoordinator
 from d3_assessment.coordinator import AssessmentCoordinator
 from d5_scoring import ScoringEngine
 from d6_reports.generator import ReportGenerator

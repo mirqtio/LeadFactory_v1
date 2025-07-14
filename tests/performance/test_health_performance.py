@@ -41,7 +41,7 @@ class TestHealthEndpointPerformance:
         max_time = max(response_times)
         p95_time = statistics.quantiles(response_times, n=20)[18]  # 95th percentile
 
-        print(f"\nHealth endpoint performance:")
+        print("\nHealth endpoint performance:")
         print(f"  Average: {avg_time:.2f}ms")
         print(f"  Median: {median_time:.2f}ms")
         print(f"  95th percentile: {p95_time:.2f}ms")
@@ -180,7 +180,7 @@ class TestHealthEndpointOptimization:
 
         avg_warm_time = statistics.mean(warm_times)
 
-        print(f"\nConnection pooling effect:")
+        print("\nConnection pooling effect:")
         print(f"  Cold start: {cold_time:.2f}ms")
         print(f"  Avg warm: {avg_warm_time:.2f}ms")
 

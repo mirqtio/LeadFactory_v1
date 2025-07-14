@@ -13,12 +13,9 @@ Tests all prerequisite checks including:
 Coverage target: >80%
 """
 
-import json
 import os
 import subprocess
-import sys
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from pydantic import ValidationError
@@ -824,7 +821,6 @@ class TestCLIInterface:
 
                 with patch("core.prerequisites.sys.exit") as mock_exit:
                     # Import and run main
-                    from core.prerequisites import __main__
 
                     mock_exit.assert_called_with(0)
 
@@ -843,7 +839,6 @@ class TestCLIInterface:
 
                 with patch("core.prerequisites.sys.exit") as mock_exit:
                     # Import and run main
-                    from core.prerequisites import __main__
 
                     mock_exit.assert_called_with(1)
 

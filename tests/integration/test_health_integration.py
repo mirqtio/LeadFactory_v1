@@ -9,8 +9,6 @@ from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
 
 from core.config import get_settings
 from main import app
@@ -212,7 +210,7 @@ class TestHealthEndpointStressTest:
         max_response_time = max(response_times)
         requests_per_second = request_count / duration_seconds
 
-        print(f"Stress test results:")
+        print("Stress test results:")
         print(f"  Total requests: {request_count}")
         print(f"  Requests/second: {requests_per_second:.2f}")
         print(f"  Avg response time: {avg_response_time:.2f}ms")

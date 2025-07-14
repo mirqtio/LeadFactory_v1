@@ -14,7 +14,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from prefect import serve
+from prefect import flow, serve
 from prefect.deployments import Deployment
 from prefect.server.schemas.schedules import CronSchedule, IntervalSchedule
 
@@ -23,6 +23,49 @@ from tests.e2e.test_heartbeat import heartbeat_flow
 from tests.e2e.test_production_smoke import daily_smoke_flow
 
 logger = get_logger(__name__)
+
+# Import cleanup task
+from d11_orchestration.tasks import cleanup_old_data
+
+
+@flow(name="daily-cleanup")
+async def cleanup_flow():
+    """Clean up old test and temporary data"""
+    logger.info("Running daily cleanup")
+
+    # Clean up old smoke test data
+    deleted_smoke = await cleanup_old_data(
+        table="businesses",
+        where_clause="id LIKE 'smoke_%' AND created_at < NOW() - INTERVAL '7 days'",
+    )
+
+    # Clean up old heartbeat data
+    deleted_heartbeat = await cleanup_old_data(
+        table="businesses",
+        where_clause="id LIKE 'heartbeat_%' AND created_at < NOW() - INTERVAL '1 day'",
+    )
+
+    # Clean up orphaned records
+    deleted_orphans = await cleanup_old_data(
+        table="emails",
+        where_clause="""
+            business_id NOT IN (SELECT id FROM businesses)
+            AND created_at < NOW() - INTERVAL '30 days'
+        """,
+    )
+
+    logger.info(
+        f"Cleanup complete: "
+        f"smoke={deleted_smoke}, "
+        f"heartbeat={deleted_heartbeat}, "
+        f"orphans={deleted_orphans}"
+    )
+
+    return {
+        "deleted_smoke": deleted_smoke,
+        "deleted_heartbeat": deleted_heartbeat,
+        "deleted_orphans": deleted_orphans,
+    }
 
 
 async def create_deployments():
@@ -56,48 +99,7 @@ async def create_deployments():
     heartbeat_id = await heartbeat_deployment.apply()
     logger.info(f"Created heartbeat deployment: {heartbeat_id}")
 
-    # Also create a cleanup flow
-    from d11_orchestration.tasks import cleanup_old_data
-
-    @flow(name="daily-cleanup")
-    async def cleanup_flow():
-        """Clean up old test and temporary data"""
-        logger.info("Running daily cleanup")
-
-        # Clean up old smoke test data
-        deleted_smoke = await cleanup_old_data(
-            table="businesses",
-            where_clause="id LIKE 'smoke_%' AND created_at < NOW() - INTERVAL '7 days'",
-        )
-
-        # Clean up old heartbeat data
-        deleted_heartbeat = await cleanup_old_data(
-            table="businesses",
-            where_clause="id LIKE 'heartbeat_%' AND created_at < NOW() - INTERVAL '1 day'",
-        )
-
-        # Clean up orphaned records
-        deleted_orphans = await cleanup_old_data(
-            table="emails",
-            where_clause="""
-                business_id NOT IN (SELECT id FROM businesses)
-                AND created_at < NOW() - INTERVAL '30 days'
-            """,
-        )
-
-        logger.info(
-            f"Cleanup complete: "
-            f"smoke={deleted_smoke}, "
-            f"heartbeat={deleted_heartbeat}, "
-            f"orphans={deleted_orphans}"
-        )
-
-        return {
-            "deleted_smoke": deleted_smoke,
-            "deleted_heartbeat": deleted_heartbeat,
-            "deleted_orphans": deleted_orphans,
-        }
-
+    # Create cleanup deployment
     cleanup_deployment = await Deployment.build_from_flow(
         flow=cleanup_flow,
         name="daily-cleanup",

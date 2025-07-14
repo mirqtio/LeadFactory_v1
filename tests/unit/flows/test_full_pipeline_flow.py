@@ -4,8 +4,6 @@ Unit Tests for Full Pipeline Flow - P0-002
 Tests individual flow components and error handling without running the full pipeline.
 """
 
-import asyncio
-from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -342,9 +340,7 @@ class TestPipelineMetrics:
 
     def test_execution_time_tracking(self):
         """Test that execution time is properly tracked"""
-        import time
 
-        from flows.full_pipeline_flow import full_pipeline_flow
 
         # Mock time to control execution time
         start_time = 1000.0

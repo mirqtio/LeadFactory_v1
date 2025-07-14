@@ -2,8 +2,7 @@
 Tests for Hunter.io enricher (P0-001)
 Ensures Hunter enrichment works properly
 """
-from typing import Any, Dict, Optional
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock
 
 import pytest
 

@@ -45,19 +45,19 @@ def start_dashboard_server():
     with QuietHTTPServer(("localhost", port), handler) as httpd:
         dashboard_url = f"http://localhost:{port}/ai_cto_dashboard.html"
         print(f"🤖 AI CTO Dashboard running at: {dashboard_url}")
-        print(f"📊 Dashboard will auto-refresh every 30 seconds")
-        print(f"🔄 Press Ctrl+C to stop server")
+        print("📊 Dashboard will auto-refresh every 30 seconds")
+        print("🔄 Press Ctrl+C to stop server")
 
         # Open browser automatically
         try:
             webbrowser.open(dashboard_url)
-        except:
+        except Exception:
             print(f"⚠️  Could not auto-open browser. Please visit: {dashboard_url}")
 
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            print(f"\n✅ Dashboard server stopped")
+            print("\n✅ Dashboard server stopped")
 
 
 if __name__ == "__main__":

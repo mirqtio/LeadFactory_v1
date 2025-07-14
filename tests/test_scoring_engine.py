@@ -119,7 +119,7 @@ class TestScoringEngine:
 
         try:
             engine.reload_config()
-        except:
+        except Exception:
             pass
 
         # Should still have original schema or defaults

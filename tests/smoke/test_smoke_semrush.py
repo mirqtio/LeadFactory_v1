@@ -96,8 +96,9 @@ class TestSEMrushSmoke:
 
 if __name__ == "__main__":
     # Run smoke tests
-    asyncio.run(test_semrush_domain_overview())
-    asyncio.run(test_semrush_popular_domain())
-    asyncio.run(test_semrush_cost_tracking())
-    asyncio.run(test_semrush_rate_limit())
-    asyncio.run(test_semrush_error_handling())
+    test_instance = TestSEMrushSmoke()
+    asyncio.run(test_instance.test_semrush_domain_overview())
+    asyncio.run(test_instance.test_semrush_popular_domain())
+    asyncio.run(test_instance.test_semrush_cost_tracking())
+    asyncio.run(test_instance.test_semrush_rate_limit())
+    asyncio.run(test_instance.test_semrush_error_handling())

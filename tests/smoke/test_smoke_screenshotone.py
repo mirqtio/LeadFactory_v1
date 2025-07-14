@@ -131,9 +131,10 @@ class TestScreenshotOneSmoke:
 
 if __name__ == "__main__":
     # Run smoke tests
-    asyncio.run(test_screenshot_capture())
-    asyncio.run(test_screenshot_with_options())
-    asyncio.run(test_screenshot_timeout())
-    asyncio.run(test_screenshot_cost_tracking())
-    asyncio.run(test_screenshot_rate_limit())
-    asyncio.run(test_screenshot_error_handling())
+    test_instance = TestScreenshotOneSmoke()
+    asyncio.run(test_instance.test_screenshot_capture())
+    asyncio.run(test_instance.test_screenshot_with_options())
+    asyncio.run(test_instance.test_screenshot_timeout())
+    asyncio.run(test_instance.test_screenshot_cost_tracking())
+    asyncio.run(test_instance.test_screenshot_rate_limit())
+    asyncio.run(test_instance.test_screenshot_error_handling())

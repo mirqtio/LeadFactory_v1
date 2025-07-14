@@ -238,7 +238,7 @@ class AssessmentCoordinatorV2:
 
         try:
             return urlparse(url).netloc.replace("www.", "")
-        except:
+        except Exception:
             return ""
 
     async def assess_batch(

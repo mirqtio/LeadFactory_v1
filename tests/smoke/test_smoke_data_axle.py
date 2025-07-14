@@ -112,8 +112,9 @@ if __name__ == "__main__":
         print("   This is optional for PRD v1.2 (fallback only)")
     else:
         # Run smoke tests
-        asyncio.run(test_dataaxle_enrich())
-        asyncio.run(test_dataaxle_email_enrichment())
-        asyncio.run(test_dataaxle_trial_mode())
-        asyncio.run(test_dataaxle_error_handling())
-        asyncio.run(test_dataaxle_as_fallback())
+        test_instance = TestDataAxleSmoke()
+        asyncio.run(test_instance.test_dataaxle_enrich())
+        asyncio.run(test_instance.test_dataaxle_email_enrichment())
+        asyncio.run(test_instance.test_dataaxle_trial_mode())
+        asyncio.run(test_instance.test_dataaxle_error_handling())
+        asyncio.run(test_instance.test_dataaxle_as_fallback())

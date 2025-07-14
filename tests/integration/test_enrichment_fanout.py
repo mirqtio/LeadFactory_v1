@@ -10,7 +10,7 @@ from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from d4_enrichment.coordinator import EnrichmentCoordinator
-from d4_enrichment.models import EnrichmentSource, MatchConfidence
+from d4_enrichment.models import EnrichmentResult, EnrichmentSource, MatchConfidence
 
 
 @pytest.mark.asyncio

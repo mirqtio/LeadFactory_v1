@@ -175,7 +175,7 @@ class VisionAssessor(BaseAssessor):
         try:
             score_int = int(score)
             return max(0, min(5, score_int))
-        except:
+        except Exception:
             return 0
 
     def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
@@ -187,7 +187,7 @@ class VisionAssessor(BaseAssessor):
         if json_match:
             try:
                 return json.loads(json_match.group())
-            except:
+            except Exception:
                 pass
 
         # Return empty structure if extraction fails

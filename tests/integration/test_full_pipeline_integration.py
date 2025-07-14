@@ -6,7 +6,6 @@ Tests the complete pipeline flow with all components integrated.
 
 import asyncio
 import os
-from pathlib import Path
 
 import pytest
 

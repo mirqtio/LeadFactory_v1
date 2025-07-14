@@ -275,7 +275,7 @@ class TestHighImpactCodePaths:
 
         try:
             db_session.commit()
-        except:
+        except Exception:
             db_session.rollback()
 
     def test_error_handling_coverage(self, client):

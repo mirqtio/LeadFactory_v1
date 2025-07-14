@@ -145,6 +145,7 @@ class TestRateLimitingIntegration:
         """Test that rate limiting tracking works"""
         # Make multiple rapid requests to test rate limiting
         results = []
+        last_error = None
 
         for i in range(3):
             try:
@@ -156,6 +157,7 @@ class TestRateLimitingIntegration:
                 await asyncio.sleep(0.1)
 
             except Exception as e:
+                last_error = e
                 # Rate limiting errors should be specific
                 if "rate limit" in str(e).lower():
                     assert "exceeded" in str(e).lower() or "limit" in str(e).lower()
@@ -165,7 +167,7 @@ class TestRateLimitingIntegration:
                     pass
 
         # Should complete at least one request
-        assert len(results) >= 1 or "rate limit" in str(e).lower()
+        assert len(results) >= 1 or (last_error and "rate limit" in str(last_error).lower())
 
     @pytest.mark.asyncio
     async def test_rate_limiting_verified_per_provider(self, facade):

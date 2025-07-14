@@ -1,7 +1,6 @@
 """
 Unit tests for the health check endpoint - P0-007
 """
-import json
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 

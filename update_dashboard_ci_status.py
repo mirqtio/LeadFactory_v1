@@ -7,9 +7,6 @@ This script checks the actual completion status of tasks based on:
 3. CI status (if accessible)
 """
 
-import json
-import os
-import re
 import subprocess
 from datetime import datetime
 from pathlib import Path

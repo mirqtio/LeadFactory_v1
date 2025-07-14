@@ -352,7 +352,7 @@ class TestTask043AcceptanceCriteria:
             # Clean up task
             try:
                 await task
-            except:
+            except Exception:
                 pass  # Task may have been cancelled
 
             print("✓ Request cancellation works correctly")

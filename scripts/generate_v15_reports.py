@@ -31,7 +31,7 @@ class V15ReportGenerator:
         # Load value curves data
         try:
             self.value_curves = pd.read_csv("data/processed/value_curves.csv")
-        except:
+        except Exception:
             self.value_curves = None
 
     def _load_yaml(self, path: str) -> Dict:
@@ -299,7 +299,7 @@ class V15ReportGenerator:
         try:
             naics_code = self._get_naics_for_industry(industry)
             base_revenue = self._get_median_revenue(naics_code, location)
-        except:
+        except Exception:
             # Fallback to default
             base_revenue = 500000  # $500k default
 

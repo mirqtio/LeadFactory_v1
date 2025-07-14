@@ -85,7 +85,8 @@ class TestHunterSmoke:
 
 if __name__ == "__main__":
     # Run smoke tests
-    asyncio.run(test_hunter_domain_search())
-    asyncio.run(test_hunter_confidence_threshold())
-    asyncio.run(test_hunter_cost_tracking())
-    asyncio.run(test_hunter_error_handling())
+    test_instance = TestHunterSmoke()
+    asyncio.run(test_instance.test_hunter_domain_search())
+    asyncio.run(test_instance.test_hunter_confidence_threshold())
+    asyncio.run(test_instance.test_hunter_cost_tracking())
+    asyncio.run(test_instance.test_hunter_error_handling())

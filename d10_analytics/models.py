@@ -14,9 +14,8 @@ Acceptance Criteria:
 import enum
 import uuid
 from datetime import datetime
-from enum import Enum
 
-from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime, Enum, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime, Enum as SQLEnum, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -76,8 +75,8 @@ class FunnelEvent(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
     session_id = Column(String, nullable=False, index=True)
-    stage = Column(Enum(FunnelStage), nullable=False)
-    event_type = Column(Enum(EventType), nullable=False)
+    stage = Column(SQLEnum(FunnelStage), nullable=False)
+    event_type = Column(SQLEnum(EventType), nullable=False)
     timestamp = Column(TIMESTAMP, default=datetime.utcnow)
     event_metadata = Column(JSONB)
 

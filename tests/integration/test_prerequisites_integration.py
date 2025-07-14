@@ -396,7 +396,6 @@ class TestPrerequisitesIntegration:
     def test_concurrent_validation(self):
         """Test concurrent validation execution."""
         import threading
-        import time
 
         results = []
         errors = []

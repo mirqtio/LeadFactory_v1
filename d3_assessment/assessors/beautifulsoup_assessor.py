@@ -169,7 +169,7 @@ class BeautifulSoupAssessor(BaseAssessor):
             try:
                 data = json.loads(script.string)
                 structured_data.append(data)
-            except:
+            except Exception:
                 pass
         return structured_data[:5]  # Limit to 5 items
 

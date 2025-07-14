@@ -6,9 +6,7 @@ This script validates the P0-000 implementation and ensures all requirements
 are met according to the PRP specification.
 """
 
-import json
 import sys
-from pathlib import Path
 
 from core.prerequisites import print_results, validate_all_prerequisites
 
@@ -77,7 +75,7 @@ def main():
         print("All acceptance criteria met!")
         return True
     else:
-        print(f"\n❌ P0-000 Prerequisites Check - VALIDATION FAILED")
+        print("\n❌ P0-000 Prerequisites Check - VALIDATION FAILED")
         print(f"Failed checks: {result.failed_checks}")
         print(f"Warning checks: {result.warning_checks}")
         return False

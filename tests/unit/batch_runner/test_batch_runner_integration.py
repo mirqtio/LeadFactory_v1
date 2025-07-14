@@ -101,7 +101,7 @@ class TestBatchRunnerIntegration:
         # The actual implementation may validate the websocket
         try:
             await manager.connect("batch-123", mock_websocket)
-        except:
+        except Exception:
             pass  # Connection may fail with mock
 
     def test_batch_processor_init(self):

@@ -35,7 +35,7 @@ def stub_server_session():
         if response.status_code == 200:
             yield
             return  # Server already running
-    except:
+    except Exception:
         pass
 
     # Start stub server in background thread
@@ -54,7 +54,7 @@ def stub_server_session():
             response = requests.get(f"{settings.stub_base_url}/health", timeout=1)
             if response.status_code == 200:
                 break
-        except:
+        except Exception:
             pass
         time.sleep(0.1)
     else:

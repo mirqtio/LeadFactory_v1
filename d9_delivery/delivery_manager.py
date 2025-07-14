@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 
 from core.config import get_settings
 from d9_delivery.compliance import ComplianceManager
-from d9_delivery.email_builder import PersonalizationData
+from d9_delivery.email_builder import EmailBuilder, PersonalizationData
 from d9_delivery.models import DeliveryEvent, DeliveryStatus, EmailDelivery, EventType
 from d9_delivery.sendgrid_client import SendGridClient
 from database.session import SessionLocal
@@ -254,7 +254,7 @@ class DeliveryManager:
                     status=DeliveryStatus.FAILED,
                     error_message=error_message,
                 )
-            except:
+            except Exception:
                 # If even recording fails, just log
                 logger.error(f"Failed to record delivery for {request.to_email}")
 

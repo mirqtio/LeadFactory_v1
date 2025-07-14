@@ -182,7 +182,7 @@ class WebhookHandler:
             else:
                 try:
                     parsed_timestamp = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
-                except:
+                except Exception:
                     parsed_timestamp = datetime.now(timezone.utc)
 
             # Extract optional fields
