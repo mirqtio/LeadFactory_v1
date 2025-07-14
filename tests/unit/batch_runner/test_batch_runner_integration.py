@@ -278,31 +278,46 @@ class TestBatchRunnerIntegration:
         schema = HealthCheckResponseSchema(
             status="ok",
             timestamp=datetime.utcnow(),
-            database="connected"
+            database="connected",
+            message="Batch runner service is healthy"
         )
         
         assert schema.status == "ok"
         assert schema.database == "connected"
+        assert schema.message == "Batch runner service is healthy"
     
     def test_lead_result_schema(self):
         """Test LeadResultSchema"""
         schema = LeadResultSchema(
             lead_id="lead-123",
-            status="completed"
+            status="completed",
+            retry_count=0
         )
         
         assert schema.lead_id == "lead-123"
         assert schema.status == "completed"
+        assert schema.retry_count == 0
     
     def test_cost_breakdown_schema(self):
         """Test CostBreakdownSchema"""
         schema = CostBreakdownSchema(
             base_cost=10.0,
-            provider_costs={"openai": 20.0},
+            provider_costs=20.0,
+            subtotal=30.0,
+            volume_discount_rate=0.1,
+            volume_discount_amount=3.0,
+            discounted_subtotal=27.0,
+            overhead_cost=3.0,
             total_cost=30.0
         )
         
         assert schema.base_cost == 10.0
+        assert schema.provider_costs == 20.0
+        assert schema.subtotal == 30.0
+        assert schema.volume_discount_rate == 0.1
+        assert schema.volume_discount_amount == 3.0
+        assert schema.discounted_subtotal == 27.0
+        assert schema.overhead_cost == 3.0
         assert schema.total_cost == 30.0
     
     def test_websocket_message_schema(self):
@@ -310,8 +325,9 @@ class TestBatchRunnerIntegration:
         schema = WebSocketMessageSchema(
             type="progress",
             batch_id="batch-123",
-            data={"processed": 50}
+            timestamp="2025-01-14T10:00:00Z"
         )
         
         assert schema.type == "progress"
         assert schema.batch_id == "batch-123"
+        assert schema.timestamp == "2025-01-14T10:00:00Z"

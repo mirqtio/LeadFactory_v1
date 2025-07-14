@@ -6,7 +6,7 @@ import os
 from functools import lru_cache
 from typing import Dict, Optional
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -142,13 +142,15 @@ class Settings(BaseSettings):
     @classmethod
     def validate_use_stubs(cls, v, info):
         # Force stubs in CI environment
-        if os.getenv("CI") == "true" or info.data.get("environment") == "test":
+        if os.getenv("CI") == "true":
+            return True
+            
+        # Check if environment is test
+        env = info.data.get("environment")
+        if env == "test":
             return True
         
-        # Reject stubs in production
-        if info.data.get("environment") == "production" and v:
-            raise ValueError("USE_STUBS cannot be true in production environment")
-        
+        # Don't validate production constraint here - it's handled in model_validator
         return v
 
     @field_validator("secret_key")
@@ -164,6 +166,13 @@ class Settings(BaseSettings):
         ):
             raise ValueError("Secret key must be changed for production")
         return v
+    
+    @model_validator(mode='after')
+    def validate_production_settings(self):
+        """Validate production-specific settings after all fields are set"""
+        if self.environment == "production" and self.use_stubs:
+            raise ValueError("USE_STUBS cannot be true in production environment")
+        return self
 
     @property
     def is_production(self) -> bool:

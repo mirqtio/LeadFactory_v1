@@ -92,13 +92,38 @@ def upgrade() -> None:
         op.create_index('idx_audit_global_action', 'audit_log_global', ['action', 'timestamp'], unique=False)
         op.create_index('idx_audit_global_endpoint', 'audit_log_global', ['endpoint', 'timestamp'], unique=False)
         op.create_index('idx_audit_global_request_id', 'audit_log_global', ['request_id'], unique=False)
+        
+        # Create role_change_log table
+        op.create_table('role_change_log',
+            sa.Column('id', sa.Integer(), nullable=False),
+            sa.Column('user_id', sa.String(), nullable=False),
+            sa.Column('changed_by_id', sa.String(), nullable=False),
+            sa.Column('old_role', sa.String(length=20), nullable=False),
+            sa.Column('new_role', sa.String(length=20), nullable=False),
+            sa.Column('reason', sa.Text(), nullable=True),
+            sa.Column('timestamp', sa.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+            sa.Column('ip_address', sa.String(length=45), nullable=True),
+            sa.Column('user_agent', sa.Text(), nullable=True),
+            sa.PrimaryKeyConstraint('id'),
+            sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+            sa.ForeignKeyConstraint(['changed_by_id'], ['users.id'], )
+        )
+        
+        # Create indexes for role_change_log
+        op.create_index('idx_role_change_user', 'role_change_log', ['user_id', 'timestamp'], unique=False)
+        op.create_index('idx_role_change_timestamp', 'role_change_log', ['timestamp'], unique=False)
     except Exception as e:
         print(f"Tables might already exist: {e}")
         pass
 
 
 def downgrade() -> None:
-    # Drop tables
+    # Drop role_change_log table and indexes
+    op.drop_index('idx_role_change_timestamp', table_name='role_change_log')
+    op.drop_index('idx_role_change_user', table_name='role_change_log')
+    op.drop_table('role_change_log')
+    
+    # Drop audit_log_global table and indexes
     op.drop_index('idx_audit_global_request_id', table_name='audit_log_global')
     op.drop_index('idx_audit_global_endpoint', table_name='audit_log_global')
     op.drop_index('idx_audit_global_action', table_name='audit_log_global')
@@ -106,6 +131,7 @@ def downgrade() -> None:
     op.drop_index('idx_audit_global_timestamp', table_name='audit_log_global')
     op.drop_table('audit_log_global')
     
+    # Drop users table and indexes
     op.drop_index('idx_users_email_active', table_name='users')
     op.drop_table('users')
     

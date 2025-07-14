@@ -180,14 +180,14 @@ class LeadResultSchema(BaseModel):
     """Schema for individual lead processing result"""
     lead_id: str = Field(description="Lead ID")
     status: str = Field(description="Processing status")
-    report_url: Optional[str] = Field(description="Generated report URL")
-    actual_cost_usd: Optional[float] = Field(description="Actual processing cost")
-    processing_duration_ms: Optional[int] = Field(description="Processing time in milliseconds")
-    quality_score: Optional[float] = Field(description="Report quality score")
-    error_message: Optional[str] = Field(description="Error message if failed")
-    error_code: Optional[str] = Field(description="Error code if failed")
+    report_url: Optional[str] = Field(None, description="Generated report URL")
+    actual_cost_usd: Optional[float] = Field(None, description="Actual processing cost")
+    processing_duration_ms: Optional[int] = Field(None, description="Processing time in milliseconds")
+    quality_score: Optional[float] = Field(None, description="Report quality score")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+    error_code: Optional[str] = Field(None, description="Error code if failed")
     retry_count: int = Field(description="Number of retry attempts")
-    completed_at: Optional[datetime] = Field(description="Completion timestamp")
+    completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
 
 
 class WebSocketMessageSchema(BaseModel):
@@ -195,22 +195,22 @@ class WebSocketMessageSchema(BaseModel):
     type: str = Field(description="Message type")
     batch_id: str = Field(description="Batch ID")
     timestamp: str = Field(description="Message timestamp")
-    processed: Optional[int] = Field(description="Number of processed leads")
-    total: Optional[int] = Field(description="Total leads")
-    successful: Optional[int] = Field(description="Successful leads")
-    failed: Optional[int] = Field(description="Failed leads")
-    progress_percentage: Optional[float] = Field(description="Progress percentage")
-    current_lead: Optional[str] = Field(description="Currently processing lead")
-    message: Optional[str] = Field(description="Status message")
-    error_message: Optional[str] = Field(description="Error message")
-    error_code: Optional[str] = Field(description="Error code")
+    processed: Optional[int] = Field(None, description="Number of processed leads")
+    total: Optional[int] = Field(None, description="Total leads")
+    successful: Optional[int] = Field(None, description="Successful leads")
+    failed: Optional[int] = Field(None, description="Failed leads")
+    progress_percentage: Optional[float] = Field(None, description="Progress percentage")
+    current_lead: Optional[str] = Field(None, description="Currently processing lead")
+    message: Optional[str] = Field(None, description="Status message")
+    error_message: Optional[str] = Field(None, description="Error message")
+    error_code: Optional[str] = Field(None, description="Error code")
 
 
 class ErrorResponseSchema(BaseModel):
     """Schema for error responses"""
     error: str = Field(description="Error type")
     message: str = Field(description="Error message")
-    details: Optional[Dict[str, Any]] = Field(description="Additional error details")
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
 
 
 class ValidationErrorSchema(BaseModel):

@@ -177,6 +177,9 @@ def extract_domain(url: str) -> Optional[str]:
         domain = parsed.netloc.lower()
         if not domain:  # No domain found
             return None
+        # Remove port if present
+        if ":" in domain:
+            domain = domain.split(":")[0]
         # Remove www prefix
         if domain.startswith("www."):
             domain = domain[4:]
