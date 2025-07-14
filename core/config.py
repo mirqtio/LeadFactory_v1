@@ -215,7 +215,8 @@ class Settings(BaseSettings):
 
         keys = {
             "google": self.google_api_key,
-            "pagespeed": self.google_api_key,  # PageSpeed uses Google API key
+            "google_places": self.google_places_api_key,
+            "pagespeed": self.google_pagespeed_api_key or self.google_api_key,  # PageSpeed uses Google API key
             "stripe": self.stripe_secret_key,
             "sendgrid": self.sendgrid_api_key,
             "openai": self.openai_api_key,
@@ -223,6 +224,7 @@ class Settings(BaseSettings):
             "hunter": self.hunter_api_key,
             "semrush": self.semrush_api_key,
             "screenshotone": self.screenshotone_key,
+            "humanloop": self.humanloop_api_key,
         }
 
         key = keys.get(service)
