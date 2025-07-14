@@ -24,10 +24,14 @@ def stub_server_session():
         os.environ.get("CI") == "true" or os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
     )
 
-    # Set appropriate stub base URL based on environment
+    # Set appropriate stub base URL based on environment (always override)
     if is_docker_or_ci:
-        # In Docker/CI, use container hostname
-        if not os.environ.get("STUB_BASE_URL"):
+        # In Docker/CI, use container hostname or localhost based on CI setup
+        if os.environ.get("CI") == "true":
+            # In GitHub Actions CI, use localhost since stub server runs in same container
+            os.environ["STUB_BASE_URL"] = "http://localhost:5010"
+        else:
+            # In Docker Compose, use service name
             os.environ["STUB_BASE_URL"] = "http://stub-server:5010"
     else:
         # Local environment, always use localhost
