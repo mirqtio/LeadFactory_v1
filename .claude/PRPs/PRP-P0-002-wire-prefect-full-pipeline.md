@@ -1,6 +1,9 @@
 # PRP: Wire Prefect Full Pipeline
 
 ## Task ID: P0-002
+
+> 💡 **Claude Implementation Note**: Consider how task subagents can be used to execute portions of this task in parallel to improve efficiency and reduce overall completion time.
+
 ## Wave: A
 
 ## Business Logic (Why This Matters)

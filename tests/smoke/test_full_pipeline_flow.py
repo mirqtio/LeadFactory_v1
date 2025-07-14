@@ -15,7 +15,7 @@ import json
 import os
 import time
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -29,27 +29,15 @@ class TestFullPipelineFlow:
     @pytest.fixture
     def mock_coordinators(self):
         """Mock all coordinator dependencies"""
-        with patch('flows.full_pipeline_flow.SourcingCoordinator') as mock_sourcing, \
-             patch('flows.full_pipeline_flow.AssessmentCoordinator') as mock_assessment, \
+        with patch('flows.full_pipeline_flow.AssessmentCoordinator') as mock_assessment, \
              patch('flows.full_pipeline_flow.ScoringEngine') as mock_scorer, \
              patch('flows.full_pipeline_flow.ReportGenerator') as mock_report, \
              patch('flows.full_pipeline_flow.AdvancedContentGenerator') as mock_personalizer, \
              patch('flows.full_pipeline_flow.DeliveryManager') as mock_email:
             
-            # Configure sourcing coordinator
-            mock_sourcing_instance = AsyncMock()
-            mock_sourcing_instance.source_single_business = AsyncMock(return_value={
-                "name": "Test Business",
-                "email": "test@business.com",
-                "phone": "555-1234",
-                "address": "123 Test St",
-                "industry": "Technology"
-            })
-            mock_sourcing.return_value = mock_sourcing_instance
-            
             # Configure assessment coordinator
             mock_assessment_instance = AsyncMock()
-            mock_assessment_instance.assess_business = AsyncMock(return_value={
+            mock_assessment_instance.execute_comprehensive_assessment = AsyncMock(return_value={
                 "pagespeed": {
                     "performance_score": 85,
                     "fcp": 1.2,
@@ -80,9 +68,9 @@ class TestFullPipelineFlow:
             
             # Configure scoring engine
             mock_scorer_instance = AsyncMock()
-            mock_scorer_instance.score_lead = AsyncMock(return_value={
+            mock_scorer_instance.calculate_score = Mock(return_value={
                 "overall_score": 78,
-                "tier": "standard",
+                "tier": "B",  # Score 78 = B tier
                 "breakdown": {
                     "performance": 85,
                     "technical": 75,
@@ -120,7 +108,6 @@ class TestFullPipelineFlow:
             mock_email.return_value = mock_email_instance
             
             yield {
-                'sourcing': mock_sourcing_instance,
                 'assessment': mock_assessment_instance,
                 'scorer': mock_scorer_instance,
                 'report': mock_report_instance,
@@ -158,9 +145,9 @@ class TestFullPipelineFlow:
         assert result["stages_completed"] == 6
         
         # Verify coordinators were called correctly
-        mock_coordinators['sourcing'].source_single_business.assert_called_once()
-        mock_coordinators['assessment'].assess_business.assert_called_once()
-        mock_coordinators['scorer'].score_lead.assert_called_once()
+        # Note: sourcing doesn't use a coordinator in MVP
+        mock_coordinators['assessment'].execute_comprehensive_assessment.assert_called_once()
+        mock_coordinators['scorer'].calculate_score.assert_called_once()
         mock_coordinators['report'].generate_report.assert_called_once()
         mock_coordinators['personalizer'].generate_email_content.assert_called_once()
         mock_coordinators['email'].send_assessment_email.assert_called_once()
@@ -210,7 +197,7 @@ class TestFullPipelineFlow:
     async def test_pipeline_with_assessment_failure(self, mock_coordinators):
         """Test pipeline behavior when assessment fails but continues"""
         # Make assessment fail
-        mock_coordinators['assessment'].assess_business.side_effect = Exception("Assessment API error")
+        mock_coordinators['assessment'].execute_comprehensive_assessment.side_effect = Exception("Assessment API error")
         
         test_url = "https://failing-assessment.com"
         result = await run_pipeline(test_url)
@@ -218,7 +205,7 @@ class TestFullPipelineFlow:
         # Pipeline should continue with default score
         assert result["status"] == "complete"
         assert result["score"] == 50  # Default score on assessment failure
-        assert result["score_tier"] == "basic"
+        assert result["score_tier"] == "D"  # Default low tier on failure
         
         # Other stages should still complete
         assert result["report_path"] is not None
@@ -267,9 +254,9 @@ class TestFullPipelineFlow:
         # Add delays to simulate real processing
         async def delayed_assessment(*args, **kwargs):
             await asyncio.sleep(2)  # Simulate 2 second assessment
-            return mock_coordinators['assessment'].assess_business.return_value
+            return mock_coordinators['assessment'].execute_comprehensive_assessment.return_value
         
-        mock_coordinators['assessment'].assess_business = delayed_assessment
+        mock_coordinators['assessment'].execute_comprehensive_assessment = delayed_assessment
         
         test_url = "https://performance-test.com"
         
