@@ -22,8 +22,7 @@ from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueCo
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-# Import lineage models to ensure they're registered
-from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
+# Lineage models are imported separately to avoid circular dependencies
 from database.base import Base
 
 
@@ -127,6 +126,7 @@ class ReportGeneration(Base):
     # Relationships
     template = relationship("ReportTemplate", back_populates="generations")
     deliveries = relationship("ReportDelivery", back_populates="report_generation")
+    # Note: lineage relationship is defined via backref in ReportLineage model
 
     # Indexes
     __table_args__ = (

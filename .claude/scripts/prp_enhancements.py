@@ -34,49 +34,79 @@ BUSINESS_LOGIC = {
 }
 
 OUTCOME_CRITERIA = {
-    "P0-000": ("`pytest --collect-only` exits 0 inside Docker **and** a checklist in README lists required "
-               "versions (Python 3.11, Docker ≥ 20, Compose ≥ 2)."),
-    "P0-001": ("`test_d4_coordinator.py` passes **and** coordinator returns freshest, deduped fields; "
-               "cache key collisions across businesses impossible (property-based test)."),
-    "P0-002": ("`smoke/test_full_pipeline_flow.py` generates PDF + email + DB rows for a sample URL "
-               "within 90 s runtime."),
+    "P0-000": (
+        "`pytest --collect-only` exits 0 inside Docker **and** a checklist in README lists required "
+        "versions (Python 3.11, Docker ≥ 20, Compose ≥ 2)."
+    ),
+    "P0-001": (
+        "`test_d4_coordinator.py` passes **and** coordinator returns freshest, deduped fields; "
+        "cache key collisions across businesses impossible (property-based test)."
+    ),
+    "P0-002": (
+        "`smoke/test_full_pipeline_flow.py` generates PDF + email + DB rows for a sample URL " "within 90 s runtime."
+    ),
     "P0-003": "GitHub Actions logs show image build, KEEP suite green, coverage ≥ 80%, image pushed to GHCR.",
-    "P0-004": ("`alembic upgrade head` + autogen diff both return no changes on CI; downgrade path tested "
-               "for latest revision."),
-    "P0-005": ("Running tests with `USE_STUBS=true` yields 0 external calls (network mocked); "
-               "prod env rejects `USE_STUBS=true` at startup."),
+    "P0-004": (
+        "`alembic upgrade head` + autogen diff both return no changes on CI; downgrade path tested "
+        "for latest revision."
+    ),
+    "P0-005": (
+        "Running tests with `USE_STUBS=true` yields 0 external calls (network mocked); "
+        "prod env rejects `USE_STUBS=true` at startup."
+    ),
     "P0-006": '`pytest -m "not phase_future and not slow"` exits 0 in < 5 min on CI.',
     "P0-007": '`/health` returns JSON `{status:"ok"}` plus DB connectivity ≤ 100 ms; monitored in deploy workflow.',
-    "P0-008": ("Collect phase shows correct counts; `pytest -m slow` runs 0 tests in CI; import errors in "
-               "ignored files eliminated."),
-    "P0-009": ("`git grep -i yelp` finds only comments/docs; migration drops last Yelp columns; "
-               "stub server has no `/yelp/*` routes."),
-    "P0-010": ("`pip install -r requirements.txt` succeeds in clean venv; `pip check` green; version pins "
-               "documented."),
-    "P0-011": ("GH Actions deploy job completes; container responds 200 on `/health`; restart policy is "
-               "`always`; SSH key auth works."),
-    "P0-012": ("Postgres service starts with named volume; app connects; `alembic upgrade head` runs during "
-               "deploy; data survives container restart."),
-    "P1-010": ('Stubbed unit tests pass; live smoke test fetches all six metrics; metrics appear in PDF '
-               'section "SEO Snapshot".'),
-    "P1-020": ("Headless run completes ≤ 30 s; returns 5 scores; cached 7 days; results populate assessment "
-               "row and PDF."),
-    "P1-030": ("Screenshot captured; 9 rubric scores (0-100) persisted; PDF shows coloured bar chart "
-               "per dimension."),
+    "P0-008": (
+        "Collect phase shows correct counts; `pytest -m slow` runs 0 tests in CI; import errors in "
+        "ignored files eliminated."
+    ),
+    "P0-009": (
+        "`git grep -i yelp` finds only comments/docs; migration drops last Yelp columns; "
+        "stub server has no `/yelp/*` routes."
+    ),
+    "P0-010": (
+        "`pip install -r requirements.txt` succeeds in clean venv; `pip check` green; version pins " "documented."
+    ),
+    "P0-011": (
+        "GH Actions deploy job completes; container responds 200 on `/health`; restart policy is "
+        "`always`; SSH key auth works."
+    ),
+    "P0-012": (
+        "Postgres service starts with named volume; app connects; `alembic upgrade head` runs during "
+        "deploy; data survives container restart."
+    ),
+    "P1-010": (
+        'Stubbed unit tests pass; live smoke test fetches all six metrics; metrics appear in PDF '
+        'section "SEO Snapshot".'
+    ),
+    "P1-020": (
+        "Headless run completes ≤ 30 s; returns 5 scores; cached 7 days; results populate assessment " "row and PDF."
+    ),
+    "P1-030": (
+        "Screenshot captured; 9 rubric scores (0-100) persisted; PDF shows coloured bar chart " "per dimension."
+    ),
     "P1-040": "For a given URL stub, audit returns 7 structured fields; JSON matches schema; costs logged in ledger.",
-    "P1-050": ("Every external API request inserts a ledger row with `cost_usd`; daily aggregation view "
-               "returns non-NULL totals."),
+    "P1-050": (
+        "Every external API request inserts a ledger row with `cost_usd`; daily aggregation view "
+        "returns non-NULL totals."
+    ),
     "P1-060": "Flow halts when simulated spend > cap; Slack (or log) warning emitted; admin override flag tested.",
     "P1-070": "Stub test passes; live smoke returns ≥ 10 firmographic fields; enrichment merged into business record.",
     "P1-080": "Prefect schedule runs; summary email lists processed counts per bucket; respects guardrails.",
     "P2-010": "`/analytics/unit_econ?date=…` returns CPL, CAC, ROI; SQL view tested; response cached 24 h.",
     "P2-020": "New 2-page section renders pie, bar, gauge charts; PDF snapshot test diff < 2%.",
-    "P2-030": ("For sample lead, builder returns 5 subjects / 3 bodies with placeholders filled; "
-               "deterministic stub for tests; live emails sent in SendGrid sandbox."),
-    "P2-040": ("When ledger total > monthly cap, all flows transition to `Failed` with custom message; "
-               "auto-resume next month verified."),
-    "P2-050": ("CI pipeline spins up Supabase shadow DB, runs migrations; deploy workflow switches "
-               "`DATABASE_URL`; app health remains 200; old VPS Postgres container stopped."),
+    "P2-030": (
+        "For sample lead, builder returns 5 subjects / 3 bodies with placeholders filled; "
+        "deterministic stub for tests; live emails sent in SendGrid sandbox."
+    ),
+    "P2-040": (
+        "When ledger total > monthly cap, all flows transition to `Failed` with custom message; "
+        "auto-resume next month verified."
+    ),
+    "P2-050": (
+        "CI pipeline spins up Supabase shadow DB, runs migrations; deploy workflow switches "
+        "`DATABASE_URL`; app health remains 200; old VPS Postgres container stopped."
+    ),
 }
 
 # Example code snippets for specific tasks

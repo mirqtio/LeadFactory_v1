@@ -310,8 +310,20 @@ class TestEnvironmentConfiguration:
         settings2 = get_settings()
         assert settings1 is settings2  # Same instance
 
-    def test_wave_b_feature_flags_default_false(self):
+    def test_wave_b_feature_flags_default_false(self, monkeypatch, tmp_path):
         """Test that Wave B feature flags default to False"""
+        # Create a temporary directory with no .env file
+        monkeypatch.chdir(tmp_path)
+        
+        # Clear environment variables that might override defaults
+        monkeypatch.delenv("ENABLE_SEMRUSH", raising=False)
+        monkeypatch.delenv("ENABLE_LIGHTHOUSE", raising=False)
+        monkeypatch.delenv("ENABLE_VISUAL_ANALYSIS", raising=False)
+        monkeypatch.delenv("ENABLE_LLM_AUDIT", raising=False)
+        monkeypatch.delenv("ENABLE_COST_TRACKING", raising=False)
+        monkeypatch.delenv("USE_DATAAXLE", raising=False)
+        monkeypatch.delenv("ENABLE_COST_GUARDRAILS", raising=False)
+        
         settings = Settings()
         assert settings.enable_semrush is False
         assert settings.enable_lighthouse is False

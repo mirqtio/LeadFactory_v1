@@ -9,6 +9,7 @@ from pathlib import Path
 
 class P0011Validator:
     """Validator for P0-011 PRP."""
+
     def __init__(self, prp_path: str):
         """Initialize validator with PRP path."""
         self.prp_path = Path(prp_path)

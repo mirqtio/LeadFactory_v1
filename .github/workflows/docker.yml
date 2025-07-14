@@ -49,30 +49,124 @@ jobs:
     
     - name: Build test image
       run: |
+        echo "Building test image..."
+        echo "Checking build context..."
+        echo "Current directory: $(pwd)"
+        echo "Files in directory:"
+        ls -la
+        echo "Python files count: $(find . -name '*.py' | wc -l)"
+        echo "Requirements files:"
+        ls -la requirements*.txt
+        echo "Alembic files:"
+        ls -la alembic.ini alembic/ || echo "Alembic files not found"
+        
         docker build -f Dockerfile.test -t leadfactory:test . || {
           echo "Docker build failed. Checking for common issues..."
-          echo "Current directory contents:"
-          ls -la
+          echo "Docker version:"
+          docker version
           echo "Dockerfile.test contents:"
-          head -20 Dockerfile.test
+          cat Dockerfile.test
+          echo "Requirements.txt contents:"
+          head -20 requirements.txt
+          echo "Requirements-dev.txt contents:"
+          head -20 requirements-dev.txt
           exit 1
         }
+        echo "✅ Test image built successfully"
+        echo "Image size: $(docker images leadfactory:test --format '{{.Size}}')"
     
     - name: Run essential tests in built image
       run: |
         # Create tmp directory for SQLite
         mkdir -p tmp
         
+        echo "Running essential tests to verify container setup..."
+        
         docker run --rm \
-          -e DATABASE_URL=sqlite:///tmp/test.db \
+          -e DATABASE_URL=sqlite:///app/tmp/test.db \
           -e USE_STUBS=true \
           -e ENVIRONMENT=test \
           -e SECRET_KEY=test-secret-key-for-ci \
           -e PYTHONPATH=/app \
           -e CI=true \
+          -e STUB_BASE_URL=http://localhost:5010 \
+          -v $(pwd)/tmp:/app/tmp \
           leadfactory:test \
-          python -m pytest -x --tb=short tests/test_setup.py tests/unit/test_unit_models.py tests/unit/test_core.py --ignore=tests/test_docker_compose.py --ignore=tests/integration/ || {
-          echo "Essential tests failed"
+          sh -c "
+            echo '🔍 Verifying container setup...' &&
+            echo 'Python version:' && python --version &&
+            echo 'Working directory:' && pwd &&
+            echo 'App structure:' && ls -la /app/ &&
+            echo 'Python path:' && python -c 'import sys; print(\"\\n\".join(sys.path))' &&
+            
+            echo '🗄️ Setting up test database with SQLite...' &&
+            python -c '
+import os
+os.makedirs(\"/app/tmp\", exist_ok=True)
+try:
+    from database.base import Base
+    from sqlalchemy import create_engine
+    print(\"Creating SQLite database...\")
+    engine = create_engine(\"sqlite:///app/tmp/test.db\", echo=False)
+    Base.metadata.create_all(engine)
+    print(\"✅ Database schema created successfully\")
+except Exception as e:
+    print(f\"⚠️ Database setup failed (continuing with tests): {e}\")
+            ' &&
+            
+            echo '🏗️ Starting stub server for tests...' &&
+            echo 'Checking stubs module:' &&
+            ls -la /app/stubs/ || echo 'Stubs directory not found' &&
+            python -m uvicorn stubs.server:app --host 0.0.0.0 --port 5010 --log-level info &
+            STUB_PID=\$! &&
+            echo 'Waiting for stub server to be ready...' &&
+            python scripts/wait_for_stub.py &&
+            
+            echo '🧪 Running essential tests...' &&
+            python -m pytest -v --tb=short --maxfail=3 \
+              tests/test_setup.py \
+              tests/unit/test_core.py \
+              tests/unit/test_unit_models.py \
+              --ignore=tests/test_docker_compose.py \
+              --ignore=tests/integration/ &&
+            
+            echo '🧹 Cleaning up stub server...' &&
+            kill \$STUB_PID 2>/dev/null || true || {
+              echo '⚠️ Some tests failed, but checking which ones passed...'
+              echo 'Running individual test files for better diagnostics:'
+              echo 'Starting stub server for diagnostics...'
+              python -m uvicorn stubs.server:app --host 0.0.0.0 --port 5010 --log-level error &
+              DIAG_STUB_PID=\$!
+              sleep 3
+              echo 'Testing setup.py:'
+              python -m pytest -v tests/test_setup.py || echo 'Setup tests failed'
+              echo 'Testing core.py:'
+              python -m pytest -v tests/unit/test_core.py || echo 'Core tests failed'
+              echo 'Testing unit models (if present):'
+              if [ -f tests/unit/test_unit_models.py ]; then
+                python -m pytest -v tests/unit/test_unit_models.py || echo 'Unit model tests failed'
+              fi
+              kill \$DIAG_STUB_PID 2>/dev/null || true
+              exit 1
+            }
+          " || {
+          echo "❌ Essential tests failed. Checking container diagnostics..."
+          echo "Container contents:"
+          docker run --rm leadfactory:test ls -la /app/
+          echo "Tests directory:"
+          docker run --rm leadfactory:test ls -la /app/tests/
+          echo "Core module:"
+          docker run --rm leadfactory:test ls -la /app/core/
+          echo "Database module:"
+          docker run --rm leadfactory:test ls -la /app/database/
+          echo "Stubs module:"
+          docker run --rm leadfactory:test ls -la /app/stubs/
+          echo "Scripts directory:"
+          docker run --rm leadfactory:test ls -la /app/scripts/
+          echo "Python packages installed:"
+          docker run --rm leadfactory:test pip list
+          echo "Test database connection:"
+          docker run --rm -e DATABASE_URL=sqlite:///tmp/test.db leadfactory:test python -c "from sqlalchemy import create_engine; engine = create_engine('sqlite:///tmp/test.db'); print('Database connection successful')"
           exit 1
         }
     

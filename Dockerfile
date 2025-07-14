@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     postgresql-client \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user

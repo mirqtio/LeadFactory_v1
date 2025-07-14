@@ -20,6 +20,9 @@ try:
     os.environ["ENVIRONMENT"] = "production"
     os.environ["USE_STUBS"] = "true"
     
+    # Clear cache to ensure environment changes are picked up
+    get_settings.cache_clear()
+    
     settings = get_settings()
     print("ERROR: Production accepted USE_STUBS=true")
     sys.exit(1)

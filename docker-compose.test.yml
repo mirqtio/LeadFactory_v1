@@ -1,3 +1,7 @@
+networks:
+  test-network:
+    driver: bridge
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -7,6 +11,8 @@ services:
       POSTGRES_DB: leadfactory_test
     ports:
       - "5432:5432"
+    networks:
+      - test-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -26,12 +32,16 @@ services:
       ENVIRONMENT: test
       SECRET_KEY: test-secret-key-for-ci
       CI: "true"
-    command: python -m uvicorn stubs.server:app --host 0.0.0.0 --port 5010
+      DATABASE_URL: "sqlite:///tmp/stub.db"
+    networks:
+      - test-network
+    command: python -m uvicorn stubs.server:app --host 0.0.0.0 --port 5010 --log-level info
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5010/health"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 10s
 
   test:
     build:
@@ -51,13 +61,25 @@ services:
       ENVIRONMENT: test
       SECRET_KEY: test-secret-key-for-ci
       CI: "true"
+    networks:
+      - test-network
     volumes:
       - ./coverage:/app/coverage
       - ./test-results:/app/test-results
     command: >
       sh -c "
+        echo 'Creating output directories...' &&
+        mkdir -p /app/coverage /app/test-results &&
+        echo 'Verifying environment...' &&
+        echo 'Python version:' && python --version &&
+        echo 'Working directory:' && pwd &&
+        echo 'App structure:' && ls -la /app/ &&
         echo 'Running database migrations...' &&
         python scripts/run_migrations.py &&
+        echo 'Waiting for stub server to be fully ready...' &&
+        python scripts/wait_for_stub.py &&
         echo 'Starting test execution...' &&
-        pytest -m 'not slow and not phase_future' --tb=short --cov=. --cov-report=html:coverage/html --cov-report=term --cov-report=xml:coverage.xml --junitxml=junit.xml --cov-config=.coveragerc
+        pytest -m 'not slow and not phase_future' --tb=short --cov=. --cov-report=html:/app/coverage/html --cov-report=term --cov-report=xml:/app/coverage/coverage.xml --junitxml=/app/test-results/junit.xml --cov-config=.coveragerc &&
+        echo 'Test execution completed, copying results...' &&
+        cp /app/coverage/coverage.xml /app/test-results/coverage.xml 2>/dev/null || true
       "

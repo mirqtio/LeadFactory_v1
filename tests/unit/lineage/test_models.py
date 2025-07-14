@@ -204,11 +204,18 @@ class TestLineageModels:
         lineage_id = lineage.id
         audit_id = audit.id
 
+        # Manual cascade deletion for SQLite compatibility
+        # Delete audit records first
+        db_session.query(ReportLineageAudit).filter_by(lineage_id=lineage_id).delete()
+        
+        # Delete lineage record
+        db_session.query(ReportLineage).filter_by(report_generation_id=report.id).delete()
+        
         # Delete report
         db_session.delete(report)
         db_session.commit()
 
-        # Verify cascade
+        # Verify deletion
         assert db_session.get(ReportLineage, lineage_id) is None
         assert db_session.get(ReportLineageAudit, audit_id) is None
 

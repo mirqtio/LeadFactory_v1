@@ -3,9 +3,10 @@
 
 from datetime import datetime
 
+
 def create_final_dashboard():
     """Create final dashboard showing the truth about CI status."""
-    
+
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -167,14 +168,15 @@ def create_final_dashboard():
     </div>
 </body>
 </html>"""
-    
+
     with open('ai_cto_dashboard.html', 'w') as f:
         f.write(html_content)
-    
+
     print("✅ Final dashboard created")
     print("   - 0 tasks complete (CI not green)")
     print("   - 8 implementations pushed but not validated by CI")
     print("   - The correct status per CLAUDE.md definition")
+
 
 if __name__ == "__main__":
     create_final_dashboard()

@@ -3,9 +3,10 @@
 
 from datetime import datetime
 
+
 def create_correct_dashboard():
     """Create dashboard showing the actual failing CI status."""
-    
+
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -152,14 +153,15 @@ def create_correct_dashboard():
     </div>
 </body>
 </html>"""
-    
+
     with open('ai_cto_dashboard.html', 'w') as f:
         f.write(html_content)
-    
+
     print("✅ Dashboard corrected to show actual failing CI status")
     print("   - 0 tasks complete (CI is actually failing)")
     print("   - Stub server configuration issue blocking all tests")
     print("   - Must fix before any tasks can be marked complete")
+
 
 if __name__ == "__main__":
     create_correct_dashboard()
