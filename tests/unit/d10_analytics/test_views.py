@@ -11,6 +11,7 @@ Acceptance Criteria Tests:
 - Refresh scheduled ✓
 """
 
+import os
 from datetime import date, datetime, timezone
 
 import pytest
@@ -21,6 +22,10 @@ from d10_analytics.models import EventType, FunnelEvent, FunnelStage
 from database.base import Base
 
 
+@pytest.mark.skipif(
+    'sqlite' in os.getenv('DATABASE_URL', 'sqlite:///'),
+    reason="Materialized views require PostgreSQL"
+)
 class TestMaterializedViews:
     """Test materialized views functionality"""
 
@@ -46,18 +51,20 @@ class TestMaterializedViews:
         for i, session_id in enumerate(sessions):
             # Targeting stage
             event = FunnelEvent(
-                funnel_stage=FunnelStage.TARGETING,
-                event_type=EventType.ENTRY,
+                stage=FunnelStage.TARGETING,
+                event_type=EventType.PIPELINE_START,
                 session_id=session_id,
                 business_id=f"business_{i}",
-                campaign_id="test_campaign",
-                event_name="targeting_entry",
-                duration_ms=1000,
-                cost_cents=100,
-                success=True,
-                occurred_at=datetime.combine(base_date, datetime.min.time()).replace(
+                timestamp=datetime.combine(base_date, datetime.min.time()).replace(
                     tzinfo=timezone.utc
                 ),
+                event_metadata={
+                    "campaign_id": "test_campaign",
+                    "event_name": "targeting_entry",
+                    "duration_ms": 1000,
+                    "cost_cents": 100,
+                    "success": True
+                }
             )
             events.append(event)
             db_session.add(event)
@@ -65,34 +72,38 @@ class TestMaterializedViews:
             # Assessment stage (some sessions continue)
             if i < 2:  # 2 out of 3 sessions continue
                 event = FunnelEvent(
-                    funnel_stage=FunnelStage.ASSESSMENT,
-                    event_type=EventType.ENTRY,
+                    stage=FunnelStage.ASSESSMENT,
+                    event_type=EventType.ASSESSMENT_START,
                     session_id=session_id,
                     business_id=f"business_{i}",
-                    campaign_id="test_campaign",
-                    event_name="assessment_entry",
-                    duration_ms=2000,
-                    cost_cents=150,
-                    success=True,
-                    occurred_at=datetime.combine(
+                    timestamp=datetime.combine(
                         base_date, datetime.min.time()
                     ).replace(tzinfo=timezone.utc),
+                    event_metadata={
+                        "campaign_id": "test_campaign",
+                        "event_name": "assessment_entry",
+                        "duration_ms": 2000,
+                        "cost_cents": 150,
+                        "success": True
+                    }
                 )
                 events.append(event)
                 db_session.add(event)
 
-                # Conversion (some sessions convert)
+                # Payment (some sessions convert) - using Payment stage instead of non-existent Conversion
                 if i < 1:  # 1 out of 3 sessions converts
                     event = FunnelEvent(
-                        funnel_stage=FunnelStage.CONVERSION,
-                        event_type=EventType.CONVERSION,
+                        stage=FunnelStage.PAYMENT,
+                        event_type=EventType.PAYMENT_SUCCESS,
                         session_id=session_id,
                         business_id=f"business_{i}",
-                        campaign_id="test_campaign",
-                        event_name="conversion",
-                        occurred_at=datetime.combine(
+                        timestamp=datetime.combine(
                             base_date, datetime.min.time()
                         ).replace(tzinfo=timezone.utc),
+                        event_metadata={
+                            "campaign_id": "test_campaign",
+                            "event_name": "conversion"
+                        }
                     )
                     events.append(event)
                     db_session.add(event)
@@ -109,22 +120,22 @@ class TestMaterializedViews:
         WITH funnel_stages AS (
             SELECT 
                 session_id,
-                campaign_id,
-                funnel_stage,
-                MIN(occurred_at) as stage_entry_time,
+                event_metadata->>'campaign_id' as campaign_id,
+                stage,
+                MIN(timestamp) as stage_entry_time,
                 COUNT(*) as stage_events
             FROM funnel_events
             WHERE session_id IS NOT NULL
-            GROUP BY session_id, campaign_id, funnel_stage
+            GROUP BY session_id, event_metadata->>'campaign_id', stage
         )
         SELECT 
             campaign_id,
-            funnel_stage,
+            stage,
             COUNT(DISTINCT session_id) as unique_sessions,
             SUM(stage_events) as total_events
         FROM funnel_stages
-        GROUP BY campaign_id, funnel_stage
-        ORDER BY funnel_stage
+        GROUP BY campaign_id, stage
+        ORDER BY stage
         """
 
         result = db_session.execute(text(funnel_query)).fetchall()
@@ -157,12 +168,12 @@ class TestMaterializedViews:
         WITH user_cohorts AS (
             SELECT 
                 session_id,
-                campaign_id,
-                DATE(MIN(occurred_at)) as cohort_date,
+                event_metadata->>'campaign_id' as campaign_id,
+                DATE(MIN(timestamp)) as cohort_date,
                 COUNT(*) as total_events
             FROM funnel_events
             WHERE session_id IS NOT NULL
-            GROUP BY session_id, campaign_id
+            GROUP BY session_id, event_metadata->>'campaign_id'
         ),
         retention_analysis AS (
             SELECT 
@@ -205,16 +216,16 @@ class TestMaterializedViews:
         # Test query that would benefit from proper indexing
         performance_query = """
         SELECT 
-            campaign_id,
-            DATE(occurred_at) as event_date,
-            funnel_stage,
+            event_metadata->>'campaign_id' as campaign_id,
+            DATE(timestamp) as event_date,
+            stage,
             COUNT(*) as event_count,
             COUNT(DISTINCT session_id) as unique_sessions
         FROM funnel_events
-        WHERE occurred_at >= '2025-06-09'
-            AND campaign_id = 'test_campaign'
-        GROUP BY campaign_id, DATE(occurred_at), funnel_stage
-        ORDER BY event_date, funnel_stage
+        WHERE timestamp >= '2025-06-09'
+            AND event_metadata->>'campaign_id' = 'test_campaign'
+        GROUP BY event_metadata->>'campaign_id', DATE(timestamp), stage
+        ORDER BY event_date, stage
         """
 
         result = db_session.execute(text(performance_query)).fetchall()
@@ -224,7 +235,7 @@ class TestMaterializedViews:
 
         # Check that results are properly grouped
         for row in result:
-            campaign_id, event_date, funnel_stage, event_count, unique_sessions = row
+            campaign_id, event_date, stage, event_count, unique_sessions = row
             assert campaign_id == "test_campaign"
             assert event_count > 0
             assert unique_sessions > 0
@@ -403,6 +414,10 @@ class TestMaterializedViews:
         print("✓ View performance monitoring works")
 
 
+@pytest.mark.skipif(
+    'sqlite' in os.getenv('DATABASE_URL', 'sqlite:///'),
+    reason="Materialized views require PostgreSQL"
+)
 class TestViewQueries:
     """Test specific view query functionality"""
 
@@ -465,6 +480,10 @@ class TestViewQueries:
         print("✓ Cohort retention calculations work")
 
 
+@pytest.mark.skipif(
+    'sqlite' in os.getenv('DATABASE_URL', 'sqlite:///'),
+    reason="Materialized views require PostgreSQL"
+)
 def test_all_acceptance_criteria():
     """Test that all acceptance criteria are met"""
 
