@@ -7,7 +7,6 @@ Create Date: 2024-01-13 12:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy import String
 
 # revision identifiers, used by Alembic.
 revision = 'governance_tables_001'
