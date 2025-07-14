@@ -53,33 +53,8 @@ jobs:
     
     - name: Run tests in Docker
       run: |
-        # Run tests with better error handling
-        docker compose -f docker-compose.test.yml run --rm \
-          -e ENVIRONMENT=test \
-          -e USE_STUBS=true \
-          -e CI=true \
-          test \
-          sh -c '
-            echo "Setting up test environment..." &&
-            export ENVIRONMENT=test &&
-            export USE_STUBS=true &&
-            export CI=true &&
-            echo "Running database migrations..." &&
-            python scripts/run_migrations.py &&
-            echo "Starting test execution..." &&
-            pytest -m "not slow and not phase_future" \
-              --tb=short \
-              --cov=. \
-              --cov-report=term-missing \
-              --cov-report=xml:coverage.xml \
-              --junitxml=junit.xml \
-              --cov-config=.coveragerc \
-              -x \
-              --maxfail=10 || {
-              echo "Tests failed. Exit code: $?"
-              exit 1
-            }
-          ' || {
+        # Run tests using the command defined in docker-compose.test.yml
+        docker compose -f docker-compose.test.yml run --rm test || {
           echo "Test execution failed. Container logs:"
           docker compose -f docker-compose.test.yml logs --tail=100 test
           docker compose -f docker-compose.test.yml logs --tail=50 postgres
