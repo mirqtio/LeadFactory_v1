@@ -212,6 +212,8 @@ jobs:
         files: ./coverage.xml
         fail_ci_if_error: false
         verbose: true
+        name: optimized-test-coverage
+        flags: unittests
 
   # Summary job (always passes for PR merging)
   test-summary:
