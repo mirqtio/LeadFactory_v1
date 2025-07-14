@@ -58,6 +58,7 @@ docs/_build/
 
 # Docker
 Dockerfile
+Dockerfile.test
 docker-compose.yml
 docker-compose.*.yml
 !docker-compose.test.yml

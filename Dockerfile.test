@@ -1,58 +1,40 @@
-# Multi-stage Dockerfile for testing
-# Uses Python 3.11.0 specifically to match CI environment
-FROM python:3.11-slim AS base
+# Multi-stage build for test environment
+FROM python:3.11.0-slim as base
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    g++ \
-    postgresql-client \
+    libpq-dev \
     curl \
-    git \
     && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user
-RUN useradd -m -u 1000 leadfactory
-
-WORKDIR /app
-
-# Upgrade packaging tools
-RUN pip install --upgrade pip setuptools wheel
-
-# Test stage
-FROM base AS test
-
-# Copy requirements files
-COPY requirements.txt requirements-dev.txt ./
-
-# Install all dependencies including dev
-RUN pip install --no-cache-dir -r requirements-dev.txt
-
-# Install playwright dependencies
-RUN playwright install --with-deps chromium
-
-# Copy application code
-COPY --chown=leadfactory:leadfactory . .
-
-# Create required directories
-RUN mkdir -p tmp logs .pytest_cache && \
-    chown -R leadfactory:leadfactory tmp logs .pytest_cache
-
-# Install coverage tool for CI
-RUN pip install coverage
-
-# Switch to non-root user
-USER leadfactory
 
 # Set working directory
 WORKDIR /app
 
-# Set test environment
-ENV ENVIRONMENT=test
+# Copy dependency files
+COPY requirements.txt requirements-dev.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+
+# Test stage
+FROM base as test
+
+# Copy application code
+COPY . .
+
+# Set environment variables for testing
 ENV PYTHONPATH=/app
+ENV USE_STUBS=true
+ENV DATABASE_URL=postgresql://postgres:postgres@postgres:5432/leadfactory_test
+ENV ENVIRONMENT=test
+ENV SECRET_KEY=test-secret-key-for-ci
+ENV CI=true
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV USE_STUBS=true
 
-# Default command runs minimal test suite for CI
-CMD ["pytest", "tests/unit/test_core.py", "tests/unit/test_unit_models.py", "tests/test_setup.py", "-v", "--tb=short"]
+# Create tmp directory for SQLite if needed
+RUN mkdir -p tmp
+
+# Run tests as default command
+CMD ["pytest", "-m", "not slow and not phase_future", "--tb=short", "--cov=.", "--cov-report=term-missing", "--cov-config=.coveragerc"]

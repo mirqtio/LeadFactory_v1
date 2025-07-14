@@ -1,7 +1,4 @@
-name: Optimized Test Suite
-
-# PRP-014: Strategic CI Test Re-enablement
-# Goal: <5 minute P90 runtime with ≥80% coverage
+name: Test Suite
 
 on:
   push:
@@ -9,236 +6,50 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  PYTHON_VERSION: "3.11.0"
-  DATABASE_URL: "sqlite:///tmp/test.db"
-  USE_STUBS: "true"
-  ENVIRONMENT: "test"
-  SECRET_KEY: "test-secret-key-for-ci"
-  CI: "true"
-  PYTEST_TIMEOUT: 300  # 5 minute global timeout
-
 jobs:
-  # Fast unit tests (Target: <2 minutes)
-  unit-tests:
-    name: Unit Tests (Fast)
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Build test image
+      run: docker build -f Dockerfile.test -t leadfactory-test .
     
-    - name: Cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/pip
-          .pytest_cache
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}-pytest
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    
-    - name: Install dependencies
+    - name: Run tests in Docker
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt -r requirements-dev.txt
-        pip install pytest-xdist pytest-timeout
+        docker-compose -f docker-compose.test.yml run --rm test \
+          pytest -m "not slow and not phase_future" \
+          --tb=short \
+          --cov=. \
+          --cov-report=term-missing \
+          --cov-report=xml:coverage.xml \
+          --junitxml=junit.xml \
+          --cov-config=.coveragerc
     
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
-    
-    - name: Create tmp directory
-      run: mkdir -p tmp
-    
-    - name: Initialize test database
+    - name: Extract test results
+      if: always()
       run: |
-        python -c "from database.base import Base; from database.session import engine; Base.metadata.create_all(bind=engine)"
-        alembic upgrade head
-    
-    - name: Start stub server
-      run: |
-        python -m stubs.server &
-        sleep 3
-        curl -f http://localhost:5010/health || echo "Stub server not critical"
-    
-    - name: Run comprehensive test suite
-      run: |
-        # Run all fast tests to achieve 80% coverage
-        pytest tests/unit tests/integration tests/smoke \
-          -m "not slow and not flaky and not external" \
-          --ignore=tests/unit/d10_analytics/test_d10_models.py \
-          --ignore=tests/unit/d10_analytics/test_warehouse.py \
-          --ignore=tests/unit/d11_orchestration/test_bucket_flow.py \
-          --ignore=tests/unit/d11_orchestration/test_pipeline.py \
-          --ignore=tests/unit/d9_delivery/test_delivery_manager.py \
-          --ignore=tests/unit/d9_delivery/test_sendgrid.py \
-          --ignore=tests/integration/test_postgres_container.py \
-          --ignore=tests/integration/test_prd_v1_2_pipeline.py \
-          -n auto --maxfail=10 -x \
-          --timeout=${{ env.PYTEST_TIMEOUT }}
-
-  # Critical integration tests (Target: <3 minutes)
-  integration-tests:
-    name: Integration Tests (Critical)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: unit-tests
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/pip
-          .pytest_cache
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}-pytest
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt -r requirements-dev.txt
-        pip install pytest-xdist pytest-timeout
-    
-    - name: Set PYTHONPATH and environment
-      run: |
-        echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
-        mkdir -p tmp
-    
-    - name: Initialize database
-      run: |
-        python -c "from database.base import Base; from database.session import engine; Base.metadata.create_all(bind=engine)"
-        alembic upgrade head
-    
-    - name: Start stub server
-      run: |
-        python -m stubs.server &
-        sleep 3
-        curl -f http://localhost:5010/health || echo "Stub server not critical"
-    
-    - name: Run critical integration tests
-      run: |
-        # Only run the most critical integration tests
-        pytest tests/integration \
-          -k "test_health or test_database or test_stub_server or test_gateway_integration" \
-          -m "not slow and not flaky and not external" \
-          --ignore=tests/integration/test_postgres_container.py \
-          --ignore=tests/integration/test_prd_v1_2_pipeline.py \
-          --maxfail=5 -x \
-          --timeout=${{ env.PYTEST_TIMEOUT }}
-    
-    - name: Run smoke tests
-      continue-on-error: true
-      run: |
-        # Quick smoke tests for basic functionality
-        pytest tests/smoke/test_health.py \
-          -m "not slow and not flaky" \
-          --maxfail=5 \
-          --timeout=${{ env.PYTEST_TIMEOUT }}
-
-  # Coverage check (runs in parallel with tests)
-  coverage:
-    name: Coverage Report
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    continue-on-error: true
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt -r requirements-dev.txt
-        pip install pytest-cov coverage
-    
-    - name: Set PYTHONPATH and environment
-      run: |
-        echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
-        mkdir -p tmp
-    
-    - name: Initialize database
-      run: |
-        python -c "from database.base import Base; from database.session import engine; Base.metadata.create_all(bind=engine)"
-        alembic upgrade head
-    
-    - name: Start stub server
-      run: |
-        python -m stubs.server &
-        sleep 3
-    
-    - name: Generate coverage report
-      run: |
-        # Run the same comprehensive test set with coverage
-        pytest tests/unit tests/integration tests/smoke \
-          -m "not slow and not flaky and not external" \
-          --ignore=tests/unit/d10_analytics/test_d10_models.py \
-          --ignore=tests/unit/d10_analytics/test_warehouse.py \
-          --ignore=tests/unit/d11_orchestration/test_bucket_flow.py \
-          --ignore=tests/unit/d11_orchestration/test_pipeline.py \
-          --ignore=tests/unit/d9_delivery/test_delivery_manager.py \
-          --ignore=tests/unit/d9_delivery/test_sendgrid.py \
-          --ignore=tests/integration/test_postgres_container.py \
-          --ignore=tests/integration/test_prd_v1_2_pipeline.py \
-          --cov=. --cov-report=xml --cov-report=html \
-          --cov-report=term --cov-branch \
-          --cov-config=.coveragerc \
-          --tb=no -q || true
-    
-    - name: Check coverage threshold
-      run: |
-        # Check if we meet the 80% threshold
-        coverage report --fail-under=80 || echo "::warning::Coverage below 80% threshold"
+        docker cp $(docker-compose -f docker-compose.test.yml ps -q test):/app/coverage.xml ./coverage.xml || true
+        docker cp $(docker-compose -f docker-compose.test.yml ps -q test):/app/junit.xml ./junit.xml || true
     
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v3
       with:
-        files: ./coverage.xml
-        fail_ci_if_error: false
-        verbose: true
-        name: optimized-test-coverage
+        file: ./coverage.xml
         flags: unittests
-
-  # Summary job (always passes for PR merging)
-  test-summary:
-    name: Test Summary
-    runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests]
-    if: always()
+        name: codecov-umbrella
     
-    steps:
-    - name: Test Results Summary
-      run: |
-        echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### PRP-014: Strategic Test Execution (<5 min target)" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Test Suite | Status | Target Time | Notes |" >> $GITHUB_STEP_SUMMARY
-        echo "|------------|--------|-------------|-------|" >> $GITHUB_STEP_SUMMARY
-        echo "| Unit Tests (Fast) | ${{ needs.unit-tests.result }} | <2 min | Core business logic |" >> $GITHUB_STEP_SUMMARY
-        echo "| Integration Tests (Critical) | ${{ needs.integration-tests.result }} | <3 min | Key integrations |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Test Selection Strategy:" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ High-value unit tests: d5_scoring, d6_reports, governance, lead_explorer" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Critical integration: health, database, stub server" >> $GITHUB_STEP_SUMMARY
-        echo "- ⏭️ Excluded slow tests (>1s each)" >> $GITHUB_STEP_SUMMARY
-        echo "- ⏭️ Excluded external API tests" >> $GITHUB_STEP_SUMMARY
-        echo "- ⏭️ Excluded flaky tests" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Total CI Time Target: <5 minutes (P90)**" >> $GITHUB_STEP_SUMMARY
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          junit.xml
+          coverage.xml
+    
+    - name: Clean up
+      if: always()
+      run: docker-compose -f docker-compose.test.yml down -v
+
