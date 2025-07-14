@@ -16,10 +16,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl
+    
     - name: Validate Docker setup
       run: |
         docker --version
-        docker-compose --version
+        docker compose version || docker-compose --version
         
     - name: Check required files exist
       run: |
@@ -43,13 +48,24 @@ jobs:
     - name: Test stub server health
       run: |
         # Build and start just the stub server
-        docker-compose -f docker-compose.test.yml build stub-server
-        docker-compose -f docker-compose.test.yml up -d stub-server
+        echo "Building stub server..."
+        docker compose -f docker-compose.test.yml build stub-server || docker-compose -f docker-compose.test.yml build stub-server
+        
+        echo "Starting stub server..."
+        docker compose -f docker-compose.test.yml up -d stub-server || docker-compose -f docker-compose.test.yml up -d stub-server
+        
+        # Show running containers
+        echo "Running containers:"
+        docker ps
         
         # Wait for it to be ready
-        timeout 30 bash -c 'until curl -f http://localhost:5010/health; do sleep 1; done' || {
+        echo "Waiting for stub server to be ready..."
+        timeout 30 bash -c 'until curl -f http://localhost:5010/health; do echo "Waiting for health endpoint..."; sleep 1; done' || {
           echo "Stub server health check failed"
-          docker-compose -f docker-compose.test.yml logs stub-server
+          echo "Container status:"
+          docker ps -a
+          echo "Container logs:"
+          docker compose -f docker-compose.test.yml logs stub-server || docker-compose -f docker-compose.test.yml logs stub-server
           exit 1
         }
         
@@ -58,12 +74,21 @@ jobs:
     - name: Test PostgreSQL
       run: |
         # Start PostgreSQL
-        docker-compose -f docker-compose.test.yml up -d postgres
+        echo "Starting PostgreSQL..."
+        docker compose -f docker-compose.test.yml up -d postgres || docker-compose -f docker-compose.test.yml up -d postgres
+        
+        # Show running containers
+        echo "Running containers:"
+        docker ps
         
         # Wait for it to be ready
-        timeout 30 bash -c 'until docker-compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do sleep 1; done' || {
+        echo "Waiting for PostgreSQL to be ready..."
+        timeout 30 bash -c 'until docker compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres || docker-compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do echo "Waiting for PostgreSQL..."; sleep 1; done' || {
           echo "PostgreSQL failed to start"
-          docker-compose -f docker-compose.test.yml logs postgres
+          echo "Container status:"
+          docker ps -a
+          echo "Container logs:"
+          docker compose -f docker-compose.test.yml logs postgres || docker-compose -f docker-compose.test.yml logs postgres
           exit 1
         }
         
@@ -71,4 +96,4 @@ jobs:
         
     - name: Clean up
       if: always()
-      run: docker-compose -f docker-compose.test.yml down -v
+      run: docker compose -f docker-compose.test.yml down -v || docker-compose -f docker-compose.test.yml down -v
