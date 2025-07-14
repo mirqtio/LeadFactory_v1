@@ -13,6 +13,13 @@ class OpenAIClient(BaseAPIClient):
     """OpenAI API client for GPT-4o-mini"""
 
     def __init__(self, api_key: Optional[str] = None):
+        from core.config import get_settings
+        settings = get_settings()
+        
+        # Check if OpenAI is enabled
+        if not settings.enable_openai:
+            raise RuntimeError("OpenAI client initialized but ENABLE_OPENAI=false")
+            
         super().__init__(provider="openai", api_key=api_key)
 
     def _get_base_url(self) -> str:

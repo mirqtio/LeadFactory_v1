@@ -150,6 +150,74 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
     }
 
 
+# Google Places API endpoints
+@app.get("/maps/api/place/findplacefromtext/json")
+async def google_places_find(
+    input: str, inputtype: str = "textquery", fields: Optional[str] = None, key: Optional[str] = None
+):
+    """Mock Google Places Find Place API"""
+    if not USE_STUBS:
+        raise HTTPException(status_code=503, detail="Stub server disabled")
+
+    # Generate stub place data
+    place_id = f"ChIJ_stub_{datetime.utcnow().timestamp()}"
+    
+    return {
+        "candidates": [
+            {
+                "place_id": place_id,
+                "name": input.split(",")[0],  # Use first part as name
+                "formatted_address": f"123 Main St, {input}"
+            }
+        ],
+        "status": "OK"
+    }
+
+
+@app.get("/maps/api/place/details/json")
+async def google_places_details(
+    place_id: str, fields: Optional[str] = None, key: Optional[str] = None
+):
+    """Mock Google Places Details API"""
+    if not USE_STUBS:
+        raise HTTPException(status_code=503, detail="Stub server disabled")
+
+    # Generate realistic business data
+    has_hours = random.random() > 0.2  # 80% have hours
+    
+    details = {
+        "result": {
+            "place_id": place_id,
+            "name": "Example Business",
+            "formatted_address": "123 Main St, Anytown, USA 12345",
+            "formatted_phone_number": "(555) 123-4567",
+            "website": "https://example-business.com",
+            "business_status": "OPERATIONAL",
+            "rating": round(random.uniform(3.5, 5.0), 1),
+            "user_ratings_total": random.randint(10, 500),
+            "types": ["restaurant", "food", "point_of_interest", "establishment"]
+        },
+        "status": "OK"
+    }
+    
+    # Add opening hours if available
+    if has_hours:
+        details["result"]["opening_hours"] = {
+            "open_now": random.choice([True, False]),
+            "weekday_text": [
+                "Monday: 9:00 AM – 5:00 PM",
+                "Tuesday: 9:00 AM – 5:00 PM",
+                "Wednesday: 9:00 AM – 5:00 PM",
+                "Thursday: 9:00 AM – 5:00 PM",
+                "Friday: 9:00 AM – 5:00 PM",
+                "Saturday: 10:00 AM – 3:00 PM",
+                "Sunday: Closed"
+            ]
+        }
+    
+    return details
+
+
 # Google PageSpeed Insights endpoints
 @app.get("/pagespeedonline/v5/runPagespeed")
 async def pagespeed_analyze(

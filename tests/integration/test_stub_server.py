@@ -19,6 +19,72 @@ def client():
 # class TestYelpStubs - removed
 
 
+class TestGooglePlacesStubs:
+    def test_find_place_success(self, client):
+        """Test Google Places Find Place returns data"""
+        response = client.get(
+            "/maps/api/place/findplacefromtext/json",
+            params={
+                "input": "Example Business, New York",
+                "inputtype": "textquery",
+                "fields": "place_id,name,formatted_address",
+                "key": "test-key"
+            }
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        
+        assert data["status"] == "OK"
+        assert "candidates" in data
+        assert len(data["candidates"]) > 0
+        
+        candidate = data["candidates"][0]
+        assert "place_id" in candidate
+        assert candidate["place_id"].startswith("ChIJ_stub_")
+        assert "name" in candidate
+        assert "formatted_address" in candidate
+
+    def test_place_details_with_hours(self, client):
+        """Test Google Places Details returns data with hours"""
+        # Test multiple times to get both cases
+        has_hours = False
+        missing_hours = False
+        
+        for i in range(10):
+            response = client.get(
+                "/maps/api/place/details/json",
+                params={
+                    "place_id": f"ChIJ_test_{i}",
+                    "fields": "name,opening_hours,rating",
+                    "key": "test-key"
+                }
+            )
+            
+            assert response.status_code == 200
+            data = response.json()
+            
+            assert data["status"] == "OK"
+            assert "result" in data
+            
+            result = data["result"]
+            assert "place_id" in result
+            assert "name" in result
+            assert "business_status" in result
+            assert "rating" in result
+            
+            if "opening_hours" in result:
+                has_hours = True
+                assert "weekday_text" in result["opening_hours"]
+                assert len(result["opening_hours"]["weekday_text"]) == 7
+            else:
+                missing_hours = True
+        
+        # Should have both cases (80% have hours, 20% don't)
+        assert has_hours, "Some businesses should have hours"
+        assert missing_hours, "Some businesses should have missing hours"
+
+
 class TestPageSpeedStubs:
     def test_pagespeed_analyze_success(self, client):
         """Test PageSpeed analysis returns data"""

@@ -6,7 +6,7 @@ import os
 from functools import lru_cache
 from typing import Dict, Optional
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator, SecretStr
 from pydantic_settings import BaseSettings
 
 
@@ -34,39 +34,45 @@ class Settings(BaseSettings):
     cache_ttl: int = Field(default=3600)  # 1 hour default
 
     # External APIs
-    use_stubs: bool = Field(default=True)
+    use_stubs: bool = Field(default=True, description="Use stub server for all external APIs")
     stub_base_url: str = Field(default="http://localhost:5010")
 
-    # API Keys (only needed when USE_STUBS=false)
-    google_api_key: Optional[str] = Field(default=None)
-    stripe_secret_key: Optional[str] = Field(default=None)
+    # Provider feature flags - Wave A (auto-disabled when USE_STUBS=true)
+    enable_gbp: bool = Field(default=True, description="Enable Google Business Profile API")
+    enable_pagespeed: bool = Field(default=True, description="Enable PageSpeed Insights API")
+    enable_sendgrid: bool = Field(default=True, description="Enable SendGrid email delivery")
+    enable_openai: bool = Field(default=True, description="Enable OpenAI API calls")
+
+    # API Keys (only needed when USE_STUBS=false) - use SecretStr for sensitive data
+    google_api_key: Optional[SecretStr] = Field(default=None)
+    stripe_secret_key: Optional[SecretStr] = Field(default=None)
     stripe_publishable_key: Optional[str] = Field(default=None)
-    stripe_webhook_secret: Optional[str] = Field(default=None)
+    stripe_webhook_secret: Optional[SecretStr] = Field(default=None)
     stripe_price_id: Optional[str] = Field(default=None)
-    sendgrid_api_key: Optional[str] = Field(default=None)
-    openai_api_key: Optional[str] = Field(default=None)
+    sendgrid_api_key: Optional[SecretStr] = Field(default=None)
+    openai_api_key: Optional[SecretStr] = Field(default=None)
     openai_model: str = Field(default="gpt-4o-mini")
 
     # PRD v1.2 - Data Axle (trial)
-    data_axle_api_key: Optional[str] = Field(default=None)
+    data_axle_api_key: Optional[SecretStr] = Field(default=None)
     data_axle_base_url: str = Field(default="https://api.data-axle.com/v1")
     data_axle_rate_limit_per_min: int = Field(default=200)
 
     # PRD v1.2 - Hunter.io
-    hunter_api_key: Optional[str] = Field(default=None)
+    hunter_api_key: Optional[SecretStr] = Field(default=None)
     hunter_rate_limit_per_min: int = Field(default=30)
 
     # PRD v1.2 - SEMrush
-    semrush_api_key: Optional[str] = Field(default=None)
+    semrush_api_key: Optional[SecretStr] = Field(default=None)
     semrush_daily_quota: int = Field(default=1000)
 
     # PRD v1.2 - ScreenshotOne
-    screenshotone_key: Optional[str] = Field(default=None)
-    screenshotone_secret: Optional[str] = Field(default=None)
+    screenshotone_key: Optional[SecretStr] = Field(default=None)
+    screenshotone_secret: Optional[SecretStr] = Field(default=None)
     screenshotone_rate_limit_per_sec: int = Field(default=2)
     
     # Humanloop (for vision assessment)
-    humanloop_api_key: Optional[str] = Field(default=None)
+    humanloop_api_key: Optional[SecretStr] = Field(default=None)
 
     # Email settings
     from_email: str = Field(default="noreply@leadfactory.com")
@@ -153,6 +159,14 @@ class Settings(BaseSettings):
         # Don't validate production constraint here - it's handled in model_validator
         return v
 
+    @field_validator("enable_gbp", "enable_pagespeed", "enable_sendgrid", "enable_openai", mode='before')
+    @classmethod
+    def disable_providers_when_using_stubs(cls, v, info):
+        """Auto-disable all providers when USE_STUBS=true."""
+        if info.data.get("use_stubs"):
+            return False
+        return v
+
     @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v, info):
@@ -171,7 +185,19 @@ class Settings(BaseSettings):
     def validate_production_settings(self):
         """Validate production-specific settings after all fields are set"""
         if self.environment == "production" and self.use_stubs:
-            raise ValueError("USE_STUBS cannot be true in production environment")
+            raise ValueError("Production environment cannot run with USE_STUBS=true")
+        
+        # Validate API keys when providers are enabled and not using stubs
+        if not self.use_stubs:
+            if self.enable_gbp and not self.google_api_key:
+                raise ValueError("Google API key required when GBP enabled and not using stubs")
+            if self.enable_pagespeed and not self.google_api_key:
+                raise ValueError("Google API key required when PageSpeed enabled and not using stubs")
+            if self.enable_sendgrid and not self.sendgrid_api_key:
+                raise ValueError("SendGrid API key required when SendGrid enabled and not using stubs")
+            if self.enable_openai and not self.openai_api_key:
+                raise ValueError("OpenAI API key required when OpenAI enabled and not using stubs")
+        
         return self
 
     @property
@@ -187,6 +213,7 @@ class Settings(BaseSettings):
         """Get base URLs for external APIs"""
         if self.use_stubs:
             return {
+                "google_places": self.stub_base_url,
                 "pagespeed": self.stub_base_url,
                 "stripe": self.stub_base_url,
                 "sendgrid": self.stub_base_url,
@@ -198,6 +225,7 @@ class Settings(BaseSettings):
             }
         else:
             return {
+                "google_places": "https://maps.googleapis.com",
                 "pagespeed": "https://www.googleapis.com",
                 "stripe": "https://api.stripe.com",
                 "sendgrid": "https://api.sendgrid.com",
@@ -214,17 +242,17 @@ class Settings(BaseSettings):
             return f"stub-{service}-key"
 
         keys = {
-            "google": self.google_api_key,
-            "google_places": self.google_api_key,  # Google Places uses same API key
-            "pagespeed": self.google_api_key,  # PageSpeed uses Google API key
-            "stripe": self.stripe_secret_key,
-            "sendgrid": self.sendgrid_api_key,
-            "openai": self.openai_api_key,
-            "dataaxle": self.data_axle_api_key,
-            "hunter": self.hunter_api_key,
-            "semrush": self.semrush_api_key,
-            "screenshotone": self.screenshotone_key,
-            "humanloop": self.humanloop_api_key,
+            "google": self.google_api_key.get_secret_value() if self.google_api_key else None,
+            "google_places": self.google_api_key.get_secret_value() if self.google_api_key else None,  # Google Places uses same API key
+            "pagespeed": self.google_api_key.get_secret_value() if self.google_api_key else None,  # PageSpeed uses Google API key
+            "stripe": self.stripe_secret_key.get_secret_value() if self.stripe_secret_key else None,
+            "sendgrid": self.sendgrid_api_key.get_secret_value() if self.sendgrid_api_key else None,
+            "openai": self.openai_api_key.get_secret_value() if self.openai_api_key else None,
+            "dataaxle": self.data_axle_api_key.get_secret_value() if self.data_axle_api_key else None,
+            "hunter": self.hunter_api_key.get_secret_value() if self.hunter_api_key else None,
+            "semrush": self.semrush_api_key.get_secret_value() if self.semrush_api_key else None,
+            "screenshotone": self.screenshotone_key.get_secret_value() if self.screenshotone_key else None,
+            "humanloop": self.humanloop_api_key.get_secret_value() if self.humanloop_api_key else None,
         }
 
         key = keys.get(service)
@@ -254,8 +282,13 @@ class Settings(BaseSettings):
         # Mask sensitive values
         for field in sensitive_fields:
             if field in data and data[field]:
+                # Handle SecretStr values
+                if hasattr(data[field], 'get_secret_value'):
+                    value = data[field].get_secret_value()
+                else:
+                    value = str(data[field])
+                    
                 # Keep first 4 chars for identification
-                value = str(data[field])
                 if len(value) > 4:
                     data[field] = value[:4] + "*" * (len(value) - 4)
                 else:

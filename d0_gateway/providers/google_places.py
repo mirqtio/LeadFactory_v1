@@ -14,7 +14,19 @@ class GooglePlacesClient(BaseAPIClient):
     """Google Places API client for business data"""
 
     def __init__(self, api_key: Optional[str] = None):
-        self._base_url = "https://maps.googleapis.com/maps/api/place"
+        from core.config import get_settings
+        settings = get_settings()
+        
+        # Check if GBP is enabled
+        if not settings.enable_gbp:
+            raise RuntimeError("GBP client initialized but ENABLE_GBP=false")
+        
+        # Set base URL based on stub configuration
+        if settings.use_stubs:
+            self._base_url = f"{settings.stub_base_url}/maps/api/place"
+        else:
+            self._base_url = "https://maps.googleapis.com/maps/api/place"
+            
         super().__init__(provider="google_places", api_key=api_key)
 
     def _get_base_url(self) -> str:

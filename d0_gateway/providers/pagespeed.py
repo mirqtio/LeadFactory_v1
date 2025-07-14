@@ -11,6 +11,13 @@ class PageSpeedClient(BaseAPIClient):
     """Google PageSpeed Insights API v5 client"""
 
     def __init__(self, api_key: Optional[str] = None):
+        from core.config import get_settings
+        settings = get_settings()
+        
+        # Check if PageSpeed is enabled
+        if not settings.enable_pagespeed:
+            raise RuntimeError("PageSpeed client initialized but ENABLE_PAGESPEED=false")
+            
         super().__init__(provider="pagespeed", api_key=api_key)
 
     def _get_base_url(self) -> str:

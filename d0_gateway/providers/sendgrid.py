@@ -11,6 +11,13 @@ class SendGridClient(BaseAPIClient):
     """SendGrid API v3 client for email delivery"""
 
     def __init__(self, api_key: Optional[str] = None):
+        from core.config import get_settings
+        settings = get_settings()
+        
+        # Check if SendGrid is enabled
+        if not settings.enable_sendgrid:
+            raise RuntimeError("SendGrid client initialized but ENABLE_SENDGRID=false")
+            
         super().__init__(provider="sendgrid", api_key=api_key)
 
     def _get_base_url(self) -> str:
