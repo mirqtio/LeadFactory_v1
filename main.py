@@ -5,24 +5,19 @@ Main FastAPI application entry point
 import core.observability  # noqa: F401  (must be first import)
 
 import time
-from datetime import datetime
 
-import redis
 import uvicorn
-from fastapi import Depends, FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.exceptions import LeadFactoryError
 from core.logging import get_logger
 from core.metrics import get_metrics_response, metrics
-from database.session import get_db
 
 logger = get_logger(__name__)
 
@@ -91,53 +86,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Health check endpoint
-@app.get("/health")
-async def health_check(db: Session = Depends(get_db)):
-    """
-    Health check endpoint for monitoring
-    
-    Checks:
-    - Database connectivity
-    - Redis connectivity (if configured)
-    - Returns version and environment info
-    
-    Returns 200 if healthy, 503 if any critical component is down
-    """
-    health_status = {
-        "status": "ok",
-        "timestamp": datetime.utcnow().isoformat(),
-        "version": settings.app_version,
-        "environment": settings.environment,
-    }
-    
-    # Check database connectivity
-    try:
-        # Execute a simple query to verify database connection
-        db.execute(text("SELECT 1"))
-        health_status["database"] = "connected"
-    except Exception as e:
-        logger.error(f"Database health check failed: {e}")
-        health_status["status"] = "unhealthy"
-        health_status["database"] = "error"
-        # Return 503 Service Unavailable if database is down
-        return JSONResponse(
-            status_code=503,
-            content=health_status
-        )
-    
-    # Check Redis connectivity (only if Redis URL is configured)
-    if settings.redis_url and settings.redis_url != "redis://localhost:6379/0":
-        try:
-            redis_client = redis.from_url(settings.redis_url)
-            redis_client.ping()
-            health_status["redis"] = "connected"
-        except Exception as e:
-            logger.warning(f"Redis health check failed: {e}")
-            # Redis failure is not critical, just log it
-            health_status["redis"] = "error"
-    
-    return health_status
+# Health check is now handled by the dedicated health router
 
 
 # Custom metrics endpoint
@@ -174,12 +123,16 @@ from d7_storefront.api import router as storefront_router
 from d10_analytics.api import router as analytics_router
 from d11_orchestration.api import router as orchestration_router
 from api.lineage import router as lineage_router
+from api.health import router as health_router
 from lead_explorer.api import router as lead_explorer_router
 from lead_explorer.api import limiter
 from batch_runner.api import router as batch_runner_router
 
 # Add limiter to app state
 app.state.limiter = limiter
+
+# Register health router (no prefix needed as it defines its own paths)
+app.include_router(health_router, tags=["health"])
 
 # Register domain routers
 app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])

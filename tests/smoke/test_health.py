@@ -71,8 +71,9 @@ class TestHealthEndpoint:
         response = client.get("/health")
         data = response.json()
         
-        assert "database" in data
-        assert data["database"] in ["connected", "disconnected", "error"]
+        assert "checks" in data
+        assert "database" in data["checks"]
+        assert data["checks"]["database"]["status"] in ["connected", "disconnected", "error", "timeout"]
         
     def test_health_checks_redis_connectivity(self):
         """Test that health endpoint checks Redis connectivity if configured"""
@@ -81,8 +82,8 @@ class TestHealthEndpoint:
         
         # Redis check is optional - only present if Redis is configured
         # In test environment with default settings, Redis check may not be included
-        if "redis" in data:
-            assert data["redis"] in ["connected", "disconnected", "error"]
+        if "checks" in data and "redis" in data["checks"]:
+            assert data["checks"]["redis"]["status"] in ["connected", "disconnected", "error", "timeout"]
         
     def test_health_handles_database_failure_gracefully(self):
         """Test that health endpoint handles database failures gracefully"""
