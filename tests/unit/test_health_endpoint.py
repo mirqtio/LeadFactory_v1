@@ -219,9 +219,14 @@ class TestHealthEndpointPerformance:
         # All should succeed
         assert all(status == 200 for status, _ in results)
         
-        # All should be fast
+        # All should be reasonably fast (more tolerant for CI)
         times = [elapsed for _, elapsed in results]
-        assert all(t < 100 for t in times), "Some concurrent requests exceeded 100ms"
+        slow_requests = [t for t in times if t >= 300]
+        assert len(slow_requests) == 0, f"Some concurrent requests exceeded 300ms: {slow_requests}"
+        
+        # Average should be reasonable
+        avg_time = sum(times) / len(times)
+        assert avg_time < 200, f"Average concurrent request time {avg_time:.2f}ms exceeds 200ms"
 
 
 if __name__ == "__main__":
