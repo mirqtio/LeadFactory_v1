@@ -19,8 +19,6 @@ from pathlib import Path
 import psutil
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 # Add project root to Python path
 project_root = Path(__file__).parent.parent.parent
@@ -47,6 +45,9 @@ from database.models import (
     Target,
     WebhookEvent,
 )
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 @pytest.mark.e2e

@@ -14,8 +14,6 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")  # noqa: E402
 
@@ -23,6 +21,9 @@ from d3_assessment.models import AssessmentResult  # noqa: E402
 from d3_assessment.pagespeed import PageSpeedAssessorLegacy as PageSpeedAssessor  # noqa: E402
 from d3_assessment.pagespeed import PageSpeedBatchAssessor
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask031AcceptanceCriteria:

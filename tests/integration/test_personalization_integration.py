@@ -19,8 +19,6 @@ from datetime import datetime
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 # Add project root to path
 sys.path.insert(0, "/app")
@@ -34,6 +32,9 @@ from d8_personalization.models import ContentStrategy, EmailContentType, Persona
 from d8_personalization.personalizer import EmailPersonalizer, IssueExtractor, PersonalizationRequest
 from d8_personalization.spam_checker import SpamScoreChecker
 from d8_personalization.subject_lines import SubjectLineGenerator, SubjectLineRequest
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class MockOpenAIClient:

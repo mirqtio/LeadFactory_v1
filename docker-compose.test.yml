@@ -54,4 +54,10 @@ services:
     volumes:
       - ./coverage:/app/coverage
       - ./test-results:/app/test-results
-    command: pytest -m "not slow and not phase_future" --tb=short --cov=. --cov-report=html:coverage/html --cov-report=term --cov-report=xml:coverage.xml --junitxml=junit.xml --cov-config=.coveragerc
+    command: >
+      sh -c "
+        echo 'Running database migrations...' &&
+        python scripts/run_migrations.py &&
+        echo 'Starting test execution...' &&
+        pytest -m 'not slow and not phase_future' --tb=short --cov=. --cov-report=html:coverage/html --cov-report=term --cov-report=xml:coverage.xml --junitxml=junit.xml --cov-config=.coveragerc
+      "

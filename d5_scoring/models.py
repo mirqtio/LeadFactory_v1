@@ -412,9 +412,9 @@ class ScoringEngine:
         relevant_fields = field_mappings.get(component, [])
         component_data = {}
 
-        for field in relevant_fields:
-            if field in data:
-                component_data[field] = data[field]
+        for field_name in relevant_fields:
+            if field_name in data:
+                component_data[field_name] = data[field_name]
 
         return component_data
 

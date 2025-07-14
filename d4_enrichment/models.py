@@ -30,8 +30,9 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.orm import relationship
 
-from database.base import UUID
+from database.base import UUID, Base
 
 
 # UUID handling for both PostgreSQL and SQLite
@@ -41,11 +42,6 @@ def get_uuid_column():
 
 def get_uuid_foreign_key(table_name):
     return Column(UUID(as_uuid=True), ForeignKey(f"{table_name}.id"), nullable=False)
-
-
-from sqlalchemy.orm import relationship
-
-from database.base import Base
 
 
 class EnrichmentSource(Enum):

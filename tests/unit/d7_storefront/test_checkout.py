@@ -14,10 +14,8 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
-
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 import stripe
+
 
 from d7_storefront.checkout import (
     CHECKOUT_URLS,
@@ -42,6 +40,9 @@ from d7_storefront.stripe_client import (
     format_amount_for_stripe,
     format_amount_from_stripe,
 )
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestStripeConfig:

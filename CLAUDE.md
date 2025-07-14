@@ -55,6 +55,7 @@ Always confirm file paths and module names exist before referencing them in code
 Never delete or overwrite existing code unless explicitly instructed to or if part of a task 
 🚨 Security Warnings
 - There is a GitHub token in .env
+- Use the GitHub token in .env when checking CI logs on GitHub
 
 🛠️ Development Tools
 - There is a local CI/CD bootstrap you can use.

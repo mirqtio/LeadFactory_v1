@@ -13,8 +13,6 @@ Tests the full flow of:
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import Mock, patch
@@ -27,6 +25,9 @@ from d11_orchestration.bucket_enrichment import bucket_enrichment_flow
 from d11_orchestration.cost_guardrails import cost_guardrail_flow, profit_snapshot_flow
 from database.models import APICost, Business, DailyCostAggregate, Email, EmailStatus, Purchase, PurchaseStatus
 from database.session import SessionLocal
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 @pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)

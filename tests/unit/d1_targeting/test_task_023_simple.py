@@ -10,8 +10,6 @@ import sys
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
@@ -19,6 +17,9 @@ sys.path.insert(0, "/app")
 from d1_targeting.api import router
 from d1_targeting.schemas import CreateTargetUniverseSchema, GeographicConstraintSchema, TargetingCriteriaSchema
 from d1_targeting.types import GeographyLevel, VerticalMarket
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask023AcceptanceCriteriaSimple:

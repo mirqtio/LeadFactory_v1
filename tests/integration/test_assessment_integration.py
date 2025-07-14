@@ -14,8 +14,6 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -31,6 +29,9 @@ from d3_assessment.formatter import AssessmentReportFormatter, ReportFormat
 from d3_assessment.metrics import AssessmentMetrics
 from d3_assessment.types import AssessmentStatus, AssessmentType
 from database.models import Base
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestAssessmentIntegrationTask039:

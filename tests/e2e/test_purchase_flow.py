@@ -19,8 +19,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 # Add project root to Python path
 project_root = Path(__file__).parent.parent.parent
@@ -31,6 +29,9 @@ from d6_reports.models import DeliveryMethod, ReportDelivery, ReportGeneration, 
 
 # Import models
 from database.models import Purchase, PurchaseStatus, WebhookEvent
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 @pytest.mark.e2e

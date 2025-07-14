@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
     from d11_orchestration.experiments import ExperimentManager
-    from d11_orchestration.models import Experiment, ExperimentStatus
+    from d11_orchestration.models import ExperimentStatus
 
     EXPERIMENT_MANAGER_AVAILABLE = True
 except ImportError:

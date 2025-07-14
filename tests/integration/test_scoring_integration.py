@@ -3,8 +3,6 @@ Integration Tests for Scoring System - Task 049
 """
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 """
 Comprehensive integration tests for the complete scoring pipeline ensuring all
@@ -30,6 +28,9 @@ from d5_scoring.vertical_overrides import (
     create_medical_scoring_engine,
     create_restaurant_scoring_engine,
 )
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask049AcceptanceCriteria(unittest.TestCase):

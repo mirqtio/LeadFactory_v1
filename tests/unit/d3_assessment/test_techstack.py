@@ -14,8 +14,6 @@ from unittest.mock import AsyncMock, mock_open, patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")  # noqa: E402
 
@@ -23,6 +21,9 @@ from d3_assessment.models import TechStackDetection  # noqa: E402
 from d3_assessment.techstack import TechStackAnalyzer  # noqa: E402
 from d3_assessment.techstack import TechStackBatchDetector, TechStackDetector
 from d3_assessment.types import TechCategory  # noqa: E402
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask032AcceptanceCriteria:

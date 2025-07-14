@@ -21,8 +21,6 @@ from typing import Any, Dict, List
 import psutil
 import pytest
 
-# Mark entire module as slow for performance tests
-pytestmark = pytest.mark.slow
 
 
 # Import models and services
@@ -37,6 +35,9 @@ from database.models import (
     ScoringResult,
     Target,
 )
+
+# Mark entire module as slow for performance tests
+pytestmark = pytest.mark.slow
 
 
 class PerformanceMonitor:

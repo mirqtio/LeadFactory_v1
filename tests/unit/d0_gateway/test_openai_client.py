@@ -7,10 +7,11 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 from d0_gateway.providers.openai import OpenAIClient
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestOpenAIClient:

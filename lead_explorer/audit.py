@@ -6,6 +6,7 @@ with tamper detection and comprehensive change tracking.
 """
 import hashlib
 import json
+import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -107,7 +108,6 @@ def create_audit_log(
 
 
 # Event listeners for automatic audit logging
-import os
 
 # Only enable audit logging if not in test environment
 if os.getenv("ENVIRONMENT") != "test":

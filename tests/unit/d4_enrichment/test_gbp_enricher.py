@@ -13,12 +13,13 @@ import sys
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 from d4_enrichment.gbp_enricher import BatchGBPEnricher, GBPDataQuality, GBPEnricher, GBPSearchResult
 from d4_enrichment.matchers import BusinessMatcher, MatchConfidence
 from d4_enrichment.models import EnrichmentResult, EnrichmentSource
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")
 

@@ -24,10 +24,10 @@ from sqlalchemy import ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+from database.base import Base
+
 # Use JSON type for better cross-database compatibility in tests
 JsonColumn = JSON
-
-from database.base import Base
 
 
 def generate_uuid():

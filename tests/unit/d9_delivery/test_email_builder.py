@@ -1,10 +1,11 @@
 """Unit tests for email builder."""
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from d3_assessment.audit_schema import AuditFinding, FindingCategory, FindingSeverity
 from d9_delivery.email_builder import _calculate_revenue_range, prepare_email_context, select_email_findings
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 def create_test_finding(

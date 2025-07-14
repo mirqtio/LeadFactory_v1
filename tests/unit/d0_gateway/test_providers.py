@@ -6,13 +6,14 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient
 from d0_gateway.providers.sendgrid import SendGridClient
 from d0_gateway.providers.stripe import StripeClient
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 # YelpClient removed - Yelp has been removed from the codebase
 

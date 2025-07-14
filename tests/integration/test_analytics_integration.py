@@ -17,12 +17,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from d10_analytics.api import MetricsWarehouse, router
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestAnalyticsIntegration:

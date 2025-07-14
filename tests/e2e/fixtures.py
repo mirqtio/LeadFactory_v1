@@ -33,7 +33,6 @@ from d11_orchestration.models import (
     PipelineType,
     VariantType,
 )
-
 # Import models from the database models file
 from database.models import Business, Target
 

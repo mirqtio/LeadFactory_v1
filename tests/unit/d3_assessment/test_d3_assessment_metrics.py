@@ -17,8 +17,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")  # noqa: E402
 
@@ -31,6 +29,9 @@ from d3_assessment.metrics import (
     track_processing_step,
 )
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask037AcceptanceCriteria:

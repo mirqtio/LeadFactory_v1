@@ -17,8 +17,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 # Import additional classes from generator module
 from d6_reports import generator as generator_module
@@ -36,6 +34,9 @@ from d6_reports.generator import (
 from d6_reports.pdf_converter import PDFOptions, PDFResult
 from d6_reports.prioritizer import PrioritizationResult
 from d6_reports.template_engine import TemplateData
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestGenerationOptions:

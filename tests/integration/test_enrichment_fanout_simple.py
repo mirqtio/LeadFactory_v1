@@ -4,12 +4,13 @@ Task EN-05: Test Data Axle first, Hunter fallback, cost tracking
 """
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from unittest.mock import AsyncMock, MagicMock
 
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d4_enrichment.models import EnrichmentSource, MatchConfidence
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 def create_mock_result(source, email=None, phone=None, confidence=MatchConfidence.HIGH.value):

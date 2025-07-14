@@ -15,8 +15,6 @@ from decimal import Decimal
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -35,6 +33,9 @@ from d7_storefront.models import (
     generate_uuid,
 )
 from database.base import Base
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 @pytest.fixture

@@ -18,6 +18,36 @@ from core.exceptions import LeadFactoryError
 from core.logging import get_logger
 from core.metrics import get_metrics_response, metrics
 
+# Import all routers at top level
+from api.health import router as health_router
+from api.lineage import router as lineage_router
+from batch_runner.api import router as batch_runner_router
+from d1_targeting.api import router as targeting_router
+from d3_assessment.api import router as assessment_router
+from d7_storefront.api import router as storefront_router
+from d10_analytics.api import router as analytics_router
+from d11_orchestration.api import router as orchestration_router
+from lead_explorer.api import limiter
+from lead_explorer.api import router as lead_explorer_router
+
+# Conditional imports for features
+try:
+    from api.template_studio import router as template_studio_router
+except ImportError:
+    template_studio_router = None
+
+try:
+    from api.scoring_playground import router as scoring_playground_router
+except ImportError:
+    scoring_playground_router = None
+
+try:
+    from api.audit_middleware import AuditLoggingMiddleware
+    from api.governance import router as governance_router
+except ImportError:
+    AuditLoggingMiddleware = None
+    governance_router = None
+
 logger = get_logger(__name__)
 
 # Create FastAPI app
@@ -113,18 +143,7 @@ async def shutdown_event():
     logger.info("Shutting down LeadFactory")
 
 
-from api.health import router as health_router
-from api.lineage import router as lineage_router
-from batch_runner.api import router as batch_runner_router
-
-# Import and register routers
-from d1_targeting.api import router as targeting_router
-from d3_assessment.api import router as assessment_router
-from d7_storefront.api import router as storefront_router
-from d10_analytics.api import router as analytics_router
-from d11_orchestration.api import router as orchestration_router
-from lead_explorer.api import limiter
-from lead_explorer.api import router as lead_explorer_router
+# All routers now imported at top of file
 
 # Add limiter to app state
 app.state.limiter = limiter
@@ -150,17 +169,13 @@ app.include_router(lead_explorer_router, prefix="/api/v1", tags=["lead_explorer"
 app.include_router(batch_runner_router, prefix="/api", tags=["batch_runner"])
 
 # Template Studio (P0-024)
-if settings.enable_template_studio:
-    from api.template_studio import router as template_studio_router
-
+if settings.enable_template_studio and template_studio_router is not None:
     app.include_router(template_studio_router)
     # Mount static files for Template Studio UI
     app.mount("/static/template_studio", StaticFiles(directory="static/template_studio"), name="template_studio")
 
 # Scoring Playground (P0-025)
-if settings.enable_scoring_playground:
-    from api.scoring_playground import router as scoring_playground_router
-
+if settings.enable_scoring_playground and scoring_playground_router is not None:
     app.include_router(scoring_playground_router)
     # Mount static files for Scoring Playground UI
     app.mount(
@@ -168,10 +183,7 @@ if settings.enable_scoring_playground:
     )
 
 # Governance (P0-026)
-if settings.enable_governance:
-    from api.audit_middleware import AuditLoggingMiddleware
-    from api.governance import router as governance_router
-
+if settings.enable_governance and governance_router is not None and AuditLoggingMiddleware is not None:
     # Add audit logging middleware
     app.add_middleware(AuditLoggingMiddleware)
 

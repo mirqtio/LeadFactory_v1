@@ -253,9 +253,9 @@ class CoverageReporter:
 
         # Lowest coverage files
         print("\n📉 LOWEST COVERAGE FILES:")
-        for path, coverage in summary["lowest_coverage_files"]:
-            status = "✅" if coverage >= self.min_coverage else "❌"
-            print(f"{status} {path}: {coverage:.1f}%")
+        for path, coverage_pct in summary["lowest_coverage_files"]:
+            status = "✅" if coverage_pct >= self.min_coverage else "❌"
+            print(f"{status} {path}: {coverage_pct:.1f}%")
 
         # Highest coverage files
         print("\n📈 HIGHEST COVERAGE FILES:")

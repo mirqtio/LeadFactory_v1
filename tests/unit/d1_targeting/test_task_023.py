@@ -12,8 +12,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -29,6 +27,9 @@ from d1_targeting.schemas import (
     TargetingCriteriaSchema,
 )
 from d1_targeting.types import BatchProcessingStatus, GeographyLevel, VerticalMarket
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask023AcceptanceCriteria:

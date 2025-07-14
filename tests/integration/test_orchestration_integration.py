@@ -17,8 +17,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -35,6 +33,9 @@ from d11_orchestration.models import (
     VariantType,
 )
 from database.base import Base
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 @pytest.fixture

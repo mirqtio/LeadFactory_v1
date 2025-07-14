@@ -8,9 +8,10 @@ import httpx
 import psycopg2
 import pytest
 
+import redis
+
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
-import redis
 
 
 def run_command(cmd: str) -> tuple[int, str, str]:

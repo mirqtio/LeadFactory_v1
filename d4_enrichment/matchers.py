@@ -430,9 +430,9 @@ class BusinessMatcher:
             "domain",
         ]
 
-        for field in fields_to_include:
-            if field in record and record[field]:
-                snippet[field] = str(record[field])[:100]  # Truncate long values
+        for field_name in fields_to_include:
+            if field_name in record and record[field_name]:
+                snippet[field_name] = str(record[field_name])[:100]  # Truncate long values
 
         return snippet
 

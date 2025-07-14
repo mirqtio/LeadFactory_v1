@@ -19,8 +19,6 @@ from unittest.mock import Mock
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 from d3_assessment.formatter import (
     AssessmentFormatter,
@@ -32,6 +30,9 @@ from d3_assessment.formatter import (
 )
 from d3_assessment.models import AssessmentResult
 from d3_assessment.types import AssessmentStatus, IssueSeverity, IssueType
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestAssessmentFormatter:

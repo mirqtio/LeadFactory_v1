@@ -12,8 +12,6 @@ from unittest.mock import Mock
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
@@ -21,6 +19,9 @@ sys.path.insert(0, "/app")
 from d1_targeting.batch_scheduler import BatchScheduler
 from d1_targeting.quota_tracker import QuotaTracker
 from d1_targeting.types import BatchProcessingStatus, BatchSchedule, CampaignStatus
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask022AcceptanceCriteria:

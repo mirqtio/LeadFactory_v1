@@ -16,8 +16,6 @@ from decimal import Decimal
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")  # noqa: E402
 
@@ -25,6 +23,9 @@ from d3_assessment.cache import AssessmentCache, CacheManager, CacheStrategy, ca
 from d3_assessment.coordinator import CoordinatorResult  # noqa: E402
 from d3_assessment.models import AssessmentResult  # noqa: E402
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask036AcceptanceCriteria:

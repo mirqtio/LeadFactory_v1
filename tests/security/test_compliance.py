@@ -18,11 +18,12 @@ from datetime import datetime
 
 import pytest
 
-# Mark entire module as slow for security compliance tests
-pytestmark = pytest.mark.slow
 
 # Import models and services
 from database.models import Business, Email, EmailStatus, EmailSuppression, Purchase, PurchaseStatus
+
+# Mark entire module as slow for security compliance tests
+pytestmark = pytest.mark.slow
 
 
 @pytest.mark.security

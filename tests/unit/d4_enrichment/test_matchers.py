@@ -11,8 +11,6 @@ import sys
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")
 
@@ -24,6 +22,9 @@ from d4_enrichment.similarity import (
     WeightedSimilarity,
     ZipSimilarity,
 )
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask041AcceptanceCriteria:

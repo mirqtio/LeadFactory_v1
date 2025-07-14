@@ -364,8 +364,8 @@ class ConfigurableScoringEngine:
 
         # Count how many expected fields have meaningful values
         filled_fields = 0
-        for field in expected_fields:
-            value = data.get(field)
+        for field_name in expected_fields:
+            value = data.get(field_name)
             if value is not None and value != "" and value != 0:
                 filled_fields += 1
 
@@ -394,8 +394,8 @@ class ConfigurableScoringEngine:
             field_matches = re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b", condition)
             has_needed_data = True
 
-            for field in field_matches:
-                if field not in [
+            for field_name in field_matches:
+                if field_name not in [
                     "len",
                     "str",
                     "int",
@@ -405,7 +405,7 @@ class ConfigurableScoringEngine:
                     "in",
                     "not",
                 ]:
-                    if field not in data or data[field] in [None, "", 0]:
+                    if field_name not in data or data[field_name] in [None, "", 0]:
                         has_needed_data = False
                         break
 

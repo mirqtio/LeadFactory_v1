@@ -12,8 +12,6 @@ from unittest.mock import Mock
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
@@ -21,6 +19,9 @@ sys.path.insert(0, "/app")
 from d1_targeting.geo_validator import GeoConflict, GeoValidator
 from d1_targeting.target_universe import TargetUniverseManager
 from d1_targeting.types import VerticalMarket
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestTask021AcceptanceCriteria:

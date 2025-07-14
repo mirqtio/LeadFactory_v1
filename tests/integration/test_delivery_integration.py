@@ -18,8 +18,6 @@ from unittest.mock import patch
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 
 from d9_delivery.compliance import ComplianceManager
 from d9_delivery.models import (
@@ -34,6 +32,9 @@ from d9_delivery.models import (
 from d9_delivery.webhook_handler import WebhookHandler, process_sendgrid_webhook
 from database.models import Base
 from database.session import SessionLocal, engine
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 class TestDeliveryIntegration:

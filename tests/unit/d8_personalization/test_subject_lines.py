@@ -15,8 +15,6 @@ import tempfile
 
 import pytest
 
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 import yaml
 
 from d8_personalization.models import EmailContentType, PersonalizationStrategy
@@ -30,6 +28,9 @@ from d8_personalization.subject_lines import (
     generate_subject_line_hash,
     validate_subject_line_length,
 )
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 @pytest.fixture

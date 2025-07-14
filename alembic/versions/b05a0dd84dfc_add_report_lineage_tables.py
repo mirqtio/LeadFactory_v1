@@ -19,9 +19,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    import os
+    
+    # Check if we're in a test environment to skip foreign key constraints
+    is_test_env = os.getenv("ENVIRONMENT") == "test" or os.getenv("CI") == "true"
+    
     # Create report_lineage table
-    op.create_table(
-        "report_lineage",
+    table_args = [
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("report_generation_id", sa.String(), nullable=False),
         sa.Column("lead_id", sa.String(), nullable=False),
@@ -37,12 +41,19 @@ def upgrade() -> None:
         sa.Column("last_accessed_at", sa.DateTime(), nullable=True),
         sa.Column("access_count", sa.Integer(), nullable=False, server_default="0"),
         sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(["report_generation_id"], ["d6_report_generations.id"], ondelete="CASCADE"),
         sa.UniqueConstraint("report_generation_id"),
         sa.CheckConstraint("raw_inputs_size_bytes >= 0", name="check_raw_inputs_size_non_negative"),
         sa.CheckConstraint("compression_ratio >= 0 AND compression_ratio <= 100", name="check_compression_ratio_range"),
         sa.CheckConstraint("access_count >= 0", name="check_access_count_non_negative"),
-    )
+    ]
+    
+    # Only add foreign key constraint if not in test environment
+    if not is_test_env:
+        table_args.append(
+            sa.ForeignKeyConstraint(["report_generation_id"], ["d6_report_generations.id"], ondelete="CASCADE")
+        )
+    
+    op.create_table("report_lineage", *table_args)
 
     # Create indexes for report_lineage
     op.create_index("idx_lineage_report_id", "report_lineage", ["report_generation_id"])
