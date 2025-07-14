@@ -471,12 +471,30 @@ class TestQuickAddLeadAPI:
 class TestHealthCheckAPI:
     """Test GET /health endpoint"""
     
+    @patch('database.models.Lead')
     @patch('lead_explorer.api.get_db')
-    def test_health_check_success(self, mock_get_db, client):
+    def test_health_check_success(self, mock_get_db, mock_Lead, client):
         """Test successful health check"""
         # Setup mocks
         mock_db = Mock()
-        mock_db.query.return_value.filter.return_value.count.return_value = 5
+        # Mock db.execute() for SELECT 1
+        mock_db.execute.return_value = Mock()
+        
+        # Mock the Lead query chain for total leads
+        mock_total_query = Mock()
+        mock_total_filter = Mock()
+        mock_total_filter.count.return_value = 10  # total leads
+        mock_total_query.filter.return_value = mock_total_filter
+        
+        # Mock the Lead query chain for manual leads  
+        mock_manual_query = Mock()
+        mock_manual_filter = Mock()
+        mock_manual_filter.count.return_value = 5  # manual leads
+        mock_manual_query.filter.return_value = mock_manual_filter
+        
+        # Set up db.query to return different mocks on consecutive calls
+        mock_db.query.side_effect = [mock_total_query, mock_manual_query]
+        
         mock_get_db.return_value.__enter__.return_value = mock_db
         
         # Make request
@@ -489,6 +507,8 @@ class TestHealthCheckAPI:
         assert data["database"] == "connected"
         assert "timestamp" in data
         assert "message" in data
+        assert "10 total leads" in data["message"]
+        assert "5 manual" in data["message"]
     
     @patch('lead_explorer.api.text')
     @patch('lead_explorer.api.get_db')
