@@ -123,13 +123,16 @@ class TestComprehensiveAPICoverage:
         assert response.status_code in [200, 422]
 
         # Start batch
-        response = client.post("/api/batch/start", json={
-            "lead_ids": ["lead-1"], 
-            "template_version": "v1",
-            "name": "Test Batch",
-            "estimated_cost_usd": 5.0,
-            "cost_approved": True
-        })
+        response = client.post(
+            "/api/batch/start",
+            json={
+                "lead_ids": ["lead-1"],
+                "template_version": "v1",
+                "name": "Test Batch",
+                "estimated_cost_usd": 5.0,
+                "cost_approved": True,
+            },
+        )
         assert response.status_code in [201, 422]
 
         # Get batch status

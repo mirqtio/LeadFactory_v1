@@ -18,7 +18,6 @@ from unittest.mock import patch
 
 import pytest
 
-
 from d9_delivery.compliance import ComplianceManager
 from d9_delivery.models import (
     BounceTracking,

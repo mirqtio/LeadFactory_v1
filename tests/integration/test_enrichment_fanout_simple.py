@@ -2,9 +2,9 @@
 Simplified integration tests for Phase 0.5 enrichment fanout
 Task EN-05: Test Data Axle first, Hunter fallback, cost tracking
 """
-import pytest
-
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d4_enrichment.models import EnrichmentSource, MatchConfidence

@@ -14,7 +14,6 @@ Acceptance Criteria:
 import tempfile
 
 import pytest
-
 import yaml
 
 from d8_personalization.models import EmailContentType, PersonalizationStrategy

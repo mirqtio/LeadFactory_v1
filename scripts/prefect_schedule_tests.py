@@ -14,18 +14,18 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from prefect import flow, serve
-from prefect.deployments import Deployment
-from prefect.server.schemas.schedules import CronSchedule, IntervalSchedule
+from prefect import flow, serve  # noqa: E402
+from prefect.deployments import Deployment  # noqa: E402
+from prefect.server.schemas.schedules import CronSchedule, IntervalSchedule  # noqa: E402
 
-from core.logging import get_logger
-from tests.e2e.test_heartbeat import heartbeat_flow
-from tests.e2e.test_production_smoke import daily_smoke_flow
+from core.logging import get_logger  # noqa: E402
+from tests.e2e.test_heartbeat import heartbeat_flow  # noqa: E402
+from tests.e2e.test_production_smoke import daily_smoke_flow  # noqa: E402
 
 logger = get_logger(__name__)
 
 # Import cleanup task
-from d11_orchestration.tasks import cleanup_old_data
+from d11_orchestration.tasks import cleanup_old_data  # noqa: E402
 
 
 @flow(name="daily-cleanup")
@@ -55,10 +55,7 @@ async def cleanup_flow():
     )
 
     logger.info(
-        f"Cleanup complete: "
-        f"smoke={deleted_smoke}, "
-        f"heartbeat={deleted_heartbeat}, "
-        f"orphans={deleted_orphans}"
+        f"Cleanup complete: " f"smoke={deleted_smoke}, " f"heartbeat={deleted_heartbeat}, " f"orphans={deleted_orphans}"
     )
 
     return {

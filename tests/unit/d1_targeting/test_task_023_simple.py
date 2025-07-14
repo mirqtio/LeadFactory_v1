@@ -10,7 +10,6 @@ import sys
 
 import pytest
 
-
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 

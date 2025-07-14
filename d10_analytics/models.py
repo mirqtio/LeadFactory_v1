@@ -17,7 +17,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime, Enum as SQLEnum, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import Float, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship

@@ -19,17 +19,16 @@ from pathlib import Path
 import psutil
 import pytest
 
-
 # Add project root to Python path
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from d6_reports.models import DeliveryMethod, ReportDelivery, ReportGeneration, ReportStatus, ReportType
-from d11_orchestration.models import PipelineRunStatus, VariantAssignment
+from d6_reports.models import DeliveryMethod, ReportDelivery, ReportGeneration, ReportStatus, ReportType  # noqa: E402
+from d11_orchestration.models import PipelineRunStatus, VariantAssignment  # noqa: E402
 
 # Import models from all domains
-from database.models import (
+from database.models import (  # noqa: E402
     Batch,
     BatchStatus,
     Business,

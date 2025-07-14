@@ -17,7 +17,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-
 sys.path.insert(0, "/app")  # noqa: E402
 
 from d3_assessment.metrics import AssessmentMetrics  # noqa: E402

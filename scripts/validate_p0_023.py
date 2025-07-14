@@ -71,7 +71,6 @@ def check_api_endpoints():
         ("/api/lineage/panel/stats", 200),
     ]
 
-
     for endpoint, expected_status in endpoints:
         try:
             # Would make actual request in production

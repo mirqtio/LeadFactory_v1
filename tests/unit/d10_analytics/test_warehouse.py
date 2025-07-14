@@ -18,12 +18,12 @@ import pytest
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
 
-from d10_analytics.aggregators import CostAnalyzer, DailyMetricsAggregator, FunnelCalculator
-from d10_analytics.models import EventType, FunnelEvent, FunnelStage, MetricSnapshot
-from d10_analytics.warehouse import (
+from d10_analytics.aggregators import CostAnalyzer, DailyMetricsAggregator, FunnelCalculator  # noqa: E402
+from d10_analytics.models import EventType, FunnelEvent, FunnelStage, MetricSnapshot  # noqa: E402
+from d10_analytics.warehouse import (  # noqa: E402
     MetricsWarehouse,
     MetricsWarehouseConfig,
     WarehouseJobStatus,
@@ -31,7 +31,7 @@ from d10_analytics.warehouse import (
     build_daily_metrics_for_date,
     get_warehouse_health_check,
 )
-from database.base import Base
+from database.base import Base  # noqa: E402
 
 
 class TestMetricsWarehouse:

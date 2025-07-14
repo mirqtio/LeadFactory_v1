@@ -24,7 +24,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Import orchestration models
-from d11_orchestration.models import (
+from d11_orchestration.models import (  # noqa: E402
     Experiment,
     ExperimentStatus,
     ExperimentVariant,
@@ -33,8 +33,9 @@ from d11_orchestration.models import (
     PipelineType,
     VariantType,
 )
+
 # Import models from the database models file
-from database.models import Business, Target
+from database.models import Business, Target  # noqa: E402
 
 fake = Faker()
 

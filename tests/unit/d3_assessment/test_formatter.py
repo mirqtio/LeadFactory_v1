@@ -19,7 +19,6 @@ from unittest.mock import Mock
 
 import pytest
 
-
 from d3_assessment.formatter import (
     AssessmentFormatter,
     FormattedIssue,

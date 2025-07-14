@@ -14,22 +14,24 @@ Acceptance Criteria:
 - Monitoring active ✓
 """
 
-import argparse
-import asyncio
-import json
-import logging
-import sys
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict
+import argparse  # noqa: E402
+import asyncio  # noqa: E402
+import json  # noqa: E402
+import logging  # noqa: E402
+import sys  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any, Dict  # noqa: E402
 
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
     from core.metrics import MetricsCollector
+
     # from d9_delivery.models import Email, EmailStatus  # Not used as classes
     from d11_orchestration.pipeline import daily_lead_generation_flow
+
     # from scripts.test_pipeline import PipelineTestRunner  # Not used
 
     PIPELINE_AVAILABLE = True

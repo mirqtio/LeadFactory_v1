@@ -391,7 +391,7 @@ class BulkProcessingUser(HttpUser):
 
 
 # Custom locust events for detailed monitoring
-from locust import events
+from locust import events  # noqa: E402
 
 
 @events.request.add_listener

@@ -17,7 +17,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-
 # Import additional classes from generator module
 from d6_reports import generator as generator_module
 

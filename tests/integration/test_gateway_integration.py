@@ -7,11 +7,11 @@ import pytest
 # Mark problematic tests as xfail
 pytestmark = pytest.mark.xfail(reason="Gateway integration tests have stubbing issues")
 
-import asyncio
+import asyncio  # noqa: E402
 
-from core.config import get_settings
-from d0_gateway.facade import GatewayFacade
-from d0_gateway.factory import GatewayClientFactory
+from core.config import get_settings  # noqa: E402
+from d0_gateway.facade import GatewayFacade  # noqa: E402
+from d0_gateway.factory import GatewayClientFactory  # noqa: E402
 
 
 class TestGatewayProviderIntegration:

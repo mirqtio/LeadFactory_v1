@@ -19,7 +19,6 @@ from datetime import datetime
 
 import pytest
 
-
 # Add project root to path
 sys.path.insert(0, "/app")
 

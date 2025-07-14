@@ -28,10 +28,10 @@ from d7_storefront.api import router
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
 # Import all components for integration testing
-from d7_storefront.checkout import CheckoutItem, CheckoutManager
-from d7_storefront.models import ProductType
-from d7_storefront.stripe_client import StripeClient, StripeConfig
-from d7_storefront.webhooks import WebhookProcessor, WebhookStatus
+from d7_storefront.checkout import CheckoutItem, CheckoutManager  # noqa: E402
+from d7_storefront.models import ProductType  # noqa: E402
+from d7_storefront.stripe_client import StripeClient, StripeConfig  # noqa: E402
+from d7_storefront.webhooks import WebhookProcessor, WebhookStatus  # noqa: E402
 
 
 class TestPaymentFlowIntegration:

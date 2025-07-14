@@ -9,12 +9,12 @@ import pytest
 # Mark entire module as slow for CI optimization and xfail for Phase 0.5
 pytestmark = [pytest.mark.slow, pytest.mark.xfail(reason="PRD v1.2 pipeline features are Phase 0.5")]
 
-from core.config import settings
+from core.config import settings  # noqa: E402
 
 # Yelp has been removed from the codebase
-from d3_assessment.coordinator_v2 import AssessmentCoordinatorV2
-from d4_enrichment.email_enrichment import get_email_enricher
-from d5_scoring.tiers import TierAssignmentEngine
+from d3_assessment.coordinator_v2 import AssessmentCoordinatorV2  # noqa: E402
+from d4_enrichment.email_enrichment import get_email_enricher  # noqa: E402
+from d5_scoring.tiers import TierAssignmentEngine  # noqa: E402
 
 
 class TestPRDv12Pipeline:

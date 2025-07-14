@@ -11,87 +11,87 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from sqlalchemy import create_engine
-from sqlalchemy.pool import NullPool
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.pool import NullPool  # noqa: E402
 
-from alembic import command
-from alembic.autogenerate import compare_metadata
-from alembic.config import Config
-from alembic.migration import MigrationContext
+from alembic import command  # noqa: E402
+from alembic.autogenerate import compare_metadata  # noqa: E402
+from alembic.config import Config  # noqa: E402
+from alembic.migration import MigrationContext  # noqa: E402
 
 # Import Base and all models
-from database.base import Base
-from database.governance_models import *
-from database.models import *
+from database.base import Base  # noqa: E402
+from database.governance_models import *  # noqa: E402, F403
+from database.models import *  # noqa: E402, F403
 
 # Import domain models
 try:
-    from d1_targeting.models import *
+    from d1_targeting.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d2_sourcing.models import *
+    from d2_sourcing.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d3_assessment.models import *
+    from d3_assessment.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d4_enrichment.models import *
+    from d4_enrichment.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d5_scoring.models import *
+    from d5_scoring.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d6_reports.models import *
+    from d6_reports.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d6_reports.lineage.models import *
+    from d6_reports.lineage.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d7_storefront.models import *
+    from d7_storefront.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d8_personalization.models import *
+    from d8_personalization.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d9_delivery.models import *
+    from d9_delivery.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d10_analytics.models import *
+    from d10_analytics.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from d11_orchestration.models import *
+    from d11_orchestration.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from batch_runner.models import *
+    from batch_runner.models import *  # noqa: F403
 except ImportError:
     pass
 
 try:
-    from lead_explorer.models import *
+    from lead_explorer.models import *  # noqa: F403
 except ImportError:
     pass
 

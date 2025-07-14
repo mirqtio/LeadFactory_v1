@@ -18,7 +18,11 @@ class OpenAIClient(BaseAPIClient):
         settings = get_settings()
 
         # Check if OpenAI is enabled (bypass for testing or when using stubs in test environment)
-        if not settings.enable_openai and not (settings.environment == "test" and settings.use_stubs) and not allow_test_mode:
+        if (
+            not settings.enable_openai
+            and not (settings.environment == "test" and settings.use_stubs)
+            and not allow_test_mode
+        ):
             raise RuntimeError("OpenAI client initialized but ENABLE_OPENAI=false")
 
         super().__init__(provider="openai", api_key=api_key)

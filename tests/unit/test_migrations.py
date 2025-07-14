@@ -334,7 +334,7 @@ class TestMigrations:
         # Import main database models first
         try:
             import database.governance_models  # Import governance models (User, AuditLogGlobal)
-            import database.models  # This imports all models including Lead, AuditLogLead
+            import database.models  # noqa: F401 # This imports all models including Lead, AuditLogLead
         except ImportError:
             pass
 

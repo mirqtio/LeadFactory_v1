@@ -28,11 +28,12 @@ def client(db_session):
 
     # Override database dependency for all modules that have their own get_db
     app.dependency_overrides[get_db] = override_get_db
-    
+
     # Also override batch_runner's get_db
     from batch_runner.api import get_db as batch_get_db
+
     app.dependency_overrides[batch_get_db] = override_get_db
-    
+
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -45,12 +46,13 @@ class TestStrategicAPICoverage:
         """Test batch runner API - covers ~250 lines"""
         # Create test leads in the database
         from database.models import Lead
+
         lead1 = Lead(id="lead-1", email="test1@example.com", domain="example1.com", company_name="Company 1")
         lead2 = Lead(id="lead-2", email="test2@example.com", domain="example2.com", company_name="Company 2")
         db_session.add(lead1)
         db_session.add(lead2)
         db_session.commit()
-        
+
         # Mock external dependencies
         with patch("batch_runner.processor.BatchProcessor") as mock_processor:
             # Create async mock for process_batch
@@ -61,15 +63,13 @@ class TestStrategicAPICoverage:
                     "processed": 2,
                     "failed": 0,
                 }
+
             mock_processor.return_value.process_batch = mock_process_batch
 
             # Preview batch cost
             response = client.post(
                 "/api/batch/preview",
-                json={
-                    "lead_ids": ["lead-1", "lead-2"],
-                    "template_version": "v1"
-                },
+                json={"lead_ids": ["lead-1", "lead-2"], "template_version": "v1"},
             )
             assert response.status_code == 200
             response.json()
@@ -82,7 +82,7 @@ class TestStrategicAPICoverage:
                     "template_version": "v1",
                     "name": "Test Batch",
                     "estimated_cost_usd": 10.0,
-                    "cost_approved": True
+                    "cost_approved": True,
                 },
             )
             assert response.status_code == 201

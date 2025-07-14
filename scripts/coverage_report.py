@@ -259,8 +259,8 @@ class CoverageReporter:
 
         # Highest coverage files
         print("\n📈 HIGHEST COVERAGE FILES:")
-        for path, coverage in summary["highest_coverage_files"][:3]:
-            print(f"✅ {path}: {coverage:.1f}%")
+        for path, coverage_pct in summary["highest_coverage_files"][:3]:
+            print(f"✅ {path}: {coverage_pct:.1f}%")
 
         print("\n" + "=" * 80)
 

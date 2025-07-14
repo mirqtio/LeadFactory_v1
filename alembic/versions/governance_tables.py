@@ -25,8 +25,9 @@ def upgrade() -> None:
     try:
         # For test environments, use string instead of enum to avoid complexity
         import os
+
         is_test_env = os.getenv("ENVIRONMENT") == "test" or os.getenv("CI") == "true"
-        
+
         if dialect_name == "postgresql" and not is_test_env:
             # PostgreSQL specific: Create user role enum if it doesn't exist
             # Use a separate connection to avoid transaction rollback issues

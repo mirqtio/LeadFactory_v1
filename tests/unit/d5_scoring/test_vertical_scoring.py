@@ -18,7 +18,7 @@ pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature - vertical scoring rule
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.vertical_overrides import (
+from d5_scoring.vertical_overrides import (  # noqa: E402
     VerticalScoringEngine,
     create_medical_scoring_engine,
     create_restaurant_scoring_engine,

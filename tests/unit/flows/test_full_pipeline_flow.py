@@ -341,7 +341,6 @@ class TestPipelineMetrics:
     def test_execution_time_tracking(self):
         """Test that execution time is properly tracked"""
 
-
         # Mock time to control execution time
         start_time = 1000.0
         end_time = 1010.5  # 10.5 seconds

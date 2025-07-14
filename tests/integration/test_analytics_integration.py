@@ -16,7 +16,6 @@ from datetime import date, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 

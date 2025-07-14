@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-
 from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient
 from d0_gateway.providers.sendgrid import SendGridClient

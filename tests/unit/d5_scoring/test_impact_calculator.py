@@ -3,7 +3,7 @@ import pytest
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
-from d5_scoring.impact_calculator import calculate_impact, get_confidence_weight
+from d5_scoring.impact_calculator import calculate_impact, get_confidence_weight  # noqa: E402
 
 
 def test_visual_finding_confidence():

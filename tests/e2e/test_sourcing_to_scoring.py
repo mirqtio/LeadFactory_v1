@@ -25,14 +25,14 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Import domain coordinators and engines
-from d2_sourcing.coordinator import SourcingCoordinator
-from d3_assessment.coordinator import AssessmentCoordinator
-from d3_assessment.models import AssessmentResult
-from d4_enrichment.coordinator import EnrichmentCoordinator
-from d5_scoring.models import ScoringEngine
+from d2_sourcing.coordinator import SourcingCoordinator  # noqa: E402
+from d3_assessment.coordinator import AssessmentCoordinator  # noqa: E402
+from d3_assessment.models import AssessmentResult  # noqa: E402
+from d4_enrichment.coordinator import EnrichmentCoordinator  # noqa: E402
+from d5_scoring.models import ScoringEngine  # noqa: E402
 
 # Import models
-from database.models import Business
+from database.models import Business  # noqa: E402
 
 # Mark entire module as xfail - Yelp sourcing removed
 pytestmark = pytest.mark.xfail(reason="Yelp sourcing functionality removed", strict=False)

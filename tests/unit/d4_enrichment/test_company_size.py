@@ -4,7 +4,7 @@ import pytest
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
-from d4_enrichment.company_size import multiplier
+from d4_enrichment.company_size import multiplier  # noqa: E402
 
 
 def test_multiplier_ranges():

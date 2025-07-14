@@ -1,8 +1,8 @@
 """Unit tests for vertical_stats.parquet processing."""
-import pytest
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow

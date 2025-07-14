@@ -9,12 +9,12 @@ import pytest
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
-from d0_gateway.base import BaseAPIClient
-from d0_gateway.factory import GatewayClientFactory, create_client, get_available_providers, get_gateway_factory
-from d0_gateway.providers.openai import OpenAIClient
-from d0_gateway.providers.pagespeed import PageSpeedClient
-from d0_gateway.providers.sendgrid import SendGridClient
-from d0_gateway.providers.stripe import StripeClient
+from d0_gateway.base import BaseAPIClient  # noqa: E402
+from d0_gateway.factory import GatewayClientFactory, create_client, get_available_providers, get_gateway_factory  # noqa: E402
+from d0_gateway.providers.openai import OpenAIClient  # noqa: E402
+from d0_gateway.providers.pagespeed import PageSpeedClient  # noqa: E402
+from d0_gateway.providers.sendgrid import SendGridClient  # noqa: E402
+from d0_gateway.providers.stripe import StripeClient  # noqa: E402
 
 # YelpClient removed - Yelp has been removed from the codebase
 

@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 try:
     from core.config import Config
     from database.session import get_database_session
+
     # from scripts.health_check import perform_health_checks  # Not used
     # from scripts.verify_integrations import verify_all_integrations  # Not used
 

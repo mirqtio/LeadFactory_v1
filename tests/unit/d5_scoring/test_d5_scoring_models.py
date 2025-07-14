@@ -19,8 +19,8 @@ pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.models import D5ScoringResult, ScoreBreakdown, ScoreHistory, ScoringEngine
-from d5_scoring.types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
+from d5_scoring.models import D5ScoringResult, ScoreBreakdown, ScoreHistory, ScoringEngine  # noqa: E402
+from d5_scoring.types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion  # noqa: E402
 
 
 class TestTask045AcceptanceCriteria:

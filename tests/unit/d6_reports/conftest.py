@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from d6_reports.models import ReportTemplate, ReportType, TemplateFormat
+from d6_reports.models import ReportTemplate, ReportType, TemplateFormat  # noqa: F401
 from database.base import Base
 
 

@@ -12,7 +12,6 @@ from unittest.mock import Mock
 
 import pytest
 
-
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 

@@ -7,7 +7,6 @@ import time
 import httpx
 import psycopg2
 import pytest
-
 import redis
 
 # Mark entire module as slow for CI optimization

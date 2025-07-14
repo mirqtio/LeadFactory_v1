@@ -19,12 +19,12 @@ pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 
-from d1_targeting.api import router
-from d1_targeting.batch_scheduler import BatchScheduler
-from d1_targeting.geo_validator import GeoValidator
-from d1_targeting.quota_tracker import QuotaTracker
-from d1_targeting.target_universe import TargetUniverseManager
-from d1_targeting.types import BatchProcessingStatus, CampaignStatus, GeographyLevel, VerticalMarket
+from d1_targeting.api import router  # noqa: E402
+from d1_targeting.batch_scheduler import BatchScheduler  # noqa: E402
+from d1_targeting.geo_validator import GeoValidator  # noqa: E402
+from d1_targeting.quota_tracker import QuotaTracker  # noqa: E402
+from d1_targeting.target_universe import TargetUniverseManager  # noqa: E402
+from d1_targeting.types import BatchProcessingStatus, CampaignStatus, GeographyLevel, VerticalMarket  # noqa: E402
 
 
 class TestTargetingIntegrationTask024Simple:

@@ -14,7 +14,6 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-
 sys.path.insert(0, "/app")  # noqa: E402
 
 from d3_assessment.models import AssessmentResult  # noqa: E402

@@ -6,12 +6,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from database.base import Base
-from lead_explorer.models import AuditAction, AuditLogLead, Lead
+from lead_explorer.models import AuditAction, AuditLogLead, Lead  # noqa: F401
 
 # Import all models to ensure foreign key references are available
 try:
-    import database.models
-    import lead_explorer.models
+    import database.models  # noqa: F401
+    import lead_explorer.models  # noqa: F401
 except ImportError:
     pass
 

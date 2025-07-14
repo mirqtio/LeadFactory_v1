@@ -17,20 +17,20 @@ pytestmark = [
     pytest.mark.slow,
     pytest.mark.xfail(reason="Targeting integration has database session management issues"),
 ]
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from fastapi import FastAPI  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
 
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 
-from d1_targeting.api import router
-from d1_targeting.batch_scheduler import BatchScheduler
-from d1_targeting.models import Campaign, TargetUniverse
-from d1_targeting.quota_tracker import QuotaTracker
-from d1_targeting.target_universe import TargetUniverseManager
-from d1_targeting.types import BatchProcessingStatus, CampaignStatus
+from d1_targeting.api import router  # noqa: E402
+from d1_targeting.batch_scheduler import BatchScheduler  # noqa: E402
+from d1_targeting.models import Campaign, TargetUniverse  # noqa: E402
+from d1_targeting.quota_tracker import QuotaTracker  # noqa: E402
+from d1_targeting.target_universe import TargetUniverseManager  # noqa: E402
+from d1_targeting.types import BatchProcessingStatus, CampaignStatus  # noqa: E402
 
 
 class TestTargetingIntegrationTask024:

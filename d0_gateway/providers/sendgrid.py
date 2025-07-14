@@ -16,7 +16,11 @@ class SendGridClient(BaseAPIClient):
         settings = get_settings()
 
         # Check if SendGrid is enabled (bypass for testing or when using stubs in test environment)
-        if not settings.enable_sendgrid and not (settings.environment == "test" and settings.use_stubs) and not allow_test_mode:
+        if (
+            not settings.enable_sendgrid
+            and not (settings.environment == "test" and settings.use_stubs)
+            and not allow_test_mode
+        ):
             raise RuntimeError("SendGrid client initialized but ENABLE_SENDGRID=false")
 
         super().__init__(provider="sendgrid", api_key=api_key)

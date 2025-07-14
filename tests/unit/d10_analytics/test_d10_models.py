@@ -18,10 +18,10 @@ import pytest
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
 
-from d10_analytics.models import (
+from d10_analytics.models import (  # noqa: E402
     AggregationPeriod,
     DashboardMetric,
     EventType,
@@ -33,7 +33,7 @@ from d10_analytics.models import (
     TimeSeriesData,
     generate_uuid,
 )
-from database.base import Base
+from database.base import Base  # noqa: E402
 
 
 class TestAnalyticsModels:

@@ -16,7 +16,6 @@ from decimal import Decimal
 
 import pytest
 
-
 sys.path.insert(0, "/app")  # noqa: E402
 
 from d3_assessment.cache import AssessmentCache, CacheManager, CacheStrategy, cached_assessment

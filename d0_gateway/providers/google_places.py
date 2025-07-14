@@ -19,7 +19,11 @@ class GooglePlacesClient(BaseAPIClient):
         settings = get_settings()
 
         # Check if GBP is enabled (bypass for testing or when using stubs in test environment)
-        if not settings.enable_gbp and not (settings.environment == "test" and settings.use_stubs) and not allow_test_mode:
+        if (
+            not settings.enable_gbp
+            and not (settings.environment == "test" and settings.use_stubs)
+            and not allow_test_mode
+        ):
             raise RuntimeError("GBP client initialized but ENABLE_GBP=false")
 
         # Set base URL based on stub configuration

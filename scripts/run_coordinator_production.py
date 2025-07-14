@@ -16,17 +16,17 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Ensure the project root is in the Python path
-import sys
+import sys  # noqa: E402
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 # Local application imports
-from d1_targeting.models import Base, Business
-from d3_assessment.coordinator_v3 import AssessmentCoordinatorV3
-from d5_scoring.engine import ConfigurableScoringEngine
-from d5_scoring.utils import make_serializable
-from d6_reports.generator import GenerationOptions, ReportGenerator
+from d1_targeting.models import Base, Business  # noqa: E402
+from d3_assessment.coordinator_v3 import AssessmentCoordinatorV3  # noqa: E402
+from d5_scoring.engine import ConfigurableScoringEngine  # noqa: E402
+from d5_scoring.utils import make_serializable  # noqa: E402
+from d6_reports.generator import GenerationOptions, ReportGenerator  # noqa: E402
 
 
 # --- Database Setup ---

@@ -11,7 +11,6 @@ import sys
 
 import pytest
 
-
 sys.path.insert(0, "/app")
 
 from d4_enrichment.matchers import BatchMatcher, BusinessMatcher, MatchConfidence, MatchConfig, MatchType

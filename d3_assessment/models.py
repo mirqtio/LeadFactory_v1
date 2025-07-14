@@ -21,6 +21,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from database.base import Base
+
 from .types import AssessmentStatus, AssessmentType, CostType, InsightCategory, TechCategory
 
 # Use JSON type for better cross-database compatibility in tests

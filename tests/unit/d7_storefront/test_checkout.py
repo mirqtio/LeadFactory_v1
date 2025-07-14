@@ -16,7 +16,6 @@ from unittest.mock import patch
 import pytest
 import stripe
 
-
 from d7_storefront.checkout import (
     CHECKOUT_URLS,
     DEFAULT_PRICING,

@@ -9,22 +9,22 @@ from database.base import Base
 
 # Import all models to ensure they're registered
 try:
-    import database.models  # Core models including Lead
-    import database.governance_models  # RBAC and audit models
-    import batch_runner.models
-    import d1_targeting.models
-    import d2_sourcing.models
-    import d3_assessment.models
-    import d4_enrichment.models
-    import d5_scoring.models
-    import d6_reports.models
-    import d7_storefront.models
-    import d8_personalization.models
-    import d9_delivery.models
-    import d10_analytics.models
-    import d11_orchestration.models
-    import lead_explorer.models
-    from d6_reports.lineage.models import ReportLineage, ReportLineageAudit
+    import batch_runner.models  # noqa: F401
+    import d1_targeting.models  # noqa: F401
+    import d2_sourcing.models  # noqa: F401
+    import d3_assessment.models  # noqa: F401
+    import d4_enrichment.models  # noqa: F401
+    import d5_scoring.models  # noqa: F401
+    import d6_reports.models  # noqa: F401
+    import d7_storefront.models  # noqa: F401
+    import d8_personalization.models  # noqa: F401
+    import d9_delivery.models  # noqa: F401
+    import d10_analytics.models  # noqa: F401
+    import d11_orchestration.models  # noqa: F401
+    import database.governance_models  # noqa: F401
+    import database.models  # noqa: F401
+    import lead_explorer.models  # noqa: F401
+    from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
 except ImportError:
     pass
 

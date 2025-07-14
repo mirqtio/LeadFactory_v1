@@ -29,18 +29,18 @@ if "/app" not in sys.path:
     sys.path.insert(0, "/app")
 
 # Add current working directory as fallback
-import os
+import os  # noqa: E402
 
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
-from d3_assessment.models import AssessmentResult, AssessmentStatus, AssessmentType
-from d6_reports.models import ReportGeneration, ReportStatus, ReportType
-from d11_orchestration.models import PipelineRun, PipelineRunStatus
-from database.models import Batch, BatchStatus, Business, Email, EmailStatus, GeoType, Target
+from d3_assessment.models import AssessmentResult, AssessmentStatus, AssessmentType  # noqa: E402
+from d6_reports.models import ReportGeneration, ReportStatus, ReportType  # noqa: E402
+from d11_orchestration.models import PipelineRun, PipelineRunStatus  # noqa: E402
+from database.models import Batch, BatchStatus, Business, Email, EmailStatus, GeoType, Target  # noqa: E402
 
 # Import test fixtures and models
-from tests.e2e.fixtures import *
+from tests.e2e.fixtures import *  # noqa: E402, F403, F405
 
 
 @pytest.mark.e2e
@@ -384,7 +384,7 @@ def test_partial_results_saved(test_db_session):
                     pipeline_run = PipelineRun(
                         run_id=item_id,
                         pipeline_name="lead_generation",
-                        pipeline_type=PipelineType.DAILY_BATCH,
+                        pipeline_type=PipelineType.DAILY_BATCH,  # noqa: F405
                         status=PipelineRunStatus.SUCCESS,
                         triggered_by="e2e_test",
                         started_at=scenario_start_time,

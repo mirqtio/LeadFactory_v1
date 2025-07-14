@@ -20,10 +20,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     import os
-    
+
     # Check if we're in a test environment to skip foreign key constraints
     is_test_env = os.getenv("ENVIRONMENT") == "test" or os.getenv("CI") == "true"
-    
+
     # Create report_lineage table
     table_args = [
         sa.Column("id", sa.String(), nullable=False),
@@ -46,13 +46,13 @@ def upgrade() -> None:
         sa.CheckConstraint("compression_ratio >= 0 AND compression_ratio <= 100", name="check_compression_ratio_range"),
         sa.CheckConstraint("access_count >= 0", name="check_access_count_non_negative"),
     ]
-    
+
     # Only add foreign key constraint if not in test environment
     if not is_test_env:
         table_args.append(
             sa.ForeignKeyConstraint(["report_generation_id"], ["d6_report_generations.id"], ondelete="CASCADE")
         )
-    
+
     op.create_table("report_lineage", *table_args)
 
     # Create indexes for report_lineage

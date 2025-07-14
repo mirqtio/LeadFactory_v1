@@ -21,11 +21,9 @@ def stub_server_session():
     """
     # Detect if we're running in Docker or CI vs local environment
     is_docker_or_ci = (
-        os.environ.get("CI") == "true" or
-        os.path.exists("/.dockerenv") or
-        os.environ.get("DOCKER_ENV") == "true"
+        os.environ.get("CI") == "true" or os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
     )
-    
+
     # Set appropriate stub base URL based on environment
     if is_docker_or_ci:
         # In Docker/CI, use container hostname
@@ -34,11 +32,11 @@ def stub_server_session():
     else:
         # Local environment, always use localhost
         os.environ["STUB_BASE_URL"] = "http://localhost:5010"
-    
+
     # Force USE_STUBS=true for all tests
     os.environ["USE_STUBS"] = "true"
     os.environ["ENVIRONMENT"] = "test"
-    
+
     # Clear settings cache to ensure new environment variables are picked up
     get_settings.cache_clear()
     settings = get_settings()
@@ -60,7 +58,7 @@ def stub_server_session():
             except Exception:
                 pass
             time.sleep(0.5)
-        
+
         pytest.fail(f"External stub server not available at {settings.stub_base_url}")
 
     # For local environment, check if stub server is already running locally

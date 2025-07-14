@@ -13,11 +13,9 @@ Acceptance Criteria:
 """
 
 import os
-
-import pytest
-
 from pathlib import Path
 
+import pytest
 from jinja2 import Environment, FileSystemLoader
 
 # Mark entire module as slow for CI optimization

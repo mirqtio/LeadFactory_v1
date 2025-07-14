@@ -16,7 +16,6 @@ from decimal import Decimal
 
 import pytest
 
-
 from d3_assessment.models import AssessmentResult
 from database.models import Business
 from tests.generators.assessment_generator import AssessmentGenerator, AssessmentScenario

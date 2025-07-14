@@ -18,7 +18,6 @@ from datetime import datetime
 
 import pytest
 
-
 # Import models and services
 from database.models import Business, Email, EmailStatus, EmailSuppression, Purchase, PurchaseStatus
 

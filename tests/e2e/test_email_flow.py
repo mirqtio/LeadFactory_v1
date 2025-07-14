@@ -19,14 +19,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # Add project root to Python path
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Import models
-from database.models import Email, EmailClick, EmailSuppression
+from database.models import Email, EmailClick, EmailSuppression  # noqa: E402
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow

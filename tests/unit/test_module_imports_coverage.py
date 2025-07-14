@@ -94,6 +94,7 @@ def test_import_enrichment_modules():
     try:
         import d4_enrichment.coordinator
         import d4_enrichment.models  # noqa: F401
+
         # import d4_enrichment.schemas  # Not needed for coverage
     except ImportError:
         pass
@@ -107,6 +108,7 @@ def test_import_scoring_modules():
         import d5_scoring.formula_evaluator
         import d5_scoring.models
         import d5_scoring.rules_schema  # noqa: F401
+
         # import d5_scoring.score_calculator  # Not needed for coverage
     except ImportError:
         pass
@@ -121,6 +123,7 @@ def test_import_reports_modules():
         import d6_reports.lineage.compressor
         import d6_reports.lineage.models
         import d6_reports.lineage.tracker  # noqa: F401
+
         # import d6_reports.models  # Not needed for coverage
     except ImportError:
         pass
@@ -132,6 +135,7 @@ def test_import_storefront_modules():
     try:
         import d7_storefront.api
         import d7_storefront.models  # noqa: F401
+
         # import d7_storefront.schemas  # Not needed for coverage
     except ImportError:
         pass
@@ -144,6 +148,7 @@ def test_import_personalization_modules():
         import d8_personalization.api
         import d8_personalization.content_generator
         import d8_personalization.models  # noqa: F401
+
         # import d8_personalization.personalizer  # Not needed for coverage
     except ImportError:
         pass
@@ -156,6 +161,7 @@ def test_import_delivery_modules():
         import d9_delivery.api
         import d9_delivery.compliance
         import d9_delivery.delivery_manager  # noqa: F401
+
         # import d9_delivery.models  # Not needed for coverage
     except ImportError:
         pass
@@ -168,6 +174,7 @@ def test_import_analytics_modules():
         import d10_analytics.api
         import d10_analytics.models
         import d10_analytics.views  # noqa: F401
+
         # import d10_analytics.warehouse  # Not needed for coverage
     except ImportError:
         pass
@@ -179,6 +186,7 @@ def test_import_orchestration_modules():
     try:
         import d11_orchestration.api
         import d11_orchestration.models  # noqa: F401
+
         # import d11_orchestration.pipeline  # Not needed for coverage
     except ImportError:
         pass
@@ -191,6 +199,7 @@ def test_import_core_modules():
         import core.auth
         import core.config
         import core.exceptions  # noqa: F401
+
         # import core.logging  # Not needed for coverage
     except ImportError:
         pass
@@ -204,6 +213,7 @@ def test_import_lead_explorer_modules():
         import lead_explorer.enrichment_coordinator
         import lead_explorer.models
         import lead_explorer.repository  # noqa: F401
+
         # import lead_explorer.schemas  # Not needed for coverage
     except ImportError:
         pass
@@ -216,6 +226,7 @@ def test_import_database_modules():
         import database.base
         import database.governance_models
         import database.models  # noqa: F401
+
         # import database.session  # Not needed for coverage
     except ImportError:
         pass

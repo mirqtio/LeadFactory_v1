@@ -21,8 +21,6 @@ from typing import Any, Dict, List
 import psutil
 import pytest
 
-
-
 # Import models and services
 from database.models import (
     Batch,

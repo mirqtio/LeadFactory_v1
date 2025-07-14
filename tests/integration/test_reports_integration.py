@@ -27,8 +27,8 @@ try:
     from d6_reports import (
         FindingPrioritizer,
         GenerationOptions,
-        GenerationResult,
-        PDFConverter,
+        GenerationResult,  # noqa: F401
+        PDFConverter,  # noqa: F401
         PDFOptions,
         ReportGenerator,
         TemplateEngine,

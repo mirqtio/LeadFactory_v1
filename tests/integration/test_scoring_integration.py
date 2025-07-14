@@ -3,7 +3,6 @@ Integration Tests for Scoring System - Task 049
 """
 import pytest
 
-
 """
 Comprehensive integration tests for the complete scoring pipeline ensuring all
 acceptance criteria are met:
@@ -13,17 +12,17 @@ acceptance criteria are met:
 - Performance acceptable
 """
 
-import sys
-import time
-import unittest
-from decimal import Decimal
+import sys  # noqa: E402
+import time  # noqa: E402
+import unittest  # noqa: E402
+from decimal import Decimal  # noqa: E402
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.engine import ConfigurableScoringEngine
-from d5_scoring.models import D5ScoringResult, ScoringEngine
-from d5_scoring.tiers import LeadTier, TierAssignmentEngine, assign_lead_tier
-from d5_scoring.vertical_overrides import (
+from d5_scoring.engine import ConfigurableScoringEngine  # noqa: E402
+from d5_scoring.models import D5ScoringResult, ScoringEngine  # noqa: E402
+from d5_scoring.tiers import LeadTier, TierAssignmentEngine, assign_lead_tier  # noqa: E402
+from d5_scoring.vertical_overrides import (  # noqa: E402
     VerticalScoringEngine,
     create_medical_scoring_engine,
     create_restaurant_scoring_engine,
