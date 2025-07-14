@@ -1,0 +1,132 @@
+# Research Context for P0-015 - Test Coverage Enhancement to 80%
+
+## Key Findings
+- pytest and pytest-cov are the standard tools for Python test coverage
+- Coverage.py 7.9.2 is the latest version (2024) with Python 3.9-3.14 support
+- The --fail-under=80 flag in .coveragerc or command line enforces 80% minimum coverage
+- pytest-mock 3.14.1 (May 2025) and pytest-asyncio are essential plugins for modern testing
+- GitHub Actions provide native support for coverage gates and PR comments
+
+## Authoritative Sources
+- https://docs.pytest.org/en/stable/ - Official pytest documentation
+- https://coverage.readthedocs.io/ - Official Coverage.py documentation
+- https://pytest-cov.readthedocs.io/ - pytest-cov plugin documentation
+- https://pypi.org/project/pytest-mock/ - pytest-mock for mocking patterns
+- https://pypi.org/project/pytest-asyncio/ - pytest-asyncio for async testing
+
+## Current Best Practices
+
+### 1. Coverage Configuration
+- Use .coveragerc or pyproject.toml for configuration
+- Set fail_under = 80 to enforce minimum coverage
+- Exclude non-essential files (tests, migrations, scripts)
+- Use show_missing = True to identify gaps
+- Enable branch coverage for comprehensive analysis
+
+### 2. Mock Factory Patterns
+- Use pytest fixtures for reusable mock factories
+- Implement the "Arrange, Act, Assert" pattern
+- Leverage pytest-mock's mocker fixture for cleaner tests
+- Combine factory patterns with fixtures for complex setups
+- Balance between over-mocking and under-mocking
+
+### 3. Async Testing
+- Configure asyncio_mode = auto in pytest.ini
+- Use pytest-asyncio for async test support
+- Handle concurrency in .coveragerc with concurrency = thread,gevent
+- Create async fixtures for database and API testing
+- Use asyncio.gather for concurrent test setup
+
+### 4. CI/CD Integration
+- Use pytest --cov --cov-fail-under=80 in CI
+- Implement GitHub Actions for automated coverage checks
+- Add coverage comments to PRs for visibility
+- Generate HTML reports for detailed analysis
+- Cache test results for faster CI runs
+
+### 5. Performance Optimization
+- Use pytest-xdist for parallel test execution
+- Mark slow tests with @pytest.mark.slow
+- Implement test categorization (unit, integration, e2e)
+- Use --lf (last failed) during development
+- Profile test suite to identify bottlenecks
+
+## Common Pitfalls
+- Not testing async code properly - leads to false coverage reports
+- Over-mocking external dependencies - tests pass but code breaks
+- Ignoring branch coverage - missing edge cases
+- Not updating tests when code changes - stale coverage
+- Focusing on coverage percentage over test quality
+
+## Recent Updates
+- Python 3.8 support dropped (EOL Oct 2024)
+- Coverage.py 7.9.2 adds free-threading support
+- pytest-asyncio v0.22.0 yanked due to breaking changes
+- GitHub Actions now support native coverage annotations
+- New focus on AI-driven test generation tools
+
+## Implementation Recommendations
+
+### 1. Incremental Approach
+- Start with modules below 50% coverage
+- Focus on critical business logic first
+- Add tests for bug fixes and new features
+- Use coverage HTML reports to identify gaps
+- Set intermediate goals (60%, 70%, then 80%)
+
+### 2. Test Infrastructure
+- Create shared fixtures in conftest.py
+- Implement mock factories for external services
+- Use parameterized tests for edge cases
+- Add property-based testing with hypothesis
+- Create test data generators for complex models
+
+### 3. Quality Over Quantity
+- Write meaningful assertions
+- Test error conditions and edge cases
+- Verify integration points thoroughly
+- Document complex test scenarios
+- Review tests in code reviews
+
+### 4. Monitoring and Maintenance
+- Track coverage trends over time
+- Set up alerts for coverage drops
+- Regular test suite cleanup
+- Update mocks when APIs change
+- Performance benchmark critical paths
+
+## Specific to LeadFactory Project
+
+### Current State Analysis
+- Project has extensive test structure with unit/integration/e2e tests
+- .coveragerc configured with fail_under = 80
+- Many test files already in place but some are ignored
+- Uses pytest markers for test categorization
+- Has async operations that need proper testing
+
+### Priority Areas for Coverage Enhancement
+1. Lead Explorer module (new functionality)
+2. Batch Runner components
+3. Database models and operations
+4. API endpoints and validators
+5. Async coordinators and workflows
+
+### Recommended Tools Setup
+- pytest>=7.4.0
+- pytest-cov>=4.1.0
+- pytest-mock>=3.12.0
+- pytest-asyncio>=0.21.0
+- coverage[toml]>=7.3.0
+
+### CI/CD Configuration
+```yaml
+- name: Run tests with coverage
+  run: |
+    pytest --cov --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+    
+- name: Upload coverage reports
+  uses: codecov/codecov-action@v3
+  with:
+    file: ./coverage.xml
+    fail_ci_if_error: true
+```
