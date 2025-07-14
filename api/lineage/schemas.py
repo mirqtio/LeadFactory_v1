@@ -63,3 +63,15 @@ class LineageAuditLog(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class PanelStatsResponse(BaseModel):
+    """Response schema for lineage panel statistics"""
+
+    total_records: int = Field(..., description="Total number of lineage records")
+    recent_records_24h: int = Field(..., description="Records created in last 24 hours")
+    template_distribution: Dict[str, int] = Field(..., description="Distribution by template version")
+    total_storage_mb: float = Field(..., description="Total storage used in MB")
+
+    class Config:
+        from_attributes = True

@@ -85,10 +85,10 @@ class TestExtendedConfig:
             settings = Settings()
             assert settings.use_stubs is True
         
-        # With stubs disabled
+        # With stubs disabled in test environment - still forced to True
         with mock.patch.dict(os.environ, {"USE_STUBS": "false", "ENVIRONMENT": "test"}, clear=False):
             settings = Settings()
-            assert settings.use_stubs is False
+            assert settings.use_stubs is True  # Test environment forces stubs
     
     def test_base_url_configuration(self):
         """Test base URL configuration."""

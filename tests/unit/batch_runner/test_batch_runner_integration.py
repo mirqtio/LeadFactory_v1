@@ -82,10 +82,16 @@ class TestBatchRunnerIntegration:
                 }
             },
             "discounts": {
-                "volume_tiers": [
-                    {"min_leads": 0, "max_leads": 100, "discount_percent": 0},
-                    {"min_leads": 101, "max_leads": 1000, "discount_percent": 10}
-                ]
+                "volume_tiers": {
+                    "10": 0.95,   # 5% discount for 10+ leads
+                    "50": 0.90,   # 10% discount for 50+ leads
+                    "100": 0.85,  # 15% discount for 100+ leads
+                    "500": 0.80   # 20% discount for 500+ leads
+                }
+            },
+            "overhead": {
+                "processing_multiplier": 1.10,  # 10% overhead for processing
+                "margin": 1.15  # 15% margin
             }
         }
         
@@ -190,14 +196,22 @@ class TestBatchRunnerIntegration:
         schema = BatchResponseSchema(
             id="batch-123",
             name="Test",
+            description="Test batch",
             status="running",
             total_leads=10,
             processed_leads=5,
             successful_leads=4,
             failed_leads=1,
             progress_percentage=50.0,
+            estimated_cost_usd=10.0,
+            actual_cost_usd=5.0,
             template_version="v1",
-            created_at=datetime.utcnow()
+            websocket_url="/ws/batch-123",
+            created_at=datetime.utcnow(),
+            started_at=datetime.utcnow(),
+            completed_at=None,
+            created_by="test-user",
+            error_message=None
         )
         
         assert schema.id == "batch-123"
@@ -213,6 +227,16 @@ class TestBatchRunnerIntegration:
             processed_leads=75,
             successful_leads=70,
             failed_leads=5,
+            current_lead_id="lead-75",
+            estimated_cost_usd=100.0,
+            actual_cost_usd=75.0,
+            started_at="2024-01-01T10:00:00",
+            estimated_completion="2024-01-01T11:00:00",
+            recent_results=[
+                {"lead_id": "lead-73", "status": "completed"},
+                {"lead_id": "lead-74", "status": "completed"}
+            ],
+            error_summary={"timeout": 3, "api_error": 2},
             websocket_url="/ws/batch/123"
         )
         
@@ -233,11 +257,11 @@ class TestBatchRunnerIntegration:
         """Test PaginationSchema"""
         schema = PaginationSchema()
         assert schema.skip == 0
-        assert schema.limit == 20
+        assert schema.limit == 50  # Default is 50 in batch_runner
         
-        schema2 = PaginationSchema(skip=20, limit=50)
+        schema2 = PaginationSchema(skip=20, limit=100)
         assert schema2.skip == 20
-        assert schema2.limit == 50
+        assert schema2.limit == 100
     
     def test_error_response_schema(self):
         """Test ErrorResponseSchema"""

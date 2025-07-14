@@ -19,6 +19,7 @@ def stub_server_session():
     settings = get_settings()
     
     if not settings.use_stubs:
+        yield
         return
     
     # Check if stub server is already running

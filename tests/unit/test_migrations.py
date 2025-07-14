@@ -39,7 +39,7 @@ class TestMigrations:
             os.unlink(db_path)
 
     @pytest.fixture
-    def alembic_config(self, temp_db_path):
+    def alembic_config(self, temp_db_path, monkeypatch):
         """Create Alembic configuration with test database"""
         # Get the alembic.ini path
         ini_path = Path(__file__).parent.parent.parent / "alembic.ini"
@@ -50,7 +50,12 @@ class TestMigrations:
         cfg = Config(str(ini_path))
         
         # Override database URL to use temporary SQLite database
-        cfg.set_main_option("sqlalchemy.url", f"sqlite:///{temp_db_path}")
+        db_url = f"sqlite:///{temp_db_path}"
+        cfg.set_main_option("sqlalchemy.url", db_url)
+        
+        # IMPORTANT: Also set the DATABASE_URL environment variable
+        # because alembic/env.py checks this first
+        monkeypatch.setenv("DATABASE_URL", db_url)
         
         return cfg
 
@@ -72,15 +77,21 @@ class TestMigrations:
         # Run upgrade to head
         command.upgrade(alembic_config, "head")
         
+        # Force connection refresh to ensure we see the migrated schema
+        test_engine.dispose()
+        
         # Verify tables were created
         inspector = inspect(test_engine)
         tables = inspector.get_table_names()
         
+        # Debug: print what tables we found
+        print(f"Tables found after migration: {sorted(tables)}")
+        
         # Should have alembic_version table
-        assert "alembic_version" in tables, "alembic_version table not created"
+        assert "alembic_version" in tables, f"alembic_version table not created. Found tables: {sorted(tables)}"
         
         # Should have some application tables
-        assert len(tables) > 1, "No application tables created"
+        assert len(tables) > 1, f"No application tables created. Only found: {sorted(tables)}"
         
         print(f"✓ Alembic upgrade head succeeded, created {len(tables)} tables")
 
@@ -93,6 +104,9 @@ class TestMigrations:
         # First upgrade to head
         command.upgrade(alembic_config, "head")
         
+        # Force connection refresh
+        test_engine.dispose()
+        
         # Import all models to ensure they're registered
         self._import_all_models()
         
@@ -101,7 +115,12 @@ class TestMigrations:
             context = MigrationContext.configure(conn)
             current_rev = context.get_current_revision()
             
-        assert current_rev is not None, "No current revision found"
+            # Debug: check if alembic_version table exists
+            inspector = inspect(conn)
+            tables = inspector.get_table_names()
+            print(f"Tables in database: {sorted(tables)}")
+            
+        assert current_rev is not None, f"No current revision found. Tables in DB: {sorted(tables)}"
         
         # Check if we're at head
         script_dir = ScriptDirectory.from_config(alembic_config)
@@ -119,6 +138,9 @@ class TestMigrations:
         """
         # Upgrade to head first
         command.upgrade(alembic_config, "head")
+        
+        # Force connection refresh
+        test_engine.dispose()
         
         # Import all models
         self._import_all_models()
@@ -205,13 +227,13 @@ class TestMigrations:
                 'experiment_assignments',  # Legacy table from initial migration
                 'experiments',  # Legacy table from initial migration
                 'pipeline_runs',  # Legacy table from initial migration
-                'batch_reports',  # Created by migration but model is BatchReport
-                'batch_report_leads',  # Created by migration but model is BatchReportLead
-                'audit_log_global',  # Created by migration but model is AuditLogGlobal
-                'users',  # Created by migration but model is User
             }
             
             extra_in_db = extra_in_db - legacy_tables
+            
+            # Debug: print what we found
+            print(f"Model tables (Wave A only): {sorted(model_tables)}")
+            print(f"Database tables (minus legacy): {sorted(db_tables - legacy_tables)}")
             
             # For P0-004, we only care about Wave A tables being in sync
             assert not missing_in_db, f"Wave A tables in models but not in database: {missing_in_db}"
@@ -313,6 +335,13 @@ class TestMigrations:
         """Import all model files to ensure they're registered with SQLAlchemy"""
         import importlib
         
+        # Import main database models first
+        try:
+            import database.models  # This imports all models including Lead, AuditLogLead
+            import database.governance_models  # Import governance models (User, AuditLogGlobal)
+        except ImportError:
+            pass
+        
         # List of packages that contain models
         model_packages = [
             "d0_gateway",
@@ -327,6 +356,8 @@ class TestMigrations:
             "d9_delivery",
             "d10_analytics",
             "d11_orchestration",
+            "lead_explorer",  # Add lead_explorer package
+            "batch_runner",   # Add batch_runner package
         ]
         
         for package_name in model_packages:

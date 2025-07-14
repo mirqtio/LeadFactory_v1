@@ -180,9 +180,16 @@ class TestBatchRunnerCore:
             },
             "providers": {},
             "discounts": {
-                "volume_tiers": [
-                    {"min_leads": 0, "max_leads": 100, "discount_percent": 0}
-                ]
+                "volume_tiers": {
+                    "10": 0.95,   # 5% discount for 10+ leads
+                    "50": 0.90,   # 10% discount for 50+ leads
+                    "100": 0.85,  # 15% discount for 100+ leads
+                    "500": 0.80   # 20% discount for 500+ leads
+                }
+            },
+            "overhead": {
+                "processing_multiplier": 1.10,  # 10% overhead for processing
+                "margin": 1.15  # 15% margin
             }
         }
         

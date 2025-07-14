@@ -90,13 +90,13 @@ def sample_report_and_lineage(db_session):
         template_version_id="v1.0.0",
         pipeline_start_time=datetime.utcnow() - timedelta(minutes=5),
         pipeline_end_time=datetime.utcnow(),
-        pipeline_logs=json.dumps({
+        pipeline_logs={
             "events": [
                 {"timestamp": "2025-01-01T10:00:00", "event": "Pipeline started"},
                 {"timestamp": "2025-01-01T10:05:00", "event": "Pipeline completed"}
             ],
             "summary": {"total_events": 2, "duration_seconds": 300}
-        }),
+        },
         raw_inputs_compressed=compressed_data,
         raw_inputs_size_bytes=len(compressed_data),
         compression_ratio=75.0,
@@ -176,9 +176,10 @@ class TestLineageAPI:
         data = response.json()
         
         assert data["lineage_id"] == lineage.id
-        assert data["report_id"] == report.id
-        assert "logs" in data
-        assert data["logs"]["summary"]["total_events"] == 2
+        assert "pipeline_logs" in data
+        assert data["pipeline_logs"]["summary"]["total_events"] == 2
+        assert "pipeline_start_time" in data
+        assert "pipeline_end_time" in data
 
     def test_download_raw_inputs(self, test_client: TestClient, sample_report_and_lineage, db_session):
         """Test downloading compressed raw inputs"""

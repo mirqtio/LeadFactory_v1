@@ -38,6 +38,11 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
+def generate_uuid() -> str:
+    """Generate a UUID string for unique identifiers"""
+    return str(uuid.uuid4())
+
+
 class FunnelStage(enum.Enum):
     TARGETING = "Targeting"
     ASSESSMENT = "Assessment"
@@ -64,6 +69,17 @@ class EventType(enum.Enum):
     ASSESSMENT_FAILURE = "assessment_failure"
     REPORT_GENERATED = "report_generated"
     PAYMENT_SUCCESS = "payment_success"
+
+
+class MetricType(enum.Enum):
+    """Types of metrics tracked in the analytics system"""
+    COUNT = "count"
+    SUCCESS_RATE = "success_rate"
+    DURATION = "duration"
+    COST = "cost"
+    CONVERSION_RATE = "conversion_rate"
+    LEAD_SCORE = "lead_score"
+    ENGAGEMENT_RATE = "engagement_rate"
 
 
 class FunnelEvent(Base):
@@ -120,7 +136,7 @@ from typing import Optional, Dict, Any, List
 @dataclass
 class FunnelConversion:
     """Data class for funnel conversion metrics"""
-    funnel_stage: str
+    funnel_stage: FunnelStage
     total_count: int
     success_count: int
     conversion_rate: float
@@ -132,12 +148,25 @@ class FunnelConversion:
 class MetricSnapshot:
     """Data class for metric snapshots"""
     metric_name: str
-    metric_type: str
+    metric_type: MetricType
     value: float
     timestamp: datetime
-    period_type: Optional[str] = None
+    period_type: Optional[AggregationPeriod] = None
     period_start: Optional[datetime] = None
     period_end: Optional[datetime] = None
-    funnel_stage: Optional[str] = None
+    funnel_stage: Optional[FunnelStage] = None
     campaign_id: Optional[str] = None
     tags: Optional[Dict[str, Any]] = None
+
+
+@dataclass
+class DashboardMetric:
+    """Data class for dashboard metrics display"""
+    metric_name: str
+    display_name: str
+    value: float
+    unit: str
+    change_percentage: Optional[float] = None
+    trend: Optional[str] = None
+    period: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None

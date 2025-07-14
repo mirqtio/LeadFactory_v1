@@ -32,7 +32,8 @@ class TestEnvironmentConfig:
         with pytest.raises(ValidationError) as exc_info:
             with patch.dict(os.environ, {
                 "ENVIRONMENT": "production",
-                "USE_STUBS": "true"
+                "USE_STUBS": "true",
+                "SECRET_KEY": "production-secret-key-123"  # Add required secret key for production
             }):
                 Settings()
         
@@ -78,18 +79,20 @@ class TestEnvironmentConfig:
         # Test with stubs enabled
         with patch.dict(os.environ, {
             "ENVIRONMENT": "development",
-            "USE_STUBS": "true"
-        }):
+            "USE_STUBS": "true",
+            "CI": ""  # Make sure CI is not set
+        }, clear=True):
             settings = Settings()
             assert settings.use_stubs is True
         
         # Test with stubs disabled
         with patch.dict(os.environ, {
             "ENVIRONMENT": "development",
-            "USE_STUBS": "false"
-        }):
+            "USE_STUBS": "false",
+            "CI": ""  # Make sure CI is not set
+        }, clear=True):
             settings = Settings()
-            assert settings.use_stubs is False
+            assert settings.use_stubs is False  # Development allows choosing
 
     def test_api_urls_redirect_to_stub_server(self):
         """

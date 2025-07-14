@@ -16,50 +16,10 @@ from d6_reports.lineage.tracker import LineageTracker
 from .schemas import (
     LineageResponse,
     LineageLogsResponse,
+    PanelStatsResponse,
 )
 
 router = APIRouter(prefix="/api/lineage", tags=["lineage"])
-
-
-@router.get("/{report_id}", response_model=LineageResponse)
-def get_lineage_by_report(
-    report_id: str,
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: Optional[str] = Depends(get_current_user_optional),
-):
-    """
-    Retrieve lineage data for a specific report generation
-    """
-    tracker = LineageTracker(db)
-    
-    # Get lineage data
-    lineage = tracker.get_lineage_by_report(report_id)
-    if not lineage:
-        raise HTTPException(status_code=404, detail="Lineage not found for this report")
-    
-    # Record access
-    tracker.record_access(
-        lineage_id=lineage.id,
-        action="view",
-        user_id=current_user,
-        ip_address=request.client.host if request.client else None,
-        user_agent=request.headers.get("User-Agent"),
-    )
-    
-    return LineageResponse(
-        lineage_id=lineage.id,
-        report_generation_id=lineage.report_generation_id,
-        lead_id=lineage.lead_id,
-        pipeline_run_id=lineage.pipeline_run_id,
-        template_version_id=lineage.template_version_id,
-        pipeline_duration_seconds=lineage.pipeline_duration_seconds,
-        raw_inputs_size_bytes=lineage.raw_inputs_size_bytes or 0,
-        compression_ratio=float(lineage.compression_ratio or 0),
-        created_at=lineage.created_at,
-        access_count=lineage.access_count,
-        last_accessed_at=lineage.last_accessed_at,
-    )
 
 
 @router.get("/search", response_model=list[LineageResponse])
@@ -118,6 +78,47 @@ def search_lineage(
     ]
 
 
+@router.get("/{report_id}", response_model=LineageResponse)
+def get_lineage_by_report(
+    report_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Optional[str] = Depends(get_current_user_optional),
+):
+    """
+    Retrieve lineage data for a specific report generation
+    """
+    tracker = LineageTracker(db)
+    
+    # Get lineage data
+    lineage = tracker.get_lineage_by_report(report_id)
+    if not lineage:
+        raise HTTPException(status_code=404, detail="Lineage not found for this report")
+    
+    # Record access
+    tracker.record_access(
+        lineage_id=lineage.id,
+        action="view_lineage",
+        user_id=current_user,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("User-Agent"),
+    )
+    
+    return LineageResponse(
+        lineage_id=lineage.id,
+        report_generation_id=lineage.report_generation_id,
+        lead_id=lineage.lead_id,
+        pipeline_run_id=lineage.pipeline_run_id,
+        template_version_id=lineage.template_version_id,
+        pipeline_duration_seconds=lineage.pipeline_duration_seconds,
+        raw_inputs_size_bytes=lineage.raw_inputs_size_bytes or 0,
+        compression_ratio=float(lineage.compression_ratio or 0),
+        created_at=lineage.created_at,
+        access_count=lineage.access_count,
+        last_accessed_at=lineage.last_accessed_at,
+    )
+
+
 @router.get("/{lineage_id}/logs", response_model=LineageLogsResponse)
 def view_lineage_logs(
     lineage_id: str,
@@ -155,9 +156,17 @@ def view_lineage_logs(
         if "pipeline_logs_truncated" in decompressed_data or "raw_inputs_truncated" in decompressed_data:
             truncated = True
     
+    # Parse pipeline_logs if it's a string
+    pipeline_logs = lineage.pipeline_logs
+    if isinstance(pipeline_logs, str):
+        import json
+        pipeline_logs = json.loads(pipeline_logs)
+    elif pipeline_logs is None:
+        pipeline_logs = decompressed_data.get("pipeline_logs", {})
+    
     return LineageLogsResponse(
         lineage_id=lineage_id,
-        pipeline_logs=lineage.pipeline_logs or decompressed_data.get("pipeline_logs", {}),
+        pipeline_logs=pipeline_logs,
         raw_inputs=decompressed_data.get("raw_inputs", decompressed_data.get("raw_inputs_sample", {})),
         pipeline_start_time=lineage.pipeline_start_time,
         pipeline_end_time=lineage.pipeline_end_time,
@@ -211,3 +220,45 @@ def download_raw_inputs(
             status_code=204,
             content={"detail": "No raw inputs available for this lineage"},
         )
+
+
+@router.get("/panel/stats", response_model=PanelStatsResponse)
+def get_panel_stats(
+    db: Session = Depends(get_db),
+):
+    """
+    Get lineage panel statistics for dashboard
+    """
+    from datetime import timedelta
+    from sqlalchemy import func, select
+    from d6_reports.models import ReportTemplate
+    
+    # Total records
+    total_records = db.query(func.count(ReportLineage.id)).scalar() or 0
+    
+    # Recent records in last 24 hours
+    yesterday = datetime.utcnow() - timedelta(days=1)
+    recent_records_24h = db.query(func.count(ReportLineage.id)).filter(
+        ReportLineage.created_at >= yesterday
+    ).scalar() or 0
+    
+    # Template distribution
+    template_stats = db.query(
+        ReportLineage.template_version_id,
+        func.count(ReportLineage.id).label("count")
+    ).group_by(ReportLineage.template_version_id).all()
+    
+    template_distribution = {
+        stats[0]: stats[1] for stats in template_stats
+    }
+    
+    # Total storage in MB
+    total_bytes = db.query(func.sum(ReportLineage.raw_inputs_size_bytes)).scalar() or 0
+    total_storage_mb = round(total_bytes / (1024 * 1024), 2)
+    
+    return PanelStatsResponse(
+        total_records=total_records,
+        recent_records_24h=recent_records_24h,
+        template_distribution=template_distribution,
+        total_storage_mb=total_storage_mb,
+    )

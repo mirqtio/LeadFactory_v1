@@ -327,8 +327,14 @@ index abc123..def456 100644
         assert "&lt;script&gt;" in result["rendered_html"]
         assert "<script>" not in result["rendered_html"]
 
-    def test_semantic_commit_message_in_pr(self, test_client: TestClient, sample_template, db_session):
+    @patch('api.template_studio.subprocess.run')
+    def test_semantic_commit_message_in_pr(self, mock_run, test_client: TestClient, sample_template, db_session):
         """Test that PR includes semantic commit message"""
+        # Mock git operations
+        mock_run_result = MagicMock(returncode=0)
+        mock_run_result.stdout = "abc123def456"
+        mock_run.return_value = mock_run_result
+        
         from database.session import get_db
         def override_get_db():
             yield db_session
