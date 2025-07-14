@@ -3,9 +3,8 @@ Unit tests for Google Places provider using mock factory pattern.
 Part of P0-015 coverage enhancement - targeting golden paths.
 """
 import pytest
-import responses
 from decimal import Decimal
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, AsyncMock
 from requests.exceptions import Timeout, ConnectionError as RequestsConnectionError
 
 from d0_gateway.providers.google_places import GooglePlacesClient
@@ -57,213 +56,227 @@ class TestGooglePlacesClient:
         cost = client.calculate_cost("findplacefromtext/json")
         assert cost == Decimal("0.017")
     
-    @responses.activate
-    def test_search_places_success(self, client):
+    def test_calculate_cost_other_operation(self, client):
+        """Test cost calculation for other operations."""
+        cost = client.calculate_cost("nearbysearch/json")
+        assert cost == Decimal("0.000")
+    
+    @pytest.mark.asyncio
+    async def test_find_place_success(self, client):
         """Test successful place search - golden path."""
         # Setup mock response
-        mock_response = GooglePlacesMockFactory.create_success_response()
-        responses.add(
-            responses.GET,
-            "https://maps.googleapis.com/maps/api/place/textsearch/json",
-            json=mock_response,
-            status=200
-        )
+        mock_response = {
+            "candidates": [{
+                "place_id": "test_place_123",
+                "name": "Test Business",
+                "formatted_address": "123 Test St, San Francisco, CA"
+            }],
+            "status": "OK"
+        }
         
-        # Make request
-        result = client.search_places("italian restaurant", "San Francisco, CA")
-        
-        # Verify response
-        assert result["status"] == "OK"
-        assert len(result["results"]) == 1
-        assert result["results"][0]["name"] == "Test Business"
-        assert result["results"][0]["rating"] == 4.5
+        with patch.object(client, 'make_request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+            
+            # Make request
+            result = await client.find_place("Test Business San Francisco")
+            
+            # Verify response
+            assert result is not None
+            assert result["place_id"] == "test_place_123"
+            assert result["name"] == "Test Business"
+            
+            # Verify request was made correctly
+            mock_request.assert_called_once_with(
+                "GET", 
+                "/findplacefromtext/json",
+                params={
+                    "input": "Test Business San Francisco",
+                    "inputtype": "textquery",
+                    "fields": "place_id,name,formatted_address",
+                    "key": "test-api-key"
+                }
+            )
     
-    @responses.activate
-    def test_search_places_zero_results(self, client):
+    @pytest.mark.asyncio
+    async def test_find_place_no_results(self, client):
         """Test search with no results."""
-        # Setup mock response
-        mock_response = GooglePlacesMockFactory.create_error_response("ZERO_RESULTS")
-        responses.add(
-            responses.GET,
-            "https://maps.googleapis.com/maps/api/place/textsearch/json",
-            json=mock_response,
-            status=200
-        )
+        mock_response = {
+            "candidates": [],
+            "status": "ZERO_RESULTS"
+        }
         
-        # Make request
-        result = client.search_places("nonexistent business", "Nowhere, XX")
-        
-        # Verify response
-        assert result["status"] == "ZERO_RESULTS"
-        assert result["results"] == []
+        with patch.object(client, 'make_request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+            
+            result = await client.find_place("Nonexistent Business")
+            assert result is None
     
-    @responses.activate
-    def test_get_place_details_success(self, client):
+    @pytest.mark.asyncio
+    async def test_get_place_details_success(self, client):
         """Test successful place details retrieval - golden path."""
         # Setup mock response
         place_id = "test_place_123"
         mock_response = GooglePlacesMockFactory.create_place_details_response(place_id)
-        responses.add(
-            responses.GET,
-            "https://maps.googleapis.com/maps/api/place/details/json",
-            json=mock_response,
-            status=200
-        )
         
-        # Make request
-        result = client.get_place_details(place_id)
-        
-        # Verify response
-        assert result["status"] == "OK"
-        assert result["result"]["place_id"] == place_id
-        assert result["result"]["name"] == "Detailed Test Business"
-        assert result["result"]["website"] == "https://testbusiness.com"
-        assert len(result["result"]["reviews"]) > 0
+        with patch.object(client, 'make_request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+            
+            # Make request
+            result = await client.get_place_details(place_id)
+            
+            # Verify response
+            assert result is not None
+            assert result["place_id"] == place_id
+            assert result["name"] == "Detailed Test Business"
+            assert result["website"] == "https://testbusiness.com"
+            assert "missing_hours" in result  # PRD requirement
     
-    @responses.activate
-    def test_nearby_search_success(self, client):
-        """Test successful nearby search."""
-        # Setup mock response
-        lat, lng = 37.7749, -122.4194
-        mock_response = GooglePlacesMockFactory.create_nearby_search_response(lat, lng)
-        responses.add(
-            responses.GET,
-            "https://maps.googleapis.com/maps/api/place/nearbysearch/json",
-            json=mock_response,
-            status=200
-        )
-        
-        # Make request
-        result = client.nearby_search(lat, lng, radius=1000, type="restaurant")
-        
-        # Verify response
-        assert result["status"] == "OK"
-        assert len(result["results"]) == 3
-        assert all("nearby_place_" in r["place_id"] for r in result["results"])
-    
-    @responses.activate
-    def test_handle_rate_limit(self, client):
-        """Test rate limit handling."""
-        # Setup mock response
-        mock_response = GooglePlacesMockFactory.create_error_response("OVER_QUERY_LIMIT")
-        responses.add(
-            responses.GET,
-            "https://maps.googleapis.com/maps/api/place/textsearch/json",
-            json=mock_response,
-            status=200
-        )
-        
-        # Make request
-        result = client.search_places("test", "test")
-        
-        # Verify rate limit is detected
-        assert result["status"] == "OVER_QUERY_LIMIT"
-    
-    def test_timeout_handling(self, client):
-        """Test timeout scenario handling."""
-        timeout_mock = GooglePlacesMockFactory.create_timeout_scenario()
-        
-        with patch.object(client.session, 'get', side_effect=timeout_mock.side_effect):
-            with pytest.raises(Timeout):
-                client.search_places("test", "test")
-    
-    def test_connection_error_handling(self, client):
-        """Test connection error handling."""
-        error_mock = GooglePlacesMockFactory.create_connection_error_scenario()
-        
-        with patch.object(client.session, 'get', side_effect=error_mock.side_effect):
-            with pytest.raises(RequestsConnectionError):
-                client.search_places("test", "test")
-    
-    @responses.activate
-    def test_extract_business_hours(self, client):
-        """Test extraction of business hours from place details."""
-        # Setup mock response with opening hours
-        mock_response = GooglePlacesMockFactory.create_place_details_response("test_place")
-        mock_response["result"]["opening_hours"] = {
-            "open_now": True,
-            "periods": [
-                {
-                    "open": {"day": 1, "time": "0900"},
-                    "close": {"day": 1, "time": "2100"}
-                }
-            ],
-            "weekday_text": [
-                "Monday: 9:00 AM – 9:00 PM",
-                "Tuesday: 9:00 AM – 9:00 PM",
-                "Wednesday: 9:00 AM – 9:00 PM",
-                "Thursday: 9:00 AM – 9:00 PM",
-                "Friday: 9:00 AM – 10:00 PM",
-                "Saturday: 10:00 AM – 10:00 PM",
-                "Sunday: 10:00 AM – 8:00 PM"
-            ]
+    @pytest.mark.asyncio
+    async def test_get_place_details_missing_hours(self, client):
+        """Test place details with missing hours - PRD requirement."""
+        place_id = "test_place_123"
+        mock_response = {
+            "result": {
+                "place_id": place_id,
+                "name": "Test Business",
+                "formatted_address": "123 Test St",
+                # No opening_hours field
+            },
+            "status": "OK"
         }
         
-        responses.add(
-            responses.GET,
-            "https://maps.googleapis.com/maps/api/place/details/json",
-            json=mock_response,
-            status=200
-        )
-        
-        # Make request
-        result = client.get_place_details("test_place", fields=["opening_hours"])
-        
-        # Verify opening hours
-        assert result["result"]["opening_hours"]["open_now"] is True
-        assert len(result["result"]["opening_hours"]["weekday_text"]) == 7
+        with patch.object(client, 'make_request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+            
+            result = await client.get_place_details(place_id)
+            
+            assert result is not None
+            assert result["missing_hours"] is True
     
-    @responses.activate
-    def test_search_with_pagination(self, client):
-        """Test search with next page token."""
-        # First page
-        first_response = GooglePlacesMockFactory.create_multiple_results(20)
-        first_response["next_page_token"] = "next_page_123"
+    @pytest.mark.asyncio
+    async def test_get_place_details_with_hours(self, client):
+        """Test place details with complete hours."""
+        place_id = "test_place_123"
+        mock_response = {
+            "result": {
+                "place_id": place_id,
+                "name": "Test Business",
+                "opening_hours": {
+                    "weekday_text": [
+                        "Monday: 9:00 AM – 9:00 PM",
+                        "Tuesday: 9:00 AM – 9:00 PM",
+                        "Wednesday: 9:00 AM – 9:00 PM",
+                        "Thursday: 9:00 AM – 9:00 PM",
+                        "Friday: 9:00 AM – 10:00 PM",
+                        "Saturday: 10:00 AM – 10:00 PM",
+                        "Sunday: 10:00 AM – 8:00 PM"
+                    ]
+                }
+            },
+            "status": "OK"
+        }
         
-        responses.add(
-            responses.GET,
-            "https://maps.googleapis.com/maps/api/place/textsearch/json",
-            json=first_response,
-            status=200
-        )
-        
-        # Make request
-        result = client.search_places("restaurant", "San Francisco")
-        
-        # Verify pagination token
-        assert "next_page_token" in result
-        assert result["next_page_token"] == "next_page_123"
-        assert len(result["results"]) == 20
+        with patch.object(client, 'make_request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+            
+            result = await client.get_place_details(place_id)
+            
+            assert result is not None
+            assert result["missing_hours"] is False
     
-    def test_validate_place_id(self, client):
-        """Test place ID validation."""
-        # Valid place IDs
-        assert client._validate_place_id("ChIJN1t_tDeuEmsRUsoyG83frY4") is True
+    @pytest.mark.asyncio
+    async def test_search_business_success(self, client):
+        """Test successful business search - golden path."""
+        # Mock find_place
+        find_place_result = {
+            "place_id": "test_place_123",
+            "name": "Test Restaurant",
+            "formatted_address": "123 Test St, San Francisco, CA"
+        }
         
-        # Invalid place IDs
-        assert client._validate_place_id("") is False
-        assert client._validate_place_id("invalid-id") is False
-        assert client._validate_place_id(None) is False
+        # Mock get_place_details
+        place_details = GooglePlacesMockFactory.create_place_details_response("test_place_123")
+        place_details["result"]["missing_hours"] = False
+        
+        with patch.object(client, 'find_place', new_callable=AsyncMock) as mock_find:
+            with patch.object(client, 'get_place_details', new_callable=AsyncMock) as mock_details:
+                mock_find.return_value = find_place_result
+                mock_details.return_value = place_details["result"]
+                
+                result = await client.search_business("Test Restaurant", "123 Test St")
+                
+                assert result is not None
+                assert result["place_id"] == "test_place_123"
+                assert result["name"] == "Detailed Test Business"
+                
+                # Verify the search query was built correctly
+                mock_find.assert_called_once_with("Test Restaurant 123 Test St")
     
-    @responses.activate
-    def test_get_photo_success(self, client):
-        """Test successful photo retrieval."""
-        photo_ref = "mock_photo_ref_123"
-        photo_data = GooglePlacesMockFactory.create_photo_response(photo_ref)
+    @pytest.mark.asyncio
+    async def test_search_business_not_found(self, client):
+        """Test business search with no results."""
+        with patch.object(client, 'find_place', new_callable=AsyncMock) as mock_find:
+            mock_find.return_value = None
+            
+            result = await client.search_business("Nonexistent Business")
+            assert result is None
+    
+    @pytest.mark.asyncio
+    async def test_handle_rate_limit(self, client):
+        """Test rate limit handling in make_request."""
+        mock_response = GooglePlacesMockFactory.create_error_response("OVER_QUERY_LIMIT")
         
-        responses.add(
-            responses.GET,
-            "https://maps.googleapis.com/maps/api/place/photo",
-            body=photo_data,
-            status=200,
-            content_type="image/jpeg"
-        )
+        with patch.object(client, 'make_request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+            
+            # The find_place method should handle the error response
+            result = await client.find_place("test")
+            
+            # With OVER_QUERY_LIMIT, candidates will be empty
+            assert result is None
+    
+    @pytest.mark.asyncio
+    async def test_timeout_handling(self, client):
+        """Test timeout scenario handling."""
+        with patch.object(client, 'make_request', new_callable=AsyncMock) as mock_request:
+            mock_request.side_effect = Timeout("Connection timed out")
+            
+            with pytest.raises(Timeout):
+                await client.find_place("test")
+    
+    @pytest.mark.asyncio
+    async def test_custom_fields_in_find_place(self, client):
+        """Test find_place with custom fields."""
+        mock_response = {
+            "candidates": [{
+                "place_id": "test_123",
+                "name": "Test",
+                "rating": 4.5,
+                "user_ratings_total": 100
+            }],
+            "status": "OK"
+        }
         
-        # Make request
-        result = client.get_photo(photo_ref, max_width=400)
-        
-        # Verify we got image data
-        assert isinstance(result, bytes)
-        assert len(result) > 0
-        # JPEG magic number
-        assert result[:2] == b'\xff\xd8'
+        with patch.object(client, 'make_request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = mock_response
+            
+            result = await client.find_place(
+                "Test Business",
+                fields=["place_id", "name", "rating", "user_ratings_total"]
+            )
+            
+            assert result is not None
+            assert result["rating"] == 4.5
+            assert result["user_ratings_total"] == 100
+            
+            # Verify custom fields were passed
+            call_args = mock_request.call_args[1]["params"]
+            assert call_args["fields"] == "place_id,name,rating,user_ratings_total"
+    
+    def test_base_url_configuration(self, client):
+        """Test base URL is set correctly."""
+        assert client._get_base_url() == "https://maps.googleapis.com/maps/api/place"
+    
+    def test_provider_name(self, client):
+        """Test provider name is set correctly."""
+        assert client.provider == "google_places"
