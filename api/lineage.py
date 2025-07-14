@@ -24,48 +24,9 @@ logger = get_logger("lineage_api", domain="lineage")
 router = APIRouter(prefix="/api/lineage", tags=["lineage"])
 
 
-@router.get("/{report_id}")
-async def get_lineage_by_report_id(
-    report_id: str,
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
-    """
-    Get lineage information for a specific report ID.
-    
-    Response time: <500ms
-    """
-    logger.info(f"Getting lineage for report_id: {report_id}")
-    
-    lineage = db.query(ReportLineage).filter(
-        ReportLineage.report_generation_id == report_id
-    ).first()
-    
-    if not lineage:
-        raise HTTPException(status_code=404, detail="Lineage not found")
-    
-    # Log access for audit
-    audit = ReportLineageAudit(
-        lineage_id=lineage.id,
-        action="view_lineage",
-        accessed_at=datetime.utcnow()
-    )
-    db.add(audit)
-    db.commit()
-    
-    return {
-        "id": lineage.id,
-        "report_id": lineage.report_generation_id,
-        "lead_id": lineage.lead_id,
-        "pipeline_run_id": lineage.pipeline_run_id,
-        "template_version_id": lineage.template_version_id,
-        "created_at": lineage.created_at.isoformat(),
-        "pipeline_logs_size": len(lineage.pipeline_logs) if lineage.pipeline_logs else 0,
-        "raw_inputs_size": lineage.raw_inputs_size_bytes
-    }
-
-
+# Specific routes first (before path parameter routes)
 @router.get("/search", response_model=List[Dict[str, Any]])
-async def search_lineage(
+def search_lineage(
     lead_id: Optional[str] = Query(None),
     pipeline_run_id: Optional[str] = Query(None),
     template_version_id: Optional[str] = Query(None),
@@ -111,87 +72,8 @@ async def search_lineage(
     ]
 
 
-@router.get("/{lineage_id}/logs")
-async def get_pipeline_logs(
-    lineage_id: str,
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
-    """
-    View JSON logs for a specific lineage record.
-    
-    Requirement: Loads in <500ms
-    """
-    lineage = db.query(ReportLineage).filter(
-        ReportLineage.id == lineage_id
-    ).first()
-    
-    if not lineage:
-        raise HTTPException(status_code=404, detail="Lineage not found")
-    
-    # Log access
-    audit = ReportLineageAudit(
-        lineage_id=lineage.id,
-        action="view_logs",
-        accessed_at=datetime.utcnow()
-    )
-    db.add(audit)
-    db.commit()
-    
-    # Parse and return logs
-    try:
-        logs = json.loads(lineage.pipeline_logs) if lineage.pipeline_logs else {}
-    except json.JSONDecodeError:
-        logs = {"error": "Invalid JSON in pipeline logs"}
-    
-    return {
-        "lineage_id": lineage_id,
-        "report_id": lineage.report_generation_id,
-        "logs": logs,
-        "log_size": len(lineage.pipeline_logs) if lineage.pipeline_logs else 0
-    }
-
-
-@router.get("/{lineage_id}/download")
-async def download_raw_inputs(
-    lineage_id: str,
-    db: Session = Depends(get_db)
-):
-    """
-    Download compressed raw inputs for a lineage record.
-    
-    Returns gzipped data with size limit of 2MB.
-    """
-    lineage = db.query(ReportLineage).filter(
-        ReportLineage.id == lineage_id
-    ).first()
-    
-    if not lineage:
-        raise HTTPException(status_code=404, detail="Lineage not found")
-    
-    if not lineage.raw_inputs_compressed:
-        raise HTTPException(status_code=404, detail="No raw inputs available")
-    
-    # Log download
-    audit = ReportLineageAudit(
-        lineage_id=lineage.id,
-        action="download_raw_inputs",
-        accessed_at=datetime.utcnow()
-    )
-    db.add(audit)
-    db.commit()
-    
-    # Return compressed data as download
-    return Response(
-        content=lineage.raw_inputs_compressed,
-        media_type="application/gzip",
-        headers={
-            "Content-Disposition": f'attachment; filename="lineage_{lineage_id}_raw_inputs.json.gz"'
-        }
-    )
-
-
 @router.get("/panel/stats")
-async def get_lineage_stats(
+def get_lineage_stats(
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
@@ -239,8 +121,128 @@ async def get_lineage_stats(
     }
 
 
+# Path parameter routes (must come after specific routes)
+@router.get("/{report_id}")
+def get_lineage_by_report_id(
+    report_id: str,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get lineage information for a specific report ID.
+    
+    Response time: <500ms
+    """
+    logger.info(f"Getting lineage for report_id: {report_id}")
+    
+    lineage = db.query(ReportLineage).filter(
+        ReportLineage.report_generation_id == report_id
+    ).first()
+    
+    if not lineage:
+        raise HTTPException(status_code=404, detail="Lineage not found")
+    
+    # Log access for audit
+    audit = ReportLineageAudit(
+        lineage_id=lineage.id,
+        action="view_lineage",
+        accessed_at=datetime.utcnow()
+    )
+    db.add(audit)
+    db.commit()
+    
+    return {
+        "id": lineage.id,
+        "report_id": lineage.report_generation_id,
+        "lead_id": lineage.lead_id,
+        "pipeline_run_id": lineage.pipeline_run_id,
+        "template_version_id": lineage.template_version_id,
+        "created_at": lineage.created_at.isoformat(),
+        "pipeline_logs_size": len(lineage.pipeline_logs) if lineage.pipeline_logs else 0,
+        "raw_inputs_size": lineage.raw_inputs_size_bytes
+    }
+
+
+@router.get("/{lineage_id}/logs")
+def get_pipeline_logs(
+    lineage_id: str,
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    View JSON logs for a specific lineage record.
+    
+    Requirement: Loads in <500ms
+    """
+    lineage = db.query(ReportLineage).filter(
+        ReportLineage.id == lineage_id
+    ).first()
+    
+    if not lineage:
+        raise HTTPException(status_code=404, detail="Lineage not found")
+    
+    # Log access
+    audit = ReportLineageAudit(
+        lineage_id=lineage.id,
+        action="view_logs",
+        accessed_at=datetime.utcnow()
+    )
+    db.add(audit)
+    db.commit()
+    
+    # Parse and return logs
+    try:
+        logs = json.loads(lineage.pipeline_logs) if lineage.pipeline_logs else {}
+    except json.JSONDecodeError:
+        logs = {"error": "Invalid JSON in pipeline logs"}
+    
+    return {
+        "lineage_id": lineage_id,
+        "report_id": lineage.report_generation_id,
+        "logs": logs,
+        "log_size": len(lineage.pipeline_logs) if lineage.pipeline_logs else 0
+    }
+
+
+@router.get("/{lineage_id}/download")
+def download_raw_inputs(
+    lineage_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Download compressed raw inputs for a lineage record.
+    
+    Returns gzipped data with size limit of 2MB.
+    """
+    lineage = db.query(ReportLineage).filter(
+        ReportLineage.id == lineage_id
+    ).first()
+    
+    if not lineage:
+        raise HTTPException(status_code=404, detail="Lineage not found")
+    
+    if not lineage.raw_inputs_compressed:
+        raise HTTPException(status_code=404, detail="No raw inputs available")
+    
+    # Log download
+    audit = ReportLineageAudit(
+        lineage_id=lineage.id,
+        action="download_raw_inputs",
+        accessed_at=datetime.utcnow()
+    )
+    db.add(audit)
+    db.commit()
+    
+    # Return compressed data as download
+    return Response(
+        content=lineage.raw_inputs_compressed,
+        media_type="application/gzip",
+        headers={
+            "Content-Disposition": f'attachment; filename="lineage_{lineage_id}_raw_inputs.json.gz"'
+        }
+    )
+
+
 @router.delete("/{lineage_id}")
-async def delete_lineage(
+def delete_lineage(
     lineage_id: str,
     db: Session = Depends(get_db)
 ) -> Dict[str, str]:

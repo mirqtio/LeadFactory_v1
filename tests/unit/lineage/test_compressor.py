@@ -14,8 +14,7 @@ from d6_reports.lineage.compressor import (
 class TestCompressor:
     """Test suite for lineage compression utilities"""
 
-    @pytest.mark.asyncio
-    async def test_compress_small_data(self):
+    def test_compress_small_data(self):
         """Test compression of small data"""
         data = {
             "lead_id": "test-123",
@@ -24,7 +23,7 @@ class TestCompressor:
             "pipeline_logs": ["log1", "log2", "log3"],
         }
 
-        compressed, ratio = await compress_lineage_data(data)
+        compressed, ratio = compress_lineage_data(data)
 
         assert isinstance(compressed, bytes)
         assert len(compressed) > 0
@@ -34,8 +33,7 @@ class TestCompressor:
         decompressed = decompress_lineage_data(compressed)
         assert decompressed == data
 
-    @pytest.mark.asyncio
-    async def test_compress_large_data(self):
+    def test_compress_large_data(self):
         """Test compression of large data"""
         # Create large data with repetitive content (compresses well)
         large_data = {
@@ -44,7 +42,7 @@ class TestCompressor:
             "raw_inputs": {f"field_{i}": f"value_{i % 20}" for i in range(500)},
         }
 
-        compressed, ratio = await compress_lineage_data(large_data)
+        compressed, ratio = compress_lineage_data(large_data)
 
         # Should achieve good compression on repetitive data
         assert ratio > 50  # At least 50% compression
@@ -54,8 +52,7 @@ class TestCompressor:
         assert decompressed["lead_id"] == large_data["lead_id"]
         assert len(decompressed["pipeline_logs"]) == 1000
 
-    @pytest.mark.asyncio
-    async def test_compress_size_limit(self):
+    def test_compress_size_limit(self):
         """Test compression respects size limit"""
         import random
         import string
@@ -72,7 +69,7 @@ class TestCompressor:
             "another_huge": ''.join(random.choices(string.printable, k=2*1024*1024)),  # 2MB more
         }
 
-        compressed, ratio = await compress_lineage_data(huge_data, max_size_mb=2.0)
+        compressed, ratio = compress_lineage_data(huge_data, max_size_mb=2.0)
 
         # Should be under 2MB
         size_mb = len(compressed) / (1024 * 1024)
@@ -135,8 +132,7 @@ class TestCompressor:
         assert truncated["raw_inputs_sample"]["large_field"] == "<truncated: str>"
         assert truncated["raw_inputs_sample"]["list_field"] == "<truncated: list>"
 
-    @pytest.mark.asyncio
-    async def test_compress_with_special_characters(self):
+    def test_compress_with_special_characters(self):
         """Test compression handles special characters"""
         data = {
             "lead_id": "test-123",
@@ -145,17 +141,16 @@ class TestCompressor:
             "quotes": 'He said "Hello"',
         }
 
-        compressed, ratio = await compress_lineage_data(data)
+        compressed, ratio = compress_lineage_data(data)
         decompressed = decompress_lineage_data(compressed)
 
         assert decompressed == data
 
-    @pytest.mark.asyncio
-    async def test_compression_ratio_calculation(self):
+    def test_compression_ratio_calculation(self):
         """Test compression ratio calculation"""
         # Highly compressible data
         data = {"repeated": "a" * 1000}
-        compressed, ratio = await compress_lineage_data(data)
+        compressed, ratio = compress_lineage_data(data)
         assert ratio > 90  # Should achieve >90% compression
 
         # Less compressible data (random)
@@ -165,5 +160,5 @@ class TestCompressor:
         random_data = {
             "random": "".join(random.choices(string.ascii_letters, k=1000))
         }
-        compressed2, ratio2 = await compress_lineage_data(random_data)
+        compressed2, ratio2 = compress_lineage_data(random_data)
         assert ratio2 < ratio  # Random data compresses less

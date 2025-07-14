@@ -3,7 +3,7 @@ Test configuration for lineage unit tests
 """
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
@@ -21,6 +21,14 @@ def db_session():
         poolclass=StaticPool,
         connect_args={"check_same_thread": False}
     )
+    
+    # Enable foreign key constraints for SQLite
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+    
     Base.metadata.create_all(engine)
 
     Session = scoped_session(sessionmaker(bind=engine))
