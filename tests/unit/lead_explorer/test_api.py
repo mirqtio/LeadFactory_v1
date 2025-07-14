@@ -471,9 +471,10 @@ class TestQuickAddLeadAPI:
 class TestHealthCheckAPI:
     """Test GET /health endpoint"""
     
-    @patch('lead_explorer.api.get_db')
-    def test_health_check_success(self, mock_get_db, client):
+    def test_health_check_success(self, client, app):
         """Test successful health check"""
+        from lead_explorer.api import get_db
+        
         # Create a mock session with the expected behavior
         mock_session = Mock()
         
@@ -493,8 +494,8 @@ class TestHealthCheckAPI:
         mock_query.filter.side_effect = [mock_filter1, mock_filter2]
         mock_session.query.return_value = mock_query
         
-        # Set up the mock to return our session
-        mock_get_db.return_value = mock_session
+        # Override the dependency
+        app.dependency_overrides[get_db] = lambda: mock_session
         
         # Make request
         response = client.get("/api/v1/lead-explorer/health")
@@ -508,22 +509,29 @@ class TestHealthCheckAPI:
         assert "message" in data
         assert "10 total leads" in data["message"]
         assert "5 manual" in data["message"]
+        
+        # Clean up
+        app.dependency_overrides.clear()
     
-    @patch('lead_explorer.api.get_db')
-    def test_health_check_database_error(self, mock_get_db, client):
+    def test_health_check_database_error(self, client, app):
         """Test health check with database error"""
+        from lead_explorer.api import get_db
+        
         # Create a mock session that raises an error
         mock_session = Mock()
         mock_session.execute.side_effect = Exception("Database connection failed")
         
-        # Set up the mock to return our session
-        mock_get_db.return_value = mock_session
+        # Override the dependency
+        app.dependency_overrides[get_db] = lambda: mock_session
         
         # Make request
         response = client.get("/api/v1/lead-explorer/health")
         
         # Verify response
         assert response.status_code == 503
+        
+        # Clean up
+        app.dependency_overrides.clear()
 
 
 class TestAuditTrailAPI:
