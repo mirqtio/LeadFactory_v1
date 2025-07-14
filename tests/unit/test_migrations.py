@@ -143,7 +143,7 @@ class TestMigrations:
 
         # Check for differences
         with test_engine.connect() as conn:
-            context = MigrationContext.configure(conn)
+            MigrationContext.configure(conn)
 
             # Get metadata from models
             target_metadata = Base.metadata
@@ -359,7 +359,7 @@ class TestMigrations:
         for package_name in model_packages:
             try:
                 # Import the package
-                package = importlib.import_module(package_name)
+                importlib.import_module(package_name)
 
                 # Try to import models module if it exists
                 try:

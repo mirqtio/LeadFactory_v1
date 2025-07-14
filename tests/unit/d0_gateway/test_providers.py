@@ -52,7 +52,7 @@ class TestPageSpeedClient:
             return_value={"lighthouseResult": {"categories": {"performance": {"score": 0.85}}}}
         )
 
-        result = await pagespeed_client.analyze_url("https://example.com", strategy="mobile")
+        await pagespeed_client.analyze_url("https://example.com", strategy="mobile")
 
         pagespeed_client.make_request.assert_called_once()
         args, kwargs = pagespeed_client.make_request.call_args
@@ -127,7 +127,7 @@ class TestOpenAIClient:
         )
 
         messages = [{"role": "user", "content": "Hello"}]
-        result = await openai_client.chat_completion(messages)
+        await openai_client.chat_completion(messages)
 
         openai_client.make_request.assert_called_once()
         args, kwargs = openai_client.make_request.call_args
@@ -192,7 +192,7 @@ class TestSendGridClient:
         """Test email sending"""
         sendgrid_client.make_request = AsyncMock(return_value={"message": "success"})
 
-        result = await sendgrid_client.send_email(
+        await sendgrid_client.send_email(
             to_email="test@example.com",
             subject="Test Email",
             html_content="<p>Test</p>",
@@ -261,7 +261,7 @@ class TestStripeClient:
             }
         )
 
-        result = await stripe_client.create_checkout_session(
+        await stripe_client.create_checkout_session(
             price_id="price_123",
             success_url="https://example.com/success",
             cancel_url="https://example.com/cancel",

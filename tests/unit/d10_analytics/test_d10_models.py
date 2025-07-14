@@ -399,7 +399,7 @@ class TestAnalyticsModels:
         assert len(business_time_results) > 0
 
         # Query by success status
-        success_results = db_session.query(FunnelEvent).filter(FunnelEvent.success == True).all()
+        success_results = db_session.query(FunnelEvent).filter(FunnelEvent.success).all()
         assert len(success_results) > 0
 
         print("✓ Efficient indexing queries work")

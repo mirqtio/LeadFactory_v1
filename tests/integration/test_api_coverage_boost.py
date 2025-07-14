@@ -72,7 +72,7 @@ class TestStrategicAPICoverage:
                 },
             )
             assert response.status_code == 200
-            preview_data = response.json()
+            response.json()
 
             # Start batch processing
             response = client.post(

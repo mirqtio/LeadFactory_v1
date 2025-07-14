@@ -333,7 +333,7 @@ class SubjectLineGenerator:
     ) -> Optional[str]:
         """Resolve a single token from request data"""
         config = token_config.get(token, {})
-        source = config.get("source", "")
+        config.get("source", "")
         max_length = config.get("max_length", 100)
         transformations = config.get("transformations", [])
 

@@ -293,11 +293,6 @@ class TestPageSpeedClient:
     async def test_batch_url_analysis(self, pagespeed_client):
         """Test batch analysis of multiple URLs"""
         # Mock responses for different URLs
-        responses = [
-            {"lighthouseResult": {"categories": {"performance": {"score": 0.8}}}},
-            {"lighthouseResult": {"categories": {"performance": {"score": 0.9}}}},
-            {"lighthouseResult": {"categories": {"performance": {"score": 0.7}}}},
-        ]
 
         pagespeed_client.get_core_web_vitals = AsyncMock(
             side_effect=[

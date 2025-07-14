@@ -158,7 +158,7 @@ class TestGatewayFactory:
 
             # Call with use_cache=False should create new instance
             mock_client_class.reset_mock()
-            client3 = factory.create_client("test", use_cache=False)
+            factory.create_client("test", use_cache=False)
             assert mock_client_class.call_count == 1
 
     def test_cache_invalidation(self, factory):

@@ -137,12 +137,12 @@ class TestFormulaEvaluator:
         data = {"x": 10}
         start = time.time()
         result1 = evaluator.evaluate("=X*2+5", data)
-        time1 = time.time() - start
+        time.time() - start
 
         # Second evaluation (should be cached)
         start = time.time()
         result2 = evaluator.evaluate("=X*2+5", data)
-        time2 = time.time() - start
+        time.time() - start
 
         assert result1 == result2 == 25
         # Cached evaluation should be faster (though this might be flaky)
@@ -182,7 +182,7 @@ class TestFormulaEvaluator:
         # xlcalculator might handle this differently
         # Just ensure it doesn't crash
         try:
-            result = evaluator.evaluate("=NONEXISTENT", {})
+            evaluator.evaluate("=NONEXISTENT", {})
             # Might return 0 or raise error depending on implementation
         except ValueError:
             pass  # This is acceptable

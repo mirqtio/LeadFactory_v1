@@ -246,7 +246,7 @@ class TestPipelineFlow:
                 mock_targeting.submit = AsyncMock(side_effect=Exception("Targeting failed"))
 
                 # Execute flow and expect failure
-                with pytest.raises(Exception) as exc_info:
+                with pytest.raises(Exception):
                     await daily_lead_generation_flow(config={"test": True})
 
                 # Verify error was handled properly
@@ -586,7 +586,7 @@ class TestPipelineDeployment:
             MockDeployment.build_from_flow.return_value = mock_deployment
 
             # Create deployment
-            deployment = create_daily_deployment()
+            create_daily_deployment()
 
             # Verify deployment creation
             MockDeployment.build_from_flow.assert_called_once()

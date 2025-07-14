@@ -30,7 +30,7 @@ class TestInfrastructureCleanup:
 
         # Run pytest collection with CI mode
         cmd = ["pytest", "-m", "slow", "--collect-only", "-q"]
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+        subprocess.run(cmd, capture_output=True, text=True, env=env)
 
         # In CI mode with -m slow, we should collect the slow tests
         # But with -m "not slow", they should be excluded

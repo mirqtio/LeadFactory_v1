@@ -563,7 +563,6 @@ def test_no_data_leaks(test_db_session, mock_external_services, simple_workflow_
 
     # Create customer data with sensitive information
     sensitive_email = "customer.with.sensitive.data@privatebusiness.com"
-    sensitive_phone = "555-PRIVATE"
 
     from uuid import uuid4
 
@@ -656,7 +655,6 @@ def test_no_data_leaks(test_db_session, mock_external_services, simple_workflow_
     # 5. Verify cross-domain data isolation
     # Business data should not leak into customer records
     customer_data_fields = ["customer_email", "user_id"]
-    business_data_fields = ["business_name", "business_website", "business_phone"]
 
     # Customer data should not contain business phone numbers
     for field in customer_data_fields:

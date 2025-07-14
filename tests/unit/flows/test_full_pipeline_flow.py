@@ -246,7 +246,7 @@ class TestPipelineComponents:
             result = await send_email.fn(business_data)
 
             # Verify email was sent
-            assert result["email_sent"] == True
+            assert result["email_sent"]
             assert result["email_id"] == "msg_123"
             assert result["delivery_status"] == "completed"
             assert "email_sent_at" in result
@@ -275,7 +275,7 @@ class TestPipelineComponents:
             # Should not raise - non-critical failure
             result = await send_email.fn(business_data)
 
-            assert result["email_sent"] == False
+            assert not result["email_sent"]
             assert result["delivery_status"] == "failed"
             assert result["delivery_error"] == "SMTP error"
 
@@ -296,7 +296,7 @@ class TestPipelineComponents:
             )
             mock_delivery.return_value = mock_delivery_instance
 
-            result = await send_email.fn(business_data)
+            await send_email.fn(business_data)
 
             # Should use test email
             mock_delivery_instance.send_assessment_email.assert_called_once()

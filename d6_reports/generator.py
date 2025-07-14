@@ -19,10 +19,10 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 try:
-    from .finding_scorer import FindingScorer
+    # from .finding_scorer import FindingScorer  # Not used currently
     from .pdf_converter import PDFConverter, PDFOptions, PDFResult
-    from .prioritizer import FindingPrioritizer, PrioritizationResult
-    from .template_engine import TemplateData, TemplateEngine
+    from .prioritizer import FindingPrioritizer
+    from .template_engine import TemplateEngine
 except ImportError:
     # Fallback for direct imports when relative imports fail
     import os

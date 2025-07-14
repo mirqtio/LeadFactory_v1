@@ -164,7 +164,7 @@ class TestLeadRepository:
         repo = LeadRepository(db_session)
 
         # Create leads with different statuses
-        lead1 = repo.create_lead(email="pending@example.com", is_manual=True)
+        repo.create_lead(email="pending@example.com", is_manual=True)
         lead2 = repo.create_lead(email="completed@example.com", is_manual=True)
 
         # Update one to completed

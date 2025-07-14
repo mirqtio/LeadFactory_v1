@@ -261,7 +261,7 @@ class TestUserManagement:
         assert len(result) == 3
         assert result[0].email == "user1@test.com"
         assert result[1].role == UserRole.VIEWER
-        assert result[2].is_active == False
+        assert not result[2].is_active
 
     @pytest.mark.asyncio
     async def test_change_role_success(self):
@@ -333,7 +333,7 @@ class TestUserManagement:
             )
 
         assert result["status"] == "User deactivated successfully"
-        assert target_user.is_active == False
+        assert not target_user.is_active
         assert target_user.deactivated_by == "admin-id"
         mock_db.commit.assert_called_once()
 
@@ -450,8 +450,8 @@ class TestAuditQuerying:
 
         result = await verify_audit_integrity(audit_id=1, db=mock_db, current_user=mock_admin)
 
-        assert result["content_valid"] == True
-        assert result["chain_valid"] == True
+        assert result["content_valid"]
+        assert result["chain_valid"]
         assert result["integrity_status"] == "VALID"
 
     @pytest.mark.asyncio
@@ -486,8 +486,8 @@ class TestAuditQuerying:
 
         result = await verify_audit_integrity(audit_id=1, db=mock_db, current_user=mock_admin)
 
-        assert result["content_valid"] == False
-        assert result["chain_valid"] == False
+        assert not result["content_valid"]
+        assert not result["chain_valid"]
         assert result["integrity_status"] == "TAMPERED"
 
 

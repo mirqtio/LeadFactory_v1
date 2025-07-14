@@ -329,7 +329,6 @@ class TestRateLimiterEnhancements:
         limiter = RateLimiter("test_provider")
 
         # Test daily key generation
-        expected_daily = "rate_limit:daily:test_provider"
         # We can't directly access the key generation without running the method
         # but we can verify the provider is correctly stored
         assert limiter.provider == "test_provider"

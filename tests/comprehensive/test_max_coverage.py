@@ -211,7 +211,7 @@ class TestComprehensiveCoverage:
 
         from api import governance, internal_routes, lineage, scoring_playground
 
-        app = FastAPI()
+        FastAPI()
 
         # These should not raise errors
         assert hasattr(governance, "router") or hasattr(governance, "GovernanceAPI")

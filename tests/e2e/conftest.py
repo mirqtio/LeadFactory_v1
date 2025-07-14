@@ -33,27 +33,27 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.config import get_settings
-from database.base import Base
-from stubs.server import app as stub_app
+from core.config import get_settings  # noqa: E402
+from database.base import Base  # noqa: E402
+from stubs.server import app as stub_app  # noqa: E402
 
 # Import fixtures from fixtures.py to make them available
-from tests.e2e.fixtures import *
+from tests.e2e.fixtures import *  # noqa: E402, F403
 
 # Import all models to ensure foreign key references are available
 try:
-    import d1_targeting.models  # D1 targeting models
-    import d2_sourcing.models  # D2 sourcing models
-    import d3_assessment.models  # D3 assessment models
-    import d4_enrichment.models  # D4 enrichment models
-    import d5_scoring.models  # D5 scoring models
-    import d6_reports.models  # D6 reports models
-    import d7_storefront.models  # D7 storefront models
-    import d8_personalization.models  # D8 personalization models
-    import d9_delivery.models  # D9 delivery models
-    import d10_analytics.models  # D10 analytics models
-    import d11_orchestration.models  # D11 orchestration models
-    import database.models  # Main database models
+    import d1_targeting.models  # noqa: F401 - D1 targeting models
+    import d2_sourcing.models  # noqa: F401 - D2 sourcing models
+    import d3_assessment.models  # noqa: F401 - D3 assessment models
+    import d4_enrichment.models  # noqa: F401 - D4 enrichment models
+    import d5_scoring.models  # noqa: F401 - D5 scoring models
+    import d6_reports.models  # noqa: F401 - D6 reports models
+    import d7_storefront.models  # noqa: F401 - D7 storefront models
+    import d8_personalization.models  # noqa: F401 - D8 personalization models
+    import d9_delivery.models  # noqa: F401 - D9 delivery models
+    import d10_analytics.models  # noqa: F401 - D10 analytics models
+    import d11_orchestration.models  # noqa: F401 - D11 orchestration models
+    import database.models  # noqa: F401 - Main database models
 except ImportError:
     # If imports fail, models will be registered when tests import them
     pass
@@ -305,7 +305,6 @@ def mock_external_services(stub_server):
 def performance_monitor():
     """Monitor test performance for benchmarking"""
     start_time = time.time()
-    memory_usage = []
 
     def get_memory_usage():
         try:

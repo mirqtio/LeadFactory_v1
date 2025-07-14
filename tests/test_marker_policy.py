@@ -38,7 +38,7 @@ class TestMarkerPolicy:
         ]
 
         # Run the test suite
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        subprocess.run(cmd, capture_output=True, text=True)
 
         # Load the JSON report
         try:

@@ -244,14 +244,14 @@ class TestSampleLeadAnonymization:
 
         # First call should query database
         with patch("api.scoring_playground.Lead"):
-            first_result = get_sample_leads(mock_db, count=5)
+            get_sample_leads(mock_db, count=5)
 
         # Verify database was queried
         assert mock_db.query.called
         query_count_before = mock_db.query.call_count
 
         # Second call should use cache
-        second_result = get_sample_leads(mock_db, count=5)
+        get_sample_leads(mock_db, count=5)
 
         # Database should not be queried again
         assert mock_db.query.call_count == query_count_before
@@ -281,7 +281,7 @@ class TestSampleLeadAnonymization:
 
         # Get initial results
         with patch("api.scoring_playground.Lead"):
-            initial_results = get_sample_leads(mock_db, count=5)
+            get_sample_leads(mock_db, count=5)
         initial_query_count = mock_db.query.call_count
 
         # Advance time past cache duration
@@ -289,7 +289,7 @@ class TestSampleLeadAnonymization:
 
         # This should trigger a new query
         with patch("api.scoring_playground.Lead"):
-            new_results = get_sample_leads(mock_db, count=5)
+            get_sample_leads(mock_db, count=5)
 
         # Database should be queried again
         assert mock_db.query.call_count > initial_query_count
@@ -354,7 +354,7 @@ class TestScoreDeltaPerformance:
         start = time.time()
         # Simulate scoring calculation
         for _ in range(100):  # Simulate 100 leads
-            score = sum(w.weight * 85 for w in request.new_weights)
+            sum(w.weight * 85 for w in request.new_weights)
         end = time.time()
 
         execution_time = end - start

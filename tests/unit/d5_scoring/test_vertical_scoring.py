@@ -194,8 +194,8 @@ class TestTask047AcceptanceCriteria:
         }
 
         # Calculate scores with both engines
-        base_result = base_engine.calculate_score(test_data)
-        restaurant_result = restaurant_engine.calculate_score(test_data)
+        base_engine.calculate_score(test_data)
+        restaurant_engine.calculate_score(test_data)
 
         # Scores might be the same if missing data, but the key test is that different components are used
         # The main verification is that override logic is working properly via component analysis
@@ -260,7 +260,7 @@ class TestTask047AcceptanceCriteria:
         assert inherited_found, "Should have at least one inherited component"
 
         # Compare with base engine to ensure inherited components work the same
-        base_engine = VerticalScoringEngine()  # No vertical
+        VerticalScoringEngine()  # No vertical
 
         # For inherited components, scoring logic should be identical
         # We'll test this by checking that the base parsing rules are used

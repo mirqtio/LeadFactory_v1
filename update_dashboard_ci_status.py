@@ -72,11 +72,9 @@ def check_task_completion():
 
     # Check which tasks have commits
     for task_id, task_name in p0_tasks.items():
-        found_in_commits = False
         for commit in commits:
             if task_id in commit or task_id.replace("-", "_") in commit:
                 completed_tasks.append(f"{task_id} - {task_name}")
-                found_in_commits = True
                 break
 
     # Check for uncommitted work

@@ -316,7 +316,7 @@ class CustomerHandler(BaseWebhookHandler):
             customer_id = customer.get("id")
             email = customer.get("email")
             name = customer.get("name")
-            metadata = customer.get("metadata", {})
+            customer.get("metadata", {})
 
             logger.info(f"Processing new customer {customer_id} ({email})")
 

@@ -833,7 +833,6 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
     ) -> Tuple[str, str]:
         """Generate fallback content when LLM fails"""
 
-        greeting = f"Hi {contact_name}," if contact_name else "Hello,"
 
         fallback_body = f"""I noticed some opportunities to improve {business_name}'s website performance. 
         Based on our analysis, there are {len(issues)} key areas that could enhance your online presence 

@@ -152,7 +152,7 @@ class TestTargetUniverseModel:
 class TestCampaignModel:
     def test_campaign_fields(self):
         """Test campaign model fields"""
-        campaign_id = str(uuid.uuid4())
+        str(uuid.uuid4())
         universe_id = str(uuid.uuid4())
 
         campaign = Campaign(

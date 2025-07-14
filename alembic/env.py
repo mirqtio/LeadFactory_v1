@@ -22,82 +22,82 @@ if config.config_file_name is not None:
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import base first
-from database.base import Base
-from database.governance_models import *  # Governance models (RBAC, audit)
+from database.base import Base  # noqa: E402
+from database.governance_models import *  # noqa: E402, F403
 
 # Import all models to ensure they're registered with Base.metadata
 # This is critical for alembic autogenerate to work correctly
-from database.models import *  # Core models including Business
+from database.models import *  # noqa: E402, F403
 
 # Import domain-specific models
 try:
-    from d1_targeting.models import *
+    from d1_targeting.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d2_sourcing.models import *
+    from d2_sourcing.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d3_assessment.models import *
+    from d3_assessment.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d4_enrichment.models import *
+    from d4_enrichment.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d5_scoring.models import *
+    from d5_scoring.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d6_reports.models import *
+    from d6_reports.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d6_reports.lineage.models import *
+    from d6_reports.lineage.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d7_storefront.models import *
+    from d7_storefront.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d8_personalization.models import *
+    from d8_personalization.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d9_delivery.models import *
+    from d9_delivery.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d10_analytics.models import *
+    from d10_analytics.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from d11_orchestration.models import *
+    from d11_orchestration.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 # Import feature-specific models
 try:
-    from batch_runner.models import *
+    from batch_runner.models import *  # noqa: E402, F403
 except ImportError:
     pass
 
 try:
-    from lead_explorer.models import *
+    from lead_explorer.models import *  # noqa: E402, F403
 except ImportError:
     pass
 

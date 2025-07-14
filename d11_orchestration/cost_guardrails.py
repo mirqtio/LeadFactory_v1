@@ -236,7 +236,7 @@ def get_profit_metrics(lookback_days: int = 7) -> Dict[str, float]:
 )
 def create_profit_report(metrics: Dict[str, float], bucket_performance: List[Dict], period_days: int) -> str:
     """Create a markdown report of profitability metrics"""
-    logger = get_run_logger()
+    get_run_logger()
 
     report = f"""# Profit Snapshot Report
 

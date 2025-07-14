@@ -305,7 +305,7 @@ class SourcingCoordinator:
                 .filter(
                     and_(
                         Business.created_at >= batch.started_at,
-                        Business.is_active == True,
+                        Business.is_active,
                     )
                 )
                 .all()
@@ -352,7 +352,7 @@ class SourcingCoordinator:
                 .filter(
                     and_(
                         Business.created_at >= batch.started_at,
-                        Business.is_active == True,
+                        Business.is_active,
                     )
                 )
                 .all()

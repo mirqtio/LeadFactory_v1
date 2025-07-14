@@ -23,6 +23,27 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 
+from .schemas import (
+    CohortAnalysisRequest,
+    CohortAnalysisResponse,
+    CohortDataPoint,
+    DateRangeFilter,
+    ErrorResponse,
+    ExportRequest,
+    ExportResponse,
+    FunnelDataPoint,
+    FunnelMetricsRequest,
+    FunnelMetricsResponse,
+    HealthCheckResponse,
+    MetricDataPoint,
+    MetricsRequest,
+    MetricsResponse,
+    SegmentFilter,
+    validate_campaign_ids,
+    validate_date_range,
+    validate_export_request,
+)
+
 
 # Create a mock warehouse class to avoid circular imports during testing
 class MetricsWarehouse:
@@ -45,26 +66,7 @@ class MetricsWarehouse:
         return {"records": []}
 
 
-from .schemas import (
-    CohortAnalysisRequest,
-    CohortAnalysisResponse,
-    CohortDataPoint,
-    DateRangeFilter,
-    ErrorResponse,
-    ExportRequest,
-    ExportResponse,
-    FunnelDataPoint,
-    FunnelMetricsRequest,
-    FunnelMetricsResponse,
-    HealthCheckResponse,
-    MetricDataPoint,
-    MetricsRequest,
-    MetricsResponse,
-    SegmentFilter,
-    validate_campaign_ids,
-    validate_date_range,
-    validate_export_request,
-)
+# Schemas imported above to avoid E402 error
 
 # Removed enum imports to avoid circular imports - using string literals instead
 

@@ -288,7 +288,7 @@ async def test_data_consistency_verified(
             }
         }
 
-        enrichment_result = await enrichment_coordinator.enrich_business(test_business)
+        await enrichment_coordinator.enrich_business(test_business)
 
     # Step 4: Run scoring
     business_data = {
@@ -329,7 +329,7 @@ async def test_performance_benchmarked(
     MAX_PIPELINE_TIME_SECONDS = 30  # Maximum acceptable time for full pipeline
     MAX_MEMORY_INCREASE_MB = 100  # Maximum memory increase during processing
 
-    start_time = performance_monitor["start_time"]
+    performance_monitor["start_time"]
     initial_memory = performance_monitor["initial_memory"]
 
     # Initialize coordinators
@@ -508,7 +508,7 @@ async def test_complete_sourcing_to_scoring_integration(
                 "price_level": 3,
             }
         }
-        enrichment = await enrichment_coordinator.enrich_business(business)
+        await enrichment_coordinator.enrich_business(business)
 
     # 4. Score business
     business_data = {

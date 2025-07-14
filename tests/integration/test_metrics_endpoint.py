@@ -59,8 +59,7 @@ class TestMetricsEndpoint:
     def test_metrics_not_tracked_for_metrics_endpoint(self, client):
         """Test that requests to /metrics are not tracked"""
         # Get initial metrics
-        response1 = client.get("/metrics")
-        metrics1 = response1.text
+        client.get("/metrics")
 
         # Get metrics again
         response2 = client.get("/metrics")

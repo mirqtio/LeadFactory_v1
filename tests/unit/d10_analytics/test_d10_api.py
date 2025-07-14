@@ -360,7 +360,7 @@ class TestAnalyticsAPI:
 
         # Test getting export status (would be completed in production after background task)
         # For now, we'll test the endpoint structure
-        status_response = client.get(f"/api/v1/analytics/export/{export_id}")
+        client.get(f"/api/v1/analytics/export/{export_id}")
         # Status will be processing since background task hasn't completed in test
 
         # Test invalid export type

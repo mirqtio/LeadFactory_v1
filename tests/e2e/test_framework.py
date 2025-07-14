@@ -177,7 +177,6 @@ def test_database_transaction_isolation(test_db_session, sample_targeting_criter
     assert sample_targeting_criteria is not None
 
     # Modify data
-    original_geo_value = sample_targeting_criteria.geo_value
     sample_targeting_criteria.geo_value = "Modified City"
     test_db_session.commit()
 

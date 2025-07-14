@@ -99,7 +99,7 @@ class BatchScheduler:
                 Campaign.id.notin_(existing_batch_campaigns),
             )
             .join(TargetUniverse)
-            .filter(TargetUniverse.is_active == True)
+            .filter(TargetUniverse.is_active)
             .all()
         )
 

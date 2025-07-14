@@ -245,7 +245,6 @@ class TestHighImpactCodePaths:
 
     def test_gateway_providers_coverage(self, client):
         """Exercise all gateway provider code paths"""
-        providers = ["dataaxle", "hunter", "openai", "semrush", "pagespeed", "screenshotone", "humanloop"]
 
         # These might not have direct endpoints but are used internally
         # The imports and initialization will boost coverage
@@ -282,7 +281,7 @@ class TestHighImpactCodePaths:
         """Test error handling code paths"""
 
         # Test custom error handling
-        with patch("main.app") as mock_app:
+        with patch("main.app"):
             # Trigger various error conditions
             pass
 
@@ -290,7 +289,7 @@ class TestHighImpactCodePaths:
         """Test middleware code paths"""
         # Request with different methods
         for method in ["GET", "POST", "PUT", "DELETE"]:
-            response = client.request(method, "/health")
+            client.request(method, "/health")
             # Don't assert status, just exercise the code
 
     def test_config_loading_coverage(self):

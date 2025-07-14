@@ -150,7 +150,7 @@ class TestOpenAIClient:
         # Calculate actual cost based on real usage
         prompt_cost = (Decimal("50") / Decimal("1000000")) * Decimal("0.15")
         completion_cost = (Decimal("25") / Decimal("1000000")) * Decimal("0.60")
-        expected_actual_cost = prompt_cost + completion_cost
+        prompt_cost + completion_cost
 
         # Verify cost calculation method works with these numbers
         estimated_cost = openai_client.calculate_cost("POST:/v1/chat/completions")

@@ -219,7 +219,7 @@ class TestTask045AcceptanceCriteria:
         assert isinstance(version_dict, dict)
         assert version_dict["version"] == "v1.2.3"
         assert "created_at" in version_dict
-        assert version_dict["deprecated"] == False
+        assert not version_dict["deprecated"]
 
         # Test from dictionary
         recreated = ScoringVersion.from_dict(version_dict)
@@ -259,8 +259,8 @@ class TestTask045AcceptanceCriteria:
         # Test dictionary conversion
         history_dict = history.to_dict()
         assert history_dict["score_change"] == 5.0
-        assert history_dict["score_improvement"] == True
-        assert history_dict["tier_changed"] == False
+        assert history_dict["score_improvement"]
+        assert not history_dict["tier_changed"]
 
         print("✓ Score history tracking works correctly")
 

@@ -633,7 +633,7 @@ async def targeting_health_check(db: Session = Depends(get_db)):
         db.execute("SELECT 1")
 
         # Get basic stats
-        universe_count = db.query(TargetUniverse).filter(TargetUniverse.is_active == True).count()
+        universe_count = db.query(TargetUniverse).filter(TargetUniverse.is_active).count()
         campaign_count = db.query(Campaign).filter(Campaign.status == "running").count()
 
         return {

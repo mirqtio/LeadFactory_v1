@@ -718,7 +718,7 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
     processing_times = []
 
     for batch_idx, batch in enumerate(batches):
-        batch_start_time = time.time()
+        time.time()
 
         # Process batch through pipeline
         result = processor.process_business_batch(batch)

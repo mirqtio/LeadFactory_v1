@@ -332,7 +332,7 @@ class EmailClick(Base):
 
 # Import domain-specific models for relationships
 try:
-    from d3_assessment.models import AssessmentResult
+    from d3_assessment.models import AssessmentResult  # Used in relationships
 except ImportError:
     # Handle case where d3_assessment models might not be available
     pass

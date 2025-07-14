@@ -296,7 +296,7 @@ def create_personalization_data(business_name: str, **kwargs) -> Personalization
 def build_audit_email(business_name: str, findings: List[AuditFinding], contact_email: str, **kwargs) -> Dict[str, Any]:
     """Build audit email from findings"""
     # Select key findings for email
-    email_findings = select_email_findings(findings)
+    select_email_findings(findings)
 
     # Create personalization
     personalization = PersonalizationData(

@@ -71,11 +71,9 @@ def check_api_endpoints():
         ("/api/lineage/panel/stats", 200),
     ]
 
-    base_url = "http://localhost:8000"
 
     for endpoint, expected_status in endpoints:
         try:
-            url = f"{base_url}{endpoint}"
             # Would make actual request in production
             print(f"  ✓ {endpoint} - Would test for status {expected_status}")
         except Exception as e:
@@ -122,7 +120,7 @@ def check_test_coverage():
 
     try:
         # Run coverage for lineage module
-        result = subprocess.run(
+        subprocess.run(
             ["pytest", "--cov=api.lineage", "--cov-report=json", "tests/unit/lineage/", "-q"],
             capture_output=True,
             text=True,

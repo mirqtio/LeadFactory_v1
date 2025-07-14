@@ -222,7 +222,7 @@ class TestTask043AcceptanceCriteria:
             assert 0 <= progress.completion_percentage <= 100
 
             # Wait for completion
-            result = await task
+            await task
 
             # Verify progress is complete
             final_progress = coordinator.get_progress(request_id)
@@ -339,7 +339,7 @@ class TestTask043AcceptanceCriteria:
 
                 # Cancel the request
                 cancelled = coordinator.cancel_request(request_id)
-                assert cancelled == True
+                assert cancelled
 
                 # Verify it's no longer active
                 assert request_id not in coordinator.get_all_active_progress()

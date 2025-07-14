@@ -364,7 +364,7 @@ class TestBaseClientCostIntegration:
             client = MockAPIClient(provider="test_provider", api_key="test")
 
             # Make API call
-            result = await client.make_request("GET", "/test")
+            await client.make_request("GET", "/test")
 
             # Verify cost was recorded in metrics
             mock_metrics.return_value.record_cost.assert_called_with("test_provider", "/test", 0.0)

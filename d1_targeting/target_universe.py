@@ -351,7 +351,7 @@ class TargetUniverseManager:
             self.session.query(TargetUniverse)
             .filter(
                 and_(
-                    TargetUniverse.is_active == True,
+                    TargetUniverse.is_active,
                     or_(
                         TargetUniverse.last_refresh.is_(None),
                         TargetUniverse.last_refresh < cutoff_time,
@@ -447,7 +447,7 @@ class TargetUniverseManager:
             self.session.query(TargetUniverse)
             .filter(
                 and_(
-                    TargetUniverse.is_active == True,
+                    TargetUniverse.is_active,
                     TargetUniverse.last_refresh >= cutoff_date,
                 )
             )
@@ -464,7 +464,7 @@ class TargetUniverseManager:
                 func.sum(Campaign.total_cost).label("cost"),
             )
             .join(TargetUniverse)
-            .filter(and_(TargetUniverse.is_active == True, Campaign.created_at >= cutoff_date))
+            .filter(and_(TargetUniverse.is_active, Campaign.created_at >= cutoff_date))
             .first()
         )
 

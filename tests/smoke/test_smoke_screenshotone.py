@@ -74,7 +74,7 @@ class TestScreenshotOneSmoke:
         client.timeout = 8
 
         start = datetime.now()
-        result = await client.capture_screenshot(url="https://nytimes.com", full_page=True)  # Heavy page
+        await client.capture_screenshot(url="https://nytimes.com", full_page=True)  # Heavy page
         duration = (datetime.now() - start).total_seconds()
 
         assert duration <= 10  # Should timeout before 10s

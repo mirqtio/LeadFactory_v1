@@ -137,7 +137,7 @@ def test_mock_generation_workflow():
     assessment_data = mock_data_loader.load_assessment_data("test123")
     warnings = mock_data_loader.validate_data(business_data, assessment_data)
 
-    prioritization_result = mock_prioritizer.prioritize_findings(assessment_data)
+    mock_prioritizer.prioritize_findings(assessment_data)
 
     # Mock template data creation (would normally be done by template engine)
     template_data = Mock()

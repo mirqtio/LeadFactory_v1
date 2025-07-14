@@ -27,7 +27,7 @@ class TestD0GatewayExecution:
             assert result["status"] == "success"
 
         # Test facade
-        facade = GatewayFacade()
+        GatewayFacade()
         # Skip the async test for now since it's just for coverage
 
     def test_gateway_cache_execution(self):

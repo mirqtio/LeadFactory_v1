@@ -18,6 +18,7 @@ from .types import BatchSchedule, CampaignStatus, GeographyLevel, TargetingCrite
 
 __all__ = [
     # Models
+    "Batch",
     "Target",
     "TargetUniverse",
     "Campaign",

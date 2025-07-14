@@ -28,9 +28,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
     from core.metrics import MetricsCollector
-    from d9_delivery.models import Email, EmailStatus
+    # from d9_delivery.models import Email, EmailStatus  # Not used as classes
     from d11_orchestration.pipeline import daily_lead_generation_flow
-    from scripts.test_pipeline import PipelineTestRunner
+    # from scripts.test_pipeline import PipelineTestRunner  # Not used
 
     PIPELINE_AVAILABLE = True
 except ImportError:

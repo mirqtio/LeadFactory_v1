@@ -556,8 +556,8 @@ class TestAssessmentIntegrationTask039:
         # Test that metrics were tracked
         assert summary["success_in_window"] > 0
         # Check that cost was tracked in the assessment types
-        ai_insights = summary["assessment_types"].get("ai_insights", {})
-        pagespeed = summary["assessment_types"].get("pagespeed", {})
+        summary["assessment_types"].get("ai_insights", {})
+        summary["assessment_types"].get("pagespeed", {})
 
         print("✓ Metrics integration works")
 

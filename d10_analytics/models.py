@@ -13,7 +13,9 @@ Acceptance Criteria:
 
 import enum
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Dict, Optional
 
 from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime, Enum as SQLEnum, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -111,9 +113,7 @@ class TimeSeriesData(Base):
     )
 
 
-# Add dataclass imports at top of file after other imports
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
+# Dataclass imports moved to top of file
 
 
 @dataclass

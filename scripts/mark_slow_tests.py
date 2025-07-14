@@ -109,7 +109,7 @@ def process_test_durations(durations):
             continue
 
         file_path = match.group(1)
-        class_name = match.group(2)
+        match.group(2)
         test_name = match.group(3)
 
         if not os.path.exists(file_path):

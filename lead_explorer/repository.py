@@ -64,15 +64,15 @@ class LeadRepository:
 
     def get_lead_by_id(self, lead_id: str) -> Optional[Lead]:
         """Get lead by ID"""
-        return self.db.query(Lead).filter(Lead.id == lead_id, Lead.is_deleted == False).first()
+        return self.db.query(Lead).filter(Lead.id == lead_id, not Lead.is_deleted).first()
 
     def get_lead_by_email(self, email: str) -> Optional[Lead]:
         """Get lead by email"""
-        return self.db.query(Lead).filter(Lead.email == email.lower(), Lead.is_deleted == False).first()
+        return self.db.query(Lead).filter(Lead.email == email.lower(), not Lead.is_deleted).first()
 
     def get_lead_by_domain(self, domain: str) -> Optional[Lead]:
         """Get lead by domain"""
-        return self.db.query(Lead).filter(Lead.domain == domain.lower(), Lead.is_deleted == False).first()
+        return self.db.query(Lead).filter(Lead.domain == domain.lower(), not Lead.is_deleted).first()
 
     def list_leads(
         self,
@@ -86,7 +86,7 @@ class LeadRepository:
     ) -> Tuple[List[Lead], int]:
         """List leads with filtering and pagination"""
 
-        query = self.db.query(Lead).filter(Lead.is_deleted == False)
+        query = self.db.query(Lead).filter(not Lead.is_deleted)
 
         # Apply filters
         if is_manual is not None:
@@ -129,7 +129,7 @@ class LeadRepository:
 
         try:
             # Store old values for audit
-            old_values = {column.name: getattr(lead, column.name) for column in Lead.__table__.columns}
+            {column.name: getattr(lead, column.name) for column in Lead.__table__.columns}
 
             # Apply updates
             for field, value in updates.items():

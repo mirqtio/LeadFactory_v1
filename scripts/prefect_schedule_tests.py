@@ -121,7 +121,7 @@ async def main():
     logger.info("Setting up Prefect scheduled tests...")
 
     # Create deployments
-    deployment_ids = await create_deployments()
+    await create_deployments()
 
     logger.info("\nDeployments created successfully!")
     logger.info("\nSchedule Summary:")

@@ -459,11 +459,11 @@ class TestTask048AcceptanceCriteria(unittest.TestCase):
 
         # Test boundary edge cases
         assignment_30 = engine.assign_tier("edge_30", 30.0)  # Exactly at gate threshold
-        assert assignment_30.passed_gate == True, "Score exactly at gate should pass"
+        assert assignment_30.passed_gate, "Score exactly at gate should pass"
         assert assignment_30.tier == LeadTier.D, "Score 30.0 should be Tier D"
 
         assignment_29_9 = engine.assign_tier("edge_29_9", 29.9)  # Just below gate
-        assert assignment_29_9.passed_gate == False, "Score below gate should fail"
+        assert not assignment_29_9.passed_gate, "Score below gate should fail"
         assert assignment_29_9.tier == LeadTier.FAILED, "Score 29.9 should be FAILED"
 
         # Test tier boundary edges
@@ -546,7 +546,7 @@ class TestConvenienceFunctions(unittest.TestCase):
         assert assignment.lead_id == "convenience_001", "Should assign correct lead ID"
         assert assignment.score == 85.0, "Should assign correct score"
         assert assignment.tier == LeadTier.A, "Should assign correct tier"
-        assert assignment.passed_gate == True, "Should pass gate"
+        assert assignment.passed_gate, "Should pass gate"
 
         print("✓ Convenience function works correctly")
 

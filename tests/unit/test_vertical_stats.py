@@ -1,11 +1,11 @@
 """Unit tests for vertical_stats.parquet processing."""
 import pytest
-
-# Mark entire module as slow for CI optimization
-pytestmark = pytest.mark.slow
 from pathlib import Path
 
 import pandas as pd
+
+# Mark entire module as slow for CI optimization
+pytestmark = pytest.mark.slow
 
 
 def test_vertical_stats_parquet_exists():

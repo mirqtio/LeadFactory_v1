@@ -16,8 +16,8 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 try:
-    import httpx
-    from prefect import Flow, flow, task
+    # import httpx  # Not used currently
+    from prefect import flow, task
     from prefect.deployments import Deployment
     from prefect.exceptions import Abort
     from prefect.logging import get_run_logger

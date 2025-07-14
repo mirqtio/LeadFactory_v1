@@ -8,7 +8,6 @@ def create_ci_aware_dashboard():
     """Create dashboard showing real CI status."""
 
     # ZERO tasks are actually complete - CI is FAILING
-    completed_tasks = []
 
     # Tasks that are committed/pushed but CI is FAILING
     committed_but_ci_failing = [

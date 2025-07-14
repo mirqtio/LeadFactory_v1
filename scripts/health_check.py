@@ -190,7 +190,7 @@ class HealthChecker:
             )
 
             # Test connection
-            pong = r.ping()
+            r.ping()
 
             # Get Redis info
             info = r.info()

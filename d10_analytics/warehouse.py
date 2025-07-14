@@ -19,6 +19,9 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy import func
 
+from d10_analytics.aggregators import CostAnalyzer, DailyMetricsAggregator, FunnelCalculator, SegmentBreakdownAnalyzer
+from d10_analytics.models import AggregationPeriod, FunnelConversion, FunnelEvent, MetricSnapshot, generate_uuid
+
 # from database.session import get_db_session  # Would be used in production
 
 
@@ -42,8 +45,7 @@ def get_db_session():
     return session_context()
 
 
-from d10_analytics.aggregators import CostAnalyzer, DailyMetricsAggregator, FunnelCalculator, SegmentBreakdownAnalyzer
-from d10_analytics.models import AggregationPeriod, FunnelConversion, FunnelEvent, MetricSnapshot, generate_uuid
+# Imports moved to top of file
 
 logger = logging.getLogger(__name__)
 

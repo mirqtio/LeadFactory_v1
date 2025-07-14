@@ -129,7 +129,7 @@ class TestFullPipelineFlow:
         assert result["status"] == "complete", "Pipeline should complete successfully"
         assert result["score"] > 0, "Should have a valid score"
         assert result["report_path"] is not None, "Should generate a report path"
-        assert result["email_sent"] == True, "Should send email"
+        assert result["email_sent"], "Should send email"
         assert execution_time < 90, f"Should complete within 90 seconds, took {execution_time:.2f}s"
 
         # Verify all stages were executed
@@ -200,7 +200,7 @@ class TestFullPipelineFlow:
 
         # Other stages should still complete
         assert result["report_path"] is not None
-        assert result["email_sent"] == True
+        assert result["email_sent"]
 
     @pytest.mark.asyncio
     async def test_pipeline_with_email_failure(self, mock_coordinators):
@@ -213,7 +213,7 @@ class TestFullPipelineFlow:
 
         # Pipeline should still complete successfully
         assert result["status"] == "complete"
-        assert result["email_sent"] == False
+        assert not result["email_sent"]
         assert result["full_data"]["delivery_status"] == "failed"
         assert "delivery_error" in result["full_data"]
 

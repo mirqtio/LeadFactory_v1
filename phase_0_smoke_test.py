@@ -68,7 +68,7 @@ def test_hot_reload():
         engine = ConfigurableScoringEngine()
 
         # Create handler
-        handler = ScoringRulesFileHandler(engine, debounce_seconds=0.1)
+        ScoringRulesFileHandler(engine, debounce_seconds=0.1)
 
         print("  ✅ Hot reload mechanism available")
         print("  ℹ️  Would POST to http://localhost:8000/internal/reload_rules")
@@ -86,20 +86,6 @@ def test_scoring_calculation():
 
     try:
         # Create mock scoring data
-        score_data = {
-            "website_exists": {"score": 10},
-            "performance": {"score": 85},
-            "seo": {"score": 70},
-            "accessibility": {"score": 60},
-            "mobile": {"score": 90},
-            "security": {"score": 80},
-            "technologies": {"score": 8},
-            "content_quality": {"score": 7},
-            "backlinks": {"score": 5},
-            "reviews": {"score": 9},
-            "traffic": {"score": 6},
-            "conversion_potential": {"score": 8},
-        }
 
         # Simplified scoring for smoke test
         # Just verify score is in valid range and tier is assigned

@@ -130,7 +130,7 @@ Give short bullet phrases only.  Return JSON ONLY."""
     @pytest.mark.asyncio
     async def test_vision_cost_tracking(self):
         """Test GPT-4o Vision cost tracking"""
-        client = OpenAIClient(api_key=settings.openai_api_key)
+        OpenAIClient(api_key=settings.openai_api_key)
 
         # Vision analysis should cost ~$0.003
         # This is an estimate for ~1k tokens with gpt-4o-mini
@@ -154,7 +154,7 @@ Give short bullet phrases only.  Return JSON ONLY."""
 
         try:
             # This should complete quickly
-            response = await asyncio.wait_for(
+            await asyncio.wait_for(
                 client.chat_completion(messages=messages, model="gpt-4o-mini"),
                 timeout=5,
             )
@@ -182,7 +182,7 @@ Give short bullet phrases only.  Return JSON ONLY."""
         ]
 
         try:
-            response = await client.chat_completion(messages=messages, model="gpt-4o-mini")
+            await client.chat_completion(messages=messages, model="gpt-4o-mini")
             # OpenAI might handle this gracefully
             print("\n✓ GPT-4o Vision handled invalid image URL")
         except Exception as e:

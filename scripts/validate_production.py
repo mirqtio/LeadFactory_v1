@@ -144,7 +144,7 @@ def check_phase_05_implementation():
         print(f"❌ Bucket profit notebook: {notebook_path} not found")
         phase_05_checks.append(False)
 
-    return all(check != False for check in phase_05_checks) if phase_05_checks else True
+    return all(check for check in phase_05_checks) if phase_05_checks else True
 
 
 def check_critical_endpoints():

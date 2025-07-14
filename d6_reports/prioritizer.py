@@ -259,7 +259,7 @@ class FindingPrioritizer:
     ) -> List[Dict[str, Any]]:
         """Apply business context to adjust finding priorities"""
         business_type = business_context.get("business_type", "general")
-        industry = business_context.get("industry", "general")
+        business_context.get("industry", "general")
 
         # Adjust conversion factors based on business type
         for finding in findings:

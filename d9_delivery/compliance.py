@@ -93,7 +93,7 @@ class ComplianceManager:
                     .filter(
                         and_(
                             SuppressionList.email == email.lower(),
-                            SuppressionList.is_active == True,
+                            SuppressionList.is_active,
                         )
                     )
                     .first()
@@ -229,7 +229,7 @@ class ComplianceManager:
                     .filter(
                         and_(
                             SuppressionList.email == token_data.email.lower(),
-                            SuppressionList.is_active == True,
+                            SuppressionList.is_active,
                         )
                     )
                     .first()
@@ -280,7 +280,6 @@ class ComplianceManager:
         unsubscribe_params = {"token": token.token, "email": email}
 
         unsubscribe_url = f"{self.base_url}/unsubscribe?{urlencode(unsubscribe_params)}"
-        post_url = f"{self.base_url}/unsubscribe"
 
         # Create compliance headers
         headers = ComplianceHeaders(
@@ -388,7 +387,7 @@ Contact: support@leadfactory.com
                     .filter(
                         and_(
                             SuppressionList.email == email.lower(),
-                            SuppressionList.is_active == True,
+                            SuppressionList.is_active,
                         )
                     )
                     .first()
@@ -431,14 +430,14 @@ Contact: support@leadfactory.com
         try:
             with SessionLocal() as session:
                 # Total active suppressions
-                total_active = session.query(SuppressionList).filter(SuppressionList.is_active == True).count()
+                total_active = session.query(SuppressionList).filter(SuppressionList.is_active).count()
 
                 # By source (since no list_type field)
                 unsubscribe_source_count = (
                     session.query(SuppressionList)
                     .filter(
                         and_(
-                            SuppressionList.is_active == True,
+                            SuppressionList.is_active,
                             SuppressionList.source == "unsubscribe_link",
                         )
                     )
@@ -450,7 +449,7 @@ Contact: support@leadfactory.com
                     session.query(SuppressionList)
                     .filter(
                         and_(
-                            SuppressionList.is_active == True,
+                            SuppressionList.is_active,
                             SuppressionList.reason == "user_request",
                         )
                     )
@@ -461,7 +460,7 @@ Contact: support@leadfactory.com
                     session.query(SuppressionList)
                     .filter(
                         and_(
-                            SuppressionList.is_active == True,
+                            SuppressionList.is_active,
                             SuppressionList.reason.in_(["hard_bounce", "spam_complaint"]),
                         )
                     )

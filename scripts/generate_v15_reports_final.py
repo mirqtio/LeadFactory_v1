@@ -77,7 +77,7 @@ class V15ReportGeneratorFinal:
         if not sources:
             return 0.3  # Low confidence if no data
 
-        weights = self.confidence_sources.get("source_weights", {})
+        self.confidence_sources.get("source_weights", {})
 
         # Map assessment sources to confidence source names
         source_mapping = {

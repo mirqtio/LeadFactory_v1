@@ -275,7 +275,7 @@ class ConnectionManager:
 
     async def cleanup_stale_connections(self, max_duration_seconds: int = 3600):
         """Clean up connections that have been open too long without activity"""
-        now = datetime.utcnow()
+        datetime.utcnow()
         stale_batches = []
 
         for batch_id, connection in self.active_connections.items():

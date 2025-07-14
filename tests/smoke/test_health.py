@@ -88,14 +88,14 @@ class TestHealthEndpoint:
     def test_health_handles_database_failure_gracefully(self):
         """Test that health endpoint handles database failures gracefully"""
         # For now, just ensure it doesn't crash
-        with patch("main.app") as mock_app:
+        with patch("main.app"):
             response = client.get("/health")
             assert response.status_code in [200, 503]
 
     def test_health_handles_redis_failure_gracefully(self):
         """Test that health endpoint handles Redis failures gracefully"""
         # For now, just ensure it doesn't crash
-        with patch("main.app") as mock_app:
+        with patch("main.app"):
             response = client.get("/health")
             assert response.status_code in [200, 503]
 

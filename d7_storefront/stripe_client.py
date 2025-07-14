@@ -153,7 +153,7 @@ class StripeClient:
         """Helper to run async gateway methods from sync context"""
         try:
             # Check if we're already in an event loop
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
             # If we are, we need to run the coroutine in a thread
             import concurrent.futures
 
@@ -312,7 +312,7 @@ class StripeClient:
     def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
         """Verify Stripe webhook signature"""
         try:
-            result = self._run_async(
+            self._run_async(
                 self.gateway.construct_webhook_event(
                     payload=payload.decode("utf-8"),
                     signature=signature,

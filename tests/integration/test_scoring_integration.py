@@ -293,10 +293,10 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
             tier_assignments.append((business_name, tier_assignment))
 
         # Verify tier distribution makes sense
-        premium_restaurant_tier = next(t for n, t in tier_assignments if n == "premium_restaurant").tier
-        medical_practice_tier = next(t for n, t in tier_assignments if n == "medical_practice").tier
-        basic_business_tier = next(t for n, t in tier_assignments if n == "basic_business").tier
-        failed_business_tier = next(t for n, t in tier_assignments if n == "failed_business").tier
+        next(t for n, t in tier_assignments if n == "premium_restaurant").tier
+        next(t for n, t in tier_assignments if n == "medical_practice").tier
+        next(t for n, t in tier_assignments if n == "basic_business").tier
+        next(t for n, t in tier_assignments if n == "failed_business").tier
 
         # Verify tier assignments are logical (may be FAILED due to rule evaluation issues)
         # Premium businesses should score better than basic/failed businesses
@@ -319,7 +319,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         self.assertGreaterEqual(basic_score, failed_score, "Basic business should score >= failed business")
 
         # Verify tier distribution functionality works (may all be FAILED if gate threshold is high)
-        passed_tiers = [t.tier for n, t in tier_assignments if t.tier != LeadTier.FAILED]
+        [t.tier for n, t in tier_assignments if t.tier != LeadTier.FAILED]
         total_tiers = [t.tier for n, t in tier_assignments]
 
         # All businesses should get a tier assignment (even if FAILED)
@@ -390,8 +390,8 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         restaurant_data = self.test_businesses["premium_restaurant"]
 
         base_result = base_engine.calculate_score(restaurant_data)
-        restaurant_result = restaurant_engine.calculate_score(restaurant_data)
-        tier_assignment = tier_engine.assign_tier(restaurant_data["id"], float(base_result.overall_score))
+        restaurant_engine.calculate_score(restaurant_data)
+        tier_engine.assign_tier(restaurant_data["id"], float(base_result.overall_score))
 
         single_scoring_time = time.time() - start_time
         self.assertLess(single_scoring_time, 1.0, "Single scoring should complete under 1 second")
@@ -722,7 +722,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         base_engine = ScoringEngine()
         restaurant_engine = create_restaurant_scoring_engine()
         medical_engine = create_medical_scoring_engine()
-        configurable_engine = ConfigurableScoringEngine()
+        ConfigurableScoringEngine()
         tier_engine = TierAssignmentEngine()
 
         workflow_results = {}

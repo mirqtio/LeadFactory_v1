@@ -360,7 +360,7 @@ class TestTask034AcceptanceCriteria:
     async def test_assessment_prioritization(self, coordinator):
         """Test assessment priority handling"""
         # Create requests with different priorities
-        high_priority_request = AssessmentRequest(
+        AssessmentRequest(
             assessment_type=AssessmentType.PAGESPEED,
             url="https://high-priority.com",
             priority=AssessmentPriority.HIGH,
@@ -368,7 +368,7 @@ class TestTask034AcceptanceCriteria:
             retry_count=3,
         )
 
-        low_priority_request = AssessmentRequest(
+        AssessmentRequest(
             assessment_type=AssessmentType.TECH_STACK,
             url="https://low-priority.com",
             priority=AssessmentPriority.LOW,

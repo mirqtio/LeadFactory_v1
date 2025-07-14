@@ -328,7 +328,7 @@ class TestFindingPrioritizer:
         top_categories = {finding.category for finding in result.top_issues}
 
         # Should have at least some overlap with conversion-critical categories
-        has_conversion_focus = bool(conversion_categories.intersection(top_categories))
+        bool(conversion_categories.intersection(top_categories))
 
         # Note: This test is flexible since it depends on the specific findings
         # The main point is that the system should generally prioritize conversion-related issues

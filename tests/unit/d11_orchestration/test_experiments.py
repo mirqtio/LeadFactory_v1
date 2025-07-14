@@ -569,7 +569,7 @@ class TestVariantAssigner:
 
         # Different hash should likely produce different bucket
         different_hash = "123456789abcdef0"
-        different_bucket = variant_assigner.calculate_assignment_bucket(different_hash)
+        variant_assigner.calculate_assignment_bucket(different_hash)
         # Not guaranteed to be different, but very likely
 
         print("✓ Assignment bucket calculation verified")

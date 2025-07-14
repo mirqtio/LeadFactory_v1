@@ -112,7 +112,6 @@ class TestScoringEngine:
         engine = ScoringEngine()
 
         # Save original schema
-        original_schema = engine._schema
 
         # Try to reload with bad path
         engine.config_path = Path("/nonexistent/bad.yaml")
@@ -165,7 +164,7 @@ class TestScoringEngine:
 
         # Force default usage
         with patch("pathlib.Path.exists", return_value=False):
-            engine = ScoringEngine()
+            ScoringEngine()
 
         # Check metric was set to 1
         assert scoring_rules_default_used._value.get() == 1

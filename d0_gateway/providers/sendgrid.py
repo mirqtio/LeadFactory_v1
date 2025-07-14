@@ -322,7 +322,7 @@ class SendGridClient(BaseAPIClient):
         subject = f"Quick website improvements for {business_name}"
 
         if issue_count > 0:
-            top_issue = website_issues[0].get("issue", "performance optimization")
+            website_issues[0].get("issue", "performance optimization")
             subject = f"Found {issue_count} ways to improve {business_name}'s website"
 
         # Generate email content

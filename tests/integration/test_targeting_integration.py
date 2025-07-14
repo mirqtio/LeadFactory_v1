@@ -160,17 +160,6 @@ class TestTargetingIntegrationTask024:
 
         # 4. Test priority analytics
         with patch("d1_targeting.api.TargetUniverseManager") as mock_manager:
-            mock_priorities = [
-                {
-                    "universe_id": sample_target_universe.id,
-                    "universe_name": sample_target_universe.name,
-                    "priority_score": 0.85,
-                    "freshness_score": 0.90,
-                    "total_score": 0.875,
-                    "last_refresh": sample_target_universe.last_refresh,
-                    "estimated_refresh_time": None,
-                }
-            ]
             mock_manager.return_value.calculate_universe_priority.return_value = 0.85
 
             response = client.get("/api/v1/targeting/analytics/priorities")
@@ -352,7 +341,7 @@ class TestTargetingIntegrationTask024:
         # Test analytics endpoints
 
         # 7. Geographic boundaries
-        with patch("d1_targeting.api.GeographicBoundary") as mock_boundary:
+        with patch("d1_targeting.api.GeographicBoundary"):
             mock_boundaries = [
                 Mock(
                     id="geo-001",

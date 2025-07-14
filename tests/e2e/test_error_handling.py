@@ -99,7 +99,6 @@ def test_api_failures_handled(test_db_session):
     }
 
     # Circuit breaker state tracking
-    circuit_breaker_states = {}
 
     # Error handling results
     error_handling_results = []
@@ -152,7 +151,7 @@ def test_api_failures_handled(test_db_session):
 
         except Exception as e:
             error_occurred = True
-            error_type = type(e).__name__
+            type(e).__name__
             error_message = str(e)
 
             # Verify the error was handled appropriately
@@ -419,15 +418,15 @@ def test_partial_results_saved(test_db_session):
 
                 # Simulate the actual failure
                 if scenario["failure_type"] == "network_timeout":
-                    failure_error = TimeoutError("Network timeout during processing")
+                    TimeoutError("Network timeout during processing")
                 elif scenario["failure_type"] == "openai_rate_limit":
-                    failure_error = Exception("OpenAI API rate limit exceeded")
+                    Exception("OpenAI API rate limit exceeded")
                 elif scenario["failure_type"] == "sendgrid_auth_error":
-                    failure_error = Exception("SendGrid authentication failed")
+                    Exception("SendGrid authentication failed")
                 elif scenario["failure_type"] == "database_connection_lost":
-                    failure_error = Exception("Database connection lost")
+                    Exception("Database connection lost")
                 else:
-                    failure_error = Exception(f"Unknown failure: {scenario['failure_type']}")
+                    Exception(f"Unknown failure: {scenario['failure_type']}")
 
                 # Break processing loop due to failure
                 break
@@ -642,7 +641,7 @@ def test_retries_work_properly(test_db_session):
             print(f"  🔄 Attempt {attempt_count}")
 
             # Check if this is a non-retryable error
-            if scenario.get("retryable", True) == False and attempt == 0:
+            if not scenario.get("retryable", True) and attempt == 0:
                 print(f"    ❌ Non-retryable error: {scenario['error_type']}")
                 break
 

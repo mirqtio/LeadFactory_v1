@@ -566,7 +566,7 @@ class TestCheckoutManager:
         with patch.object(manager, "initiate_checkout") as mock_initiate:
             mock_initiate.return_value = {"success": True}
 
-            result = manager.create_bulk_reports_checkout(
+            manager.create_bulk_reports_checkout(
                 customer_email="test@example.com",
                 business_urls=business_urls,
                 amount_per_report_usd=Decimal("24.99"),
@@ -1041,7 +1041,7 @@ class TestCheckoutManagerEnhancements:
         with patch.object(manager, "initiate_checkout") as mock_initiate:
             mock_initiate.return_value = {"success": True}
 
-            result = manager.create_bulk_reports_checkout(
+            manager.create_bulk_reports_checkout(
                 customer_email="test@example.com",
                 business_urls=["https://single-business.com"],
                 amount_per_report_usd=Decimal("19.99"),
@@ -1061,7 +1061,7 @@ class TestCheckoutManagerEnhancements:
 
             business_urls = [f"https://business{i}.com" for i in range(50)]
 
-            result = manager.create_bulk_reports_checkout(
+            manager.create_bulk_reports_checkout(
                 customer_email="test@example.com",
                 business_urls=business_urls,
                 amount_per_report_usd=Decimal("15.99"),

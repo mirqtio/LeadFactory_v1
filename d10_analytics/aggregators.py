@@ -135,7 +135,7 @@ class DailyMetricsAggregator:
                     FunnelEvent.funnel_stage == stage,
                     FunnelEvent.occurred_at >= start_datetime,
                     FunnelEvent.occurred_at <= end_datetime,
-                    FunnelEvent.success == True,
+                    FunnelEvent.success,
                 )
                 .scalar()
                 or 0
@@ -345,7 +345,7 @@ class DailyMetricsAggregator:
             session.query(
                 FunnelEvent.campaign_id,
                 func.count(FunnelEvent.event_id).label("event_count"),
-                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label("success_count"),
+                func.sum(case((FunnelEvent.success, 1), else_=0)).label("success_count"),
             )
             .filter(
                 FunnelEvent.occurred_at >= start_datetime,
@@ -868,7 +868,7 @@ class CostAnalyzer:
                 FunnelEvent.campaign_id,
                 func.sum(FunnelEvent.cost_cents).label("total_cost"),
                 func.count(FunnelEvent.event_id).label("total_events"),
-                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label("successful_events"),
+                func.sum(case((FunnelEvent.success, 1), else_=0)).label("successful_events"),
             )
             .filter(
                 func.date(FunnelEvent.occurred_at) >= start_date,
@@ -982,7 +982,7 @@ class SegmentBreakdownAnalyzer:
             session.query(
                 FunnelEvent.campaign_id,
                 func.count(FunnelEvent.event_id).label("total_events"),
-                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label("successful_events"),
+                func.sum(case((FunnelEvent.success, 1), else_=0)).label("successful_events"),
                 func.sum(FunnelEvent.cost_cents).label("total_cost"),
             )
             .filter(
@@ -1029,7 +1029,7 @@ class SegmentBreakdownAnalyzer:
             stage_stats = (
                 session.query(
                     func.count(FunnelEvent.event_id).label("total_events"),
-                    func.sum(case((FunnelEvent.success == True, 1), else_=0)).label("successful_events"),
+                    func.sum(case((FunnelEvent.success, 1), else_=0)).label("successful_events"),
                     func.avg(FunnelEvent.duration_ms).label("avg_duration"),
                 )
                 .filter(

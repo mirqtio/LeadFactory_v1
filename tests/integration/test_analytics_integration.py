@@ -446,7 +446,7 @@ class TestAnalyticsIntegration:
             export_id = export_data["export_id"]
 
             # Test export status endpoint
-            status_response = client.get(f"/api/v1/analytics/export/{export_id}")
+            client.get(f"/api/v1/analytics/export/{export_id}")
             # Note: Status will be 'processing' since background task hasn't completed in test
 
             print("✓ Export functionality integration verified")

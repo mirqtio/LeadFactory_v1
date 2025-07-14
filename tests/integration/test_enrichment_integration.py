@@ -157,7 +157,7 @@ class TestTask044AcceptanceCriteria:
             # Step 4: Test error recovery in enrichment flow
             # This verifies the flow handles errors gracefully
             empty_business = {"id": "empty_test"}
-            empty_result = await enrich_business(business=empty_business, sources=[EnrichmentSource.INTERNAL])
+            await enrich_business(business=empty_business, sources=[EnrichmentSource.INTERNAL])
             # Should not crash, may return None or low-confidence result
 
             print("✓ Full enrichment flow works correctly")
@@ -359,7 +359,7 @@ class TestTask044AcceptanceCriteria:
             start_time = time.time()
 
             single_business = performance_test_businesses[0]
-            single_result = await enrich_business(business=single_business, sources=[EnrichmentSource.INTERNAL])
+            await enrich_business(business=single_business, sources=[EnrichmentSource.INTERNAL])
 
             single_duration = time.time() - start_time
 
@@ -398,7 +398,7 @@ class TestTask044AcceptanceCriteria:
 
             # Test with higher concurrency
             high_concurrency_coordinator = EnrichmentCoordinator(max_concurrent=5)
-            concurrent_result = await high_concurrency_coordinator.enrich_businesses_batch(
+            await high_concurrency_coordinator.enrich_businesses_batch(
                 businesses=test_batch,
                 sources=[EnrichmentSource.INTERNAL],
                 skip_existing=False,

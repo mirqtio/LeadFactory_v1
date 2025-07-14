@@ -69,19 +69,6 @@ class ScoringRule:
         safe_condition = safe_condition.replace(" not in [", " not in [")
 
         # Basic safety check - only allow certain operations
-        allowed_operations = [
-            "==",
-            "!=",
-            ">=",
-            "<=",
-            ">",
-            "<",
-            "in",
-            "not in",
-            "and",
-            "or",
-            "len(",
-        ]
 
         try:
             # Use eval with restricted globals for safety

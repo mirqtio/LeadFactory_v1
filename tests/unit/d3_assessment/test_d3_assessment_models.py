@@ -257,7 +257,7 @@ class TestTask030AcceptanceCriteria:
 
         # Verify AssessmentResult indexes
         assessment_indexes = AssessmentResult.__table_args__
-        index_names = [idx.name for idx in assessment_indexes if hasattr(idx, "name")]
+        [idx.name for idx in assessment_indexes if hasattr(idx, "name")]
 
         # Test that key indexes exist
         assert any("business_type" in str(idx) for idx in assessment_indexes), "Business type index missing"

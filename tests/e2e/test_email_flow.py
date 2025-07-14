@@ -99,12 +99,6 @@ def test_sendgrid_integration(test_db_session, mock_external_services, sample_ye
     test_db_session.refresh(test_email)
 
     # Mock SendGrid API response
-    mock_sendgrid_response = {
-        "status": "sent",
-        "message_id": "test-message-123",
-        "provider": "sendgrid",
-        "status_code": 202,
-    }
 
     # Simulate SendGrid integration
     with patch("requests.post") as mock_post:
