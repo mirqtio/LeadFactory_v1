@@ -15,8 +15,7 @@ from d6_reports.models import ReportGeneration, ReportType
 class TestLineageTracker:
     """Test suite for lineage tracking functionality"""
 
-    @pytest.mark.asyncio
-    async def test_capture_lineage_success(self, async_db_session, test_report_template):
+    def test_capture_lineage_success(self, db_session, test_report_template):
         """Test successful lineage capture"""
         # Create report generation
         report = ReportGeneration(
@@ -24,8 +23,8 @@ class TestLineageTracker:
             template_id=test_report_template.id,
             report_type=ReportType.BUSINESS_AUDIT,
         )
-        async_db_session.add(report)
-        await async_db_session.commit()
+        db_session.add(report)
+        db_session.commit()
 
         # Create lineage data
         lineage_data = LineageData(
@@ -39,8 +38,8 @@ class TestLineageTracker:
         )
 
         # Capture lineage
-        tracker = LineageTracker(async_db_session)
-        lineage = await tracker.capture_lineage(report.id, lineage_data)
+        tracker = LineageTracker(db_session)
+        lineage = tracker.capture_lineage(report.id, lineage_data)
 
         assert lineage is not None
         assert lineage.report_generation_id == report.id
@@ -49,17 +48,16 @@ class TestLineageTracker:
         assert lineage.raw_inputs_compressed is not None
         assert lineage.compression_ratio > 0
 
-    @pytest.mark.asyncio
-    async def test_capture_lineage_with_feature_flag_disabled(
-        self, async_db_session, test_report_template
+    def test_capture_lineage_with_feature_flag_disabled(
+        self, db_session, test_report_template
     ):
         """Test lineage capture when feature flag is disabled"""
         report = ReportGeneration(
             business_id="business-123",
             template_id=test_report_template.id,
         )
-        async_db_session.add(report)
-        await async_db_session.commit()
+        db_session.add(report)
+        db_session.commit()
 
         lineage_data = LineageData(
             lead_id="lead-123",
@@ -75,13 +73,12 @@ class TestLineageTracker:
         with patch("d6_reports.lineage.tracker.settings") as mock_settings:
             mock_settings.ENABLE_REPORT_LINEAGE = False
             
-            tracker = LineageTracker(async_db_session)
-            lineage = await tracker.capture_lineage(report.id, lineage_data)
+            tracker = LineageTracker(db_session)
+            lineage = tracker.capture_lineage(report.id, lineage_data)
             
             assert lineage is None
 
-    @pytest.mark.asyncio
-    async def test_capture_lineage_with_error(self, async_db_session):
+    def test_capture_lineage_with_error(self, db_session):
         """Test lineage capture handles errors gracefully"""
         # Invalid report ID
         lineage_data = LineageData(
@@ -94,22 +91,21 @@ class TestLineageTracker:
             raw_inputs={},
         )
 
-        tracker = LineageTracker(async_db_session)
-        lineage = await tracker.capture_lineage("invalid-report-id", lineage_data)
+        tracker = LineageTracker(db_session)
+        lineage = tracker.capture_lineage("invalid-report-id", lineage_data)
         
         # Should return None on error
         assert lineage is None
 
-    @pytest.mark.asyncio
-    async def test_record_access(self, async_db_session, test_report_template):
+    def test_record_access(self, db_session, test_report_template):
         """Test recording lineage access"""
         # Create report and lineage
         report = ReportGeneration(
             business_id="business-123",
             template_id=test_report_template.id,
         )
-        async_db_session.add(report)
-        await async_db_session.commit()
+        db_session.add(report)
+        db_session.commit()
 
         lineage = ReportLineage(
             report_generation_id=report.id,
@@ -119,12 +115,12 @@ class TestLineageTracker:
             pipeline_start_time=datetime.utcnow(),
             pipeline_end_time=datetime.utcnow(),
         )
-        async_db_session.add(lineage)
-        await async_db_session.commit()
+        db_session.add(lineage)
+        db_session.commit()
 
         # Record access
-        tracker = LineageTracker(async_db_session)
-        audit = await tracker.record_access(
+        tracker = LineageTracker(db_session)
+        audit = tracker.record_access(
             lineage_id=lineage.id,
             action="view",
             user_id="user-123",
@@ -138,19 +134,18 @@ class TestLineageTracker:
         assert audit.ip_address == "192.168.1.1"
 
         # Refresh lineage to check access count
-        await async_db_session.refresh(lineage)
+        db_session.refresh(lineage)
         assert lineage.access_count == 1
 
-    @pytest.mark.asyncio
-    async def test_get_lineage_by_report(self, async_db_session, test_report_template):
+    def test_get_lineage_by_report(self, db_session, test_report_template):
         """Test retrieving lineage by report ID"""
         # Create report and lineage
         report = ReportGeneration(
             business_id="business-123",
             template_id=test_report_template.id,
         )
-        async_db_session.add(report)
-        await async_db_session.commit()
+        db_session.add(report)
+        db_session.commit()
 
         lineage = ReportLineage(
             report_generation_id=report.id,
@@ -160,23 +155,22 @@ class TestLineageTracker:
             pipeline_start_time=datetime.utcnow(),
             pipeline_end_time=datetime.utcnow(),
         )
-        async_db_session.add(lineage)
-        await async_db_session.commit()
+        db_session.add(lineage)
+        db_session.commit()
 
         # Retrieve lineage
-        tracker = LineageTracker(async_db_session)
-        found_lineage = await tracker.get_lineage_by_report(report.id)
+        tracker = LineageTracker(db_session)
+        found_lineage = tracker.get_lineage_by_report(report.id)
 
         assert found_lineage is not None
         assert found_lineage.id == lineage.id
         assert found_lineage.lead_id == "lead-123"
 
         # Test not found
-        not_found = await tracker.get_lineage_by_report("invalid-id")
+        not_found = tracker.get_lineage_by_report("invalid-id")
         assert not_found is None
 
-    @pytest.mark.asyncio
-    async def test_search_lineage(self, async_db_session, test_report_template):
+    def test_search_lineage(self, db_session, test_report_template):
         """Test searching lineage records"""
         # Create multiple reports and lineages
         for i in range(5):
@@ -184,8 +178,8 @@ class TestLineageTracker:
                 business_id=f"business-{i}",
                 template_id=test_report_template.id,
             )
-            async_db_session.add(report)
-            await async_db_session.commit()
+            db_session.add(report)
+            db_session.commit()
 
             lineage = ReportLineage(
                 report_generation_id=report.id,
@@ -195,34 +189,33 @@ class TestLineageTracker:
                 pipeline_start_time=datetime.utcnow() - timedelta(days=i),
                 pipeline_end_time=datetime.utcnow() - timedelta(days=i),
             )
-            async_db_session.add(lineage)
+            db_session.add(lineage)
 
-        await async_db_session.commit()
+        db_session.commit()
 
-        tracker = LineageTracker(async_db_session)
+        tracker = LineageTracker(db_session)
 
         # Search by lead_id
-        results = await tracker.search_lineage(lead_id="lead-0")
+        results = tracker.search_lineage(lead_id="lead-0")
         assert len(results) == 3  # lead-0 appears 3 times (i=0,2,4)
 
         # Search by date range
         start_date = datetime.utcnow() - timedelta(days=3)
-        results = await tracker.search_lineage(start_date=start_date)
+        results = tracker.search_lineage(start_date=start_date)
         assert len(results) >= 3  # At least 3 records in last 3 days
 
         # Search with limit
-        results = await tracker.search_lineage(limit=2)
+        results = tracker.search_lineage(limit=2)
         assert len(results) == 2
 
-    @pytest.mark.asyncio
-    async def test_capture_large_lineage_data(self, async_db_session, test_report_template):
+    def test_capture_large_lineage_data(self, db_session, test_report_template):
         """Test capturing large lineage data that requires compression"""
         report = ReportGeneration(
             business_id="business-123",
             template_id=test_report_template.id,
         )
-        async_db_session.add(report)
-        await async_db_session.commit()
+        db_session.add(report)
+        db_session.commit()
 
         # Create large lineage data
         large_logs = [f"Event {i}: " + "x" * 100 for i in range(1000)]
@@ -238,8 +231,8 @@ class TestLineageTracker:
             raw_inputs=large_inputs,
         )
 
-        tracker = LineageTracker(async_db_session)
-        lineage = await tracker.capture_lineage(report.id, lineage_data)
+        tracker = LineageTracker(db_session)
+        lineage = tracker.capture_lineage(report.id, lineage_data)
 
         assert lineage is not None
         assert lineage.raw_inputs_compressed is not None
