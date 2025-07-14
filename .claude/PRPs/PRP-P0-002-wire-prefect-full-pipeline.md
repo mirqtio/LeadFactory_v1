@@ -7,7 +7,7 @@
 One orchestrated flow proves the entire MVP works end-to-end.
 
 ## Overview
-Create end-to-end orchestration flow
+Create end-to-end orchestration flow that chains all coordinators together to process a business from targeting through delivery. This demonstrates the complete LeadFactory pipeline working as an integrated system.
 
 ## Dependencies
 - P0-001
@@ -19,72 +19,135 @@ Create end-to-end orchestration flow
 
 ### Task-Specific Acceptance Criteria
 - [ ] Flow chains: Target → Source → Assess → Score → Report → Deliver
-- [ ] Error handling with retries
-- [ ] Metrics logged at each stage
-- [ ] Integration test creates PDF and email record
+- [ ] Error handling with retries at each stage
+- [ ] Metrics logged at each stage with proper logging
+- [ ] Integration test creates PDF and email record (mocked in tests)
+- [ ] Pipeline continues on non-critical failures (e.g., email)
+- [ ] Pipeline fails on critical failures (e.g., report generation)
+- [ ] All coordinator methods called correctly match actual implementations
+- [ ] Execution time tracked and reported
 
 ### Additional Requirements
 - [ ] Ensure overall test coverage ≥ 80% after implementation
 - [ ] Update relevant documentation (README, docs/) if behavior changes
-- [ ] No performance regression (merge operations remain O(n))
+- [ ] No performance regression (operations remain efficient)
 - [ ] Only modify files within specified integration points (no scope creep)
+- [ ] All tests in test_full_pipeline_flow.py must pass
+- [ ] Pipeline must handle both async and sync coordinator methods
+- [ ] Proper error messages and logging at each stage
 
 ## Integration Points
-- Create `flows/full_pipeline_flow.py`
-- Import all coordinator classes
-- Wire sequential flow with error handling
+- Update existing `flows/full_pipeline_flow.py`
+- Import all coordinator classes correctly
+- Wire sequential flow with proper error handling
+- Use actual coordinator method names, not invented ones
 
 **Critical Path**: Only modify files within these directories. Any changes outside require a separate PRP.
 
 ## Tests to Pass
-- New: `tests/smoke/test_full_pipeline_flow.py`
+- Existing: `tests/smoke/test_full_pipeline_flow.py`
 - Must process a business from targeting through delivery
+- All 7 test methods must pass:
+  - test_full_pipeline_success
+  - test_pipeline_json_output
+  - test_pipeline_with_assessment_failure
+  - test_pipeline_with_email_failure
+  - test_pipeline_critical_failure
+  - test_pipeline_performance
+  - test_pipeline_flow_decorated
 
+## Implementation Details
 
-## Example: Prefect Pipeline Flow
+### Coordinator Method Mapping
+The existing flow uses incorrect method names. Here's the correct mapping:
 
+1. **SourcingCoordinator**
+   - WRONG: `source_single_business()` 
+   - CORRECT: Use `process_batch()` or create simple wrapper
+
+2. **AssessmentCoordinator**
+   - WRONG: `assess_business()`
+   - CORRECT: Use `execute_comprehensive_assessment()`
+
+3. **ScoringEngine**
+   - WRONG: `score_lead()` (async)
+   - CORRECT: `calculate_score()` (sync method)
+
+4. **ReportGenerator**
+   - Verify actual method signature
+   - Ensure proper async/await usage
+
+5. **DeliveryManager**
+   - Verify `send_assessment_email()` exists
+   - Check parameter requirements
+
+### Error Handling Strategy
 ```python
-from prefect import flow, task
+# Non-critical failures (continue pipeline)
+- Assessment failures → use default scores
+- Email failures → mark as failed but continue
 
-@flow(name="full_pipeline")
-def full_pipeline_flow(url: str):
-    business = target_business(url)
-    assessment = assess_website(business)
-    score = calculate_score(assessment)
-    report = generate_report(score)
-    send_email(report)
-    return {"status": "complete", "report_id": report.id}
+# Critical failures (stop pipeline)
+- Report generation failures → fail entire pipeline
+- Scoring failures → fail entire pipeline
 ```
 
+### Example: Correct Coordinator Usage
 
-## Example File/Pattern
-**Prefect full-pipeline flow**
+```python
+# Sourcing - create wrapper since no single-business method exists
+async def source_business_data(business_data: Dict[str, Any]) -> Dict[str, Any]:
+    coordinator = SourcingCoordinator()
+    # Either create a minimal wrapper or use existing batch with single item
+    # Check if coordinator has initialization requirements
+    
+# Assessment - use correct method name
+coordinator = AssessmentCoordinator()
+result = await coordinator.execute_comprehensive_assessment(
+    business_id=business_data['id'],
+    url=business_data['url'],
+    assessment_types=["pagespeed", "tech_stack", "seo_basics"]
+)
+
+# Scoring - handle sync method properly
+calculator = ScoringEngine()
+# Note: calculate_score is SYNC not ASYNC
+score_result = calculator.calculate_score(assessment_data)
+```
 
 ## Reference Documentation
-`tests/smoke/test_full_pipeline_flow.py` *(new)* — asserts JSON contains `"score"` and a PDF path.
+- `d2_sourcing/coordinator.py` - Check actual methods available
+- `d3_assessment/coordinator.py` - Use execute_comprehensive_assessment
+- `d5_scoring/scoring_engine.py` - Use calculate_score (sync)
+- `tests/smoke/test_full_pipeline_flow.py` - All tests must pass
 
 ## Implementation Guide
 
-### Step 1: Verify Dependencies
-- Check `.claude/prp_progress.json` to ensure all dependencies show "completed"
-- Verify CI is green before starting
+### Step 1: Analyze Existing Coordinators
+- Map each coordinator's actual public methods
+- Identify if methods are async or sync
+- Check initialization requirements
+- Note required parameters
 
-### Step 2: Set Up Environment
-- Python version must be 3.11.0 (check with `python --version`)
-- Docker must be running for infrastructure tasks
-- Activate virtual environment: `source venv/bin/activate`
-- Set `USE_STUBS=true` for local development
+### Step 2: Update Flow Implementation
+1. Fix method calls to use actual coordinator methods
+2. Handle async/sync differences properly
+3. Ensure error handling matches test expectations
+4. Add proper logging at each stage
 
-### Step 3: Implementation
-1. Review the business logic and acceptance criteria
-2. Study the example code/file pattern
-3. Implement changes following CLAUDE.md standards
-4. Ensure no deprecated features (see CURRENT_STATE.md below)
+### Step 3: Wrapper Functions
+For coordinators lacking expected methods, create minimal wrappers:
+```python
+async def source_single_business(url: str) -> Dict[str, Any]:
+    # Wrapper to adapt SourcingCoordinator for single business
+    # Use existing batch methods or create minimal implementation
+```
 
-### Step 4: Testing
-- Run all tests listed in "Tests to Pass" section
-- Verify KEEP suite remains green
-- Check coverage hasn't decreased
+### Step 4: Testing Strategy
+- Run test file to identify specific failures
+- Fix one test at a time
+- Ensure mocks match actual implementation
+- Verify all 7 tests pass
 
 ### Step 5: Validation
 - All outcome-focused criteria must be demonstrably true
@@ -94,25 +157,57 @@ def full_pipeline_flow(url: str):
 ## Validation Commands
 ```bash
 # Run task-specific tests
-# New: `tests/smoke/test_full_pipeline_flow.py`
-# Must process a business from targeting through delivery
+pytest tests/smoke/test_full_pipeline_flow.py -v
+
+# Verify no import errors
+python -c "from flows.full_pipeline_flow import full_pipeline_flow"
+
+# Run with coverage
+pytest tests/smoke/test_full_pipeline_flow.py --cov=flows --cov-report=term-missing
 
 # Run standard validation
 bash scripts/validate_wave_a.sh
 ```
 
 ## Rollback Strategy
-**Rollback**: Delete flows/full_pipeline_flow.py
+**Rollback**: 
+- Revert changes to flows/full_pipeline_flow.py
+- Restore original implementation
+- Document why changes failed
 
 ## Feature Flag Requirements
-No new feature flag required - this fix is unconditional.
+No new feature flag required - this fix updates existing integration code.
 
 ## Success Criteria
-- All specified tests passing
+- All 7 tests in test_full_pipeline_flow.py passing
+- Correct coordinator methods used throughout
+- No hardcoded/mocked coordinator logic in production code
 - Outcome-focused acceptance criteria verified
 - Coverage ≥ 80% maintained
 - CI green after push
 - No performance regression
+
+## Performance Requirements
+- Complete pipeline execution < 90 seconds
+- Individual stage timeouts:
+  - Targeting: 5 seconds
+  - Sourcing: 10 seconds  
+  - Assessment: 30 seconds
+  - Scoring: 5 seconds
+  - Report Generation: 20 seconds
+  - Email Delivery: 10 seconds
+
+## Security Considerations
+- No credentials in logs
+- Sanitize URLs before processing
+- Validate input URLs
+- Handle PII appropriately in logs
+
+## Monitoring & Observability
+- Log entry/exit for each stage
+- Log execution time per stage
+- Log any retries or failures
+- Include correlation ID for tracing
 
 ## Critical Context
 
@@ -137,7 +232,7 @@ Include at least:
 1 failure case
 ✅ Task Completion
 Mark completed tasks in TASK.md immediately after finishing them.
-Add new sub-tasks or TODOs discovered during development to TASK.md under a “Discovered During Work” section.
+Add new sub-tasks or TODOs discovered during development to TASK.md under a "Discovered During Work" section.
 📎 Style & Conventions
 Use Python as the primary language.
 Follow PEP8, use type hints, and format with black.

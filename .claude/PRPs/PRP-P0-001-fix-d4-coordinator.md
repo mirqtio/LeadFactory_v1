@@ -22,22 +22,32 @@ Repair enrichment coordinator merge/cache logic
 - [ ] Fix merge_enrichment_data method
 - [ ] Fix cache key generation
 - [ ] All 12 coordinator tests passing
+- [ ] Add property-based test for cache key collisions using hypothesis
+- [ ] Add dedicated unit tests for merge_enrichment_data method
+- [ ] Add performance test ensuring merge operations remain O(n)
+- [ ] Test coverage for d4_enrichment module ≥ 80%
 
 ### Additional Requirements
 - [ ] Ensure overall test coverage ≥ 80% after implementation
 - [ ] Update relevant documentation (README, docs/) if behavior changes
 - [ ] No performance regression (merge operations remain O(n))
 - [ ] Only modify files within specified integration points (no scope creep)
+- [ ] Add inline documentation for complex merge logic
+- [ ] Update module docstring to reflect fixed behavior
 
 ## Integration Points
 - `d4_enrichment/coordinator.py`
 - `d4_enrichment/models.py`
+- `tests/unit/d4_enrichment/test_d4_coordinator.py` (for new tests)
 
 **Critical Path**: Only modify files within these directories. Any changes outside require a separate PRP.
 
 ## Tests to Pass
-- `pytest tests/unit/d4_enrichment/test_d4_coordinator.py -v`
-
+- `pytest tests/unit/d4_enrichment/test_d4_coordinator.py -v` (all 12 existing tests)
+- `pytest tests/unit/d4_enrichment/test_d4_coordinator.py::test_merge_enrichment_data -v` (new dedicated test)
+- `pytest tests/unit/d4_enrichment/test_d4_coordinator.py::test_cache_key_uniqueness -v` (new property-based test)
+- `pytest tests/unit/d4_enrichment/test_d4_coordinator.py::test_merge_performance -v` (new performance test)
+- `pytest tests/unit/d4_enrichment/ --cov=d4_enrichment --cov-report=term-missing` (coverage ≥ 80%)
 
 ## Example: D4 Coordinator Merge Fix
 
@@ -50,22 +60,173 @@ def merge_enrichment_data(self, existing_data, new_data):
 
 **After (fixed):**
 ```python
-def merge_enrichment_data(self, existing_data, new_data):
-    # Merge by (field, provider) with freshest collected_at
+def merge_enrichment_data(self, existing_data: Dict[str, Any], new_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Merge enrichment data by (field, provider) with freshest collected_at.
+    
+    Args:
+        existing_data: Previously collected enrichment data
+        new_data: New enrichment data to merge
+        
+    Returns:
+        Merged data with no duplicates, keeping freshest values
+    """
     merged = {}
-    for field, value in chain(existing_data.items(), new_data.items()):
+    
+    # Combine all data items for deduplication
+    all_items = []
+    for field, value in existing_data.items():
+        if isinstance(value, dict) and 'provider' in value and 'collected_at' in value:
+            all_items.append((field, value))
+    for field, value in new_data.items():
+        if isinstance(value, dict) and 'provider' in value and 'collected_at' in value:
+            all_items.append((field, value))
+    
+    # Merge by (field, provider) keeping freshest
+    for field, value in all_items:
         key = (field, value['provider'])
         if key not in merged or value['collected_at'] > merged[key]['collected_at']:
             merged[key] = value
-    return merged
+    
+    # Convert back to flat structure
+    result = {}
+    for (field, provider), value in merged.items():
+        result[field] = value
+        
+    return result
 ```
 
+## Example: Cache Key Generation Fix
 
-## Example File/Pattern
-**Fix D4 Coordinator**
+**Before (collision-prone):**
+```python
+def generate_cache_key(self, business_id: str) -> str:
+    return f"enrichment_{business_id}"
+```
+
+**After (collision-proof):**
+```python
+def generate_cache_key(self, business_id: str, provider: str, timestamp: Optional[datetime] = None) -> str:
+    """
+    Generate unique cache key including business, provider, and time window.
+    
+    Args:
+        business_id: Unique business identifier
+        provider: Data provider name (e.g., 'google_places', 'pagespeed')
+        timestamp: Optional timestamp for time-windowed caching
+        
+    Returns:
+        Unique cache key that prevents collisions
+    """
+    # Ensure business_id is properly sanitized
+    safe_business_id = hashlib.sha256(business_id.encode()).hexdigest()[:16]
+    
+    # Include provider to prevent cross-provider collisions
+    safe_provider = provider.lower().replace(' ', '_')
+    
+    # Add time window for cache invalidation (hourly buckets)
+    if timestamp is None:
+        timestamp = datetime.utcnow()
+    time_bucket = timestamp.strftime('%Y%m%d%H')
+    
+    return f"enrichment:v1:{safe_business_id}:{safe_provider}:{time_bucket}"
+```
+
+## Example: Property-Based Test for Cache Keys
+
+```python
+from hypothesis import given, strategies as st
+import string
+
+@given(
+    business_id=st.text(alphabet=string.printable, min_size=1, max_size=1000),
+    provider=st.sampled_from(['google_places', 'pagespeed', 'semrush', 'lighthouse']),
+    timestamp=st.datetimes(min_value=datetime(2020, 1, 1), max_value=datetime(2030, 12, 31))
+)
+def test_cache_key_uniqueness(business_id, provider, timestamp):
+    """Property-based test ensuring cache keys are unique for different inputs."""
+    coordinator = D4EnrichmentCoordinator()
+    
+    # Generate keys for same inputs
+    key1 = coordinator.generate_cache_key(business_id, provider, timestamp)
+    key2 = coordinator.generate_cache_key(business_id, provider, timestamp)
+    
+    # Same inputs should produce same key (deterministic)
+    assert key1 == key2
+    
+    # Different business IDs should produce different keys
+    if business_id != "different_business":
+        key3 = coordinator.generate_cache_key("different_business", provider, timestamp)
+        assert key1 != key3
+    
+    # Different providers should produce different keys
+    other_provider = 'lighthouse' if provider != 'lighthouse' else 'google_places'
+    key4 = coordinator.generate_cache_key(business_id, other_provider, timestamp)
+    assert key1 != key4
+    
+    # Keys should have expected format
+    assert key1.startswith("enrichment:v1:")
+    assert len(key1.split(':')) == 5
+```
+
+## Example: Performance Test
+
+```python
+import time
+from typing import Dict, Any
+
+def test_merge_performance():
+    """Ensure merge operations remain O(n) complexity."""
+    coordinator = D4EnrichmentCoordinator()
+    
+    # Create test data sets of increasing size
+    sizes = [100, 1000, 10000]
+    times = []
+    
+    for size in sizes:
+        # Generate test data
+        existing_data = {
+            f"field_{i}": {
+                "value": f"value_{i}",
+                "provider": "google_places",
+                "collected_at": datetime.utcnow() - timedelta(hours=1)
+            }
+            for i in range(size)
+        }
+        
+        new_data = {
+            f"field_{i}": {
+                "value": f"new_value_{i}",
+                "provider": "google_places",
+                "collected_at": datetime.utcnow()
+            }
+            for i in range(size // 2, size + size // 2)
+        }
+        
+        # Measure merge time
+        start_time = time.time()
+        result = coordinator.merge_enrichment_data(existing_data, new_data)
+        end_time = time.time()
+        
+        times.append(end_time - start_time)
+        
+        # Verify correctness
+        assert len(result) == size + size // 2  # Union of both sets
+    
+    # Check that time complexity is roughly linear
+    # Time should increase linearly with size (allowing 2x variance)
+    ratio1 = times[1] / times[0]  # 1000 vs 100
+    ratio2 = times[2] / times[1]  # 10000 vs 1000
+    
+    # Both ratios should be roughly 10x (the size increase)
+    assert 5 <= ratio1 <= 20, f"Performance degradation detected: {ratio1}x for 10x size increase"
+    assert 5 <= ratio2 <= 20, f"Performance degradation detected: {ratio2}x for 10x size increase"
+```
 
 ## Reference Documentation
-`tests/unit/d4_enrichment/test_d4_coordinator.py`
+- `tests/unit/d4_enrichment/test_d4_coordinator.py` - Existing test file
+- [Hypothesis Documentation](https://hypothesis.readthedocs.io/) - Property-based testing
+- [Python Performance Testing](https://docs.python.org/3/library/timeit.html) - Performance measurement
 
 ## Implementation Guide
 
@@ -78,30 +239,67 @@ def merge_enrichment_data(self, existing_data, new_data):
 - Docker must be running for infrastructure tasks
 - Activate virtual environment: `source venv/bin/activate`
 - Set `USE_STUBS=true` for local development
+- Install hypothesis for property-based testing: `pip install hypothesis`
 
 ### Step 3: Implementation
 1. Review the business logic and acceptance criteria
 2. Study the example code/file pattern
 3. Implement changes following CLAUDE.md standards
 4. Ensure no deprecated features (see CURRENT_STATE.md below)
+5. Add comprehensive unit tests for merge_enrichment_data
+6. Implement property-based test for cache key uniqueness
+7. Add performance test to ensure O(n) complexity
 
 ### Step 4: Testing
 - Run all tests listed in "Tests to Pass" section
 - Verify KEEP suite remains green
-- Check coverage hasn't decreased
+- Check coverage hasn't decreased (must be ≥ 80%)
+- Run property-based tests with multiple seeds: `pytest tests/unit/d4_enrichment/test_d4_coordinator.py::test_cache_key_uniqueness --hypothesis-seed=0`
 
 ### Step 5: Validation
 - All outcome-focused criteria must be demonstrably true
 - Run full validation command suite
-- Commit with descriptive message: `fix(P0-001): Fix D4 Coordinator`
+- Commit with descriptive message: `fix(P0-001): Fix D4 Coordinator merge logic and cache key generation`
 
 ## Validation Commands
 ```bash
 # Run task-specific tests
-# `pytest tests/unit/d4_enrichment/test_d4_coordinator.py -v`
+pytest tests/unit/d4_enrichment/test_d4_coordinator.py -v
+
+# Run coverage check
+pytest tests/unit/d4_enrichment/ --cov=d4_enrichment --cov-report=term-missing --cov-fail-under=80
+
+# Run property-based tests with extended examples
+pytest tests/unit/d4_enrichment/test_d4_coordinator.py::test_cache_key_uniqueness --hypothesis-seed=0 --hypothesis-verbosity=verbose
+
+# Run performance test
+pytest tests/unit/d4_enrichment/test_d4_coordinator.py::test_merge_performance -v
 
 # Run standard validation
 bash scripts/validate_wave_a.sh
+```
+
+## Pre-commit Hooks Required
+```yaml
+# .pre-commit-config.yaml additions
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        files: ^d4_enrichment/
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        files: ^d4_enrichment/
+        args: ['--max-line-length=120']
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.3.0
+    hooks:
+      - id: mypy
+        files: ^d4_enrichment/
+        additional_dependencies: [types-all]
 ```
 
 ## Rollback Strategy
@@ -110,12 +308,24 @@ bash scripts/validate_wave_a.sh
 ## Feature Flag Requirements
 No new feature flag required - this fix is unconditional.
 
+## Security Considerations
+- Cache keys use SHA256 hashing to prevent injection attacks
+- No sensitive data stored in cache keys
+- Time-based cache invalidation prevents stale data exposure
+
+## Performance Requirements
+- Merge operations must complete in O(n) time complexity
+- Cache key generation must be < 1ms per key
+- No memory leaks in merge operations
+- Support merging up to 10,000 fields without degradation
+
 ## Success Criteria
-- All specified tests passing
+- All specified tests passing (including new ones)
 - Outcome-focused acceptance criteria verified
-- Coverage ≥ 80% maintained
+- Coverage ≥ 80% maintained for d4_enrichment module
 - CI green after push
 - No performance regression
+- Property-based tests pass with 1000+ examples
 
 ## Critical Context
 
@@ -140,7 +350,7 @@ Include at least:
 1 failure case
 ✅ Task Completion
 Mark completed tasks in TASK.md immediately after finishing them.
-Add new sub-tasks or TODOs discovered during development to TASK.md under a “Discovered During Work” section.
+Add new sub-tasks or TODOs discovered during development to TASK.md under a "Discovered During Work" section.
 📎 Style & Conventions
 Use Python as the primary language.
 Follow PEP8, use type hints, and format with black.

@@ -9,14 +9,16 @@
 Create a web-based scoring playground that enables safe experimentation with YAML weight vectors using Google Sheets, displays real-time score deltas on a 100-lead sample, and facilitates GitHub PR creation for weight updates.
 
 ### Success Criteria:
-- [ ] Weights import correctly from config/scoring_rules.yaml to Google Sheets
+- [ ] Weights import correctly from config/scoring_rules.yaml to REAL Google Sheets (not mocked)
 - [ ] Weight sum validation enforces 1.0 ± 0.005 tolerance with clear error messages
 - [ ] Delta table renders in < 1 second using cached 100-lead sample
-- [ ] GitHub PR includes proper before/after YAML diff with preserved comments
+- [ ] GitHub PR creates REAL pull request in actual repository (not mocked)
 - [ ] Test coverage ≥ 80% on d5_scoring.playground module
 - [ ] All existing scoring tests continue to pass without modification
-- [ ] Google Sheets API authentication works with service account credentials
-- [ ] UI updates reflect sheet changes within 500ms
+- [ ] Google Sheets API authentication works with REAL service account credentials
+- [ ] UI updates reflect REAL sheet changes within 500ms
+- [ ] Integration tests verify REAL API calls to Google Sheets and GitHub
+- [ ] No mock implementations used for external service integrations
 
 ## Context & Background
 
@@ -169,17 +171,19 @@ class DeltaCalculator:
 
 ## Acceptance Criteria
 
-1. **Import Functionality**
-   - Current weights load from YAML to Google Sheet
-   - Component names and weights display correctly
-   - Sum validation formula shows in sheet
-   - Import completes in < 500ms
+1. **Import Functionality (REAL API)**
+   - Current weights load from YAML to REAL Google Sheet via API
+   - Component names and weights display correctly in actual spreadsheet
+   - Sum validation formula shows in real sheet cells
+   - Import completes in < 500ms including real API latency
+   - Service account authentication works with actual credentials
 
-2. **Real-time Updates**
-   - Sheet changes reflect in UI within 500ms
-   - Weight sum validation shows clear pass/fail
-   - Invalid weights highlight with error message
-   - Concurrent users see consistent state
+2. **Real-time Updates (REAL API)**
+   - Sheet changes from REAL Google Sheets reflect in UI within 500ms
+   - Weight sum validation shows clear pass/fail in actual sheet
+   - Invalid weights highlight with error message via Sheets API
+   - Concurrent users see consistent state from real spreadsheet
+   - Handle Google Sheets API rate limits gracefully
 
 3. **Delta Calculation**
    - Score changes calculate for all 100 sample leads
@@ -187,23 +191,30 @@ class DeltaCalculator:
    - Calculation completes in < 1 second
    - Results sort by largest change magnitude
 
-4. **GitHub PR Creation**
+4. **GitHub PR Creation (REAL API)**
    - YAML file preserves comments and structure
-   - PR description includes weight comparison table
+   - PR creates REAL pull request in actual GitHub repository
    - Commit message follows conventional format
    - PR links back to scoring playground session
+   - Real branch created and file updated via GitHub API
 
 5. **Testing Requirements**
-   - Unit tests cover all validation edge cases
-   - Integration tests verify Google Sheets API
-   - Mock GitHub API for PR creation tests
+   - Unit tests cover all validation edge cases (can use mocks)
+   - Integration tests verify REAL Google Sheets API (NO MOCKS)
+   - Integration tests create REAL GitHub PRs to test repository
    - Performance tests ensure < 1s delta calculation
+   - CI runs integration tests with real service account credentials
 
 ## Dependencies
 
 ### External Services
-- Google Sheets API v4 with service account authentication
-- GitHub API v3 for PR creation
+- Google Sheets API v4 with REAL service account authentication (NOT MOCKED)
+  - Requires active Google Cloud project
+  - Service account with Sheets API enabled
+  - Credentials stored in GOOGLE_SHEETS_CREDENTIALS env var
+- GitHub API v3 for REAL PR creation (NOT MOCKED)
+  - Uses actual GitHub token from environment
+  - Creates real PRs to configured test repository
 - Redis for caching (existing infrastructure)
 
 ### Python Packages
@@ -222,6 +233,80 @@ ruamel.yaml>=0.18.0        # YAML with comment preservation
 - `core/database.py` - Database session management
 - `core/redis.py` - Redis client configuration
 
+## Real API Integration Requirements
+
+### Google Sheets Setup
+1. **Service Account Creation**
+   ```bash
+   # Required: Google Cloud project with Sheets API enabled
+   # 1. Create service account in GCP Console
+   # 2. Download JSON credentials
+   # 3. Share target sheet with service account email
+   # 4. Set GOOGLE_SHEETS_CREDENTIALS env var with JSON content
+   ```
+
+2. **Test Sheet Configuration**
+   - Create dedicated test spreadsheet
+   - Share with service account email
+   - Set TEST_SHEET_ID env var
+   - Sheet must have edit permissions
+
+3. **Real API Authentication**
+   ```python
+   # d5_scoring/playground/sheets_client.py
+   def get_authenticated_client():
+       """Get real authenticated Google Sheets client"""
+       creds_json = os.environ.get("GOOGLE_SHEETS_CREDENTIALS")
+       if not creds_json:
+           raise ValueError("GOOGLE_SHEETS_CREDENTIALS not set")
+       
+       # Parse and validate service account JSON
+       try:
+           creds_dict = json.loads(creds_json)
+           return gspread.service_account_from_dict(creds_dict)
+       except Exception as e:
+           raise ValueError(f"Invalid service account credentials: {e}")
+   ```
+
+### GitHub Integration
+1. **Real PR Creation**
+   ```python
+   # d5_scoring/playground/github_client.py
+   def create_real_pr(weights: Dict[str, float], message: str):
+       """Create actual GitHub PR - NOT MOCKED"""
+       token = os.environ.get("GITHUB_TOKEN")
+       if not token:
+           raise ValueError("GITHUB_TOKEN not set")
+       
+       g = Github(token)
+       repo = g.get_repo(os.environ.get("GITHUB_REPO", "user/test-repo"))
+       
+       # Create real branch
+       base = repo.get_branch("main")
+       branch_name = f"scoring-update-{datetime.now():%Y%m%d-%H%M%S}"
+       repo.create_git_ref(f"refs/heads/{branch_name}", base.commit.sha)
+       
+       # Update real file
+       file = repo.get_contents("config/scoring_rules.yaml", ref=branch_name)
+       updated_yaml = update_weights_preserving_comments(file.decoded_content, weights)
+       repo.update_file(
+           file.path,
+           f"Update scoring weights via playground\n\n{message}",
+           updated_yaml,
+           file.sha,
+           branch=branch_name
+       )
+       
+       # Create real PR
+       pr = repo.create_pull(
+           title=f"Update scoring weights: {message[:50]}",
+           body=generate_pr_description(weights),
+           head=branch_name,
+           base="main"
+       )
+       return pr.html_url
+   ```
+
 ## Testing Strategy
 
 ### Unit Tests (tests/unit/d5_scoring/playground/)
@@ -231,9 +316,10 @@ ruamel.yaml>=0.18.0        # YAML with comment preservation
    - Test empty and null weight handling
 
 2. **test_sheets_client.py**
-   - Mock gspread calls
-   - Test import formatting
-   - Test error handling for API limits
+   - Unit tests use mocks for basic logic
+   - Integration tests use REAL Google Sheets API
+   - Test actual API rate limits and quotas
+   - Verify real authentication flow
 
 3. **test_delta_calculator.py**
    - Test with deterministic sample data
@@ -241,27 +327,74 @@ ruamel.yaml>=0.18.0        # YAML with comment preservation
    - Test caching behavior
 
 4. **test_github_client.py**
-   - Mock PyGithub API calls
-   - Test PR creation payload
-   - Test YAML diff generation
+   - Unit tests mock for logic validation
+   - Integration tests create REAL PRs to test repository
+   - Test actual GitHub API authentication
+   - Verify PR appears in GitHub UI
 
 ### Integration Tests
 ```python
 # tests/integration/test_scoring_playground.py
 @pytest.mark.integration
+@pytest.mark.requires_google_sheets
+async def test_real_google_sheets_integration():
+    """Test with real Google Sheets API - NOT MOCKED"""
+    # Requires GOOGLE_SHEETS_CREDENTIALS env var with service account JSON
+    creds = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+    if not creds:
+        pytest.skip("No Google Sheets credentials available")
+    
+    client = SheetsClient(creds)
+    test_sheet_id = os.getenv("TEST_SHEET_ID")
+    
+    # Test real API operations
+    await client.import_weights(test_sheet_id, "config/scoring_rules.yaml")
+    weights = await client.read_weights(test_sheet_id)
+    assert sum(weights.values()) == pytest.approx(1.0, abs=0.005)
+
+@pytest.mark.integration
 async def test_full_weight_update_flow():
-    """Test complete flow from import to PR"""
-    # 1. Import weights to sheet
-    # 2. Modify weights
-    # 3. Calculate deltas
-    # 4. Create PR
-    # 5. Verify all steps succeed
+    """Test complete flow from import to PR with real APIs"""
+    # 1. Import weights to real Google Sheet
+    # 2. Modify weights via Sheets API
+    # 3. Calculate deltas with real data
+    # 4. Create PR with real GitHub API (to test repo)
+    # 5. Verify all steps succeed with actual API calls
 ```
 
 ### Performance Tests
 - Measure delta calculation time with 100 leads
 - Test concurrent user load on sheet updates
 - Verify Redis cache effectiveness
+- Test real Google Sheets API quota limits:
+  - 100 requests per 100 seconds per user
+  - 500 requests per 100 seconds per project
+- Implement exponential backoff for rate limiting
+
+## Environment Variables
+
+### Required for Real API Integration
+```bash
+# Google Sheets API (REQUIRED - NOT OPTIONAL)
+GOOGLE_SHEETS_CREDENTIALS='{"type": "service_account", ...}'  # Full service account JSON
+TEST_SHEET_ID='1abc...'  # ID of test spreadsheet shared with service account
+
+# GitHub API (uses existing token)
+GITHUB_TOKEN='ghp_...'  # Already in .env
+GITHUB_REPO='owner/repo'  # Target repo for PRs
+
+# Feature Flag
+ENABLE_SCORING_PLAYGROUND=true  # Enable the feature
+```
+
+### Service Account Setup Steps
+1. Go to Google Cloud Console
+2. Create new project or select existing
+3. Enable Google Sheets API
+4. Create service account with "Editor" role
+5. Generate JSON key
+6. Share test spreadsheet with service account email
+7. Add JSON to GOOGLE_SHEETS_CREDENTIALS env var
 
 ## Rollback Plan
 
@@ -295,8 +428,31 @@ This means:
 3. Any errors that appear during CI must be resolved
 4. The final CI run must show all green checkmarks with no failures
 5. This verification must be done by reviewing the actual GitHub Actions logs, not just assumed
+6. **CRITICAL**: Integration tests with REAL APIs must pass in CI:
+   - Set up GitHub Secrets for GOOGLE_SHEETS_CREDENTIALS
+   - Set up TEST_SHEET_ID for CI test spreadsheet
+   - Verify real API calls succeed in CI logs
+   - No mocked external services in integration tests
 
 **This is a mandatory requirement for PRP completion.**
+
+### Real API CI Configuration
+```yaml
+# .github/workflows/test.yml addition
+jobs:
+  test:
+    env:
+      GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+      TEST_SHEET_ID: ${{ secrets.TEST_SHEET_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Run integration tests with real APIs
+        run: |
+          pytest tests/integration/test_scoring_playground.py \
+            -m "requires_google_sheets" \
+            --no-cov \
+            -v
+```
 
 ### Required Validation (Backend/API Task)
 - [X] **Pre-commit hooks configured**
@@ -335,7 +491,15 @@ This means:
   - User-friendly error display
 
 - [X] **Monitoring**
-  - Track API usage vs quotas
-  - Alert on repeated failures
-  - Log performance metrics
-  - Monitor cache hit rates
+  - Track REAL API usage vs quotas (Google: 100 req/100s/user)
+  - Alert on repeated failures from actual API calls
+  - Log performance metrics from real service interactions
+  - Monitor cache hit rates to minimize API calls
+  - Implement circuit breaker for API failures
+
+- [X] **Real API Error Handling**
+  - Handle Google Sheets quota exceeded (429 errors)
+  - Retry with exponential backoff
+  - Handle GitHub API rate limits
+  - Graceful degradation when APIs unavailable
+  - User-friendly messages for API failures

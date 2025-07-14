@@ -21,7 +21,14 @@ Running tests with `USE_STUBS=true` yields 0 external calls (network mocked); pr
 - [ ] Stub server auto-starts in tests
 - [ ] Environment variables documented
 - [ ] Secrets never logged
-- [ ] Feature flags for each provider
+- [ ] Feature flags for each provider:
+  - [ ] `ENABLE_GBP` for Google Business Profile (default: True in prod, False in tests with stubs)
+  - [ ] `ENABLE_PAGESPEED` for PageSpeed Insights (default: True in prod, False in tests with stubs)
+  - [ ] `ENABLE_SENDGRID` for SendGrid email delivery (default: True in prod, False in tests with stubs)
+  - [ ] `ENABLE_OPENAI` for OpenAI API calls (default: True in prod, False in tests with stubs)
+  - [ ] Provider flags respect `USE_STUBS` setting (when `USE_STUBS=true`, all provider flags auto-disable)
+- [ ] Provider configuration validates on startup (missing required keys fail fast)
+- [ ] Test coverage includes all provider flag combinations
 
 ### Additional Requirements
 - [ ] Ensure overall test coverage ≥ 80% after implementation
@@ -30,9 +37,10 @@ Running tests with `USE_STUBS=true` yields 0 external calls (network mocked); pr
 - [ ] Only modify files within specified integration points (no scope creep)
 
 ## Integration Points
-- `core/config.py`
-- `stubs/server.py`
-- All test fixtures
+- `core/config.py` - Add provider feature flags and validation
+- `stubs/server.py` - Mock all provider endpoints
+- All test fixtures in `conftest.py`
+- Provider clients in `d0_gateway/` - Respect feature flags
 
 **Critical Path**: Only modify files within these directories. Any changes outside require a separate PRP.
 
@@ -40,18 +48,105 @@ Running tests with `USE_STUBS=true` yields 0 external calls (network mocked); pr
 - All tests pass with `USE_STUBS=true`
 - No real API calls in test suite
 - `tests/integration/test_stub_server.py` passes
+- `tests/unit/core/test_config.py` validates all provider flags
+- `tests/unit/d0_gateway/test_provider_flags.py` verifies providers respect flags
+- Production startup fails if `USE_STUBS=true` and `ENVIRONMENT=production`
 
 
-## Example: Stub Detection in Tests
+## Example: Provider Feature Flags in Config
 
 ```python
+# In core/config.py
+class Settings(BaseSettings):
+    """Application settings with provider feature flags."""
+    
+    # Core settings
+    use_stubs: bool = Field(default=False, description="Use stub server for all external APIs")
+    environment: str = Field(default="development", description="Environment name")
+    
+    # Provider feature flags - auto-disabled when USE_STUBS=true
+    enable_gbp: bool = Field(default=True, description="Enable Google Business Profile API")
+    enable_pagespeed: bool = Field(default=True, description="Enable PageSpeed Insights API")
+    enable_sendgrid: bool = Field(default=True, description="Enable SendGrid email delivery")
+    enable_openai: bool = Field(default=True, description="Enable OpenAI API calls")
+    
+    # Provider API keys (required when provider enabled and not using stubs)
+    google_places_api_key: Optional[str] = Field(default=None)
+    sendgrid_api_key: Optional[str] = Field(default=None)
+    openai_api_key: Optional[str] = Field(default=None)
+    
+    @validator("enable_gbp", "enable_pagespeed", "enable_sendgrid", "enable_openai", pre=True)
+    def disable_providers_when_using_stubs(cls, v, values):
+        """Auto-disable all providers when USE_STUBS=true."""
+        if values.get("use_stubs"):
+            return False
+        return v
+    
+    @validator("environment")
+    def validate_production_settings(cls, v, values):
+        """Ensure production never runs with stubs."""
+        if v == "production" and values.get("use_stubs"):
+            raise ValueError("Production environment cannot run with USE_STUBS=true")
+        return v
+    
+    @root_validator
+    def validate_provider_keys(cls, values):
+        """Ensure required API keys are present when providers are enabled."""
+        if not values.get("use_stubs"):
+            if values.get("enable_gbp") and not values.get("google_places_api_key"):
+                raise ValueError("Google Places API key required when GBP enabled")
+            if values.get("enable_sendgrid") and not values.get("sendgrid_api_key"):
+                raise ValueError("SendGrid API key required when SendGrid enabled")
+            if values.get("enable_openai") and not values.get("openai_api_key"):
+                raise ValueError("OpenAI API key required when OpenAI enabled")
+        return values
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
+
 # In conftest.py
 @pytest.fixture(autouse=True)
 def enforce_stubs(monkeypatch):
-    """Ensure tests never hit real APIs"""
-    if os.getenv("USE_STUBS") == "true":
-        monkeypatch.setattr("requests.get", mock_requests_get)
-        monkeypatch.setattr("requests.post", mock_requests_post)
+    """Ensure tests never hit real APIs."""
+    monkeypatch.setenv("USE_STUBS", "true")
+    # This automatically disables all provider flags via the validator
+```
+
+## Example: Provider Client Respecting Feature Flags
+
+```python
+# In d0_gateway/gbp_client.py
+from core.config import get_settings
+
+class GBPClient:
+    """Google Business Profile API client."""
+    
+    def __init__(self):
+        self.settings = get_settings()
+        if not self.settings.enable_gbp:
+            raise RuntimeError("GBP client initialized but ENABLE_GBP=false")
+        if self.settings.use_stubs:
+            self.base_url = "http://localhost:8100"  # Stub server
+        else:
+            self.base_url = "https://maps.googleapis.com"
+            self.api_key = self.settings.google_places_api_key
+    
+    async def get_place_details(self, place_id: str) -> dict:
+        """Fetch place details from GBP API or stub."""
+        if self.settings.use_stubs:
+            # Hit stub server
+            url = f"{self.base_url}/maps/api/place/details/json"
+            params = {"place_id": place_id}
+        else:
+            # Hit real API
+            url = f"{self.base_url}/maps/api/place/details/json"
+            params = {"place_id": place_id, "key": self.api_key}
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
 ```
 
 
@@ -73,28 +168,52 @@ def enforce_stubs(monkeypatch):
 - Activate virtual environment: `source venv/bin/activate`
 - Set `USE_STUBS=true` for local development
 
-### Step 3: Implementation
-1. Review the business logic and acceptance criteria
-2. Study the example code/file pattern
-3. Implement changes following CLAUDE.md standards
-4. Ensure no deprecated features (see CURRENT_STATE.md below)
+### Step 3: Implementation Order
+1. **Update `core/config.py`**:
+   - Add provider feature flags with proper types and defaults
+   - Add validators for stub/production conflict
+   - Add root validator for API key requirements
+   - Ensure secrets are never logged (use `SecretStr` for API keys)
+
+2. **Update provider clients in `d0_gateway/`**:
+   - Check feature flag in `__init__` methods
+   - Switch between stub/real endpoints based on `use_stubs`
+   - Fail fast if provider disabled but client instantiated
+
+3. **Update `conftest.py`**:
+   - Add autouse fixture to enforce `USE_STUBS=true` in all tests
+   - Ensure stub server starts automatically when needed
+
+4. **Create/update tests**:
+   - `tests/unit/core/test_config.py` - Test all validation rules
+   - `tests/unit/d0_gateway/test_provider_flags.py` - Test provider flag respect
+   - `tests/integration/test_stub_server.py` - Test stub server integration
 
 ### Step 4: Testing
 - Run all tests listed in "Tests to Pass" section
-- Verify KEEP suite remains green
-- Check coverage hasn't decreased
+- Verify KEEP suite remains green with `USE_STUBS=true`
+- Check coverage hasn't decreased below 80%
+- Manually test production validation rejection
 
 ### Step 5: Validation
 - All outcome-focused criteria must be demonstrably true
 - Run full validation command suite
-- Commit with descriptive message: `fix(P0-005): Environment & Stub Wiring`
+- Commit with descriptive message: `fix(P0-005): Environment & Stub Wiring with provider feature flags`
 
 ## Validation Commands
 ```bash
 # Run task-specific tests
-# All tests pass with `USE_STUBS=true`
-# No real API calls in test suite
-# `tests/integration/test_stub_server.py` passes
+USE_STUBS=true pytest tests/integration/test_stub_server.py -xvs
+USE_STUBS=true pytest tests/unit/core/test_config.py -xvs
+USE_STUBS=true pytest tests/unit/d0_gateway/test_provider_flags.py -xvs
+
+# Verify no real API calls in test suite
+USE_STUBS=true pytest -xvs 2>&1 | grep -E "(googleapis|sendgrid|openai)" | wc -l
+# Should output: 0
+
+# Test production validation
+USE_STUBS=true ENVIRONMENT=production python -c "from core.config import get_settings; get_settings()"
+# Should fail with: "Production environment cannot run with USE_STUBS=true"
 
 # Run standard validation
 bash scripts/validate_wave_a.sh
@@ -104,7 +223,30 @@ bash scripts/validate_wave_a.sh
 **Rollback**: Revert config.py changes
 
 ## Feature Flag Requirements
-No new feature flag required - this fix is unconditional.
+
+### Core Environment Flags
+- `USE_STUBS`: Controls whether to use stub server (must be `false` in production)
+- `ENVIRONMENT`: Environment name (development/staging/production)
+
+### Provider Feature Flags (Wave A)
+- `ENABLE_GBP`: Enable Google Business Profile API
+- `ENABLE_PAGESPEED`: Enable PageSpeed Insights API  
+- `ENABLE_SENDGRID`: Enable SendGrid email delivery
+- `ENABLE_OPENAI`: Enable OpenAI API calls
+
+### Future Provider Flags (Wave B - DO NOT IMPLEMENT YET)
+- `ENABLE_SEMRUSH`: SEMrush API (Wave B)
+- `ENABLE_LIGHTHOUSE`: Lighthouse audits (Wave B)
+- `ENABLE_VISUAL_ANALYSIS`: Visual rubric analysis (Wave B)
+- `ENABLE_LLM_AUDIT`: LLM heuristic audit (Wave B)
+- `ENABLE_COST_TRACKING`: Cost ledger tracking (Wave B)
+- `USE_DATAAXLE`: DataAxle provider (Wave B)
+
+### Implementation Rules
+1. When `USE_STUBS=true`, all provider flags automatically become `false`
+2. Production environment (`ENVIRONMENT=production`) must reject `USE_STUBS=true` at startup
+3. Each provider client must check its feature flag before initialization
+4. Missing required API keys (when provider enabled and not using stubs) must fail fast at startup
 
 ## Success Criteria
 - All specified tests passing

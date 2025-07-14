@@ -7,11 +7,20 @@ Arguments: $ARGUMENTS (optional task IDs like "P0-021 P0-022", defaults to all p
 
 ## Process Overview
 
-1. **Read INITIAL.md** to extract all task definitions
+1. **Read INITIAL.md** to extract all task definitions (including new Wave C tasks)
 2. **Check .claude/prp_progress.json** to identify which tasks need PRPs (not marked as "completed")
-3. **Filter by arguments** if provided (e.g., only process P0-021 if specified)
-4. **Run validation loops** for each task (NOT just spawn subagents)
-5. **Generate Super PRP** after all individual PRPs pass validation
+3. **Check .claude/PRPs/** to see which PRPs already exist
+4. **Create entries in prp_progress.json** for any new tasks found (like P3-001 through P3-007)
+5. **Load previous validation feedback** from PRP_VALIDATION_REPORT.md if it exists
+6. **Filter by arguments** if provided (e.g., only process P0-021 if specified)
+7. **Run validation loops** for each task (NOT just spawn subagents)
+8. **Generate Super PRP** after all individual PRPs pass validation
+
+### Handling New Tasks
+For tasks found in INITIAL.md but not in prp_progress.json:
+- Add them with status "pending"
+- Include them in PRP generation queue
+- Example: Wave C tasks (P3-001 through P3-007) added to fix critical issues
 
 ## Research Task for Context Gathering
 
@@ -38,6 +47,25 @@ Task: Research context for {task_id} - {title}
 7. Return key insights and relevant URLs
 ```
 
+## Previous Validation Feedback Integration
+
+### For Tasks with Failed Validation
+If a task has status "failed_validation" in prp_progress.json:
+1. **Load validation report** from PRP_VALIDATION_REPORT.md
+2. **Extract specific gaps** for this task ID
+3. **Pass ALL gaps as initial feedback** to the regeneration prompt
+4. **Start at regeneration step** (not fresh generation)
+
+Example feedback to include:
+```yaml
+Previous validation gaps for {task_id}:
+- Missing property-based test for cache key collisions
+- Test coverage at 72.07% (below 80% threshold)
+- No dedicated unit tests for merge_enrichment_data
+- Documentation not updated
+- Performance test missing
+```
+
 ## Six-Gate Validation Conveyor Implementation
 
 ### IMPORTANT: Each Task Must Run Complete Six-Gate Validation
@@ -57,6 +85,9 @@ SIX-GATE VALIDATION CONVEYOR (repeat up to 3 times):
 1. REGENERATE (or generate if first attempt):
    - Read .claude/prompts/regenerate_prp.md (or generate_prp.md for first attempt)
    - Include research context from .claude/research_cache/research_{task_id}.txt
+   - If task has "failed_validation" status, INCLUDE PREVIOUS VALIDATION GAPS:
+     * Load specific gaps from PRP_VALIDATION_REPORT.md for this task_id
+     * Pass ALL previous gaps as {previous_validation_gaps}
    - If regenerating, include ALL feedback from failed gates:
      * {schema_issues}: Structure and format violations
      * {policy_issues}: DO NOT IMPLEMENT violations and architecture conflicts
@@ -65,6 +96,7 @@ SIX-GATE VALIDATION CONVEYOR (repeat up to 3 times):
      * {critic_issues}: Quality and completeness issues
      * {judge_feedback}: Dimension scores and improvement areas
      * {ui_issues}: Design token, accessibility, and pattern violations (if UI task)
+     * {previous_validation_gaps}: Gaps from PRP_VALIDATION_REPORT.md (if exists)
    - Generate/regenerate the PRP addressing all feedback
    - Save to .claude/PRPs/PRP-{task_id}-{title-slug}.md
 

@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 SSH_HOST="${SSH_HOST:-96.30.197.121}"
 SSH_PORT="${SSH_PORT:-22}"
 SSH_USER="${SSH_USER:-deploy}"
-SSH_KEY="${SSH_KEY:-~/.ssh/leadfactory_deploy}"
+SSH_KEY="${SSH_KEY:-$HOME/.ssh/leadfactory_deploy}"
 
 echo -e "${GREEN}🔐 LeadFactory VPS Secret Deployment${NC}"
 echo "================================================"

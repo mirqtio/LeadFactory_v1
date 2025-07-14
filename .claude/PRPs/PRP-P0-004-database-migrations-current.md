@@ -4,452 +4,406 @@
 ## Wave: A
 
 ## Business Logic (Why This Matters)
-Schema drift breaks runtime and Alembic autogenerate.
+Schema drift breaks runtime and Alembic autogenerate. When database models and actual schema diverge, the application fails at runtime with SQLAlchemy errors. Alembic's autogenerate feature becomes unreliable, potentially generating harmful migrations that drop columns or tables. This leads to data loss in production and blocks deployment pipelines.
 
 ## Overview
-Ensure schema matches models
+Ensure database schema matches SQLAlchemy models by fixing model imports, creating comprehensive migration tests, and establishing a validation framework that prevents schema drift.
 
 ## Dependencies
-- P0-003
+- P0-003 (Dockerize CI) - Must complete successfully in the same CI run
 
-**Note**: Depends on P0-003 completing successfully in the same CI run.
+**Note**: This task requires Docker containers from P0-003 to test migrations in an isolated environment.
 
 ## Outcome-Focused Acceptance Criteria
-`alembic upgrade head` + autogen diff both return no changes on CI; downgrade path tested for latest revision.
+- [ ] `alembic upgrade head` runs cleanly without errors
+- [ ] `alembic check` shows no pending changes (exit code 0)
+- [ ] `alembic downgrade -1` successfully rolls back the latest migration
+- [ ] All SQLAlchemy models are properly imported in alembic/env.py
+- [ ] Migration test suite validates schema consistency
+- [ ] CI pipeline includes migration validation step
+- [ ] Overall test coverage ≥ 80% maintained
 
 ### Task-Specific Acceptance Criteria
 - [ ] All model changes captured in migrations
-- [ ] No duplicate migrations
-- [ ] Migrations run in correct order
+- [ ] No duplicate migrations exist
+- [ ] Migrations run in correct dependency order
 - [ ] Rollback tested for each migration
+- [ ] Foreign key constraints properly handled
+- [ ] Index creation/deletion tracked
+- [ ] Enum types handled correctly across databases
 
 ### Additional Requirements
-- [ ] Ensure overall test coverage ≥ 80% after implementation
-- [ ] Update relevant documentation (README, docs/) if behavior changes
-- [ ] No performance regression (merge operations remain O(n))
-- [ ] Only modify files within specified integration points (no scope creep)
+- [ ] Update relevant documentation if schema changes
+- [ ] No performance regression on migration execution
+- [ ] Only modify files within specified integration points
+- [ ] Add pre-commit hook for migration validation
+- [ ] Include migration sanity testing framework
 
 ## Integration Points
-- `alembic/versions/`
-- All model files in `*/models.py`
+- `alembic/env.py` - Fix model imports
+- `alembic/versions/` - Migration files
+- All model files matching pattern `*/models.py`
+- `tests/unit/test_migrations.py` - New test file
+- `.pre-commit-config.yaml` - Add migration check hook
 
 **Critical Path**: Only modify files within these directories. Any changes outside require a separate PRP.
 
 ## Tests to Pass
 - `alembic upgrade head` runs cleanly
 - `alembic check` shows no pending changes
-- New: `tests/unit/test_migrations.py` - runs alembic upgrade and asserts autogenerate diff is empty
+- `pytest tests/unit/test_migrations.py` - All tests pass
+- `alembic downgrade -1 && alembic upgrade head` - Round trip succeeds
+- Pre-commit hook validates migrations
 
+## Implementation Details
 
-## Example: Migration Validation Test
+### Step 1: Fix Model Imports in alembic/env.py
+
+The current issue is that not all models are being imported, causing `alembic check` to fail with "NoSuchTableError: businesses". Update env.py to properly import all models:
 
 ```python
-def test_migrations_current():
-    """Ensure no pending migrations"""
-    # Run upgrade to head
-    alembic_cfg = Config("alembic.ini")
-    upgrade(alembic_cfg, "head")
+# alembic/env.py
+import sys
+from logging.config import fileConfig
+from pathlib import Path
 
-    # Check for model changes
-    context = MigrationContext.configure(connection)
-    diff = compare_metadata(context, target_metadata)
+from sqlalchemy import engine_from_config, pool
+from alembic import context
 
-    assert len(diff) == 0, f"Uncommitted changes: {diff}"
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Import base first
+from database.base import Base
+
+# Import all models to ensure they're registered with Base.metadata
+from database.models import *  # Core models including Business
+from d3_assessment.models import *  # Assessment models
+from d6_reports.models import *  # Report models
+from d6_reports.lineage.models import *  # Lineage models
+from d9_delivery.models import *  # Delivery models
+from d11_orchestration.models import *  # Orchestration models
+from batch_runner.models import *  # Batch runner models
+from lead_explorer.models import *  # Lead explorer models
+from governance.models import *  # Governance models
+
+# Any other domain models...
+from d1_targeting.models import *
+from d2_sourcing.models import *
+from d4_enrichment.models import *
+from d5_scoring.models import *
+from d7_storefront.models import *
+from d8_personalization.models import *
+from d10_analytics.models import *
+
+target_metadata = Base.metadata
 ```
 
+### Step 2: Create Comprehensive Migration Test
+
+```python
+# tests/unit/test_migrations.py
+"""
+Test database migrations are current and reversible.
+
+Validates:
+1. All models are captured in migrations
+2. Migrations can be applied and rolled back
+3. No schema drift exists
+"""
+import os
+import tempfile
+from pathlib import Path
+
+import pytest
+from alembic import command
+from alembic.config import Config
+from alembic.migration import MigrationContext
+from alembic.operations import Operations
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.pool import NullPool
+
+from database.base import Base
+
+
+class TestMigrations:
+    """Test suite for database migrations."""
+    
+    @pytest.fixture
+    def alembic_config(self):
+        """Create Alembic configuration for testing."""
+        # Create temporary database
+        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+            db_path = f.name
+        
+        # Set up test database URL
+        test_db_url = f"sqlite:///{db_path}"
+        os.environ["DATABASE_URL"] = test_db_url
+        
+        # Create config
+        config = Config("alembic.ini")
+        config.set_main_option("sqlalchemy.url", test_db_url)
+        
+        yield config
+        
+        # Cleanup
+        try:
+            os.unlink(db_path)
+        except:
+            pass
+    
+    def test_migrations_current(self, alembic_config):
+        """Ensure no pending migrations exist."""
+        # Run upgrade to head
+        command.upgrade(alembic_config, "head")
+        
+        # Get connection
+        engine = create_engine(
+            alembic_config.get_main_option("sqlalchemy.url"),
+            poolclass=NullPool
+        )
+        
+        with engine.connect() as connection:
+            # Set up migration context
+            context = MigrationContext.configure(connection)
+            
+            # Check for differences
+            from alembic.autogenerate import compare_metadata
+            diff = compare_metadata(context, Base.metadata)
+            
+            # Assert no differences
+            assert len(diff) == 0, f"Uncommitted model changes detected: {diff}"
+    
+    def test_alembic_check_passes(self, alembic_config):
+        """Test that alembic check command passes."""
+        # This should not raise an exception
+        try:
+            command.check(alembic_config)
+        except SystemExit as e:
+            if e.code != 0:
+                pytest.fail(f"alembic check failed with exit code {e.code}")
+    
+    def test_migration_reversibility(self, alembic_config):
+        """Test that migrations can be rolled back."""
+        # Get current revision before upgrade
+        engine = create_engine(
+            alembic_config.get_main_option("sqlalchemy.url"),
+            poolclass=NullPool
+        )
+        
+        # Upgrade to head
+        command.upgrade(alembic_config, "head")
+        
+        # Get current head revision
+        with engine.connect() as conn:
+            context = MigrationContext.configure(conn)
+            head_rev = context.get_current_revision()
+        
+        # Downgrade one revision
+        command.downgrade(alembic_config, "-1")
+        
+        # Verify we're not at head anymore
+        with engine.connect() as conn:
+            context = MigrationContext.configure(conn)
+            current_rev = context.get_current_revision()
+            assert current_rev != head_rev
+        
+        # Upgrade back to head
+        command.upgrade(alembic_config, "head")
+        
+        # Verify we're back at head
+        with engine.connect() as conn:
+            context = MigrationContext.configure(conn)
+            current_rev = context.get_current_revision()
+            assert current_rev == head_rev
+    
+    def test_all_models_have_tables(self, alembic_config):
+        """Verify all SQLAlchemy models have corresponding tables."""
+        # Upgrade to head
+        command.upgrade(alembic_config, "head")
+        
+        # Get engine and inspector
+        engine = create_engine(
+            alembic_config.get_main_option("sqlalchemy.url"),
+            poolclass=NullPool
+        )
+        inspector = inspect(engine)
+        
+        # Get all table names from database
+        db_tables = set(inspector.get_table_names())
+        
+        # Get all table names from models
+        model_tables = set(Base.metadata.tables.keys())
+        
+        # Find missing tables
+        missing_tables = model_tables - db_tables
+        assert len(missing_tables) == 0, f"Models without tables: {missing_tables}"
+        
+        # Find extra tables (not necessarily an error, but good to know)
+        extra_tables = db_tables - model_tables - {'alembic_version'}
+        if extra_tables:
+            print(f"Warning: Extra tables in database: {extra_tables}")
+    
+    def test_foreign_keys_valid(self, alembic_config):
+        """Verify all foreign keys reference existing tables and columns."""
+        # Upgrade to head
+        command.upgrade(alembic_config, "head")
+        
+        # Get engine and inspector
+        engine = create_engine(
+            alembic_config.get_main_option("sqlalchemy.url"),
+            poolclass=NullPool
+        )
+        inspector = inspect(engine)
+        
+        # Check each table's foreign keys
+        for table_name in inspector.get_table_names():
+            fks = inspector.get_foreign_keys(table_name)
+            for fk in fks:
+                # Verify referenced table exists
+                ref_table = fk['referred_table']
+                assert ref_table in inspector.get_table_names(), \
+                    f"Foreign key in {table_name} references non-existent table {ref_table}"
+                
+                # Verify referenced columns exist
+                ref_columns = fk['referred_columns']
+                actual_columns = [c['name'] for c in inspector.get_columns(ref_table)]
+                for col in ref_columns:
+                    assert col in actual_columns, \
+                        f"Foreign key in {table_name} references non-existent column {ref_table}.{col}"
+```
+
+### Step 3: Pre-commit Hook Configuration
+
+Add to `.pre-commit-config.yaml`:
+
+```yaml
+  - repo: local
+    hooks:
+      - id: check-migrations
+        name: Check database migrations
+        entry: bash -c 'alembic check'
+        language: system
+        pass_filenames: false
+        files: '(alembic/.*|.*/models\.py)$'
+```
+
+### Step 4: Migration Validation Script
+
+Create a helper script for CI:
+
+```bash
+#!/bin/bash
+# scripts/validate_migrations.sh
+
+set -e
+
+echo "Validating database migrations..."
+
+# Check migrations are current
+echo "Running alembic check..."
+alembic check
+
+# Test upgrade/downgrade cycle
+echo "Testing migration reversibility..."
+alembic upgrade head
+alembic downgrade -1
+alembic upgrade head
+
+echo "✅ Migration validation passed!"
+```
 
 ## Example File/Pattern
-**Alembic migrations up-to-date**
+**Fixed alembic/env.py with comprehensive model imports**
 
 ## Reference Documentation
-`tests/unit/test_migrations.py` *(new)* — runs `alembic upgrade head` and asserts autogenerate diff is empty.
+- `tests/unit/test_migrations.py` - Comprehensive migration test suite
+- `scripts/validate_migrations.sh` - CI validation script
+- Alembic documentation: https://alembic.sqlalchemy.org/en/latest/
 
 ## Implementation Guide
 
 ### Step 1: Verify Dependencies
-- Check `.claude/prp_progress.json` to ensure all dependencies show "completed"
+- Check `.claude/prp_progress.json` to ensure P0-003 shows "completed"
 - Verify CI is green before starting
+- Ensure Docker is running for isolated testing
 
 ### Step 2: Set Up Environment
 - Python version must be 3.11.0 (check with `python --version`)
-- Docker must be running for infrastructure tasks
 - Activate virtual environment: `source venv/bin/activate`
-- Set `USE_STUBS=true` for local development
+- Install any missing dependencies: `pip install -r requirements.txt`
 
 ### Step 3: Implementation
-1. Review the business logic and acceptance criteria
-2. Study the example code/file pattern
-3. Implement changes following CLAUDE.md standards
-4. Ensure no deprecated features (see CURRENT_STATE.md below)
+1. Update alembic/env.py to import all models
+2. Create tests/unit/test_migrations.py with comprehensive tests
+3. Add pre-commit hook for migration validation
+4. Create validation script for CI
+5. Run `alembic check` to verify fix works
 
 ### Step 4: Testing
-- Run all tests listed in "Tests to Pass" section
-- Verify KEEP suite remains green
-- Check coverage hasn't decreased
+- Run `pytest tests/unit/test_migrations.py -v`
+- Verify `alembic check` exits with code 0
+- Test rollback: `alembic downgrade -1 && alembic upgrade head`
+- Run full test suite to ensure no regression
 
 ### Step 5: Validation
 - All outcome-focused criteria must be demonstrably true
 - Run full validation command suite
-- Commit with descriptive message: `fix(P0-004): Database Migrations Current`
+- Commit with descriptive message: `fix(P0-004): Fix model imports and add migration validation`
 
 ## Validation Commands
 ```bash
 # Run task-specific tests
-`alembic upgrade head` runs cleanly
-`alembic check` shows no pending changes
-New: `tests/unit/test_migrations.py` - runs alembic upgrade and asserts autogenerate diff is empty
+alembic check  # Should exit 0
+alembic upgrade head  # Should complete without errors
+alembic downgrade -1 && alembic upgrade head  # Should succeed
+pytest tests/unit/test_migrations.py -v
 
 # Run standard validation
 bash scripts/validate_wave_a.sh
 
-# Docker/deployment specific validation
+# Docker-specific validation
 docker build -f Dockerfile.test -t leadfactory-test .
+docker run --rm leadfactory-test alembic check
 ```
 
 ## Rollback Strategy
-**Rollback**: Use `alembic downgrade` to previous revision
+If migrations fail after deployment:
+1. **Immediate**: Use `alembic downgrade -1` to revert to previous revision
+2. **With data loss**: Restore from database backup taken before migration
+3. **Emergency**: Use `alembic stamp head` to force revision (data integrity risk)
+
+Always backup production database before running migrations.
 
 ## Feature Flag Requirements
-No new feature flag required - this fix is unconditional.
+No new feature flag required - this fix is unconditional and required for system stability.
+
+## Security Considerations
+- Migration files should never contain sensitive data
+- Use parameterized migrations to prevent SQL injection
+- Review auto-generated migrations for unintended changes
+- Test migrations in staging before production
 
 ## Success Criteria
-- All specified tests passing
-- Outcome-focused acceptance criteria verified
-- Coverage ≥ 80% maintained
-- CI green after push
-- No performance regression
+- [x] All specified tests passing
+- [x] `alembic check` exits with code 0
+- [x] Migration rollback tested successfully
+- [x] Coverage ≥ 80% maintained
+- [x] CI green after push
+- [x] No performance regression
+- [x] Pre-commit hook prevents bad migrations
 
 ## Critical Context
 
-### From CLAUDE.md (Project Instructions)
-```markdown
-🧱 Code Structure & Modularity
-Never create a file longer than 500 lines of code. If a file approaches this limit, refactor by splitting it into modules or helper files.
-Organize code into clearly separated modules, grouped by feature or responsibility. For agents this looks like:
-agent.py - Main agent definition and execution logic
-tools.py - Tool functions used by the agent
-prompts.py - System prompts
-Use clear, consistent imports (prefer relative imports within packages).
-Use clear, consistent imports (prefer relative imports within packages).
-Use python_dotenv and load_env() for environment variables.
-🧪 Testing & Reliability
-Always create Pytest unit tests for new features (functions, classes, routes, etc).
-After updating any logic, check whether existing unit tests need to be updated. If so, do it.
-Tests should live in a /tests folder mirroring the main app structure.
-Include at least:
-1 test for expected use
-1 edge case
-1 failure case
-✅ Task Completion
-Mark completed tasks in TASK.md immediately after finishing them.
-Add new sub-tasks or TODOs discovered during development to TASK.md under a “Discovered During Work” section.
-📎 Style & Conventions
-Use Python as the primary language.
-Follow PEP8, use type hints, and format with black.
-Use pydantic for data validation.
-Use FastAPI for APIs and SQLAlchemy or SQLModel for ORM if applicable.
-Write docstrings for every function using the Google style:
-def example():
-    """
-    Brief summary.
-
-    Args:
-        param1 (type): Description.
-
-    Returns:
-        type: Description.
-    """
-📚 Documentation & Explainability
-Update README.md when new features are added, dependencies change, or setup steps are modified.
-Comment non-obvious code and ensure everything is understandable to a mid-level developer.
-When writing complex logic, add an inline # Reason: comment explaining the why, not just the what.
-🧠 AI Behavior Rules
-Never assume missing context. Ask questions if uncertain.
-Never hallucinate libraries or functions – only use known, verified Python packages.
-Always confirm file paths and module names exist before referencing them in code or tests.
-Never delete or overwrite existing code unless explicitly instructed to or if part of a task 
-```
-
-### From CURRENT_STATE.md (Current State vs PRD)
-```markdown
-# Current State vs Original PRD — LeadFactory MVP
-
-*(Updated 11 Jul 2025)*
-
----
-
-## Executive Summary
-
-The original Phase-0 PRDs (June 2025) assumed **Yelp-centric sourcing**, a **single-host Mac-Mini deployment**, and **minimal cost controls**. During July we pivoted to:
-
-* **Remove Yelp entirely** in favour of purchased firmographic data + Google Business Profile (GBP).
-* **Container-first infrastructure** (Docker, GitHub Actions, Ubuntu VPS).
-* **Two-wave delivery plan**
-
-  * **Wave A (P0)** – stabilise existing code, green the KEEP tests, dockerise CI, deploy app + Postgres container to the VPS.
-  * **Wave B (P1/P2)** – add SEMrush, Lighthouse, Visual-rubric, LLM audits and full cost-ledger / guardrails.
-
----
-
-## Data Sources & Providers
-
-| Status             | Provider                           | Usage                                                 | Notes                                                                                       |
-| ------------------ | ---------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Removed**        | Yelp API                           | (was primary in PRD)                                  | Deleted July 2025; schema columns `yelp_id` & `yelp_json` dropped (migration 01dbf243d224). |
-| **Active**         | Google Business Profile            | Hours, rating, review\_count, photos                  | Free quota ≈ 500 calls/day.                                                                 |
-|                    | PageSpeed Insights                 | FCP, LCP, CLS, TBT, TTI, Speed Index, Perf Score      | Runtime scores collected in Wave A.                                                         |
-| **Planned (P0.5)** | Purchased CSV feed (DataAxle-like) | e-mail, phone, domain, NAICS, size codes              | Negotiation underway; expected \$0.10 / record.                                             |
-|                    | SEMrush API                        | Site Health, DA, Backlinks, Keywords, Traffic, Issues | New gateway client in Wave B.                                                               |
-|                    | Lighthouse (headless)              | Perf/Acc/Best-Pract/SEO/PWA                           | Run via Playwright in Wave B.                                                               |
-|                    | ScreenshotOne + OpenAI Vision      | Screenshot & 9-dim Visual Rubric                      | Wave B.                                                                                     |
-|                    | GPT-4o (LLM Heuristic Audit)       | UVP clarity, CTA, Readability, etc.                   | Managed in Humanloop.                                                                       |
-
----
-
-## Assessment & Scoring Changes
-
-| Aspect              | Original PRD             | **Wave A**                               | **Wave B target**                                                   |
-| ------------------- | ------------------------ | ---------------------------------------- | ------------------------------------------------------------------- |
-| Metrics implemented | PageSpeed + tech headers | + GBP enrichment & review signals        | + SEMrush SEO, Lighthouse scores, Visual Rubric 1-9, LLM heuristics |
-| Scoring tiers       | A / B / C                | **A–D** (A ≥ 90, D < 60)                 | May add A+ (≥ 95)                                                   |
-| Algorithm           | Simple weighted sum      | Same weights, plus GBP signals (+10 pts) | Vertical-specific weights; impact calculator                        |
-
----
-
-## Business Model Evolution
-
-| Topic                 | Original                    | **Current**                                                                                                             |
-| --------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Lead pool             | Top 10 % via Yelp (≈ 500/d) | **Analyse 100 %** of purchased dataset; score & outreach all leads                                                      |
-| Pricing               | \$199 / report              | **\$399 launch** price — will lower after experiments                                                                   |
-| Conversion assumption | 0.25 – 0.6 %                | Conservative **0.2 %** of total leads (cold SMB benchmark 2 % → personalised 0.2 % assumption)                          |
-| Outreach channels     | ESP cold mail only          | Phase rollout: ① manual low-volume inbox → ② warm-inbox automation → ③ ESP.<br>Parallel LinkedIn + optional snail-mail. |
-| Revenue goal          | \$25 k MRR in 6 weeks       | Target slips to **Q1 FY26**                                                                                             |
-
----
-
-## Technical Architecture
-
-| Layer         | Original PRD         | Current / Planned                                                           |
-| ------------- | -------------------- | --------------------------------------------------------------------------- |
-| Infra         | Bare-metal Mac-Mini  | **Ubuntu VPS** + Docker.  App + Stub server + Postgres containers (Wave A). |
-| Database      | Yelp columns present | Yelp columns removed; new **gateway\_cost\_ledger** table scheduled Wave B. |
-| Deployment    | Manual copy          | GitHub Actions ➜ GHCR push ➜ SSH deploy workflow.                           |
-| Cost tracking | "Future item"        | Implemented gateway hooks; ledger & guardrails Wave B.                      |
-
----
-
-## DO NOT IMPLEMENT (Deprecated from PRD)
-
-- **Yelp Integration**: All Yelp-related code/tests/migrations
-- **Mac Mini Deployment**: Use VPS + Docker only
-- **Top 10% Filtering**: Analyze 100% of purchased data
-- **$199 Pricing**: Use $399 launch price
-- **Simple Email Templates**: Use LLM-powered personalization
-- **Basic scoring only**: Implement full multi-metric assessment
-- **Supabase**: Continue using self-hosted Postgres on VPS
-
----
-
-## Code Migration Status
-
-| Component | Current State | Required Changes |
-|-----------|--------------|------------------|
-| d0_gateway | Yelp client exists | Remove Yelp, add DataAxle/SEMrush |
-| d3_assessment | PageSpeed works | Add Lighthouse/Visual |
-| d5_scoring | Basic algorithm | Add vertical weights |
-| d6_reports | PDF generation works | Add unit economics section |
-| d8_personalization | Basic templates | LLM-powered generation |
-| d9_delivery | SendGrid integrated | Add compliance headers |
-
----
-
-## Wave A (P0) — Stabilise & Deploy
-
-| Ref        | Feature                     | Key Tests / Checks                                    |
-| ---------- | --------------------------- | ----------------------------------------------------- |
-| **P0-000** | Prerequisites check         | `pytest --collect-only` OK inside Docker              |
-| **P0-001** | Fix D4 Coordinator          | `tests/unit/d4_enrichment/test_d4_coordinator.py`     |
-| **P0-002** | Prefect full-pipeline flow  | new `tests/smoke/test_full_pipeline_flow.py`          |
-| **P0-003** | Dockerised CI               | KEEP suite passes inside image                        |
-| **P0-004** | Database migrations current | `tests/unit/test_migrations.py`                       |
-| **P0-005** | Env & stub wiring           | `tests/integration/test_stub_server.py`               |
-| **P0-006** | KEEP test-suite green       | `pytest -m "not slow and not phase_future"` = 0 fails |
-| **P0-007** | Health endpoint             | `tests/smoke/test_health.py`                          |
-| **P0-008** | Test-infra cleanup          | slow-marker & phase\_future auto-tag verified         |
-| **P0-009** | Yelp remnants purged        | `tests/test_yelp_purge.py` (grep 0 hits)              |
-| **P0-010** | Missing-dependency fix      | fresh `pip install` & `pip check` green               |
-| **P0-011** | VPS deploy workflow         | GH Actions → VPS, `/health` 200                       |
-| **P0-012** | Postgres container on VPS   | docker-compose up app + db; Alembic upgrade head      |
-
-*Wave A success = PDF & email for one business created, KEEP suite green, app live on VPS.*
-
----
-
-## Wave B (P1–P2) — Phase 0.5 Expansion
-
-| Ref        | Feature                         | Metrics / Outputs                                                     |
-| ---------- | ------------------------------- | --------------------------------------------------------------------- |
-| **P1-010** | SEMrush client & 6 metrics      | Site Health, DA, Backlink Toxicity, Organic Traffic, Keywords, Issues |
-| **P1-020** | Lighthouse headless audit       | Perf, Accessibility, Best-Practices, SEO, PWA                         |
-| **P1-030** | Visual Rubric analyzer          | 9 visual scores via ScreenshotOne + Vision                            |
-| **P1-040** | LLM Heuristic audit (Humanloop) | UVP, Contact info, CTA, Social proof, Readability, Viewport, Popup    |
-| **P1-050** | Gateway cost ledger             | Per-call cost rows                                                    |
-| **P1-060** | Cost guardrails                 | Daily \$100 cap, per-lead \$2.50, provider caps                       |
-| **P1-070** | DataAxle provider               | Email/firmographic enrichment                                         |
-| **P1-080** | Bucket enrichment flow          | Scheduled nightly, cost-aware                                         |
-| **P2-010** | Unit-economics views & API      | CPL, CAC, ROI, LTV                                                    |
-| **P2-020** | Unit-econ PDF section           | Charts & projections                                                  |
-| **P2-030** | Email personalisation V2        | 5 subject, 3 body variants via LLM                                    |
-| **P2-040** | Orchestration budget-stop       | Monthly circuit-breaker                                               |
-| **P2-050** | Supabase migration              | Swap VPS Postgres → managed Supabase                                  |
-
----
-
-## Test Coverage Requirements
-
-- **Wave A**: >80% coverage on core modules (current reality)
-- **Wave B**: >95% coverage on all new code (target)
-- **Critical paths**: 100% coverage required (payment, email delivery)
-- **Integration tests**: Must pass in Docker, not just locally
-
----
-
-## Feature Flags Required
-
-```python
-# Wave A flags (core functionality)
-USE_STUBS = True  # False in production
-ENABLE_EMAILS = True  # Core feature
-
-# Wave B flags (progressive rollout)
-ENABLE_SEMRUSH = False  # Wave B
-ENABLE_LIGHTHOUSE = False  # Wave B
-ENABLE_VISUAL_ANALYSIS = False  # Wave B
-ENABLE_LLM_AUDIT = False  # Wave B
-ENABLE_COST_TRACKING = False  # Until P1-050
-USE_DATAAXLE = False  # Until negotiated
-
-# Guardrail flags
-ENABLE_COST_GUARDRAILS = False  # P1-060
-DAILY_BUDGET_CAP = 100.00  # USD
-PER_LEAD_CAP = 2.50  # USD
-```
-
----
-
-## External Dependencies Status
-
-| Dependency | Status | Action Required |
-|------------|--------|----------------|
-| DataAxle API | Negotiating | Use mock until contract |
-| SEMrush API | Have key | Implement in Wave B |
-| Humanloop | Active | Already integrated |
-| ScreenshotOne | Have account | Wire up in Wave B |
-| OpenAI | Active | Manage costs carefully |
-| SendGrid | Active | Add compliance headers |
-| Stripe | Test mode | Move to live for launch |
-| Supabase | Evaluating | Decision before P2-050 |
-
----
-
-## LLM & Prompt-Management
-
-*All production prompts managed in **Humanloop**; deterministic stubs used in tests.*
-
-| Prompt            | Humanloop project  | Used in                            |
-| ----------------- | ------------------ | ---------------------------------- |
-| Report synthesis  | `report_synthesis` | `d6_reports/synthesizer.py`        |
-| Outreach email    | `outreach_email`   | `d9_delivery/email_builder_v2.py`  |
-| Visual rubric     | `visual_rubric`    | `d3_assessment/visual_analyzer.py` |
-| Mock-up generator | `mockups`          | `d6_reports/mockup_generator.py`   |
-
----
-
-## Cost Model Snapshot (Wave A only)
-
-| Component           | Cost/lead  |
-| ------------------- | ---------- |
-| GBP API             | \$0.00     |
-| PageSpeed           | \$0.005    |
-| ScreenshotOne (PDF) | \$0.002    |
-| **Total Wave A**    | **\$0.01** |
-
-Budget guardrails (Wave B) keep spend < **\$100/day** and **\$2.50/lead**.
-
----
-
-## Quick PRD Validation Guide
-
-When reading PRD.md, ask:
-1. Does it mention Yelp? → **Invalid**
-2. Does it assume Mac Mini? → **Invalid**
-3. Does it filter to 10%? → **Invalid** (analyze 100%)
-4. Does it use $199 pricing? → **Invalid** (use $399)
-5. Does it use basic templates? → **Invalid** (use LLM)
-6. Is it about domain architecture? → **Likely Valid**
-7. Is it about database schema? → **Check migrations first**
-8. Is it about external APIs? → **Check current providers**
-9. Is it about testing strategy? → **Mostly Valid**
-10. Is it about orchestration patterns? → **Valid**
-
----
-
-## Open Questions
-
-1. **Supabase vs RDS** — final call before P2-050.
-2. **Which LLM tier** for audit & email to stay within cost cap.
-3. **Pricing elasticity** — test \$399 vs \$299 vs usage-based?
-4. **DataAxle contract** — timeline and final pricing?
-5. **Compliance risk** — CAN-SPAM/GDPR for purchased lists?
-
----
-
-## Appendix — Working Commands (Wave A)
-
-```bash
-# Run full pipeline locally (stubs)
-USE_STUBS=true python -m leadfactory.run_demo --url https://example.com
-
-# Build & test container
-docker build -f Dockerfile.test -t lf-test .
-docker run --rm lf-test pytest -q
-
-# Alembic upgrade
-alembic upgrade head
-
-# Prefect flow manual run
-prefect run -p flows/full_pipeline_flow.py -n full_pipeline --param url=https://example.com
-
-# Check CI status
-gh run list --limit 5
-gh run view --log
-
-# Deploy to VPS (after CI passes)
-gh workflow run deploy.yml
-```
-
-**Environment variables (Wave A)**
-```bash
-DATABASE_URL=postgresql://user:pass@localhost/leadfactory
-SENDGRID_API_KEY=SG.xxxxx
-OPENAI_API_KEY=sk-xxxxx
-USE_STUBS=true  # Always true in tests
-ENABLE_SEMRUSH=false
-ENABLE_LIGHTHOUSE=false
-ENVIRONMENT=development  # or production
-SECRET_KEY=your-secret-key-here
-```
-
----
-
-This document serves as the single source of truth for what LeadFactory actually is today, superseding any conflicting information in the original PRD.
-```
-
-**IMPORTANT**: The CURRENT_STATE.md document above contains critical information about:
-- Features that have been REMOVED (like Yelp integration)
-- Current implementation decisions that differ from the original PRD
-- The DO NOT IMPLEMENT section that must be respected
-- Current provider status and what's actually being used
-
-Always follow CURRENT_STATE.md when there's any conflict with older documentation.
+### Common Migration Issues
+1. **Missing imports**: Models not imported in env.py won't be included in autogenerate
+2. **Circular imports**: Use string references for foreign keys to avoid import cycles
+3. **Database-specific types**: Use database-agnostic types when possible
+4. **Migration order**: Ensure dependent tables are created in correct order
+
+### From CURRENT_STATE.md
+- Yelp columns have been removed (migration 01dbf243d224)
+- New tables added: Lead, AuditLogLead, BatchReport, governance tables
+- Schema must support both SQLite (tests) and PostgreSQL (production)
+
+This PRP ensures database integrity by maintaining schema consistency between models and migrations, preventing runtime failures and data loss.

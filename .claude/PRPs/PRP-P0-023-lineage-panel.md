@@ -91,8 +91,9 @@ LeadFactory_v1_Final/
 
 ### Integration Points
 - `d6_reports/models.py`: Add ReportLineage model with relationships
-- `d6_reports/pdf_converter.py`: Hook into PDF generation completion
-- `d6_reports/generator.py`: Capture pipeline run context
+- `d6_reports/pdf_converter.py`: Hook into PDF generation completion with event listeners
+- `d6_reports/generator.py`: Capture pipeline run context and pass to lineage tracker
+- `d6_reports/base.py`: Add lineage capture to report generation base flow
 - `api/internal_routes.py`: Mount new lineage router
 - `alembic/versions/`: Create migration for lineage tables
 
@@ -103,10 +104,21 @@ LeadFactory_v1_Final/
    - Add foreign key to `d6_report_generations`
    - Include audit columns (created_at, accessed_at, accessed_by)
 
-2. **Lineage Capture**
-   - Use SQLAlchemy event listeners on ReportGeneration
-   - Capture full pipeline context during PDF generation
-   - Store raw inputs in compressed format
+2. **Lineage Capture Integration**
+   - Hook into `PDFConverter.convert()` method to capture lineage after successful PDF generation
+   - Add `capture_lineage` parameter to `ReportGenerator.generate()` method
+   - Use SQLAlchemy event listeners on ReportGeneration model:
+     ```python
+     @event.listens_for(ReportGeneration, 'after_insert')
+     def capture_report_lineage(mapper, connection, target):
+         if settings.ENABLE_REPORT_LINEAGE:
+             lineage_tracker.capture(target)
+     ```
+   - Capture full pipeline context during PDF generation:
+     - Extract lead_id, pipeline_run_id, template_version_id from ReportGeneration
+     - Get pipeline logs from Prefect context or execution metadata
+     - Capture raw inputs from assessment and enrichment data
+   - Store raw inputs in compressed format using gzip
 
 3. **API Implementation**
    - GET /api/lineage/{report_id} - Retrieve lineage data
@@ -129,6 +141,49 @@ LeadFactory_v1_Final/
    - Integration tests for full flow
    - Performance tests for viewer and downloads
    - Mock compression for deterministic tests
+
+## Integration Flow Details
+
+### Step-by-Step PDF Generation Integration
+
+1. **ReportGeneration Creation**
+   - When a report is requested, `ReportGenerator.generate()` creates a `ReportGeneration` record
+   - This record includes: lead_id, pipeline_run_id, template_version_id
+   - Status is set to "in_progress"
+
+2. **HTML Generation**
+   - Report HTML is generated using the Jinja2 template
+   - Assessment and enrichment data is collected for the lead
+   - This raw data will be captured for lineage
+
+3. **PDF Conversion with Lineage Capture**
+   - `PDFConverter.convert()` is called with HTML and ReportGeneration instance
+   - PDF is generated from HTML
+   - **CRITICAL**: After successful PDF generation, lineage is captured:
+     ```python
+     if settings.ENABLE_REPORT_LINEAGE:
+         await lineage_tracker.capture_from_report_generation(report_gen)
+     ```
+
+4. **Lineage Data Collection**
+   - LineageTracker extracts all metadata from ReportGeneration
+   - Pipeline logs are retrieved from execution context
+   - Raw inputs (assessment + enrichment data) are collected
+   - All data is compressed using gzip
+
+5. **Lineage Storage**
+   - Compressed data is stored in report_lineage table
+   - Foreign key links to d6_report_generations
+   - Audit fields are populated (created_at, etc.)
+
+### Ensuring 100% Capture Rate
+
+To guarantee every PDF has lineage captured:
+
+1. **Atomic Transaction**: Lineage capture happens within the same database transaction as PDF generation
+2. **Rollback on Failure**: If lineage capture fails, the entire report generation is rolled back
+3. **Monitoring**: Add metrics to track lineage capture success rate
+4. **Validation**: Integration tests verify lineage exists for every generated PDF
 
 ## Validation Gates
 
@@ -157,6 +212,7 @@ pytest tests/unit/d6_reports/test_lineage_integration.py -v
 
 # Integration Tests
 pytest tests/integration/test_lineage_api.py -v
+pytest tests/integration/test_pdf_lineage_capture.py -v
 
 # Performance Tests
 pytest tests/unit/lineage/test_performance.py -v -k "viewer_load_time"
@@ -273,6 +329,26 @@ class LineageData:
     pipeline_end_time: datetime
     pipeline_logs: Dict[str, Any]
     raw_inputs: Dict[str, Any]
+    report_generation_id: str  # Foreign key to d6_report_generations
+
+# Integration in PDF generation flow
+class PDFConverter:
+    async def convert(self, html_content: str, report_generation: ReportGeneration) -> bytes:
+        """Convert HTML to PDF and capture lineage."""
+        pdf_bytes = await self._generate_pdf(html_content)
+        
+        if settings.ENABLE_REPORT_LINEAGE:
+            # Capture lineage after successful PDF generation
+            await self._capture_lineage(report_generation)
+        
+        return pdf_bytes
+    
+    async def _capture_lineage(self, report_generation: ReportGeneration):
+        """Capture and store report lineage."""
+        from d6_reports.lineage.tracker import LineageTracker
+        
+        tracker = LineageTracker()
+        await tracker.capture_from_report_generation(report_generation)
 ```
 
 ### Compression Implementation
@@ -289,6 +365,28 @@ async def compress_lineage_data(data: Dict[str, Any], max_size_mb: float = 2.0) 
         return await compress_lineage_data(data, max_size_mb)
     
     return compressed
+
+# Integration with Report Generation
+class LineageTracker:
+    """Tracks and stores report generation lineage."""
+    
+    async def capture_from_report_generation(self, report_gen: ReportGeneration):
+        """Capture lineage from a ReportGeneration instance."""
+        # Extract metadata from report generation
+        lineage_data = LineageData(
+            lead_id=str(report_gen.lead_id),
+            pipeline_run_id=str(report_gen.pipeline_run_id or uuid.uuid4()),
+            template_version_id=report_gen.template_version or "v1.0.0",
+            pipeline_start_time=report_gen.created_at,
+            pipeline_end_time=report_gen.updated_at or datetime.utcnow(),
+            pipeline_logs=await self._extract_pipeline_logs(report_gen),
+            raw_inputs=await self._extract_raw_inputs(report_gen),
+            report_generation_id=str(report_gen.id)
+        )
+        
+        # Compress and store
+        compressed_data = await compress_lineage_data(asdict(lineage_data))
+        await self._store_lineage(lineage_data, compressed_data)
 ```
 
 ### API Response Format
@@ -306,4 +404,69 @@ async def compress_lineage_data(data: Dict[str, Any], max_size_mb: float = 2.0) 
     "access_count": 3,
     "last_accessed_at": "2024-01-10T11:30:00Z"
 }
+```
+
+### PDF Generation Integration Example
+```python
+# In d6_reports/generator.py
+class ReportGenerator:
+    async def generate(self, lead_id: str, template_version: str = None) -> ReportGeneration:
+        """Generate report with automatic lineage capture."""
+        # Create ReportGeneration record
+        report_gen = ReportGeneration(
+            lead_id=lead_id,
+            template_version=template_version or self.get_latest_template_version(),
+            pipeline_run_id=self.get_current_pipeline_run_id(),
+            status="in_progress"
+        )
+        self.db.add(report_gen)
+        await self.db.commit()
+        
+        try:
+            # Generate report HTML
+            html_content = await self._generate_html(lead_id)
+            
+            # Convert to PDF (lineage captured automatically in PDFConverter)
+            pdf_converter = PDFConverter()
+            pdf_bytes = await pdf_converter.convert(html_content, report_gen)
+            
+            # Update status
+            report_gen.status = "completed"
+            report_gen.pdf_url = await self._store_pdf(pdf_bytes)
+            await self.db.commit()
+            
+        except Exception as e:
+            report_gen.status = "failed"
+            report_gen.error_message = str(e)
+            await self.db.commit()
+            raise
+        
+        return report_gen
+```
+
+### Integration Test Example
+```python
+# tests/integration/test_pdf_lineage_capture.py
+async def test_pdf_generation_creates_lineage_record():
+    """Verify that every PDF generation creates a corresponding lineage record."""
+    # Generate a report
+    generator = ReportGenerator(db)
+    report_gen = await generator.generate(lead_id="test-lead-123")
+    
+    # Verify lineage was captured
+    lineage = await db.query(ReportLineage).filter_by(
+        report_generation_id=report_gen.id
+    ).first()
+    
+    assert lineage is not None
+    assert lineage.lead_id == "test-lead-123"
+    assert lineage.pipeline_run_id is not None
+    assert lineage.raw_inputs_compressed is not None
+    assert lineage.compression_ratio > 0
+    
+    # Verify raw inputs can be decompressed
+    decompressed = gzip.decompress(lineage.raw_inputs_compressed)
+    raw_data = json.loads(decompressed.decode('utf-8'))
+    assert 'assessment_data' in raw_data
+    assert 'enrichment_data' in raw_data
 ```

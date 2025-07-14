@@ -21,10 +21,12 @@ Build a secure template editing interface featuring:
 - [ ] Template list displays git SHA and version metadata
 - [ ] Monaco editor renders with Jinja2 syntax highlighting
 - [ ] Preview renders in < 500ms with lead_id=1 sample data
-- [ ] GitHub PR created with semantic commit message and diff
+- [ ] GitHub PR created with semantic commit message and diff using REAL GitHub API
 - [ ] Viewers get read-only access, admins can propose changes
 - [ ] Coverage ≥ 80% on template_studio module
 - [ ] All existing tests remain green
+- [ ] Integration tests demonstrate real GitHub PR creation and branch management
+- [ ] Test repository configured and operational for CI/CD validation
 
 ## All Needed Context
 
@@ -126,10 +128,13 @@ LeadFactory_v1_Final/
    - Preview timeout handling
 
 5. **Testing Strategy**:
-   - Mock GitHub API calls in unit tests
+   - Use real GitHub API integration with test repository
+   - Create dedicated test repository for Template Studio CI/CD testing
    - Test template rendering with various Jinja2 constructs
    - Verify role-based access control
    - Test preview performance under load
+   - Integration tests must use actual GitHub API calls
+   - Unit tests can mock only for edge cases and error scenarios
 
 ## Validation Gates
 
@@ -155,8 +160,8 @@ ruff check --fix && mypy .
 pytest tests/unit/api/test_template_studio.py -v
 pytest tests/unit/d6_reports/test_template_manager.py -v
 
-# Integration Tests
-pytest tests/integration/test_template_studio_integration.py -v
+# Integration Tests (requires GITHUB_TOKEN and test repository)
+GITHUB_TEST_REPO="leadfactory/template-studio-test" pytest tests/integration/test_template_studio_integration.py -v
 
 # Performance Tests
 pytest tests/performance/test_template_preview_speed.py -v
@@ -185,6 +190,18 @@ python-multipart==0.0.6 # File upload support
 websockets==12.0       # Real-time preview updates
 ```
 
+## Environment Variables Required
+```bash
+# Required for GitHub API integration
+GITHUB_TOKEN=<personal_access_token_with_repo_scope>
+GITHUB_TEST_REPO=leadfactory/template-studio-test  # For integration tests
+ENABLE_TEMPLATE_STUDIO=true  # Feature flag
+
+# Optional
+GITHUB_API_TIMEOUT=30  # Seconds
+GITHUB_RATE_LIMIT_BUFFER=100  # Preserve this many API calls
+```
+
 ## Rollback Strategy
 1. Remove template_studio router from api/main.py
 2. Delete api/template_studio.py and d6_reports/template_manager.py
@@ -202,6 +219,45 @@ if settings.ENABLE_TEMPLATE_STUDIO:
     from api.template_studio import router as template_studio_router
     app.include_router(template_studio_router, prefix="/api/template-studio")
 ```
+
+## Real GitHub API Integration Requirements
+
+### Test Repository Setup
+1. Create dedicated test repository: `leadfactory/template-studio-test`
+2. Configure GitHub App or Personal Access Token with repo permissions
+3. Set up branch protection rules for testing PR workflow
+4. Populate with sample templates for testing
+
+### Integration Test Configuration
+```python
+# tests/integration/conftest.py
+import pytest
+from github import Github
+import os
+
+@pytest.fixture
+def github_test_repo():
+    """Fixture for real GitHub API testing."""
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        pytest.skip("GITHUB_TOKEN not set for integration tests")
+    
+    g = Github(token)
+    repo = g.get_repo("leadfactory/template-studio-test")
+    
+    # Clean up any test branches before test
+    for branch in repo.get_branches():
+        if branch.name.startswith("test-"):
+            repo.get_git_ref(f"heads/{branch.name}").delete()
+    
+    return repo
+```
+
+### Real API Testing Strategy
+1. **Unit Tests**: Mock only for error scenarios and edge cases
+2. **Integration Tests**: Always use real GitHub API with test repository
+3. **CI/CD Tests**: Run integration tests with GitHub secrets
+4. **Local Development**: Developers must set GITHUB_TOKEN for full testing
 
 ## Additional Considerations
 
@@ -233,10 +289,15 @@ monaco.languages.setMonarchTokensProvider('jinja2', {
 });
 ```
 
-### GitHub PR Creation
+### GitHub PR Creation (Real API Integration)
 ```python
-# Example PR creation with PyGithub
+# Real GitHub API integration - NO MOCKS in production code
 def create_template_pr(repo_name: str, changes: dict, user: str):
+    """Create a real GitHub PR using the actual GitHub API.
+    
+    This function MUST use real GitHub API calls in production.
+    Test environment should use a dedicated test repository.
+    """
     g = Github(auth=Auth.Token(settings.GITHUB_TOKEN))
     repo = g.get_repo(repo_name)
     

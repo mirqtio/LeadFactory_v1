@@ -1,0 +1,47 @@
+# Research Context for P3-002
+
+## Key Findings
+- SQLAlchemy event listeners are the standard approach for implementing audit/lineage tracking
+- `after_flush_postexec` is the best event for capturing post-insertion data as it runs after the flush is complete
+- Bulk operations don't trigger standard events - need to use regular ORM operations for event support
+- Performance overhead can be minimized by keeping event listeners lightweight and avoiding additional database queries
+- Event listeners should not create nested listeners or modify session state during execution
+
+## Authoritative Sources
+- https://docs.sqlalchemy.org/en/20/orm/events.html - SQLAlchemy 2.0 ORM Events documentation
+- https://docs.sqlalchemy.org/en/20/orm/session_events.html - Session Events documentation
+- https://pypi.org/project/sqlalchemy-audit/ - SQLAlchemy audit extension
+- https://postgresql-audit.readthedocs.io/en/latest/sqlalchemy.html - PostgreSQL-Audit SQLAlchemy integration
+
+## Current Best Practices
+- Use `after_flush_postexec` for read-only operations like logging/auditing
+- Access session through `inspect(target).session` in mapper events
+- Use session.info dictionary to coordinate between events
+- Implement event listeners at the Session class level for global coverage
+- Keep event listeners lightweight to minimize performance overhead (<100ms target)
+- Use feature flags to enable/disable lineage tracking
+
+## Common Pitfalls
+- Creating event listeners inside other event listeners (causes memory leaks)
+- Using bulk operations when event support is needed
+- Heavy processing in event listeners causing performance degradation
+- Modifying session state in after_flush events (can cause infinite loops)
+- Not handling transaction rollbacks properly
+- Forgetting that after_insert fires during flush, not after commit
+
+## Recent Updates
+- SQLAlchemy 2.0 has improved type hinting and async support
+- SQLAlchemy-Continuum updated in May 2024 for versioning/auditing
+- Modern pattern is to use declarative event registration
+- after_flush_postexec is preferred over after_flush for audit logging
+- Session-level events provide better control than mapper-level events
+
+## Implementation Recommendations
+- Create a dedicated LineageCapture class to handle lineage tracking
+- Use after_flush_postexec event listener at Session level
+- Store lineage data: lead_id, pipeline_run_id, template_version_id, timestamp
+- Implement as a mixin or base class for report generation models
+- Use SQLAlchemy's built-in event.listens_for decorator
+- Add performance monitoring to ensure <100ms overhead
+- Include feature flag ENABLE_REPORT_LINEAGE for easy enable/disable
+- Consider using SQLAlchemy-Continuum for more advanced audit needs

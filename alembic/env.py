@@ -21,7 +21,87 @@ if config.config_file_name is not None:
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Import base first
 from database.base import Base
+
+# Import all models to ensure they're registered with Base.metadata
+# This is critical for alembic autogenerate to work correctly
+from database.models import *  # Core models including Business
+from database.governance_models import *  # Governance models (RBAC, audit)
+
+# Import domain-specific models
+try:
+    from d1_targeting.models import *
+except ImportError:
+    pass
+
+try:
+    from d2_sourcing.models import *
+except ImportError:
+    pass
+
+try:
+    from d3_assessment.models import *
+except ImportError:
+    pass
+
+try:
+    from d4_enrichment.models import *
+except ImportError:
+    pass
+
+try:
+    from d5_scoring.models import *
+except ImportError:
+    pass
+
+try:
+    from d6_reports.models import *
+except ImportError:
+    pass
+
+try:
+    from d6_reports.lineage.models import *
+except ImportError:
+    pass
+
+try:
+    from d7_storefront.models import *
+except ImportError:
+    pass
+
+try:
+    from d8_personalization.models import *
+except ImportError:
+    pass
+
+try:
+    from d9_delivery.models import *
+except ImportError:
+    pass
+
+try:
+    from d10_analytics.models import *
+except ImportError:
+    pass
+
+try:
+    from d11_orchestration.models import *
+except ImportError:
+    pass
+
+# Import feature-specific models
+try:
+    from batch_runner.models import *
+except ImportError:
+    pass
+
+try:
+    from lead_explorer.models import *
+except ImportError:
+    pass
+
+# governance models are in database.governance_models, imported above
 
 target_metadata = Base.metadata
 

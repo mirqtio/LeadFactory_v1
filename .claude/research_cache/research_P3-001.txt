@@ -1,0 +1,61 @@
+# Research Context for P3-001
+
+## Key Findings
+- FastAPI's dependency injection system provides a robust framework for implementing RBAC (Role-Based Access Control)
+- The preferred pattern is to use `Security()` wrapper instead of `Depends()` for authentication/authorization dependencies to improve clarity
+- Router-level dependencies can be applied to all routes within a router using `APIRouter(dependencies=[...])`
+- Application-level dependencies can be set using `FastAPI(dependencies=[...])` for global coverage
+- Dependencies are cached by default within a request scope, improving performance
+- Class-based dependencies (like RoleChecker) are recommended for complex authorization logic
+- Automated testing can verify all endpoints have proper dependencies using TestClient and dependency overrides
+
+## Authoritative Sources
+- https://fastapi.tiangolo.com/tutorial/security/ - Official FastAPI security documentation
+- https://fastapi.tiangolo.com/reference/apirouter/ - APIRouter reference for router-level dependencies
+- https://fastapi.tiangolo.com/advanced/testing-dependencies/ - Testing dependencies with overrides
+- https://medium.com/@anto18671/efficiency-of-using-dependencies-on-router-in-fastapi-c3b288ac408b - Router-level dependency patterns
+- https://github.com/zhanymkanov/fastapi-best-practices - Community best practices
+
+## Current Best Practices
+- Use class-based dependencies for reusable authorization logic:
+  ```python
+  class RoleChecker:
+      def __init__(self, allowed_roles: list):
+          self.allowed_roles = allowed_roles
+      
+      async def __call__(self, current_user: User = Depends(get_current_user)):
+          if current_user.role not in self.allowed_roles:
+              raise HTTPException(status_code=403, detail="Access forbidden")
+          return current_user
+  ```
+- Apply dependencies at router level for all routes in that router
+- Use `Security()` wrapper for authentication/authorization dependencies
+- Chain dependencies for complex authorization scenarios
+- Keep dependencies lightweight and use async when possible
+- Test dependencies using `app.dependency_overrides` in tests
+
+## Common Pitfalls
+- Not applying dependencies consistently across all mutation endpoints
+- Using middleware instead of dependencies for authentication (less flexible)
+- Forgetting to test viewer role restrictions on all endpoints
+- Not documenting security requirements in OpenAPI schema
+- Creating overly complex dependency chains that hurt performance
+- Using synchronous dependencies for I/O operations (causes thread pool overhead)
+- Not caching dependency results when appropriate
+
+## Recent Updates
+- FastAPI now supports global application-level dependencies (2024)
+- Enhanced documentation for Security() vs Depends() distinction
+- Improved performance for cached dependencies
+- Better integration with async programming patterns
+- Automatic OpenAPI documentation for security requirements
+- Support for SecurityScopes for fine-grained permissions
+
+## Implementation Recommendations
+- Create a single RoleChecker class that can be instantiated with different allowed roles
+- Apply RoleChecker at router level for consistent protection
+- Use automated tests to sweep all routes and verify mutation endpoints have RoleChecker
+- Implement performance tests to ensure <100ms overhead from auth checks
+- Use dependency overrides in tests to verify both admin and viewer behavior
+- Consider using router prefixes to organize protected vs public endpoints
+- Document all security dependencies in code comments for maintainability

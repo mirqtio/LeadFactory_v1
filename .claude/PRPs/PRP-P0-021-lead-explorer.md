@@ -46,10 +46,12 @@ Based on authoritative sources and current best practices (2024):
 - Use dependency injection for session management [FastAPI Advanced Dependencies](https://fastapi.tiangolo.com/advanced/advanced-dependencies/)
 
 **Audit Logging Best Practices**:
-- Middleware-based approach for HTTP-level audit capture
-- SQLAlchemy event listeners for database-level changes
+- Middleware-based approach for HTTP-level audit capture (PRIMARY APPROACH)
+- Avoid SQLAlchemy event listeners with async sessions (known bug in SQLAlchemy 2.0)
 - Immutable audit records with checksums for compliance
 - Async writes to prevent blocking main operations
+- Context variables for request tracking across async boundaries
+- Explicit audit calls in repository methods for database-level changes
 
 **Pydantic V2 Validation**:
 - Use Field() for extra constraints and metadata [Pydantic Validators](https://docs.pydantic.dev/latest/concepts/validators/)
@@ -69,18 +71,53 @@ Based on authoritative sources and current best practices (2024):
 1. **New Module Structure**: Create lead_explorer module with api, models, schemas, repository, and audit components
 2. **Database Design**: Two new tables - leads and audit_log_leads with proper indexes
 3. **API Design**: RESTful CRUD endpoints plus Quick-Add endpoint for enrichment
-4. **Audit Pattern**: SQLAlchemy event listeners for automatic audit logging
+4. **Audit Pattern**: Middleware-based audit logging with async-safe implementation (NOT SQLAlchemy event listeners due to async session issues)
 5. **Enrichment Integration**: Async task queuing to existing enrichment pipeline
+
+### Audit Implementation Strategy
+**Critical**: Due to known SQLAlchemy async session bugs with event listeners, we will implement audit logging using:
+
+1. **Request Context Tracking**:
+   ```python
+   # Use contextvars for async-safe request tracking
+   from contextvars import ContextVar
+   request_context: ContextVar[dict] = ContextVar('request_context')
+   ```
+
+2. **Middleware Pattern**:
+   ```python
+   # Capture HTTP-level mutations
+   async def audit_middleware(request: Request, call_next):
+       # Set context for downstream audit logging
+       ctx = {'user_id': request.user.id, 'ip': request.client.host}
+       request_context.set(ctx)
+       response = await call_next(request)
+       return response
+   ```
+
+3. **Repository Integration**:
+   ```python
+   # Explicit audit calls in repository methods
+   async def update_lead(self, lead_id: str, data: dict):
+       old_lead = await self.get_lead(lead_id)
+       updated_lead = await self._update(lead_id, data)
+       await self.audit_logger.log_update(old_lead, updated_lead, request_context.get())
+       return updated_lead
+   ```
 
 ### Implementation Steps
 1. Create database models for Lead and AuditLogLead
-2. Generate Alembic migration for new tables
-3. Implement repository pattern for database operations
-4. Create Pydantic schemas for request/response validation
-5. Build API endpoints with proper error handling
-6. Implement audit logging with event listeners
-7. Integrate Quick-Add with enrichment coordinator
-8. Add comprehensive test coverage
+2. Generate Alembic migration for new tables with proper indexes
+3. Implement repository pattern with integrated audit logging
+4. Create Pydantic schemas with comprehensive validation
+5. Build API endpoints with proper error handling and response codes
+6. Implement audit logging middleware with context variables (async-safe)
+7. Integrate Quick-Add with enrichment coordinator via background tasks
+8. Add comprehensive test coverage (≥80%) including:
+   - Unit tests for all components
+   - Integration tests for audit completeness
+   - Performance tests for large datasets
+   - Edge case tests for concurrent operations
 
 ### Key Design Decisions
 - Use async SQLAlchemy for non-blocking operations
@@ -88,6 +125,7 @@ Based on authoritative sources and current best practices (2024):
 - Use SHA-256 checksums for audit log immutability
 - Separate repository layer for testability
 - Background tasks for enrichment to avoid blocking
+- **CRITICAL**: Implement audit logging via middleware approach, NOT SQLAlchemy event listeners (to avoid known async session bugs)
 
 ## Acceptance Criteria
 
@@ -106,10 +144,12 @@ Based on authoritative sources and current best practices (2024):
    - Required fields enforced
 
 3. **Audit Requirements**
-   - Every mutation creates audit log entry
-   - Audit logs include user context (id, IP, user agent)
-   - Old and new values captured for updates
-   - Checksums prevent tampering
+   - Every mutation creates audit log entry via middleware pattern
+   - Audit logs include user context (id, IP, user agent) using context variables
+   - Old and new values captured for updates through repository integration
+   - Checksums prevent tampering (SHA-256 hash of log content)
+   - Async-safe implementation avoiding SQLAlchemy event listener bugs
+   - Audit log completeness verified by integration tests
 
 4. **Performance Requirements**
    - All endpoints respond in <500ms (p99)
@@ -118,10 +158,13 @@ Based on authoritative sources and current best practices (2024):
    - No N+1 query problems
 
 5. **Testing Requirements**
-   - Unit test coverage ≥80%
+   - Unit test coverage ≥80% (enforced in CI)
    - Integration tests for enrichment flow
-   - Performance tests for large datasets
-   - Audit trail completeness tests
+   - Performance tests for large datasets (10k+ records)
+   - Audit trail completeness tests (100% mutation coverage)
+   - Concurrent operation tests (race conditions)
+   - Error handling tests (network failures, DB constraints)
+   - Security tests (injection, XSS prevention)
 
 ## Dependencies
 
@@ -173,6 +216,30 @@ pytest tests/performance/test_lead_explorer_scale.py -v -m performance
 ```bash
 # Ensure ≥80% coverage
 pytest tests/unit/lead_explorer/ --cov=lead_explorer --cov-report=html --cov-fail-under=80
+```
+
+### Audit Testing Strategy
+```python
+# Test audit completeness
+@pytest.mark.asyncio
+async def test_audit_captures_all_mutations():
+    """Verify 100% of mutations are captured in audit log"""
+    # Create, update, delete operations
+    lead = await create_lead({...})
+    await update_lead(lead.id, {...})
+    await delete_lead(lead.id)
+    
+    # Verify audit entries
+    audit_logs = await get_audit_logs(lead.id)
+    assert len(audit_logs) == 3
+    assert audit_logs[0].action == 'CREATE'
+    assert audit_logs[1].action == 'UPDATE'
+    assert audit_logs[2].action == 'DELETE'
+    
+    # Verify user context captured
+    for log in audit_logs:
+        assert log.user_id is not None
+        assert log.ip_address is not None
 ```
 
 ## Rollback Plan
@@ -240,20 +307,38 @@ python scripts/check_lead_api_performance.py
 
 ### Missing-Checks Framework
 **Required Checks**:
-- [x] Pre-commit hooks for code quality
+- [x] Pre-commit hooks for code quality (ruff, black, mypy)
 - [x] Branch protection with required CI checks
-- [x] Database migration testing
-- [x] API contract testing
-- [x] Security scanning in CI
-- [x] Performance regression tests
+- [x] Database migration testing (alembic check, upgrade/downgrade verification)
+- [x] API contract testing (Pydantic schema validation)
+- [x] Security scanning in CI (bandit, safety)
+- [x] Performance regression tests (pytest-benchmark)
+- [x] Audit log integrity verification (checksum validation)
+- [x] Test coverage enforcement (≥80%)
 
 **Monitoring Checks**:
-- [x] API latency alerts (>500ms)
-- [x] Error rate monitoring (>1%)
-- [x] Audit log completeness checks
+- [x] API latency alerts (>500ms p99)
+- [x] Error rate monitoring (>1% 5xx responses)
+- [x] Audit log completeness checks (100% mutation coverage)
 - [x] Database connection pool monitoring
+- [x] Enrichment task queue depth monitoring
+- [x] Audit log write latency tracking
 
 ### Validation Gates
-1. **Development**: All unit tests pass, coverage ≥80%
-2. **Staging**: Integration tests pass, performance benchmarks met
-3. **Production**: Smoke tests pass, monitoring configured
+1. **Development**: 
+   - All unit tests pass with ≥80% coverage
+   - Audit logging verified for all mutations
+   - No SQLAlchemy event listeners used (async-safe)
+   - Pre-commit hooks passing
+
+2. **Staging**: 
+   - Integration tests pass including audit completeness
+   - Performance benchmarks met (<500ms p99)
+   - Load testing with 10k+ leads successful
+   - Security scan clean (no HIGH/CRITICAL)
+
+3. **Production**: 
+   - Smoke tests pass on all endpoints
+   - Monitoring configured and alerting
+   - Audit log integrity verified
+   - Rollback plan tested

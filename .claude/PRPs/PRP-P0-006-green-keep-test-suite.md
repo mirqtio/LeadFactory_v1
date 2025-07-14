@@ -28,23 +28,132 @@ All core tests passing
 - [ ] Update relevant documentation (README, docs/) if behavior changes
 - [ ] No performance regression (merge operations remain O(n))
 - [ ] Only modify files within specified integration points (no scope creep)
+- [ ] Pre-commit hooks must pass (black, mypy, flake8)
+- [ ] No security vulnerabilities introduced (bandit scan clean)
+- [ ] Branch protection rules enforced
+- [ ] Performance budget maintained (< 5 min runtime)
 
 ## Integration Points
 - 60 test files marked as KEEP
-- Remove/fix all xfail markers
+- Remove/fix all xfail markers that can be resolved in Wave A
+- Add appropriate markers to tests that require Wave B features
+- Create `tests/test_marker_policy.py` to enforce marker discipline
 
-**Critical Path**: Only modify files within these directories. Any changes outside require a separate PRP.
+**Critical Path**: 
+- Only modify test files and their directly tested code
+- Do not modify core business logic unless fixing a clear bug
+- Any architectural changes require a separate PRP
+
+**Marker Strategy**:
+- `@pytest.mark.phase_future` - Features planned for Wave B
+- `@pytest.mark.xfail` - Known issues with clear reasons
+- `@pytest.mark.slow` - Tests taking > 30 seconds
+- `@pytest.mark.skip` - Tests that cannot run in current environment
 
 ## Tests to Pass
 - New: `tests/test_marker_policy.py` - collects tests and asserts no un-marked failures
+- All existing KEEP tests must pass (exit code 0)
+- Runtime must be < 5 minutes
+- Coverage must be ≥ 80% on core modules
 
 
 
 ## Example File/Pattern
-**KEEP / phase_future gating**
+
+### Marker Policy Test Example
+```python
+# tests/test_marker_policy.py
+import pytest
+import subprocess
+import json
+import os
+
+def test_no_unmarked_failures():
+    """Ensure all failing tests have appropriate markers."""
+    # Run pytest with JSON report
+    result = subprocess.run(
+        [
+            "pytest", 
+            "-m", "not phase_future and not slow",
+            "--json-report",
+            "--json-report-file=test_results.json",
+            "--quiet"
+        ],
+        capture_output=True,
+        text=True
+    )
+    
+    # Parse results
+    if os.path.exists("test_results.json"):
+        with open("test_results.json") as f:
+            report = json.load(f)
+        
+        # Find unmarked failures
+        unmarked_failures = []
+        for test in report.get("tests", []):
+            if test["outcome"] in ["failed", "error"]:
+                markers = [m["name"] for m in test.get("metadata", {}).get("markers", [])]
+                if not any(m in markers for m in ["xfail", "skip", "phase_future"]):
+                    unmarked_failures.append(test["nodeid"])
+        
+        # Clean up
+        os.remove("test_results.json")
+        
+        # Assert no unmarked failures
+        assert not unmarked_failures, (
+            f"Found {len(unmarked_failures)} unmarked failures:\n"
+            + "\n".join(f"  - {t}" for t in unmarked_failures)
+        )
+    else:
+        pytest.fail("Failed to generate test results JSON")
+
+def test_keep_suite_exits_zero():
+    """Verify KEEP test suite passes with exit code 0."""
+    result = subprocess.run(
+        ["pytest", "-m", "not phase_future and not slow", "--quiet"],
+        capture_output=True
+    )
+    assert result.returncode == 0, f"KEEP suite failed with exit code {result.returncode}"
+
+def test_runtime_under_five_minutes():
+    """Verify KEEP test suite completes in under 5 minutes."""
+    import time
+    start = time.time()
+    
+    subprocess.run(
+        ["pytest", "-m", "not phase_future and not slow", "--quiet"],
+        capture_output=True
+    )
+    
+    duration = time.time() - start
+    assert duration < 300, f"Test suite took {duration:.1f}s, exceeds 5 minute limit"
+```
+
+### Common Marker Patterns
+```python
+# For tests that depend on future functionality
+@pytest.mark.phase_future
+def test_semrush_integration():
+    """Test SEMrush API integration (Wave B feature)."""
+    pass
+
+# For expected failures with known issues
+@pytest.mark.xfail(reason="Awaiting DataAxle contract finalization")
+def test_dataaxle_enrichment():
+    """Test DataAxle API enrichment."""
+    pass
+
+# For slow tests excluded from KEEP suite
+@pytest.mark.slow
+def test_full_pipeline_integration():
+    """Full pipeline test that takes > 30 seconds."""
+    pass
+```
 
 ## Reference Documentation
-`tests/test_marker_policy.py` *(new)* — collects tests and asserts no un-marked reds.
+- `tests/test_marker_policy.py` *(exists)* — collects tests and asserts no un-marked failures
+- `pytest.ini` — defines markers: slow, phase_future, xfail, critical, etc.
+- Requires `pytest-json-report` package for marker policy enforcement
 
 ## Implementation Guide
 
@@ -57,34 +166,132 @@ All core tests passing
 - Docker must be running for infrastructure tasks
 - Activate virtual environment: `source venv/bin/activate`
 - Set `USE_STUBS=true` for local development
+- Install pytest-json-report if not present: `pip install pytest-json-report`
 
-### Step 3: Implementation
-1. Review the business logic and acceptance criteria
-2. Study the example code/file pattern
-3. Implement changes following CLAUDE.md standards
-4. Ensure no deprecated features (see CURRENT_STATE.md below)
+### Step 3: Identify Unmarked Failures
+1. Run the KEEP test suite to find failures:
+   ```bash
+   pytest -m "not phase_future and not slow" -v
+   ```
+2. Capture output to identify tests that fail but lack proper markers
+3. Create `tests/test_marker_policy.py` to enforce marker policy:
+   ```python
+   import pytest
+   import subprocess
+   import json
+   import os
+   
+   def test_no_unmarked_failures():
+       """Ensure all failing tests have appropriate markers."""
+       # Note: Requires pytest-json-report package
+       result = subprocess.run(
+           [
+               "pytest", "-m", "not phase_future and not slow",
+               "--json-report", "--json-report-file=/tmp/test_results.json",
+               "--tb=no", "-q"
+           ],
+           capture_output=True
+       )
+       
+       try:
+           with open("/tmp/test_results.json") as f:
+               report = json.load(f)
+       except FileNotFoundError:
+           pytest.skip("JSON report not generated - pytest-json-report may not be installed")
+       
+       # Check for unmarked failures
+       unmarked_failures = []
+       for test in report.get("tests", []):
+           if test.get("outcome") == "failed":
+               markers = test.get("keywords", [])
+               if "xfail" not in markers and "phase_future" not in markers:
+                   unmarked_failures.append(test.get("nodeid"))
+       
+       assert not unmarked_failures, (
+           f"Found {len(unmarked_failures)} unmarked failures:\n"
+           + "\n".join(unmarked_failures)
+       )
+   ```
 
-### Step 4: Testing
-- Run all tests listed in "Tests to Pass" section
-- Verify KEEP suite remains green
-- Check coverage hasn't decreased
+### Step 4: Fix Unmarked Failures
+1. For each unmarked failure identified:
+   - Investigate root cause
+   - Fix the underlying issue if possible
+   - If fix requires work beyond Wave A scope, add appropriate marker:
+     - `@pytest.mark.xfail(reason="Requires feature from Wave B")` for expected failures
+     - `@pytest.mark.phase_future` for tests that depend on future functionality
+     - `@pytest.mark.skip(reason="...")` for tests that cannot run in current environment
+2. Common failure patterns to check:
+   - Missing environment variables or configuration
+   - Hardcoded paths that don't exist
+   - Dependencies on external services without stubs
+   - Race conditions or timing issues
+   - Database state dependencies
 
-### Step 5: Validation
+### Step 5: Validate Fixes
+1. Run the marker policy test:
+   ```bash
+   pytest tests/test_marker_policy.py -v
+   ```
+2. Verify KEEP suite passes:
+   ```bash
+   pytest -m "not phase_future and not slow" --tb=short
+   ```
+3. Check test runtime:
+   ```bash
+   time pytest -m "not phase_future and not slow"
+   ```
+4. Verify coverage:
+   ```bash
+   pytest -m "not phase_future and not slow" --cov=leadfactory --cov-report=term-missing
+   ```
+
+### Step 6: Pre-commit Validation
+- Run black formatter: `black tests/`
+- Run type checking: `mypy tests/test_marker_policy.py`
+- Run linting: `flake8 tests/test_marker_policy.py`
+- Verify no Yelp references: `grep -r "yelp" tests/ | grep -v "# Legacy" | wc -l` should be 0
+
+### Step 7: Final Validation
 - All outcome-focused criteria must be demonstrably true
 - Run full validation command suite
 - Commit with descriptive message: `fix(P0-006): Green KEEP Test Suite`
 
 ## Validation Commands
 ```bash
-# Run task-specific tests
-# New: `tests/test_marker_policy.py` - collects tests and asserts no un-marked failures
+# 1. Run marker policy test
+pytest tests/test_marker_policy.py -v
 
-# Run standard validation
+# 2. Run KEEP test suite
+pytest -m "not phase_future and not slow" -v
+
+# 3. Verify runtime < 5 minutes
+time pytest -m "not phase_future and not slow"
+
+# 4. Check coverage
+pytest -m "not phase_future and not slow" --cov=leadfactory --cov-report=term-missing
+
+# 5. Run standard validation
 bash scripts/validate_wave_a.sh
+
+# 6. Verify in Docker
+docker build -f Dockerfile.test -t lf-test .
+docker run --rm lf-test pytest -m "not phase_future and not slow"
 ```
 
 ## Rollback Strategy
-**Rollback**: Re-add xfail markers to unblock CI
+**Rollback**: 
+1. If changes break CI: Re-add xfail markers to unblock CI
+2. Create git branch for rollback: `git checkout -b rollback/p0-006`
+3. Revert commits: `git revert HEAD~n` (where n = number of commits)
+4. Push rollback branch and create PR
+5. Document failure reasons in `.claude/prp_progress.json`
+
+**Rollback Triggers**:
+- CI remains red after 3 fix attempts
+- Test suite runtime exceeds 10 minutes
+- Coverage drops below 75%
+- Critical functionality broken
 
 ## Feature Flag Requirements
 No new feature flag required - this fix is unconditional.
@@ -95,6 +302,98 @@ No new feature flag required - this fix is unconditional.
 - Coverage ≥ 80% maintained
 - CI green after push
 - No performance regression
+- `tests/test_marker_policy.py` enforces marker discipline
+- Zero unmarked failures in KEEP suite
+- Test runtime < 5 minutes consistently
+- All pre-commit hooks passing
+- Security scan (bandit) shows no new issues
+
+## Common Test Failure Patterns & Solutions
+
+### 1. Environment Variable Issues
+```python
+# Problem: Test fails due to missing env var
+# Solution: Use fixture with fallback
+@pytest.fixture
+def api_key(monkeypatch):
+    """Provide API key for tests."""
+    if os.getenv("USE_STUBS") == "true":
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key-stub")
+    return os.getenv("OPENAI_API_KEY", "test-fallback")
+```
+
+### 2. Database State Dependencies
+```python
+# Problem: Test expects specific DB state
+# Solution: Use transaction rollback
+@pytest.fixture
+def db_session():
+    """Provide clean DB session for each test."""
+    session = Session()
+    yield session
+    session.rollback()
+    session.close()
+```
+
+### 3. External Service Dependencies
+```python
+# Problem: Test calls real API
+# Solution: Check USE_STUBS flag
+def test_google_places_api():
+    if os.getenv("USE_STUBS") != "true":
+        pytest.skip("Requires USE_STUBS=true")
+    # Test with stub
+```
+
+### 4. Timing/Race Conditions
+```python
+# Problem: Flaky test due to timing
+# Solution: Mark as flaky and exclude from CI
+@pytest.mark.flaky  # Excluded from CI per pytest.ini
+def test_async_operation():
+    # Flaky tests should be fixed or removed
+    pass
+```
+
+### 5. Phase-specific Tests
+```python
+# Tests for future phases should be marked appropriately
+@pytest.mark.phase_future  # Auto-xfailed per pytest.ini
+def test_semrush_integration():
+    # This test will be deselected by "-m 'not phase_future'"
+    pass
+
+@pytest.mark.phase05  # Also auto-xfailed per pytest.ini  
+def test_dataaxle_enrichment():
+    # Phase 0.5 features
+    pass
+```
+
+## Pre-commit Hook Configuration
+
+Ensure `.pre-commit-config.yaml` includes:
+```yaml
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3.11
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.3.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-all]
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-ll, -i, -x, tests]
+```
 
 ## Critical Context
 

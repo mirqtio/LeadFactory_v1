@@ -14,10 +14,12 @@ Enable the CPO to pick any set of leads, preview cost, and launch a bulk report 
 2. Cost preview calculation accurate within ±5% of actual spend
 3. WebSocket progress updates delivered every 2 seconds during processing
 4. Individual lead failures logged without stopping batch execution
-5. Test coverage ≥80% on batch_runner module
-6. Batch status API endpoints respond in <500ms
-7. Progress updates properly throttled (≥1 msg/2s, ≤1 msg/s)
-8. Comprehensive error reporting for failed leads
+5. **Test coverage ≥80% on ALL batch_runner modules (batch_processor, cost_calculator, websocket_manager, batch_state_manager, api.batch_runner)**
+6. **Comprehensive integration test suite covering all critical paths**
+7. Batch status API endpoints respond in <500ms
+8. Progress updates properly throttled (≥1 msg/2s, ≤1 msg/s)
+9. Comprehensive error reporting for failed leads
+10. **All tests must pass in CI before marking complete**
 
 ## Context & Background
 
@@ -53,17 +55,49 @@ Bulk processing is the CPO's core "job-to-be-done" - they need to efficiently ge
 ```python
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: Dict[str, WebSocket] = {}
+        self.active_connections: Dict[str, List[WebSocket]] = {}
         self.throttle = AsyncThrottle(rate_limit=1, period=2.0)
+        self.message_queue: Dict[str, List[dict]] = {}
+        self.cleanup_task = None
     
-    async def connect(self, batch_id: str, websocket: WebSocket):
+    async def connect(self, batch_id: str, websocket: WebSocket, user_id: str):
+        """Connect with authentication and connection tracking."""
+        # Verify user has access to this batch
+        if not await self._verify_batch_access(batch_id, user_id):
+            await websocket.close(code=4003, reason="Unauthorized")
+            return
+            
         await websocket.accept()
-        self.active_connections[batch_id] = websocket
+        if batch_id not in self.active_connections:
+            self.active_connections[batch_id] = []
+        self.active_connections[batch_id].append(websocket)
+        
+        # Send any queued messages
+        if batch_id in self.message_queue:
+            for msg in self.message_queue[batch_id]:
+                await websocket.send_json(msg)
     
     async def broadcast_progress(self, batch_id: str, progress: dict):
+        """Broadcast with throttling and queuing."""
         async with self.throttle:
             if batch_id in self.active_connections:
-                await self.active_connections[batch_id].send_json(progress)
+                disconnected = []
+                for ws in self.active_connections[batch_id]:
+                    try:
+                        await ws.send_json(progress)
+                    except:
+                        disconnected.append(ws)
+                
+                # Clean up disconnected clients
+                for ws in disconnected:
+                    self.active_connections[batch_id].remove(ws)
+            else:
+                # Queue message for future connections
+                if batch_id not in self.message_queue:
+                    self.message_queue[batch_id] = []
+                self.message_queue[batch_id].append(progress)
+                # Keep only last 100 messages
+                self.message_queue[batch_id] = self.message_queue[batch_id][-100:]
 ```
 
 #### Cost Calculator
@@ -72,32 +106,221 @@ class CostCalculator:
     def __init__(self, config_path: str = "config/costs.json"):
         self.rates = self._load_rates(config_path)
         self.cache_ttl = 300  # 5 minutes
+        self._cache = TTLCache(maxsize=1000, ttl=self.cache_ttl)
+        self._rate_lock = asyncio.Lock()
     
-    def calculate_batch_cost(self, lead_count: int, template_version: str) -> Decimal:
-        blended_rate = self.rates.get("default_blended_rate", 0.45)
-        base_cost = self.rates.get("report_generation_base_cost", 0.05)
-        return Decimal(lead_count * (blended_rate + base_cost))
+    async def calculate_batch_cost(
+        self, 
+        lead_count: int, 
+        template_version: str,
+        provider_breakdown: Dict[str, int] = None
+    ) -> BatchCostEstimate:
+        """Calculate cost with provider-specific rates and tier pricing."""
+        cache_key = f"{lead_count}:{template_version}:{hash(str(provider_breakdown))}"
+        
+        # Check cache first
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+        
+        async with self._rate_lock:
+            # Reload rates if expired
+            if self._rates_expired():
+                self.rates = await self._load_rates_async(self.config_path)
+            
+            total_cost = Decimal('0')
+            breakdown = {}
+            
+            if provider_breakdown:
+                # Calculate per-provider costs
+                for provider, count in provider_breakdown.items():
+                    rate = self._get_provider_rate(provider, template_version)
+                    tier_rate = self._apply_tier_pricing(rate, count)
+                    cost = Decimal(str(count)) * tier_rate
+                    breakdown[provider] = float(cost)
+                    total_cost += cost
+            else:
+                # Use blended rate
+                blended_rate = Decimal(str(self.rates.get("default_blended_rate", 0.45)))
+                base_cost = Decimal(str(self.rates.get("report_generation_base_cost", 0.05)))
+                tier_rate = self._apply_tier_pricing(blended_rate + base_cost, lead_count)
+                total_cost = Decimal(str(lead_count)) * tier_rate
+                breakdown["blended"] = float(total_cost)
+            
+            estimate = BatchCostEstimate(
+                total_cost=float(total_cost),
+                breakdown=breakdown,
+                lead_count=lead_count,
+                average_cost_per_lead=float(total_cost / lead_count) if lead_count > 0 else 0,
+                confidence_interval=(float(total_cost * Decimal('0.95')), 
+                                   float(total_cost * Decimal('1.05')))
+            )
+            
+            self._cache[cache_key] = estimate
+            return estimate
+    
+    def _apply_tier_pricing(self, base_rate: Decimal, count: int) -> Decimal:
+        """Apply volume discounts based on tier thresholds."""
+        tiers = self.rates.get("volume_tiers", [
+            {"min": 0, "max": 100, "discount": 0},
+            {"min": 101, "max": 500, "discount": 0.1},
+            {"min": 501, "max": 1000, "discount": 0.2}
+        ])
+        
+        for tier in tiers:
+            if tier["min"] <= count <= tier["max"]:
+                return base_rate * (Decimal('1') - Decimal(str(tier["discount"])))
+        
+        return base_rate
 ```
 
 #### Batch Processor
 ```python
 class BatchProcessor:
-    def __init__(self, connection_manager: ConnectionManager):
+    def __init__(self, connection_manager: ConnectionManager, state_manager: BatchStateManager):
         self.connection_manager = connection_manager
+        self.state_manager = state_manager
         self.max_concurrent = settings.BATCH_MAX_CONCURRENT_LEADS
+        self.retry_config = RetryConfig(
+            max_attempts=3,
+            backoff_factor=2,
+            max_delay=60
+        )
     
-    async def process_batch(self, batch_id: str, lead_ids: List[str]):
-        semaphore = asyncio.Semaphore(self.max_concurrent)
-        tasks = [self._process_lead(lead_id, semaphore) for lead_id in lead_ids]
+    async def process_batch(self, batch_id: str, lead_ids: List[str], user_id: str):
+        """Process batch with comprehensive error handling and state tracking."""
+        # Initialize batch state
+        await self.state_manager.create_batch(
+            batch_id=batch_id,
+            lead_ids=lead_ids,
+            user_id=user_id,
+            status=BatchStatus.PROCESSING
+        )
         
-        for i, task in enumerate(asyncio.as_completed(tasks)):
-            result = await task
-            progress = {
-                "processed": i + 1,
-                "total": len(lead_ids),
-                "percentage": ((i + 1) / len(lead_ids)) * 100
-            }
-            await self.connection_manager.broadcast_progress(batch_id, progress)
+        semaphore = asyncio.Semaphore(self.max_concurrent)
+        results = {
+            'success': [],
+            'failed': [],
+            'retrying': []
+        }
+        
+        try:
+            # Create tasks with proper error handling
+            tasks = [
+                self._process_lead_with_retry(lead_id, batch_id, semaphore)
+                for lead_id in lead_ids
+            ]
+            
+            # Process with progress tracking
+            start_time = asyncio.get_event_loop().time()
+            
+            for i, task in enumerate(asyncio.as_completed(tasks)):
+                try:
+                    result = await task
+                    if result.success:
+                        results['success'].append(result.lead_id)
+                    else:
+                        results['failed'].append({
+                            'lead_id': result.lead_id,
+                            'error': result.error,
+                            'attempts': result.attempts
+                        })
+                except Exception as e:
+                    logger.error(f"Task failed for batch {batch_id}: {e}")
+                    results['failed'].append({
+                        'lead_id': 'unknown',
+                        'error': str(e),
+                        'attempts': 1
+                    })
+                
+                # Calculate detailed progress
+                elapsed = asyncio.get_event_loop().time() - start_time
+                processed = i + 1
+                remaining = len(lead_ids) - processed
+                rate = processed / elapsed if elapsed > 0 else 0
+                eta = remaining / rate if rate > 0 else None
+                
+                progress = {
+                    "processed": processed,
+                    "total": len(lead_ids),
+                    "percentage": (processed / len(lead_ids)) * 100,
+                    "success_count": len(results['success']),
+                    "failure_count": len(results['failed']),
+                    "elapsed_seconds": elapsed,
+                    "estimated_remaining_seconds": eta,
+                    "current_rate_per_second": rate,
+                    "status": "processing"
+                }
+                
+                # Update state and broadcast
+                await self.state_manager.update_progress(batch_id, progress)
+                await self.connection_manager.broadcast_progress(batch_id, progress)
+            
+            # Final status update
+            final_status = BatchStatus.COMPLETED if not results['failed'] else BatchStatus.COMPLETED_WITH_ERRORS
+            await self.state_manager.finalize_batch(
+                batch_id=batch_id,
+                status=final_status,
+                results=results
+            )
+            
+            # Send completion notification
+            await self._send_completion_notification(batch_id, user_id, results)
+            
+        except Exception as e:
+            logger.error(f"Batch processing failed: {e}")
+            await self.state_manager.finalize_batch(
+                batch_id=batch_id,
+                status=BatchStatus.FAILED,
+                error=str(e)
+            )
+            raise
+    
+    async def _process_lead_with_retry(
+        self, 
+        lead_id: str, 
+        batch_id: str,
+        semaphore: asyncio.Semaphore
+    ) -> ProcessResult:
+        """Process individual lead with retry logic."""
+        attempts = 0
+        last_error = None
+        
+        async with semaphore:
+            for attempt in range(self.retry_config.max_attempts):
+                attempts = attempt + 1
+                try:
+                    # Actual processing logic
+                    result = await self._process_single_lead(lead_id, batch_id)
+                    return ProcessResult(
+                        lead_id=lead_id,
+                        success=True,
+                        attempts=attempts,
+                        data=result
+                    )
+                except Exception as e:
+                    last_error = e
+                    if attempt < self.retry_config.max_attempts - 1:
+                        delay = min(
+                            self.retry_config.backoff_factor ** attempt,
+                            self.retry_config.max_delay
+                        )
+                        await asyncio.sleep(delay)
+                        logger.warning(
+                            f"Retrying lead {lead_id} after {delay}s "
+                            f"(attempt {attempts}/{self.retry_config.max_attempts})"
+                        )
+                    else:
+                        logger.error(
+                            f"Failed to process lead {lead_id} after "
+                            f"{attempts} attempts: {last_error}"
+                        )
+            
+            return ProcessResult(
+                lead_id=lead_id,
+                success=False,
+                attempts=attempts,
+                error=str(last_error)
+            )
 ```
 
 ### API Endpoints
@@ -174,38 +397,120 @@ httpx==0.25.2           # WebSocket testing
 
 ## Testing Strategy
 
-### Unit Tests (80% coverage)
+### Unit Tests (MANDATORY 80% coverage minimum)
 1. **test_cost_calculator.py**
-   - Test rate loading and caching
-   - Verify calculation accuracy
-   - Test edge cases (0 leads, missing rates)
+   - Test rate loading from multiple config sources
+   - Verify calculation accuracy with different rate types
+   - Test edge cases (0 leads, missing rates, negative values)
+   - Test cache TTL expiration and refresh
+   - Test concurrent access to rate calculations
+   - Test decimal precision for financial accuracy
+   - Test rate override mechanisms
+   - Test batch size tier pricing
 
 2. **test_websocket_manager.py**
-   - Connection/disconnection handling
-   - Broadcast throttling verification
-   - Multiple client support
+   - Connection/disconnection handling with auth
+   - Broadcast throttling verification (exact 2s intervals)
+   - Multiple client support (100+ connections)
+   - Memory leak prevention tests
+   - Connection timeout handling
+   - Message queuing during throttle periods
+   - Reconnection handling
+   - Message compression testing
 
 3. **test_batch_processor.py**
-   - Concurrent processing limits
-   - Error isolation verification
-   - Progress calculation accuracy
+   - Concurrent processing limits (test boundary conditions)
+   - Error isolation verification (one failure doesn't affect others)
+   - Progress calculation accuracy (floating point precision)
+   - Retry mechanism with exponential backoff
+   - Semaphore deadlock prevention
+   - Memory usage under high concurrency
+   - Task cancellation handling
+   - Resource cleanup on failure
 
-### Integration Tests
+4. **test_batch_runner_api.py**
+   - API endpoint response time validation
+   - Input validation (SQL injection, XSS)
+   - Authentication and authorization
+   - Rate limiting effectiveness
+   - Error response formatting
+   - CORS handling
+   - Request size limits
+   - Batch size validation
+
+5. **test_batch_state_manager.py**
+   - Database transaction handling
+   - State transition validation
+   - Concurrent state updates
+   - Orphaned batch cleanup
+   - History retention policies
+   - Query performance optimization
+
+### Integration Tests (COMPREHENSIVE - addressing validation gap)
 1. **test_batch_runner_integration.py**
-   - End-to-end batch processing
-   - WebSocket connection lifecycle
-   - Cost preview to actual comparison
-   - Database state verification
+   - End-to-end batch processing with real pipeline
+   - WebSocket connection lifecycle with auth flow
+   - Cost preview to actual comparison validation
+   - Database state verification across transactions
+   - Multi-user concurrent batch handling
+   - Error recovery and retry mechanisms
+   - Progress tracking accuracy over time
+   - Batch cancellation mid-flight
+
+2. **test_batch_cost_integration.py**
+   - Integration with P1-060 cost guardrails
+   - Budget limit enforcement
+   - Cost aggregation across providers
+   - Historical cost tracking
+   - Cost alert triggering
+
+3. **test_batch_pipeline_integration.py**
+   - Integration with Prefect pipeline
+   - Lead data flow validation
+   - Report generation verification
+   - Error propagation from pipeline
+   - Resource allocation testing
+
+4. **test_batch_websocket_integration.py**
+   - Full WebSocket flow with authentication
+   - Message delivery guarantees
+   - Connection resilience testing
+   - Load balancer compatibility
+   - SSL/TLS termination handling
 
 ### Load Tests
-1. Verify 500ms response time under load
-2. Test WebSocket with 100 concurrent connections
-3. Process 1000-lead batch within SLA
+1. Verify 500ms response time under load (1000 req/s)
+2. Test WebSocket with 1000 concurrent connections
+3. Process 1000-lead batch within 30-minute SLA
+4. Database connection pool saturation testing
+5. Memory usage under sustained load
 
 ### Chaos Tests
-1. Random lead failures during batch
-2. WebSocket disconnection handling
-3. Database connection failures
+1. Random lead failures during batch (10%, 50%, 90% failure rates)
+2. WebSocket disconnection handling (network partitions)
+3. Database connection failures (connection pool exhaustion)
+4. External service timeouts (Prefect, storage)
+5. OOM conditions during large batches
+
+### Test Coverage Requirements
+```bash
+# Coverage must be validated with:
+pytest tests/unit/d11_orchestration/test_batch_*.py \
+       tests/unit/api/test_batch_*.py \
+       tests/integration/test_batch_*.py \
+       --cov=d11_orchestration.batch_processor \
+       --cov=d11_orchestration.cost_calculator \
+       --cov=d11_orchestration.websocket_manager \
+       --cov=d11_orchestration.batch_state_manager \
+       --cov=api.batch_runner \
+       --cov-report=term-missing \
+       --cov-report=html \
+       --cov-fail-under=80
+
+# Line coverage must exceed 80% for EACH module individually
+# Branch coverage must exceed 75%
+# No critical paths can have 0% coverage
+```
 
 ## Rollback Plan
 
@@ -249,20 +554,47 @@ This means:
 ### Pre-Deployment Validation
 1. **Code Quality**
    ```bash
+   # Linting and type checking
    ruff check --fix api/batch_runner.py d11_orchestration/batch_*.py
    mypy api/batch_runner.py d11_orchestration/batch_*.py --strict
+   
+   # Security scanning
+   bandit -r api/batch_runner.py d11_orchestration/batch_*.py
+   safety check
    ```
 
-2. **Test Coverage**
+2. **Test Coverage (MANDATORY 80% minimum)**
    ```bash
+   # Run all unit tests with coverage
    pytest tests/unit/d11_orchestration/test_batch_*.py \
-          tests/integration/test_batch_runner_integration.py \
+          tests/unit/api/test_batch_*.py \
           --cov=d11_orchestration.batch_processor \
           --cov=d11_orchestration.cost_calculator \
           --cov=d11_orchestration.websocket_manager \
+          --cov=d11_orchestration.batch_state_manager \
           --cov=api.batch_runner \
           --cov-report=term-missing \
+          --cov-report=html \
           --cov-fail-under=80
+   
+   # Run integration tests separately
+   pytest tests/integration/test_batch_*.py -v
+   
+   # Verify no untested critical paths
+   python scripts/verify_critical_path_coverage.py
+   ```
+
+3. **Performance Validation**
+   ```bash
+   # Load test API endpoints
+   locust -f tests/load/batch_runner_load_test.py \
+          --host=http://localhost:8000 \
+          --users=100 \
+          --spawn-rate=10 \
+          --run-time=5m
+   
+   # WebSocket stress test
+   python tests/stress/websocket_stress_test.py --connections=1000
    ```
 
 3. **Security Checks**
