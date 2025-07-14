@@ -479,9 +479,9 @@ class TestHealthCheckAPI:
         # Create test data
         for i in range(10):
             lead = Lead(
-                email=f"test{i}@example.com",
-                domain="example.com",
-                company_name="Test Company",
+                email=f"test{i}@example{i}.com",
+                domain=f"example{i}.com",
+                company_name=f"Test Company {i}",
                 contact_name=f"Test User {i}",
                 is_manual=(i < 5),  # First 5 are manual
                 source="test"
