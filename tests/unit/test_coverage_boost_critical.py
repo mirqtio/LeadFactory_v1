@@ -9,7 +9,7 @@ import asyncio
 import json
 
 # Import modules to boost coverage
-from api.audit_middleware import AuditMiddleware
+from api.audit_middleware import AuditLoggingMiddleware
 from api.internal_routes import router as internal_router
 from batch_runner.api import router as batch_router
 from batch_runner.processor import BatchProcessor
@@ -43,14 +43,14 @@ class TestAuditMiddleware:
     def test_audit_middleware_initialization(self):
         """Test middleware can be initialized"""
         app = Mock()
-        middleware = AuditMiddleware(app)
+        middleware = AuditLoggingMiddleware(app)
         assert middleware.app == app
     
     @pytest.mark.asyncio
     async def test_audit_middleware_call(self):
         """Test middleware processes requests"""
         app = Mock()
-        middleware = AuditMiddleware(app)
+        middleware = AuditLoggingMiddleware(app)
         
         # Mock request and call_next
         scope = {"type": "http", "path": "/api/test", "method": "GET"}

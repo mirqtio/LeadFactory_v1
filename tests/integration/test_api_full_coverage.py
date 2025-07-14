@@ -60,14 +60,8 @@ class TestComprehensiveAPICoverage:
         response = client.post("/health")
         assert response.status_code == 405
     
-    @patch('d1_targeting.api.TargetingService')
-    def test_targeting_api(self, mock_service, client):
+    def test_targeting_api(self, client):
         """Test targeting API endpoints"""
-        mock_service.return_value.validate_targeting.return_value = {
-            "valid": True,
-            "locations": ["San Francisco, CA"],
-            "industries": ["restaurant"]
-        }
         
         # Validate endpoint
         response = client.post("/api/v1/targeting/validate", json={
@@ -87,8 +81,7 @@ class TestComprehensiveAPICoverage:
         response = client.get("/api/v1/targeting/quota")
         assert response.status_code in [200, 500]
     
-    @patch('d3_assessment.api.router')
-    def test_assessment_api(self, mock_router, client):
+    def test_assessment_api(self, client):
         """Test assessment API endpoints"""
         # Start assessment
         response = client.post("/api/v1/assessments/assess", json={
@@ -127,13 +120,8 @@ class TestComprehensiveAPICoverage:
         response = client.get("/api/v1/leads/search?q=test")
         assert response.status_code == 200
     
-    @patch('batch_runner.api.BatchService')
-    def test_batch_runner_api(self, mock_service, client):
+    def test_batch_runner_api(self, client):
         """Test batch runner endpoints"""
-        mock_service.return_value.create_job.return_value = {
-            "id": "job-123",
-            "status": "pending"
-        }
         
         # Create job
         response = client.post("/api/v1/batch/jobs", json={
@@ -223,10 +211,8 @@ class TestComprehensiveAPICoverage:
         response = client.get("/api/v1/governance/retention")
         assert response.status_code in [200, 404]
     
-    @patch('api.template_studio.get_templates')
-    def test_template_studio_api(self, mock_templates, client):
+    def test_template_studio_api(self, client):
         """Test template studio endpoints"""
-        mock_templates.return_value = []
         
         # Templates list
         response = client.get("/api/template-studio/templates")
@@ -239,10 +225,8 @@ class TestComprehensiveAPICoverage:
         })
         assert response.status_code in [200, 422, 404]
     
-    @patch('api.scoring_playground.evaluate_formula')
-    def test_scoring_playground_api(self, mock_evaluate, client):
+    def test_scoring_playground_api(self, client):
         """Test scoring playground endpoints"""
-        mock_evaluate.return_value = {"result": 100}
         
         # Evaluate formula
         response = client.post("/api/scoring-playground/evaluate", json={
@@ -261,42 +245,24 @@ class TestComprehensiveAPICoverage:
 class TestHighImpactCodePaths:
     """Tests that exercise high-impact code paths for coverage"""
     
-    @patch('d0_gateway.facade.GatewayFacade')
-    def test_gateway_providers_coverage(self, mock_facade, client):
+    def test_gateway_providers_coverage(self, client):
         """Exercise all gateway provider code paths"""
         providers = [
             'dataaxle', 'hunter', 'openai', 'semrush',
             'pagespeed', 'screenshotone', 'humanloop'
         ]
-        
-        for provider in providers:
-            # Mock provider calls
-            mock_facade.return_value.execute.return_value = {
-                "status": "success",
-                "data": {}
-            }
             
             # These might not have direct endpoints but are used internally
             # The imports and initialization will boost coverage
     
-    @patch('d8_personalization.personalizer.Personalizer')
-    def test_personalization_coverage(self, mock_personalizer, client):
+    def test_personalization_coverage(self, client):
         """Exercise personalization code paths"""
-        mock_personalizer.return_value.generate_content.return_value = {
-            "subject": "Test Subject",
-            "body": "Test Body",
-            "score": 0.9
-        }
         
         # These modules are used internally by other endpoints
         # The imports boost coverage
     
-    @patch('d5_scoring.formula_evaluator.FormulaEvaluator')
-    @patch('d5_scoring.rules_schema.RuleEngine')
-    def test_scoring_engine_coverage(self, mock_rules, mock_formula, client):
+    def test_scoring_engine_coverage(self, client):
         """Exercise scoring engine code paths"""
-        mock_formula.return_value.evaluate.return_value = {"value": 85}
-        mock_rules.return_value.evaluate.return_value = []
         
         # Scoring is used internally by assessment results
         # The imports and initialization boost coverage
@@ -311,7 +277,6 @@ class TestHighImpactCodePaths:
         
         business = Business(
             name="Coverage Test Co",
-            domain="test.com",
             industry="technology"
         )
         db_session.add(business)
