@@ -67,7 +67,20 @@ def test_report_template(db_session):
 
 
 @pytest.fixture
-def test_client():
+def test_client(db_session):
     """Create a test client for API testing"""
     from main import app
-    return TestClient(app)
+    from database.session import get_db
+    
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    with TestClient(app) as client:
+        yield client
+    
+    app.dependency_overrides.clear()
