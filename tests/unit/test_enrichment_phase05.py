@@ -204,12 +204,8 @@ class TestEnrichmentCoordinatorIntegration:
         # Verify enrichers were added
         assert EnrichmentSource.DATA_AXLE in coordinator.enrichers
         assert EnrichmentSource.HUNTER_IO in coordinator.enrichers
-        assert isinstance(
-            coordinator.enrichers[EnrichmentSource.DATA_AXLE], DataAxleEnricher
-        )
-        assert isinstance(
-            coordinator.enrichers[EnrichmentSource.HUNTER_IO], HunterEnricher
-        )
+        assert isinstance(coordinator.enrichers[EnrichmentSource.DATA_AXLE], DataAxleEnricher)
+        assert isinstance(coordinator.enrichers[EnrichmentSource.HUNTER_IO], HunterEnricher)
 
     @pytest.mark.asyncio
     @patch("d0_gateway.factory.GatewayClientFactory")
@@ -255,9 +251,7 @@ class TestEnrichmentCoordinatorIntegration:
         coordinator = EnrichmentCoordinator()
 
         # Test data
-        businesses = [
-            {"id": "biz_789", "name": "Test Business", "website": "https://example.com"}
-        ]
+        businesses = [{"id": "biz_789", "name": "Test Business", "website": "https://example.com"}]
 
         # Enrich with both sources
         result = await coordinator.enrich_businesses_batch(
@@ -365,9 +359,7 @@ class TestEnrichmentCoordinatorIntegration:
 
         # Enrich
         businesses = [{"id": "biz_999", "name": "Test"}]
-        await coordinator.enrich_businesses_batch(
-            businesses=businesses, sources=[EnrichmentSource.DATA_AXLE]
-        )
+        await coordinator.enrich_businesses_batch(businesses=businesses, sources=[EnrichmentSource.DATA_AXLE])
 
         # Verify cost was tracked
         mock_dataaxle.match_business.assert_called_once()

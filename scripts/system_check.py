@@ -70,9 +70,7 @@ class SystemChecker:
     def run_command(self, command: List[str], timeout: int = 30) -> Dict[str, Any]:
         """Run a command and return result"""
         try:
-            result = subprocess.run(
-                command, capture_output=True, text=True, timeout=timeout
-            )
+            result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
             return {
                 "success": result.returncode == 0,
                 "returncode": result.returncode,
@@ -145,9 +143,7 @@ class SystemChecker:
             "d11_orchestration",
         ]
 
-        domain_count = sum(
-            1 for domain in domains if self.check_directory_exists(domain)
-        )
+        domain_count = sum(1 for domain in domains if self.check_directory_exists(domain))
         systems["domain_modules"] = domain_count == len(domains)
         print(f"✅ Domain modules: {domain_count}/{len(domains)} verified")
 
@@ -205,9 +201,7 @@ class SystemChecker:
 
             else:
                 integrations["verification_script"] = False
-                print(
-                    f"❌ Integration verification failed: {result.get('stderr', 'Unknown error')}"
-                )
+                print(f"❌ Integration verification failed: {result.get('stderr', 'Unknown error')}")
         else:
             integrations["verification_script"] = False
             print("❌ Integration verification script not found")
@@ -284,9 +278,7 @@ class SystemChecker:
 
         script_count = sum(1 for f in deployment_scripts if self.check_file_exists(f))
         team_access["deployment_scripts"] = script_count == len(deployment_scripts)
-        print(
-            f"✅ Deployment scripts: {script_count}/{len(deployment_scripts)} available"
-        )
+        print(f"✅ Deployment scripts: {script_count}/{len(deployment_scripts)} available")
 
         # Check monitoring setup
         monitoring_files = [
@@ -297,9 +289,7 @@ class SystemChecker:
 
         monitoring_count = sum(1 for f in monitoring_files if self.check_file_exists(f))
         team_access["monitoring"] = monitoring_count >= 2
-        print(
-            f"✅ Monitoring setup: {monitoring_count}/{len(monitoring_files)} configured"
-        )
+        print(f"✅ Monitoring setup: {monitoring_count}/{len(monitoring_files)} configured")
 
         # Check automation setup
         automation_files = [
@@ -310,9 +300,7 @@ class SystemChecker:
 
         automation_count = sum(1 for f in automation_files if self.check_file_exists(f))
         team_access["automation"] = automation_count == len(automation_files)
-        print(
-            f"✅ Automation scripts: {automation_count}/{len(automation_files)} configured"
-        )
+        print(f"✅ Automation scripts: {automation_count}/{len(automation_files)} configured")
 
         # Check CI/CD setup
         ci_files = [".github/workflows/test.yml", "pytest.ini", "requirements.txt"]
@@ -329,9 +317,7 @@ class SystemChecker:
 
         security_count = sum(1 for f in security_items if self.check_file_exists(f))
         team_access["security"] = security_count >= 1
-        print(
-            f"✅ Security configuration: {security_count}/{len(security_items)} verified"
-        )
+        print(f"✅ Security configuration: {security_count}/{len(security_items)} verified")
 
         return team_access
 
@@ -361,9 +347,7 @@ class SystemChecker:
 
         analytics_count = sum(1 for f in analytics_files if self.check_file_exists(f))
         revenue["analytics_system"] = analytics_count == len(analytics_files)
-        print(
-            f"✅ Analytics system: {analytics_count}/{len(analytics_files)} components"
-        )
+        print(f"✅ Analytics system: {analytics_count}/{len(analytics_files)} components")
 
         # Check revenue models
         revenue_models = [
@@ -404,9 +388,7 @@ class SystemChecker:
                     if json_start >= 0:
                         json_output = output[json_start:]
                         campaign_result = json.loads(json_output)
-                        success = campaign_result.get("status", {}).get(
-                            "success", False
-                        )
+                        success = campaign_result.get("status", {}).get("success", False)
                         revenue["campaign_launch_test"] = success
                         if success:
                             print("✅ Campaign launch test successful")
@@ -420,9 +402,7 @@ class SystemChecker:
                     print(f"❌ Campaign launch test failed to parse: {e}")
             else:
                 revenue["campaign_launch_test"] = False
-                print(
-                    f"❌ Campaign launch test failed: {result.get('stderr', 'Unknown error')}"
-                )
+                print(f"❌ Campaign launch test failed: {result.get('stderr', 'Unknown error')}")
         else:
             revenue["campaign_launch_test"] = False
 
@@ -502,9 +482,7 @@ class SystemChecker:
             "first_revenue_tracked": (
                 results.get("revenue_tracking", {}).get("payment_system", False)
                 and results.get("revenue_tracking", {}).get("analytics_system", False)
-                and results.get("revenue_tracking", {}).get(
-                    "campaign_launch_test", False
-                )
+                and results.get("revenue_tracking", {}).get("campaign_launch_test", False)
             ),
         }
 
@@ -524,9 +502,7 @@ class SystemChecker:
         print("=" * 80)
 
         print(f"\n📊 Overall Status: {results['overall_status'].upper()}")
-        print(
-            f"📈 Pass Rate: {results['pass_rate']:.1f}% ({results['checks_passed']}/{results['total_checks']})"
-        )
+        print(f"📈 Pass Rate: {results['pass_rate']:.1f}% ({results['checks_passed']}/{results['total_checks']})")
         print(f"⏱️  Completed: {results['timestamp']}")
 
         # System details
@@ -541,27 +517,19 @@ class SystemChecker:
         # Integration details
         integrations = results.get("integrations", {})
         print("\n🌐 External Integrations:")
-        print(
-            f"   Gateway Components: {'✅' if integrations.get('gateway_components') else '❌'}"
-        )
-        print(
-            f"   Verification Script: {'✅' if integrations.get('verification_script') else '❌'}"
-        )
+        print(f"   Gateway Components: {'✅' if integrations.get('gateway_components') else '❌'}")
+        print(f"   Verification Script: {'✅' if integrations.get('verification_script') else '❌'}")
 
         # Documentation details
         documentation = results.get("documentation", {})
         print("\n📚 Documentation:")
         print(f"   Core Documentation: {'✅' if documentation.get('complete') else '❌'}")
-        print(
-            f"   API Documentation: {'✅' if documentation.get('api_documentation') else '❌'}"
-        )
+        print(f"   API Documentation: {'✅' if documentation.get('api_documentation') else '❌'}")
 
         # Team access details
         team_access = results.get("team_access", {})
         print("\n👥 Team Access:")
-        print(
-            f"   Deployment Scripts: {'✅' if team_access.get('deployment_scripts') else '❌'}"
-        )
+        print(f"   Deployment Scripts: {'✅' if team_access.get('deployment_scripts') else '❌'}")
         print(f"   Monitoring: {'✅' if team_access.get('monitoring') else '❌'}")
         print(f"   Automation: {'✅' if team_access.get('automation') else '❌'}")
         print(f"   CI/CD: {'✅' if team_access.get('ci_cd') else '❌'}")
@@ -583,9 +551,7 @@ class SystemChecker:
         print(f"\n🏆 FINAL STATUS: {'SUCCESS' if all_met else 'NEEDS ATTENTION'}")
 
         if all_met:
-            print(
-                "\n🎉 All acceptance criteria met! LeadFactory MVP is ready for production."
-            )
+            print("\n🎉 All acceptance criteria met! LeadFactory MVP is ready for production.")
             print("\n📋 Next Steps:")
             print("   - Begin monitoring production metrics")
             print("   - Scale up campaign targeting")

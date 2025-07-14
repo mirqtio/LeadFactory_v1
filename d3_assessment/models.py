@@ -25,13 +25,7 @@ JsonColumn = JSON
 
 from database.base import Base
 
-from .types import (
-    AssessmentStatus,
-    AssessmentType,
-    CostType,
-    InsightCategory,
-    TechCategory,
-)
+from .types import AssessmentStatus, AssessmentType, CostType, InsightCategory, TechCategory
 
 
 def generate_uuid():
@@ -127,9 +121,7 @@ class AssessmentResult(Base):
     costs = relationship("AssessmentCost", back_populates="assessment")
 
     # Add business relationship for compatibility with other models
-    business = relationship(
-        "Business", back_populates="assessments", foreign_keys=[business_id]
-    )
+    business = relationship("Business", back_populates="assessments", foreign_keys=[business_id])
 
     # Proper indexing for performance
     __table_args__ = (
@@ -140,9 +132,7 @@ class AssessmentResult(Base):
         Index("idx_d3_assessment_domain", "domain"),
         # Performance query indexes
         Index("idx_d3_assessment_scores", "performance_score", "accessibility_score"),
-        Index(
-            "idx_d3_assessment_vitals", "largest_contentful_paint", "first_input_delay"
-        ),
+        Index("idx_d3_assessment_vitals", "largest_contentful_paint", "first_input_delay"),
         # JSON indexes for flexible queries (removed postgresql-specific GIN for SQLite compatibility)
         # Composite indexes for common queries
         Index(
@@ -176,9 +166,7 @@ class PageSpeedAssessment(Base):
     __tablename__ = "d3_pagespeed_assessments"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    assessment_id = Column(
-        String, ForeignKey("d3_assessment_results.id"), nullable=False
-    )
+    assessment_id = Column(String, ForeignKey("d3_assessment_results.id"), nullable=False)
 
     # Device type
     is_mobile = Column(Boolean, default=False)
@@ -219,9 +207,7 @@ class PageSpeedAssessment(Base):
         Index("idx_d3_pagespeed_assessment", "assessment_id"),
         Index("idx_d3_pagespeed_mobile", "is_mobile"),
         Index("idx_d3_pagespeed_scores", "performance_score", "accessibility_score"),
-        UniqueConstraint(
-            "assessment_id", "is_mobile", name="uq_pagespeed_assessment_device"
-        ),
+        UniqueConstraint("assessment_id", "is_mobile", name="uq_pagespeed_assessment_device"),
     )
 
 
@@ -235,9 +221,7 @@ class TechStackDetection(Base):
     __tablename__ = "d3_tech_stack_detections"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    assessment_id = Column(
-        String, ForeignKey("d3_assessment_results.id"), nullable=False
-    )
+    assessment_id = Column(String, ForeignKey("d3_assessment_results.id"), nullable=False)
 
     # Technology details
     technology_name = Column(String(200), nullable=False)
@@ -267,9 +251,7 @@ class TechStackDetection(Base):
         Index("idx_d3_tech_name", "technology_name"),
         Index("idx_d3_tech_confidence", "confidence"),
         Index("idx_d3_tech_category_confidence", "category", "confidence"),
-        CheckConstraint(
-            "confidence >= 0 AND confidence <= 1", name="check_tech_confidence"
-        ),
+        CheckConstraint("confidence >= 0 AND confidence <= 1", name="check_tech_confidence"),
     )
 
 
@@ -283,9 +265,7 @@ class AIInsight(Base):
     __tablename__ = "d3_ai_insights"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    assessment_id = Column(
-        String, ForeignKey("d3_assessment_results.id"), nullable=False
-    )
+    assessment_id = Column(String, ForeignKey("d3_assessment_results.id"), nullable=False)
 
     # Insight classification
     category = Column(SQLEnum(InsightCategory), nullable=False)
@@ -323,18 +303,10 @@ class AIInsight(Base):
         Index("idx_d3_insights_impact", "impact"),
         Index("idx_d3_insights_confidence", "confidence"),
         Index("idx_d3_insights_category_priority", "category", "priority"),
-        CheckConstraint(
-            "priority >= 1 AND priority <= 10", name="check_insight_priority"
-        ),
-        CheckConstraint(
-            "confidence >= 0 AND confidence <= 1", name="check_insight_confidence"
-        ),
-        CheckConstraint(
-            "impact IN ('high', 'medium', 'low')", name="check_insight_impact"
-        ),
-        CheckConstraint(
-            "effort IN ('high', 'medium', 'low')", name="check_insight_effort"
-        ),
+        CheckConstraint("priority >= 1 AND priority <= 10", name="check_insight_priority"),
+        CheckConstraint("confidence >= 0 AND confidence <= 1", name="check_insight_confidence"),
+        CheckConstraint("impact IN ('high', 'medium', 'low')", name="check_insight_impact"),
+        CheckConstraint("effort IN ('high', 'medium', 'low')", name="check_insight_effort"),
     )
 
 
@@ -389,9 +361,7 @@ class AssessmentSession(Base):
         Index("idx_d3_session_created", "created_at"),
         Index("idx_d3_session_cost", "total_cost_usd"),
         CheckConstraint("total_cost_usd >= 0", name="check_session_cost_positive"),
-        CheckConstraint(
-            "completed_assessments <= total_assessments", name="check_session_progress"
-        ),
+        CheckConstraint("completed_assessments <= total_assessments", name="check_session_progress"),
     )
 
 
@@ -460,9 +430,7 @@ class LLMInsightResult(Base):
 
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    assessment_id = Column(
-        String, ForeignKey("d3_assessment_results.id"), nullable=False
-    )
+    assessment_id = Column(String, ForeignKey("d3_assessment_results.id"), nullable=False)
     business_id = Column(String, ForeignKey("businesses.id"), nullable=False)
 
     # Industry and context

@@ -6,20 +6,14 @@ from unittest.mock import patch
 
 import pytest
 
-from d0_gateway.circuit_breaker import (
-    CircuitBreaker,
-    CircuitBreakerConfig,
-    CircuitState,
-)
+from d0_gateway.circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitState
 
 
 class TestCircuitBreakerStates:
     @pytest.fixture
     def circuit_breaker(self):
         """Create circuit breaker for testing"""
-        config = CircuitBreakerConfig(
-            failure_threshold=3, recovery_timeout=1, success_threshold=2
-        )
+        config = CircuitBreakerConfig(failure_threshold=3, recovery_timeout=1, success_threshold=2)
         return CircuitBreaker("test_provider", config)
 
     def test_three_states_closed_open_half_open(self, circuit_breaker):
@@ -119,9 +113,7 @@ class TestConfigurableThresholds:
 
     def test_configurable_recovery_timeout(self):
         """Test configurable recovery timeout"""
-        config = CircuitBreakerConfig(
-            failure_threshold=1, recovery_timeout=2  # 2 seconds
-        )
+        config = CircuitBreakerConfig(failure_threshold=1, recovery_timeout=2)  # 2 seconds
         cb = CircuitBreaker("test", config)
 
         # Open circuit
@@ -534,9 +526,7 @@ class TestCircuitBreakerEnhancements:
 
     def test_state_info_completeness(self):
         """Test completeness and accuracy of state information"""
-        config = CircuitBreakerConfig(
-            failure_threshold=3, success_threshold=2, recovery_timeout=30
-        )
+        config = CircuitBreakerConfig(failure_threshold=3, success_threshold=2, recovery_timeout=30)
         cb = CircuitBreaker("info_test", config)
 
         # Test initial state info
@@ -580,9 +570,7 @@ class TestCircuitBreakerEnhancements:
         assert "circuit_breaker.log_test" in cb.logger.name
 
         # Test logging during state transitions
-        with patch.object(cb.logger, "info") as mock_info, patch.object(
-            cb.logger, "warning"
-        ) as mock_warning:
+        with patch.object(cb.logger, "info") as mock_info, patch.object(cb.logger, "warning") as mock_warning:
             # Force open should log warning
             cb.force_open()
             mock_warning.assert_called()

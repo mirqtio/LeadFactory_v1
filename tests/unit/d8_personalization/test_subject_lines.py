@@ -19,10 +19,7 @@ import pytest
 pytestmark = pytest.mark.slow
 import yaml
 
-from d8_personalization.models import (
-    EmailContentType,
-    PersonalizationStrategy,
-)
+from d8_personalization.models import EmailContentType, PersonalizationStrategy
 from d8_personalization.subject_lines import (
     GeneratedSubjectLine,
     GenerationStrategy,
@@ -271,9 +268,7 @@ class TestSubjectLineGenerator:
 
         # Check for different variant types
         variant_types = [name.split("_")[0] for name in variant_names]
-        assert (
-            len(set(variant_types)) > 1
-        )  # Different types (length, tone, personalization)
+        assert len(set(variant_types)) > 1  # Different types (length, tone, personalization)
 
 
 class TestTokenResolution:
@@ -283,23 +278,17 @@ class TestTokenResolution:
         """Test business name token resolution"""
         generator = SubjectLineGenerator(temp_templates_file)
 
-        tokens_resolved, tokens_failed = generator._resolve_tokens(
-            ["business_name"], sample_request
-        )
+        tokens_resolved, tokens_failed = generator._resolve_tokens(["business_name"], sample_request)
 
         assert "business_name" in tokens_resolved
         assert "business_name" not in tokens_failed
-        assert (
-            tokens_resolved["business_name"] == "Acme Restaurant"
-        )  # LLC should be removed
+        assert tokens_resolved["business_name"] == "Acme Restaurant"  # LLC should be removed
 
     def test_contact_name_resolution(self, temp_templates_file, sample_request):
         """Test contact name token resolution"""
         generator = SubjectLineGenerator(temp_templates_file)
 
-        tokens_resolved, tokens_failed = generator._resolve_tokens(
-            ["contact_name"], sample_request
-        )
+        tokens_resolved, tokens_failed = generator._resolve_tokens(["contact_name"], sample_request)
 
         assert "contact_name" in tokens_resolved
         assert tokens_resolved["contact_name"] == "John"  # Should be title cased
@@ -308,14 +297,10 @@ class TestTokenResolution:
         """Test location token resolution"""
         generator = SubjectLineGenerator(temp_templates_file)
 
-        tokens_resolved, tokens_failed = generator._resolve_tokens(
-            ["location"], sample_request
-        )
+        tokens_resolved, tokens_failed = generator._resolve_tokens(["location"], sample_request)
 
         assert "location" in tokens_resolved
-        assert (
-            tokens_resolved["location"] == "Seattle"
-        )  # State suffix should be removed
+        assert tokens_resolved["location"] == "Seattle"  # State suffix should be removed
 
     def test_failed_token_fallback(self, temp_templates_file, sample_request):
         """Test fallback for failed token resolution"""
@@ -324,9 +309,7 @@ class TestTokenResolution:
         # Remove business data to cause failure
         sample_request.business_data = {}
 
-        tokens_resolved, tokens_failed = generator._resolve_tokens(
-            ["business_name"], sample_request
-        )
+        tokens_resolved, tokens_failed = generator._resolve_tokens(["business_name"], sample_request)
 
         assert "business_name" in tokens_resolved
         assert "business_name" in tokens_failed
@@ -350,19 +333,13 @@ class TestTransformations:
         """Test removal of legal suffixes"""
         generator = SubjectLineGenerator(temp_templates_file)
 
-        result = generator._apply_transformation(
-            "Acme Corp LLC", "remove_legal_suffixes"
-        )
+        result = generator._apply_transformation("Acme Corp LLC", "remove_legal_suffixes")
         assert result == "Acme Corp"
 
-        result = generator._apply_transformation(
-            "Smith & Associates Inc", "remove_legal_suffixes"
-        )
+        result = generator._apply_transformation("Smith & Associates Inc", "remove_legal_suffixes")
         assert result == "Smith & Associates"
 
-        result = generator._apply_transformation(
-            "No Suffix Business", "remove_legal_suffixes"
-        )
+        result = generator._apply_transformation("No Suffix Business", "remove_legal_suffixes")
         assert result == "No Suffix Business"
 
     def test_normalize_industry(self, temp_templates_file):
@@ -393,9 +370,7 @@ class TestLengthHandling:
         """Test subject line truncation"""
         generator = SubjectLineGenerator(temp_templates_file)
 
-        long_text = (
-            "This is a very long subject line that exceeds the maximum length limit"
-        )
+        long_text = "This is a very long subject line that exceeds the maximum length limit"
         truncated = generator._truncate_subject_line(long_text, 30)
 
         assert len(truncated) <= 30
@@ -428,9 +403,7 @@ class TestQualityScoring:
         }
 
         subject_text = "Quick question about Acme Restaurant"
-        score = generator._calculate_quality_score(
-            subject_text, template, sample_request
-        )
+        score = generator._calculate_quality_score(subject_text, template, sample_request)
 
         assert 0.0 <= score <= 1.0
         assert score > 0.5  # Should be reasonably high quality
@@ -442,9 +415,7 @@ class TestQualityScoring:
         # Full personalization
         tokens_resolved = {"business_name": "Acme Corp", "contact_name": "John"}
         required_tokens = ["business_name", "contact_name"]
-        score = generator._calculate_personalization_score(
-            tokens_resolved, required_tokens
-        )
+        score = generator._calculate_personalization_score(tokens_resolved, required_tokens)
         assert score == 1.0
 
         # Partial personalization
@@ -452,9 +423,7 @@ class TestQualityScoring:
             "business_name": "Acme Corp",
             "contact_name": "{contact_name}",
         }
-        score = generator._calculate_personalization_score(
-            tokens_resolved, required_tokens
-        )
+        score = generator._calculate_personalization_score(tokens_resolved, required_tokens)
         assert score == 0.5
 
     def test_spam_risk_calculation(self, temp_templates_file):
@@ -509,9 +478,7 @@ class TestReadabilityUtilities:
 class TestPerformanceOptimized:
     """Test performance-optimized generation"""
 
-    def test_performance_optimized_generation(
-        self, temp_templates_file, sample_request
-    ):
+    def test_performance_optimized_generation(self, temp_templates_file, sample_request):
         """Test performance-optimized subject line generation"""
         generator = SubjectLineGenerator(temp_templates_file)
 
@@ -596,9 +563,7 @@ class TestEdgeCases:
         for result in results:
             assert len(result.text) > 0
             # Should use default values
-            assert (
-                "your business" in result.text.lower() or "there" in result.text.lower()
-            )
+            assert "your business" in result.text.lower() or "there" in result.text.lower()
 
     def test_missing_templates(self, temp_templates_file):
         """Test handling of missing template categories"""
@@ -642,9 +607,7 @@ class TestEdgeCases:
 class TestAcceptanceCriteria:
     """Test all acceptance criteria together"""
 
-    def test_pattern_based_generation_acceptance(
-        self, temp_templates_file, sample_request
-    ):
+    def test_pattern_based_generation_acceptance(self, temp_templates_file, sample_request):
         """Test: Pattern-based generation ✓"""
         generator = SubjectLineGenerator(temp_templates_file)
         results = generator.generate_subject_lines(sample_request)
@@ -654,9 +617,7 @@ class TestAcceptanceCriteria:
             assert result.pattern_used  # Should use a pattern
             assert result.generation_method == "template_based"
 
-    def test_token_replacement_works_acceptance(
-        self, temp_templates_file, sample_request
-    ):
+    def test_token_replacement_works_acceptance(self, temp_templates_file, sample_request):
         """Test: Token replacement works ✓"""
         generator = SubjectLineGenerator(temp_templates_file)
         results = generator.generate_subject_lines(sample_request)
@@ -666,9 +627,7 @@ class TestAcceptanceCriteria:
             assert "{" not in result.text or "}" not in result.text
             assert len(result.tokens_resolved) > 0
 
-    def test_length_limits_enforced_acceptance(
-        self, temp_templates_file, sample_request
-    ):
+    def test_length_limits_enforced_acceptance(self, temp_templates_file, sample_request):
         """Test: Length limits enforced ✓"""
         generator = SubjectLineGenerator(temp_templates_file)
 

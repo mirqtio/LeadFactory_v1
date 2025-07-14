@@ -3,7 +3,7 @@ Pydantic schemas for lineage API
 """
 
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 

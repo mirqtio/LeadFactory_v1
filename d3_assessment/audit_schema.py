@@ -1,7 +1,7 @@
 """Audit schema definitions for assessment findings."""
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Any
+from typing import Any, List, Optional
 
 
 class FindingSeverity(Enum):

@@ -25,10 +25,7 @@ def test_environment_setup(test_settings, test_db_session, stub_server):
     """Test environment setup - Verify test environment is properly configured"""
     # Verify test settings
     assert test_settings.environment == "test"
-    assert (
-        "test" in test_settings.database_url
-        or test_settings.database_url == "sqlite:///./test_e2e.db"
-    )
+    assert "test" in test_settings.database_url or test_settings.database_url == "sqlite:///./test_e2e.db"
     assert test_settings.use_stubs is True
 
     # Verify database session works
@@ -64,9 +61,7 @@ def test_data_seeding_works(sample_targeting_criteria, sample_yelp_businesses):
 
 
 @pytest.mark.e2e
-def test_cleanup_automated(
-    test_db_session, clean_test_environment, isolated_test_workspace
-):
+def test_cleanup_automated(test_db_session, clean_test_environment, isolated_test_workspace):
     """Cleanup automated - Verify cleanup happens automatically"""
     # Test workspace isolation
     assert os.path.exists(isolated_test_workspace)

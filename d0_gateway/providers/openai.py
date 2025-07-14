@@ -14,12 +14,13 @@ class OpenAIClient(BaseAPIClient):
 
     def __init__(self, api_key: Optional[str] = None):
         from core.config import get_settings
+
         settings = get_settings()
-        
+
         # Check if OpenAI is enabled
         if not settings.enable_openai:
             raise RuntimeError("OpenAI client initialized but ENABLE_OPENAI=false")
-            
+
         super().__init__(provider="openai", api_key=api_key)
 
     def _get_base_url(self) -> str:
@@ -57,12 +58,8 @@ class OpenAIClient(BaseAPIClient):
             estimated_input_tokens = 800  # Prompt + context
             estimated_output_tokens = 300  # Response
 
-            input_cost = (
-                Decimal(estimated_input_tokens) / Decimal("1000000")
-            ) * Decimal("0.15")
-            output_cost = (
-                Decimal(estimated_output_tokens) / Decimal("1000000")
-            ) * Decimal("0.60")
+            input_cost = (Decimal(estimated_input_tokens) / Decimal("1000000")) * Decimal("0.15")
+            output_cost = (Decimal(estimated_output_tokens) / Decimal("1000000")) * Decimal("0.60")
 
             return input_cost + output_cost
         else:
@@ -125,24 +122,18 @@ class OpenAIClient(BaseAPIClient):
             "performance_score": categories.get("performance", {}).get("score", 0),
             "seo_score": categories.get("seo", {}).get("score", 0),
             "accessibility_score": categories.get("accessibility", {}).get("score", 0),
-            "best_practices_score": categories.get("best-practices", {}).get(
-                "score", 0
-            ),
+            "best_practices_score": categories.get("best-practices", {}).get("score", 0),
             "url": pagespeed_data.get("id", "unknown"),
         }
 
         # Add Core Web Vitals
         if "largest-contentful-paint" in audits:
             context["lcp_score"] = audits["largest-contentful-paint"].get("score", 0)
-            context["lcp_value"] = audits["largest-contentful-paint"].get(
-                "displayValue", ""
-            )
+            context["lcp_value"] = audits["largest-contentful-paint"].get("displayValue", "")
 
         if "cumulative-layout-shift" in audits:
             context["cls_score"] = audits["cumulative-layout-shift"].get("score", 0)
-            context["cls_value"] = audits["cumulative-layout-shift"].get(
-                "displayValue", ""
-            )
+            context["cls_value"] = audits["cumulative-layout-shift"].get("displayValue", "")
 
         # Create prompt for AI analysis
         system_prompt = """You are a website performance expert. Analyze the provided PageSpeed Insights data and generate exactly 3 actionable recommendations in JSON format.
@@ -231,9 +222,7 @@ Generate 3 specific recommendations to improve this website's performance and us
         # Prepare issues summary for AI
         issues_summary = []
         for issue in website_issues[:3]:  # Top 3 issues
-            issues_summary.append(
-                f"- {issue.get('issue', 'Unknown issue')} (Impact: {issue.get('impact', 'medium')})"
-            )
+            issues_summary.append(f"- {issue.get('issue', 'Unknown issue')} (Impact: {issue.get('impact', 'medium')})")
 
         issues_text = "\n".join(issues_summary)
 
@@ -275,9 +264,7 @@ Write a personalized email offering to help improve their website performance.""
             return {
                 "business_name": business_name,
                 "recipient_name": recipient_name,
-                "email_subject": email_content.get(
-                    "subject", "Website Performance Insights"
-                ),
+                "email_subject": email_content.get("subject", "Website Performance Insights"),
                 "email_body": email_content.get("body", ""),
                 "issues_count": len(website_issues),
                 "generated_at": response.get("created"),
@@ -293,9 +280,7 @@ Write a personalized email offering to help improve their website performance.""
                 "fallback_body": f"Hi{f' {recipient_name}' if recipient_name else ''},\n\nI noticed some opportunities to improve {business_name}'s website performance. Would you be interested in a free analysis?\n\nBest regards",
             }
 
-    def _get_fallback_recommendations(
-        self, context: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def _get_fallback_recommendations(self, context: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generate fallback recommendations when AI fails"""
         recommendations = []
 

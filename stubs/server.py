@@ -36,9 +36,7 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
     # Simulate some URLs being slower than others
     is_slow = random.random() < 0.3
 
-    performance_score = (
-        random.uniform(0.2, 0.5) if is_slow else random.uniform(0.6, 0.95)
-    )
+    performance_score = random.uniform(0.2, 0.5) if is_slow else random.uniform(0.6, 0.95)
     seo_score = random.uniform(0.5, 0.95)
 
     return {
@@ -49,27 +47,19 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
             "id": url,
             "metrics": {
                 "CUMULATIVE_LAYOUT_SHIFT_SCORE": {
-                    "percentile": random.randint(5, 25)
-                    if is_slow
-                    else random.randint(1, 10),
+                    "percentile": random.randint(5, 25) if is_slow else random.randint(1, 10),
                     "distributions": [],
                 },
                 "FIRST_CONTENTFUL_PAINT_MS": {
-                    "percentile": random.randint(2000, 5000)
-                    if is_slow
-                    else random.randint(800, 2000),
+                    "percentile": random.randint(2000, 5000) if is_slow else random.randint(800, 2000),
                     "distributions": [],
                 },
                 "FIRST_INPUT_DELAY_MS": {
-                    "percentile": random.randint(100, 300)
-                    if is_slow
-                    else random.randint(20, 100),
+                    "percentile": random.randint(100, 300) if is_slow else random.randint(20, 100),
                     "distributions": [],
                 },
                 "LARGEST_CONTENTFUL_PAINT_MS": {
-                    "percentile": random.randint(3000, 8000)
-                    if is_slow
-                    else random.randint(1000, 3000),
+                    "percentile": random.randint(3000, 8000) if is_slow else random.randint(1000, 3000),
                     "distributions": [],
                 },
             },
@@ -111,9 +101,7 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
                     "description": "Marks the time at which the largest text or image is painted",
                     "score": 0.2 if is_slow else 0.9,
                     "displayValue": f"{random.randint(3, 8) if is_slow else random.uniform(0.8, 2.5):.1f} s",
-                    "numericValue": random.randint(3000, 8000)
-                    if is_slow
-                    else random.randint(800, 2500),
+                    "numericValue": random.randint(3000, 8000) if is_slow else random.randint(800, 2500),
                     "numericUnit": "millisecond",
                 },
                 "max-potential-fid": {
@@ -122,9 +110,7 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
                     "description": "The maximum potential First Input Delay that your users could experience",
                     "score": 0.5 if is_slow else 0.95,
                     "displayValue": f"{random.randint(100, 300) if is_slow else random.randint(16, 100)} ms",
-                    "numericValue": random.randint(100, 300)
-                    if is_slow
-                    else random.randint(16, 100),
+                    "numericValue": random.randint(100, 300) if is_slow else random.randint(16, 100),
                     "numericUnit": "millisecond",
                 },
                 "cumulative-layout-shift": {
@@ -134,15 +120,11 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
                     "score": 0.7 if is_slow else 0.95,
                     "displayValue": str(
                         round(
-                            random.uniform(0.1, 0.3)
-                            if is_slow
-                            else random.uniform(0, 0.1),
+                            random.uniform(0.1, 0.3) if is_slow else random.uniform(0, 0.1),
                             3,
                         )
                     ),
-                    "numericValue": random.uniform(0.1, 0.3)
-                    if is_slow
-                    else random.uniform(0, 0.1),
+                    "numericValue": random.uniform(0.1, 0.3) if is_slow else random.uniform(0, 0.1),
                     "numericUnit": "unitless",
                 },
             },
@@ -161,30 +143,28 @@ async def google_places_find(
 
     # Generate stub place data
     place_id = f"ChIJ_stub_{datetime.utcnow().timestamp()}"
-    
+
     return {
         "candidates": [
             {
                 "place_id": place_id,
                 "name": input.split(",")[0],  # Use first part as name
-                "formatted_address": f"123 Main St, {input}"
+                "formatted_address": f"123 Main St, {input}",
             }
         ],
-        "status": "OK"
+        "status": "OK",
     }
 
 
 @app.get("/maps/api/place/details/json")
-async def google_places_details(
-    place_id: str, fields: Optional[str] = None, key: Optional[str] = None
-):
+async def google_places_details(place_id: str, fields: Optional[str] = None, key: Optional[str] = None):
     """Mock Google Places Details API"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
 
     # Generate realistic business data
     has_hours = random.random() > 0.2  # 80% have hours
-    
+
     details = {
         "result": {
             "place_id": place_id,
@@ -195,11 +175,11 @@ async def google_places_details(
             "business_status": "OPERATIONAL",
             "rating": round(random.uniform(3.5, 5.0), 1),
             "user_ratings_total": random.randint(10, 500),
-            "types": ["restaurant", "food", "point_of_interest", "establishment"]
+            "types": ["restaurant", "food", "point_of_interest", "establishment"],
         },
-        "status": "OK"
+        "status": "OK",
     }
-    
+
     # Add opening hours if available
     if has_hours:
         details["result"]["opening_hours"] = {
@@ -211,27 +191,23 @@ async def google_places_details(
                 "Thursday: 9:00 AM – 5:00 PM",
                 "Friday: 9:00 AM – 5:00 PM",
                 "Saturday: 10:00 AM – 3:00 PM",
-                "Sunday: Closed"
-            ]
+                "Sunday: Closed",
+            ],
         }
-    
+
     return details
 
 
 # Google PageSpeed Insights endpoints
 @app.get("/pagespeedonline/v5/runPagespeed")
-async def pagespeed_analyze(
-    url: str, strategy: str = "mobile", key: Optional[str] = None
-):
+async def pagespeed_analyze(url: str, strategy: str = "mobile", key: Optional[str] = None):
     """Mock Google PageSpeed Insights API"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
 
     # Simulate some URLs failing (disabled in test mode)
     if not IS_TEST_MODE and random.random() < 0.05:  # 5% failure rate
-        return JSONResponse(
-            status_code=400, content={"error": {"message": "Invalid URL"}}
-        )
+        return JSONResponse(status_code=400, content={"error": {"message": "Invalid URL"}})
 
     return generate_pagespeed_data(url)
 
@@ -249,9 +225,7 @@ class StripeCheckoutSession(BaseModel):
 
 
 @app.post("/v1/checkout/sessions")
-async def stripe_create_checkout(
-    session: StripeCheckoutSession, authorization: str = Header(None)
-):
+async def stripe_create_checkout(session: StripeCheckoutSession, authorization: str = Header(None)):
     """Mock Stripe Checkout Session creation"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
@@ -295,9 +269,7 @@ async def sendgrid_send(mail: SendGridMail, authorization: str = Header(None)):
 
     # Simulate some emails bouncing
     if random.random() < 0.02:  # 2% bounce rate
-        return JSONResponse(
-            status_code=400, content={"errors": [{"message": "Invalid email address"}]}
-        )
+        return JSONResponse(status_code=400, content={"errors": [{"message": "Invalid email address"}]})
 
     return Response(
         status_code=202,
@@ -314,9 +286,7 @@ class OpenAICompletion(BaseModel):
 
 
 @app.post("/v1/chat/completions")
-async def openai_completion(
-    completion: OpenAICompletion, authorization: str = Header(None)
-):
+async def openai_completion(completion: OpenAICompletion, authorization: str = Header(None)):
     """Mock OpenAI chat completion"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")

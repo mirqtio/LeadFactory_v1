@@ -4,7 +4,7 @@ Hunter.io API stub endpoints
 import random
 from typing import Optional
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 router = APIRouter()
 
@@ -33,9 +33,7 @@ async def find_email(
 
     # Require either domain or company
     if not domain and not company:
-        raise HTTPException(
-            status_code=400, detail="Either domain or company is required"
-        )
+        raise HTTPException(status_code=400, detail="Either domain or company is required")
 
     # Simulate no email found (20% of requests)
     if random.random() < 0.2:
@@ -71,9 +69,7 @@ async def find_email(
             "first_name": first_name,
             "last_name": last_name,
             "position": random.choice(["CEO", "Manager", "Director", "Owner", None]),
-            "twitter": f"https://twitter.com/{company.lower().replace(' ', '')}"
-            if random.random() > 0.5
-            else None,
+            "twitter": f"https://twitter.com/{company.lower().replace(' ', '')}" if random.random() > 0.5 else None,
             "linkedin_url": f"https://linkedin.com/in/{first_name}-{last_name}".lower()
             if first_name and last_name and random.random() > 0.3
             else None,

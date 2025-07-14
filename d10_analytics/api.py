@@ -93,9 +93,7 @@ def create_error_response(
     status_code: int = 400,
 ) -> HTTPException:
     """Create standardized error response"""
-    error_data = ErrorResponse(
-        error=error_type, message=message, details=details, request_id=str(uuid.uuid4())
-    )
+    error_data = ErrorResponse(error=error_type, message=message, details=details, request_id=str(uuid.uuid4()))
     # Use json() method to apply custom encoders, then parse back to dict
     import json as json_module
 
@@ -109,9 +107,7 @@ def create_error_response(
     summary="Get Analytics Metrics",
     description="Retrieve analytics metrics with date range and segment filtering",
 )
-async def get_metrics(
-    request: MetricsRequest, warehouse: MetricsWarehouse = Depends(get_warehouse)
-) -> MetricsResponse:
+async def get_metrics(request: MetricsRequest, warehouse: MetricsWarehouse = Depends(get_warehouse)) -> MetricsResponse:
     """
     Get analytics metrics data
 
@@ -208,9 +204,7 @@ async def get_metrics(
         raise create_error_response("validation_error", str(e))
     except Exception as e:
         logger.error(f"Error getting metrics: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to retrieve metrics", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to retrieve metrics", status_code=500)
 
 
 @router.post(
@@ -263,9 +257,7 @@ async def get_funnel_metrics(
                 sessions_started=record.get("sessions_started", 0),
                 sessions_converted=record.get("sessions_converted", 0),
                 conversion_rate_pct=Decimal(str(record.get("conversion_rate_pct", 0))),
-                avg_time_to_convert_hours=Decimal(
-                    str(record.get("avg_time_to_convert_hours", 0))
-                )
+                avg_time_to_convert_hours=Decimal(str(record.get("avg_time_to_convert_hours", 0)))
                 if record.get("avg_time_to_convert_hours")
                 else None,
                 total_cost_cents=record.get("total_cost_cents", 0),
@@ -275,19 +267,11 @@ async def get_funnel_metrics(
             total_conversions += data_point.sessions_converted
 
         # Calculate overall conversion rate
-        total_entries = sum(
-            dp.sessions_started for dp in data_points if dp.from_stage == "targeting"
-        )
+        total_entries = sum(dp.sessions_started for dp in data_points if dp.from_stage == "targeting")
         overall_conversion_rate = Decimal("0")
         if total_entries > 0:
-            total_final_conversions = sum(
-                dp.sessions_converted
-                for dp in data_points
-                if dp.to_stage == "conversion"
-            )
-            overall_conversion_rate = (
-                Decimal(total_final_conversions) / Decimal(total_entries) * 100
-            )
+            total_final_conversions = sum(dp.sessions_converted for dp in data_points if dp.to_stage == "conversion")
+            overall_conversion_rate = Decimal(total_final_conversions) / Decimal(total_entries) * 100
 
         # Build stage summary
         stage_summary = {}
@@ -303,13 +287,8 @@ async def get_funnel_metrics(
             if stage_data:
                 stage_summary[stage] = {
                     "total_sessions": sum(dp.sessions_started for dp in stage_data),
-                    "total_conversions": sum(
-                        dp.sessions_converted for dp in stage_data
-                    ),
-                    "avg_conversion_rate": sum(
-                        dp.conversion_rate_pct for dp in stage_data
-                    )
-                    / len(stage_data),
+                    "total_conversions": sum(dp.sessions_converted for dp in stage_data),
+                    "avg_conversion_rate": sum(dp.conversion_rate_pct for dp in stage_data) / len(stage_data),
                     "total_cost": sum(dp.total_cost_cents for dp in stage_data),
                 }
 
@@ -333,9 +312,7 @@ async def get_funnel_metrics(
         raise create_error_response("validation_error", str(e))
     except Exception as e:
         logger.error(f"Error getting funnel metrics: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to retrieve funnel metrics", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to retrieve funnel metrics", status_code=500)
 
 
 @router.post(
@@ -396,9 +373,7 @@ async def get_cohort_analysis(
         # Calculate average retention rate
         avg_retention_rate = Decimal("0")
         if data_points:
-            avg_retention_rate = sum(dp.retention_rate_pct for dp in data_points) / len(
-                data_points
-            )
+            avg_retention_rate = sum(dp.retention_rate_pct for dp in data_points) / len(data_points)
 
         # Build retention summary by period
         retention_summary = {}
@@ -406,22 +381,14 @@ async def get_cohort_analysis(
             period_data = [dp for dp in data_points if dp.retention_period == period]
             if period_data:
                 retention_summary[period] = {
-                    "avg_retention_rate": sum(
-                        dp.retention_rate_pct for dp in period_data
-                    )
-                    / len(period_data),
-                    "total_cohorts": len(
-                        set((dp.cohort_date, dp.campaign_id) for dp in period_data)
-                    ),
-                    "avg_events_per_user": sum(dp.events_per_user for dp in period_data)
-                    / len(period_data),
+                    "avg_retention_rate": sum(dp.retention_rate_pct for dp in period_data) / len(period_data),
+                    "total_cohorts": len(set((dp.cohort_date, dp.campaign_id) for dp in period_data)),
+                    "avg_events_per_user": sum(dp.events_per_user for dp in period_data) / len(period_data),
                 }
 
         return CohortAnalysisResponse(
             request_id=request_id,
-            cohort_date_range=DateRangeFilter(
-                start_date=request.cohort_start_date, end_date=request.cohort_end_date
-            ),
+            cohort_date_range=DateRangeFilter(start_date=request.cohort_start_date, end_date=request.cohort_end_date),
             total_cohorts=total_cohorts,
             avg_retention_rate=avg_retention_rate,
             data=data_points,
@@ -433,9 +400,7 @@ async def get_cohort_analysis(
         raise create_error_response("validation_error", str(e))
     except Exception as e:
         logger.error(f"Error getting cohort analysis: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to retrieve cohort analysis", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to retrieve cohort analysis", status_code=500)
 
 
 @router.post(
@@ -501,9 +466,7 @@ async def export_analytics_data(
                 export_cache[export_id] = {
                     "content": file_content,
                     "file_size": file_size,
-                    "record_count": len(data.get("records", []))
-                    if isinstance(data, dict)
-                    else len(data),
+                    "record_count": len(data.get("records", [])) if isinstance(data, dict) else len(data),
                     "status": "completed",
                     "created_at": datetime.utcnow(),
                     "expires_at": datetime.utcnow() + timedelta(hours=24),
@@ -539,9 +502,7 @@ async def export_analytics_data(
         raise create_error_response("validation_error", str(e))
     except Exception as e:
         logger.error(f"Error starting export: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to start export", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to start export", status_code=500)
 
 
 @router.get(
@@ -553,9 +514,7 @@ async def get_export_status(export_id: str):
     """Get export status or download file"""
     try:
         if export_id not in export_cache:
-            raise create_error_response(
-                "not_found", f"Export {export_id} not found", status_code=404
-            )
+            raise create_error_response("not_found", f"Export {export_id} not found", status_code=404)
 
         export_data = export_cache[export_id]
 
@@ -582,18 +541,14 @@ async def get_export_status(export_id: str):
             return StreamingResponse(
                 iter([export_data["content"]]),
                 media_type="text/csv",
-                headers={
-                    "Content-Disposition": f"attachment; filename=analytics_export_{export_id}.csv"
-                },
+                headers={"Content-Disposition": f"attachment; filename=analytics_export_{export_id}.csv"},
             )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error getting export status: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to get export status", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to get export status", status_code=500)
 
 
 @router.get(

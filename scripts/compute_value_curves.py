@@ -28,8 +28,8 @@ from typing import Dict, List
 
 import pandas as pd
 import requests
-from requests.exceptions import HTTPError
 import urllib3
+from requests.exceptions import HTTPError
 
 # Disable SSL warnings for public FTP downloads where cert chain may fail
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -201,9 +201,7 @@ def main(argv: List[str] | None = None) -> None:
                         "revenue_per_point_usd": round(revenue_per_point, 2),
                         "peer_score_percentile": pd.NA,
                         "review_velocity_gap_usd": pd.NA,
-                        "updated_at": _dt.datetime.utcnow().isoformat(
-                            timespec="seconds"
-                        ),
+                        "updated_at": _dt.datetime.utcnow().isoformat(timespec="seconds"),
                     }
                 )
 

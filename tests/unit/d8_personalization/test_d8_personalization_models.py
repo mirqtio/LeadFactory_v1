@@ -184,20 +184,10 @@ class TestSubjectLineVariant:
         )
 
         # Calculate rates
-        variant.open_rate = (
-            variant.open_count / variant.sent_count if variant.sent_count > 0 else 0
-        )
-        variant.click_rate = (
-            variant.click_count / variant.open_count if variant.open_count > 0 else 0
-        )
-        variant.conversion_rate = (
-            variant.conversion_count / variant.sent_count
-            if variant.sent_count > 0
-            else 0
-        )
-        variant.spam_rate = (
-            variant.spam_reports / variant.sent_count if variant.sent_count > 0 else 0
-        )
+        variant.open_rate = variant.open_count / variant.sent_count if variant.sent_count > 0 else 0
+        variant.click_rate = variant.click_count / variant.open_count if variant.open_count > 0 else 0
+        variant.conversion_rate = variant.conversion_count / variant.sent_count if variant.sent_count > 0 else 0
+        variant.spam_rate = variant.spam_reports / variant.sent_count if variant.sent_count > 0 else 0
 
         db_session.add(variant)
         db_session.commit()
@@ -265,9 +255,7 @@ class TestPersonalizationToken:
 class TestPersonalizationVariable:
     """Test PersonalizationVariable model"""
 
-    def test_create_personalization_variable(
-        self, sample_personalization_token, db_session
-    ):
+    def test_create_personalization_variable(self, sample_personalization_token, db_session):
         """Test creating personalization variables"""
         variable = PersonalizationVariable(
             token_id=sample_personalization_token.id,
@@ -338,14 +326,8 @@ class TestEmailContent:
 
         assert content.id is not None
         assert content.business_id == "biz_789"
-        assert (
-            content.subject_line
-            == "Improve Acme Restaurant's website performance in Seattle"
-        )
-        assert (
-            content.personalization_strategy
-            == PersonalizationStrategy.BUSINESS_SPECIFIC
-        )
+        assert content.subject_line == "Improve Acme Restaurant's website performance in Seattle"
+        assert content.personalization_strategy == PersonalizationStrategy.BUSINESS_SPECIFIC
         assert content.is_approved is True
         assert content.open_rate == 0.25
 

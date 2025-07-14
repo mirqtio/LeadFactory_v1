@@ -15,18 +15,19 @@ class GooglePlacesClient(BaseAPIClient):
 
     def __init__(self, api_key: Optional[str] = None):
         from core.config import get_settings
+
         settings = get_settings()
-        
+
         # Check if GBP is enabled
         if not settings.enable_gbp:
             raise RuntimeError("GBP client initialized but ENABLE_GBP=false")
-        
+
         # Set base URL based on stub configuration
         if settings.use_stubs:
             self._base_url = f"{settings.stub_base_url}/maps/api/place"
         else:
             self._base_url = "https://maps.googleapis.com/maps/api/place"
-            
+
         super().__init__(provider="google_places", api_key=api_key)
 
     def _get_base_url(self) -> str:
@@ -62,9 +63,7 @@ class GooglePlacesClient(BaseAPIClient):
         else:
             return Decimal("0.000")
 
-    async def find_place(
-        self, query: str, fields: Optional[list] = None
-    ) -> Optional[Dict[str, Any]]:
+    async def find_place(self, query: str, fields: Optional[list] = None) -> Optional[Dict[str, Any]]:
         """
         Find a place by text query
 
@@ -85,17 +84,13 @@ class GooglePlacesClient(BaseAPIClient):
             "key": self.api_key,
         }
 
-        response = await self.make_request(
-            "GET", "/findplacefromtext/json", params=params
-        )
+        response = await self.make_request("GET", "/findplacefromtext/json", params=params)
 
         if response and response.get("candidates"):
             return response["candidates"][0]
         return None
 
-    async def get_place_details(
-        self, place_id: str, fields: Optional[list] = None
-    ) -> Optional[Dict[str, Any]]:
+    async def get_place_details(self, place_id: str, fields: Optional[list] = None) -> Optional[Dict[str, Any]]:
         """
         Get detailed information about a place
 
@@ -127,9 +122,7 @@ class GooglePlacesClient(BaseAPIClient):
             result = response["result"]
 
             # Check for missing hours as per PRD
-            missing_hours = not result.get("opening_hours") or not result[
-                "opening_hours"
-            ].get("weekday_text")
+            missing_hours = not result.get("opening_hours") or not result["opening_hours"].get("weekday_text")
 
             return {**result, "missing_hours": missing_hours}
 

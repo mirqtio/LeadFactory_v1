@@ -3,7 +3,6 @@ Lineage tracking models for report generation
 """
 
 import uuid
-from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
@@ -86,9 +85,7 @@ class ReportLineage(Base):
         Index("idx_lineage_lead_id", "lead_id"),
         Index("idx_lineage_pipeline_run", "pipeline_run_id"),
         Index("idx_lineage_created_at", "created_at"),
-        CheckConstraint(
-            "raw_inputs_size_bytes >= 0", name="check_raw_inputs_size_non_negative"
-        ),
+        CheckConstraint("raw_inputs_size_bytes >= 0", name="check_raw_inputs_size_non_negative"),
         CheckConstraint(
             "compression_ratio >= 0 AND compression_ratio <= 100",
             name="check_compression_ratio_range",
@@ -98,8 +95,7 @@ class ReportLineage(Base):
 
     def __repr__(self):
         return (
-            f"<ReportLineage(id='{self.id}', lead_id='{self.lead_id}', "
-            f"pipeline_run_id='{self.pipeline_run_id}')>"
+            f"<ReportLineage(id='{self.id}', lead_id='{self.lead_id}', " f"pipeline_run_id='{self.pipeline_run_id}')>"
         )
 
     @property

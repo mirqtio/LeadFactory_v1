@@ -15,7 +15,7 @@ import pytest
 # Mark entire module as slow for CI optimization and xfail for issues
 pytestmark = [
     pytest.mark.slow,
-    pytest.mark.xfail(reason="Targeting integration has database session management issues")
+    pytest.mark.xfail(reason="Targeting integration has database session management issues"),
 ]
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -27,16 +27,10 @@ sys.path.insert(0, "/app")
 
 from d1_targeting.api import router
 from d1_targeting.batch_scheduler import BatchScheduler
-from d1_targeting.models import (
-    Campaign,
-    TargetUniverse,
-)
+from d1_targeting.models import Campaign, TargetUniverse
 from d1_targeting.quota_tracker import QuotaTracker
 from d1_targeting.target_universe import TargetUniverseManager
-from d1_targeting.types import (
-    BatchProcessingStatus,
-    CampaignStatus,
-)
+from d1_targeting.types import BatchProcessingStatus, CampaignStatus
 
 
 class TestTargetingIntegrationTask024:
@@ -97,9 +91,7 @@ class TestTargetingIntegrationTask024:
             name="Test Restaurant Universe",
             description="Integration test universe",
             verticals=["restaurants", "retail"],
-            geography_config={
-                "constraints": [{"level": "state", "values": ["CA", "NY"]}]
-            },
+            geography_config={"constraints": [{"level": "state", "values": ["CA", "NY"]}]},
             estimated_size=5000,
             actual_size=4800,
             qualified_count=4200,
@@ -132,15 +124,11 @@ class TestTargetingIntegrationTask024:
         test_session.commit()
         return campaign
 
-    def test_full_flow_tested(
-        self, client, test_session, sample_target_universe, sample_campaign
-    ):
+    def test_full_flow_tested(self, client, test_session, sample_target_universe, sample_campaign):
         """Test complete targeting workflow end-to-end"""
 
         # 1. Verify universe exists and is accessible via API
-        response = client.get(
-            f"/api/v1/targeting/universes/{sample_target_universe.id}"
-        )
+        response = client.get(f"/api/v1/targeting/universes/{sample_target_universe.id}")
         assert response.status_code == 200
         universe_data = response.json()
         assert universe_data["id"] == sample_target_universe.id
@@ -199,9 +187,7 @@ class TestTargetingIntegrationTask024:
         with patch("d1_targeting.api.BatchScheduler") as mock_scheduler:
             # Mock successful batch creation
             created_batch_ids = ["batch-001", "batch-002", "batch-003"]
-            mock_scheduler.return_value.create_daily_batches.return_value = (
-                created_batch_ids
-            )
+            mock_scheduler.return_value.create_daily_batches.return_value = created_batch_ids
 
             batch_request = {
                 "campaign_ids": [sample_campaign.id],
@@ -256,9 +242,7 @@ class TestTargetingIntegrationTask024:
         ]
 
         test_session.query = Mock()
-        test_session.query.return_value.offset.return_value.limit.return_value.all.return_value = (
-            mock_batches
-        )
+        test_session.query.return_value.offset.return_value.limit.return_value.all.return_value = mock_batches
 
         response = client.get("/api/v1/targeting/batches")
         assert response.status_code == 200
@@ -281,9 +265,7 @@ class TestTargetingIntegrationTask024:
                 "targets_failed": 5,
             }
 
-            response = client.put(
-                "/api/v1/targeting/batches/batch-001/status", json=status_update
-            )
+            response = client.put("/api/v1/targeting/batches/batch-001/status", json=status_update)
             assert response.status_code == 200
             update_response = response.json()
             assert update_response["success"] is True
@@ -291,9 +273,7 @@ class TestTargetingIntegrationTask024:
 
         print("✓ Batch creation verified")
 
-    def test_api_endpoints_work(
-        self, client, test_session, sample_target_universe, sample_campaign
-    ):
+    def test_api_endpoints_work(self, client, test_session, sample_target_universe, sample_campaign):
         """Test that all API endpoints work correctly"""
 
         # Test target universe endpoints
@@ -311,9 +291,7 @@ class TestTargetingIntegrationTask024:
         assert universes[0]["id"] == sample_target_universe.id
 
         # 2. Get specific universe
-        response = client.get(
-            f"/api/v1/targeting/universes/{sample_target_universe.id}"
-        )
+        response = client.get(f"/api/v1/targeting/universes/{sample_target_universe.id}")
         assert response.status_code == 200
         universe = response.json()
         assert universe["id"] == sample_target_universe.id
@@ -344,9 +322,7 @@ class TestTargetingIntegrationTask024:
         # Test campaign endpoints
 
         # 4. List campaigns
-        test_session.query.return_value.offset.return_value.limit.return_value.all.return_value = [
-            sample_campaign
-        ]
+        test_session.query.return_value.offset.return_value.limit.return_value.all.return_value = [sample_campaign]
 
         response = client.get("/api/v1/targeting/campaigns")
         assert response.status_code == 200
@@ -355,9 +331,7 @@ class TestTargetingIntegrationTask024:
         assert campaigns[0]["id"] == sample_campaign.id
 
         # 5. Get specific campaign
-        test_session.query.return_value.filter_by.return_value.first.return_value = (
-            sample_campaign
-        )
+        test_session.query.return_value.filter_by.return_value.first.return_value = sample_campaign
 
         response = client.get(f"/api/v1/targeting/campaigns/{sample_campaign.id}")
         assert response.status_code == 200
@@ -370,9 +344,7 @@ class TestTargetingIntegrationTask024:
 
         update_data = {"name": "Updated Campaign Name"}
 
-        response = client.put(
-            f"/api/v1/targeting/campaigns/{sample_campaign.id}", json=update_data
-        )
+        response = client.put(f"/api/v1/targeting/campaigns/{sample_campaign.id}", json=update_data)
         assert response.status_code == 200
         updated = response.json()
         assert updated["name"] == "Updated Campaign Name"
@@ -410,26 +382,18 @@ class TestTargetingIntegrationTask024:
 
         print("✓ API endpoints work")
 
-    def test_database_state_correct(
-        self, test_session, sample_target_universe, sample_campaign
-    ):
+    def test_database_state_correct(self, test_session, sample_target_universe, sample_campaign):
         """Test that database state is maintained correctly throughout operations"""
 
         # 1. Verify initial state
-        universe_from_db = (
-            test_session.query(TargetUniverse)
-            .filter_by(id=sample_target_universe.id)
-            .first()
-        )
+        universe_from_db = test_session.query(TargetUniverse).filter_by(id=sample_target_universe.id).first()
         assert universe_from_db is not None
         assert universe_from_db.name == "Test Restaurant Universe"
         assert universe_from_db.actual_size == 4800
         assert universe_from_db.qualified_count == 4200
         assert universe_from_db.is_active is True
 
-        campaign_from_db = (
-            test_session.query(Campaign).filter_by(id=sample_campaign.id).first()
-        )
+        campaign_from_db = test_session.query(Campaign).filter_by(id=sample_campaign.id).first()
         assert campaign_from_db is not None
         assert campaign_from_db.name == "Test Lead Generation Campaign"
         assert campaign_from_db.target_universe_id == sample_target_universe.id
@@ -486,14 +450,8 @@ class TestTargetingIntegrationTask024:
             test_session.commit()
 
             # Verify both changes persisted
-            refreshed_universe = (
-                test_session.query(TargetUniverse)
-                .filter_by(id=sample_target_universe.id)
-                .first()
-            )
-            refreshed_campaign = (
-                test_session.query(Campaign).filter_by(id=sample_campaign.id).first()
-            )
+            refreshed_universe = test_session.query(TargetUniverse).filter_by(id=sample_target_universe.id).first()
+            refreshed_campaign = test_session.query(Campaign).filter_by(id=sample_campaign.id).first()
 
             assert refreshed_universe.qualified_count == 4300
             assert refreshed_campaign.total_targets == 4300
@@ -520,9 +478,7 @@ class TestTargetingIntegrationTask024:
             test_session.add(invalid_universe)
             test_session.commit()
             # If it doesn't fail, at least verify the constraints are logically checked
-            assert (
-                len(invalid_universe.name) == 0
-            )  # This should be caught by validation
+            assert len(invalid_universe.name) == 0  # This should be caught by validation
         except Exception:
             # Expected to fail due to constraints
             test_session.rollback()
@@ -552,9 +508,7 @@ class TestTargetingIntegrationTask024:
             },
         }
 
-        response = client.post(
-            "/api/v1/targeting/universes", json=invalid_universe_data
-        )
+        response = client.post("/api/v1/targeting/universes", json=invalid_universe_data)
         assert response.status_code == 422
 
         # 3. Test batch operation errors
@@ -563,9 +517,7 @@ class TestTargetingIntegrationTask024:
 
             status_update = {"status": "completed", "targets_processed": 100}
 
-            response = client.put(
-                "/api/v1/targeting/batches/invalid-batch/status", json=status_update
-            )
+            response = client.put("/api/v1/targeting/batches/invalid-batch/status", json=status_update)
             assert response.status_code == 404
 
         # 4. Test database transaction rollback
@@ -577,9 +529,7 @@ class TestTargetingIntegrationTask024:
                 "verticals": [],  # Should fail validation
                 "geographic_constraints": [],
             }
-            universe_manager.create_universe(
-                "Invalid Universe", invalid_criteria, estimated_size=1000
-            )
+            universe_manager.create_universe("Invalid Universe", invalid_criteria, estimated_size=1000)
             assert False, "Should have failed validation"
         except ValueError:
             # Expected to fail
@@ -590,9 +540,7 @@ class TestTargetingIntegrationTask024:
 
         print("✓ Error handling integration works")
 
-    def test_concurrent_operations(
-        self, test_session, sample_target_universe, sample_campaign
-    ):
+    def test_concurrent_operations(self, test_session, sample_target_universe, sample_campaign):
         """Test concurrent operations and thread safety"""
 
         # Test multiple managers accessing same data

@@ -147,25 +147,19 @@ class BusinessMatcher:
             return self.match_cache[cache_key]
 
         # Calculate weighted similarity
-        similarity_result = WeightedSimilarity.calculate_combined_similarity(
-            record1, record2, self.config.weights
-        )
+        similarity_result = WeightedSimilarity.calculate_combined_similarity(record1, record2, self.config.weights)
 
         # Extract component scores from similarity details
         component_scores = {}
         similarity_details = {}
 
         if "component_details" in similarity_result.metadata:
-            for component, result in similarity_result.metadata[
-                "component_details"
-            ].items():
+            for component, result in similarity_result.metadata["component_details"].items():
                 component_scores[component] = result.score
                 similarity_details[component] = result
 
         # Apply bonuses and adjustments
-        adjusted_score = self._apply_scoring_adjustments(
-            similarity_result.score, component_scores, record1, record2
-        )
+        adjusted_score = self._apply_scoring_adjustments(similarity_result.score, component_scores, record1, record2)
 
         # Determine confidence and match type
         confidence = self._determine_confidence(adjusted_score)
@@ -201,9 +195,7 @@ class BusinessMatcher:
         # Update statistics
         self._update_stats(confidence)
 
-        logger.debug(
-            f"Matched {record1_id} vs {record2_id}: {confidence.value} ({adjusted_score:.3f})"
-        )
+        logger.debug(f"Matched {record1_id} vs {record2_id}: {confidence.value} ({adjusted_score:.3f})")
 
         return result
 
@@ -231,18 +223,14 @@ class BusinessMatcher:
         for i, candidate in enumerate(candidates_to_check):
             candidate_id = candidate.get("id", f"candidate_{i}")
 
-            match_result = self.match_records(
-                target_record, candidate, target_id, candidate_id
-            )
+            match_result = self.match_records(target_record, candidate, target_id, candidate_id)
 
             if match_result.overall_score >= min_score:
                 matches.append(match_result)
 
                 # Early exit for perfect matches
                 if match_result.overall_score >= self.config.early_exit_threshold:
-                    logger.debug(
-                        f"Early exit on near-perfect match: {match_result.overall_score}"
-                    )
+                    logger.debug(f"Early exit on near-perfect match: {match_result.overall_score}")
                     break
 
         # Sort by score descending
@@ -259,9 +247,7 @@ class BusinessMatcher:
         result = PhoneSimilarity.calculate_similarity(phone1, phone2)
 
         confidence = self._determine_confidence(result.score)
-        match_type = (
-            MatchType.EXACT_MATCH if result.score == 1.0 else MatchType.FUZZY_MATCH
-        )
+        match_type = MatchType.EXACT_MATCH if result.score == 1.0 else MatchType.FUZZY_MATCH
 
         return MatchResult(
             record1_id="phone1",
@@ -280,9 +266,7 @@ class BusinessMatcher:
             },
         )
 
-    def match_names_and_zips(
-        self, name1: str, zip1: str, name2: str, zip2: str
-    ) -> MatchResult:
+    def match_names_and_zips(self, name1: str, zip1: str, name2: str, zip2: str) -> MatchResult:
         """
         Dedicated name and ZIP matching
 
@@ -293,9 +277,7 @@ class BusinessMatcher:
 
         # Weighted combination (names more important than ZIP)
         weights = {"name": 0.7, "zip": 0.3}
-        combined_score = (
-            name_result.score * weights["name"] + zip_result.score * weights["zip"]
-        )
+        combined_score = name_result.score * weights["name"] + zip_result.score * weights["zip"]
 
         confidence = self._determine_confidence(combined_score)
 
@@ -398,17 +380,13 @@ class BusinessMatcher:
         else:
             return MatchConfidence.UNCERTAIN
 
-    def _determine_match_type(
-        self, overall_score: float, component_scores: Dict[str, float]
-    ) -> MatchType:
+    def _determine_match_type(self, overall_score: float, component_scores: Dict[str, float]) -> MatchType:
         """Determine match type from scores"""
         if overall_score >= self.config.exact_threshold:
             return MatchType.EXACT_MATCH
         elif overall_score >= self.config.medium_threshold:
             # Check if it's a fuzzy match or partial match
-            high_components = sum(
-                1 for score in component_scores.values() if score >= 0.8
-            )
+            high_components = sum(1 for score in component_scores.values() if score >= 0.8)
             if high_components >= 2:
                 return MatchType.FUZZY_MATCH
             else:
@@ -482,10 +460,7 @@ class BusinessMatcher:
         return {
             **self.stats,
             "success_rate": (total - self.stats["no_matches"]) / total,
-            "high_confidence_rate": (
-                self.stats["exact_matches"] + self.stats["high_matches"]
-            )
-            / total,
+            "high_confidence_rate": (self.stats["exact_matches"] + self.stats["high_matches"]) / total,
             "cache_size": len(self.match_cache),
         }
 
@@ -533,9 +508,7 @@ class BatchMatcher:
         for i, record1 in enumerate(dataset1):
             record1_id = record1.get("id", f"dataset1_{i}")
 
-            matches = self.matcher.find_best_matches(
-                record1, dataset2, record1_id, min_score, max_results=5
-            )
+            matches = self.matcher.find_best_matches(record1, dataset2, record1_id, min_score, max_results=5)
 
             all_matches.extend(matches)
 
@@ -557,9 +530,7 @@ class BatchMatcher:
 
             # Find matches for this record in remaining records
             remaining_records = dataset[i + 1 :]
-            matches = self.matcher.find_best_matches(
-                record, remaining_records, record_id, min_score
-            )
+            matches = self.matcher.find_best_matches(record, remaining_records, record_id, min_score)
 
             # Add record to unique list
             unique_records.append(record)

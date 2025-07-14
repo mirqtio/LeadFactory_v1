@@ -43,9 +43,7 @@ class RateLimiter:
         self.logger = get_logger(f"rate_limiter.{provider}", domain="d0")
 
         # Get provider limits or use defaults
-        self.limits = self.PROVIDER_LIMITS.get(
-            provider, {"daily_limit": 1000, "burst_limit": 10, "window_seconds": 1}
-        )
+        self.limits = self.PROVIDER_LIMITS.get(provider, {"daily_limit": 1000, "burst_limit": 10, "window_seconds": 1})
 
         # Redis connection for distributed rate limiting
         self._redis: Optional[aioredis.Redis] = None
@@ -68,14 +66,10 @@ class RateLimiter:
     async def _get_redis(self) -> aioredis.Redis:
         """Get Redis connection"""
         if self._redis is None:
-            self._redis = aioredis.from_url(
-                self.settings.redis_url, decode_responses=True
-            )
+            self._redis = aioredis.from_url(self.settings.redis_url, decode_responses=True)
         return self._redis
 
-    async def _execute_lua_script(
-        self, redis: aioredis.Redis, command: str, keys: list, args: list
-    ):
+    async def _execute_lua_script(self, redis: aioredis.Redis, command: str, keys: list, args: list):
         """Execute Lua script with given command and parameters"""
         if not self._lua_script:
             raise RuntimeError("Lua script not loaded")
@@ -129,9 +123,7 @@ class RateLimiter:
             current, limit, allowed = result
 
             if not allowed:
-                self.logger.warning(
-                    f"Daily rate limit exceeded: {current}/{limit} for {self.provider}"
-                )
+                self.logger.warning(f"Daily rate limit exceeded: {current}/{limit} for {self.provider}")
 
             return bool(allowed)
 
@@ -159,9 +151,7 @@ class RateLimiter:
             current, limit, allowed = result
 
             if not allowed:
-                self.logger.warning(
-                    f"Burst rate limit exceeded: {current}/{limit} for {self.provider}:{operation}"
-                )
+                self.logger.warning(f"Burst rate limit exceeded: {current}/{limit} for {self.provider}:{operation}")
 
             return bool(allowed)
 

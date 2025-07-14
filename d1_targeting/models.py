@@ -22,7 +22,6 @@ from sqlalchemy.orm import relationship
 from database.base import Base
 
 
-
 class TargetUniverse(Base):
     """Definition of a target universe for campaigns"""
 
@@ -45,9 +44,7 @@ class TargetUniverse(Base):
 
     # Metadata
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = Column(String(255), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
 
@@ -68,9 +65,7 @@ class Campaign(Base):
     description = Column(Text, nullable=True)
 
     # Campaign configuration
-    target_universe_id = Column(
-        String(36), ForeignKey("target_universes.id"), nullable=False
-    )
+    target_universe_id = Column(String(36), ForeignKey("target_universes.id"), nullable=False)
     status = Column(String(20), nullable=False, default="draft", index=True)
     campaign_type = Column(String(50), nullable=False, default="lead_generation")
 
@@ -97,9 +92,7 @@ class Campaign(Base):
 
     # Metadata
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by = Column(String(255), nullable=True)
 
     # Relationships
@@ -211,9 +204,7 @@ class GeographicBoundary(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False, index=True)
     level = Column(String(20), nullable=False, index=True)  # GeographyLevel enum
-    parent_id = Column(
-        String(36), ForeignKey("geographic_boundaries.id"), nullable=True
-    )
+    parent_id = Column(String(36), ForeignKey("geographic_boundaries.id"), nullable=True)
 
     # Geographic identifiers
     code = Column(String(20), nullable=True, index=True)  # State code, ZIP, etc.

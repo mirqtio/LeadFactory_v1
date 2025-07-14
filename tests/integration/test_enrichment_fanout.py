@@ -6,8 +6,8 @@ import pytest
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d4_enrichment.models import EnrichmentSource, MatchConfidence
@@ -70,9 +70,7 @@ class TestEnrichmentFanout:
         dataaxle_result.additional_phones = None
         dataaxle_result.additional_emails = None
         dataaxle_result.enrichment_metadata = None
-        coordinator.enrichers[
-            EnrichmentSource.DATA_AXLE
-        ].enrich_business.return_value = dataaxle_result
+        coordinator.enrichers[EnrichmentSource.DATA_AXLE].enrich_business.return_value = dataaxle_result
 
         # Setup Hunter (should not be called)
         hunter_result = MagicMock()
@@ -83,9 +81,7 @@ class TestEnrichmentFanout:
         hunter_result.email_confidence = 0.8
         hunter_result.match_confidence = MatchConfidence.MEDIUM.value
         hunter_result.created_at = datetime.utcnow()
-        coordinator.enrichers[
-            EnrichmentSource.HUNTER
-        ].enrich_business.return_value = hunter_result
+        coordinator.enrichers[EnrichmentSource.HUNTER].enrich_business.return_value = hunter_result
 
         # Run enrichment
         sources = [EnrichmentSource.DATA_AXLE, EnrichmentSource.HUNTER]
@@ -101,9 +97,7 @@ class TestEnrichmentFanout:
         assert batch_result.results[0].email == "contact@test.com"
         assert batch_result.results[0].source == EnrichmentSource.DATA_AXLE
 
-    async def test_hunter_fallback_no_email_from_dataaxle(
-        self, coordinator, test_business
-    ):
+    async def test_hunter_fallback_no_email_from_dataaxle(self, coordinator, test_business):
         """Test Hunter is used when Data Axle returns no email"""
         # Setup Data Axle to return no email
         dataaxle_result = EnrichmentResult(
@@ -115,9 +109,7 @@ class TestEnrichmentFanout:
             match_confidence=MatchConfidence.MEDIUM.value,
             created_at=datetime.utcnow(),
         )
-        coordinator.enrichers[
-            EnrichmentSource.DATA_AXLE
-        ].enrich_business.return_value = dataaxle_result
+        coordinator.enrichers[EnrichmentSource.DATA_AXLE].enrich_business.return_value = dataaxle_result
 
         # Setup Hunter to provide email
         hunter_result = EnrichmentResult(
@@ -129,9 +121,7 @@ class TestEnrichmentFanout:
             match_confidence=MatchConfidence.MEDIUM.value,
             created_at=datetime.utcnow(),
         )
-        coordinator.enrichers[
-            EnrichmentSource.HUNTER
-        ].enrich_business.return_value = hunter_result
+        coordinator.enrichers[EnrichmentSource.HUNTER].enrich_business.return_value = hunter_result
 
         # Run enrichment
         sources = [EnrichmentSource.DATA_AXLE, EnrichmentSource.HUNTER]
@@ -162,9 +152,7 @@ class TestEnrichmentFanout:
             match_confidence=MatchConfidence.HIGH.value,
             created_at=datetime.utcnow(),
         )
-        coordinator.enrichers[
-            EnrichmentSource.DATA_AXLE
-        ].enrich_business.return_value = dataaxle_result
+        coordinator.enrichers[EnrichmentSource.DATA_AXLE].enrich_business.return_value = dataaxle_result
 
         # Setup Hunter with email
         hunter_result = EnrichmentResult(
@@ -177,9 +165,7 @@ class TestEnrichmentFanout:
             match_confidence=MatchConfidence.MEDIUM.value,
             created_at=datetime.utcnow(),
         )
-        coordinator.enrichers[
-            EnrichmentSource.HUNTER
-        ].enrich_business.return_value = hunter_result
+        coordinator.enrichers[EnrichmentSource.HUNTER].enrich_business.return_value = hunter_result
 
         # Run enrichment
         sources = [EnrichmentSource.DATA_AXLE, EnrichmentSource.HUNTER]
@@ -203,9 +189,7 @@ class TestEnrichmentFanout:
         assert result.additional_emails == ["sales@test.com"]
 
     @patch("d0_gateway.base.BaseAPIClient.emit_cost")
-    async def test_cost_tracking_for_each_api_call(
-        self, mock_emit_cost, coordinator, test_business
-    ):
+    async def test_cost_tracking_for_each_api_call(self, mock_emit_cost, coordinator, test_business):
         """Test that cost is tracked for each API call"""
         # Setup enrichers to return results
         dataaxle_result = EnrichmentResult(
@@ -216,9 +200,7 @@ class TestEnrichmentFanout:
             match_confidence=MatchConfidence.HIGH.value,
             created_at=datetime.utcnow(),
         )
-        coordinator.enrichers[
-            EnrichmentSource.DATA_AXLE
-        ].enrich_business.return_value = dataaxle_result
+        coordinator.enrichers[EnrichmentSource.DATA_AXLE].enrich_business.return_value = dataaxle_result
 
         hunter_result = EnrichmentResult(
             id="result-2",
@@ -228,9 +210,7 @@ class TestEnrichmentFanout:
             match_confidence=MatchConfidence.MEDIUM.value,
             created_at=datetime.utcnow(),
         )
-        coordinator.enrichers[
-            EnrichmentSource.HUNTER
-        ].enrich_business.return_value = hunter_result
+        coordinator.enrichers[EnrichmentSource.HUNTER].enrich_business.return_value = hunter_result
 
         # Run enrichment with both sources
         sources = [EnrichmentSource.DATA_AXLE, EnrichmentSource.HUNTER]
@@ -266,9 +246,7 @@ class TestEnrichmentFanout:
     async def test_error_handling_dataaxle_failure(self, coordinator, test_business):
         """Test that Hunter is still tried if Data Axle fails"""
         # Setup Data Axle to fail
-        coordinator.enrichers[
-            EnrichmentSource.DATA_AXLE
-        ].enrich_business.side_effect = Exception("API Error")
+        coordinator.enrichers[EnrichmentSource.DATA_AXLE].enrich_business.side_effect = Exception("API Error")
 
         # Setup Hunter to succeed
         hunter_result = EnrichmentResult(
@@ -279,9 +257,7 @@ class TestEnrichmentFanout:
             match_confidence=MatchConfidence.MEDIUM.value,
             created_at=datetime.utcnow(),
         )
-        coordinator.enrichers[
-            EnrichmentSource.HUNTER
-        ].enrich_business.return_value = hunter_result
+        coordinator.enrichers[EnrichmentSource.HUNTER].enrich_business.return_value = hunter_result
 
         # Run enrichment
         sources = [EnrichmentSource.DATA_AXLE, EnrichmentSource.HUNTER]

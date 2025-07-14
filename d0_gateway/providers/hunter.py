@@ -10,13 +10,9 @@ import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from d0_gateway.base import BaseAPIClient
-from d0_gateway.exceptions import (
-    APIProviderError,
-    AuthenticationError,
-    RateLimitExceededError,
-)
 from core.exceptions import ValidationError
+from d0_gateway.base import BaseAPIClient
+from d0_gateway.exceptions import APIProviderError, AuthenticationError, RateLimitExceededError
 
 logger = logging.getLogger(__name__)
 
@@ -72,11 +68,7 @@ class HunterClient(BaseAPIClient):
     def calculate_cost(self, operation: str, **kwargs) -> Decimal:
         """Calculate cost for Hunter operations"""
         # Check if it's a domain search or email find operation
-        if (
-            "domain-search" in operation
-            or "email-finder" in operation
-            or operation in ["find_email", "domain_search"]
-        ):
+        if "domain-search" in operation or "email-finder" in operation or operation in ["find_email", "domain_search"]:
             # $0.003 per search as per PRD v1.2
             return Decimal("0.003")
         return Decimal("0.000")
@@ -87,9 +79,7 @@ class HunterClient(BaseAPIClient):
             "Accept": "application/json",
         }
 
-    async def find_email(
-        self, company_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def find_email(self, company_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Find email addresses for a company
 
@@ -111,9 +101,7 @@ class HunterClient(BaseAPIClient):
         """
         # Validate required fields
         if not company_data.get("domain") and not company_data.get("company"):
-            raise ValidationError(
-                "Either domain or company name is required for email finding"
-            )
+            raise ValidationError("Either domain or company name is required for email finding")
 
         # Prepare request parameters
         params = {
@@ -281,9 +269,7 @@ class HunterClient(BaseAPIClient):
         """Make GET request using base client or test client"""
         if self._client:
             # Test mode - use injected client
-            response = await self._client.get(
-                endpoint, headers=self._get_headers(), **kwargs
-            )
+            response = await self._client.get(endpoint, headers=self._get_headers(), **kwargs)
             return response.json()
         else:
             # Production mode - use base client's make_request

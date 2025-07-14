@@ -6,16 +6,16 @@ Timeout: 5s
 Cost: $0.010 per assessment
 Output: semrush_json column
 """
-from typing import Dict, Any
+from typing import Any, Dict
 from urllib.parse import urlparse
 
-from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
-from d3_assessment.models import AssessmentType
-from d3_assessment.exceptions import AssessmentTimeoutError
-from d0_gateway.providers.semrush import SEMrushClient
-from d0_gateway.factory import create_client
-from core.logging import get_logger
 from core.config import settings
+from core.logging import get_logger
+from d0_gateway.factory import create_client
+from d0_gateway.providers.semrush import SEMrushClient
+from d3_assessment.assessors.base import AssessmentResult, BaseAssessor
+from d3_assessment.exceptions import AssessmentTimeoutError
+from d3_assessment.models import AssessmentType
 
 logger = get_logger(__name__, domain="d3")
 
@@ -65,9 +65,7 @@ class SEMrushAssessor(BaseAssessor):
             client = await self._get_client()
 
             # Get domain overview
-            semrush_data = await client.get_domain_overview(
-                domain=domain, lead_id=business_data.get("id")
-            )
+            semrush_data = await client.get_domain_overview(domain=domain, lead_id=business_data.get("id"))
 
             if not semrush_data:
                 return AssessmentResult(

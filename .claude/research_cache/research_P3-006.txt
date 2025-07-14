@@ -1,0 +1,61 @@
+# Research Context for P3-006
+
+## Key Findings
+- PyGithub has updated authentication to use github.Auth module instead of deprecated oauth2client
+- GitHub Apps provide superior security over Personal Access Tokens with fine-grained permissions
+- gspread v6 requires Python 3.8+ and uses google-auth instead of deprecated oauth2client
+- Service Account authentication is recommended for production Google Sheets integration
+- Rate limiting with exponential backoff and jitter is essential for API reliability
+
+## Authoritative Sources
+- PyGithub Documentation: https://pygithub.readthedocs.io/en/latest/
+- GitHub REST API: https://docs.github.com/en/rest
+- gspread Documentation: https://docs.gspread.org/en/latest/oauth2.html
+- Google Sheets API Python Quickstart: https://developers.google.com/sheets/api/quickstart/python
+- GitHub Apps Authentication: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github
+
+## Current Best Practices
+
+### PyGithub Authentication
+- Use github.Auth.Token() for token-based authentication
+- Store tokens in environment variables, never hardcode
+- Use GitHub Apps for production applications over Personal Access Tokens
+- GitHub Apps provide fine-grained permissions and better security
+- Proper resource management with g.close() after use
+
+### Google Sheets API with gspread
+- Service Account authentication recommended for production
+- Use gspread.service_account() for automated applications
+- Store credentials securely as environment variables or JSON files
+- Use proper scopes: 'https://www.googleapis.com/auth/spreadsheets' and 'https://www.googleapis.com/auth/drive'
+- Support for dictionary-based credentials for environment variable storage
+
+### Rate Limiting and Error Handling
+- Implement exponential backoff with random jitter
+- Use established libraries like tenacity or backoff
+- Handle different error types (transient vs permanent)
+- Set reasonable retry limits and maximum wait times
+- Monitor and log failed requests for debugging
+
+## Common Pitfalls
+- Using deprecated oauth2client instead of google-auth
+- Not implementing proper rate limiting for API calls
+- Storing credentials insecurely in code
+- Not handling transient vs permanent errors differently
+- Over-aggressive retry strategies that can worsen rate limiting
+
+## Recent Updates
+- gspread v6 requires Python 3.8+ minimum
+- GitHub deprecated oauth2client in favor of github.Auth
+- Fine-grained Personal Access Tokens introduced in 2024
+- PyGithub updated to use keyword arguments for create_pull method
+- Google Sheets API emphasizes Service Account authentication over OAuth2 flows for production
+
+## Implementation Recommendations
+- Use GitHub Apps for Template Studio GitHub integration
+- Implement Service Account authentication for Scoring Playground Google Sheets
+- Add comprehensive rate limiting with exponential backoff
+- Use environment variables for all authentication credentials
+- Implement proper error handling for both transient and permanent failures
+- Add logging and monitoring for API usage and failures
+- Use the latest authentication methods from both libraries

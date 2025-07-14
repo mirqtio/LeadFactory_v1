@@ -4,11 +4,40 @@ AI-powered website audit platform that generates revenue through automated audit
 
 ## System Requirements
 
-- **Python**: 3.11.0 (exactly - match CI environment)
+- **Python**: 3.11.x (match CI environment)
 - **Docker**: ≥ 20.10
 - **Docker Compose**: ≥ 2.0
 - **PostgreSQL**: 15 (via Docker)
 - **Operating System**: Linux/macOS (Windows via WSL2)
+
+### Prerequisites Validation
+
+Before development, validate your environment meets all requirements:
+
+```bash
+# Run comprehensive validation
+python -m core.prerequisites
+
+# Run specific checks
+python -m core.prerequisites --check python
+python -m core.prerequisites --check docker
+python -m core.prerequisites --check database
+
+# Get JSON output for automation
+python -m core.prerequisites --json
+
+# Quiet mode (minimal output)
+python -m core.prerequisites --quiet
+```
+
+The prerequisites validation checks:
+- Python version (3.11.x)
+- Docker & Docker Compose versions
+- Database connectivity
+- Environment variables
+- Python dependencies installation
+- Pytest test collection
+- CI toolchain (pytest, ruff, mypy)
 
 ## Quick Start
 

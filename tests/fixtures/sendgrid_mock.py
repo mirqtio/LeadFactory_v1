@@ -3,22 +3,23 @@ SendGrid API Mock Factory
 
 Provides realistic mock responses for SendGrid email API testing.
 """
-from typing import Dict, Any, List, Optional
 from datetime import datetime
-from tests.fixtures.mock_factory import MockFactory, ResponseBuilder
+from typing import Any, Dict, List
+
+from tests.fixtures.mock_factory import MockFactory
 
 
 class SendGridMockFactory(MockFactory):
     """Mock factory for SendGrid API responses."""
-    
+
     @classmethod
     def create_success_response(cls, **overrides) -> Dict[str, Any]:
         """
         Create a successful email send response.
-        
+
         Args:
             **overrides: Override default values
-            
+
         Returns:
             Dict representing SendGrid API response
         """
@@ -30,22 +31,22 @@ class SendGridMockFactory(MockFactory):
                 "X-Request-Id": "request-456",
                 "X-RateLimit-Limit": "600",
                 "X-RateLimit-Remaining": "599",
-                "X-RateLimit-Reset": "1640995200"
-            }
+                "X-RateLimit-Reset": "1640995200",
+            },
         }
-        
+
         base_response.update(overrides)
         return base_response
-    
+
     @classmethod
     def create_error_response(cls, error_type: str, **overrides) -> Dict[str, Any]:
         """
         Create an error response for various SendGrid API errors.
-        
+
         Args:
             error_type: Type of error (invalid_email, rate_limit, etc.)
             **overrides: Additional fields to include
-            
+
         Returns:
             Dict representing error response
         """
@@ -55,52 +56,52 @@ class SendGridMockFactory(MockFactory):
                     {
                         "message": "The email address 'invalid-email' is not valid.",
                         "field": "to.0.email",
-                        "help": "http://sendgrid.com/docs/API_Reference/Web_API_v3/Mail/errors.html#message.to.email"
+                        "help": "http://sendgrid.com/docs/API_Reference/Web_API_v3/Mail/errors.html#message.to.email",
                     }
                 ],
-                "status_code": 400
+                "status_code": 400,
             },
             "rate_limit": {
                 "errors": [
                     {
                         "message": "Too many requests",
                         "field": None,
-                        "help": "https://sendgrid.com/docs/API_Reference/Web_API_v3/rate_limits.html"
+                        "help": "https://sendgrid.com/docs/API_Reference/Web_API_v3/rate_limits.html",
                     }
                 ],
                 "status_code": 429,
                 "headers": {
                     "X-RateLimit-Limit": "600",
                     "X-RateLimit-Remaining": "0",
-                    "X-RateLimit-Reset": "1640995200"
-                }
+                    "X-RateLimit-Reset": "1640995200",
+                },
             },
             "unauthorized": {
                 "errors": [
                     {
                         "message": "The provided authorization grant is invalid, expired, or revoked",
                         "field": None,
-                        "help": "https://sendgrid.com/docs/API_Reference/Web_API_v3/Authentication/index.html"
+                        "help": "https://sendgrid.com/docs/API_Reference/Web_API_v3/Authentication/index.html",
                     }
                 ],
-                "status_code": 401
+                "status_code": 401,
             },
             "bad_request": {
                 "errors": [
                     {
                         "message": "Bad Request",
                         "field": "personalizations.0",
-                        "help": "http://sendgrid.com/docs/API_Reference/Web_API_v3/Mail/errors.html"
+                        "help": "http://sendgrid.com/docs/API_Reference/Web_API_v3/Mail/errors.html",
                     }
                 ],
-                "status_code": 400
-            }
+                "status_code": 400,
+            },
         }
-        
+
         response = error_responses.get(error_type, error_responses["bad_request"])
         response.update(overrides)
         return response
-    
+
     @classmethod
     def create_batch_send_response(cls, recipient_count: int = 3, **overrides) -> Dict[str, Any]:
         """Create a batch email send response."""
@@ -108,12 +109,9 @@ class SendGridMockFactory(MockFactory):
             "batch_id": "batch_123456",
             "status_code": 201,
             "message": f"Batch created with {recipient_count} recipients",
-            "headers": {
-                "X-Batch-Id": "batch_123456",
-                "X-RateLimit-Remaining": str(600 - recipient_count)
-            }
+            "headers": {"X-Batch-Id": "batch_123456", "X-RateLimit-Remaining": str(600 - recipient_count)},
         }
-    
+
     @classmethod
     def create_bounce_webhook(cls, email: str, reason: str = "bounce", **overrides) -> Dict[str, Any]:
         """Create a bounce webhook event."""
@@ -127,12 +125,12 @@ class SendGridMockFactory(MockFactory):
             "sg_message_id": "sg_message_456",
             "reason": reason,
             "status": "5.0.0",
-            "type": "bounce"
+            "type": "bounce",
         }
-        
+
         base_event.update(overrides)
         return base_event
-    
+
     @classmethod
     def create_click_webhook(cls, email: str, url: str, **overrides) -> Dict[str, Any]:
         """Create a click tracking webhook event."""
@@ -145,12 +143,12 @@ class SendGridMockFactory(MockFactory):
             "category": ["newsletter"],
             "sg_event_id": "sg_click_123",
             "sg_message_id": "sg_message_456",
-            "useragent": "Mozilla/5.0"
+            "useragent": "Mozilla/5.0",
         }
-        
+
         base_event.update(overrides)
         return base_event
-    
+
     @classmethod
     def create_open_webhook(cls, email: str, **overrides) -> Dict[str, Any]:
         """Create an open tracking webhook event."""
@@ -161,12 +159,12 @@ class SendGridMockFactory(MockFactory):
             "category": ["newsletter"],
             "sg_event_id": "sg_open_123",
             "sg_message_id": "sg_message_456",
-            "useragent": "Mozilla/5.0"
+            "useragent": "Mozilla/5.0",
         }
-        
+
         base_event.update(overrides)
         return base_event
-    
+
     @classmethod
     def create_template_response(cls, template_id: str = "template_123", **overrides) -> Dict[str, Any]:
         """Create a template retrieval response."""
@@ -184,14 +182,14 @@ class SendGridMockFactory(MockFactory):
                     "html_content": "<html><body>Hello {{name}}!</body></html>",
                     "plain_content": "Hello {{name}}!",
                     "subject": "{{subject}}",
-                    "updated_at": "2023-12-25 10:00:00"
+                    "updated_at": "2023-12-25 10:00:00",
                 }
-            ]
+            ],
         }
-        
+
         base_response.update(overrides)
         return base_response
-    
+
     @classmethod
     def create_stats_response(cls, start_date: str, end_date: str, **overrides) -> List[Dict[str, Any]]:
         """Create email statistics response."""
@@ -216,18 +214,18 @@ class SendGridMockFactory(MockFactory):
                             "unique_clicks": 3,
                             "unique_opens": 50,
                             "unsubscribe_drops": 0,
-                            "unsubscribes": 1
+                            "unsubscribes": 1,
                         }
                     }
-                ]
+                ],
             }
         ]
-        
+
         if overrides:
             base_response[0].update(overrides)
-        
+
         return base_response
-    
+
     @classmethod
     def create_suppression_response(cls, email: str, group_id: int = 123, **overrides) -> Dict[str, Any]:
         """Create a suppression list response."""
@@ -236,12 +234,12 @@ class SendGridMockFactory(MockFactory):
             "group_id": group_id,
             "group_name": "Test Suppression Group",
             "suppressed_at": int(datetime.now().timestamp()),
-            "created_at": int(datetime.now().timestamp())
+            "created_at": int(datetime.now().timestamp()),
         }
-        
+
         base_response.update(overrides)
         return base_response
-    
+
     @classmethod
     def create_validation_response(cls, email: str, is_valid: bool = True, **overrides) -> Dict[str, Any]:
         """Create an email validation response."""
@@ -256,14 +254,12 @@ class SendGridMockFactory(MockFactory):
                     "domain": {
                         "has_valid_address_syntax": is_valid,
                         "has_mx_or_a_record": is_valid,
-                        "is_suspected_disposable_address": False
+                        "is_suspected_disposable_address": False,
                     },
-                    "local_part": {
-                        "is_suspected_role_address": False
-                    }
-                }
+                    "local_part": {"is_suspected_role_address": False},
+                },
             }
         }
-        
+
         base_response.update(overrides)
         return base_response

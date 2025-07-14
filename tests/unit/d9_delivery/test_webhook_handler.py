@@ -21,14 +21,7 @@ from unittest.mock import patch
 import pytest
 
 from core.exceptions import ValidationError
-from d9_delivery.models import (
-    BounceTracking,
-    BounceType,
-    DeliveryEvent,
-    DeliveryStatus,
-    EmailDelivery,
-    EventType,
-)
+from d9_delivery.models import BounceTracking, BounceType, DeliveryEvent, DeliveryStatus, EmailDelivery, EventType
 from d9_delivery.webhook_handler import (
     SendGridEventType,
     WebhookEvent,
@@ -82,9 +75,7 @@ class TestWebhookHandler:
         secret = "test_secret"
 
         # Calculate expected signature
-        expected_signature = hmac.new(
-            secret.encode(), payload.encode(), hashlib.sha256
-        ).hexdigest()
+        expected_signature = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
         with patch.dict("os.environ", {"SENDGRID_WEBHOOK_SECRET": secret}):
             handler = WebhookHandler()
@@ -241,10 +232,7 @@ class TestWebhookHandler:
         with SessionLocal() as session:
             delivery = (
                 session.query(EmailDelivery)
-                .filter(
-                    EmailDelivery.sendgrid_message_id
-                    == sample_email_delivery["message_id"]
-                )
+                .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
                 .first()
             )
             assert delivery is not None
@@ -255,8 +243,7 @@ class TestWebhookHandler:
             event_record = (
                 session.query(DeliveryEvent)
                 .filter(
-                    DeliveryEvent.sendgrid_message_id
-                    == sample_email_delivery["message_id"],
+                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
                     DeliveryEvent.event_type == EventType.DELIVERED.value,
                 )
                 .first()
@@ -278,9 +265,7 @@ class TestWebhookHandler:
             bounce_type="bounce",
         )
 
-        with patch.object(
-            webhook_handler.compliance_manager, "record_suppression"
-        ) as mock_suppression:
+        with patch.object(webhook_handler.compliance_manager, "record_suppression") as mock_suppression:
             success = webhook_handler._process_single_event(event)
             assert success is True
 
@@ -295,21 +280,14 @@ class TestWebhookHandler:
         with SessionLocal() as session:
             delivery = (
                 session.query(EmailDelivery)
-                .filter(
-                    EmailDelivery.sendgrid_message_id
-                    == sample_email_delivery["message_id"]
-                )
+                .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
                 .first()
             )
             assert delivery is not None
             assert delivery.status == DeliveryStatus.BOUNCED.value
 
             # Verify bounce tracking was created
-            bounce = (
-                session.query(BounceTracking)
-                .filter(BounceTracking.email == "test@example.com")
-                .first()
-            )
+            bounce = session.query(BounceTracking).filter(BounceTracking.email == "test@example.com").first()
             assert bounce is not None
             assert bounce.bounce_type == BounceType.HARD.value
             assert bounce.bounce_reason == "Invalid email address"
@@ -318,8 +296,7 @@ class TestWebhookHandler:
             event_record = (
                 session.query(DeliveryEvent)
                 .filter(
-                    DeliveryEvent.sendgrid_message_id
-                    == sample_email_delivery["message_id"],
+                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
                     DeliveryEvent.event_type == EventType.BOUNCED.value,
                 )
                 .first()
@@ -340,9 +317,7 @@ class TestWebhookHandler:
             asm_group_id=12345,
         )
 
-        with patch.object(
-            webhook_handler.compliance_manager, "record_suppression"
-        ) as mock_suppression:
+        with patch.object(webhook_handler.compliance_manager, "record_suppression") as mock_suppression:
             success = webhook_handler._process_single_event(event)
             assert success is True
 
@@ -357,10 +332,7 @@ class TestWebhookHandler:
         with SessionLocal() as session:
             delivery = (
                 session.query(EmailDelivery)
-                .filter(
-                    EmailDelivery.sendgrid_message_id
-                    == sample_email_delivery["message_id"]
-                )
+                .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
                 .first()
             )
             assert delivery is not None
@@ -370,8 +342,7 @@ class TestWebhookHandler:
             event_record = (
                 session.query(DeliveryEvent)
                 .filter(
-                    DeliveryEvent.sendgrid_message_id
-                    == sample_email_delivery["message_id"],
+                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
                     DeliveryEvent.event_type == EventType.SPAM.value,
                 )
                 .first()
@@ -403,8 +374,7 @@ class TestWebhookHandler:
             event_record = (
                 session.query(DeliveryEvent)
                 .filter(
-                    DeliveryEvent.sendgrid_message_id
-                    == sample_email_delivery["message_id"],
+                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
                     DeliveryEvent.event_type == EventType.CLICKED.value,
                 )
                 .first()
@@ -437,8 +407,7 @@ class TestWebhookHandler:
             event_record = (
                 session.query(DeliveryEvent)
                 .filter(
-                    DeliveryEvent.sendgrid_message_id
-                    == sample_email_delivery["message_id"],
+                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
                     DeliveryEvent.event_type == EventType.OPENED.value,
                 )
                 .first()
@@ -460,9 +429,7 @@ class TestWebhookHandler:
             event_id="unsubscribe_event_123",
         )
 
-        with patch.object(
-            webhook_handler.compliance_manager, "record_suppression"
-        ) as mock_suppression:
+        with patch.object(webhook_handler.compliance_manager, "record_suppression") as mock_suppression:
             success = webhook_handler._process_single_event(event)
             assert success is True
 
@@ -478,8 +445,7 @@ class TestWebhookHandler:
             event_record = (
                 session.query(DeliveryEvent)
                 .filter(
-                    DeliveryEvent.sendgrid_message_id
-                    == sample_email_delivery["message_id"],
+                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
                     DeliveryEvent.event_type == EventType.UNSUBSCRIBED.value,
                 )
                 .first()
@@ -507,10 +473,7 @@ class TestWebhookHandler:
         with SessionLocal() as session:
             delivery = (
                 session.query(EmailDelivery)
-                .filter(
-                    EmailDelivery.sendgrid_message_id
-                    == sample_email_delivery["message_id"]
-                )
+                .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
                 .first()
             )
             assert delivery is not None
@@ -520,8 +483,7 @@ class TestWebhookHandler:
             event_record = (
                 session.query(DeliveryEvent)
                 .filter(
-                    DeliveryEvent.sendgrid_message_id
-                    == sample_email_delivery["message_id"],
+                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
                     DeliveryEvent.event_type == EventType.DROPPED.value,
                 )
                 .first()
@@ -689,9 +651,7 @@ class TestUtilityFunctions:
         )
 
         secret = "test_secret"
-        signature = hmac.new(
-            secret.encode(), payload.encode(), hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
         with patch.dict("os.environ", {"SENDGRID_WEBHOOK_SECRET": secret}):
             results = process_sendgrid_webhook(payload, f"sha256={signature}")
@@ -828,19 +788,13 @@ class TestIntegration:
         with SessionLocal() as session:
             # Check delivery status updated
             delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == "integration_msg")
-                .first()
+                session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == "integration_msg").first()
             )
             assert delivery.status == DeliveryStatus.DELIVERED.value
             assert delivery.delivered_at is not None
 
             # Check events recorded
-            events = (
-                session.query(DeliveryEvent)
-                .filter(DeliveryEvent.sendgrid_message_id == "integration_msg")
-                .all()
-            )
+            events = session.query(DeliveryEvent).filter(DeliveryEvent.sendgrid_message_id == "integration_msg").all()
             assert len(events) == 2
 
             event_types = [e.event_type for e in events]
@@ -889,19 +843,11 @@ class TestIntegration:
         # Verify bounce tracking and suppression
         with SessionLocal() as session:
             # Check delivery status updated to bounced
-            delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == "bounce_msg")
-                .first()
-            )
+            delivery = session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == "bounce_msg").first()
             assert delivery.status == DeliveryStatus.BOUNCED.value
 
             # Check bounce tracking created
-            bounce = (
-                session.query(BounceTracking)
-                .filter(BounceTracking.email == "bounce_test@example.com")
-                .first()
-            )
+            bounce = session.query(BounceTracking).filter(BounceTracking.email == "bounce_test@example.com").first()
             assert bounce is not None
             assert bounce.bounce_type == BounceType.HARD.value
             assert bounce.bounce_reason == "550 Invalid recipient"

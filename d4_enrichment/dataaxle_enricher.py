@@ -3,11 +3,12 @@ Data Axle enricher for business data
 Phase 0.5 - Task EN-05
 """
 import logging
-from typing import Dict, Optional, Any
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 from d0_gateway.providers.dataaxle import DataAxleClient
+
 from .models import EnrichmentSource
-from dataclasses import dataclass
 
 
 @dataclass
@@ -39,9 +40,7 @@ class DataAxleEnricher:
         self.client = client or DataAxleClient()
         self.source = EnrichmentSource.DATA_AXLE
 
-    async def enrich_business(
-        self, business_data: Dict[str, Any], business_id: str
-    ) -> Optional[EnrichmentResult]:
+    async def enrich_business(self, business_data: Dict[str, Any], business_id: str) -> Optional[EnrichmentResult]:
         """
         Enrich business data using Data Axle API
 
@@ -66,9 +65,7 @@ class DataAxleEnricher:
 
             # Only accept high confidence matches
             if confidence < 0.7:
-                logger.info(
-                    f"Low confidence match ({confidence}) for business {business_id}"
-                )
+                logger.info(f"Low confidence match ({confidence}) for business {business_id}")
                 return None
 
             # Determine match confidence level
@@ -101,10 +98,7 @@ class DataAxleEnricher:
                 },
             )
 
-            logger.info(
-                f"Successfully enriched business {business_id} via Data Axle "
-                f"(confidence: {confidence})"
-            )
+            logger.info(f"Successfully enriched business {business_id} via Data Axle " f"(confidence: {confidence})")
 
             return enrichment
 

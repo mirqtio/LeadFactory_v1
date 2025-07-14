@@ -50,9 +50,7 @@ def runserver(host: str, port: int, reload: bool):
 
 
 @cli.command()
-@click.option(
-    "--location", required=True, help='Location to search (e.g., "New York, NY")'
-)
+@click.option("--location", required=True, help='Location to search (e.g., "New York, NY")')
 @click.option("--vertical", default="restaurant", help="Business vertical")
 @click.option("--limit", default=10, help="Number of businesses to process")
 def test_pipeline(location: str, vertical: str, limit: int):
@@ -141,13 +139,8 @@ def audit(url: str):
 
                 # Simple checks
                 has_title = "<title>" in response.text.lower()
-                has_phone = any(
-                    term in response.text for term in ["phone", "tel:", "call"]
-                )
-                has_address = any(
-                    term in response.text.lower()
-                    for term in ["address", "location", "street"]
-                )
+                has_phone = any(term in response.text for term in ["phone", "tel:", "call"])
+                has_address = any(term in response.text.lower() for term in ["address", "location", "street"])
 
                 click.echo(f"✓ Has title tag: {has_title}")
                 click.echo(f"✓ Has phone info: {has_phone}")

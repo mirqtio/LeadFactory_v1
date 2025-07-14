@@ -3,7 +3,7 @@ import pytest
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
 from d3_assessment.semrush import SEMrushAdapter
 
@@ -79,28 +79,13 @@ async def test_cache_30_days(adapter):
 def test_commercial_intent_estimation(adapter):
     """Test commercial intent percentage estimation."""
     # No paid keywords = low commercial intent
-    assert (
-        adapter._estimate_commercial_intent(
-            {"organic_keywords": 100, "paid_keywords": 0}
-        )
-        == 20
-    )
+    assert adapter._estimate_commercial_intent({"organic_keywords": 100, "paid_keywords": 0}) == 20
 
     # Equal paid/organic = medium-high commercial intent
-    assert (
-        adapter._estimate_commercial_intent(
-            {"organic_keywords": 100, "paid_keywords": 100}
-        )
-        == 70
-    )
+    assert adapter._estimate_commercial_intent({"organic_keywords": 100, "paid_keywords": 100}) == 70
 
     # Mostly paid = high commercial intent
-    assert (
-        adapter._estimate_commercial_intent(
-            {"organic_keywords": 20, "paid_keywords": 180}
-        )
-        == 90
-    )
+    assert adapter._estimate_commercial_intent({"organic_keywords": 20, "paid_keywords": 180}) == 90
 
 
 def test_visits_per_mil_calculation(adapter):

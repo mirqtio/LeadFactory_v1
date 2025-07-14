@@ -1,9 +1,10 @@
 """Unit tests for Google Business Profile adapter."""
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
+from d3_assessment.audit_schema import FindingCategory, FindingSeverity
 from d3_assessment.gbp import GBPAdapter
-from d3_assessment.audit_schema import FindingSeverity, FindingCategory
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
@@ -156,9 +157,7 @@ def test_severity_mapping_integration(adapter):
         if rating >= 4.0 and review_count >= 20:
             assert finding.severity == FindingSeverity.LOW
         else:
-            assert (
-                finding.severity == expected
-            ), f"Rating {rating} with {review_count} reviews should be {expected}"
+            assert finding.severity == expected, f"Rating {rating} with {review_count} reviews should be {expected}"
 
 
 @pytest.mark.asyncio

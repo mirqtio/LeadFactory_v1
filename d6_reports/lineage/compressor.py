@@ -8,9 +8,7 @@ import sys
 from typing import Any, Dict
 
 
-def compress_lineage_data(
-    data: Dict[str, Any], max_size_mb: float = 2.0
-) -> tuple[bytes, float]:
+def compress_lineage_data(data: Dict[str, Any], max_size_mb: float = 2.0) -> tuple[bytes, float]:
     """
     Compress lineage data with size limit
 
@@ -37,9 +35,7 @@ def compress_lineage_data(
         return compress_lineage_data(truncated_data, max_size_mb)
 
     # Calculate compression ratio
-    compression_ratio = (
-        ((original_size - compressed_size) / original_size * 100) if original_size > 0 else 0
-    )
+    compression_ratio = ((original_size - compressed_size) / original_size * 100) if original_size > 0 else 0
 
     return compressed, round(compression_ratio, 2)
 
@@ -125,7 +121,7 @@ def _truncate_lineage_data(data: Dict[str, Any]) -> Dict[str, Any]:
                     sample_inputs[key] = f"<truncated: {type(value).__name__}>"
 
             truncated["raw_inputs_sample"] = sample_inputs
-    
+
     # Check all other fields and truncate large ones
     for key, value in data.items():
         if key not in truncated and key not in ["pipeline_logs", "raw_inputs"]:

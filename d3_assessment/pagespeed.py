@@ -100,9 +100,7 @@ class PageSpeedAssessorLegacy:
             }
 
             # Calculate total cost
-            total_cost = await self._calculate_assessment_cost(
-                assessment_id, session_id, mobile_result, desktop_result
-            )
+            total_cost = await self._calculate_assessment_cost(assessment_id, session_id, mobile_result, desktop_result)
             assessment.total_cost_usd = total_cost
 
             # Mark as completed
@@ -135,9 +133,7 @@ class PageSpeedAssessorLegacy:
                 assessment_id=assessment_id,
                 is_mobile=True,
                 lighthouse_data=result.get("lighthouseResult", {}),
-                lighthouse_version=result.get("lighthouseResult", {}).get(
-                    "lighthouseVersion"
-                ),
+                lighthouse_version=result.get("lighthouseResult", {}).get("lighthouseVersion"),
                 user_agent=result.get("lighthouseResult", {}).get("userAgent"),
                 fetch_time=datetime.utcnow(),
             )
@@ -171,9 +167,7 @@ class PageSpeedAssessorLegacy:
                 assessment_id=assessment_id,
                 is_mobile=False,
                 lighthouse_data=result.get("lighthouseResult", {}),
-                lighthouse_version=result.get("lighthouseResult", {}).get(
-                    "lighthouseVersion"
-                ),
+                lighthouse_version=result.get("lighthouseResult", {}).get("lighthouseVersion"),
                 user_agent=result.get("lighthouseResult", {}).get("userAgent"),
                 fetch_time=datetime.utcnow(),
             )
@@ -205,25 +199,17 @@ class PageSpeedAssessorLegacy:
         Acceptance Criteria: All scores captured
         """
         # Use mobile scores as primary (mobile-first approach)
-        mobile_categories = mobile_result.get("lighthouseResult", {}).get(
-            "categories", {}
-        )
+        mobile_categories = mobile_result.get("lighthouseResult", {}).get("categories", {})
 
         # Performance scores (0-100)
         if "performance" in mobile_categories:
-            assessment.performance_score = int(
-                mobile_categories["performance"].get("score", 0) * 100
-            )
+            assessment.performance_score = int(mobile_categories["performance"].get("score", 0) * 100)
 
         if "accessibility" in mobile_categories:
-            assessment.accessibility_score = int(
-                mobile_categories["accessibility"].get("score", 0) * 100
-            )
+            assessment.accessibility_score = int(mobile_categories["accessibility"].get("score", 0) * 100)
 
         if "best-practices" in mobile_categories:
-            assessment.best_practices_score = int(
-                mobile_categories["best-practices"].get("score", 0) * 100
-            )
+            assessment.best_practices_score = int(mobile_categories["best-practices"].get("score", 0) * 100)
 
         if "seo" in mobile_categories:
             assessment.seo_score = int(mobile_categories["seo"].get("score", 0) * 100)
@@ -231,9 +217,7 @@ class PageSpeedAssessorLegacy:
         if "pwa" in mobile_categories:
             assessment.pwa_score = int(mobile_categories["pwa"].get("score", 0) * 100)
 
-    def _extract_core_web_vitals(
-        self, assessment: AssessmentResult, mobile_result: Dict[str, Any]
-    ):
+    def _extract_core_web_vitals(self, assessment: AssessmentResult, mobile_result: Dict[str, Any]):
         """
         Extract Core Web Vitals from mobile result (mobile-first)
 
@@ -276,36 +260,22 @@ class PageSpeedAssessorLegacy:
             tbt = audits["total-blocking-time"]
             assessment.total_blocking_time = tbt.get("numericValue")
 
-    def _extract_lighthouse_scores(
-        self, pagespeed_assessment: PageSpeedAssessment, result: Dict[str, Any]
-    ):
+    def _extract_lighthouse_scores(self, pagespeed_assessment: PageSpeedAssessment, result: Dict[str, Any]):
         """Extract Lighthouse scores for PageSpeedAssessment"""
         categories = result.get("lighthouseResult", {}).get("categories", {})
 
         if "performance" in categories:
-            pagespeed_assessment.performance_score = int(
-                categories["performance"].get("score", 0) * 100
-            )
+            pagespeed_assessment.performance_score = int(categories["performance"].get("score", 0) * 100)
         if "accessibility" in categories:
-            pagespeed_assessment.accessibility_score = int(
-                categories["accessibility"].get("score", 0) * 100
-            )
+            pagespeed_assessment.accessibility_score = int(categories["accessibility"].get("score", 0) * 100)
         if "best-practices" in categories:
-            pagespeed_assessment.best_practices_score = int(
-                categories["best-practices"].get("score", 0) * 100
-            )
+            pagespeed_assessment.best_practices_score = int(categories["best-practices"].get("score", 0) * 100)
         if "seo" in categories:
-            pagespeed_assessment.seo_score = int(
-                categories["seo"].get("score", 0) * 100
-            )
+            pagespeed_assessment.seo_score = int(categories["seo"].get("score", 0) * 100)
         if "pwa" in categories:
-            pagespeed_assessment.pwa_score = int(
-                categories["pwa"].get("score", 0) * 100
-            )
+            pagespeed_assessment.pwa_score = int(categories["pwa"].get("score", 0) * 100)
 
-    def _extract_detailed_cwv(
-        self, pagespeed_assessment: PageSpeedAssessment, result: Dict[str, Any]
-    ):
+    def _extract_detailed_cwv(self, pagespeed_assessment: PageSpeedAssessment, result: Dict[str, Any]):
         """Extract detailed Core Web Vitals for PageSpeedAssessment"""
         audits = result.get("lighthouseResult", {}).get("audits", {})
 
@@ -366,9 +336,7 @@ class PageSpeedAssessorLegacy:
                         "description": audit.get("description", ""),
                         "score": audit.get("score", 0),
                         "savings_ms": audit["details"].get("overallSavingsMs", 0),
-                        "impact": self._categorize_impact(
-                            audit["details"].get("overallSavingsMs", 0)
-                        ),
+                        "impact": self._categorize_impact(audit["details"].get("overallSavingsMs", 0)),
                         "details": audit.get("details", {}),
                     }
                 )
@@ -430,36 +398,16 @@ class PageSpeedAssessorLegacy:
         mobile_opportunities = self._extract_opportunities(mobile_result)
         mobile_diagnostics = self._extract_diagnostics(mobile_result)
 
-        issues.extend(
-            [
-                {**issue, "device": "mobile", "type": "opportunity"}
-                for issue in mobile_opportunities
-            ]
-        )
-        issues.extend(
-            [
-                {**issue, "device": "mobile", "type": "diagnostic"}
-                for issue in mobile_diagnostics
-            ]
-        )
+        issues.extend([{**issue, "device": "mobile", "type": "opportunity"} for issue in mobile_opportunities])
+        issues.extend([{**issue, "device": "mobile", "type": "diagnostic"} for issue in mobile_diagnostics])
 
         # Extract desktop issues if available
         if desktop_result:
             desktop_opportunities = self._extract_opportunities(desktop_result)
             desktop_diagnostics = self._extract_diagnostics(desktop_result)
 
-            issues.extend(
-                [
-                    {**issue, "device": "desktop", "type": "opportunity"}
-                    for issue in desktop_opportunities
-                ]
-            )
-            issues.extend(
-                [
-                    {**issue, "device": "desktop", "type": "diagnostic"}
-                    for issue in desktop_diagnostics
-                ]
-            )
+            issues.extend([{**issue, "device": "desktop", "type": "opportunity"} for issue in desktop_opportunities])
+            issues.extend([{**issue, "device": "desktop", "type": "diagnostic"} for issue in desktop_diagnostics])
 
         return issues
 
@@ -493,9 +441,7 @@ class PageSpeedAssessorLegacy:
         total_cost = Decimal("0.00")
 
         # Cost for mobile analysis
-        mobile_cost = await self.client.calculate_cost(
-            "GET:/pagespeedonline/v5/runPagespeed"
-        )
+        mobile_cost = await self.client.calculate_cost("GET:/pagespeedonline/v5/runPagespeed")
         total_cost += mobile_cost
 
         # Track mobile API cost
@@ -514,9 +460,7 @@ class PageSpeedAssessorLegacy:
 
         # Cost for desktop analysis if performed
         if desktop_result:
-            desktop_cost = await self.client.calculate_cost(
-                "GET:/pagespeedonline/v5/runPagespeed"
-            )
+            desktop_cost = await self.client.calculate_cost("GET:/pagespeedonline/v5/runPagespeed")
             total_cost += desktop_cost
 
             # Track desktop API cost

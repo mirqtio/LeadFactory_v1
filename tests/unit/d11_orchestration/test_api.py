@@ -183,9 +183,7 @@ class TestPipelineAPI:
         for i in range(5):
             pipeline_run = PipelineRun(
                 pipeline_name=f"test_pipeline_{i}",
-                status=PipelineRunStatus.SUCCESS
-                if i % 2 == 0
-                else PipelineRunStatus.FAILED,
+                status=PipelineRunStatus.SUCCESS if i % 2 == 0 else PipelineRunStatus.FAILED,
                 triggered_by="test_user",
                 pipeline_type=PipelineType.MANUAL,
             )
@@ -261,11 +259,7 @@ class TestExperimentAPI:
         assert "experiment_id" in data
 
         # Verify experiment was created in database
-        experiment = (
-            test_db.query(Experiment)
-            .filter(Experiment.experiment_id == data["experiment_id"])
-            .first()
-        )
+        experiment = test_db.query(Experiment).filter(Experiment.experiment_id == data["experiment_id"]).first()
         assert experiment is not None
         assert experiment.name == "test_experiment"
 
@@ -334,9 +328,7 @@ class TestExperimentAPI:
         # Update experiment
         update_data = {"description": "Updated description", "status": "scheduled"}
 
-        response = client.put(
-            f"/orchestration/experiments/{experiment.experiment_id}", json=update_data
-        )
+        response = client.put(f"/orchestration/experiments/{experiment.experiment_id}", json=update_data)
         assert response.status_code == 200
 
         data = response.json()
@@ -351,9 +343,7 @@ class TestExperimentAPI:
                 name=f"test_experiment_{i}",
                 created_by="test_user",
                 primary_metric="conversion_rate",
-                status=ExperimentStatus.DRAFT
-                if i % 2 == 0
-                else ExperimentStatus.RUNNING,
+                status=ExperimentStatus.DRAFT if i % 2 == 0 else ExperimentStatus.RUNNING,
             )
             test_db.add(experiment)
 
@@ -410,20 +400,14 @@ class TestExperimentAPI:
         test_db.commit()
         test_db.refresh(experiment)
 
-        response = client.delete(
-            f"/orchestration/experiments/{experiment.experiment_id}"
-        )
+        response = client.delete(f"/orchestration/experiments/{experiment.experiment_id}")
         assert response.status_code == 200
 
         data = response.json()
         assert "deleted successfully" in data["message"]
 
         # Verify experiment was deleted
-        deleted = (
-            test_db.query(Experiment)
-            .filter(Experiment.experiment_id == experiment.experiment_id)
-            .first()
-        )
+        deleted = test_db.query(Experiment).filter(Experiment.experiment_id == experiment.experiment_id).first()
         assert deleted is None
 
     def test_delete_running_experiment_fails(self, client, test_db):
@@ -439,9 +423,7 @@ class TestExperimentAPI:
         test_db.commit()
         test_db.refresh(experiment)
 
-        response = client.delete(
-            f"/orchestration/experiments/{experiment.experiment_id}"
-        )
+        response = client.delete(f"/orchestration/experiments/{experiment.experiment_id}")
         assert response.status_code == 400
         assert "Cannot delete a running experiment" in response.json()["detail"]
 
@@ -547,9 +529,7 @@ class TestExperimentVariantAPI:
         test_db.add_all([control_variant, treatment_variant])
         test_db.commit()
 
-        response = client.get(
-            f"/orchestration/experiments/{experiment.experiment_id}/variants"
-        )
+        response = client.get(f"/orchestration/experiments/{experiment.experiment_id}/variants")
         assert response.status_code == 200
 
         data = response.json()

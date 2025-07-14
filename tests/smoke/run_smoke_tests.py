@@ -131,9 +131,7 @@ async def run_all_smoke_tests():
         "openai_vision",
         "gbp",
     ]
-    failed_required = [
-        api for api in required_apis if results.get(api, "").startswith("✗")
-    ]
+    failed_required = [api for api in required_apis if results.get(api, "").startswith("✗")]
 
     print("\n" + "=" * 60)
     if failed_required:
@@ -156,9 +154,7 @@ def check_environment():
     print(f"ScreenshotOne Key:   {'✓' if settings.screenshotone_key else '✗'}")
     print(f"OpenAI API Key:      {'✓' if settings.openai_api_key else '✗'}")
     print(f"Google API Key:      {'✓' if settings.google_api_key else '✗'}")
-    print(
-        f"Data Axle API Key:   {'✓' if settings.data_axle_api_key else '✗'} (optional)"
-    )
+    print(f"Data Axle API Key:   {'✓' if settings.data_axle_api_key else '✗'} (optional)")
     print(f"\nMax Daily Yelp Calls: {settings.max_daily_yelp_calls}")
     print(f"Max Daily Emails:     {settings.max_daily_emails}")
 

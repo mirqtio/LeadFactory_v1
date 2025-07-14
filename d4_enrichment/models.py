@@ -140,9 +140,7 @@ class EnrichmentRequest(Base):
     error_details = Column(JSON)
 
     # Relationships
-    results = relationship(
-        "EnrichmentResult", back_populates="request", cascade="all, delete-orphan"
-    )
+    results = relationship("EnrichmentResult", back_populates="request", cascade="all, delete-orphan")
 
     # Indexing
     __table_args__ = (
@@ -162,9 +160,7 @@ class EnrichmentResult(Base):
     __tablename__ = "enrichment_results"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    request_id = Column(
-        String(36), ForeignKey("enrichment_requests.id"), nullable=False
-    )
+    request_id = Column(String(36), ForeignKey("enrichment_requests.id"), nullable=False)
     business_id = Column(String(50), nullable=False, index=True)
 
     # Source attribution (Acceptance Criteria: Source attribution)
@@ -265,9 +261,7 @@ class EnrichmentResult(Base):
         Index("idx_enrichment_results_expires_at", "expires_at"),
         Index("idx_enrichment_results_company_name", "company_name"),
         Index("idx_enrichment_results_domain", "domain"),
-        UniqueConstraint(
-            "business_id", "source", "data_version", name="uq_business_source_version"
-        ),
+        UniqueConstraint("business_id", "source", "data_version", name="uq_business_source_version"),
     )
 
     def __repr__(self):
@@ -321,9 +315,7 @@ class EnrichmentResult(Base):
         return {
             "employee_count": self.employee_count,
             "employee_range": self.employee_range,
-            "annual_revenue": float(self.annual_revenue)
-            if self.annual_revenue
-            else None,
+            "annual_revenue": float(self.annual_revenue) if self.annual_revenue else None,
             "revenue_range": self.revenue_range,
             "funding_total": float(self.funding_total) if self.funding_total else None,
             "founded_year": self.founded_year,
@@ -334,12 +326,8 @@ class EnrichmentResult(Base):
         return {
             "match_confidence": self.match_confidence,
             "match_score": float(self.match_score) if self.match_score else None,
-            "data_quality_score": float(self.data_quality_score)
-            if self.data_quality_score
-            else None,
-            "completeness_score": float(self.completeness_score)
-            if self.completeness_score
-            else None,
+            "data_quality_score": float(self.data_quality_score) if self.data_quality_score else None,
+            "completeness_score": float(self.completeness_score) if self.completeness_score else None,
             "freshness_days": self.freshness_days,
             "age_days": self.age_days,
             "is_expired": self.is_expired,
@@ -376,9 +364,7 @@ class EnrichmentResult(Base):
 
         return new_version
 
-    def calculate_match_score(
-        self, input_data: Dict[str, Any], matched_data: Dict[str, Any]
-    ) -> float:
+    def calculate_match_score(self, input_data: Dict[str, Any], matched_data: Dict[str, Any]) -> float:
         """
         Calculate match confidence score
 
@@ -539,9 +525,7 @@ def _is_valid_domain(domain: str) -> bool:
     """Basic domain validation"""
     import re
 
-    pattern = (
-        r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.([a-zA-Z]{2,}\.)*[a-zA-Z]{2,}$"
-    )
+    pattern = r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.([a-zA-Z]{2,}\.)*[a-zA-Z]{2,}$"
     return bool(re.match(pattern, domain))
 
 

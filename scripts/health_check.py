@@ -39,9 +39,7 @@ class HealthChecker:
         """
         self.config = config or {
             "api_endpoint": os.getenv("API_ENDPOINT", "http://localhost:8000"),
-            "prometheus_endpoint": os.getenv(
-                "PROMETHEUS_ENDPOINT", "http://localhost:9091"
-            ),
+            "prometheus_endpoint": os.getenv("PROMETHEUS_ENDPOINT", "http://localhost:9091"),
             "grafana_endpoint": os.getenv("GRAFANA_ENDPOINT", "http://localhost:3001"),
             "database_url": os.getenv(
                 "DATABASE_URL",
@@ -71,9 +69,7 @@ class HealthChecker:
                     "response_time": response.elapsed.total_seconds(),
                     "details": data,
                 }
-                print(
-                    f"✅ {service} is healthy (response time: {response.elapsed.total_seconds():.3f}s)"
-                )
+                print(f"✅ {service} is healthy (response time: {response.elapsed.total_seconds():.3f}s)")
                 return True
             else:
                 self.results[service] = {
@@ -215,20 +211,14 @@ class HealthChecker:
                     "uptime_seconds": info.get("uptime_in_seconds", 0),
                     "connected_clients": info.get("connected_clients", 0),
                     "used_memory": info.get("used_memory_human", "unknown"),
-                    "keyspace": {
-                        db: stats for db, stats in info.items() if db.startswith("db")
-                    },
+                    "keyspace": {db: stats for db, stats in info.items() if db.startswith("db")},
                     "read_write_test": test_value == b"test_value",
                 },
             }
 
             print(f"✅ {service} is healthy (response time: {response_time:.3f}s)")
-            print(
-                f"   Version: {info.get('redis_version')}, Uptime: {info.get('uptime_in_seconds')}s"
-            )
-            print(
-                f"   Memory: {info.get('used_memory_human')}, Clients: {info.get('connected_clients')}"
-            )
+            print(f"   Version: {info.get('redis_version')}, Uptime: {info.get('uptime_in_seconds')}s")
+            print(f"   Memory: {info.get('used_memory_human')}, Clients: {info.get('connected_clients')}")
 
             return True
 
@@ -382,15 +372,11 @@ class HealthChecker:
                             state = parts[3] if len(parts) > 3 else "unknown"
                             services_status[container_name] = state
 
-                running_services = sum(
-                    1 for state in services_status.values() if "Up" in state
-                )
+                running_services = sum(1 for state in services_status.values() if "Up" in state)
                 total_services = len(services_status)
 
                 self.results[service] = {
-                    "status": "healthy"
-                    if running_services == total_services
-                    else "partial",
+                    "status": "healthy" if running_services == total_services else "partial",
                     "details": {
                         "running_services": running_services,
                         "total_services": total_services,
@@ -398,9 +384,7 @@ class HealthChecker:
                     },
                 }
 
-                print(
-                    f"✅ {service}: {running_services}/{total_services} services running"
-                )
+                print(f"✅ {service}: {running_services}/{total_services} services running")
                 for container, state in services_status.items():
                     status_icon = "✅" if "Up" in state else "❌"
                     print(f"   {status_icon} {container}: {state}")
@@ -426,16 +410,10 @@ class HealthChecker:
 
     def generate_report(self) -> Dict[str, Any]:
         """Generate comprehensive health report"""
-        healthy_services = sum(
-            1 for result in self.results.values() if result.get("status") == "healthy"
-        )
+        healthy_services = sum(1 for result in self.results.values() if result.get("status") == "healthy")
         total_services = len(self.results)
 
-        overall_status = (
-            "healthy"
-            if healthy_services == total_services and not self.errors
-            else "unhealthy"
-        )
+        overall_status = "healthy" if healthy_services == total_services and not self.errors else "unhealthy"
 
         report = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -443,9 +421,7 @@ class HealthChecker:
             "summary": {
                 "healthy_services": healthy_services,
                 "total_services": total_services,
-                "health_percentage": (healthy_services / total_services * 100)
-                if total_services > 0
-                else 0,
+                "health_percentage": (healthy_services / total_services * 100) if total_services > 0 else 0,
             },
             "services": self.results,
             "errors": self.errors,
@@ -497,9 +473,7 @@ def main():
         help="Specific services to check",
     )
     parser.add_argument("--json", action="store_true", help="Output results as JSON")
-    parser.add_argument(
-        "--timeout", type=int, default=10, help="Request timeout in seconds"
-    )
+    parser.add_argument("--timeout", type=int, default=10, help="Request timeout in seconds")
 
     args = parser.parse_args()
 

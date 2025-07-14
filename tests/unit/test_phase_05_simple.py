@@ -3,13 +3,14 @@ Simplified tests for Phase 0.5 providers
 Task TS-10: Basic tests for core functionality
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
+import pytest
+
+from core.exceptions import ValidationError
 from d0_gateway.providers.dataaxle import DataAxleClient
 from d0_gateway.providers.hunter import HunterClient
-from core.exceptions import ValidationError
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)

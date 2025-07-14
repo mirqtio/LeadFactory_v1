@@ -96,9 +96,7 @@ class TestPaymentFlowIntegration:
             "cancel_url": f"https://leadfactory.com/cancel?purchase_id={self.test_purchase_id}&session_id={{CHECKOUT_SESSION_ID}}",
         }
 
-    def create_mock_webhook_event(
-        self, event_type: str = "checkout.session.completed"
-    ) -> Dict[str, Any]:
+    def create_mock_webhook_event(self, event_type: str = "checkout.session.completed") -> Dict[str, Any]:
         """Create mock webhook event for testing"""
         session_data = self.create_mock_stripe_session()
         session_data["payment_status"] = "paid"  # For completed events
@@ -132,9 +130,7 @@ class TestPaymentFlowIntegration:
         print("Step 1: Initiating checkout...")
         items = self.create_test_checkout_items()
 
-        with patch.object(
-            self.stripe_client, "create_checkout_session"
-        ) as mock_create_session:
+        with patch.object(self.stripe_client, "create_checkout_session") as mock_create_session:
             # Mock successful Stripe session creation
             mock_stripe_response = self.create_mock_stripe_session()
             mock_create_session.return_value = {
@@ -162,10 +158,7 @@ class TestPaymentFlowIntegration:
             # Verify checkout initiation
             assert checkout_result["success"] is True
             assert checkout_result["session_id"] == "cs_integration_test_123456"
-            assert (
-                checkout_result["checkout_url"]
-                == "https://checkout.stripe.com/pay/cs_integration_test_123456"
-            )
+            assert checkout_result["checkout_url"] == "https://checkout.stripe.com/pay/cs_integration_test_123456"
             assert checkout_result["test_mode"] is True
 
             print("✓ Checkout initiation successful")
@@ -180,12 +173,8 @@ class TestPaymentFlowIntegration:
         # Mock webhook signature (in real integration, this would be from Stripe)
         webhook_signature = "integration_test_signature"
 
-        with patch.object(
-            self.webhook_processor, "verify_signature", return_value=True
-        ):
-            with patch.object(
-                self.webhook_processor, "construct_event"
-            ) as mock_construct:
+        with patch.object(self.webhook_processor, "verify_signature", return_value=True):
+            with patch.object(self.webhook_processor, "construct_event") as mock_construct:
                 mock_construct.return_value = {
                     "success": True,
                     "event_id": webhook_event["id"],
@@ -195,9 +184,7 @@ class TestPaymentFlowIntegration:
                 }
 
                 # Process webhook
-                webhook_result = self.webhook_processor.process_webhook(
-                    webhook_payload, webhook_signature
-                )
+                webhook_result = self.webhook_processor.process_webhook(webhook_payload, webhook_signature)
 
                 # Verify webhook processing
                 assert webhook_result["success"] is True
@@ -209,9 +196,7 @@ class TestPaymentFlowIntegration:
                 assert webhook_result["data"]["payment_status"] == "paid"
                 assert "report_generation" in webhook_result["data"]
                 assert webhook_result["data"]["report_generation"]["success"] is True
-                assert (
-                    webhook_result["data"]["report_generation"]["status"] == "triggered"
-                )
+                assert webhook_result["data"]["report_generation"]["status"] == "triggered"
 
                 print("✓ Webhook processing successful")
                 print("✓ Report generation triggered")
@@ -249,12 +234,8 @@ class TestPaymentFlowIntegration:
             webhook_event = self.create_mock_webhook_event(event_config["type"])
             webhook_payload = json.dumps(webhook_event).encode()
 
-            with patch.object(
-                self.webhook_processor, "verify_signature", return_value=True
-            ):
-                with patch.object(
-                    self.webhook_processor, "construct_event"
-                ) as mock_construct:
+            with patch.object(self.webhook_processor, "verify_signature", return_value=True):
+                with patch.object(self.webhook_processor, "construct_event") as mock_construct:
                     mock_construct.return_value = {
                         "success": True,
                         "event_id": webhook_event["id"],
@@ -264,9 +245,7 @@ class TestPaymentFlowIntegration:
                     }
 
                     # Process webhook
-                    result = self.webhook_processor.process_webhook(
-                        webhook_payload, "test_signature"
-                    )
+                    result = self.webhook_processor.process_webhook(webhook_payload, "test_signature")
 
                     # Verify processing
                     assert result["success"] is True
@@ -380,9 +359,7 @@ class TestPaymentFlowIntegration:
             mock_response = self.create_mock_stripe_session()
             mock_create.return_value = {"success": True, **mock_response}
 
-            result = self.checkout_manager.initiate_checkout(
-                customer_email=self.test_customer_email, items=items
-            )
+            result = self.checkout_manager.initiate_checkout(customer_email=self.test_customer_email, items=items)
 
             assert result["success"] is True
             assert result["test_mode"] is True
@@ -495,17 +472,13 @@ class TestPaymentFlowIntegration:
         ]
 
         try:
-            with patch.object(
-                self.stripe_client, "create_checkout_session"
-            ) as mock_create:
+            with patch.object(self.stripe_client, "create_checkout_session") as mock_create:
                 # Simulate Stripe error
                 from d7_storefront.stripe_client import StripeError
 
                 mock_create.side_effect = StripeError("Invalid amount")
 
-                result = self.checkout_manager.initiate_checkout(
-                    customer_email=self.test_customer_email, items=items
-                )
+                result = self.checkout_manager.initiate_checkout(customer_email=self.test_customer_email, items=items)
 
                 assert result["success"] is False
                 assert "error" in result
@@ -517,12 +490,8 @@ class TestPaymentFlowIntegration:
             print("✓ Input validation error handling works")
 
         # Test invalid webhook signature
-        with patch.object(
-            self.webhook_processor, "verify_signature", return_value=False
-        ):
-            result = self.webhook_processor.process_webhook(
-                b'{"test": "data"}', "invalid_signature"
-            )
+        with patch.object(self.webhook_processor, "verify_signature", return_value=False):
+            result = self.webhook_processor.process_webhook(b'{"test": "data"}', "invalid_signature")
 
             assert result["success"] is False
             assert "Invalid signature" in result["error"]

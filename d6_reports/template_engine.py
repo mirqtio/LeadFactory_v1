@@ -16,13 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from jinja2 import (
-    BaseLoader,
-    Environment,
-    TemplateError,
-    StrictUndefined,
-    Undefined,
-)
+from jinja2 import BaseLoader, Environment, StrictUndefined, TemplateError, Undefined
 from jinja2.sandbox import SandboxedEnvironment
 
 logger = logging.getLogger(__name__)
@@ -199,9 +193,7 @@ class TemplateEngine:
                 return text
             return text[:length].rsplit(" ", 1)[0] + "..."
 
-        def format_date(
-            date_obj: Union[str, datetime], format_str: str = "%B %d, %Y"
-        ) -> str:
+        def format_date(date_obj: Union[str, datetime], format_str: str = "%B %d, %Y") -> str:
             """Format date object or string"""
             if not date_obj:
                 return "N/A"

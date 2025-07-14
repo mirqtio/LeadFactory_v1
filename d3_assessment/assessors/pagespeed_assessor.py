@@ -7,13 +7,13 @@ Cost: $0.00 (free API)
 Output: pagespeed_json column
 """
 import asyncio
-from typing import Dict, Any
+from typing import Any, Dict
 
-from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
-from d3_assessment.models import AssessmentType
-from d3_assessment.exceptions import AssessmentTimeoutError
-from d0_gateway.providers.pagespeed import PageSpeedClient
 from core.logging import get_logger
+from d0_gateway.providers.pagespeed import PageSpeedClient
+from d3_assessment.assessors.base import AssessmentResult, BaseAssessor
+from d3_assessment.exceptions import AssessmentTimeoutError
+from d3_assessment.models import AssessmentType
 
 logger = get_logger(__name__, domain="d3")
 
@@ -68,9 +68,7 @@ class PageSpeedAssessor(BaseAssessor):
                     timeout=self.timeout,
                 )
             except asyncio.TimeoutError:
-                raise AssessmentTimeoutError(
-                    f"PageSpeed mobile analysis timed out after {self.timeout}s"
-                )
+                raise AssessmentTimeoutError(f"PageSpeed mobile analysis timed out after {self.timeout}s")
 
             # Extract key metrics
             lighthouse = mobile_result.get("lighthouseResult", {})

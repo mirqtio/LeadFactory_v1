@@ -2,15 +2,16 @@
 Unit tests for Phase 0.5 bucket enrichment flow
 Task ET-07: Test nightly bucket_enrichment Prefect flow
 """
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from d11_orchestration.bucket_enrichment import (
-    load_bucket_features,
-    get_unenriched_entities,
-    enrich_with_buckets,
-    update_entity_buckets,
     bucket_enrichment_flow,
+    enrich_with_buckets,
+    get_unenriched_entities,
+    load_bucket_features,
+    update_entity_buckets,
 )
 
 # Mark entire module as xfail for Phase 0.5
@@ -108,9 +109,7 @@ class TestBucketEnrichmentFlow:
                 {"id": "biz-1", "zip_code": "94105", "categories": ["restaurants"]},
                 {"id": "biz-2", "zip_code": "99999", "categories": ["unknown"]},
             ],
-            "targets": [
-                {"id": "tgt-1", "zip_code": "94105", "categories": ["dentists"]}
-            ],
+            "targets": [{"id": "tgt-1", "zip_code": "94105", "categories": ["dentists"]}],
         }
 
         # Test enrichment
@@ -173,9 +172,7 @@ class TestBucketEnrichmentFlow:
     @patch("d11_orchestration.flows.bucket_enrichment.get_unenriched_entities")
     @patch("d11_orchestration.flows.bucket_enrichment.enrich_with_buckets")
     @patch("d11_orchestration.flows.bucket_enrichment.update_entity_buckets")
-    def test_bucket_enrichment_flow(
-        self, mock_update, mock_enrich, mock_get_entities, mock_load
-    ):
+    def test_bucket_enrichment_flow(self, mock_update, mock_enrich, mock_get_entities, mock_load):
         """Test complete flow execution"""
         # Mock feature loading
         mock_load.return_value = {
@@ -247,9 +244,7 @@ class TestBucketEnrichmentFlow:
         """Test manual flow trigger"""
         from d11_orchestration.flows.bucket_enrichment import trigger_bucket_enrichment
 
-        with patch(
-            "d11_orchestration.flows.bucket_enrichment.bucket_enrichment_flow"
-        ) as mock_flow:
+        with patch("d11_orchestration.flows.bucket_enrichment.bucket_enrichment_flow") as mock_flow:
             mock_flow.return_value = {"status": "success"}
 
             result = await trigger_bucket_enrichment(batch_size=5, max_batches=1)
@@ -259,9 +254,7 @@ class TestBucketEnrichmentFlow:
 
     def test_missing_data_logging(self):
         """Test that missing ZIP codes and categories are logged"""
-        with patch(
-            "d11_orchestration.flows.bucket_enrichment.get_bucket_loader"
-        ) as mock_get_loader:
+        with patch("d11_orchestration.flows.bucket_enrichment.get_bucket_loader") as mock_get_loader:
             # Mock loader to return None for certain inputs
             mock_loader = MagicMock()
             mock_loader.enrich_business.side_effect = lambda x: {

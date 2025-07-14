@@ -12,12 +12,13 @@ class SendGridClient(BaseAPIClient):
 
     def __init__(self, api_key: Optional[str] = None):
         from core.config import get_settings
+
         settings = get_settings()
-        
+
         # Check if SendGrid is enabled
         if not settings.enable_sendgrid:
             raise RuntimeError("SendGrid client initialized but ENABLE_SENDGRID=false")
-            
+
         super().__init__(provider="sendgrid", api_key=api_key)
 
     def _get_base_url(self) -> str:
@@ -102,9 +103,7 @@ class SendGridClient(BaseAPIClient):
         if template_id:
             payload["template_id"] = template_id
             if dynamic_template_data:
-                payload["personalizations"][0][
-                    "dynamic_template_data"
-                ] = dynamic_template_data
+                payload["personalizations"][0]["dynamic_template_data"] = dynamic_template_data
         else:
             payload["content"] = []
             if text_content:
@@ -175,9 +174,7 @@ class SendGridClient(BaseAPIClient):
 
             except Exception as e:
                 results["failed"] += 1
-                results["results"].append(
-                    {"email": email["to_email"], "status": "failed", "error": str(e)}
-                )
+                results["results"].append({"email": email["to_email"], "status": "failed", "error": str(e)})
                 self.logger.error(f"Failed to send email to {email['to_email']}: {e}")
 
         return results

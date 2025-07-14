@@ -34,9 +34,7 @@ class TestTask031AcceptanceCriteria:
         return {
             "lighthouseResult": {
                 "lighthouseVersion": "10.0.0",
-                "userAgent": (
-                    "Mozilla/5.0 (Linux; Android 11; Pixel 4) " "AppleWebKit/537.36"
-                ),
+                "userAgent": ("Mozilla/5.0 (Linux; Android 11; Pixel 4) " "AppleWebKit/537.36"),
                 "categories": {
                     "performance": {"score": 0.85},
                     "accessibility": {"score": 0.92},
@@ -50,8 +48,7 @@ class TestTask031AcceptanceCriteria:
                         "numericValue": 2500,
                         "displayValue": "2.5 s",
                         "description": (
-                            "Largest Contentful Paint marks the time at "
-                            "which the largest text or image is painted."
+                            "Largest Contentful Paint marks the time at " "which the largest text or image is painted."
                         ),
                     },
                     "max-potential-fid": {
@@ -65,8 +62,7 @@ class TestTask031AcceptanceCriteria:
                         "numericValue": 0.1,
                         "displayValue": "0.1",
                         "description": (
-                            "Cumulative Layout Shift measures the movement "
-                            "of visible elements within the viewport."
+                            "Cumulative Layout Shift measures the movement " "of visible elements within the viewport."
                         ),
                     },
                     "first-contentful-paint": {
@@ -74,8 +70,7 @@ class TestTask031AcceptanceCriteria:
                         "numericValue": 1200,
                         "displayValue": "1.2 s",
                         "description": (
-                            "First Contentful Paint marks the time at "
-                            "which the first text or image is painted."
+                            "First Contentful Paint marks the time at " "which the first text or image is painted."
                         ),
                     },
                     "speed-index": {
@@ -83,8 +78,7 @@ class TestTask031AcceptanceCriteria:
                         "numericValue": 3200,
                         "displayValue": "3.2 s",
                         "description": (
-                            "Speed Index shows how quickly the contents "
-                            "of a page are visibly populated."
+                            "Speed Index shows how quickly the contents " "of a page are visibly populated."
                         ),
                     },
                     "interactive": {
@@ -100,10 +94,7 @@ class TestTask031AcceptanceCriteria:
                         "score": 0.7,
                         "numericValue": 150,
                         "displayValue": "150 ms",
-                        "description": (
-                            "Sum of all time periods between FCP and "
-                            "Time to Interactive."
-                        ),
+                        "description": ("Sum of all time periods between FCP and " "Time to Interactive."),
                     },
                     "unused-css-rules": {
                         "score": 0.5,
@@ -114,17 +105,13 @@ class TestTask031AcceptanceCriteria:
                     "render-blocking-resources": {
                         "score": 0.3,
                         "title": "Eliminate render-blocking resources",
-                        "description": (
-                            "Resources are blocking the first paint " "of your page."
-                        ),
+                        "description": ("Resources are blocking the first paint " "of your page."),
                         "details": {"overallSavingsMs": 800},
                     },
                     "uses-text-compression": {
                         "score": 0.8,
                         "title": "Enable text compression",
-                        "description": (
-                            "Text-based resources should be served " "with compression."
-                        ),
+                        "description": ("Text-based resources should be served " "with compression."),
                         "details": {},
                     },
                 },
@@ -144,18 +131,12 @@ class TestTask031AcceptanceCriteria:
 
         Acceptance Criteria: Core Web Vitals extracted
         """
-        with patch.object(
-            assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
-            with patch.object(
-                assessor.client, "calculate_cost", new_callable=AsyncMock
-            ) as mock_cost:
+        with patch.object(assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(assessor.client, "calculate_cost", new_callable=AsyncMock) as mock_cost:
                 mock_analyze.return_value = mock_pagespeed_result
                 mock_cost.return_value = Decimal("0.00")
 
-                assessment = await assessor.assess_website(
-                    business_id="test-business-id", url="https://example.com"
-                )
+                assessment = await assessor.assess_website(business_id="test-business-id", url="https://example.com")
 
                 # Verify Core Web Vitals are extracted
                 assert assessment.largest_contentful_paint == 2500  # LCP
@@ -176,18 +157,12 @@ class TestTask031AcceptanceCriteria:
 
         Acceptance Criteria: All scores captured
         """
-        with patch.object(
-            assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
-            with patch.object(
-                assessor.client, "calculate_cost", new_callable=AsyncMock
-            ) as mock_cost:
+        with patch.object(assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(assessor.client, "calculate_cost", new_callable=AsyncMock) as mock_cost:
                 mock_analyze.return_value = mock_pagespeed_result
                 mock_cost.return_value = Decimal("0.00")
 
-                assessment = await assessor.assess_website(
-                    business_id="test-business-id", url="https://example.com"
-                )
+                assessment = await assessor.assess_website(business_id="test-business-id", url="https://example.com")
 
                 # Verify all scores are captured (converted to 0-100 scale)
                 assert assessment.performance_score == 85  # 0.85 * 100
@@ -205,18 +180,12 @@ class TestTask031AcceptanceCriteria:
 
         Acceptance Criteria: Issue extraction works
         """
-        with patch.object(
-            assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
-            with patch.object(
-                assessor.client, "calculate_cost", new_callable=AsyncMock
-            ) as mock_cost:
+        with patch.object(assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(assessor.client, "calculate_cost", new_callable=AsyncMock) as mock_cost:
                 mock_analyze.return_value = mock_pagespeed_result
                 mock_cost.return_value = Decimal("0.00")
 
-                assessment = await assessor.assess_website(
-                    business_id="test-business-id", url="https://example.com"
-                )
+                assessment = await assessor.assess_website(business_id="test-business-id", url="https://example.com")
 
                 # Verify JSONB data contains extracted issues
                 pagespeed_data = assessment.pagespeed_data
@@ -262,21 +231,15 @@ class TestTask031AcceptanceCriteria:
 
         Acceptance Criteria: Mobile-first approach
         """
-        with patch.object(
-            assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
-            with patch.object(
-                assessor.client, "calculate_cost", new_callable=AsyncMock
-            ) as mock_cost:
+        with patch.object(assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(assessor.client, "calculate_cost", new_callable=AsyncMock) as mock_cost:
                 mock_analyze.return_value = mock_pagespeed_result
                 mock_cost.return_value = Decimal("0.00")
 
                 # Verify mobile_first is enabled by default
                 assert assessor.mobile_first is True
 
-                assessment = await assessor.assess_website(
-                    business_id="test-business-id", url="https://example.com"
-                )
+                assessment = await assessor.assess_website(business_id="test-business-id", url="https://example.com")
 
                 # Verify mobile analysis was called first
                 calls = mock_analyze.call_args_list
@@ -298,24 +261,16 @@ class TestTask031AcceptanceCriteria:
                 assert "desktop" in pagespeed_data
 
                 # Scores should come from mobile analysis (mobile-first)
-                mobile_categories = mock_pagespeed_result["lighthouseResult"][
-                    "categories"
-                ]
-                assert assessment.performance_score == int(
-                    mobile_categories["performance"]["score"] * 100
-                )
+                mobile_categories = mock_pagespeed_result["lighthouseResult"]["categories"]
+                assert assessment.performance_score == int(mobile_categories["performance"]["score"] * 100)
 
                 print("✓ Mobile-first approach implemented correctly")
 
     @pytest.mark.asyncio
     async def test_mobile_only_assessment(self, assessor, mock_pagespeed_result):
         """Test assessment with mobile-only (no desktop)"""
-        with patch.object(
-            assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
-            with patch.object(
-                assessor.client, "calculate_cost", new_callable=AsyncMock
-            ) as mock_cost:
+        with patch.object(assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(assessor.client, "calculate_cost", new_callable=AsyncMock) as mock_cost:
                 mock_analyze.return_value = mock_pagespeed_result
                 mock_cost.return_value = Decimal("0.00")
 
@@ -340,19 +295,13 @@ class TestTask031AcceptanceCriteria:
     @pytest.mark.asyncio
     async def test_assessment_cost_tracking(self, assessor, mock_pagespeed_result):
         """Test that assessment costs are properly tracked"""
-        with patch.object(
-            assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
-            with patch.object(
-                assessor.client, "calculate_cost", new_callable=AsyncMock
-            ) as mock_cost:
+        with patch.object(assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(assessor.client, "calculate_cost", new_callable=AsyncMock) as mock_cost:
                 mock_analyze.return_value = mock_pagespeed_result
                 # $0.004 per request
                 mock_cost.return_value = Decimal("0.004")
 
-                assessment = await assessor.assess_website(
-                    business_id="test-business-id", url="https://example.com"
-                )
+                assessment = await assessor.assess_website(business_id="test-business-id", url="https://example.com")
 
                 # Should track cost for both mobile and desktop
                 # 2 requests * $0.004
@@ -363,15 +312,11 @@ class TestTask031AcceptanceCriteria:
     @pytest.mark.asyncio
     async def test_error_handling(self, assessor):
         """Test proper error handling and failed assessment creation"""
-        with patch.object(
-            assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
+        with patch.object(assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
             mock_analyze.side_effect = Exception("API Error")
 
             with pytest.raises(Exception, match="API Error"):
-                await assessor.assess_website(
-                    business_id="test-business-id", url="https://example.com"
-                )
+                await assessor.assess_website(business_id="test-business-id", url="https://example.com")
 
             print("✓ Error handling works correctly")
 
@@ -395,10 +340,7 @@ class TestTask031AcceptanceCriteria:
         """Test domain extraction from URLs"""
         assert assessor._extract_domain("https://www.example.com/path") == "example.com"
         assert assessor._extract_domain("https://example.com") == "example.com"
-        assert (
-            assessor._extract_domain("http://subdomain.example.com")
-            == "subdomain.example.com"
-        )
+        assert assessor._extract_domain("http://subdomain.example.com") == "subdomain.example.com"
 
         print("✓ Domain extraction works")
 
@@ -412,12 +354,8 @@ class TestTask031AcceptanceCriteria:
             {"business_id": "biz2", "url": "https://example2.com"},
         ]
 
-        with patch.object(
-            batch_assessor.assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
-            with patch.object(
-                batch_assessor.assessor.client, "calculate_cost", new_callable=AsyncMock
-            ) as mock_cost:
+        with patch.object(batch_assessor.assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(batch_assessor.assessor.client, "calculate_cost", new_callable=AsyncMock) as mock_cost:
                 mock_analyze.return_value = mock_pagespeed_result
                 mock_cost.return_value = Decimal("0.00")
 
@@ -433,12 +371,8 @@ class TestTask031AcceptanceCriteria:
     @pytest.mark.asyncio
     async def test_comprehensive_assessment_flow(self, assessor, mock_pagespeed_result):
         """Test complete assessment flow with all components"""
-        with patch.object(
-            assessor.client, "analyze_url", new_callable=AsyncMock
-        ) as mock_analyze:
-            with patch.object(
-                assessor.client, "calculate_cost", new_callable=AsyncMock
-            ) as mock_cost:
+        with patch.object(assessor.client, "analyze_url", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(assessor.client, "calculate_cost", new_callable=AsyncMock) as mock_cost:
                 mock_analyze.return_value = mock_pagespeed_result
                 mock_cost.return_value = Decimal("0.00")
 
@@ -498,9 +432,7 @@ if __name__ == "__main__":
             test_instance.test_impact_categorization(assessor)
             test_instance.test_domain_extraction(assessor)
             await test_instance.test_batch_assessor(mock_result)
-            await test_instance.test_comprehensive_assessment_flow(
-                assessor, mock_result
-            )
+            await test_instance.test_comprehensive_assessment_flow(assessor, mock_result)
 
             print()
             print("🎉 All Task 031 acceptance criteria tests pass!")

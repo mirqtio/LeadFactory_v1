@@ -10,16 +10,12 @@ import pytest
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
 from d0_gateway.base import BaseAPIClient
-from d0_gateway.factory import (
-    GatewayClientFactory,
-    create_client,
-    get_available_providers,
-    get_gateway_factory,
-)
+from d0_gateway.factory import GatewayClientFactory, create_client, get_available_providers, get_gateway_factory
 from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient
 from d0_gateway.providers.sendgrid import SendGridClient
 from d0_gateway.providers.stripe import StripeClient
+
 # YelpClient removed - Yelp has been removed from the codebase
 
 
@@ -152,10 +148,7 @@ class TestGatewayClientFactory:
             factory.create_client("invalid_provider")
 
         assert "Unknown provider 'invalid_provider'" in str(exc_info.value)
-        assert (
-            "Available: pagespeed, openai, sendgrid, stripe, dataaxle, hunter"
-            in str(exc_info.value)
-        )
+        assert "Available: pagespeed, openai, sendgrid, stripe, dataaxle, hunter" in str(exc_info.value)
 
     def test_register_custom_provider(self, factory):
         """Test registering a custom provider"""

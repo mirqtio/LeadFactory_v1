@@ -1,8 +1,9 @@
 """Impact calculator for revenue opportunity estimation."""
-import yaml
-from pathlib import Path
-from typing import Dict, Tuple, Optional
 from functools import lru_cache
+from pathlib import Path
+from typing import Dict, Optional, Tuple
+
+import yaml
 
 
 @lru_cache(maxsize=1)
@@ -54,9 +55,7 @@ def calculate_impact(
     beta = coefficients.get(category, {}).get(severity, 0.002)
 
     # Get confidence weight
-    source_confidence = confidence_data["sources"].get(
-        source, confidence_data["default"]
-    )
+    source_confidence = confidence_data["sources"].get(source, confidence_data["default"])
     category_modifier = confidence_data["category_modifiers"].get(category, 1.0)
 
     # Combined confidence

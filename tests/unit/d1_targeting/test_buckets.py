@@ -2,9 +2,10 @@
 Unit tests for Phase 0.5 bucket functionality
 Task TG-06: Test bucket columns and CSV seed data
 """
-import pytest
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+import pytest
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 
@@ -163,12 +164,8 @@ class TestBuckets:
 
         # Check that bucket columns are indexed
         # Note: SQLite may not show all indexes, so we just check the columns exist
-        assert "geo_bucket" in [
-            col["name"] for col in inspector.get_columns("businesses")
-        ]
-        assert "vert_bucket" in [
-            col["name"] for col in inspector.get_columns("businesses")
-        ]
+        assert "geo_bucket" in [col["name"] for col in inspector.get_columns("businesses")]
+        assert "vert_bucket" in [col["name"] for col in inspector.get_columns("businesses")]
 
     def test_csv_data_consistency(self):
         """Test that CSV data is internally consistent"""
@@ -189,6 +186,4 @@ class TestBuckets:
 
         # Check for duplicates
         assert not geo_df.duplicated(["zip_code"]).any(), "No duplicate zip codes"
-        assert not vert_df.duplicated(
-            ["yelp_category"]
-        ).any(), "No duplicate categories"
+        assert not vert_df.duplicated(["yelp_category"]).any(), "No duplicate categories"

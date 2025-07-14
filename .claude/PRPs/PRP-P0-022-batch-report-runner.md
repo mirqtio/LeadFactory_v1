@@ -4,6 +4,8 @@
 **Estimated Effort**: 5 days
 **Dependencies**: P0-021
 
+> 💡 **Claude Implementation Note**: Consider how task subagents can be used to execute portions of this task in parallel to improve efficiency and reduce overall completion time.
+
 ## Goal & Success Criteria
 
 ### Goal
@@ -323,6 +325,50 @@ class BatchProcessor:
             )
 ```
 
+### Database Schema Design
+
+```sql
+-- Batch reports main table
+CREATE TABLE batch_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    total_leads INTEGER NOT NULL,
+    processed_leads INTEGER DEFAULT 0,
+    successful_leads INTEGER DEFAULT 0,
+    failed_leads INTEGER DEFAULT 0,
+    estimated_cost DECIMAL(10, 2),
+    actual_cost DECIMAL(10, 2),
+    template_version VARCHAR(50) NOT NULL,
+    error_summary JSONB,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    CONSTRAINT valid_status CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'cancelled'))
+);
+
+-- Individual lead processing records
+CREATE TABLE batch_report_leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    batch_id UUID NOT NULL REFERENCES batch_reports(id) ON DELETE CASCADE,
+    lead_id UUID NOT NULL REFERENCES leads(id),
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    attempts INTEGER DEFAULT 0,
+    error_message TEXT,
+    report_url TEXT,
+    processing_time_ms INTEGER,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    processed_at TIMESTAMP,
+    CONSTRAINT valid_lead_status CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'retrying'))
+);
+
+-- Indexes for performance
+CREATE INDEX idx_batch_reports_user_status ON batch_reports(user_id, status);
+CREATE INDEX idx_batch_reports_created_at ON batch_reports(created_at DESC);
+CREATE INDEX idx_batch_report_leads_batch_status ON batch_report_leads(batch_id, status);
+CREATE INDEX idx_batch_report_leads_processing ON batch_report_leads(status) WHERE status IN ('processing', 'retrying');
+```
+
 ### API Endpoints
 
 1. **POST /api/batch/preview**
@@ -636,3 +682,29 @@ This means:
 - [ ] Automated load testing in CI
 - [ ] Batch processing performance regression tests
 - [ ] Cost calculation accuracy tests with production data
+
+### Critical Test Coverage Gaps to Address
+
+1. **Integration Test Suite (MANDATORY)**
+   - Must test actual integration with Prefect pipeline
+   - Must test WebSocket lifecycle with multiple clients
+   - Must test database transactions under concurrent load
+   - Must test cost calculation accuracy with real provider rates
+
+2. **Unit Test Coverage (80% MANDATORY)**
+   - Each module must have ≥80% line coverage
+   - Branch coverage must be ≥75%
+   - All error paths must be tested
+   - All retry logic must be tested
+
+3. **Performance Test Suite**
+   - API endpoint response time validation
+   - WebSocket message delivery timing
+   - Memory usage under load
+   - Database query performance
+
+4. **Security Test Suite**
+   - WebSocket authentication bypass attempts
+   - SQL injection on batch endpoints
+   - Rate limiting effectiveness
+   - Resource exhaustion protection

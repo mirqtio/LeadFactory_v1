@@ -18,14 +18,7 @@ from typing import Any, Dict, List, Optional
 from core.exceptions import ValidationError
 from core.metrics import MetricsCollector
 
-from .models import (
-    Experiment,
-    ExperimentStatus,
-    ExperimentVariant,
-    VariantAssignment,
-    VariantType,
-    generate_uuid,
-)
+from .models import Experiment, ExperimentStatus, ExperimentVariant, VariantAssignment, VariantType, generate_uuid
 from .variant_assigner import VariantAssigner
 
 
@@ -72,9 +65,7 @@ class ExperimentManager:
         self.metrics = metrics_collector or MetricsCollector()
         self.variant_assigner = VariantAssigner()
 
-    def create_experiment(
-        self, config: ExperimentConfig, variants: List[VariantConfig], created_by: str
-    ) -> Experiment:
+    def create_experiment(self, config: ExperimentConfig, variants: List[VariantConfig], created_by: str) -> Experiment:
         """
         Create a new experiment with variants
 
@@ -123,9 +114,7 @@ class ExperimentManager:
         experiment.variants = experiment_variants
 
         # Record experiment creation metric
-        self.metrics.track_business_processed(
-            source=f"experiment_{experiment.name}", status="created"
-        )
+        self.metrics.track_business_processed(source=f"experiment_{experiment.name}", status="created")
 
         return experiment
 
@@ -153,9 +142,7 @@ class ExperimentManager:
             raise ValidationError(f"Experiment {experiment.name} has no variants")
 
         # Check if user should be excluded from experiment
-        if self._should_exclude_from_experiment(
-            experiment, assignment_unit, user_properties
-        ):
+        if self._should_exclude_from_experiment(experiment, assignment_unit, user_properties):
             return self._assign_to_holdout(
                 experiment,
                 assignment_unit,
@@ -166,9 +153,7 @@ class ExperimentManager:
             )
 
         # Deterministic hashing - Use variant assigner for consistent assignment
-        variant = self.variant_assigner.assign_variant(
-            experiment=experiment, assignment_unit=assignment_unit
-        )
+        variant = self.variant_assigner.assign_variant(experiment=experiment, assignment_unit=assignment_unit)
 
         # Create assignment record
         assignment = VariantAssignment(
@@ -177,9 +162,7 @@ class ExperimentManager:
             user_id=user_id,
             session_id=session_id,
             assignment_unit=assignment_unit,
-            assignment_hash=self.variant_assigner.calculate_hash(
-                experiment.experiment_id, assignment_unit
-            ),
+            assignment_hash=self.variant_assigner.calculate_hash(experiment.experiment_id, assignment_unit),
             assignment_context=assignment_context,
             user_properties=user_properties,
             is_holdout=False,
@@ -193,9 +176,7 @@ class ExperimentManager:
 
         return assignment
 
-    def get_variant_for_user(
-        self, experiment: Experiment, assignment_unit: str
-    ) -> Optional[ExperimentVariant]:
+    def get_variant_for_user(self, experiment: Experiment, assignment_unit: str) -> Optional[ExperimentVariant]:
         """
         Get the assigned variant for a user without creating new assignment
 
@@ -206,19 +187,13 @@ class ExperimentManager:
             return None
 
         # Use variant assigner to get consistent variant
-        return self.variant_assigner.assign_variant(
-            experiment=experiment, assignment_unit=assignment_unit
-        )
+        return self.variant_assigner.assign_variant(experiment=experiment, assignment_unit=assignment_unit)
 
-    def start_experiment(
-        self, experiment: Experiment, start_date: Optional[date] = None
-    ) -> None:
+    def start_experiment(self, experiment: Experiment, start_date: Optional[date] = None) -> None:
         """Start an experiment"""
 
         if experiment.status != ExperimentStatus.DRAFT:
-            raise ValidationError(
-                f"Can only start experiments in DRAFT status, current: {experiment.status}"
-            )
+            raise ValidationError(f"Can only start experiments in DRAFT status, current: {experiment.status}")
 
         # Validate experiment has variants
         if not experiment.variants:
@@ -232,72 +207,50 @@ class ExperimentManager:
         if not experiment.end_date and experiment.maximum_duration_days:
             from datetime import timedelta
 
-            experiment.end_date = experiment.start_date + timedelta(
-                days=experiment.maximum_duration_days
-            )
+            experiment.end_date = experiment.start_date + timedelta(days=experiment.maximum_duration_days)
 
         # Record experiment start metric
-        self.metrics.track_business_processed(
-            source=f"experiment_{experiment.name}", status="started"
-        )
+        self.metrics.track_business_processed(source=f"experiment_{experiment.name}", status="started")
 
-    def stop_experiment(
-        self, experiment: Experiment, reason: str = "Manual stop"
-    ) -> None:
+    def stop_experiment(self, experiment: Experiment, reason: str = "Manual stop") -> None:
         """Stop a running experiment"""
 
         if experiment.status != ExperimentStatus.RUNNING:
-            raise ValidationError(
-                f"Can only stop running experiments, current: {experiment.status}"
-            )
+            raise ValidationError(f"Can only stop running experiments, current: {experiment.status}")
 
         experiment.status = ExperimentStatus.STOPPED
         experiment.end_date = date.today()
 
         # Record experiment stop metric
-        self.metrics.track_business_processed(
-            source=f"experiment_{experiment.name}", status="stopped"
-        )
+        self.metrics.track_business_processed(source=f"experiment_{experiment.name}", status="stopped")
 
     def pause_experiment(self, experiment: Experiment) -> None:
         """Pause a running experiment"""
 
         if experiment.status != ExperimentStatus.RUNNING:
-            raise ValidationError(
-                f"Can only pause running experiments, current: {experiment.status}"
-            )
+            raise ValidationError(f"Can only pause running experiments, current: {experiment.status}")
 
         experiment.status = ExperimentStatus.PAUSED
 
         # Record experiment pause metric
-        self.metrics.track_business_processed(
-            source=f"experiment_{experiment.name}", status="paused"
-        )
+        self.metrics.track_business_processed(source=f"experiment_{experiment.name}", status="paused")
 
     def resume_experiment(self, experiment: Experiment) -> None:
         """Resume a paused experiment"""
 
         if experiment.status != ExperimentStatus.PAUSED:
-            raise ValidationError(
-                f"Can only resume paused experiments, current: {experiment.status}"
-            )
+            raise ValidationError(f"Can only resume paused experiments, current: {experiment.status}")
 
         experiment.status = ExperimentStatus.RUNNING
 
         # Record experiment resume metric
-        self.metrics.track_business_processed(
-            source=f"experiment_{experiment.name}", status="resumed"
-        )
+        self.metrics.track_business_processed(source=f"experiment_{experiment.name}", status="resumed")
 
-    def complete_experiment(
-        self, experiment: Experiment, results: Optional[Dict[str, Any]] = None
-    ) -> None:
+    def complete_experiment(self, experiment: Experiment, results: Optional[Dict[str, Any]] = None) -> None:
         """Complete an experiment and store results"""
 
         if experiment.status not in [ExperimentStatus.RUNNING, ExperimentStatus.PAUSED]:
-            raise ValidationError(
-                f"Can only complete running or paused experiments, current: {experiment.status}"
-            )
+            raise ValidationError(f"Can only complete running or paused experiments, current: {experiment.status}")
 
         experiment.status = ExperimentStatus.COMPLETED
         experiment.end_date = date.today()
@@ -306,9 +259,7 @@ class ExperimentManager:
             experiment.results = results
 
         # Record experiment completion metric
-        self.metrics.track_business_processed(
-            source=f"experiment_{experiment.name}", status="completed"
-        )
+        self.metrics.track_business_processed(source=f"experiment_{experiment.name}", status="completed")
 
     def get_experiment_summary(self, experiment: Experiment) -> Dict[str, Any]:
         """Get experiment summary with key metrics"""
@@ -318,12 +269,8 @@ class ExperimentManager:
             "experiment_id": experiment.experiment_id,
             "name": experiment.name,
             "status": experiment.status.value,
-            "start_date": experiment.start_date.isoformat()
-            if experiment.start_date
-            else None,
-            "end_date": experiment.end_date.isoformat()
-            if experiment.end_date
-            else None,
+            "start_date": experiment.start_date.isoformat() if experiment.start_date else None,
+            "end_date": experiment.end_date.isoformat() if experiment.end_date else None,
             "traffic_allocation_pct": experiment.traffic_allocation_pct,
             "holdout_pct": experiment.holdout_pct,
             "variants": [],
@@ -346,9 +293,7 @@ class ExperimentManager:
 
         return summary
 
-    def _validate_experiment_config(
-        self, config: ExperimentConfig, variants: List[VariantConfig]
-    ) -> None:
+    def _validate_experiment_config(self, config: ExperimentConfig, variants: List[VariantConfig]) -> None:
         """Validate experiment configuration"""
 
         # Validate basic config
@@ -395,9 +340,7 @@ class ExperimentManager:
 
         # Check holdout percentage
         if experiment.holdout_pct > 0:
-            holdout_hash = self.variant_assigner.calculate_hash(
-                f"holdout_{experiment.experiment_id}", assignment_unit
-            )
+            holdout_hash = self.variant_assigner.calculate_hash(f"holdout_{experiment.experiment_id}", assignment_unit)
             holdout_bucket = int(holdout_hash[:8], 16) % 10000
             holdout_threshold = experiment.holdout_pct * 100  # Convert to basis points
 
@@ -406,13 +349,9 @@ class ExperimentManager:
 
         # Check traffic allocation
         if experiment.traffic_allocation_pct < 100:
-            traffic_hash = self.variant_assigner.calculate_hash(
-                f"traffic_{experiment.experiment_id}", assignment_unit
-            )
+            traffic_hash = self.variant_assigner.calculate_hash(f"traffic_{experiment.experiment_id}", assignment_unit)
             traffic_bucket = int(traffic_hash[:8], 16) % 10000
-            traffic_threshold = (
-                experiment.traffic_allocation_pct * 100
-            )  # Convert to basis points
+            traffic_threshold = experiment.traffic_allocation_pct * 100  # Convert to basis points
 
             if traffic_bucket >= traffic_threshold:
                 return True
@@ -438,9 +377,7 @@ class ExperimentManager:
             user_id=user_id,
             session_id=session_id,
             assignment_unit=assignment_unit,
-            assignment_hash=self.variant_assigner.calculate_hash(
-                experiment.experiment_id, assignment_unit
-            ),
+            assignment_hash=self.variant_assigner.calculate_hash(experiment.experiment_id, assignment_unit),
             assignment_context=assignment_context,
             user_properties=user_properties,
             is_holdout=True,

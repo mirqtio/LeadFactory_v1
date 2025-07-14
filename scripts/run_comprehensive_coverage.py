@@ -10,6 +10,7 @@ import sys
 import time
 from pathlib import Path
 
+
 def run_comprehensive_coverage():
     """Run comprehensive test suite for maximum coverage"""
     print("=" * 80)
@@ -17,12 +18,12 @@ def run_comprehensive_coverage():
     print("=" * 80)
     print("\nThis will run ALL tests including slow ones to maximize coverage.")
     print("Expected runtime: 10-20 minutes\n")
-    
+
     start_time = time.time()
-    
+
     # Ensure we're in the project root
     project_root = Path(__file__).parent.parent
-    
+
     # Run the comprehensive test
     cmd = [
         "pytest",
@@ -35,85 +36,79 @@ def run_comprehensive_coverage():
         "--cov-report=xml",
         "--cov-config=.coveragerc",
         "--tb=short",
-        "--no-header"
+        "--no-header",
     ]
-    
+
     print(f"Running command: {' '.join(cmd)}\n")
-    
-    result = subprocess.run(
-        cmd,
-        cwd=project_root,
-        capture_output=True,
-        text=True
-    )
-    
+
+    result = subprocess.run(cmd, cwd=project_root, capture_output=True, text=True)
+
     # Print output
     print(result.stdout)
     if result.stderr:
         print("\nErrors:")
         print(result.stderr)
-    
+
     # Calculate runtime
     runtime = time.time() - start_time
     minutes = int(runtime // 60)
     seconds = int(runtime % 60)
-    
+
     print("\n" + "=" * 80)
     print(f"Total runtime: {minutes}m {seconds}s")
-    
+
     # Parse coverage from output
     coverage_line = None
-    for line in result.stdout.split('\n'):
-        if 'TOTAL' in line and '%' in line:
+    for line in result.stdout.split("\n"):
+        if "TOTAL" in line and "%" in line:
             coverage_line = line
             break
-    
+
     if coverage_line:
         # Extract percentage
         parts = coverage_line.split()
         for part in parts:
-            if part.endswith('%'):
+            if part.endswith("%"):
                 coverage = part
                 print(f"Total coverage achieved: {coverage}")
                 break
-    
+
     print("=" * 80)
-    
+
     # Also run regular test suite to compare
     print("\nRunning regular test suite for comparison...")
-    
+
     regular_cmd = [
         "pytest",
-        "tests/unit", "tests/integration", "tests/smoke",
-        "-m", "not slow and not flaky and not external",
+        "tests/unit",
+        "tests/integration",
+        "tests/smoke",
+        "-m",
+        "not slow and not flaky and not external",
         "--cov=.",
         "--cov-report=term",
         "--tb=no",
-        "-q"
+        "-q",
     ]
-    
-    regular_result = subprocess.run(
-        regular_cmd,
-        cwd=project_root,
-        capture_output=True,
-        text=True
-    )
-    
+
+    regular_result = subprocess.run(regular_cmd, cwd=project_root, capture_output=True, text=True)
+
     # Extract regular coverage
-    for line in regular_result.stdout.split('\n'):
-        if 'TOTAL' in line and '%' in line:
+    for line in regular_result.stdout.split("\n"):
+        if "TOTAL" in line and "%" in line:
             parts = line.split()
             for part in parts:
-                if part.endswith('%'):
+                if part.endswith("%"):
                     print(f"Regular test suite coverage: {part}")
                     break
-    
+
     print("\nCoverage reports:")
     print("- HTML: htmlcov/index.html")
     print("- XML: coverage.xml")
     print("=" * 80)
-    
+
     return result.returncode
+
 
 if __name__ == "__main__":
     sys.exit(run_comprehensive_coverage())

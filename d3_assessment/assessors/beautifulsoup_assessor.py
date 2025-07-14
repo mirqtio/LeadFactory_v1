@@ -7,16 +7,17 @@ Cost: Free (no external API)
 Output: bsoup_json column
 """
 import asyncio
-import aiohttp
-from typing import Dict, Any, Optional, List
-from bs4 import BeautifulSoup
 import json
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
-from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
-from d3_assessment.models import AssessmentType
-from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
+import aiohttp
+from bs4 import BeautifulSoup
+
 from core.logging import get_logger
+from d3_assessment.assessors.base import AssessmentResult, BaseAssessor
+from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
+from d3_assessment.models import AssessmentType
 
 logger = get_logger(__name__, domain="d3")
 
@@ -87,9 +88,7 @@ class BeautifulSoupAssessor(BaseAssessor):
             )
 
         except asyncio.TimeoutError:
-            raise AssessmentTimeoutError(
-                f"BeautifulSoup extraction timed out after {self.timeout}s"
-            )
+            raise AssessmentTimeoutError(f"BeautifulSoup extraction timed out after {self.timeout}s")
         except Exception as e:
             logger.error(f"BeautifulSoup assessment failed for {url}: {e}")
             raise AssessmentError(f"BeautifulSoup extraction failed: {str(e)}")
@@ -128,14 +127,10 @@ class BeautifulSoupAssessor(BaseAssessor):
         for i in range(1, 7):
             h_tags = soup.find_all(f"h{i}")
             if h_tags:
-                headings[f"h{i}"] = [
-                    tag.text.strip() for tag in h_tags if tag.text.strip()
-                ]
+                headings[f"h{i}"] = [tag.text.strip() for tag in h_tags if tag.text.strip()]
         return headings
 
-    def _extract_images(
-        self, soup: BeautifulSoup, base_url: str
-    ) -> List[Dict[str, str]]:
+    def _extract_images(self, soup: BeautifulSoup, base_url: str) -> List[Dict[str, str]]:
         """Extract image information"""
         images = []
         for img in soup.find_all("img")[:20]:  # Limit to 20 images
@@ -148,9 +143,7 @@ class BeautifulSoupAssessor(BaseAssessor):
                 images.append(img_data)
         return images
 
-    def _extract_links(
-        self, soup: BeautifulSoup, base_url: str
-    ) -> Dict[str, List[str]]:
+    def _extract_links(self, soup: BeautifulSoup, base_url: str) -> Dict[str, List[str]]:
         """Extract and categorize links"""
         internal_links = []
         external_links = []
@@ -270,17 +263,9 @@ class BeautifulSoupAssessor(BaseAssessor):
             "has_footer": bool(soup.find("footer")),
             "has_sidebar": bool(soup.find(["aside", ".sidebar", "#sidebar"])),
             "has_hero": bool(soup.find([".hero", "#hero", "section.hero"])),
-            "has_cta": bool(
-                soup.find_all(
-                    text=lambda t: t and "call" in t.lower() and "action" in t.lower()
-                )
-            ),
-            "uses_bootstrap": bool(
-                soup.find(attrs={"class": lambda x: x and "container" in x})
-            ),
-            "uses_wordpress": bool(
-                soup.find(attrs={"class": lambda x: x and "wp-" in x})
-            ),
+            "has_cta": bool(soup.find_all(text=lambda t: t and "call" in t.lower() and "action" in t.lower())),
+            "uses_bootstrap": bool(soup.find(attrs={"class": lambda x: x and "container" in x})),
+            "uses_wordpress": bool(soup.find(attrs={"class": lambda x: x and "wp-" in x})),
         }
 
     def _make_absolute_url(self, url: str, base_url: str) -> str:

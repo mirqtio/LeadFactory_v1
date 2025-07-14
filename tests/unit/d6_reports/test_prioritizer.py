@@ -22,8 +22,8 @@ try:
     from d6_reports.finding_scorer import FindingScore, FindingScorer
     from d6_reports.prioritizer import FindingPrioritizer, PrioritizationResult
 except ImportError:
-    import sys
     import os
+    import sys
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
     from d6_reports.finding_scorer import FindingScore, FindingScorer
@@ -31,9 +31,9 @@ except ImportError:
 
 # Import additional classes
 try:
-    from d6_reports.finding_scorer import ImpactLevel, EffortLevel
+    from d6_reports.finding_scorer import EffortLevel, ImpactLevel
 except ImportError:
-    from d6_reports.finding_scorer import ImpactLevel, EffortLevel
+    from d6_reports.finding_scorer import EffortLevel, ImpactLevel
 
 
 class TestFindingScorer:
@@ -86,9 +86,7 @@ class TestFindingScorer:
             }
 
             score = self.scorer.score_finding(finding)
-            assert (
-                score.impact_score >= expected_min
-            ), f"Severity {severity} should score >= {expected_min}"
+            assert score.impact_score >= expected_min, f"Severity {severity} should score >= {expected_min}"
 
     def test_conversion_focus_scoring(self):
         """Test that conversion-focused categories get higher conversion impact"""
@@ -105,9 +103,7 @@ class TestFindingScorer:
             }
 
             score = self.scorer.score_finding(finding)
-            assert (
-                score.conversion_impact >= 3.0
-            ), f"Category {category} should have high conversion impact"
+            assert score.conversion_impact >= 3.0, f"Category {category} should have high conversion impact"
 
         for category in low_conversion_categories:
             finding = {
@@ -135,9 +131,7 @@ class TestFindingScorer:
         }
 
         score = self.scorer.score_finding(easy_high_impact)
-        assert (
-            score.quick_win_score >= 6.0
-        ), "Easy high-impact fix should have high quick win score"
+        assert score.quick_win_score >= 6.0, "Easy high-impact fix should have high quick win score"
 
         # Low impact, hard fix should not be a quick win
         hard_low_impact = {
@@ -150,9 +144,7 @@ class TestFindingScorer:
         }
 
         score = self.scorer.score_finding(hard_low_impact)
-        assert (
-            score.quick_win_score < 5.0
-        ), "Hard low-impact fix should have low quick win score"
+        assert score.quick_win_score < 5.0, "Hard low-impact fix should have low quick win score"
 
     def test_effort_scoring(self):
         """Test effort scoring works correctly"""
@@ -169,9 +161,7 @@ class TestFindingScorer:
             }
 
             score = self.scorer.score_finding(finding)
-            assert (
-                score.effort_score <= 5.0
-            ), f"Fix type {fix_type} should have low effort score"
+            assert score.effort_score <= 5.0, f"Fix type {fix_type} should have low effort score"
 
         for fix_type in hard_fixes:
             finding = {
@@ -183,9 +173,7 @@ class TestFindingScorer:
             }
 
             score = self.scorer.score_finding(finding)
-            assert (
-                score.effort_score >= 6.0
-            ), f"Fix type {fix_type} should have high effort score"
+            assert score.effort_score >= 6.0, f"Fix type {fix_type} should have high effort score"
 
     def test_finding_score_to_dict(self):
         """Test FindingScore serialization"""
@@ -319,10 +307,7 @@ class TestFindingPrioritizer:
         # Top issues should be sorted by priority score
         if len(result.top_issues) > 1:
             for i in range(len(result.top_issues) - 1):
-                assert (
-                    result.top_issues[i].priority_score
-                    >= result.top_issues[i + 1].priority_score
-                )
+                assert result.top_issues[i].priority_score >= result.top_issues[i + 1].priority_score
 
     def test_quick_wins_identified(self):
         """Test that quick wins are correctly identified"""
@@ -331,12 +316,8 @@ class TestFindingPrioritizer:
         # Should have quick wins identified
         if result.quick_wins:
             for quick_win in result.quick_wins:
-                assert (
-                    quick_win.is_quick_win
-                ), "All quick wins should be marked as quick wins"
-                assert (
-                    quick_win.quick_win_score >= 7.0
-                ), "Quick wins should have high quick win scores"
+                assert quick_win.is_quick_win, "All quick wins should be marked as quick wins"
+                assert quick_win.quick_win_score >= 7.0, "Quick wins should have high quick win scores"
 
     def test_conversion_focus(self):
         """Test that conversion-focused findings are prioritized"""
@@ -357,16 +338,12 @@ class TestFindingPrioritizer:
         # Test e-commerce context
         ecommerce_context = {"business_type": "ecommerce", "industry": "retail"}
 
-        result_ecommerce = self.prioritizer.prioritize_findings(
-            self.sample_assessment, ecommerce_context
-        )
+        result_ecommerce = self.prioritizer.prioritize_findings(self.sample_assessment, ecommerce_context)
 
         # Test service business context
         service_context = {"business_type": "service", "industry": "consulting"}
 
-        result_service = self.prioritizer.prioritize_findings(
-            self.sample_assessment, service_context
-        )
+        result_service = self.prioritizer.prioritize_findings(self.sample_assessment, service_context)
 
         # Both should produce valid results
         assert len(result_ecommerce.all_findings) > 0
@@ -416,9 +393,7 @@ class TestFindingPrioritizer:
         # Check that findings have correct categories
         categories = {finding.category for finding in result.all_findings}
         expected_categories = {"performance", "accessibility"}
-        assert categories.intersection(
-            expected_categories
-        ), "Should categorize PageSpeed findings correctly"
+        assert categories.intersection(expected_categories), "Should categorize PageSpeed findings correctly"
 
     def test_ai_insights_extraction(self):
         """Test extraction of findings from AI insights"""
@@ -523,9 +498,7 @@ class TestFindingCategorizationHelpers:
 
         for audit_id, expected_category in test_cases:
             category = self.prioritizer._categorize_pagespeed_audit(audit_id)
-            assert (
-                category == expected_category
-            ), f"Audit {audit_id} should be categorized as {expected_category}"
+            assert category == expected_category, f"Audit {audit_id} should be categorized as {expected_category}"
 
     def test_pagespeed_score_to_severity(self):
         """Test PageSpeed score to severity conversion"""
@@ -533,9 +506,7 @@ class TestFindingCategorizationHelpers:
 
         for score, expected_severity in test_cases:
             severity = self.prioritizer._pagespeed_score_to_severity(score)
-            assert (
-                severity == expected_severity
-            ), f"Score {score} should be severity {expected_severity}"
+            assert severity == expected_severity, f"Score {score} should be severity {expected_severity}"
 
     def test_pagespeed_audit_to_fix_type(self):
         """Test PageSpeed audit to fix type mapping"""
@@ -549,6 +520,4 @@ class TestFindingCategorizationHelpers:
 
         for audit_id, expected_fix_type in test_cases:
             fix_type = self.prioritizer._pagespeed_audit_to_fix_type(audit_id)
-            assert (
-                fix_type == expected_fix_type
-            ), f"Audit {audit_id} should have fix type {expected_fix_type}"
+            assert fix_type == expected_fix_type, f"Audit {audit_id} should have fix type {expected_fix_type}"

@@ -17,7 +17,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-
 from core.config import get_settings
 from d9_delivery.compliance import ComplianceManager
 from d9_delivery.email_builder import PersonalizationData
@@ -89,9 +88,7 @@ class DeliveryManager:
 
         try:
             # Step 1: Check suppression
-            if self.compliance_manager.check_suppression(
-                request.to_email, request.list_type
-            ):
+            if self.compliance_manager.check_suppression(request.to_email, request.list_type):
                 logger.info(f"Email {request.to_email} is suppressed, skipping send")
 
                 # Record suppressed delivery
@@ -151,15 +148,11 @@ class DeliveryManager:
 
             # Step 3: Add compliance headers and unsubscribe links
             try:
-                email_data = self.compliance_manager.add_compliance_to_email_data(
-                    email_data, request.list_type
-                )
+                email_data = self.compliance_manager.add_compliance_to_email_data(email_data, request.list_type)
                 compliance_added = True
 
             except Exception as e:
-                logger.error(
-                    f"Error adding compliance to email for {request.to_email}: {e}"
-                )
+                logger.error(f"Error adding compliance to email for {request.to_email}: {e}")
                 compliance_added = False
                 # Continue with send even if compliance addition fails
 
@@ -191,9 +184,7 @@ class DeliveryManager:
                         sendgrid_message_id=sendgrid_response.message_id,
                     )
 
-                    logger.info(
-                        f"Email sent successfully to {request.to_email}, delivery_id: {delivery_id}"
-                    )
+                    logger.info(f"Email sent successfully to {request.to_email}, delivery_id: {delivery_id}")
 
                     return DeliveryResult(
                         success=True,
@@ -217,9 +208,7 @@ class DeliveryManager:
                         error_message=sendgrid_response.error_message,
                     )
 
-                    logger.error(
-                        f"SendGrid send failed for {request.to_email}: {sendgrid_response.error_message}"
-                    )
+                    logger.error(f"SendGrid send failed for {request.to_email}: {sendgrid_response.error_message}")
 
                     return DeliveryResult(
                         success=False,
@@ -269,13 +258,9 @@ class DeliveryManager:
                 # If even recording fails, just log
                 logger.error(f"Failed to record delivery for {request.to_email}")
 
-            return DeliveryResult(
-                success=False, delivery_id=delivery_id, error_message=error_message
-            )
+            return DeliveryResult(success=False, delivery_id=delivery_id, error_message=error_message)
 
-    async def send_batch_emails(
-        self, requests: List[DeliveryRequest]
-    ) -> List[DeliveryResult]:
+    async def send_batch_emails(self, requests: List[DeliveryRequest]) -> List[DeliveryResult]:
         """
         Send multiple emails in batch
 
@@ -297,20 +282,14 @@ class DeliveryManager:
 
             except Exception as e:
                 logger.error(f"Batch send error for {request.to_email}: {e}")
-                results.append(
-                    DeliveryResult(
-                        success=False, error_message=f"Batch send error: {str(e)}"
-                    )
-                )
+                results.append(DeliveryResult(success=False, error_message=f"Batch send error: {str(e)}"))
 
         # Log batch summary
         successful = sum(1 for r in results if r.success)
         suppressed = sum(1 for r in results if r.suppressed)
         failed = len(results) - successful - suppressed
 
-        logger.info(
-            f"Batch send completed: {successful} sent, {suppressed} suppressed, {failed} failed"
-        )
+        logger.info(f"Batch send completed: {successful} sent, {suppressed} suppressed, {failed} failed")
 
         return results
 
@@ -387,11 +366,7 @@ class DeliveryManager:
         """
         try:
             with SessionLocal() as session:
-                delivery = (
-                    session.query(EmailDelivery)
-                    .filter(EmailDelivery.delivery_id == delivery_id)
-                    .first()
-                )
+                delivery = session.query(EmailDelivery).filter(EmailDelivery.delivery_id == delivery_id).first()
 
                 if delivery:
                     delivery.status = status.value
@@ -408,14 +383,10 @@ class DeliveryManager:
                         delivery.delivered_at = datetime.now(timezone.utc)
 
                     session.commit()
-                    logger.debug(
-                        f"Updated delivery {delivery_id} status to {status.value}"
-                    )
+                    logger.debug(f"Updated delivery {delivery_id} status to {status.value}")
                     return True
                 else:
-                    logger.warning(
-                        f"Delivery {delivery_id} not found for status update"
-                    )
+                    logger.warning(f"Delivery {delivery_id} not found for status update")
                     return False
 
         except Exception as e:
@@ -446,11 +417,7 @@ class DeliveryManager:
         try:
             with SessionLocal() as session:
                 # First get the email delivery record
-                delivery = (
-                    session.query(EmailDelivery)
-                    .filter(EmailDelivery.delivery_id == delivery_id)
-                    .first()
-                )
+                delivery = session.query(EmailDelivery).filter(EmailDelivery.delivery_id == delivery_id).first()
 
                 if not delivery:
                     logger.error(f"Delivery {delivery_id} not found")
@@ -461,17 +428,13 @@ class DeliveryManager:
                     event_type=event_type.value,
                     sendgrid_message_id=sendgrid_message_id,
                     event_timestamp=datetime.now(timezone.utc),
-                    event_data={"error_message": error_message}
-                    if error_message
-                    else event_data or {},
+                    event_data={"error_message": error_message} if error_message else event_data or {},
                 )
 
                 session.add(event)
                 session.commit()
 
-                logger.debug(
-                    f"Recorded {event_type.value} event for delivery {delivery_id}"
-                )
+                logger.debug(f"Recorded {event_type.value} event for delivery {delivery_id}")
                 return True
 
         except Exception as e:
@@ -490,11 +453,7 @@ class DeliveryManager:
         """
         try:
             with SessionLocal() as session:
-                delivery = (
-                    session.query(EmailDelivery)
-                    .filter(EmailDelivery.delivery_id == delivery_id)
-                    .first()
-                )
+                delivery = session.query(EmailDelivery).filter(EmailDelivery.delivery_id == delivery_id).first()
 
                 if not delivery:
                     return None
@@ -515,25 +474,15 @@ class DeliveryManager:
                     "status": delivery.status,
                     "sendgrid_message_id": delivery.sendgrid_message_id,
                     "error_message": delivery.error_message,
-                    "created_at": delivery.created_at.isoformat()
-                    if delivery.created_at
-                    else None,
-                    "sent_at": delivery.sent_at.isoformat()
-                    if delivery.sent_at
-                    else None,
-                    "delivered_at": delivery.delivered_at.isoformat()
-                    if delivery.delivered_at
-                    else None,
+                    "created_at": delivery.created_at.isoformat() if delivery.created_at else None,
+                    "sent_at": delivery.sent_at.isoformat() if delivery.sent_at else None,
+                    "delivered_at": delivery.delivered_at.isoformat() if delivery.delivered_at else None,
                     "events": [
                         {
                             "event_type": event.event_type,
-                            "created_at": event.event_timestamp.isoformat()
-                            if event.event_timestamp
-                            else None,
+                            "created_at": event.event_timestamp.isoformat() if event.event_timestamp else None,
                             "sendgrid_message_id": event.sendgrid_message_id,
-                            "error_message": event.event_data.get("error_message")
-                            if event.event_data
-                            else None,
+                            "error_message": event.event_data.get("error_message") if event.event_data else None,
                             "event_data": event.event_data,
                         }
                         for event in events
@@ -561,11 +510,7 @@ class DeliveryManager:
 
             with SessionLocal() as session:
                 # Total deliveries
-                total_deliveries = (
-                    session.query(EmailDelivery)
-                    .filter(EmailDelivery.created_at >= cutoff_time)
-                    .count()
-                )
+                total_deliveries = session.query(EmailDelivery).filter(EmailDelivery.created_at >= cutoff_time).count()
 
                 # By status
                 sent_count = (
@@ -612,15 +557,11 @@ class DeliveryManager:
                     "suppressed_count": suppressed_count,
                     "pending_count": pending_count,
                     "success_rate": round(
-                        (sent_count / total_deliveries * 100)
-                        if total_deliveries > 0
-                        else 0,
+                        (sent_count / total_deliveries * 100) if total_deliveries > 0 else 0,
                         2,
                     ),
                     "suppression_rate": round(
-                        (suppressed_count / total_deliveries * 100)
-                        if total_deliveries > 0
-                        else 0,
+                        (suppressed_count / total_deliveries * 100) if total_deliveries > 0 else 0,
                         2,
                     ),
                     "last_updated": datetime.now(timezone.utc).isoformat(),
@@ -682,9 +623,7 @@ async def send_audit_email(
     return await delivery_manager.send_email(request)
 
 
-def create_delivery_request(
-    to_email: str, template_name: str, business_name: str, **kwargs
-) -> DeliveryRequest:
+def create_delivery_request(to_email: str, template_name: str, business_name: str, **kwargs) -> DeliveryRequest:
     """
     Factory function to create DeliveryRequest
 

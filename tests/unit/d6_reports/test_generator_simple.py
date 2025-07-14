@@ -344,17 +344,13 @@ def test_generation_result_serialization():
             "success": result["success"],
             "generation_time_seconds": result["generation_time_seconds"],
             "has_html": result["html_content"] is not None,
-            "has_pdf": result["pdf_result"]["success"]
-            if result["pdf_result"]
-            else False,
+            "has_pdf": result["pdf_result"]["success"] if result["pdf_result"] else False,
             "warnings": result["warnings"],
         }
 
         if result["pdf_result"]:
             result_dict["pdf_file_size"] = result["pdf_result"]["file_size"]
-            result_dict["pdf_optimization_ratio"] = result["pdf_result"][
-                "optimization_ratio"
-            ]
+            result_dict["pdf_optimization_ratio"] = result["pdf_result"]["optimization_ratio"]
 
         return result_dict
 

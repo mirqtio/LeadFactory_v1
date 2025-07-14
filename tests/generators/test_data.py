@@ -21,10 +21,7 @@ pytestmark = pytest.mark.slow
 
 from d3_assessment.models import AssessmentResult
 from database.models import Business
-from tests.generators.assessment_generator import (
-    AssessmentGenerator,
-    AssessmentScenario,
-)
+from tests.generators.assessment_generator import AssessmentGenerator, AssessmentScenario
 from tests.generators.business_generator import BusinessGenerator, BusinessScenario
 
 
@@ -74,10 +71,7 @@ class TestBusinessGenerator:
         business = gen.generate_business(BusinessScenario.HEALTHCARE)
 
         assert business.vertical == "healthcare"
-        assert any(
-            cat in ["medical", "dental", "therapy", "clinic", "hospital"]
-            for cat in business.categories
-        )
+        assert any(cat in ["medical", "dental", "therapy", "clinic", "hospital"] for cat in business.categories)
         assert 3.8 <= business.rating <= 4.9
         assert 3 <= business.price_level <= 4
 
@@ -88,8 +82,7 @@ class TestBusinessGenerator:
 
         assert business.vertical == "professional_services"
         assert any(
-            cat in ["legal", "accounting", "consulting", "financial", "insurance"]
-            for cat in business.categories
+            cat in ["legal", "accounting", "consulting", "financial", "insurance"] for cat in business.categories
         )
         assert 4.0 <= business.rating <= 4.8
 
@@ -185,12 +178,8 @@ class TestAssessmentGenerator:
         business_gen = BusinessGenerator(seed=42)
         business = business_gen.generate_business(BusinessScenario.RESTAURANTS)
 
-        assessment1 = gen1.generate_assessment(
-            business, AssessmentScenario.HIGH_PERFORMANCE
-        )
-        assessment2 = gen2.generate_assessment(
-            business, AssessmentScenario.HIGH_PERFORMANCE
-        )
+        assessment1 = gen1.generate_assessment(business, AssessmentScenario.HIGH_PERFORMANCE)
+        assessment2 = gen2.generate_assessment(business, AssessmentScenario.HIGH_PERFORMANCE)
 
         assert assessment1.performance_score == assessment2.performance_score
         assert assessment1.accessibility_score == assessment2.accessibility_score
@@ -202,9 +191,7 @@ class TestAssessmentGenerator:
         business_gen = BusinessGenerator(seed=42)
         business = business_gen.generate_business(BusinessScenario.RESTAURANTS)
 
-        assessment = gen.generate_assessment(
-            business, AssessmentScenario.HIGH_PERFORMANCE
-        )
+        assessment = gen.generate_assessment(business, AssessmentScenario.HIGH_PERFORMANCE)
 
         assert isinstance(assessment, AssessmentResult)
         assert 85 <= assessment.performance_score <= 98
@@ -218,9 +205,7 @@ class TestAssessmentGenerator:
         business_gen = BusinessGenerator(seed=42)
         business = business_gen.generate_business(BusinessScenario.RESTAURANTS)
 
-        assessment = gen.generate_assessment(
-            business, AssessmentScenario.POOR_PERFORMANCE
-        )
+        assessment = gen.generate_assessment(business, AssessmentScenario.POOR_PERFORMANCE)
 
         assert 15 <= assessment.performance_score <= 45
         assert 30 <= assessment.accessibility_score <= 60
@@ -233,9 +218,7 @@ class TestAssessmentGenerator:
         business_gen = BusinessGenerator(seed=42)
         business = business_gen.generate_business(BusinessScenario.RESTAURANTS)
 
-        assessment = gen.generate_assessment(
-            business, AssessmentScenario.MOBILE_OPTIMIZED
-        )
+        assessment = gen.generate_assessment(business, AssessmentScenario.MOBILE_OPTIMIZED)
 
         # Mobile score should be higher than desktop for this scenario
         mobile_score = assessment.assessment_metadata["mobile_score"]
@@ -256,9 +239,7 @@ class TestAssessmentGenerator:
             "desktop_score": 91,
         }
 
-        pagespeed_data = gen.generate_pagespeed_data(
-            AssessmentScenario.HIGH_PERFORMANCE, scores
-        )
+        pagespeed_data = gen.generate_pagespeed_data(AssessmentScenario.HIGH_PERFORMANCE, scores)
 
         assert pagespeed_data["performance_score"] == 85
         assert "core_web_vitals" in pagespeed_data
@@ -304,9 +285,7 @@ class TestAssessmentGenerator:
             "seo_score": 87,
         }
 
-        insights = gen.generate_ai_insights_data(
-            AssessmentScenario.HIGH_PERFORMANCE, scores
-        )
+        insights = gen.generate_ai_insights_data(AssessmentScenario.HIGH_PERFORMANCE, scores)
 
         assert "overall_score" in insights
         assert "strengths" in insights
@@ -396,15 +375,11 @@ class TestAssessmentGenerator:
         business_gen = BusinessGenerator(seed=42)
         business = business_gen.generate_business(BusinessScenario.RESTAURANTS)
 
-        assessment1 = gen.generate_assessment(
-            business, AssessmentScenario.HIGH_PERFORMANCE
-        )
+        assessment1 = gen.generate_assessment(business, AssessmentScenario.HIGH_PERFORMANCE)
 
         # Reset seed and generate again
         gen.reset_seed(42)
-        assessment2 = gen.generate_assessment(
-            business, AssessmentScenario.HIGH_PERFORMANCE
-        )
+        assessment2 = gen.generate_assessment(business, AssessmentScenario.HIGH_PERFORMANCE)
 
         assert assessment1.performance_score == assessment2.performance_score
         assert assessment1.accessibility_score == assessment2.accessibility_score
@@ -439,16 +414,12 @@ class TestGeneratorIntegration:
         assessment_gen = AssessmentGenerator(seed=42)
 
         # Generate restaurant businesses
-        restaurants = business_gen.generate_scenario_dataset(
-            BusinessScenario.RESTAURANTS, 5
-        )
+        restaurants = business_gen.generate_scenario_dataset(BusinessScenario.RESTAURANTS, 5)
 
         # Generate high-performance assessments for them
         assessments = []
         for restaurant in restaurants:
-            assessment = assessment_gen.generate_assessment(
-                restaurant, AssessmentScenario.HIGH_PERFORMANCE
-            )
+            assessment = assessment_gen.generate_assessment(restaurant, AssessmentScenario.HIGH_PERFORMANCE)
             assessments.append(assessment)
 
         assert len(assessments) == 5
@@ -461,15 +432,11 @@ class TestGeneratorIntegration:
         assessment_gen = AssessmentGenerator(seed=42)
 
         # Generate large dataset
-        businesses = business_gen.generate_performance_dataset(
-            "medium"
-        )  # 1000 businesses
+        businesses = business_gen.generate_performance_dataset("medium")  # 1000 businesses
 
         # Sample assessments (not all, for performance)
         sample_businesses = businesses[:100]
-        assessments = assessment_gen.generate_performance_dataset(
-            sample_businesses, "small"
-        )
+        assessments = assessment_gen.generate_performance_dataset(sample_businesses, "small")
 
         assert len(businesses) == 1000
         assert len(assessments) == 100

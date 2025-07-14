@@ -1,0 +1,49 @@
+# Research Context for P3-007
+
+## Key Findings
+- GitHub Actions Docker test execution should follow the "test before push" pattern
+- Official Docker Actions are recommended for building and testing Docker images
+- Multi-stage Docker builds with test stages are best practice for CI/CD
+- Coverage reports can be extracted using volume mounting or multi-stage builds
+- GitHub Actions provides enhanced build visibility features in 2024
+
+## Authoritative Sources
+- Docker Build CI/CD Documentation: https://docs.docker.com/build/ci/github-actions/
+- GitHub Actions Docker Container Documentation: https://docs.github.com/en/actions/creating-actions/creating-a-docker-container-action
+- Docker Test Before Push Guide: https://docs.docker.com/build/ci/github-actions/test-before-push/
+- pytest-cov Documentation: https://github.com/pytest-dev/pytest-cov
+- Docker Build Summary (2024): https://www.docker.com/blog/new-beta-feature-deep-dive-into-github-actions-docker-builds-with-docker-desktop/
+
+## Current Best Practices
+- Use official Docker Actions (docker/build-push-action@v6)
+- Implement multi-stage Dockerfile with separate test stage
+- Use docker-compose for complex multi-service testing
+- Extract coverage reports via volume mounting or multi-stage builds
+- Leverage Docker Build Summary for enhanced visibility
+- Test locally before pushing to GitHub Actions
+- Use BuildKit for improved performance and caching
+
+## Common Pitfalls
+- Network configuration issues between containers in multi-service setups
+- Path mapping problems when extracting coverage reports from containers
+- Build time limits in GitHub Actions (avoid exceeding allotted build time)
+- Coverage report source path issues when running in containers
+- Missing bash, curl, git, and gpg in custom runners
+- Improper wait strategies for service readiness
+
+## Recent Updates
+- Enhanced Docker Build Summary in GitHub Actions (2024)
+- Improved BuildKit support with better caching
+- Testcontainers Cloud integration for faster test execution
+- New beta features for deeper build visibility
+- Updated official Docker Actions with v6 versions
+
+## Implementation Recommendations
+- Structure workflow with separate jobs for build, test, and deploy
+- Use docker-compose.test.yml for test environment configuration
+- Extract coverage reports using volume mounting: `-v /tmp:/tmp`
+- Run pytest with coverage inside container: `pytest --cov=. --cov-report=xml`
+- Use GitHub Actions artifacts for coverage report persistence
+- Implement proper service readiness checks with while loops
+- Consider using Testcontainers Cloud for scalable testing
+- Add Docker Build Summary for enhanced visibility

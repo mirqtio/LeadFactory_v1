@@ -8,13 +8,7 @@ from datetime import date
 import pytest
 
 from core.config import Settings
-from core.exceptions import (
-    ExternalAPIError,
-    LeadFactoryError,
-    NotFoundError,
-    RateLimitError,
-    ValidationError,
-)
+from core.exceptions import ExternalAPIError, LeadFactoryError, NotFoundError, RateLimitError, ValidationError
 from core.logging import get_logger, setup_logging
 from core.utils import (
     calculate_percentage,
@@ -52,8 +46,9 @@ class TestConfig:
         """Test environment variable override"""
         # Clear any cached settings
         from core.config import get_settings
+
         get_settings.cache_clear()
-        
+
         # In CI, we can't test production settings due to validator constraints
         # So we test staging instead which allows more flexibility
         monkeypatch.setenv("ENVIRONMENT", "staging")
@@ -80,10 +75,10 @@ class TestConfig:
         # Try to create settings without stubs
         # If it's forced to use stubs (CI environment), skip the test
         settings = Settings(use_stubs=False)
-        
+
         if settings.use_stubs:
             pytest.skip("Cannot test production URLs when use_stubs is forced to True")
-        
+
         urls = settings.api_base_urls
 
         assert urls["stripe"] == "https://api.stripe.com"
@@ -101,7 +96,7 @@ class TestConfig:
         """Test missing API key raises error"""
         # Try to create settings without stubs and no API key
         settings = Settings(use_stubs=False, google_api_key=None)
-        
+
         # If use_stubs was forced to True (CI environment), skip the test
         if settings.use_stubs:
             pytest.skip("Cannot test missing API keys when use_stubs is forced to True")
@@ -190,9 +185,7 @@ class TestExceptions:
 
     def test_rate_limit_error(self):
         """Test rate limit error"""
-        error = RateLimitError(
-            provider="yelp", retry_after=60, daily_limit=5000, daily_used=5000
-        )
+        error = RateLimitError(provider="yelp", retry_after=60, daily_limit=5000, daily_used=5000)
 
         assert error.status_code == 429
         assert "retry after 60 seconds" in str(error)

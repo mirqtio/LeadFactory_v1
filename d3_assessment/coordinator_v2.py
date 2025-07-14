@@ -5,11 +5,11 @@ Coordinates the 7-assessor stack with proper timeout and error handling
 import asyncio
 import uuid
 from datetime import datetime
-from typing import Dict, Any, List, Optional
 from decimal import Decimal
+from typing import Any, Dict, List, Optional
 
-from d3_assessment.assessors import ASSESSOR_REGISTRY
 from core.logging import get_logger
+from d3_assessment.assessors import ASSESSOR_REGISTRY
 from database.session import get_db
 
 logger = get_logger(__name__, domain="d3")
@@ -70,9 +70,7 @@ class AssessmentCoordinatorV2:
             assessor_names = self.DEFAULT_ASSESSORS
 
         # Filter to available assessors
-        available_assessors = [
-            name for name in assessor_names if name in self.assessors
-        ]
+        available_assessors = [name for name in assessor_names if name in self.assessors]
 
         if not available_assessors:
             logger.error("No assessors available")
@@ -103,9 +101,7 @@ class AssessmentCoordinatorV2:
 
                     # Run assessment with timeout
                     timeout = assessor.get_timeout()
-                    result = await asyncio.wait_for(
-                        assessor.assess(url, business_data), timeout=timeout
-                    )
+                    result = await asyncio.wait_for(assessor.assess(url, business_data), timeout=timeout)
 
                     logger.info(f"Completed {assessor_name} for {url}")
                     return assessor_name, result
@@ -260,8 +256,6 @@ class AssessmentCoordinatorV2:
         Returns:
             List of assessment results
         """
-        tasks = [
-            self.assess_business(business, assessor_names) for business in businesses
-        ]
+        tasks = [self.assess_business(business, assessor_names) for business in businesses]
 
         return await asyncio.gather(*tasks)

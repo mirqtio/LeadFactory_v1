@@ -152,9 +152,7 @@ class LineageTracker:
         from sqlalchemy import select
 
         result = self.session.execute(
-            select(ReportLineage).where(
-                ReportLineage.report_generation_id == report_generation_id
-            )
+            select(ReportLineage).where(ReportLineage.report_generation_id == report_generation_id)
         )
         return result.scalar_one_or_none()
 

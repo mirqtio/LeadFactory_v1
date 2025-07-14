@@ -113,10 +113,7 @@ class CoverageReporter:
                 rel_path = os.path.relpath(filename, self.source_dir)
 
                 # Skip non-source files
-                if any(
-                    skip in rel_path
-                    for skip in ["site-packages", ".venv", "venv", "env"]
-                ):
+                if any(skip in rel_path for skip in ["site-packages", ".venv", "venv", "env"]):
                     continue
 
                 analysis = self.cov.analysis2(filename)
@@ -157,9 +154,7 @@ class CoverageReporter:
                 critical_analysis[critical_path] = {
                     "coverage": coverage_pct,
                     "meets_requirement": coverage_pct == 100.0,
-                    "missing_lines": file_coverage[critical_path][
-                        "missing_line_numbers"
-                    ],
+                    "missing_lines": file_coverage[critical_path]["missing_line_numbers"],
                 }
             else:
                 critical_analysis[critical_path] = {
@@ -171,13 +166,9 @@ class CoverageReporter:
 
         return critical_analysis
 
-    def _generate_summary(
-        self, total_coverage: float, file_coverage: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _generate_summary(self, total_coverage: float, file_coverage: Dict[str, Any]) -> Dict[str, Any]:
         """Generate coverage summary statistics"""
-        files_above_threshold = sum(
-            1 for f in file_coverage.values() if f["coverage"] >= self.min_coverage
-        )
+        files_above_threshold = sum(1 for f in file_coverage.values() if f["coverage"] >= self.min_coverage)
         total_files = len(file_coverage)
 
         # Find files with lowest coverage
@@ -198,9 +189,7 @@ class CoverageReporter:
             "meets_minimum": total_coverage >= self.min_coverage,
             "files_above_threshold": files_above_threshold,
             "total_files": total_files,
-            "threshold_percentage": (files_above_threshold / total_files * 100)
-            if total_files > 0
-            else 0,
+            "threshold_percentage": (files_above_threshold / total_files * 100) if total_files > 0 else 0,
             "lowest_coverage_files": lowest_coverage,
             "highest_coverage_files": highest_coverage,
         }
@@ -242,9 +231,7 @@ class CoverageReporter:
             print(f"❌ Below minimum threshold ({self.min_coverage}%)")
 
         print(f"\n📁 FILES ANALYZED: {summary['total_files']}")
-        print(
-            f"✅ Above threshold: {summary['files_above_threshold']} ({summary['threshold_percentage']:.1f}%)"
-        )
+        print(f"✅ Above threshold: {summary['files_above_threshold']} ({summary['threshold_percentage']:.1f}%)")
 
         # Critical paths analysis
         print("\n🔥 CRITICAL PATHS ANALYSIS:")
@@ -277,9 +264,7 @@ class CoverageReporter:
 
         print("\n" + "=" * 80)
 
-    def save_json_report(
-        self, analysis: Dict[str, Any], output_file: str = "coverage_report.json"
-    ):
+    def save_json_report(self, analysis: Dict[str, Any], output_file: str = "coverage_report.json"):
         """Save detailed analysis as JSON"""
         print(f"💾 Saving JSON report: {output_file}")
 
@@ -298,17 +283,13 @@ class CoverageReporter:
 
         # Check overall coverage
         if summary["total_coverage"] < self.min_coverage:
-            print(
-                f"❌ Overall coverage {summary['total_coverage']:.1f}% below {self.min_coverage}%"
-            )
+            print(f"❌ Overall coverage {summary['total_coverage']:.1f}% below {self.min_coverage}%")
             return False
 
         # Check critical paths
         for path, data in critical_paths.items():
             if not data["meets_requirement"]:
-                print(
-                    f"❌ Critical path {path} has {data['coverage']:.1f}% coverage (requires 100%)"
-                )
+                print(f"❌ Critical path {path} has {data['coverage']:.1f}% coverage (requires 100%)")
                 return False
 
         print("✅ All CI coverage requirements met")

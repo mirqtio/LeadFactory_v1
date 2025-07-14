@@ -113,9 +113,7 @@ class GapTaskManager:
         print(f"ID: {BLUE}{task['id']}{RESET}")
         print(f"Title: {task['title']}")
         print(f"Domain: {task['domain']}")
-        print(
-            f"Priority: {RED if task['priority'] == 'P0' else YELLOW}{task['priority']}{RESET}"
-        )
+        print(f"Priority: {RED if task['priority'] == 'P0' else YELLOW}{task['priority']}{RESET}")
         print(f"Complexity: {task['complexity']}")
         print(f"Estimated Hours: {task['estimated_hours']}")
 
@@ -154,12 +152,8 @@ class GapTaskManager:
         status = self.load_status()
 
         total = len(status["tasks"])
-        completed = sum(
-            1 for t in status["tasks"].values() if t["status"] == "completed"
-        )
-        in_progress = sum(
-            1 for t in status["tasks"].values() if t["status"] == "in_progress"
-        )
+        completed = sum(1 for t in status["tasks"].values() if t["status"] == "completed")
+        in_progress = sum(1 for t in status["tasks"].values() if t["status"] == "in_progress")
         pending = total - completed - in_progress
 
         print(f"\n{BOLD}Gap Remediation Progress:{RESET}")
@@ -170,11 +164,7 @@ class GapTaskManager:
         print(f"Progress: {completed}/{total} ({completed/total*100:.1f}%)")
 
         # Show breakdown by priority
-        p0_complete = sum(
-            1
-            for t in status["tasks"].values()
-            if t["status"] == "completed" and t["priority"] == "P0"
-        )
+        p0_complete = sum(1 for t in status["tasks"].values() if t["status"] == "completed" and t["priority"] == "P0")
         p0_total = status["summary"]["P0_tasks"]
 
         print(f"\n{BOLD}Priority Breakdown:{RESET}")
@@ -221,9 +211,7 @@ def main():
             task_id = sys.argv[2]
             new_status = sys.argv[3]
             if new_status not in ["pending", "in_progress", "completed", "blocked"]:
-                print(
-                    f"{RED}Invalid status. Use: pending, in_progress, completed, or blocked{RESET}"
-                )
+                print(f"{RED}Invalid status. Use: pending, in_progress, completed, or blocked{RESET}")
                 return
             manager.update_task_status(task_id, new_status)
         elif sys.argv[1] == "--details" and len(sys.argv) == 3:
@@ -231,13 +219,9 @@ def main():
             manager.print_task_details(task_id)
         else:
             print("Usage:")
-            print(
-                "  python get_next_gap_task.py              - Get next task to work on"
-            )
+            print("  python get_next_gap_task.py              - Get next task to work on")
             print("  python get_next_gap_task.py --progress   - Show overall progress")
-            print(
-                "  python get_next_gap_task.py --update TASK_ID STATUS - Update task status"
-            )
+            print("  python get_next_gap_task.py --update TASK_ID STATUS - Update task status")
             print("  python get_next_gap_task.py --details TASK_ID - Show task details")
     else:
         # Get next task
@@ -246,13 +230,9 @@ def main():
             print(f"\n{BOLD}Next Gap Remediation Task:{RESET}")
             manager.print_task_details(next_task)
             print(f"\n{YELLOW}To start this task, run:{RESET}")
-            print(
-                f"  python planning/get_next_gap_task.py --update {next_task} in_progress"
-            )
+            print(f"  python planning/get_next_gap_task.py --update {next_task} in_progress")
         else:
-            print(
-                f"{GREEN}All gap remediation tasks are either completed or blocked!{RESET}"
-            )
+            print(f"{GREEN}All gap remediation tasks are either completed or blocked!{RESET}")
             manager.print_progress()
 
 

@@ -109,11 +109,7 @@ class TestEmailDelivery:
         # Note: SQLite doesn't preserve timezone info, but PostgreSQL will
 
         # Test retrieval
-        retrieved = (
-            db_session.query(EmailDelivery)
-            .filter_by(to_email="recipient@example.com")
-            .first()
-        )
+        retrieved = db_session.query(EmailDelivery).filter_by(to_email="recipient@example.com").first()
         assert retrieved is not None
         assert retrieved.delivery_id == delivery.delivery_id
 
@@ -353,9 +349,7 @@ class TestSuppressionList:
         assert suppression.suppression_data["unsubscribe_source"] == "email_link"
 
         # Test uniqueness constraint
-        duplicate = SuppressionList(
-            email="suppressed@example.com", reason=SuppressionReason.BOUNCE.value
-        )
+        duplicate = SuppressionList(email="suppressed@example.com", reason=SuppressionReason.BOUNCE.value)
         db_session.add(duplicate)
 
         with pytest.raises(IntegrityError):
@@ -638,11 +632,7 @@ class TestModelIntegration:
         db_session.commit()
 
         # Verify complete lifecycle
-        retrieved_delivery = (
-            db_session.query(EmailDelivery)
-            .filter_by(to_email="lifecycle@example.com")
-            .first()
-        )
+        retrieved_delivery = db_session.query(EmailDelivery).filter_by(to_email="lifecycle@example.com").first()
 
         assert retrieved_delivery is not None
         assert retrieved_delivery.status == DeliveryStatus.DELIVERED.value
@@ -705,22 +695,14 @@ class TestModelIntegration:
         db_session.commit()
 
         # Verify workflow
-        retrieved_delivery = (
-            db_session.query(EmailDelivery)
-            .filter_by(to_email="bounce@example.com")
-            .first()
-        )
+        retrieved_delivery = db_session.query(EmailDelivery).filter_by(to_email="bounce@example.com").first()
 
         assert retrieved_delivery.status == DeliveryStatus.BOUNCED.value
         assert retrieved_delivery.bounce_tracking is not None
         assert retrieved_delivery.bounce_tracking.bounce_type == BounceType.HARD.value
 
         # Check suppression exists
-        suppressed = (
-            db_session.query(SuppressionList)
-            .filter_by(email="bounce@example.com")
-            .first()
-        )
+        suppressed = db_session.query(SuppressionList).filter_by(email="bounce@example.com").first()
 
         assert suppressed is not None
         assert suppressed.is_suppressed() is True

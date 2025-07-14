@@ -5,11 +5,11 @@ This test module runs all tests and generates a report of failures
 to guide systematic fixing.
 """
 
-import subprocess
 import json
-from pathlib import Path
+import subprocess
 from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
 
 
 def run_pytest_json():
@@ -114,9 +114,7 @@ def generate_fix_report():
         # Failures by type
         f.write("\n## Failures by Type\n")
         for error_type, tests in sorted(results["failures_by_type"].items()):
-            f.write(
-                f"\n### {error_type.replace('_', ' ').title()} ({len(tests)} failures)\n"
-            )
+            f.write(f"\n### {error_type.replace('_', ' ').title()} ({len(tests)} failures)\n")
             for test in tests[:5]:  # Show first 5 examples
                 f.write(f"- {test['nodeid']}\n")
             if len(tests) > 5:
@@ -149,6 +147,4 @@ if __name__ == "__main__":
     print("\nTest Status:")
     print(f"- Failed: {results['summary'].get('failed', 0)}")
     print(f"- Skipped: {results['summary'].get('skipped', 0)}")
-    print(
-        f"- Total issues to fix: {results['summary'].get('failed', 0) + results['summary'].get('skipped', 0)}"
-    )
+    print(f"- Total issues to fix: {results['summary'].get('failed', 0) + results['summary'].get('skipped', 0)}")

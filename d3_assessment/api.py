@@ -69,9 +69,7 @@ def create_error_response(
     status_code: int = 400,
 ) -> HTTPException:
     """Create standardized error response"""
-    error_data = ErrorResponse(
-        error=error_type, message=message, details=details, request_id=str(uuid.uuid4())
-    )
+    error_data = ErrorResponse(error=error_type, message=message, details=details, request_id=str(uuid.uuid4()))
     # Convert to dict with JSON-serializable datetime
     error_dict = error_data.dict()
     if "timestamp" in error_dict and error_dict["timestamp"]:
@@ -114,9 +112,7 @@ async def trigger_assessment(
         # Calculate estimated completion time
         base_time_per_assessment = 60  # seconds
         total_estimated_seconds = len(assessment_types) * base_time_per_assessment
-        estimated_completion = datetime.utcnow() + timedelta(
-            seconds=total_estimated_seconds
-        )
+        estimated_completion = datetime.utcnow() + timedelta(seconds=total_estimated_seconds)
 
         # Start assessment in background
         async def run_assessment():
@@ -135,9 +131,7 @@ async def trigger_assessment(
                 # Send callback if provided
                 if request.callback_url:
                     # In production, would make HTTP POST to callback URL
-                    logger.info(
-                        f"Would send callback to {request.callback_url} for session {session_id}"
-                    )
+                    logger.info(f"Would send callback to {request.callback_url} for session {session_id}")
 
             except Exception as e:
                 logger.error(f"Assessment failed for session {session_id}: {str(e)}")
@@ -173,9 +167,7 @@ async def trigger_assessment(
         raise create_error_response("validation_error", str(e))
     except Exception as e:
         logger.error(f"Error triggering assessment: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to trigger assessment", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to trigger assessment", status_code=500)
 
 
 @router.get(
@@ -200,9 +192,7 @@ async def get_assessment_status(
             result = assessment_sessions[session_id]
 
             # Calculate progress
-            progress = (
-                f"{result.completed_assessments}/{result.total_assessments} complete"
-            )
+            progress = f"{result.completed_assessments}/{result.total_assessments} complete"
 
             # Determine status
             if result.failed_assessments == result.total_assessments:
@@ -260,9 +250,7 @@ async def get_assessment_status(
         raise create_error_response("validation_error", str(e))
     except Exception as e:
         logger.error(f"Error getting assessment status: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to get assessment status", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to get assessment status", status_code=500)
 
 
 @router.get(
@@ -294,10 +282,7 @@ async def get_assessment_results(
         result = assessment_sessions[session_id]
 
         # Check if assessment is complete
-        if (
-            result.completed_assessments + result.failed_assessments
-            < result.total_assessments
-        ):
+        if result.completed_assessments + result.failed_assessments < result.total_assessments:
             raise create_error_response(
                 "assessment_running",
                 "Assessment is still running. Check status first.",
@@ -349,12 +334,8 @@ async def get_assessment_results(
                     recommendations=insights_data.get("recommendations", []),
                     industry_insights=insights_data.get("industry_insights", {}),
                     summary=insights_data.get("summary", {}),
-                    ai_model_version=ai_result.ai_insights_data.get(
-                        "model_version", "unknown"
-                    ),
-                    processing_cost_usd=Decimal(
-                        str(ai_result.ai_insights_data.get("total_cost_usd", 0))
-                    ),
+                    ai_model_version=ai_result.ai_insights_data.get("model_version", "unknown"),
+                    processing_cost_usd=Decimal(str(ai_result.ai_insights_data.get("total_cost_usd", 0))),
                 )
 
         # Determine final status
@@ -368,12 +349,8 @@ async def get_assessment_results(
         return AssessmentResults(
             session_id=session_id,
             business_id=result.business_id,
-            url=next(iter(result.partial_results.values())).url
-            if result.partial_results
-            else "unknown",
-            domain=next(iter(result.partial_results.values())).domain
-            if result.partial_results
-            else "unknown",
+            url=next(iter(result.partial_results.values())).url if result.partial_results else "unknown",
+            domain=next(iter(result.partial_results.values())).domain if result.partial_results else "unknown",
             industry="unknown",  # Would store in session data
             status=final_status,
             total_assessments=result.total_assessments,
@@ -395,9 +372,7 @@ async def get_assessment_results(
         raise create_error_response("validation_error", str(e))
     except Exception as e:
         logger.error(f"Error getting assessment results: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to get assessment results", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to get assessment results", status_code=500)
 
 
 @router.post(
@@ -468,9 +443,7 @@ async def trigger_batch_assessment(
                         await store_assessment_result(session_ids[i], result)
                     else:
                         # Handle failed result
-                        logger.error(
-                            f"Batch assessment failed for session {session_ids[i]}: {result}"
-                        )
+                        logger.error(f"Batch assessment failed for session {session_ids[i]}: {result}")
 
             except Exception as e:
                 logger.error(f"Batch assessment failed for batch {batch_id}: {str(e)}")
@@ -480,9 +453,7 @@ async def trigger_batch_assessment(
         # Calculate estimated completion time
         avg_time_per_assessment = 90  # seconds
         estimated_completion = datetime.utcnow() + timedelta(
-            seconds=avg_time_per_assessment
-            * len(request.assessments)
-            / request.max_concurrent
+            seconds=avg_time_per_assessment * len(request.assessments) / request.max_concurrent
         )
 
         return BatchAssessmentResponse(
@@ -497,9 +468,7 @@ async def trigger_batch_assessment(
         raise
     except Exception as e:
         logger.error(f"Error triggering batch assessment: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to trigger batch assessment", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to trigger batch assessment", status_code=500)
 
 
 @router.delete(
@@ -507,9 +476,7 @@ async def trigger_batch_assessment(
     summary="Cancel Assessment",
     description="Cancel a running assessment",
 )
-async def cancel_assessment(
-    session_id: str, coord: AssessmentCoordinator = Depends(get_coordinator)
-) -> JSONResponse:
+async def cancel_assessment(session_id: str, coord: AssessmentCoordinator = Depends(get_coordinator)) -> JSONResponse:
     """Cancel a running assessment"""
     try:
         validate_session_id(session_id)
@@ -517,10 +484,7 @@ async def cancel_assessment(
         # Check if assessment exists
         if session_id in assessment_sessions:
             result = assessment_sessions[session_id]
-            if (
-                result.completed_assessments + result.failed_assessments
-                >= result.total_assessments
-            ):
+            if result.completed_assessments + result.failed_assessments >= result.total_assessments:
                 raise create_error_response(
                     "already_completed",
                     "Cannot cancel completed assessment",
@@ -536,9 +500,7 @@ async def cancel_assessment(
                 status_code=200,
             )
         else:
-            raise create_error_response(
-                "cancellation_failed", "Failed to cancel assessment", status_code=500
-            )
+            raise create_error_response("cancellation_failed", "Failed to cancel assessment", status_code=500)
 
     except HTTPException:
         raise
@@ -546,9 +508,7 @@ async def cancel_assessment(
         raise create_error_response("validation_error", str(e))
     except Exception as e:
         logger.error(f"Error cancelling assessment: {str(e)}")
-        raise create_error_response(
-            "internal_error", "Failed to cancel assessment", status_code=500
-        )
+        raise create_error_response("internal_error", "Failed to cancel assessment", status_code=500)
 
 
 @router.get(

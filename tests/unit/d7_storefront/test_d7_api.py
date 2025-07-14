@@ -18,17 +18,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 # Import modules to test
-from d7_storefront.api import (
-    get_checkout_manager,
-    get_stripe_client,
-    get_webhook_processor,
-    router,
-)
+from d7_storefront.api import get_checkout_manager, get_stripe_client, get_webhook_processor, router
 from d7_storefront.checkout import CheckoutError
-from d7_storefront.schemas import (
-    CheckoutInitiationRequest,
-    CheckoutInitiationResponse,
-)
+from d7_storefront.schemas import CheckoutInitiationRequest, CheckoutInitiationResponse
 from d7_storefront.webhooks import WebhookError, WebhookStatus
 
 # Test app setup
@@ -324,9 +316,7 @@ class TestSuccessPageAPI:
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
 
         try:
-            response = client.get(
-                "/api/v1/checkout/success", params={"session_id": "cs_test_123"}
-            )
+            response = client.get("/api/v1/checkout/success", params={"session_id": "cs_test_123"})
 
             assert response.status_code == 200
             data = response.json()
@@ -345,9 +335,7 @@ class TestSuccessPageAPI:
             "error": "Session not found",
         }
 
-        response = client.get(
-            "/api/v1/checkout/success", params={"session_id": "cs_invalid_123"}
-        )
+        response = client.get("/api/v1/checkout/success", params={"session_id": "cs_invalid_123"})
 
         assert response.status_code == 200
         data = response.json()
@@ -499,10 +487,7 @@ class TestAPIStatus:
         mock_stripe.get_status.return_value = {"webhook_configured": True}
 
         # Override all dependencies
-        from d7_storefront.api import (
-            get_checkout_manager,
-            get_webhook_processor,
-        )
+        from d7_storefront.api import get_checkout_manager, get_webhook_processor
 
         app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
         app.dependency_overrides[get_webhook_processor] = lambda: mock_processor
@@ -548,9 +533,7 @@ class TestErrorHandling:
     def test_checkout_error_handling(self, mock_checkout_manager):
         """Test checkout error handling"""
         # Mock CheckoutError
-        mock_checkout_manager.initiate_checkout.side_effect = CheckoutError(
-            "Test checkout error"
-        )
+        mock_checkout_manager.initiate_checkout.side_effect = CheckoutError("Test checkout error")
 
         request_data = {
             "customer_email": "test@example.com",
@@ -567,9 +550,7 @@ class TestErrorHandling:
     def test_webhook_error_handling(self, mock_webhook_processor):
         """Test webhook error handling"""
         # Mock WebhookError
-        mock_webhook_processor.process_webhook.side_effect = WebhookError(
-            "Test webhook error"
-        )
+        mock_webhook_processor.process_webhook.side_effect = WebhookError("Test webhook error")
 
         response = client.post(
             "/api/v1/checkout/webhook",
@@ -642,9 +623,7 @@ class TestAcceptanceCriteria:
             },
         }
 
-        response = client.get(
-            "/api/v1/checkout/success", params={"session_id": "cs_test_123"}
-        )
+        response = client.get("/api/v1/checkout/success", params={"session_id": "cs_test_123"})
 
         # Verify success page works
         assert response.status_code == 200
@@ -685,10 +664,7 @@ if __name__ == "__main__":
         print("Testing basic functionality...")
 
         # Test request/response models
-        from d7_storefront.schemas import (
-            CheckoutInitiationRequest,
-            CheckoutInitiationResponse,
-        )
+        from d7_storefront.schemas import CheckoutInitiationRequest, CheckoutInitiationResponse
 
         # Valid request
         request_data = {

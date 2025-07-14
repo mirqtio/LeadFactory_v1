@@ -133,9 +133,7 @@ class BusinessDeduplicator:
         Acceptance Criteria: Duplicate detection works
         """
         self.start_time = time.time()
-        self.logger.info(
-            f"Starting duplicate detection with threshold {confidence_threshold}"
-        )
+        self.logger.info(f"Starting duplicate detection with threshold {confidence_threshold}")
 
         duplicates = []
 
@@ -147,16 +145,12 @@ class BusinessDeduplicator:
             # Process in batches for performance
             for i in range(0, len(businesses), self.BATCH_SIZE):
                 batch = businesses[i : i + self.BATCH_SIZE]
-                batch_duplicates = self._find_duplicates_in_batch(
-                    batch, confidence_threshold
-                )
+                batch_duplicates = self._find_duplicates_in_batch(batch, confidence_threshold)
                 duplicates.extend(batch_duplicates)
 
                 self.processed_count += len(batch)
                 if self.processed_count % 5000 == 0:
-                    self.logger.info(
-                        f"Processed {self.processed_count} businesses, found {len(duplicates)} duplicates"
-                    )
+                    self.logger.info(f"Processed {self.processed_count} businesses, found {len(duplicates)} duplicates")
 
             # Sort by confidence score (highest first)
             duplicates.sort(key=lambda x: x.confidence_score, reverse=True)
@@ -208,9 +202,7 @@ class BusinessDeduplicator:
 
         for i, business1 in enumerate(businesses):
             # Only compare with businesses in nearby locations for performance
-            nearby_businesses = self._get_nearby_businesses(
-                business1, businesses_by_location, businesses[i + 1 :]
-            )
+            nearby_businesses = self._get_nearby_businesses(business1, businesses_by_location, businesses[i + 1 :])
 
             for business2 in nearby_businesses:
                 if business1.id >= business2.id:  # Avoid duplicate comparisons
@@ -223,9 +215,7 @@ class BusinessDeduplicator:
 
         return duplicates
 
-    def _group_by_approximate_location(
-        self, businesses: List[Business]
-    ) -> Dict[str, List[Business]]:
+    def _group_by_approximate_location(self, businesses: List[Business]) -> Dict[str, List[Business]]:
         """Group businesses by approximate location for spatial optimization"""
         # Acceptance Criteria: Performance optimized
         groups = defaultdict(list)
@@ -261,9 +251,7 @@ class BusinessDeduplicator:
         # Check current grid cell and adjacent cells
         for lat_offset in [-1, 0, 1]:
             for lng_offset in [-1, 0, 1]:
-                grid_key = (
-                    f"{target_lat_key + lat_offset},{target_lng_key + lng_offset}"
-                )
+                grid_key = f"{target_lat_key + lat_offset},{target_lng_key + lng_offset}"
                 if grid_key in businesses_by_location:
                     nearby.extend(businesses_by_location[grid_key])
 
@@ -277,18 +265,14 @@ class BusinessDeduplicator:
 
         return filtered_nearby
 
-    def _calculate_match_confidence(
-        self, business1: Business, business2: Business
-    ) -> DuplicateMatch:
+    def _calculate_match_confidence(self, business1: Business, business2: Business) -> DuplicateMatch:
         """
         Calculate confidence that two businesses are duplicates
 
         Acceptance Criteria: Duplicate detection works
         """
         # Use cache to avoid recalculating same pairs
-        cache_key = (
-            f"{min(business1.id, business2.id)}:{max(business1.id, business2.id)}"
-        )
+        cache_key = f"{min(business1.id, business2.id)}:{max(business1.id, business2.id)}"
         if cache_key in self._similarity_cache:
             return self._similarity_cache[cache_key]
 
@@ -308,9 +292,7 @@ class BusinessDeduplicator:
             match_reasons.append(f"Similar phones ({phone_sim:.2f})")
 
         # Address similarity
-        address_sim = self._calculate_address_similarity(
-            business1.address, business2.address
-        )
+        address_sim = self._calculate_address_similarity(business1.address, business2.address)
         scores["address"] = address_sim
         if address_sim > 0.7:
             match_reasons.append(f"Similar addresses ({address_sim:.2f})")
@@ -321,9 +303,7 @@ class BusinessDeduplicator:
             match_reasons.append(f"Very close distance ({distance:.0f}m)")
 
         # Website similarity
-        website_sim = self._calculate_website_similarity(
-            business1.website, business2.website
-        )
+        website_sim = self._calculate_website_similarity(business1.website, business2.website)
         if website_sim > 0.9:
             match_reasons.append(f"Similar websites ({website_sim:.2f})")
 
@@ -359,9 +339,7 @@ class BusinessDeduplicator:
 
         return match
 
-    def _calculate_name_similarity(
-        self, name1: Optional[str], name2: Optional[str]
-    ) -> float:
+    def _calculate_name_similarity(self, name1: Optional[str], name2: Optional[str]) -> float:
         """Calculate similarity between business names"""
         if not name1 or not name2:
             return 0.0
@@ -398,9 +376,7 @@ class BusinessDeduplicator:
 
         return normalized
 
-    def _calculate_phone_similarity(
-        self, phone1: Optional[str], phone2: Optional[str]
-    ) -> float:
+    def _calculate_phone_similarity(self, phone1: Optional[str], phone2: Optional[str]) -> float:
         """Calculate similarity between phone numbers"""
         if not phone1 or not phone2:
             return 0.0
@@ -421,9 +397,7 @@ class BusinessDeduplicator:
 
         return 0.0
 
-    def _calculate_address_similarity(
-        self, addr1: Optional[str], addr2: Optional[str]
-    ) -> float:
+    def _calculate_address_similarity(self, addr1: Optional[str], addr2: Optional[str]) -> float:
         """Calculate similarity between addresses"""
         if not addr1 or not addr2:
             return 0.0
@@ -470,9 +444,7 @@ class BusinessDeduplicator:
 
         return normalized
 
-    def _calculate_distance(
-        self, business1: Business, business2: Business
-    ) -> Optional[float]:
+    def _calculate_distance(self, business1: Business, business2: Business) -> Optional[float]:
         """Calculate distance between two businesses in meters"""
         if not all(
             [
@@ -493,18 +465,13 @@ class BusinessDeduplicator:
         dlat = lat2 - lat1
         dlng = lng2 - lng1
 
-        a = (
-            math.sin(dlat / 2) ** 2
-            + math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
-        )
+        a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
         c = 2 * math.asin(math.sqrt(a))
 
         # Earth's radius in meters
         return 6371000 * c
 
-    def _calculate_website_similarity(
-        self, url1: Optional[str], url2: Optional[str]
-    ) -> float:
+    def _calculate_website_similarity(self, url1: Optional[str], url2: Optional[str]) -> float:
         """Calculate similarity between website URLs"""
         if not url1 or not url2:
             return 0.0
@@ -520,9 +487,7 @@ class BusinessDeduplicator:
 
         return SequenceMatcher(None, domain1, domain2).ratio()
 
-    def _calculate_overall_confidence(
-        self, scores: Dict[str, float], distance: Optional[float]
-    ) -> float:
+    def _calculate_overall_confidence(self, scores: Dict[str, float], distance: Optional[float]) -> float:
         """Calculate overall confidence score from individual similarities"""
         # Weighted scoring based on importance
         weights = {
@@ -569,9 +534,7 @@ class BusinessDeduplicator:
         merge_results = []
         processed_pairs = set()
 
-        self.logger.info(
-            f"Starting merge process for {len(duplicate_matches)} duplicates"
-        )
+        self.logger.info(f"Starting merge process for {len(duplicate_matches)} duplicates")
 
         # Group duplicates by business clusters
         business_clusters = self._group_duplicates_into_clusters(duplicate_matches)
@@ -587,15 +550,9 @@ class BusinessDeduplicator:
 
             try:
                 # Determine if auto-merge is appropriate
-                cluster_matches = [
-                    m
-                    for m in duplicate_matches
-                    if {m.business_1_id, m.business_2_id}.issubset(cluster)
-                ]
+                cluster_matches = [m for m in duplicate_matches if {m.business_1_id, m.business_2_id}.issubset(cluster)]
 
-                should_auto_merge = all(
-                    m.confidence_score >= auto_merge_threshold for m in cluster_matches
-                )
+                should_auto_merge = all(m.confidence_score >= auto_merge_threshold for m in cluster_matches)
 
                 if should_auto_merge:
                     merge_result = self._merge_business_cluster(cluster, strategy)
@@ -612,14 +569,10 @@ class BusinessDeduplicator:
                 self.logger.error(f"Error merging cluster {cluster}: {e}")
                 continue
 
-        self.logger.info(
-            f"Merge process completed: {len(merge_results)} merges performed"
-        )
+        self.logger.info(f"Merge process completed: {len(merge_results)} merges performed")
         return merge_results
 
-    def _group_duplicates_into_clusters(
-        self, matches: List[DuplicateMatch]
-    ) -> List[Set[str]]:
+    def _group_duplicates_into_clusters(self, matches: List[DuplicateMatch]) -> List[Set[str]]:
         """Group duplicate matches into clusters of related businesses"""
         # Build adjacency graph
         graph = defaultdict(set)
@@ -653,9 +606,7 @@ class BusinessDeduplicator:
             if neighbor not in visited:
                 self._dfs_cluster(neighbor, graph, visited, cluster)
 
-    def _merge_business_cluster(
-        self, cluster: Set[str], strategy: MergeStrategy
-    ) -> MergeResult:
+    def _merge_business_cluster(self, cluster: Set[str], strategy: MergeStrategy) -> MergeResult:
         """
         Merge a cluster of duplicate businesses
 
@@ -668,9 +619,7 @@ class BusinessDeduplicator:
         secondary_businesses = [b for b in businesses if b.id != primary_business.id]
 
         # Merge data from secondary businesses into primary
-        fields_merged = self._merge_business_data(
-            primary_business, secondary_businesses
-        )
+        fields_merged = self._merge_business_data(primary_business, secondary_businesses)
 
         # Update timestamps properly
         merge_timestamp = datetime.utcnow()
@@ -689,9 +638,7 @@ class BusinessDeduplicator:
                 conflicts_resolved.append(conflict)
 
         # Update sourced location mappings
-        self._update_sourced_locations(
-            primary_business.id, [b.id for b in secondary_businesses]
-        )
+        self._update_sourced_locations(primary_business.id, [b.id for b in secondary_businesses])
 
         # Yelp metadata updates removed per P0-009
 
@@ -706,9 +653,7 @@ class BusinessDeduplicator:
             conflicts_resolved=conflicts_resolved,
         )
 
-    def _select_primary_business(
-        self, businesses: List[Business], strategy: MergeStrategy
-    ) -> Business:
+    def _select_primary_business(self, businesses: List[Business], strategy: MergeStrategy) -> Business:
         """Select which business should be the primary after merge"""
         if strategy == MergeStrategy.KEEP_NEWEST:
             return max(businesses, key=lambda b: b.created_at or datetime.min)
@@ -739,9 +684,7 @@ class BusinessDeduplicator:
         filled_fields = sum(1 for field in fields if field is not None)
         return filled_fields / len(fields)
 
-    def _merge_business_data(
-        self, primary: Business, secondaries: List[Business]
-    ) -> Dict[str, Any]:
+    def _merge_business_data(self, primary: Business, secondaries: List[Business]) -> Dict[str, Any]:
         """Merge data from secondary businesses into primary business"""
         fields_merged = {}
 
@@ -780,9 +723,7 @@ class BusinessDeduplicator:
 
         return fields_merged
 
-    def _check_data_conflicts(
-        self, primary: Business, secondary: Business
-    ) -> Optional[str]:
+    def _check_data_conflicts(self, primary: Business, secondary: Business) -> Optional[str]:
         """Check for conflicts between primary and secondary business data"""
         conflicts = []
 
@@ -793,11 +734,7 @@ class BusinessDeduplicator:
             primary_val = getattr(primary, field, None)
             secondary_val = getattr(secondary, field, None)
 
-            if (
-                primary_val
-                and secondary_val
-                and str(primary_val).lower() != str(secondary_val).lower()
-            ):
+            if primary_val and secondary_val and str(primary_val).lower() != str(secondary_val).lower():
                 conflicts.append(f"{field}: '{primary_val}' vs '{secondary_val}'")
 
         return "; ".join(conflicts) if conflicts else None
@@ -808,9 +745,9 @@ class BusinessDeduplicator:
         update_time = datetime.utcnow()
 
         for merged_id in merged_ids:
-            self.session.query(SourcedLocation).filter(
-                SourcedLocation.business_id == merged_id
-            ).update({"business_id": primary_id, "last_updated": update_time})
+            self.session.query(SourcedLocation).filter(SourcedLocation.business_id == merged_id).update(
+                {"business_id": primary_id, "last_updated": update_time}
+            )
 
     # _update_yelp_metadata method removed per P0-009
 
@@ -832,11 +769,8 @@ class BusinessDeduplicator:
             "duplicates_found": self.duplicates_found,
             "merges_performed": self.merges_performed,
             "processing_time_seconds": elapsed,
-            "businesses_per_second": self.processed_count / elapsed
-            if elapsed > 0
-            else 0,
-            "cache_hit_rate": len(self._similarity_cache)
-            / max(1, self.processed_count),
+            "businesses_per_second": self.processed_count / elapsed if elapsed > 0 else 0,
+            "cache_hit_rate": len(self._similarity_cache) / max(1, self.processed_count),
         }
 
 
@@ -857,9 +791,7 @@ def find_and_merge_duplicates(
     deduplicator = BusinessDeduplicator()
 
     # Find duplicates
-    duplicates = deduplicator.find_duplicates(
-        business_ids=business_ids, confidence_threshold=confidence_threshold
-    )
+    duplicates = deduplicator.find_duplicates(business_ids=business_ids, confidence_threshold=confidence_threshold)
 
     # Merge high-confidence duplicates
     merge_results = deduplicator.merge_duplicates(
@@ -888,6 +820,4 @@ def detect_duplicates_only(
     Useful for review and analysis
     """
     deduplicator = BusinessDeduplicator()
-    return deduplicator.find_duplicates(
-        business_ids=business_ids, confidence_threshold=confidence_threshold
-    )
+    return deduplicator.find_duplicates(business_ids=business_ids, confidence_threshold=confidence_threshold)

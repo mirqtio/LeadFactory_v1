@@ -2,8 +2,8 @@
 Base assessor class for all website assessments
 """
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
 
 from d3_assessment.models import AssessmentType
 

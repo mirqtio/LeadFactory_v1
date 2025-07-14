@@ -21,12 +21,12 @@ import stripe
 
 from d7_storefront.checkout import (
     CHECKOUT_URLS,
+    DEFAULT_PRICING,
     CheckoutConfig,
     CheckoutError,
     CheckoutItem,
     CheckoutManager,
     CheckoutSession,
-    DEFAULT_PRICING,
     create_test_checkout_items,
     format_checkout_response_for_api,
 )
@@ -304,18 +304,14 @@ class TestCheckoutItem:
 
     def test_checkout_item_amounts(self):
         """Test amount calculations"""
-        item = CheckoutItem(
-            product_name="Test Product", amount_usd=Decimal("29.99"), quantity=2
-        )
+        item = CheckoutItem(product_name="Test Product", amount_usd=Decimal("29.99"), quantity=2)
 
         assert item.amount_cents == 2999
         assert item.total_amount_usd == Decimal("59.98")
 
     def test_checkout_item_to_stripe_line_item(self):
         """Test conversion to Stripe line item"""
-        item = CheckoutItem(
-            product_name="Website Audit", amount_usd=Decimal("29.99"), quantity=1
-        )
+        item = CheckoutItem(product_name="Website Audit", amount_usd=Decimal("29.99"), quantity=1)
 
         line_item = item.to_stripe_line_item()
 
@@ -370,9 +366,7 @@ class TestCheckoutSession:
     def test_build_urls(self):
         """Test URL building - Acceptance Criteria"""
         items = [CheckoutItem("Product", Decimal("29.99"))]
-        session = CheckoutSession(
-            "test@example.com", items, purchase_id="test_purchase_123"
-        )
+        session = CheckoutSession("test@example.com", items, purchase_id="test_purchase_123")
 
         success_url = session.build_success_url()
         cancel_url = session.build_cancel_url()
@@ -398,9 +392,7 @@ class TestCheckoutSession:
             ),
         ]
 
-        session = CheckoutSession(
-            "test@example.com", items, purchase_id="test_purchase_123"
-        )
+        session = CheckoutSession("test@example.com", items, purchase_id="test_purchase_123")
         metadata = session.build_metadata({"campaign": "test_campaign"})
 
         # Check required metadata
@@ -449,9 +441,7 @@ class TestCheckoutSession:
 
         # Verify create_checkout_session was called with correct parameters
         mock_create.assert_called_once()
-        call_args = mock_create.call_args[0][
-            0
-        ]  # First argument (StripeCheckoutSession)
+        call_args = mock_create.call_args[0][0]  # First argument (StripeCheckoutSession)
 
         assert call_args.customer_email == "test@example.com"
         assert len(call_args.line_items) == 1
@@ -654,10 +644,7 @@ class TestUtilityFunctions:
         formatted = format_checkout_response_for_api(success_response)
 
         assert formatted["status"] == "success"
-        assert (
-            formatted["data"]["checkout_url"]
-            == "https://checkout.stripe.com/pay/cs_test"
-        )
+        assert formatted["data"]["checkout_url"] == "https://checkout.stripe.com/pay/cs_test"
         assert formatted["data"]["purchase_id"] == "purchase_123"
 
         # Test error response
@@ -800,9 +787,7 @@ class TestCheckoutManagerEnhancements:
     def test_checkout_item_metadata_handling(self):
         """Test checkout item metadata handling"""
         metadata = {"sku": "TEST-001", "category": "audit"}
-        item = CheckoutItem(
-            "Test Product", Decimal("29.99"), metadata=metadata, business_id="biz_123"
-        )
+        item = CheckoutItem("Test Product", Decimal("29.99"), metadata=metadata, business_id="biz_123")
 
         assert item.metadata["sku"] == "TEST-001"
         assert item.metadata["category"] == "audit"
@@ -862,9 +847,7 @@ class TestCheckoutManagerEnhancements:
     def test_checkout_session_metadata_comprehensive(self):
         """Test comprehensive metadata building"""
         items = [
-            CheckoutItem(
-                "Audit Report", Decimal("29.99"), product_type=ProductType.AUDIT_REPORT
-            ),
+            CheckoutItem("Audit Report", Decimal("29.99"), product_type=ProductType.AUDIT_REPORT),
             CheckoutItem(
                 "Premium Report",
                 Decimal("99.99"),
@@ -1051,12 +1034,8 @@ class TestCheckoutManagerEnhancements:
         manager = CheckoutManager()
 
         # Test empty business URLs
-        with pytest.raises(
-            CheckoutError, match="At least one business URL is required"
-        ):
-            manager.create_bulk_reports_checkout(
-                customer_email="test@example.com", business_urls=[]
-            )
+        with pytest.raises(CheckoutError, match="At least one business URL is required"):
+            manager.create_bulk_reports_checkout(customer_email="test@example.com", business_urls=[])
 
         # Test single URL (edge of bulk)
         with patch.object(manager, "initiate_checkout") as mock_initiate:

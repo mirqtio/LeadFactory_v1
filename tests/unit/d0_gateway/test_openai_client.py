@@ -49,9 +49,7 @@ class TestOpenAIClient:
         # Output: 300 tokens * $0.60/1M = $0.00018
         # Total: $0.0003
         expected_cost = Decimal("0.0003")
-        assert abs(cost - expected_cost) < Decimal(
-            "0.00001"
-        )  # Allow small floating point differences
+        assert abs(cost - expected_cost) < Decimal("0.00001")  # Allow small floating point differences
 
         # Test other operations
         other_cost = openai_client.calculate_cost("GET:/other")
@@ -99,10 +97,7 @@ class TestOpenAIClient:
 
         # Verify response structure
         assert result["model"] == "gpt-4o-mini"
-        assert (
-            result["choices"][0]["message"]["content"]
-            == "This is a test response from GPT-4o-mini."
-        )
+        assert result["choices"][0]["message"]["content"] == "This is a test response from GPT-4o-mini."
         assert "usage" in result
         assert result["usage"]["total_tokens"] == 30
 
@@ -144,9 +139,7 @@ class TestOpenAIClient:
 
         openai_client.make_request = AsyncMock(return_value=mock_response)
 
-        result = await openai_client.chat_completion(
-            [{"role": "user", "content": "Test"}]
-        )
+        result = await openai_client.chat_completion([{"role": "user", "content": "Test"}])
 
         # Verify usage tracking is included in response
         assert "usage" in result
@@ -170,25 +163,19 @@ class TestOpenAIClient:
         from core.exceptions import ExternalAPIError, RateLimitError
 
         # Test rate limit error (429)
-        openai_client.make_request = AsyncMock(
-            side_effect=RateLimitError("openai", "burst")
-        )
+        openai_client.make_request = AsyncMock(side_effect=RateLimitError("openai", "burst"))
 
         with pytest.raises(RateLimitError):
             await openai_client.chat_completion([{"role": "user", "content": "Test"}])
 
         # Test API error (400)
-        openai_client.make_request = AsyncMock(
-            side_effect=ExternalAPIError("Invalid request", 400)
-        )
+        openai_client.make_request = AsyncMock(side_effect=ExternalAPIError("Invalid request", 400))
 
         with pytest.raises(ExternalAPIError):
             await openai_client.chat_completion([{"role": "user", "content": "Test"}])
 
         # Test authentication error (401)
-        openai_client.make_request = AsyncMock(
-            side_effect=ExternalAPIError("Invalid API key", 401)
-        )
+        openai_client.make_request = AsyncMock(side_effect=ExternalAPIError("Invalid API key", 401))
 
         with pytest.raises(ExternalAPIError):
             await openai_client.chat_completion([{"role": "user", "content": "Test"}])
@@ -199,17 +186,13 @@ class TestOpenAIClient:
         import httpx
 
         # Test timeout error
-        openai_client.make_request = AsyncMock(
-            side_effect=httpx.TimeoutException("Request timeout")
-        )
+        openai_client.make_request = AsyncMock(side_effect=httpx.TimeoutException("Request timeout"))
 
         with pytest.raises(httpx.TimeoutException):
             await openai_client.chat_completion([{"role": "user", "content": "Test"}])
 
         # Test connection error
-        openai_client.make_request = AsyncMock(
-            side_effect=httpx.ConnectError("Connection failed")
-        )
+        openai_client.make_request = AsyncMock(side_effect=httpx.ConnectError("Connection failed"))
 
         with pytest.raises(httpx.ConnectError):
             await openai_client.chat_completion([{"role": "user", "content": "Test"}])
@@ -334,10 +317,7 @@ class TestOpenAIClient:
         # Verify email content structure
         assert result["business_name"] == "Acme Corp"
         assert result["recipient_name"] == "John"
-        assert (
-            result["email_subject"]
-            == "Quick Website Performance Insights for Acme Corp"
-        )
+        assert result["email_subject"] == "Quick Website Performance Insights for Acme Corp"
         assert "Acme Corp" in result["email_body"]
         assert "John" in result["email_body"]
         assert result["issues_count"] == 3
@@ -379,13 +359,7 @@ class TestOpenAIClient:
         # Verify fallback recommendations are generated
         fallback = result["fallback_recommendations"]
         assert len(fallback) > 0
-        assert all(
-            "issue" in rec
-            and "impact" in rec
-            and "effort" in rec
-            and "improvement" in rec
-            for rec in fallback
-        )
+        assert all("issue" in rec and "impact" in rec and "effort" in rec and "improvement" in rec for rec in fallback)
 
     def test_fallback_recommendations_generation(self, openai_client):
         """Test generation of fallback recommendations"""
@@ -457,9 +431,7 @@ class TestOpenAIClient:
 
         openai_client.make_request = AsyncMock(return_value=mock_ai_response)
 
-        result = await openai_client.analyze_website_performance(
-            pagespeed_data, business_context=business_context
-        )
+        result = await openai_client.analyze_website_performance(pagespeed_data, business_context=business_context)
 
         # Verify business context was included in analysis
         assert result["url"] == "https://restaurant.com"
@@ -482,14 +454,10 @@ class TestOpenAIClientIntegration:
         with patch.object(openai_client.rate_limiter, "is_allowed", return_value=False):
             from core.exceptions import RateLimitError
 
-            openai_client.make_request = AsyncMock(
-                side_effect=RateLimitError("openai", "daily")
-            )
+            openai_client.make_request = AsyncMock(side_effect=RateLimitError("openai", "daily"))
 
             with pytest.raises(RateLimitError):
-                await openai_client.chat_completion(
-                    [{"role": "user", "content": "Test"}]
-                )
+                await openai_client.chat_completion([{"role": "user", "content": "Test"}])
 
     @pytest.mark.asyncio
     async def test_circuit_breaker_integration(self):
@@ -497,19 +465,13 @@ class TestOpenAIClientIntegration:
         openai_client = OpenAIClient()
 
         # Mock circuit breaker to indicate open state
-        with patch.object(
-            openai_client.circuit_breaker, "can_execute", return_value=False
-        ):
+        with patch.object(openai_client.circuit_breaker, "can_execute", return_value=False):
             from d0_gateway.exceptions import CircuitBreakerOpenError
 
-            openai_client.make_request = AsyncMock(
-                side_effect=CircuitBreakerOpenError("openai", 5)
-            )
+            openai_client.make_request = AsyncMock(side_effect=CircuitBreakerOpenError("openai", 5))
 
             with pytest.raises(CircuitBreakerOpenError):
-                await openai_client.chat_completion(
-                    [{"role": "user", "content": "Test"}]
-                )
+                await openai_client.chat_completion([{"role": "user", "content": "Test"}])
 
     @pytest.mark.asyncio
     async def test_caching_integration(self):
@@ -525,9 +487,7 @@ class TestOpenAIClientIntegration:
             "model": "gpt-4o-mini",
             "messages": [{"role": "user", "content": "test"}],
         }
-        cache_key = openai_client.cache.generate_key(
-            "/v1/chat/completions", chat_params
-        )
+        cache_key = openai_client.cache.generate_key("/v1/chat/completions", chat_params)
 
         # Cache key should be deterministic
         assert isinstance(cache_key, str)
@@ -561,9 +521,7 @@ class TestOpenAIClientEdgeCases:
         openai_client = OpenAIClient()
 
         # Mock response for empty messages
-        mock_response = {
-            "choices": [{"message": {"content": "Please provide a message."}}]
-        }
+        mock_response = {"choices": [{"message": {"content": "Please provide a message."}}]}
         openai_client.make_request = AsyncMock(return_value=mock_response)
 
         result = await openai_client.chat_completion([])
@@ -601,9 +559,7 @@ class TestOpenAIClientEdgeCases:
         openai_client = OpenAIClient()
 
         # Mock AI failure
-        openai_client.make_request = AsyncMock(
-            side_effect=Exception("AI service unavailable")
-        )
+        openai_client.make_request = AsyncMock(side_effect=Exception("AI service unavailable"))
 
         try:
             result = await openai_client.generate_email_content(

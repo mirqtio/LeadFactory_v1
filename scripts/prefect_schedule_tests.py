@@ -18,9 +18,9 @@ from prefect import serve
 from prefect.deployments import Deployment
 from prefect.server.schemas.schedules import CronSchedule, IntervalSchedule
 
-from tests.e2e.test_production_smoke import daily_smoke_flow
-from tests.e2e.test_heartbeat import heartbeat_flow
 from core.logging import get_logger
+from tests.e2e.test_heartbeat import heartbeat_flow
+from tests.e2e.test_production_smoke import daily_smoke_flow
 
 logger = get_logger(__name__)
 

@@ -1,17 +1,13 @@
 """
 Tests for Data Axle client - Phase 0.5 Task GW-02
 """
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from httpx import AsyncClient, Response
 
-from d0_gateway.exceptions import (
-    APIProviderError,
-    AuthenticationError,
-    RateLimitExceededError,
-)
 from core.exceptions import ValidationError
+from d0_gateway.exceptions import APIProviderError, AuthenticationError, RateLimitExceededError
 from d0_gateway.providers.dataaxle import DataAxleClient
 
 # Mark entire module as xfail for Phase 0.5
@@ -33,9 +29,7 @@ def dataaxle_client(mock_settings):
     """Create Data Axle client for testing"""
     with patch("core.config.settings", mock_settings), patch(
         "core.config.get_settings", return_value=mock_settings
-    ), patch("d0_gateway.base.get_settings", return_value=mock_settings), patch(
-        "d0_gateway.base.RateLimiter"
-    ), patch(
+    ), patch("d0_gateway.base.get_settings", return_value=mock_settings), patch("d0_gateway.base.RateLimiter"), patch(
         "d0_gateway.base.CircuitBreaker"
     ), patch(
         "d0_gateway.base.ResponseCache"
@@ -272,9 +266,7 @@ class TestDataAxleClient:
         result = await dataaxle_client.verify_api_key()
 
         assert result is True
-        mock_httpx_client.get.assert_called_with(
-            "/account/status", headers=dataaxle_client._get_headers()
-        )
+        mock_httpx_client.get.assert_called_with("/account/status", headers=dataaxle_client._get_headers())
 
     @pytest.mark.asyncio
     async def test_verify_api_key_invalid(self, dataaxle_client, mock_httpx_client):

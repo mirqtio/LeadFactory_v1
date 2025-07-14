@@ -26,18 +26,9 @@ from d9_delivery.compliance import (
     generate_unsubscribe_link,
     process_unsubscribe_request,
 )
-from d9_delivery.delivery_manager import (
-    DeliveryManager,
-    DeliveryRequest,
-    create_delivery_request,
-    send_audit_email,
-)
+from d9_delivery.delivery_manager import DeliveryManager, DeliveryRequest, create_delivery_request, send_audit_email
 from d9_delivery.email_builder import PersonalizationData
-from d9_delivery.models import (
-    DeliveryStatus,
-    EventType,
-    SuppressionList,
-)
+from d9_delivery.models import DeliveryStatus, EventType, SuppressionList
 from d9_delivery.sendgrid_client import SendGridResponse
 from database.models import Base
 from database.session import SessionLocal, engine
@@ -75,9 +66,7 @@ class TestComplianceManager:
 
         # Add email to suppression list
         with SessionLocal() as session:
-            suppression = SuppressionList(
-                email="suppressed@example.com", reason="user_request", source="test"
-            )
+            suppression = SuppressionList(email="suppressed@example.com", reason="user_request", source="test")
             session.add(suppression)
             session.commit()
 
@@ -109,9 +98,7 @@ class TestComplianceManager:
         original_token = compliance_manager.generate_unsubscribe_token(email)
 
         # Verify valid token
-        verified_token = compliance_manager.verify_unsubscribe_token(
-            original_token.token
-        )
+        verified_token = compliance_manager.verify_unsubscribe_token(original_token.token)
         assert verified_token is not None
         assert verified_token.email == email
         assert verified_token.list_type == "marketing"
@@ -147,10 +134,7 @@ class TestComplianceManager:
         assert isinstance(headers, ComplianceHeaders)
         assert "unsubscribe" in headers.list_unsubscribe.lower()
         # Email is URL encoded in the unsubscribe link
-        assert (
-            "compliance%40example.com" in headers.list_unsubscribe
-            or email in headers.list_unsubscribe
-        )
+        assert "compliance%40example.com" in headers.list_unsubscribe or email in headers.list_unsubscribe
         assert headers.list_unsubscribe_post == "List-Unsubscribe=One-Click"
         assert headers.list_id is not None
         assert headers.precedence == "bulk"
@@ -191,9 +175,7 @@ class TestComplianceManager:
         """Test manual suppression recording"""
 
         email = "manual@example.com"
-        success = compliance_manager.record_suppression(
-            email=email, reason="test_suppression", source="manual_test"
-        )
+        success = compliance_manager.record_suppression(email=email, reason="test_suppression", source="manual_test")
 
         assert success is True
 
@@ -263,9 +245,7 @@ class TestDeliveryManager:
         """Test successful email sending - Send recording"""
 
         # Mock SendGrid success response
-        mock_response = SendGridResponse(
-            success=True, message_id="msg_12345", status_code=202
-        )
+        mock_response = SendGridResponse(success=True, message_id="msg_12345", status_code=202)
 
         with patch("d9_delivery.delivery_manager.SendGridClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -290,9 +270,7 @@ class TestDeliveryManager:
         print("✓ Successful email sending and recording works")
 
     @pytest.mark.asyncio
-    async def test_send_email_suppressed(
-        self, delivery_manager, sample_delivery_request
-    ):
+    async def test_send_email_suppressed(self, delivery_manager, sample_delivery_request):
         """Test email sending to suppressed address"""
 
         # Add email to suppression list
@@ -318,23 +296,15 @@ class TestDeliveryManager:
         print("✓ Suppressed email handling works")
 
     @pytest.mark.asyncio
-    async def test_send_email_sendgrid_failure(
-        self, delivery_manager, sample_delivery_request
-    ):
+    async def test_send_email_sendgrid_failure(self, delivery_manager, sample_delivery_request):
         """Test SendGrid send failure"""
 
         # Mock SendGrid failure response
-        mock_response = SendGridResponse(
-            success=False, error_message="SendGrid API error", status_code=400
-        )
+        mock_response = SendGridResponse(success=False, error_message="SendGrid API error", status_code=400)
 
         # Mock suppression check to return False so we test SendGrid failure path
-        with patch.object(
-            delivery_manager.compliance_manager, "check_suppression", return_value=False
-        ):
-            with patch(
-                "d9_delivery.delivery_manager.SendGridClient"
-            ) as mock_client_class:
+        with patch.object(delivery_manager.compliance_manager, "check_suppression", return_value=False):
+            with patch("d9_delivery.delivery_manager.SendGridClient") as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client.send_email.return_value = mock_response
                 mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -346,9 +316,7 @@ class TestDeliveryManager:
                 assert result.error_message == "SendGrid API error"
 
                 # Verify failed delivery was recorded
-                delivery_status = delivery_manager.get_delivery_status(
-                    result.delivery_id
-                )
+                delivery_status = delivery_manager.get_delivery_status(result.delivery_id)
                 assert delivery_status is not None
                 assert delivery_status["status"] == DeliveryStatus.FAILED.value
                 assert delivery_status["error_message"] == "SendGrid API error"
@@ -371,9 +339,7 @@ class TestDeliveryManager:
         ]
 
         # Mock SendGrid success responses
-        mock_response = SendGridResponse(
-            success=True, message_id="msg_batch", status_code=202
-        )
+        mock_response = SendGridResponse(success=True, message_id="msg_batch", status_code=202)
 
         with patch("d9_delivery.delivery_manager.SendGridClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -465,9 +431,7 @@ class TestUtilityFunctions:
         """Test send_audit_email utility function"""
 
         # Mock SendGrid success response
-        mock_response = SendGridResponse(
-            success=True, message_id="msg_audit", status_code=202
-        )
+        mock_response = SendGridResponse(success=True, message_id="msg_audit", status_code=202)
 
         with patch("d9_delivery.delivery_manager.SendGridClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -549,9 +513,7 @@ class TestUtilityFunctions:
 
         # Generate a valid token first
         compliance_manager = ComplianceManager()
-        token = compliance_manager.generate_unsubscribe_token(
-            "utility_unsub@example.com"
-        )
+        token = compliance_manager.generate_unsubscribe_token("utility_unsub@example.com")
 
         # Process unsubscribe
         success = process_unsubscribe_request(token.token)
@@ -586,9 +548,7 @@ class TestIntegration:
             business_name="Integration Corp",
             contact_name="Alice Brown",
             assessment_score=92.0,
-            issues_found=[
-                {"title": "Integration issue", "suggestion": "Fix integration"}
-            ],
+            issues_found=[{"title": "Integration issue", "suggestion": "Fix integration"}],
         )
 
         # Create delivery request
@@ -602,9 +562,7 @@ class TestIntegration:
         )
 
         # Mock successful SendGrid response
-        mock_response = SendGridResponse(
-            success=True, message_id="msg_integration", status_code=202
-        )
+        mock_response = SendGridResponse(success=True, message_id="msg_integration", status_code=202)
 
         with patch("d9_delivery.delivery_manager.SendGridClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -649,9 +607,7 @@ class TestIntegration:
 
         # Add to suppression list
         compliance_manager = ComplianceManager()
-        compliance_manager.record_suppression(
-            email=email, reason="test_flow", source="integration_test"
-        )
+        compliance_manager.record_suppression(email=email, reason="test_flow", source="integration_test")
 
         # Try to send email
         delivery_manager = DeliveryManager()

@@ -35,9 +35,7 @@ class TestGatewayProviderIntegration:
     async def test_all_providers_work_with_stubs_pagespeed(self, facade):
         """Test that PageSpeed provider works with stubs"""
         # Test PageSpeed analysis functionality
-        result = await facade.analyze_website(
-            url="https://example.com", strategy="mobile"
-        )
+        result = await facade.analyze_website(url="https://example.com", strategy="mobile")
 
         # Verify stub response structure
         assert "lighthouseResult" in result
@@ -65,9 +63,7 @@ class TestGatewayProviderIntegration:
                     "seo": {"score": 0.85},
                     "accessibility": {"score": 0.90},
                 },
-                "audits": {
-                    "largest-contentful-paint": {"score": 0.7, "displayValue": "2.5 s"}
-                },
+                "audits": {"largest-contentful-paint": {"score": 0.7, "displayValue": "2.5 s"}},
             }
         }
 
@@ -153,9 +149,7 @@ class TestRateLimitingIntegration:
         for i in range(3):
             try:
                 # Use analyze_website instead of removed search_businesses
-                result = await facade.analyze_website(
-                    url="https://example.com", strategy="mobile"
-                )
+                result = await facade.analyze_website(url="https://example.com", strategy="mobile")
                 results.append(result)
 
                 # Small delay to avoid overwhelming stubs
@@ -185,9 +179,7 @@ class TestRateLimitingIntegration:
             providers_tested.append("pagespeed")
 
             # Test OpenAI
-            mock_data = {
-                "lighthouseResult": {"categories": {"performance": {"score": 0.8}}}
-            }
+            mock_data = {"lighthouseResult": {"categories": {"performance": {"score": 0.8}}}}
             await facade.generate_website_insights(mock_data)
             providers_tested.append("openai")
 
@@ -350,17 +342,13 @@ class TestCacheIntegration:
 
         try:
             # First request (should be cache miss)
-            result1 = await facade.analyze_website(
-                url=test_url, strategy=test_strategy
-            )
+            result1 = await facade.analyze_website(url=test_url, strategy=test_strategy)
 
             # Small delay
             await asyncio.sleep(0.1)
 
             # Second request (should be cache hit if caching enabled)
-            result2 = await facade.analyze_website(
-                url=test_url, strategy=test_strategy
-            )
+            result2 = await facade.analyze_website(url=test_url, strategy=test_strategy)
 
             # Results should be consistent
             assert result1 is not None
@@ -375,11 +363,7 @@ class TestCacheIntegration:
 
         except Exception as e:
             # Cache testing may fail in stub environment
-            assert (
-                "url" in str(e).lower()
-                or "stub" in str(e).lower()
-                or "analyze" in str(e).lower()
-            )
+            assert "url" in str(e).lower() or "stub" in str(e).lower() or "analyze" in str(e).lower()
 
     @pytest.mark.asyncio
     async def test_cache_hit_miss_validated_metrics(self, facade):
@@ -482,9 +466,7 @@ class TestGatewayIntegrationHealth:
         ]
 
         for metric in expected_metrics:
-            assert any(
-                metric in collector for collector in metrics_summary["collectors"]
-            )
+            assert any(metric in collector for collector in metrics_summary["collectors"])
 
     @pytest.mark.asyncio
     async def test_concurrent_requests(self, facade):
@@ -493,9 +475,7 @@ class TestGatewayIntegrationHealth:
         async def make_request(i):
             try:
                 # Use analyze_website for concurrent request testing
-                return await facade.analyze_website(
-                    url=f"https://example{i}.com", strategy="mobile"
-                )
+                return await facade.analyze_website(url=f"https://example{i}.com", strategy="mobile")
             except Exception as e:
                 return {"error": str(e)}
 
@@ -519,9 +499,7 @@ class TestGatewayIntegrationHealth:
 
         for i in range(5):
             try:
-                result = await facade.analyze_website(
-                    url="https://example-test.com", strategy="mobile"
-                )
+                result = await facade.analyze_website(url="https://example-test.com", strategy="mobile")
 
                 if result and "lighthouseResult" in result:
                     success_count += 1

@@ -43,9 +43,7 @@ def test_restaurant_without_delivery():
 
 def test_default_omega():
     """Test default omega when no rules match."""
-    omega = calculate_omega(
-        visits_per_mil=10000, commercial_kw_pct=50, vertical="other"
-    )
+    omega = calculate_omega(visits_per_mil=10000, commercial_kw_pct=50, vertical="other")
     assert omega == 1.0, f"Expected 1.0 for default case, got {omega}"
 
 

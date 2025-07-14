@@ -41,9 +41,7 @@ class ResponseCache:
     async def _get_redis(self) -> aioredis.Redis:
         """Get Redis connection"""
         if self._redis is None:
-            self._redis = aioredis.from_url(
-                self.settings.redis_url, decode_responses=True
-            )
+            self._redis = aioredis.from_url(self.settings.redis_url, decode_responses=True)
         return self._redis
 
     def generate_key(self, endpoint: str, params: Dict[str, Any]) -> str:
@@ -99,9 +97,7 @@ class ResponseCache:
             self._misses += 1
             return None
 
-    async def set(
-        self, cache_key: str, response_data: Dict[str, Any], ttl: Optional[int] = None
-    ) -> None:
+    async def set(self, cache_key: str, response_data: Dict[str, Any], ttl: Optional[int] = None) -> None:
         """
         Cache response data
 
@@ -126,9 +122,7 @@ class ResponseCache:
             # Store in Redis with expiration
             await redis.setex(cache_key, cache_ttl, cached_data)
 
-            self.logger.debug(
-                f"Cached response for key: {cache_key[:16]}... (TTL: {cache_ttl}s)"
-            )
+            self.logger.debug(f"Cached response for key: {cache_key[:16]}... (TTL: {cache_ttl}s)")
 
         except Exception as e:
             self.logger.error(f"Cache set error: {e}")

@@ -4,16 +4,15 @@ PRD v1.2 - Verify Hunter.io domain search with confidence threshold
 """
 import asyncio
 import os
-import pytest
 from decimal import Decimal
 
-from d0_gateway.providers.hunter import HunterClient
+import pytest
+
 from core.config import settings
+from d0_gateway.providers.hunter import HunterClient
 
 # Skip if no API key
-pytestmark = pytest.mark.skipif(
-    not os.getenv("HUNTER_API_KEY"), reason="HUNTER_API_KEY not set"
-)
+pytestmark = pytest.mark.skipif(not os.getenv("HUNTER_API_KEY"), reason="HUNTER_API_KEY not set")
 
 
 class TestHunterSmoke:
@@ -56,9 +55,7 @@ class TestHunterSmoke:
             print(f"\nDomain: {domain}")
             print(f"  Email: {email}")
             print(f"  Confidence: {confidence}")
-            print(
-                f"  Meets PRD threshold (0.75): {'Yes' if confidence >= 0.75 else 'No'}"
-            )
+            print(f"  Meets PRD threshold (0.75): {'Yes' if confidence >= 0.75 else 'No'}")
 
         print("✓ Hunter.io confidence threshold test complete")
 

@@ -2,9 +2,10 @@
 Simplified unit tests for Phase 0.5 bucket functionality
 Task TG-06: Test bucket columns and CSV seed data
 """
-import pytest
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+import pytest
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
@@ -85,22 +86,16 @@ class TestBucketsSimple:
         print(f"Broadband values: {sorted(broadband_vals)}")
 
         # Calculate theoretical combinations
-        theoretical_combos = (
-            len(affluence_vals) * len(density_vals) * len(broadband_vals)
-        )
+        theoretical_combos = len(affluence_vals) * len(density_vals) * len(broadband_vals)
         print(f"Theoretical geo combinations: {theoretical_combos}")
 
         # Count actual unique combinations in data
-        df["geo_bucket"] = (
-            df["affluence"] + "-" + df["agency_density"] + "-" + df["broadband_quality"]
-        )
+        df["geo_bucket"] = df["affluence"] + "-" + df["agency_density"] + "-" + df["broadband_quality"]
         actual_combos = df["geo_bucket"].nunique()
         print(f"Actual geo combinations in data: {actual_combos}")
 
         # We should have at least 12 combinations possible
-        assert (
-            theoretical_combos >= 12
-        ), f"Should have at least 12 possible geo combinations, got {theoretical_combos}"
+        assert theoretical_combos >= 12, f"Should have at least 12 possible geo combinations, got {theoretical_combos}"
 
     def test_vert_bucket_combinations_count(self):
         """Test that 8 vertical bucket combinations are possible"""
@@ -121,9 +116,7 @@ class TestBucketsSimple:
         print(f"Theoretical vertical combinations: {theoretical_combos}")
 
         # Count actual unique combinations in data
-        df["vert_bucket"] = (
-            df["urgency"] + "-" + df["ticket_size"] + "-" + df["maturity"]
-        )
+        df["vert_bucket"] = df["urgency"] + "-" + df["ticket_size"] + "-" + df["maturity"]
         actual_combos = df["vert_bucket"].nunique()
         print(f"Actual vertical combinations in data: {actual_combos}")
 
@@ -140,12 +133,8 @@ class TestBucketsSimple:
 
         # Check geo data completeness
         assert geo_df["affluence"].notna().all(), "All rows must have affluence"
-        assert (
-            geo_df["agency_density"].notna().all()
-        ), "All rows must have agency_density"
-        assert (
-            geo_df["broadband_quality"].notna().all()
-        ), "All rows must have broadband_quality"
+        assert geo_df["agency_density"].notna().all(), "All rows must have agency_density"
+        assert geo_df["broadband_quality"].notna().all(), "All rows must have broadband_quality"
 
         # Check vertical data completeness
         assert vert_df["urgency"].notna().all(), "All rows must have urgency"
@@ -153,12 +142,8 @@ class TestBucketsSimple:
         assert vert_df["maturity"].notna().all(), "All rows must have maturity"
 
         # Check for duplicates
-        assert not geo_df.duplicated(
-            ["zip_code"]
-        ).any(), "No duplicate zip codes allowed"
-        assert not vert_df.duplicated(
-            ["yelp_category"]
-        ).any(), "No duplicate categories allowed"
+        assert not geo_df.duplicated(["zip_code"]).any(), "No duplicate zip codes allowed"
+        assert not vert_df.duplicated(["yelp_category"]).any(), "No duplicate categories allowed"
 
         print("✓ Data quality checks passed")
         print(f"  - {len(geo_df)} unique ZIP codes")

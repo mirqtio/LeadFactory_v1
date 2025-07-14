@@ -14,14 +14,7 @@ Acceptance Criteria:
 import enum
 import uuid
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    Boolean,
-    CheckConstraint,
-    Column,
-    DateTime,
-)
+from sqlalchemy import DECIMAL, JSON, Boolean, CheckConstraint, Column, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 
@@ -32,7 +25,7 @@ from sqlalchemy.sql import func
 # Use JSON type for better cross-database compatibility in tests
 JsonColumn = JSON
 
-from database.base import Base, UUID
+from database.base import UUID, Base
 
 
 def generate_uuid():
@@ -181,9 +174,7 @@ class SubjectLineVariant(Base):
     __table_args__ = (
         Index("idx_subject_variants_template_status", "template_id", "status"),
         Index("idx_subject_variants_performance", "open_rate", "conversion_rate"),
-        UniqueConstraint(
-            "template_id", "variant_name", name="uq_template_variant_name"
-        ),
+        UniqueConstraint("template_id", "variant_name", name="uq_template_variant_name"),
     )
 
 
@@ -196,15 +187,11 @@ class PersonalizationToken(Base):
 
     # Token definition
     token_name = Column(String(100), nullable=False, unique=True, index=True)
-    token_type = Column(
-        String(50), nullable=False
-    )  # business_name, industry, location, etc.
+    token_type = Column(String(50), nullable=False)  # business_name, industry, location, etc.
     description = Column(Text)
 
     # Token configuration
-    data_source = Column(
-        String(100)
-    )  # Where to get the data (business, assessment, etc.)
+    data_source = Column(String(100))  # Where to get the data (business, assessment, etc.)
     field_path = Column(String(200))  # JSONPath to the data field
     default_value = Column(String(500))  # Fallback value
     transformation_rules = Column(JsonColumn)  # Rules for formatting the value
@@ -275,9 +262,7 @@ class PersonalizationVariable(Base):
         Index("idx_personalization_vars_business", "business_id", "token_id"),
         Index("idx_personalization_vars_campaign", "campaign_id", "created_at"),
         Index("idx_personalization_vars_context", "context_hash"),
-        Index(
-            "idx_personalization_vars_quality", "confidence_score", "sentiment_score"
-        ),
+        Index("idx_personalization_vars_quality", "confidence_score", "sentiment_score"),
     )
 
 
@@ -376,12 +361,8 @@ class ContentVariant(Base):
 
     __table_args__ = (
         Index("idx_content_variants_template_status", "template_id", "status"),
-        Index(
-            "idx_content_variants_performance", "conversion_rate", "engagement_score"
-        ),
-        UniqueConstraint(
-            "template_id", "variant_name", name="uq_template_content_variant"
-        ),
+        Index("idx_content_variants_performance", "conversion_rate", "engagement_score"),
+        UniqueConstraint("template_id", "variant_name", name="uq_template_content_variant"),
     )
 
 
@@ -431,9 +412,7 @@ class SpamScoreTracking(Base):
     __table_args__ = (
         Index("idx_spam_scores_content_score", "email_content_id", "overall_score"),
         Index("idx_spam_scores_risk_level", "risk_level", "analyzed_at"),
-        CheckConstraint(
-            "overall_score >= 0 AND overall_score <= 100", name="check_valid_spam_score"
-        ),
+        CheckConstraint("overall_score >= 0 AND overall_score <= 100", name="check_valid_spam_score"),
     )
 
 
@@ -486,9 +465,7 @@ class EmailGenerationLog(Base):
 
     __table_args__ = (
         Index("idx_generation_logs_business_date", "business_id", "generated_at"),
-        Index(
-            "idx_generation_logs_success_date", "generation_successful", "generated_at"
-        ),
+        Index("idx_generation_logs_success_date", "generation_successful", "generated_at"),
         Index("idx_generation_logs_campaign", "campaign_id", "generated_at"),
     )
 

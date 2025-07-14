@@ -64,9 +64,7 @@ class GatewayClientFactory:
                     self.__class__._initialized = True
                     self.logger.info("Gateway client factory initialized")
 
-    def register_provider(
-        self, provider_name: str, client_class: Type[BaseAPIClient]
-    ) -> None:
+    def register_provider(self, provider_name: str, client_class: Type[BaseAPIClient]) -> None:
         """
         Register a new provider with the factory
 
@@ -75,9 +73,7 @@ class GatewayClientFactory:
             client_class: Client class that inherits from BaseAPIClient
         """
         if not issubclass(client_class, BaseAPIClient):
-            raise ValueError(
-                f"Client class {client_class} must inherit from BaseAPIClient"
-            )
+            raise ValueError(f"Client class {client_class} must inherit from BaseAPIClient")
 
         with self._lock:
             self._providers[provider_name] = client_class
@@ -87,9 +83,7 @@ class GatewayClientFactory:
         """Get list of registered provider names"""
         return list(self._providers.keys())
 
-    def create_client(
-        self, provider: str, use_cache: bool = True, **kwargs
-    ) -> BaseAPIClient:
+    def create_client(self, provider: str, use_cache: bool = True, **kwargs) -> BaseAPIClient:
         """
         Create or retrieve a client for the specified provider
 

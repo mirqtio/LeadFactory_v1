@@ -99,9 +99,7 @@ class TestTask034AcceptanceCriteria:
         return generator
 
     @pytest.fixture
-    def coordinator(
-        self, mock_pagespeed_assessor, mock_techstack_detector, mock_llm_generator
-    ):
+    def coordinator(self, mock_pagespeed_assessor, mock_techstack_detector, mock_llm_generator):
         """Create coordinator with mocked dependencies"""
         coordinator = AssessmentCoordinator(max_concurrent=3)
         coordinator.pagespeed_assessor = mock_pagespeed_assessor
@@ -175,9 +173,7 @@ class TestTask034AcceptanceCriteria:
         async def slow_assessment(*args, **kwargs):
             await asyncio.sleep(10)  # 10 second delay, will timeout
 
-        coordinator.pagespeed_assessor.assess_website = AsyncMock(
-            side_effect=slow_assessment
-        )
+        coordinator.pagespeed_assessor.assess_website = AsyncMock(side_effect=slow_assessment)
 
         # Set short timeout for testing
         result = await coordinator.execute_comprehensive_assessment(
@@ -202,9 +198,7 @@ class TestTask034AcceptanceCriteria:
         print("✓ Timeout handling works correctly")
 
     @pytest.mark.asyncio
-    async def test_partial_results_saved(
-        self, mock_techstack_detector, mock_llm_generator
-    ):
+    async def test_partial_results_saved(self, mock_techstack_detector, mock_llm_generator):
         """
         Test that partial results are saved even when some assessments fail
 
@@ -215,9 +209,7 @@ class TestTask034AcceptanceCriteria:
 
         # Set up failing pagespeed assessor
         failing_pagespeed = AsyncMock()
-        failing_pagespeed.assess_website = AsyncMock(
-            side_effect=Exception("PageSpeed API Error")
-        )
+        failing_pagespeed.assess_website = AsyncMock(side_effect=Exception("PageSpeed API Error"))
         coordinator.pagespeed_assessor = failing_pagespeed
 
         # Set up successful other assessments
@@ -293,9 +285,7 @@ class TestTask034AcceptanceCriteria:
                     performance_score=85,
                 )
 
-        coordinator.pagespeed_assessor.assess_website = AsyncMock(
-            side_effect=failing_then_succeeding
-        )
+        coordinator.pagespeed_assessor.assess_website = AsyncMock(side_effect=failing_then_succeeding)
 
         result = await coordinator.execute_comprehensive_assessment(
             business_id="test-business-retry",
@@ -308,18 +298,13 @@ class TestTask034AcceptanceCriteria:
         assert result.completed_assessments == 1
         assert result.failed_assessments == 0
         assert AssessmentType.PAGESPEED in result.partial_results
-        assert (
-            result.partial_results[AssessmentType.PAGESPEED].status
-            == AssessmentStatus.COMPLETED
-        )
+        assert result.partial_results[AssessmentType.PAGESPEED].status == AssessmentStatus.COMPLETED
 
         # Verify retry was attempted (call_count should be 2)
         assert call_count == 2, "Should have retried after initial failure"
 
         # Test permanent failure after retries
-        coordinator.pagespeed_assessor.assess_website = AsyncMock(
-            side_effect=Exception("Permanent API failure")
-        )
+        coordinator.pagespeed_assessor.assess_website = AsyncMock(side_effect=Exception("Permanent API failure"))
 
         result2 = await coordinator.execute_comprehensive_assessment(
             business_id="test-business-permanent-fail",
@@ -392,14 +377,8 @@ class TestTask034AcceptanceCriteria:
         )
 
         # Verify priority mapping
-        assert (
-            coordinator._get_assessment_priority(AssessmentType.PAGESPEED)
-            == AssessmentPriority.HIGH
-        )
-        assert (
-            coordinator._get_assessment_priority(AssessmentType.TECH_STACK)
-            == AssessmentPriority.MEDIUM
-        )
+        assert coordinator._get_assessment_priority(AssessmentType.PAGESPEED) == AssessmentPriority.HIGH
+        assert coordinator._get_assessment_priority(AssessmentType.TECH_STACK) == AssessmentPriority.MEDIUM
 
         # Verify timeout mapping
         assert coordinator._get_assessment_timeout(AssessmentType.PAGESPEED) == 180
@@ -508,17 +487,9 @@ class TestTask034AcceptanceCriteria:
 
     def test_domain_extraction(self, coordinator):
         """Test URL domain extraction"""
-        assert (
-            coordinator._extract_domain("https://www.example.com/path") == "example.com"
-        )
-        assert (
-            coordinator._extract_domain("http://subdomain.test.org")
-            == "subdomain.test.org"
-        )
-        assert (
-            coordinator._extract_domain("https://shop.example.co.uk/products")
-            == "shop.example.co.uk"
-        )
+        assert coordinator._extract_domain("https://www.example.com/path") == "example.com"
+        assert coordinator._extract_domain("http://subdomain.test.org") == "subdomain.test.org"
+        assert coordinator._extract_domain("https://shop.example.co.uk/products") == "shop.example.co.uk"
 
         print("✓ Domain extraction works correctly")
 
@@ -598,9 +569,7 @@ if __name__ == "__main__":
             mock_pagespeed = test_instance.mock_pagespeed_assessor()
             mock_techstack = test_instance.mock_techstack_detector()
             mock_llm = test_instance.mock_llm_generator()
-            coordinator = test_instance.coordinator(
-                mock_pagespeed, mock_techstack, mock_llm
-            )
+            coordinator = test_instance.coordinator(mock_pagespeed, mock_techstack, mock_llm)
 
             # Run all acceptance criteria tests
             await test_instance.test_parallel_assessment_execution(coordinator)

@@ -12,28 +12,14 @@ Acceptance Criteria:
 """
 
 import enum
-from enum import Enum
 import uuid
 from datetime import datetime
+from enum import Enum
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    TIMESTAMP,
-    Column,
-    Date,
-    DateTime,
-    Enum,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-)
+from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime, Enum, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-
 
 Base = declarative_base()
 
@@ -54,6 +40,7 @@ class FunnelStage(enum.Enum):
 
 class AggregationPeriod(enum.Enum):
     """Time period for aggregations"""
+
     HOURLY = "hourly"
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -73,6 +60,7 @@ class EventType(enum.Enum):
 
 class MetricType(enum.Enum):
     """Types of metrics tracked in the analytics system"""
+
     COUNT = "count"
     SUCCESS_RATE = "success_rate"
     DURATION = "duration"
@@ -120,22 +108,19 @@ class TimeSeriesData(Base):
     __table_args__ = (
         Index("ix_time_series_data_timestamp", timestamp.desc()),
         Index("ix_time_series_data_metric_name_timestamp", metric_name, timestamp.desc()),
-        Index(
-            'ix_time_series_data_tags',
-            tags,
-            postgresql_using='gin'
-        )
+        Index("ix_time_series_data_tags", tags, postgresql_using="gin"),
     )
 
 
 # Add dataclass imports at top of file after other imports
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, Optional
 
 
 @dataclass
 class FunnelConversion:
     """Data class for funnel conversion metrics"""
+
     funnel_stage: FunnelStage
     total_count: int
     success_count: int
@@ -147,6 +132,7 @@ class FunnelConversion:
 @dataclass
 class MetricSnapshot:
     """Data class for metric snapshots"""
+
     metric_name: str
     metric_type: MetricType
     value: float
@@ -162,6 +148,7 @@ class MetricSnapshot:
 @dataclass
 class DashboardMetric:
     """Data class for dashboard metrics display"""
+
     metric_name: str
     display_name: str
     value: float

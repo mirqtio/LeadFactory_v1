@@ -266,9 +266,7 @@ class TestTask033AcceptanceCriteria:
         return LLMInsightGenerator(llm_client=mock_llm_client)
 
     @pytest.mark.asyncio
-    async def test_three_recommendations_generated(
-        self, insight_generator, sample_assessment
-    ):
+    async def test_three_recommendations_generated(self, insight_generator, sample_assessment):
         """
         Test that exactly 3 recommendations are generated
 
@@ -277,9 +275,7 @@ class TestTask033AcceptanceCriteria:
         result = await insight_generator.generate_comprehensive_insights(
             assessment=sample_assessment,
             industry="ecommerce",
-            insight_types=[
-                InsightType.RECOMMENDATIONS
-            ],  # Test specifically for recommendations
+            insight_types=[InsightType.RECOMMENDATIONS],  # Test specifically for recommendations
         )
 
         # Verify result structure
@@ -298,12 +294,8 @@ class TestTask033AcceptanceCriteria:
             assert "priority" in rec, f"Recommendation {i+1} missing priority"
             assert "effort" in rec, f"Recommendation {i+1} missing effort"
             assert "impact" in rec, f"Recommendation {i+1} missing impact"
-            assert (
-                "implementation_steps" in rec
-            ), f"Recommendation {i+1} missing implementation_steps"
-            assert (
-                "industry_context" in rec
-            ), f"Recommendation {i+1} missing industry_context"
+            assert "implementation_steps" in rec, f"Recommendation {i+1} missing implementation_steps"
+            assert "industry_context" in rec, f"Recommendation {i+1} missing industry_context"
 
         # Verify recommendation quality
         titles = [rec["title"] for rec in recommendations]
@@ -313,16 +305,12 @@ class TestTask033AcceptanceCriteria:
         for rec in recommendations:
             assert len(rec["title"]) > 5, "Title should be descriptive"
             assert len(rec["description"]) > 20, "Description should be detailed"
-            assert (
-                len(rec["implementation_steps"]) > 0
-            ), "Should have implementation steps"
+            assert len(rec["implementation_steps"]) > 0, "Should have implementation steps"
 
         print("✓ 3 recommendations generated correctly")
 
     @pytest.mark.asyncio
-    async def test_industry_specific_insights(
-        self, insight_generator, sample_assessment
-    ):
+    async def test_industry_specific_insights(self, insight_generator, sample_assessment):
         """
         Test that industry-specific insights are provided
 
@@ -332,9 +320,7 @@ class TestTask033AcceptanceCriteria:
         result = await insight_generator.generate_comprehensive_insights(
             assessment=sample_assessment,
             industry="ecommerce",
-            insight_types=[
-                InsightType.RECOMMENDATIONS
-            ],  # Test recommendations for industry context
+            insight_types=[InsightType.RECOMMENDATIONS],  # Test recommendations for industry context
         )
 
         # Verify industry context in recommendations
@@ -392,9 +378,7 @@ class TestTask033AcceptanceCriteria:
             result = await insight_generator.generate_comprehensive_insights(
                 assessment=sample_assessment,
                 industry="ecommerce",
-                insight_types=[
-                    InsightType.RECOMMENDATIONS
-                ],  # Single type for precise cost test
+                insight_types=[InsightType.RECOMMENDATIONS],  # Single type for precise cost test
             )
 
             # Verify cost tracking was called
@@ -402,9 +386,7 @@ class TestTask033AcceptanceCriteria:
 
             # Verify cost in result
             assert result.total_cost_usd > Decimal("0"), "Should track non-zero cost"
-            assert isinstance(
-                result.total_cost_usd, Decimal
-            ), "Cost should be Decimal type"
+            assert isinstance(result.total_cost_usd, Decimal), "Cost should be Decimal type"
 
             # Verify cost calculation based on token usage (single call)
             expected_cost = (1500 * Decimal("0.00003")) + (800 * Decimal("0.00006"))
@@ -424,9 +406,7 @@ class TestTask033AcceptanceCriteria:
         print("✓ Cost tracking works correctly")
 
     @pytest.mark.asyncio
-    async def test_structured_output_parsing(
-        self, insight_generator, sample_assessment
-    ):
+    async def test_structured_output_parsing(self, insight_generator, sample_assessment):
         """
         Test that structured output parsing works correctly
 
@@ -436,33 +416,21 @@ class TestTask033AcceptanceCriteria:
         result = await insight_generator.generate_comprehensive_insights(
             assessment=sample_assessment,
             industry="ecommerce",
-            insight_types=[
-                InsightType.RECOMMENDATIONS
-            ],  # Test structured parsing with recommendations
+            insight_types=[InsightType.RECOMMENDATIONS],  # Test structured parsing with recommendations
         )
 
         # Verify structured output
         assert isinstance(result.insights, dict), "Insights should be dictionary"
-        assert (
-            "recommendations" in result.insights
-        ), "Should have recommendations section"
+        assert "recommendations" in result.insights, "Should have recommendations section"
 
         recommendations_data = result.insights["recommendations"]
-        assert isinstance(
-            recommendations_data, dict
-        ), "Recommendations should be structured dict"
-        assert (
-            "recommendations" in recommendations_data
-        ), "Should have recommendations array"
-        assert (
-            "industry_insights" in recommendations_data
-        ), "Should have industry insights"
+        assert isinstance(recommendations_data, dict), "Recommendations should be structured dict"
+        assert "recommendations" in recommendations_data, "Should have recommendations array"
+        assert "industry_insights" in recommendations_data, "Should have industry insights"
         assert "summary" in recommendations_data, "Should have summary"
 
         # Test fallback parsing with invalid JSON
-        with patch.object(
-            insight_generator.llm_client, "generate_completion"
-        ) as mock_llm:
+        with patch.object(insight_generator.llm_client, "generate_completion") as mock_llm:
             mock_llm.return_value = MagicMock(
                 content="This is not valid JSON but contains some recommendations to improve performance",
                 usage={
@@ -475,19 +443,13 @@ class TestTask033AcceptanceCriteria:
             fallback_result = await insight_generator.generate_comprehensive_insights(
                 assessment=sample_assessment,
                 industry="ecommerce",
-                insight_types=[
-                    InsightType.RECOMMENDATIONS
-                ],  # Test fallback with recommendations
+                insight_types=[InsightType.RECOMMENDATIONS],  # Test fallback with recommendations
             )
 
             # Should still produce structured output via fallback
             assert fallback_result.insights is not None, "Should have fallback insights"
-            fallback_recs = fallback_result.insights["recommendations"][
-                "recommendations"
-            ]
-            assert (
-                len(fallback_recs) == 3
-            ), "Fallback should still produce 3 recommendations"
+            fallback_recs = fallback_result.insights["recommendations"]["recommendations"]
+            assert len(fallback_recs) == 3, "Fallback should still produce 3 recommendations"
 
         # Test validation of structured output
         valid_result = result
@@ -601,10 +563,7 @@ class TestTask033AcceptanceCriteria:
 
         formatted = InsightPrompts.format_issues(issues)
         assert "Remove unused CSS (Impact: high, Saves: 1200ms)" in formatted
-        assert (
-            "Eliminate render-blocking resources (Impact: medium, Saves: 800ms)"
-            in formatted
-        )
+        assert "Eliminate render-blocking resources (Impact: medium, Saves: 800ms)" in formatted
 
         print("✓ Performance issue formatting works correctly")
 
@@ -626,9 +585,7 @@ class TestTask033AcceptanceCriteria:
             assessments.append(assessment)
 
         # Test batch generation
-        batch_generator = LLMInsightBatchGenerator(
-            LLMInsightGenerator(llm_client=mock_llm_client)
-        )
+        batch_generator = LLMInsightBatchGenerator(LLMInsightGenerator(llm_client=mock_llm_client))
 
         industry_mapping = {
             "test-assessment-0": "ecommerce",
@@ -664,9 +621,7 @@ class TestTask033AcceptanceCriteria:
 
         generator = LLMInsightGenerator(llm_client=failing_client)
 
-        result = await generator.generate_comprehensive_insights(
-            assessment=sample_assessment, industry="ecommerce"
-        )
+        result = await generator.generate_comprehensive_insights(assessment=sample_assessment, industry="ecommerce")
 
         # Should return failed result, not raise exception
         assert result.error_message == "LLM API Error"
@@ -676,9 +631,7 @@ class TestTask033AcceptanceCriteria:
         print("✓ Error handling works correctly")
 
     @pytest.mark.asyncio
-    async def test_comprehensive_insight_flow(
-        self, insight_generator, sample_assessment
-    ):
+    async def test_comprehensive_insight_flow(self, insight_generator, sample_assessment):
         """Test complete insight generation flow with all components"""
         result = await insight_generator.generate_comprehensive_insights(
             assessment=sample_assessment,
@@ -736,28 +689,18 @@ if __name__ == "__main__":
             generator = test_instance.insight_generator(mock_client)
 
             # Run all tests
-            await test_instance.test_three_recommendations_generated(
-                generator, sample_assessment
-            )
-            await test_instance.test_industry_specific_insights(
-                generator, sample_assessment
-            )
+            await test_instance.test_three_recommendations_generated(generator, sample_assessment)
+            await test_instance.test_industry_specific_insights(generator, sample_assessment)
             await test_instance.test_cost_tracking_works(generator, sample_assessment)
-            await test_instance.test_structured_output_parsing(
-                generator, sample_assessment
-            )
-            await test_instance.test_multiple_insight_types(
-                generator, sample_assessment
-            )
+            await test_instance.test_structured_output_parsing(generator, sample_assessment)
+            await test_instance.test_multiple_insight_types(generator, sample_assessment)
             test_instance.test_prompt_variable_extraction(sample_assessment)
             test_instance.test_industry_context_mapping()
             test_instance.test_technology_formatting()
             test_instance.test_performance_issue_formatting()
             await test_instance.test_batch_insight_generation(mock_client)
             await test_instance.test_error_handling(sample_assessment)
-            await test_instance.test_comprehensive_insight_flow(
-                generator, sample_assessment
-            )
+            await test_instance.test_comprehensive_insight_flow(generator, sample_assessment)
 
             print()
             print("🎉 All Task 033 acceptance criteria tests pass!")

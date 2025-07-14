@@ -13,6 +13,7 @@ from d0_gateway.providers.openai import OpenAIClient
 from d0_gateway.providers.pagespeed import PageSpeedClient
 from d0_gateway.providers.sendgrid import SendGridClient
 from d0_gateway.providers.stripe import StripeClient
+
 # YelpClient removed - Yelp has been removed from the codebase
 
 
@@ -48,14 +49,10 @@ class TestPageSpeedClient:
     async def test_analyze_url(self, pagespeed_client):
         """Test URL analysis"""
         pagespeed_client.make_request = AsyncMock(
-            return_value={
-                "lighthouseResult": {"categories": {"performance": {"score": 0.85}}}
-            }
+            return_value={"lighthouseResult": {"categories": {"performance": {"score": 0.85}}}}
         )
 
-        result = await pagespeed_client.analyze_url(
-            "https://example.com", strategy="mobile"
-        )
+        result = await pagespeed_client.analyze_url("https://example.com", strategy="mobile")
 
         pagespeed_client.make_request.assert_called_once()
         args, kwargs = pagespeed_client.make_request.call_args
@@ -160,9 +157,7 @@ class TestOpenAIClient:
 
         pagespeed_data = {
             "id": "https://example.com",
-            "lighthouseResult": {
-                "categories": {"performance": {"score": 0.6}, "seo": {"score": 0.8}}
-            },
+            "lighthouseResult": {"categories": {"performance": {"score": 0.6}, "seo": {"score": 0.8}}},
         }
 
         result = await openai_client.analyze_website_performance(pagespeed_data)

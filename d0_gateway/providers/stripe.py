@@ -150,27 +150,17 @@ class StripeClient(BaseAPIClient):
             elif "price_data" in item:
                 # Using inline pricing
                 price_data = item["price_data"]
-                payload[f"line_items[{i}][price_data][currency]"] = price_data.get(
-                    "currency", "usd"
-                )
-                payload[f"line_items[{i}][price_data][unit_amount]"] = str(
-                    price_data["unit_amount"]
-                )
+                payload[f"line_items[{i}][price_data][currency]"] = price_data.get("currency", "usd")
+                payload[f"line_items[{i}][price_data][unit_amount]"] = str(price_data["unit_amount"])
 
                 if "product_data" in price_data:
                     product_data = price_data["product_data"]
-                    payload[
-                        f"line_items[{i}][price_data][product_data][name]"
-                    ] = product_data["name"]
+                    payload[f"line_items[{i}][price_data][product_data][name]"] = product_data["name"]
                     if "description" in product_data:
-                        payload[
-                            f"line_items[{i}][price_data][product_data][description]"
-                        ] = product_data["description"]
+                        payload[f"line_items[{i}][price_data][product_data][description]"] = product_data["description"]
                     if "metadata" in product_data:
                         for key, value in product_data["metadata"].items():
-                            payload[
-                                f"line_items[{i}][price_data][product_data][metadata][{key}]"
-                            ] = value
+                            payload[f"line_items[{i}][price_data][product_data][metadata][{key}]"] = value
 
                 payload[f"line_items[{i}][quantity]"] = str(item.get("quantity", 1))
 
@@ -191,9 +181,7 @@ class StripeClient(BaseAPIClient):
             payload["billing_address_collection"] = billing_address_collection
 
         if allow_promotion_codes is not None:
-            payload["allow_promotion_codes"] = (
-                "true" if allow_promotion_codes else "false"
-            )
+            payload["allow_promotion_codes"] = "true" if allow_promotion_codes else "false"
 
         return await self.make_request("POST", "/v1/checkout/sessions", data=payload)
 
@@ -260,9 +248,7 @@ class StripeClient(BaseAPIClient):
         Returns:
             Dict containing payment intent data
         """
-        return await self.make_request(
-            "GET", f"/v1/payment_intents/{payment_intent_id}"
-        )
+        return await self.make_request("GET", f"/v1/payment_intents/{payment_intent_id}")
 
     async def create_customer(
         self,
@@ -421,9 +407,7 @@ class StripeClient(BaseAPIClient):
 
         return await self.make_request("POST", "/v1/webhook_endpoints", data=payload)
 
-    async def construct_webhook_event(
-        self, payload: str, signature: str, endpoint_secret: str
-    ) -> Dict[str, Any]:
+    async def construct_webhook_event(self, payload: str, signature: str, endpoint_secret: str) -> Dict[str, Any]:
         """
         Verify and construct webhook event (simplified version)
 

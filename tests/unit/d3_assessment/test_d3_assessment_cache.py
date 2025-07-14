@@ -21,12 +21,7 @@ pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")  # noqa: E402
 
-from d3_assessment.cache import (
-    AssessmentCache,
-    CacheManager,
-    CacheStrategy,
-    cached_assessment,
-)
+from d3_assessment.cache import AssessmentCache, CacheManager, CacheStrategy, cached_assessment
 from d3_assessment.coordinator import CoordinatorResult  # noqa: E402
 from d3_assessment.models import AssessmentResult  # noqa: E402
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
@@ -104,9 +99,7 @@ class TestTask036AcceptanceCriteria:
         assert cached_result is None
 
         # Store result in cache
-        cache_key = await cache.put(
-            business_id, url, assessment_types, sample_coordinator_result, industry
-        )
+        cache_key = await cache.put(business_id, url, assessment_types, sample_coordinator_result, industry)
         assert cache_key.startswith("assessment:")
         assert len(cache_key) == 27  # "assessment:" + 16 hex chars
 
@@ -115,10 +108,7 @@ class TestTask036AcceptanceCriteria:
         assert cached_result is not None
         assert cached_result.session_id == sample_coordinator_result.session_id
         assert cached_result.business_id == sample_coordinator_result.business_id
-        assert (
-            cached_result.total_assessments
-            == sample_coordinator_result.total_assessments
-        )
+        assert cached_result.total_assessments == sample_coordinator_result.total_assessments
 
         # Verify cache stats
         stats = cache.get_stats()
@@ -230,9 +220,7 @@ class TestTask036AcceptanceCriteria:
         assert cache.get_stats().entry_count == 3
 
         # Test specific invalidation
-        removed_count = await cache.invalidate(
-            business_id=business_id, url=url1, assessment_types=assessment_types
-        )
+        removed_count = await cache.invalidate(business_id=business_id, url=url1, assessment_types=assessment_types)
         assert removed_count == 1
         assert cache.get_stats().entry_count == 2
 
@@ -362,9 +350,7 @@ class TestTask036AcceptanceCriteria:
         )
 
         # Entry 1 should still be in cache (most frequently used)
-        cached = await lfu_cache.get(
-            "biz_1", "https://site1.com", [AssessmentType.PAGESPEED]
-        )
+        cached = await lfu_cache.get("biz_1", "https://site1.com", [AssessmentType.PAGESPEED])
         assert cached is not None
 
         await lru_cache.close()
@@ -376,9 +362,7 @@ class TestTask036AcceptanceCriteria:
     async def test_cache_size_limits(self, sample_coordinator_result):
         """Test cache size limits and eviction"""
         # Create cache with very small size limit
-        size_cache = AssessmentCache(
-            max_entries=100, max_size_mb=0.001, strategy=CacheStrategy.LRU  # 1KB limit
-        )
+        size_cache = AssessmentCache(max_entries=100, max_size_mb=0.001, strategy=CacheStrategy.LRU)  # 1KB limit
 
         # Add large entries to trigger size-based eviction
         large_result = CoordinatorResult(
@@ -429,9 +413,7 @@ class TestTask036AcceptanceCriteria:
         assert key1 == key2 == key3
 
         # Different order of assessment types should produce same key
-        key4 = cache._generate_cache_key(
-            business_id, url1, [AssessmentType.TECH_STACK, AssessmentType.PAGESPEED]
-        )
+        key4 = cache._generate_cache_key(business_id, url1, [AssessmentType.TECH_STACK, AssessmentType.PAGESPEED])
         assert key1 == key4
 
         # Different parameters should produce different keys
@@ -468,9 +450,7 @@ class TestTask036AcceptanceCriteria:
         cache_entries = list(cleanup_cache._cache.values())
         if cache_entries:
             entry = cache_entries[0]
-            assert (
-                entry.is_expired
-            ), f"Entry should be expired: age={entry.age_seconds}s, ttl={entry.ttl_seconds}s"
+            assert entry.is_expired, f"Entry should be expired: age={entry.age_seconds}s, ttl={entry.ttl_seconds}s"
 
         # Manual cleanup check
         await cleanup_cache._cleanup_expired()
@@ -490,9 +470,7 @@ class TestTask036AcceptanceCriteria:
         cache1 = await CacheManager.get_cache(max_entries=50)
 
         # Get second instance - should be same
-        cache2 = await CacheManager.get_cache(
-            max_entries=100
-        )  # Different config ignored
+        cache2 = await CacheManager.get_cache(max_entries=100)  # Different config ignored
 
         assert cache1 is cache2
         assert cache1.max_entries == 50  # Original config preserved
@@ -514,31 +492,23 @@ class TestTask036AcceptanceCriteria:
         call_count = 0
 
         @cached_assessment(ttl_seconds=300, tags={"decorator_test"})
-        async def mock_assessment(
-            business_id, url, assessment_types, industry="default"
-        ):
+        async def mock_assessment(business_id, url, assessment_types, industry="default"):
             nonlocal call_count
             call_count += 1
             return sample_coordinator_result
 
         # First call - should execute function
-        result1 = await mock_assessment(
-            "biz_test", "https://test.com", [AssessmentType.PAGESPEED]
-        )
+        result1 = await mock_assessment("biz_test", "https://test.com", [AssessmentType.PAGESPEED])
         assert result1 == sample_coordinator_result
         assert call_count == 1
 
         # Second call - should use cache
-        result2 = await mock_assessment(
-            "biz_test", "https://test.com", [AssessmentType.PAGESPEED]
-        )
+        result2 = await mock_assessment("biz_test", "https://test.com", [AssessmentType.PAGESPEED])
         assert result2 == sample_coordinator_result
         assert call_count == 1  # Function not called again
 
         # Different parameters - should execute function again
-        result3 = await mock_assessment(
-            "biz_test", "https://other.com", [AssessmentType.PAGESPEED]
-        )
+        result3 = await mock_assessment("biz_test", "https://other.com", [AssessmentType.PAGESPEED])
         assert result3 == sample_coordinator_result
         assert call_count == 2
 
@@ -686,9 +656,7 @@ class TestTask036AcceptanceCriteria:
         assert result is None
 
         # 2. Store result
-        cache_key = await cache.put(
-            business_id, url, assessment_types, comprehensive_result, industry
-        )
+        cache_key = await cache.put(business_id, url, assessment_types, comprehensive_result, industry)
         assert cache_key is not None
 
         # 3. Cache hit
@@ -770,39 +738,21 @@ if __name__ == "__main__":
             )
 
             # Run all acceptance criteria tests
-            await test_instance.test_recent_assessments_cached(
-                cache, sample_coordinator_result
-            )
-            await test_instance.test_ttl_configuration_works(
-                cache, sample_coordinator_result
-            )
-            await test_instance.test_cache_invalidation_logic(
-                cache, sample_coordinator_result
-            )
+            await test_instance.test_recent_assessments_cached(cache, sample_coordinator_result)
+            await test_instance.test_ttl_configuration_works(cache, sample_coordinator_result)
+            await test_instance.test_cache_invalidation_logic(cache, sample_coordinator_result)
             await test_instance.test_hit_rate_tracking(cache, sample_coordinator_result)
 
             # Run additional functionality tests
-            await test_instance.test_cache_eviction_strategies(
-                sample_coordinator_result
-            )
+            await test_instance.test_cache_eviction_strategies(sample_coordinator_result)
             await test_instance.test_cache_size_limits(sample_coordinator_result)
             await test_instance.test_cache_key_generation(cache)
-            await test_instance.test_cache_cleanup_and_expiration(
-                sample_coordinator_result
-            )
+            await test_instance.test_cache_cleanup_and_expiration(sample_coordinator_result)
             await test_instance.test_cache_manager_singleton()
-            await test_instance.test_cached_assessment_decorator(
-                sample_coordinator_result
-            )
-            await test_instance.test_cache_info_and_debugging(
-                cache, sample_coordinator_result
-            )
-            await test_instance.test_cache_clear_functionality(
-                cache, sample_coordinator_result
-            )
-            await test_instance.test_comprehensive_cache_flow(
-                cache, sample_coordinator_result
-            )
+            await test_instance.test_cached_assessment_decorator(sample_coordinator_result)
+            await test_instance.test_cache_info_and_debugging(cache, sample_coordinator_result)
+            await test_instance.test_cache_clear_functionality(cache, sample_coordinator_result)
+            await test_instance.test_comprehensive_cache_flow(cache, sample_coordinator_result)
 
             print()
             print("🎉 All Task 036 acceptance criteria tests pass!")

@@ -24,12 +24,7 @@ from d1_targeting.batch_scheduler import BatchScheduler
 from d1_targeting.geo_validator import GeoValidator
 from d1_targeting.quota_tracker import QuotaTracker
 from d1_targeting.target_universe import TargetUniverseManager
-from d1_targeting.types import (
-    BatchProcessingStatus,
-    CampaignStatus,
-    GeographyLevel,
-    VerticalMarket,
-)
+from d1_targeting.types import BatchProcessingStatus, CampaignStatus, GeographyLevel, VerticalMarket
 
 
 class TestTargetingIntegrationTask024Simple:
@@ -70,9 +65,7 @@ class TestTargetingIntegrationTask024Simple:
         client.app.dependency_overrides[get_db] = override_get_db
 
         # 1. Test universe listing endpoint
-        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = (
-            []
-        )
+        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = []
 
         response = client.get("/api/v1/targeting/universes")
         assert response.status_code == 200
@@ -125,9 +118,7 @@ class TestTargetingIntegrationTask024Simple:
         with patch("d1_targeting.api.BatchScheduler") as mock_scheduler:
             # Mock successful batch creation
             created_batch_ids = ["batch-001", "batch-002", "batch-003"]
-            mock_scheduler.return_value.create_daily_batches.return_value = (
-                created_batch_ids
-            )
+            mock_scheduler.return_value.create_daily_batches.return_value = created_batch_ids
 
             batch_request = {
                 "campaign_ids": ["test-campaign"],
@@ -160,9 +151,7 @@ class TestTargetingIntegrationTask024Simple:
                 "targets_failed": 5,
             }
 
-            response = client.put(
-                "/api/v1/targeting/batches/batch-001/status", json=status_update
-            )
+            response = client.put("/api/v1/targeting/batches/batch-001/status", json=status_update)
             assert response.status_code == 200
             update_response = response.json()
             assert update_response["success"] is True
@@ -181,12 +170,8 @@ class TestTargetingIntegrationTask024Simple:
         client.app.dependency_overrides[get_db] = override_get_db
 
         # Mock database responses
-        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = (
-            []
-        )
-        mock_db_session.query.return_value.filter_by.return_value.first.return_value = (
-            None
-        )
+        mock_db_session.query.return_value.offset.return_value.limit.return_value.all.return_value = []
+        mock_db_session.query.return_value.filter_by.return_value.first.return_value = None
 
         # 1. Test GET endpoints
         endpoints_to_test = [
@@ -197,9 +182,9 @@ class TestTargetingIntegrationTask024Simple:
         ]
 
         for endpoint in endpoints_to_test:
-            with patch("d1_targeting.api.BatchScheduler"), patch(
-                "d1_targeting.api.QuotaTracker"
-            ), patch("d1_targeting.api.TargetUniverseManager"):
+            with patch("d1_targeting.api.BatchScheduler"), patch("d1_targeting.api.QuotaTracker"), patch(
+                "d1_targeting.api.TargetUniverseManager"
+            ):
                 response = client.get(endpoint)
                 assert response.status_code in [200, 422, 500], f"GET {endpoint} failed"
 
@@ -293,9 +278,7 @@ class TestTargetingIntegrationTask024Simple:
         ]
 
         for expected_route in expected_routes:
-            assert any(
-                expected_route in path for path in route_paths
-            ), f"Missing route: {expected_route}"
+            assert any(expected_route in path for path in route_paths), f"Missing route: {expected_route}"
 
         # Test HTTP methods are properly defined
         get_routes = []
@@ -342,9 +325,7 @@ class TestTargetingIntegrationTask024Simple:
             },
         }
 
-        response = client.post(
-            "/api/v1/targeting/universes", json=invalid_universe_data
-        )
+        response = client.post("/api/v1/targeting/universes", json=invalid_universe_data)
         assert response.status_code == 422  # Validation error
 
         # 2. Test batch operation errors
@@ -353,9 +334,7 @@ class TestTargetingIntegrationTask024Simple:
 
             status_update = {"status": "completed", "targets_processed": 100}
 
-            response = client.put(
-                "/api/v1/targeting/batches/invalid-batch/status", json=status_update
-            )
+            response = client.put("/api/v1/targeting/batches/invalid-batch/status", json=status_update)
             assert response.status_code == 404
 
         # 3. Test error handling decorator exists

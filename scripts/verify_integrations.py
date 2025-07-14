@@ -102,33 +102,23 @@ class IntegrationVerifier:
                         "test_url": params["url"],
                         "strategy": params["strategy"],
                         "performance_score": performance_score,
-                        "lighthouse_version": lighthouse_result.get(
-                            "lighthouseVersion"
-                        ),
+                        "lighthouse_version": lighthouse_result.get("lighthouseVersion"),
                         "api_endpoint": url.split("/v5")[0] + "/v5",
                     },
                 }
 
-                print(
-                    f"✅ Google PageSpeed API connected (response time: {response_time:.3f}s)"
-                )
+                print(f"✅ Google PageSpeed API connected (response time: {response_time:.3f}s)")
                 if performance_score is not None:
-                    print(
-                        f"   Test analysis completed, performance score: {performance_score:.1f}/100"
-                    )
+                    print(f"   Test analysis completed, performance score: {performance_score:.1f}/100")
 
                 return True
             else:
-                error_detail = (
-                    response.text[:200] if response.text else "No error details"
-                )
+                error_detail = response.text[:200] if response.text else "No error details"
                 self.results[service] = {
                     "status": "error",
                     "error": f"HTTP {response.status_code}: {error_detail}",
                 }
-                self.errors.append(
-                    f"Google PageSpeed API returned HTTP {response.status_code}"
-                )
+                self.errors.append(f"Google PageSpeed API returned HTTP {response.status_code}")
                 return False
 
         except requests.exceptions.Timeout:
@@ -136,9 +126,7 @@ class IntegrationVerifier:
                 "status": "timeout",
                 "error": "Request timed out (PageSpeed analysis can be slow)",
             }
-            self.warnings.append(
-                "Google PageSpeed API timed out (this is normal for complex pages)"
-            )
+            self.warnings.append("Google PageSpeed API timed out (this is normal for complex pages)")
             return False
         except Exception as e:
             self.results[service] = {"status": "error", "error": str(e)}
@@ -190,15 +178,11 @@ class IntegrationVerifier:
                 }
 
                 print(f"✅ OpenAI API connected (response time: {response_time:.3f}s)")
-                print(
-                    f"   Model: {payload['model']}, Tokens used: {usage.get('total_tokens', 0)}"
-                )
+                print(f"   Model: {payload['model']}, Tokens used: {usage.get('total_tokens', 0)}")
 
                 return True
             else:
-                error_detail = (
-                    response.text[:200] if response.text else "No error details"
-                )
+                error_detail = response.text[:200] if response.text else "No error details"
                 self.results[service] = {
                     "status": "error",
                     "error": f"HTTP {response.status_code}: {error_detail}",
@@ -263,9 +247,7 @@ class IntegrationVerifier:
             print(f"   Charges enabled: {account.charges_enabled}")
 
             if not is_test_mode:
-                self.warnings.append(
-                    "Stripe is in LIVE mode - be careful with real transactions"
-                )
+                self.warnings.append("Stripe is in LIVE mode - be careful with real transactions")
 
             if not self.api_keys["stripe_webhook"]:
                 self.warnings.append("Stripe webhook secret not configured")
@@ -318,9 +300,7 @@ class IntegrationVerifier:
                         "email": account_data.get("email", "unknown"),
                         "reputation": account_data.get("reputation", 0),
                         "templates_available": templates_count,
-                        "api_key_type": "Valid API key"
-                        if response.status_code == 200
-                        else "Invalid",
+                        "api_key_type": "Valid API key" if response.status_code == 200 else "Invalid",
                     },
                 }
 
@@ -360,9 +340,7 @@ class IntegrationVerifier:
                 print("✅ Stub server is available")
                 return True
             else:
-                self.warnings.append(
-                    f"Stub server returned HTTP {response.status_code}"
-                )
+                self.warnings.append(f"Stub server returned HTTP {response.status_code}")
                 return False
         except Exception as e:
             self.warnings.append(f"Stub server not available: {e}")
@@ -370,16 +348,10 @@ class IntegrationVerifier:
 
     def generate_report(self) -> Dict[str, Any]:
         """Generate integration verification report"""
-        connected_services = sum(
-            1 for result in self.results.values() if result.get("status") == "connected"
-        )
+        connected_services = sum(1 for result in self.results.values() if result.get("status") == "connected")
         total_services = len(self.results)
 
-        overall_status = (
-            "verified"
-            if connected_services == total_services and not self.errors
-            else "issues"
-        )
+        overall_status = "verified" if connected_services == total_services and not self.errors else "issues"
 
         report = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -388,9 +360,7 @@ class IntegrationVerifier:
             "summary": {
                 "connected_services": connected_services,
                 "total_services": total_services,
-                "success_rate": (connected_services / total_services * 100)
-                if total_services > 0
-                else 0,
+                "success_rate": (connected_services / total_services * 100) if total_services > 0 else 0,
             },
             "integrations": self.results,
             "errors": self.errors,
@@ -443,9 +413,7 @@ def main():
         choices=["yelp", "google_pagespeed", "openai", "stripe", "sendgrid"],
         help="Specific services to verify",
     )
-    parser.add_argument(
-        "--use-stubs", action="store_true", help="Use stub server instead of real APIs"
-    )
+    parser.add_argument("--use-stubs", action="store_true", help="Use stub server instead of real APIs")
     parser.add_argument("--json", action="store_true", help="Output results as JSON")
 
     args = parser.parse_args()

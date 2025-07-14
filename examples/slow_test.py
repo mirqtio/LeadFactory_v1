@@ -4,8 +4,9 @@ Example of how to mark tests as slow for P0-009
 This demonstrates the @pytest.mark.slow decorator usage
 """
 
-import pytest
 import time
+
+import pytest
 
 
 @pytest.mark.slow
@@ -13,7 +14,7 @@ def test_slow_integration():
     """Example of a slow test that should be excluded from CI"""
     # Simulate slow operation
     time.sleep(5)
-    
+
     # Some integration test logic
     result = perform_slow_operation()
     assert result == "success"
@@ -26,7 +27,7 @@ def test_slow_database_operation():
     # This would normally connect to a real database
     # and perform time-consuming operations
     time.sleep(3)
-    
+
     # Verify data
     assert True
 

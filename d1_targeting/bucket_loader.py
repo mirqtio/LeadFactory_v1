@@ -118,9 +118,7 @@ class BucketFeatureLoader:
 
         return None
 
-    def get_business_buckets(
-        self, zip_code: str, categories: List[str]
-    ) -> Tuple[Optional[str], Optional[str]]:
+    def get_business_buckets(self, zip_code: str, categories: List[str]) -> Tuple[Optional[str], Optional[str]]:
         """
         Get both geo and vertical buckets for a business
 

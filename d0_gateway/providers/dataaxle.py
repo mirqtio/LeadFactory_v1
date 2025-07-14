@@ -10,13 +10,9 @@ import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from d0_gateway.base import BaseAPIClient
-from d0_gateway.exceptions import (
-    APIProviderError,
-    AuthenticationError,
-    RateLimitExceededError,
-)
 from core.exceptions import ValidationError
+from d0_gateway.base import BaseAPIClient
+from d0_gateway.exceptions import APIProviderError, AuthenticationError, RateLimitExceededError
 
 logger = logging.getLogger(__name__)
 
@@ -83,9 +79,7 @@ class DataAxleClient(BaseAPIClient):
             "Accept": "application/json",
         }
 
-    async def match_business(
-        self, business_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def match_business(self, business_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Match business and return enriched data
 
@@ -193,17 +187,13 @@ class DataAxleClient(BaseAPIClient):
         emails = data.get("emails", [])
         primary_email = None
         if emails and isinstance(emails, list):
-            primary_email = (
-                emails[0].get("email") if isinstance(emails[0], dict) else emails[0]
-            )
+            primary_email = emails[0].get("email") if isinstance(emails[0], dict) else emails[0]
 
         # Extract phones
         phones = data.get("phones", [])
         primary_phone = None
         if phones and isinstance(phones, list):
-            primary_phone = (
-                phones[0].get("number") if isinstance(phones[0], dict) else phones[0]
-            )
+            primary_phone = phones[0].get("number") if isinstance(phones[0], dict) else phones[0]
 
         # Build standardized response
         return {
@@ -282,9 +272,7 @@ class DataAxleClient(BaseAPIClient):
         """Make GET request using base client or test client"""
         if self._client:
             # Test mode - use injected client
-            response = await self._client.get(
-                endpoint, headers=self._get_headers(), **kwargs
-            )
+            response = await self._client.get(endpoint, headers=self._get_headers(), **kwargs)
             return response.json()
         else:
             # Production mode - use base client's make_request
@@ -294,9 +282,7 @@ class DataAxleClient(BaseAPIClient):
         """Make POST request using base client or test client"""
         if self._client:
             # Test mode - use injected client
-            response = await self._client.post(
-                endpoint, headers=self._get_headers(), **kwargs
-            )
+            response = await self._client.post(endpoint, headers=self._get_headers(), **kwargs)
             return response.json()
         else:
             # Production mode - use base client's make_request

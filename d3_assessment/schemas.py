@@ -28,9 +28,7 @@ class TriggerAssessmentRequest(BaseModel):
     assessment_types: Optional[List[AssessmentType]] = Field(
         default=None, description="Types of assessments to run (defaults to all)"
     )
-    industry: Optional[str] = Field(
-        default="default", description="Industry for specialized insights"
-    )
+    industry: Optional[str] = Field(default="default", description="Industry for specialized insights")
     priority: Optional[str] = Field(
         default="medium",
         description="Assessment priority (low, medium, high, critical)",
@@ -41,9 +39,7 @@ class TriggerAssessmentRequest(BaseModel):
     business_data: Optional[Dict[str, Any]] = Field(
         default=None, description="Business information for enhanced assessments (e.g., GBP)"
     )
-    callback_url: Optional[HttpUrl] = Field(
-        default=None, description="URL to POST results when assessment completes"
-    )
+    callback_url: Optional[HttpUrl] = Field(default=None, description="URL to POST results when assessment completes")
 
     @validator("priority")
     def validate_priority(cls, v):
@@ -94,9 +90,7 @@ class TriggerAssessmentResponse(BaseModel):
     business_id: str = Field(..., description="Business identifier")
     status: AssessmentStatus = Field(..., description="Initial assessment status")
     total_assessments: int = Field(..., description="Number of assessments to run")
-    estimated_completion_time: Optional[datetime] = Field(
-        default=None, description="Estimated completion time"
-    )
+    estimated_completion_time: Optional[datetime] = Field(default=None, description="Estimated completion time")
     tracking_url: str = Field(..., description="URL to check assessment status")
 
     class Config:
@@ -118,27 +112,15 @@ class AssessmentStatusResponse(BaseModel):
     session_id: str = Field(..., description="Session identifier")
     business_id: str = Field(..., description="Business identifier")
     status: AssessmentStatus = Field(..., description="Current assessment status")
-    progress: str = Field(
-        ..., description="Progress description (e.g., '2/3 complete')"
-    )
+    progress: str = Field(..., description="Progress description (e.g., '2/3 complete')")
     total_assessments: int = Field(..., description="Total number of assessments")
-    completed_assessments: int = Field(
-        ..., description="Number of completed assessments"
-    )
+    completed_assessments: int = Field(..., description="Number of completed assessments")
     failed_assessments: int = Field(..., description="Number of failed assessments")
     started_at: datetime = Field(..., description="Assessment start time")
-    estimated_completion: Optional[datetime] = Field(
-        default=None, description="Estimated completion time"
-    )
-    completed_at: Optional[datetime] = Field(
-        default=None, description="Actual completion time"
-    )
-    current_step: Optional[str] = Field(
-        default=None, description="Description of current processing step"
-    )
-    errors: Optional[List[str]] = Field(
-        default=None, description="List of error messages if any assessments failed"
-    )
+    estimated_completion: Optional[datetime] = Field(default=None, description="Estimated completion time")
+    completed_at: Optional[datetime] = Field(default=None, description="Actual completion time")
+    current_step: Optional[str] = Field(default=None, description="Description of current processing step")
+    errors: Optional[List[str]] = Field(default=None, description="List of error messages if any assessments failed")
 
     class Config:
         json_schema_extra = {
@@ -172,39 +154,21 @@ class PageSpeedMetrics(BaseModel):
     """PageSpeed performance metrics"""
 
     performance_score: int = Field(..., description="Performance score (0-100)")
-    accessibility_score: Optional[int] = Field(
-        default=None, description="Accessibility score"
-    )
+    accessibility_score: Optional[int] = Field(default=None, description="Accessibility score")
     seo_score: Optional[int] = Field(default=None, description="SEO score")
-    best_practices_score: Optional[int] = Field(
-        default=None, description="Best practices score"
-    )
-    largest_contentful_paint: Optional[int] = Field(
-        default=None, description="LCP in milliseconds"
-    )
-    first_input_delay: Optional[int] = Field(
-        default=None, description="FID in milliseconds"
-    )
-    cumulative_layout_shift: Optional[float] = Field(
-        default=None, description="CLS score"
-    )
-    speed_index: Optional[int] = Field(
-        default=None, description="Speed Index in milliseconds"
-    )
-    time_to_interactive: Optional[int] = Field(
-        default=None, description="TTI in milliseconds"
-    )
+    best_practices_score: Optional[int] = Field(default=None, description="Best practices score")
+    largest_contentful_paint: Optional[int] = Field(default=None, description="LCP in milliseconds")
+    first_input_delay: Optional[int] = Field(default=None, description="FID in milliseconds")
+    cumulative_layout_shift: Optional[float] = Field(default=None, description="CLS score")
+    speed_index: Optional[int] = Field(default=None, description="Speed Index in milliseconds")
+    time_to_interactive: Optional[int] = Field(default=None, description="TTI in milliseconds")
 
 
 class AIInsightsResult(BaseModel):
     """AI-generated insights result"""
 
-    recommendations: List[Dict[str, Any]] = Field(
-        ..., description="List of recommendations"
-    )
-    industry_insights: Dict[str, Any] = Field(
-        ..., description="Industry-specific insights"
-    )
+    recommendations: List[Dict[str, Any]] = Field(..., description="List of recommendations")
+    industry_insights: Dict[str, Any] = Field(..., description="Industry-specific insights")
     summary: Dict[str, Any] = Field(..., description="Overall assessment summary")
     ai_model_version: str = Field(..., description="AI model version used")
     processing_cost_usd: Decimal = Field(..., description="Cost of AI processing")
@@ -223,15 +187,11 @@ class AssessmentResults(BaseModel):
     industry: str = Field(..., description="Industry category")
     status: AssessmentStatus = Field(..., description="Final assessment status")
     total_assessments: int = Field(..., description="Total assessments requested")
-    completed_assessments: int = Field(
-        ..., description="Successfully completed assessments"
-    )
+    completed_assessments: int = Field(..., description="Successfully completed assessments")
     failed_assessments: int = Field(..., description="Failed assessments")
 
     # Assessment results by type
-    pagespeed_results: Optional[PageSpeedMetrics] = Field(
-        default=None, description="PageSpeed assessment results"
-    )
+    pagespeed_results: Optional[PageSpeedMetrics] = Field(default=None, description="PageSpeed assessment results")
     tech_stack_results: Optional[List[TechStackResult]] = Field(
         default=None, description="Technology stack detection results"
     )
@@ -242,15 +202,11 @@ class AssessmentResults(BaseModel):
     # Timing and cost information
     started_at: datetime = Field(..., description="Assessment start time")
     completed_at: datetime = Field(..., description="Assessment completion time")
-    execution_time_ms: int = Field(
-        ..., description="Total execution time in milliseconds"
-    )
+    execution_time_ms: int = Field(..., description="Total execution time in milliseconds")
     total_cost_usd: Decimal = Field(..., description="Total cost of assessment")
 
     # Error information
-    errors: Optional[Dict[str, str]] = Field(
-        default=None, description="Errors by assessment type"
-    )
+    errors: Optional[Dict[str, str]] = Field(default=None, description="Errors by assessment type")
 
     class Config:
         json_schema_extra = {
@@ -292,9 +248,7 @@ class AssessmentResults(BaseModel):
                         "industry": "ecommerce",
                         "competitive_advantage": "Fast loading improves conversion",
                     },
-                    "summary": {
-                        "overall_health": "Good performance with improvement opportunities"
-                    },
+                    "summary": {"overall_health": "Good performance with improvement opportunities"},
                     "model_version": "gpt-4-0125-preview",
                     "processing_cost_usd": "0.35",
                 },
@@ -313,12 +267,8 @@ class BatchAssessmentRequest(BaseModel):
     assessments: List[TriggerAssessmentRequest] = Field(
         ..., description="List of assessments to process", min_items=1, max_items=50
     )
-    max_concurrent: Optional[int] = Field(
-        default=3, description="Maximum concurrent assessments", ge=1, le=10
-    )
-    batch_id: Optional[str] = Field(
-        default=None, description="Optional batch identifier for tracking"
-    )
+    max_concurrent: Optional[int] = Field(default=3, description="Maximum concurrent assessments", ge=1, le=10)
+    batch_id: Optional[str] = Field(default=None, description="Optional batch identifier for tracking")
 
     class Config:
         json_schema_extra = {
@@ -369,15 +319,9 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error type")
     message: str = Field(..., description="Human-readable error message")
-    details: Optional[Dict[str, Any]] = Field(
-        default=None, description="Additional error details"
-    )
-    request_id: Optional[str] = Field(
-        default=None, description="Request identifier for tracking"
-    )
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Error timestamp"
-    )
+    details: Optional[Dict[str, Any]] = Field(default=None, description="Additional error details")
+    request_id: Optional[str] = Field(default=None, description="Request identifier for tracking")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat()}
@@ -396,14 +340,10 @@ class HealthCheckResponse(BaseModel):
     """Health check response model"""
 
     status: str = Field(..., description="Service health status")
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Health check timestamp"
-    )
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Health check timestamp")
     version: str = Field(..., description="API version")
     uptime_seconds: int = Field(..., description="Service uptime in seconds")
-    dependencies: Dict[str, str] = Field(
-        ..., description="Status of dependent services"
-    )
+    dependencies: Dict[str, str] = Field(..., description="Status of dependent services")
 
     class Config:
         json_schema_extra = {

@@ -2,16 +2,17 @@
 Tests for cost guardrail flows - Phase 0.5 Task OR-09
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from d11_orchestration.cost_guardrails import (
-    get_daily_costs,
     check_budget_threshold,
-    pause_expensive_operations,
-    get_profit_metrics,
-    create_profit_report,
     cost_guardrail_flow,
+    create_profit_report,
+    get_daily_costs,
+    get_profit_metrics,
+    pause_expensive_operations,
     profit_snapshot_flow,
 )
 
@@ -54,9 +55,7 @@ class TestCostGuardrailTasks:
         daily_costs = {"total": 500.0}
         daily_budget = 1000.0
 
-        is_over, percentage, alert_level = check_budget_threshold(
-            daily_costs, daily_budget, warning_threshold=0.8
-        )
+        is_over, percentage, alert_level = check_budget_threshold(daily_costs, daily_budget, warning_threshold=0.8)
 
         assert not is_over
         assert percentage == 0.5  # 50%
@@ -67,9 +66,7 @@ class TestCostGuardrailTasks:
         daily_costs = {"total": 850.0}
         daily_budget = 1000.0
 
-        is_over, percentage, alert_level = check_budget_threshold(
-            daily_costs, daily_budget, warning_threshold=0.8
-        )
+        is_over, percentage, alert_level = check_budget_threshold(daily_costs, daily_budget, warning_threshold=0.8)
 
         assert is_over
         assert percentage == 0.85  # 85%
@@ -80,9 +77,7 @@ class TestCostGuardrailTasks:
         daily_costs = {"total": 1200.0}
         daily_budget = 1000.0
 
-        is_over, percentage, alert_level = check_budget_threshold(
-            daily_costs, daily_budget, warning_threshold=0.8
-        )
+        is_over, percentage, alert_level = check_budget_threshold(daily_costs, daily_budget, warning_threshold=0.8)
 
         assert is_over
         assert percentage == 1.2  # 120%
@@ -178,9 +173,7 @@ class TestCostGuardrailFlows:
     @patch("d11_orchestration.cost_guardrails.get_daily_costs")
     @patch("d11_orchestration.cost_guardrails.check_budget_threshold")
     @patch("d11_orchestration.cost_guardrails.pause_expensive_operations")
-    def test_cost_guardrail_flow_under_budget(
-        self, mock_pause, mock_check, mock_get_costs, mock_settings
-    ):
+    def test_cost_guardrail_flow_under_budget(self, mock_pause, mock_check, mock_get_costs, mock_settings):
         """Test cost guardrail flow when under budget"""
         # Mock settings
         mock_settings.return_value.cost_budget_usd = 1000.0
@@ -202,9 +195,7 @@ class TestCostGuardrailFlows:
     @patch("d11_orchestration.cost_guardrails.get_daily_costs")
     @patch("d11_orchestration.cost_guardrails.check_budget_threshold")
     @patch("d11_orchestration.cost_guardrails.pause_expensive_operations")
-    def test_cost_guardrail_flow_over_budget(
-        self, mock_pause, mock_check, mock_get_costs, mock_settings
-    ):
+    def test_cost_guardrail_flow_over_budget(self, mock_pause, mock_check, mock_get_costs, mock_settings):
         """Test cost guardrail flow when over budget"""
         # Mock settings
         mock_settings.return_value.cost_budget_usd = 1000.0
@@ -226,9 +217,7 @@ class TestCostGuardrailFlows:
     @patch("d11_orchestration.cost_guardrails.get_profit_metrics")
     @patch("d11_orchestration.cost_guardrails.SessionLocal")
     @patch("d11_orchestration.cost_guardrails.create_profit_report")
-    def test_profit_snapshot_flow(
-        self, mock_create_report, mock_session, mock_get_metrics
-    ):
+    def test_profit_snapshot_flow(self, mock_create_report, mock_session, mock_get_metrics):
         """Test profit snapshot flow"""
         # Mock profit metrics
         mock_get_metrics.return_value = {

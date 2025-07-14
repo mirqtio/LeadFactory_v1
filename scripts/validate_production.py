@@ -83,9 +83,7 @@ def check_database_migrations():
         print(f"✅ Database migrations: {migration_count} migrations found")
         return True
     else:
-        print(
-            f"❌ Database migrations: Only {migration_count} found (expected at least 4)"
-        )
+        print(f"❌ Database migrations: Only {migration_count} found (expected at least 4)")
         return False
 
 

@@ -127,9 +127,7 @@ class TestReportGeneration:
 
     def test_report_generation_defaults(self, db_session):
         """Test default values for report generation"""
-        report = ReportGeneration(
-            business_id="business-123", template_id="template-001"
-        )
+        report = ReportGeneration(business_id="business-123", template_id="template-001")
         db_session.add(report)
         db_session.commit()
 
@@ -209,9 +207,7 @@ class TestReportGeneration:
         """Test report generation constraints"""
         # Test retry count constraint
         with pytest.raises(IntegrityError):
-            report = ReportGeneration(
-                business_id="business-123", template_id="template-001", retry_count=-1
-            )
+            report = ReportGeneration(business_id="business-123", template_id="template-001", retry_count=-1)
             db_session.add(report)
             db_session.commit()
 
@@ -564,9 +560,7 @@ class TestReportDelivery:
     def test_create_report_delivery(self, db_session):
         """Test creating a new report delivery"""
         # Create report generation first
-        report = ReportGeneration(
-            business_id="business-123", template_id="template-001"
-        )
+        report = ReportGeneration(business_id="business-123", template_id="template-001")
         db_session.add(report)
         db_session.flush()
 
@@ -593,9 +587,7 @@ class TestReportDelivery:
 
     def test_delivery_with_tracking(self, db_session):
         """Test delivery with tracking information"""
-        report = ReportGeneration(
-            business_id="business-123", template_id="template-001"
-        )
+        report = ReportGeneration(business_id="business-123", template_id="template-001")
         db_session.add(report)
         db_session.flush()
 
@@ -629,9 +621,7 @@ class TestReportDelivery:
 
     def test_delivery_properties(self, db_session):
         """Test delivery computed properties"""
-        report = ReportGeneration(
-            business_id="business-123", template_id="template-001"
-        )
+        report = ReportGeneration(business_id="business-123", template_id="template-001")
         db_session.add(report)
         db_session.flush()
 
@@ -663,9 +653,7 @@ class TestReportDelivery:
 
     def test_delivery_constraints(self, db_session):
         """Test delivery constraints"""
-        report = ReportGeneration(
-            business_id="business-123", template_id="template-001"
-        )
+        report = ReportGeneration(business_id="business-123", template_id="template-001")
         db_session.add(report)
         db_session.flush()
 
@@ -693,9 +681,7 @@ class TestReportDelivery:
 
     def test_delivery_repr(self, db_session):
         """Test delivery string representation"""
-        report = ReportGeneration(
-            business_id="business-123", template_id="template-001"
-        )
+        report = ReportGeneration(business_id="business-123", template_id="template-001")
         db_session.add(report)
         db_session.flush()
 
@@ -788,12 +774,8 @@ class TestModelRelationships:
         db_session.flush()
 
         # Add deliveries
-        delivery1 = ReportDelivery(
-            report_generation_id=report.id, delivery_method=DeliveryMethod.EMAIL
-        )
-        delivery2 = ReportDelivery(
-            report_generation_id=report.id, delivery_method=DeliveryMethod.DOWNLOAD
-        )
+        delivery1 = ReportDelivery(report_generation_id=report.id, delivery_method=DeliveryMethod.EMAIL)
+        delivery2 = ReportDelivery(report_generation_id=report.id, delivery_method=DeliveryMethod.DOWNLOAD)
 
         db_session.add_all([delivery1, delivery2])
         db_session.commit()

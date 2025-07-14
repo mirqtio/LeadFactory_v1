@@ -4,6 +4,8 @@
 **Estimated Effort**: 3 days
 **Dependencies**: P0-013
 
+> 💡 **Claude Implementation Note**: Consider how task subagents can be used to execute portions of this task in parallel to improve efficiency and reduce overall completion time.
+
 ## Goal & Success Criteria
 
 Reintroduce full KEEP test coverage, optimize test structure for CI reliability, and establish a path to restore coverage ≥70% through strategic marker usage, parallel execution optimization, and gradual coverage improvement.

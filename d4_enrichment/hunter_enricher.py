@@ -3,11 +3,12 @@ Hunter.io enricher for email finding
 Phase 0.5 - Task EN-05
 """
 import logging
-from typing import Dict, Optional, Any
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 from d0_gateway.providers.hunter import HunterClient
+
 from .models import EnrichmentSource
-from dataclasses import dataclass
 
 
 @dataclass
@@ -39,9 +40,7 @@ class HunterEnricher:
         self.client = client or HunterClient()
         self.source = EnrichmentSource.HUNTER_IO
 
-    async def enrich_business(
-        self, business_data: Dict[str, Any], business_id: str
-    ) -> Optional[EnrichmentResult]:
+    async def enrich_business(self, business_data: Dict[str, Any], business_id: str) -> Optional[EnrichmentResult]:
         """
         Find emails using Hunter.io API (fallback enrichment)
 
@@ -101,9 +100,7 @@ class HunterEnricher:
                 employee_count=None,
                 annual_revenue=None,
                 years_in_business=None,
-                contact_name=best_email.get("first_name", "")
-                + " "
-                + best_email.get("last_name", ""),
+                contact_name=best_email.get("first_name", "") + " " + best_email.get("last_name", ""),
                 contact_title=best_email.get("position"),
                 confidence_score=confidence,
                 match_confidence=match_confidence,

@@ -1,13 +1,14 @@
 """SEMrush adapter for traffic and keyword enrichment."""
-import os
 import logging
-import redis
+import os
 from datetime import datetime, timedelta
 from functools import lru_cache
 from typing import Dict, Optional
 
-from d0_gateway.providers.semrush import SEMrushClient
+import redis
+
 from core.config import settings
+from d0_gateway.providers.semrush import SEMrushClient
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +20,7 @@ def _get_redis_client():
     """Get or create Redis client."""
     global _redis_client
     if _redis_client is None:
-        _redis_client = redis.Redis(
-            host=settings.redis_host, port=settings.redis_port, decode_responses=True
-        )
+        _redis_client = redis.Redis(host=settings.redis_host, port=settings.redis_port, decode_responses=True)
     return _redis_client
 
 

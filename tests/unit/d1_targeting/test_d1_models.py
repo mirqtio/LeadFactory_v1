@@ -8,14 +8,9 @@ import pytest
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
-from d1_targeting.models import (
-    Campaign,
-    CampaignTarget,
-    GeographicBoundary,
-    TargetUniverse,
-)
-from database.models import Business, Target, GeoType
+from d1_targeting.models import Campaign, CampaignTarget, GeographicBoundary, TargetUniverse
 from d1_targeting.types import CampaignStatus, GeographyLevel, VerticalMarket
+from database.models import Business, GeoType, Target
 
 
 class TestBusinessModel:
@@ -176,9 +171,7 @@ class TestCampaignModel:
         campaign_id = str(uuid.uuid4())
         target_id = str(uuid.uuid4())
 
-        campaign_target = CampaignTarget(
-            campaign_id=campaign_id, target_id=target_id, status="pending"
-        )
+        campaign_target = CampaignTarget(campaign_id=campaign_id, target_id=target_id, status="pending")
 
         assert campaign_target.campaign_id == campaign_id
         assert campaign_target.target_id == target_id

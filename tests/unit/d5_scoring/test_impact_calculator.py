@@ -51,14 +51,10 @@ def test_impact_with_low_confidence():
 def test_impact_with_omega_scaler():
     """Test impact calculation with omega scaler."""
     # Without omega
-    impact1, _, _ = calculate_impact(
-        category="seo", severity=3, baseline_revenue=1_000_000, omega=1.0
-    )
+    impact1, _, _ = calculate_impact(category="seo", severity=3, baseline_revenue=1_000_000, omega=1.0)
 
     # With omega = 0.5 (low online dependence)
-    impact2, _, _ = calculate_impact(
-        category="seo", severity=3, baseline_revenue=1_000_000, omega=0.5
-    )
+    impact2, _, _ = calculate_impact(category="seo", severity=3, baseline_revenue=1_000_000, omega=0.5)
 
     assert abs(impact2 - impact1 * 0.5) < 1
 

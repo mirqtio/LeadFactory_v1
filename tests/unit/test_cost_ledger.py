@@ -3,15 +3,15 @@ Tests for cost tracking functionality - Phase 0.5 Task GW-04
 """
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from d0_gateway.base import BaseAPIClient
 from database.base import Base
 from database.models import APICost, DailyCostAggregate
-from d0_gateway.base import BaseAPIClient
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
@@ -177,13 +177,9 @@ class TestEmitCost:
         mock_get_db.return_value.__enter__.return_value = test_db
 
         # Create client with mocked components
-        with patch("d0_gateway.base.RateLimiter"), patch(
-            "d0_gateway.base.CircuitBreaker"
-        ), patch("d0_gateway.base.ResponseCache"), patch(
-            "d0_gateway.base.GatewayMetrics"
-        ) as mock_metrics, patch(
-            "d0_gateway.base.get_settings"
-        ):
+        with patch("d0_gateway.base.RateLimiter"), patch("d0_gateway.base.CircuitBreaker"), patch(
+            "d0_gateway.base.ResponseCache"
+        ), patch("d0_gateway.base.GatewayMetrics") as mock_metrics, patch("d0_gateway.base.get_settings"):
             client = MockAPIClient(provider="test_provider", api_key="test")
 
             # Emit cost
@@ -206,9 +202,7 @@ class TestEmitCost:
             assert cost.meta_data["test"] == "data"
 
             # Verify metrics were recorded
-            mock_metrics.return_value.record_cost.assert_called_once_with(
-                "test_provider", "test_operation", 0.15
-            )
+            mock_metrics.return_value.record_cost.assert_called_once_with("test_provider", "test_operation", 0.15)
 
     @patch("database.session.get_db_sync")
     def test_emit_cost_db_failure(self, mock_get_db):
@@ -217,13 +211,9 @@ class TestEmitCost:
         mock_get_db.side_effect = Exception("DB Error")
 
         # Create client
-        with patch("d0_gateway.base.RateLimiter"), patch(
-            "d0_gateway.base.CircuitBreaker"
-        ), patch("d0_gateway.base.ResponseCache"), patch(
-            "d0_gateway.base.GatewayMetrics"
-        ), patch(
-            "d0_gateway.base.get_settings"
-        ), patch(
+        with patch("d0_gateway.base.RateLimiter"), patch("d0_gateway.base.CircuitBreaker"), patch(
+            "d0_gateway.base.ResponseCache"
+        ), patch("d0_gateway.base.GatewayMetrics"), patch("d0_gateway.base.get_settings"), patch(
             "d0_gateway.base.get_logger"
         ) as mock_logger:
             client = MockAPIClient(provider="test_provider", api_key="test")
@@ -288,11 +278,7 @@ class TestCostAggregation:
         # Calculate total campaign cost
         from sqlalchemy import func
 
-        total_cost = (
-            test_db.query(func.sum(APICost.cost_usd))
-            .filter(APICost.campaign_id == 1)
-            .scalar()
-        )
+        total_cost = test_db.query(func.sum(APICost.cost_usd)).filter(APICost.campaign_id == 1).scalar()
 
         assert total_cost == Decimal("1.00")
 
@@ -330,9 +316,7 @@ class TestCostAggregation:
         # Query costs manually grouped by day
 
         # Get all costs for today
-        today_costs = (
-            test_db.query(APICost).filter(APICost.provider == "dataaxle").all()
-        )
+        today_costs = test_db.query(APICost).filter(APICost.provider == "dataaxle").all()
 
         # Manually filter by date in Python (more reliable for SQLite)
         today_total = Decimal("0.00")
@@ -363,9 +347,7 @@ class TestBaseClientCostIntegration:
         # Create client with mocked components
         with patch("d0_gateway.base.RateLimiter") as mock_rate_limiter, patch(
             "d0_gateway.base.CircuitBreaker"
-        ) as mock_circuit_breaker, patch(
-            "d0_gateway.base.ResponseCache"
-        ) as mock_cache, patch(
+        ) as mock_circuit_breaker, patch("d0_gateway.base.ResponseCache") as mock_cache, patch(
             "d0_gateway.base.GatewayMetrics"
         ) as mock_metrics, patch(
             "d0_gateway.base.get_settings"
@@ -385,6 +367,4 @@ class TestBaseClientCostIntegration:
             result = await client.make_request("GET", "/test")
 
             # Verify cost was recorded in metrics
-            mock_metrics.return_value.record_cost.assert_called_with(
-                "test_provider", "/test", 0.0
-            )
+            mock_metrics.return_value.record_cost.assert_called_with("test_provider", "/test", 0.0)

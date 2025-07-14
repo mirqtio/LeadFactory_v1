@@ -149,9 +149,7 @@ class AssessmentFormatter:
         """
         try:
             # Create formatted report
-            formatted_report = self._create_formatted_report(
-                assessment, include_technical, max_issues
-            )
+            formatted_report = self._create_formatted_report(assessment, include_technical, max_issues)
 
             # Format according to type
             if format_type == ReportFormat.JSON:
@@ -185,9 +183,7 @@ class AssessmentFormatter:
         recommendations = self._generate_recommendations(top_issues)
 
         # Technical summary
-        technical_summary = (
-            self._create_technical_summary(assessment) if include_technical else {}
-        )
+        technical_summary = self._create_technical_summary(assessment) if include_technical else {}
 
         # Calculate overall score
         overall_score = self._calculate_overall_score(assessment, all_issues)
@@ -205,19 +201,13 @@ class AssessmentFormatter:
             metadata={
                 "assessment_id": assessment.assessment_id,
                 "total_issues": len(all_issues),
-                "critical_issues": len(
-                    [i for i in all_issues if i.priority == IssuePriority.CRITICAL]
-                ),
-                "high_issues": len(
-                    [i for i in all_issues if i.priority == IssuePriority.HIGH]
-                ),
+                "critical_issues": len([i for i in all_issues if i.priority == IssuePriority.CRITICAL]),
+                "high_issues": len([i for i in all_issues if i.priority == IssuePriority.HIGH]),
                 "formatted_at": datetime.now(timezone.utc).isoformat(),
             },
         )
 
-    def _extract_and_prioritize_issues(
-        self, assessment: AssessmentResult
-    ) -> List[FormattedIssue]:
+    def _extract_and_prioritize_issues(self, assessment: AssessmentResult) -> List[FormattedIssue]:
         """Extract and prioritize issues from assessment - Issue prioritization"""
         issues = []
 
@@ -252,9 +242,7 @@ class AssessmentFormatter:
 
         return issues
 
-    def _extract_pagespeed_issues(
-        self, pagespeed_data: Dict[str, Any]
-    ) -> List[FormattedIssue]:
+    def _extract_pagespeed_issues(self, pagespeed_data: Dict[str, Any]) -> List[FormattedIssue]:
         """Extract issues from PageSpeed data"""
         issues = []
 
@@ -268,9 +256,7 @@ class AssessmentFormatter:
                     FormattedIssue(
                         title="Slow Largest Contentful Paint (LCP)",
                         description=f"Your largest content loads in {vitals.get('lcp', 0):.1f}s. This affects user experience.",
-                        severity=IssueSeverity.HIGH.value
-                        if vitals.get("lcp", 0) > 4.0
-                        else IssueSeverity.MEDIUM.value,
+                        severity=IssueSeverity.HIGH.value if vitals.get("lcp", 0) > 4.0 else IssueSeverity.MEDIUM.value,
                         priority=IssuePriority.HIGH,
                         impact_score=0.0,  # Will be calculated
                         recommendation="Optimize image loading, reduce server response times, and eliminate render-blocking resources.",
@@ -338,9 +324,7 @@ class AssessmentFormatter:
 
         return issues
 
-    def _extract_tech_stack_issues(
-        self, tech_data: Dict[str, Any]
-    ) -> List[FormattedIssue]:
+    def _extract_tech_stack_issues(self, tech_data: Dict[str, Any]) -> List[FormattedIssue]:
         """Extract issues from tech stack analysis"""
         issues = []
 
@@ -355,9 +339,7 @@ class AssessmentFormatter:
                     impact_score=0.0,
                     recommendation="Install Google Analytics 4 or similar analytics platform to track visitor behavior.",
                     category="Marketing",
-                    technical_details={
-                        "analytics_found": tech_data.get("analytics", [])
-                    },
+                    technical_details={"analytics_found": tech_data.get("analytics", [])},
                 )
             )
 
@@ -405,29 +387,20 @@ class AssessmentFormatter:
 
             # Adjust priority based on keywords
             insight_text = insight.get("description", "").lower()
-            if any(
-                word in insight_text
-                for word in ["critical", "urgent", "security", "broken"]
-            ):
+            if any(word in insight_text for word in ["critical", "urgent", "security", "broken"]):
                 severity = IssueSeverity.HIGH.value
                 priority = IssuePriority.HIGH
-            elif any(
-                word in insight_text for word in ["conversion", "revenue", "customers"]
-            ):
+            elif any(word in insight_text for word in ["conversion", "revenue", "customers"]):
                 priority = IssuePriority.HIGH
 
             issues.append(
                 FormattedIssue(
                     title=insight.get("title", f"AI Insight #{i+1}"),
-                    description=insight.get(
-                        "description", "AI-identified improvement opportunity"
-                    ),
+                    description=insight.get("description", "AI-identified improvement opportunity"),
                     severity=severity,
                     priority=priority,
                     impact_score=0.0,
-                    recommendation=insight.get(
-                        "recommendation", "Follow AI-suggested improvements"
-                    ),
+                    recommendation=insight.get("recommendation", "Follow AI-suggested improvements"),
                     category="AI Analysis",
                     technical_details={"insight_category": insight.get("category")},
                 )
@@ -452,17 +425,13 @@ class AssessmentFormatter:
         else:
             return IssuePriority.LOW
 
-    def _generate_summary(
-        self, assessment: AssessmentResult, top_issues: List[FormattedIssue]
-    ) -> str:
+    def _generate_summary(self, assessment: AssessmentResult, top_issues: List[FormattedIssue]) -> str:
         """Generate human-readable summary - Human-readable summaries"""
 
         if not top_issues:
             return f"Great news! Your website {assessment.url} is performing well with no major issues detected."
 
-        critical_count = len(
-            [i for i in top_issues if i.priority == IssuePriority.CRITICAL]
-        )
+        critical_count = len([i for i in top_issues if i.priority == IssuePriority.CRITICAL])
         high_count = len([i for i in top_issues if i.priority == IssuePriority.HIGH])
 
         summary_parts = []
@@ -475,9 +444,7 @@ class AssessmentFormatter:
 
         # Issue summary
         if critical_count > 0:
-            summary_parts.append(
-                f"There are {critical_count} critical issues that need immediate attention."
-            )
+            summary_parts.append(f"There are {critical_count} critical issues that need immediate attention.")
 
         if high_count > 0:
             summary_parts.append(
@@ -491,9 +458,7 @@ class AssessmentFormatter:
 
         if categories:
             top_category = max(categories, key=categories.get)
-            summary_parts.append(
-                f"The main areas for improvement are {top_category.lower()} and user experience."
-            )
+            summary_parts.append(f"The main areas for improvement are {top_category.lower()} and user experience.")
 
         # Call to action
         summary_parts.append(
@@ -524,17 +489,13 @@ class AssessmentFormatter:
                     "🔒 Security: Implement SSL, keep software updated, and follow security best practices."
                 )
             elif category.lower() == "marketing":
-                recommendations.append(
-                    "📊 Marketing: Install analytics tracking and conversion optimization tools."
-                )
+                recommendations.append("📊 Marketing: Install analytics tracking and conversion optimization tools.")
             elif category.lower() == "ai analysis":
                 recommendations.append(
                     "🤖 AI Insights: Review AI-identified opportunities for quick wins and competitive advantages."
                 )
             else:
-                recommendations.append(
-                    f"✨ {category}: Address {len(issues)} identified issues in this area."
-                )
+                recommendations.append(f"✨ {category}: Address {len(issues)} identified issues in this area.")
 
         # Add general recommendations
         if len(top_issues) > 3:
@@ -550,9 +511,7 @@ class AssessmentFormatter:
             "assessment_id": assessment.assessment_id,
             "url": assessment.url,
             "status": assessment.status.value if assessment.status else "unknown",
-            "created_at": assessment.created_at.isoformat()
-            if assessment.created_at
-            else None,
+            "created_at": assessment.created_at.isoformat() if assessment.created_at else None,
         }
 
         # PageSpeed summary
@@ -585,9 +544,7 @@ class AssessmentFormatter:
 
         return summary
 
-    def _calculate_overall_score(
-        self, assessment: AssessmentResult, issues: List[FormattedIssue]
-    ) -> float:
+    def _calculate_overall_score(self, assessment: AssessmentResult, issues: List[FormattedIssue]) -> float:
         """Calculate overall assessment score"""
         if not issues:
             return 95.0  # Great score if no issues
@@ -607,10 +564,7 @@ class AssessmentFormatter:
                 base_score -= 1.0
 
         # Use PageSpeed score as additional factor
-        if (
-            assessment.pagespeed_data
-            and "performance_score" in assessment.pagespeed_data
-        ):
+        if assessment.pagespeed_data and "performance_score" in assessment.pagespeed_data:
             ps_score = assessment.pagespeed_data["performance_score"]
             base_score = (base_score * 0.7) + (ps_score * 0.3)
 
@@ -624,9 +578,7 @@ class AssessmentFormatter:
         md_parts.append("# Website Assessment Report")
         md_parts.append(f"**Business:** {report.business_name}")
         md_parts.append(f"**Website:** {report.website_url}")
-        md_parts.append(
-            f"**Assessment Date:** {report.assessment_date.strftime('%B %d, %Y')}"
-        )
+        md_parts.append(f"**Assessment Date:** {report.assessment_date.strftime('%B %d, %Y')}")
         md_parts.append(f"**Overall Score:** {report.overall_score}/100")
         md_parts.append("")
 
@@ -688,12 +640,8 @@ class AssessmentFormatter:
         html_parts.append("<style>")
         html_parts.append("body { font-family: Arial, sans-serif; margin: 40px; }")
         html_parts.append("h1 { color: #2c3e50; }")
-        html_parts.append(
-            "h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }"
-        )
-        html_parts.append(
-            ".score { font-size: 24px; font-weight: bold; color: #27ae60; }"
-        )
+        html_parts.append("h2 { color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }")
+        html_parts.append(".score { font-size: 24px; font-weight: bold; color: #27ae60; }")
         html_parts.append(
             ".issue { margin: 20px 0; padding: 15px; border-left: 4px solid #3498db; background: #f8f9fa; }"
         )
@@ -708,9 +656,7 @@ class AssessmentFormatter:
         html_parts.append("<h1>Website Assessment Report</h1>")
         html_parts.append(f"<p><strong>Business:</strong> {report.business_name}</p>")
         html_parts.append(f"<p><strong>Website:</strong> {report.website_url}</p>")
-        html_parts.append(
-            f"<p><strong>Assessment Date:</strong> {report.assessment_date.strftime('%B %d, %Y')}</p>"
-        )
+        html_parts.append(f"<p><strong>Assessment Date:</strong> {report.assessment_date.strftime('%B %d, %Y')}</p>")
         html_parts.append(
             f"<p><strong>Overall Score:</strong> <span class='score'>{report.overall_score}/100</span></p>"
         )
@@ -725,13 +671,9 @@ class AssessmentFormatter:
                 priority_class = issue.priority.value
                 html_parts.append(f"<div class='issue {priority_class}'>")
                 html_parts.append(f"<h3>{i}. {issue.title}</h3>")
-                html_parts.append(
-                    f"<p><strong>Priority:</strong> {issue.priority.value.title()}</p>"
-                )
+                html_parts.append(f"<p><strong>Priority:</strong> {issue.priority.value.title()}</p>")
                 html_parts.append(f"<p><strong>Issue:</strong> {issue.description}</p>")
-                html_parts.append(
-                    f"<p><strong>Recommendation:</strong> {issue.recommendation}</p>"
-                )
+                html_parts.append(f"<p><strong>Recommendation:</strong> {issue.recommendation}</p>")
                 html_parts.append("</div>")
 
         # Recommendations
@@ -756,9 +698,7 @@ class AssessmentFormatter:
         text_parts.append("=" * 60)
         text_parts.append(f"Business: {report.business_name}")
         text_parts.append(f"Website: {report.website_url}")
-        text_parts.append(
-            f"Assessment Date: {report.assessment_date.strftime('%B %d, %Y')}"
-        )
+        text_parts.append(f"Assessment Date: {report.assessment_date.strftime('%B %d, %Y')}")
         text_parts.append(f"Overall Score: {report.overall_score}/100")
         text_parts.append("")
 
@@ -828,9 +768,7 @@ class AssessmentFormatter:
         issues = self._extract_and_prioritize_issues(assessment)
 
         priority_counts = {
-            "critical": len(
-                [i for i in issues if i.priority == IssuePriority.CRITICAL]
-            ),
+            "critical": len([i for i in issues if i.priority == IssuePriority.CRITICAL]),
             "high": len([i for i in issues if i.priority == IssuePriority.HIGH]),
             "medium": len([i for i in issues if i.priority == IssuePriority.MEDIUM]),
             "low": len([i for i in issues if i.priority == IssuePriority.LOW]),

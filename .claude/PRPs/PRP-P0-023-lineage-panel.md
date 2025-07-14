@@ -1,5 +1,7 @@
 # PRP-P0-023 Lineage Panel
 
+> 💡 **Claude Implementation Note**: Consider how task subagents can be used to execute portions of this task in parallel to improve efficiency and reduce overall completion time.
+
 ## Goal
 Persist and surface the {lead_id, pipeline_run_id, template_version_id} triplet for every PDF, with click-through to raw inputs
 

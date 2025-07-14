@@ -67,9 +67,7 @@ class PerformanceMonitor:
             "memory_usage": self.memory_usage,
             "timestamps": self.timestamps,
             "avg_cpu": statistics.mean(self.cpu_usage) if self.cpu_usage else 0,
-            "avg_memory": statistics.mean(self.memory_usage)
-            if self.memory_usage
-            else 0,
+            "avg_memory": statistics.mean(self.memory_usage) if self.memory_usage else 0,
             "peak_cpu": max(self.cpu_usage) if self.cpu_usage else 0,
             "peak_memory": max(self.memory_usage) if self.memory_usage else 0,
         }
@@ -333,9 +331,7 @@ def test_5k_business_processing_load(test_db_session, mock_external_services):
 
     # Process businesses in parallel batches
     batch_size = 100  # Process 100 businesses per batch
-    batches = [
-        businesses[i : i + batch_size] for i in range(0, len(businesses), batch_size)
-    ]
+    batches = [businesses[i : i + batch_size] for i in range(0, len(businesses), batch_size)]
 
     processing_results = []
     processing_start_time = time.time()
@@ -345,9 +341,7 @@ def test_5k_business_processing_load(test_db_session, mock_external_services):
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all batches for processing
         future_to_batch = {
-            executor.submit(
-                processor.process_business_batch, batch_businesses
-            ): batch_idx
+            executor.submit(processor.process_business_batch, batch_businesses): batch_idx
             for batch_idx, batch_businesses in enumerate(batches)
         }
 
@@ -374,12 +368,8 @@ def test_5k_business_processing_load(test_db_session, mock_external_services):
     performance_metrics = monitor.stop_monitoring()
 
     # Calculate aggregate metrics
-    total_businesses_processed = sum(
-        r["businesses_processed"] for r in processing_results
-    )
-    overall_throughput = (
-        total_businesses_processed / processing_time if processing_time > 0 else 0
-    )
+    total_businesses_processed = sum(r["businesses_processed"] for r in processing_results)
+    overall_throughput = total_businesses_processed / processing_time if processing_time > 0 else 0
 
     # Aggregate stage performance
     stage_performance = {}
@@ -391,18 +381,12 @@ def test_5k_business_processing_load(test_db_session, mock_external_services):
                 "avg_time": statistics.mean(stage_times),
                 "min_time": min(stage_times),
                 "max_time": max(stage_times),
-                "p95_time": statistics.quantiles(stage_times, n=20)[18]
-                if len(stage_times) >= 20
-                else max(stage_times),
+                "p95_time": statistics.quantiles(stage_times, n=20)[18] if len(stage_times) >= 20 else max(stage_times),
             }
 
     # Verify acceptance criteria
-    assert (
-        total_businesses_processed == 5000
-    ), f"Expected 5000 businesses, processed {total_businesses_processed}"
-    assert (
-        overall_throughput > 50
-    ), f"Throughput too low: {overall_throughput:.2f} businesses/second"
+    assert total_businesses_processed == 5000, f"Expected 5000 businesses, processed {total_businesses_processed}"
+    assert overall_throughput > 50, f"Throughput too low: {overall_throughput:.2f} businesses/second"
     assert total_time < 300, f"Processing took too long: {total_time:.2f} seconds"
 
     print("\n=== LOAD TEST RESULTS: 5K BUSINESSES ===")
@@ -495,9 +479,7 @@ def test_response_time_measurement(test_db_session, mock_external_services):
         "sourcing": {
             "times": sourcing_times,
             "avg": statistics.mean(sourcing_times),
-            "p95": statistics.quantiles(sourcing_times, n=20)[18]
-            if len(sourcing_times) >= 20
-            else max(sourcing_times),
+            "p95": statistics.quantiles(sourcing_times, n=20)[18] if len(sourcing_times) >= 20 else max(sourcing_times),
             "max": max(sourcing_times),
         },
         "assessment": {
@@ -511,9 +493,7 @@ def test_response_time_measurement(test_db_session, mock_external_services):
         "scoring": {
             "times": scoring_times,
             "avg": statistics.mean(scoring_times),
-            "p95": statistics.quantiles(scoring_times, n=20)[18]
-            if len(scoring_times) >= 20
-            else max(scoring_times),
+            "p95": statistics.quantiles(scoring_times, n=20)[18] if len(scoring_times) >= 20 else max(scoring_times),
             "max": max(scoring_times),
         },
         "personalization": {
@@ -527,24 +507,16 @@ def test_response_time_measurement(test_db_session, mock_external_services):
         "delivery": {
             "times": delivery_times,
             "avg": statistics.mean(delivery_times),
-            "p95": statistics.quantiles(delivery_times, n=20)[18]
-            if len(delivery_times) >= 20
-            else max(delivery_times),
+            "p95": statistics.quantiles(delivery_times, n=20)[18] if len(delivery_times) >= 20 else max(delivery_times),
             "max": max(delivery_times),
         },
     }
 
     # Validate response time requirements
     for stage, metrics in stage_results.items():
-        assert (
-            metrics["avg"] < 1.0
-        ), f"{stage} average response time too high: {metrics['avg']:.3f}s"
-        assert (
-            metrics["p95"] < 2.0
-        ), f"{stage} P95 response time too high: {metrics['p95']:.3f}s"
-        assert (
-            metrics["max"] < 3.0
-        ), f"{stage} max response time too high: {metrics['max']:.3f}s"
+        assert metrics["avg"] < 1.0, f"{stage} average response time too high: {metrics['avg']:.3f}s"
+        assert metrics["p95"] < 2.0, f"{stage} P95 response time too high: {metrics['p95']:.3f}s"
+        assert metrics["max"] < 3.0, f"{stage} max response time too high: {metrics['max']:.3f}s"
 
     print("\n=== RESPONSE TIME ANALYSIS ===")
     for stage, metrics in stage_results.items():
@@ -582,9 +554,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
 
     # Process in smaller batches to analyze bottlenecks
     batch_size = 50
-    batches = [
-        businesses[i : i + batch_size] for i in range(0, len(businesses), batch_size)
-    ]
+    batches = [businesses[i : i + batch_size] for i in range(0, len(businesses), batch_size)]
 
     stage_times = {
         "sourcing": [],
@@ -647,9 +617,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
     # Identify bottleneck (stage taking most time)
     total_processing_time = sum(total_stage_time.values())
     bottleneck_stage = max(total_stage_time, key=total_stage_time.get)
-    bottleneck_percentage = (
-        total_stage_time[bottleneck_stage] / total_processing_time
-    ) * 100
+    bottleneck_percentage = (total_stage_time[bottleneck_stage] / total_processing_time) * 100
 
     # Resource utilization analysis
     resource_analysis = {
@@ -670,9 +638,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
         recommendations.append("Consider CPU optimization or horizontal scaling")
 
     if resource_analysis["memory_bottleneck"]:
-        recommendations.append(
-            "Consider memory optimization or increasing available RAM"
-        )
+        recommendations.append("Consider memory optimization or increasing available RAM")
 
     for stage, analysis in bottleneck_analysis.items():
         if analysis["consistency"] < 0.8:  # High variability threshold
@@ -685,9 +651,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
         recommendations.append(
             f"Primary bottleneck is {bottleneck_stage} stage ({bottleneck_percentage:.1f}% of total time)"
         )
-        recommendations.append(
-            "Consider optimizing the slowest pipeline stage for better performance"
-        )
+        recommendations.append("Consider optimizing the slowest pipeline stage for better performance")
 
     # Validate bottleneck identification
     assert len(bottleneck_analysis) == 5, "Should analyze all 5 pipeline stages"
@@ -695,9 +659,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
     assert len(recommendations) > 0, "Should provide performance recommendations"
 
     print("\n=== BOTTLENECK ANALYSIS ===")
-    print(
-        f"🔍 Primary Bottleneck: {bottleneck_stage.title()} ({bottleneck_percentage:.1f}% of total time)"
-    )
+    print(f"🔍 Primary Bottleneck: {bottleneck_stage.title()} ({bottleneck_percentage:.1f}% of total time)")
     print("\n📊 Stage Analysis:")
     for stage, analysis in bottleneck_analysis.items():
         print(f"  {stage.title()}:")
@@ -708,9 +670,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
             print("    ⚠️  PRIMARY BOTTLENECK")
 
     print("\n💻 Resource Utilization:")
-    print(
-        f"  CPU: {resource_analysis['cpu_utilization']:.1f}% avg, {performance_metrics['peak_cpu']:.1f}% peak"
-    )
+    print(f"  CPU: {resource_analysis['cpu_utilization']:.1f}% avg, {performance_metrics['peak_cpu']:.1f}% peak")
     print(
         f"  Memory: {resource_analysis['memory_utilization']:.1f}MB avg, {performance_metrics['peak_memory']:.1f}MB peak"
     )
@@ -752,9 +712,7 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
 
     # Process businesses in batches with resource tracking
     batch_size = 100
-    batches = [
-        businesses[i : i + batch_size] for i in range(0, len(businesses), batch_size)
-    ]
+    batches = [businesses[i : i + batch_size] for i in range(0, len(businesses), batch_size)]
 
     gateway_costs = []
     processing_times = []
@@ -767,9 +725,7 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
         processing_times.append(result["total_time"])
 
         # Track database operations
-        db_operations["inserts"] += (
-            len(batch) * 5
-        )  # ~5 inserts per business (scores, emails, etc.)
+        db_operations["inserts"] += len(batch) * 5  # ~5 inserts per business (scores, emails, etc.)
         db_operations["queries"] += len(batch) * 2  # ~2 queries per business
         db_operations["commits"] += 1
 
@@ -777,9 +733,7 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
         test_db_session.commit()
 
         # Track gateway costs
-        batch_gateway_cost = len(batch) * (
-            0.001 + 0.002 + 0.005 + 0.0005
-        )  # Sum of all API costs
+        batch_gateway_cost = len(batch) * (0.001 + 0.002 + 0.005 + 0.0005)  # Sum of all API costs
         gateway_costs.append(batch_gateway_cost)
 
         # Log progress
@@ -802,9 +756,7 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
         "avg_memory_usage": performance_metrics["avg_memory"],
         "peak_memory_usage": performance_metrics["peak_memory"],
         "throughput": len(businesses) / total_processing_time,
-        "memory_per_business": memory_growth / len(businesses)
-        if len(businesses) > 0
-        else 0,
+        "memory_per_business": memory_growth / len(businesses) if len(businesses) > 0 else 0,
     }
 
     # Database performance metrics
@@ -822,15 +774,12 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
         "total_gateway_cost": sum(gateway_costs),
         "cost_per_business": sum(gateway_costs) / len(businesses),
         "avg_batch_cost": statistics.mean(gateway_costs),
-        "processing_efficiency": len(businesses)
-        / sum(gateway_costs),  # businesses per dollar
+        "processing_efficiency": len(businesses) / sum(gateway_costs),  # businesses per dollar
     }
 
     # Performance efficiency metrics
     efficiency_metrics = {
-        "cpu_efficiency": len(businesses) / performance_metrics["avg_cpu"]
-        if performance_metrics["avg_cpu"] > 0
-        else 0,
+        "cpu_efficiency": len(businesses) / performance_metrics["avg_cpu"] if performance_metrics["avg_cpu"] > 0 else 0,
         "memory_efficiency": len(businesses) / performance_metrics["avg_memory"]
         if performance_metrics["avg_memory"] > 0
         else 0,
@@ -839,15 +788,9 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
     }
 
     # Validate resource usage tracking
-    assert (
-        len(performance_metrics["cpu_usage"]) > 10
-    ), "Should have multiple CPU usage samples"
-    assert (
-        len(performance_metrics["memory_usage"]) > 10
-    ), "Should have multiple memory usage samples"
-    assert (
-        resource_metrics["memory_growth"] < 500
-    ), f"Memory growth too high: {resource_metrics['memory_growth']:.1f}MB"
+    assert len(performance_metrics["cpu_usage"]) > 10, "Should have multiple CPU usage samples"
+    assert len(performance_metrics["memory_usage"]) > 10, "Should have multiple memory usage samples"
+    assert resource_metrics["memory_growth"] < 500, f"Memory growth too high: {resource_metrics['memory_growth']:.1f}MB"
     assert (
         resource_metrics["throughput"] > 10
     ), f"Throughput too low: {resource_metrics['throughput']:.2f} businesses/second"
@@ -879,20 +822,10 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
     print("\n💰 Cost Tracking:")
     print(f"   Total Gateway Cost: ${cost_metrics['total_gateway_cost']:.4f}")
     print(f"   Cost per Business: ${cost_metrics['cost_per_business']:.4f}")
-    print(
-        f"   Processing Efficiency: {cost_metrics['processing_efficiency']:.1f} businesses/$"
-    )
+    print(f"   Processing Efficiency: {cost_metrics['processing_efficiency']:.1f} businesses/$")
 
     print("\n⚡ Efficiency Metrics:")
-    print(
-        f"   CPU Efficiency: {efficiency_metrics['cpu_efficiency']:.1f} businesses/CPU%"
-    )
-    print(
-        f"   Memory Efficiency: {efficiency_metrics['memory_efficiency']:.1f} businesses/MB"
-    )
-    print(
-        f"   Time Efficiency: {efficiency_metrics['time_efficiency']:.1f} businesses/second"
-    )
-    print(
-        f"   Cost Efficiency: {efficiency_metrics['cost_efficiency']:.1f} businesses/$"
-    )
+    print(f"   CPU Efficiency: {efficiency_metrics['cpu_efficiency']:.1f} businesses/CPU%")
+    print(f"   Memory Efficiency: {efficiency_metrics['memory_efficiency']:.1f} businesses/MB")
+    print(f"   Time Efficiency: {efficiency_metrics['time_efficiency']:.1f} businesses/second")
+    print(f"   Cost Efficiency: {efficiency_metrics['cost_efficiency']:.1f} businesses/$")

@@ -19,12 +19,7 @@ pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
 sys.path.insert(0, "/app")
 
-from d5_scoring.models import (
-    ScoreBreakdown,
-    ScoreHistory,
-    ScoringEngine,
-    D5ScoringResult,
-)
+from d5_scoring.models import D5ScoringResult, ScoreBreakdown, ScoreHistory, ScoringEngine
 from d5_scoring.types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
 
 
@@ -342,16 +337,12 @@ class TestTask045AcceptanceCriteria:
             status=ScoringStatus.COMPLETED.value,
         )
 
-        assert isinstance(
-            scoring_result, D5ScoringResult
-        ), "Scoring result model failed"
+        assert isinstance(scoring_result, D5ScoringResult), "Scoring result model failed"
         assert scoring_result.overall_score == Decimal("82.7"), "Score storage failed"
 
         # 2. Tier enumeration - verify tier classification
         assert scoring_result.tier_enum == ScoringTier.GOLD, "Tier enumeration failed"
-        assert (
-            ScoringTier.from_score(82.7) == ScoringTier.GOLD
-        ), "Tier calculation failed"
+        assert ScoringTier.from_score(82.7) == ScoringTier.GOLD, "Tier calculation failed"
 
         # 3. Score breakdown stored - create and validate breakdown
         breakdown = ScoreBreakdown(
@@ -363,9 +354,7 @@ class TestTask045AcceptanceCriteria:
             confidence=Decimal("0.9"),
         )
 
-        assert (
-            breakdown.component_enum == ScoreComponent.COMPANY_INFO
-        ), "Score breakdown storage failed"
+        assert breakdown.component_enum == ScoreComponent.COMPANY_INFO, "Score breakdown storage failed"
         assert breakdown.score_percentage == 87.5, "Score breakdown calculation failed"
 
         # 4. Version tracking - create and validate version
@@ -375,9 +364,7 @@ class TestTask045AcceptanceCriteria:
 
         # Test integration between components
         scoring_result.scoring_version = version.version
-        assert (
-            scoring_result.scoring_version == version.version
-        ), "Version integration failed"
+        assert scoring_result.scoring_version == version.version, "Version integration failed"
 
         # Test engine calculation with version
         engine = ScoringEngine(version=version)
@@ -388,9 +375,7 @@ class TestTask045AcceptanceCriteria:
         }
 
         calculated_result = engine.calculate_score(test_data)
-        assert (
-            calculated_result.scoring_version == version.version
-        ), "Engine version integration failed"
+        assert calculated_result.scoring_version == version.version, "Engine version integration failed"
 
         print("✓ All acceptance criteria working together successfully")
 

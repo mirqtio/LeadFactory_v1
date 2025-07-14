@@ -18,14 +18,15 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
+from core.logging import get_logger
+from d4_enrichment.email_enrichment import get_email_enricher
+
+from .assessors import ASSESSOR_REGISTRY
+from .assessors.pagespeed_assessor import PageSpeedAssessor
 from .llm_insights import LLMInsightGenerator
 from .models import AssessmentResult, AssessmentSession
-from .assessors.pagespeed_assessor import PageSpeedAssessor
 from .techstack import TechStackDetector
 from .types import AssessmentStatus, AssessmentType
-from d4_enrichment.email_enrichment import get_email_enricher
-from core.logging import get_logger
-from .assessors import ASSESSOR_REGISTRY
 
 logger = get_logger(__name__, domain="d3")
 
@@ -98,7 +99,7 @@ class AssessmentCoordinator:
         self.llm_generator = LLMInsightGenerator()
         self.email_enricher = get_email_enricher()
         self.logger = logger
-        
+
         # Initialize assessors from registry
         self.assessors = {}
         for name, assessor_class in ASSESSOR_REGISTRY.items():
@@ -170,9 +171,7 @@ class AssessmentCoordinator:
             requests.append(request)
 
         # Execute assessments in parallel
-        results = await self._execute_parallel_assessments(
-            business_id, session_id, requests, industry, business_data
-        )
+        results = await self._execute_parallel_assessments(business_id, session_id, requests, industry, business_data)
 
         # PRD v1.2: Perform email enrichment if business data provided
         email_result = None
@@ -199,29 +198,16 @@ class AssessmentCoordinator:
         completed_at = datetime.utcnow()
         execution_time = max(1, int((completed_at - started_at).total_seconds() * 1000))
 
-        completed_count = len(
-            [
-                r
-                for r in results.values()
-                if r is not None and r.status == AssessmentStatus.COMPLETED
-            ]
-        )
+        completed_count = len([r for r in results.values() if r is not None and r.status == AssessmentStatus.COMPLETED])
         failed_count = len(
             [
                 r
                 for r in results.values()
-                if r is None
-                or (
-                    r is not None
-                    and r.status
-                    in [AssessmentStatus.FAILED, AssessmentStatus.CANCELLED]
-                )
+                if r is None or (r is not None and r.status in [AssessmentStatus.FAILED, AssessmentStatus.CANCELLED])
             ]
         )
         total_cost = sum(
-            r.total_cost_usd or Decimal("0")
-            for r in results.values()
-            if r is not None and hasattr(r, "total_cost_usd")
+            r.total_cost_usd or Decimal("0") for r in results.values() if r is not None and hasattr(r, "total_cost_usd")
         )
 
         # Extract errors
@@ -229,18 +215,11 @@ class AssessmentCoordinator:
         for assessment_type in assessment_types:
             if assessment_type not in results or results[assessment_type] is None:
                 errors[assessment_type] = "Assessment failed or timed out"
-            elif (
-                hasattr(results[assessment_type], "error_message")
-                and results[assessment_type].error_message
-            ):
+            elif hasattr(results[assessment_type], "error_message") and results[assessment_type].error_message:
                 errors[assessment_type] = results[assessment_type].error_message
 
         # Update session
-        session.status = (
-            AssessmentStatus.COMPLETED
-            if failed_count == 0
-            else AssessmentStatus.PARTIAL
-        )
+        session.status = AssessmentStatus.COMPLETED if failed_count == 0 else AssessmentStatus.PARTIAL
         session.completed_assessments = completed_count
         session.total_cost_usd = total_cost
         session.completed_at = completed_at
@@ -329,9 +308,7 @@ class AssessmentCoordinator:
                             continue
                         else:
                             # Final error - create failed result
-                            failed_result = self._create_failed_result(
-                                business_id, session_id, request, str(e)
-                            )
+                            failed_result = self._create_failed_result(business_id, session_id, request, str(e))
                             await self._save_partial_result(failed_result)
                             return assessment_type, failed_result
 
@@ -369,21 +346,21 @@ class AssessmentCoordinator:
             # Use the new assessor interface
             try:
                 result = await self.pagespeed_assessor.assess(
-                    url=url, 
-                    business_data=business_data or {"business_id": business_id}
+                    url=url, business_data=business_data or {"business_id": business_id}
                 )
             except Exception as e:
                 # Log the actual error for debugging
                 import traceback
+
                 error_msg = f"PageSpeed assessment error: {e}"
                 tb = traceback.format_exc()
                 print(error_msg)
                 print(f"Traceback:\n{tb}")
                 # Also log to the logger
-                if hasattr(self, 'logger'):
+                if hasattr(self, "logger"):
                     self.logger.error(f"{error_msg}\n{tb}")
                 raise
-            
+
             # Convert BaseAssessor result to AssessmentResult
             return AssessmentResult(
                 id=str(uuid.uuid4()),
@@ -398,14 +375,12 @@ class AssessmentCoordinator:
                 pagespeed_data=result.data.get("pagespeed_json", {}),
                 performance_score=result.metrics.get("performance_score"),
                 error_message=result.error_message,
-                total_cost_usd=Decimal(str(result.cost))
+                total_cost_usd=Decimal(str(result.cost)),
             )
 
         elif assessment_type == AssessmentType.TECH_STACK:
             # For tech stack, we need to adapt the interface
-            detections = await self.techstack_detector.detect_technologies(
-                assessment_id=str(uuid.uuid4()), url=url
-            )
+            detections = await self.techstack_detector.detect_technologies(assessment_id=str(uuid.uuid4()), url=url)
 
             # Create AssessmentResult from tech stack detections
             result = AssessmentResult(
@@ -464,23 +439,24 @@ class AssessmentCoordinator:
             base_assessment.total_cost_usd = insights.total_cost_usd
 
             return base_assessment
-            
+
         elif assessment_type == AssessmentType.BUSINESS_INFO:
             # Use GBP assessor from registry
             if "gbp_profile" in self.assessors:
                 try:
                     gbp_result = await self.assessors["gbp_profile"].assess(
-                        url=url,
-                        business_data=business_data or {"business_id": business_id}
+                        url=url, business_data=business_data or {"business_id": business_id}
                     )
-                    
+
                     # Convert BaseAssessor result to AssessmentResult
                     return AssessmentResult(
                         id=str(uuid.uuid4()),
                         business_id=business_id,
                         session_id=session_id,
                         assessment_type=AssessmentType.BUSINESS_INFO,
-                        status=AssessmentStatus.COMPLETED if gbp_result.status == "completed" else AssessmentStatus.FAILED,
+                        status=AssessmentStatus.COMPLETED
+                        if gbp_result.status == "completed"
+                        else AssessmentStatus.FAILED,
                         url=url,
                         domain=self._extract_domain(url),
                         started_at=datetime.utcnow(),
@@ -488,7 +464,7 @@ class AssessmentCoordinator:
                         # Store GBP data in the appropriate field
                         assessment_metadata=gbp_result.data,
                         error_message=gbp_result.error_message,
-                        total_cost_usd=Decimal(str(gbp_result.cost))
+                        total_cost_usd=Decimal(str(gbp_result.cost)),
                     )
                 except Exception as e:
                     logger.error(f"GBP assessment failed: {e}")
@@ -537,9 +513,7 @@ class AssessmentCoordinator:
             error_message=error_message,
         )
 
-    def _get_assessment_priority(
-        self, assessment_type: AssessmentType
-    ) -> AssessmentPriority:
+    def _get_assessment_priority(self, assessment_type: AssessmentType) -> AssessmentPriority:
         """Get priority for assessment type"""
         priority_map = {
             AssessmentType.PAGESPEED: AssessmentPriority.HIGH,
@@ -595,9 +569,7 @@ class AssessmentCoordinator:
         tasks = [execute_single_config(config) for config in assessment_configs]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def resume_failed_session(
-        self, session_id: str, retry_failed_only: bool = True
-    ) -> CoordinatorResult:
+    async def resume_failed_session(self, session_id: str, retry_failed_only: bool = True) -> CoordinatorResult:
         """
         Resume a failed or partial assessment session
 

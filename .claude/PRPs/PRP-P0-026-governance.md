@@ -1,5 +1,7 @@
 # PRP-P0-026 Governance
 
+> 💡 **Claude Implementation Note**: Consider how task subagents can be used to execute portions of this task in parallel to improve efficiency and reduce overall completion time.
+
 ## Goal
 Ship single-tenant RBAC ("Admin" vs "Viewer") and a global immutable audit-trail covering every mutation in the CPO console
 
@@ -9,16 +11,19 @@ Ship single-tenant RBAC ("Admin" vs "Viewer") and a global immutable audit-trail
 - **Problems solved**: Prevents unauthorized data modifications, enables compliance audits, provides forensic analysis capability
 
 ## What
-Implement role-based access control with two roles (Admin/Viewer) and comprehensive audit logging for all data mutations in the CPO console. Viewers can read all data but receive 403 errors on any mutation attempts. All successful mutations are logged with tamper-proof checksums.
+Implement role-based access control with two roles (Admin/Viewer) and comprehensive audit logging for all data mutations in the CPO console. Viewers can read all data but receive 403 errors on any mutation attempts. **CRITICAL: RBAC must be applied to ALL mutation endpoints across the entire application, not just governance endpoints.** All successful mutations are logged with tamper-proof checksums.
 
 ### Success Criteria
 - [ ] Role-based access control implemented with Admin and Viewer roles
-- [ ] Viewers receive 403 on all mutation endpoints (POST/PUT/DELETE)
+- [ ] Viewers receive 403 on ALL mutation endpoints (POST/PUT/DELETE) across entire application
+- [ ] RBAC applied to: leads, templates, batch operations, governance, and all other API mutations
 - [ ] All mutations create audit log entries with content hashes
 - [ ] Audit logs include tamper-proof SHA-256 checksums
 - [ ] Coverage ≥ 80% on governance module
+- [ ] Coverage ≥ 80% on RBAC-protected endpoints
 - [ ] No performance degradation (API response time <100ms increase)
 - [ ] Audit logs cannot be modified or deleted via API
+- [ ] Integration tests verify RBAC on all mutation endpoints
 
 ## All Needed Context
 
@@ -38,6 +43,9 @@ Implement role-based access control with two roles (Admin/Viewer) and comprehens
 
 - file: core/config.py
   why: Configuration patterns for feature flags and settings
+
+- file: api/
+  why: All API endpoints that need RBAC protection
 ```
 
 ### Current Codebase Tree
@@ -47,6 +55,9 @@ LeadFactory_v1_Final/
 │   ├── config.py
 │   └── database.py
 ├── api/
+│   ├── leads.py
+│   ├── templates.py
+│   ├── batch_operations.py
 │   └── (various endpoint files)
 ├── d0_gateway/
 │   └── base.py
@@ -67,16 +78,24 @@ LeadFactory_v1_Final/
 │   ├── audit.py         # Audit logging functionality
 │   └── schemas.py       # Pydantic models
 ├── api/
-│   └── (various endpoint files - modified to use RoleChecker)
+│   ├── leads.py         # Modified to use RoleChecker
+│   ├── templates.py     # Modified to use RoleChecker
+│   ├── batch_operations.py  # Modified to use RoleChecker
+│   └── (all endpoint files - modified to use RoleChecker)
 ├── alembic/versions/
 │   └── xxx_add_governance_tables.py
 └── tests/
     └── unit/
-        └── governance/
-            ├── __init__.py
-            ├── test_role_checker.py
-            ├── test_audit_logging.py
-            └── test_governance_integration.py
+        ├── governance/
+        │   ├── __init__.py
+        │   ├── test_role_checker.py
+        │   ├── test_audit_logging.py
+        │   └── test_governance_integration.py
+        └── api/
+            ├── test_rbac_leads.py
+            ├── test_rbac_templates.py
+            ├── test_rbac_batch.py
+            └── test_rbac_all_endpoints.py
 ```
 
 ## Technical Implementation
@@ -85,7 +104,7 @@ LeadFactory_v1_Final/
 - `governance/models.py` - SQLAlchemy models for roles and audit_log_global
 - `governance/dependencies.py` - FastAPI dependency for role checking
 - `governance/audit.py` - Audit logging with SHA-256 checksums
-- `api/*` - All mutation endpoints updated to use RoleChecker dependency
+- `api/*` - **ALL mutation endpoints across entire application** updated to use RoleChecker dependency
 - `alembic/versions/` - New migration for governance tables
 
 ### Implementation Approach
@@ -98,7 +117,14 @@ LeadFactory_v1_Final/
    - Implement RoleChecker as FastAPI dependency
    - Check user role from JWT/session in dependency
    - Return 403 for viewers on mutation endpoints
-   - Apply dependency to all POST/PUT/DELETE routes
+   - **CRITICAL: Apply dependency to ALL POST/PUT/DELETE routes in:**
+     - `api/leads.py` - Lead creation, update, deletion
+     - `api/templates.py` - Template CRUD operations
+     - `api/batch_operations.py` - Batch processing endpoints
+     - `api/enrichment.py` - Enrichment operations
+     - `api/tasks.py` - Task operations
+     - `api/reports.py` - Report generation
+     - Any other files containing mutation endpoints
 
 3. **Audit Logging**
    - Use SQLAlchemy event listeners (after_flush)
@@ -110,11 +136,17 @@ LeadFactory_v1_Final/
 4. **Testing Strategy**
    - Unit tests for RoleChecker dependency
    - Integration tests for audit log creation
-   - Tests to verify viewers get 403 on mutations
+   - **CRITICAL: Tests to verify viewers get 403 on ALL mutations:**
+     - Lead CRUD operations
+     - Template CRUD operations
+     - Batch operations
+     - Enrichment operations
+     - Task operations
+     - Report generation
    - Performance tests to ensure <100ms impact
+   - Comprehensive endpoint coverage test
 
 ## Validation Gates
-
 
 ### CI Validation (MANDATORY)
 **CI Validation = Code merged to main + GitHub Actions logs verified + All errors resolved + Solid green CI run**
@@ -131,16 +163,24 @@ This means:
 ### Executable Tests
 ```bash
 # Syntax/Style
-ruff check --fix governance/ && mypy governance/
+ruff check --fix governance/ api/ && mypy governance/ api/
 
 # Unit Tests  
 pytest tests/unit/governance/ -v
+pytest tests/unit/api/test_rbac_*.py -v
 
 # Integration Tests
 pytest tests/integration/test_governance_integration.py -v
+pytest tests/integration/test_rbac_all_endpoints.py -v
+
+# Coverage Check
+pytest tests/unit/governance/ tests/unit/api/test_rbac_*.py --cov=governance --cov=api --cov-report=term-missing --cov-fail-under=80
 
 # Performance Tests
 pytest tests/performance/test_governance_performance.py -v
+
+# Comprehensive RBAC Verification
+pytest tests/integration/test_rbac_comprehensive.py -v -k "viewer_cannot_mutate"
 ```
 
 ### Missing-Checks Validation
@@ -150,11 +190,13 @@ pytest tests/performance/test_governance_performance.py -v
 - [ ] Security scanning (Dependabot, Trivy, audit tools)
 - [ ] API performance budgets (<100ms impact)
 - [ ] Database permission verification (audit table read-only)
+- [ ] RBAC endpoint coverage report (100% of mutations protected)
 
 **Recommended:**
 - [ ] Load testing for concurrent audit writes
 - [ ] Audit log retention policy automation
 - [ ] Monitoring alerts for authorization failures
+- [ ] Automated scan for unprotected mutation endpoints
 
 ## Dependencies
 - SQLAlchemy >= 2.0 (for async support)
@@ -163,7 +205,7 @@ pytest tests/performance/test_governance_performance.py -v
 - No new external dependencies required
 
 ## Rollback Strategy
-1. Remove RoleChecker dependency from API endpoints
+1. Remove RoleChecker dependency from ALL API endpoints
 2. Run migration: `alembic downgrade -1`
 3. Delete governance/ directory
 4. Restore original API endpoint definitions
@@ -209,3 +251,20 @@ CREATE TRIGGER prevent_audit_updates
 - Separate database user for audit writes recommended
 - Consider encryption at rest for sensitive audit data
 - Regular backup of audit logs to separate storage
+- **CRITICAL: No mutation endpoint can bypass RBAC - automated scanning required**
+
+## Endpoint Protection Checklist
+**ALL mutation endpoints must be protected. This includes but is not limited to:**
+
+- [ ] `/api/leads/*` - All lead CRUD operations
+- [ ] `/api/templates/*` - All template management
+- [ ] `/api/batch/*` - All batch operations
+- [ ] `/api/enrichment/*` - All enrichment operations
+- [ ] `/api/tasks/*` - All task operations
+- [ ] `/api/reports/*` - All report generation
+- [ ] `/api/settings/*` - All settings mutations
+- [ ] `/api/users/*` - All user management (except login)
+- [ ] `/api/webhooks/*` - All webhook configuration
+- [ ] Any other POST, PUT, PATCH, DELETE endpoints
+
+**Verification Required:** A comprehensive test must scan all routes and verify that 100% of mutation endpoints require admin role.

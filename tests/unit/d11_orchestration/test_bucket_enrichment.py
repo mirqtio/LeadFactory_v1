@@ -2,15 +2,16 @@
 Tests for bucket enrichment flow - Phase 0.5 Task ET-07
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from d11_orchestration.bucket_enrichment import (
-    load_bucket_features,
-    get_unenriched_businesses,
-    enrich_business_buckets,
-    update_business_buckets,
     bucket_enrichment_flow,
+    enrich_business_buckets,
+    get_unenriched_businesses,
+    load_bucket_features,
+    update_business_buckets,
 )
 
 # Mark entire module as xfail for Phase 0.5
@@ -86,12 +87,8 @@ class TestBucketEnrichmentTasks:
 
         def mock_enrich(business):
             # Simulate enrichment
-            business["geo_bucket"] = (
-                "high-high-high" if business["zip_code"] == "94105" else None
-            )
-            business["vert_bucket"] = (
-                "medium-medium-low" if "restaurants" in business["categories"] else None
-            )
+            business["geo_bucket"] = "high-high-high" if business["zip_code"] == "94105" else None
+            business["vert_bucket"] = "medium-medium-low" if "restaurants" in business["categories"] else None
             return business
 
         mock_loader.enrich_business.side_effect = mock_enrich
@@ -189,9 +186,7 @@ class TestBucketEnrichmentFlow:
     @patch("d11_orchestration.bucket_enrichment.get_unenriched_businesses")
     @patch("d11_orchestration.bucket_enrichment.enrich_business_buckets")
     @patch("d11_orchestration.bucket_enrichment.update_business_buckets")
-    def test_bucket_enrichment_flow_success(
-        self, mock_update, mock_enrich, mock_get_businesses, mock_load_features
-    ):
+    def test_bucket_enrichment_flow_success(self, mock_update, mock_enrich, mock_get_businesses, mock_load_features):
         """Test successful flow execution"""
         # Mock feature loading
         mock_load_features.return_value = {
@@ -229,9 +224,7 @@ class TestBucketEnrichmentFlow:
 
     @patch("d11_orchestration.bucket_enrichment.load_bucket_features")
     @patch("d11_orchestration.bucket_enrichment.get_unenriched_businesses")
-    def test_bucket_enrichment_flow_no_businesses(
-        self, mock_get_businesses, mock_load_features
-    ):
+    def test_bucket_enrichment_flow_no_businesses(self, mock_get_businesses, mock_load_features):
         """Test flow when no businesses need enrichment"""
         # Mock feature loading
         mock_load_features.return_value = {"total_zip_codes": 100}

@@ -197,7 +197,4 @@ class TestMetricsIntegration:
         metrics_data, _ = get_metrics_response()
         metrics_text = metrics_data.decode("utf-8")
 
-        assert (
-            'leadfactory_app_info{environment="production",version="1.0.0"} 1'
-            in metrics_text
-        )
+        assert 'leadfactory_app_info{environment="production",version="1.0.0"} 1' in metrics_text

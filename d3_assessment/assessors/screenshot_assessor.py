@@ -6,15 +6,15 @@ Timeout: 8s
 Cost: $0.010 per screenshot
 Output: screenshot_url and screenshot_thumb_url columns
 """
-from typing import Dict, Any
+from typing import Any, Dict
 
-from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
-from d3_assessment.models import AssessmentType
-from d3_assessment.exceptions import AssessmentTimeoutError
-from d0_gateway.providers.screenshotone import ScreenshotOneClient
-from d0_gateway.factory import create_client
-from core.logging import get_logger
 from core.config import settings
+from core.logging import get_logger
+from d0_gateway.factory import create_client
+from d0_gateway.providers.screenshotone import ScreenshotOneClient
+from d3_assessment.assessors.base import AssessmentResult, BaseAssessor
+from d3_assessment.exceptions import AssessmentTimeoutError
+from d3_assessment.models import AssessmentType
 
 logger = get_logger(__name__, domain="d3")
 
@@ -85,9 +85,7 @@ class ScreenshotAssessor(BaseAssessor):
                 lead_id=business_data.get("id"),
             )
 
-            mobile_screenshot_url = (
-                mobile_result.get("screenshot_url") if mobile_result else None
-            )
+            mobile_screenshot_url = mobile_result.get("screenshot_url") if mobile_result else None
 
             return AssessmentResult(
                 assessment_type=self.assessment_type,
@@ -104,12 +102,8 @@ class ScreenshotAssessor(BaseAssessor):
                 },
                 metrics={
                     "url_captured": url,
-                    "formats_captured": ["desktop", "mobile"]
-                    if mobile_screenshot_url
-                    else ["desktop"],
-                    "api_cost_usd": 0.020
-                    if mobile_screenshot_url
-                    else 0.010,  # 2 screenshots
+                    "formats_captured": ["desktop", "mobile"] if mobile_screenshot_url else ["desktop"],
+                    "api_cost_usd": 0.020 if mobile_screenshot_url else 0.010,  # 2 screenshots
                 },
                 cost=0.020 if mobile_screenshot_url else 0.010,
             )

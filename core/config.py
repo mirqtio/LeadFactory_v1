@@ -6,7 +6,7 @@ import os
 from functools import lru_cache
 from typing import Dict, Optional
 
-from pydantic import ConfigDict, Field, field_validator, model_validator, SecretStr
+from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     screenshotone_key: Optional[SecretStr] = Field(default=None)
     screenshotone_secret: Optional[SecretStr] = Field(default=None)
     screenshotone_rate_limit_per_sec: int = Field(default=2)
-    
+
     # Humanloop (for vision assessment)
     humanloop_api_key: Optional[SecretStr] = Field(default=None)
 
@@ -111,7 +111,7 @@ class Settings(BaseSettings):
 
     # Phase 0.5 - Cost control
     cost_budget_usd: float = Field(default=1000.0)
-    
+
     # Wave A/B feature flags for P0-005
     enable_emails: bool = Field(default=True)  # Wave A core feature
     enable_semrush: bool = Field(default=False)  # Wave B
@@ -150,16 +150,16 @@ class Settings(BaseSettings):
         # Force stubs in CI environment
         if os.getenv("CI") == "true":
             return True
-            
+
         # Check if environment is test
         env = info.data.get("environment")
         if env == "test":
             return True
-        
+
         # Don't validate production constraint here - it's handled in model_validator
         return v
 
-    @field_validator("enable_gbp", "enable_pagespeed", "enable_sendgrid", "enable_openai", mode='before')
+    @field_validator("enable_gbp", "enable_pagespeed", "enable_sendgrid", "enable_openai", mode="before")
     @classmethod
     def disable_providers_when_using_stubs(cls, v, info):
         """Auto-disable all providers when USE_STUBS=true."""
@@ -174,19 +174,16 @@ class Settings(BaseSettings):
         if os.getenv("CI") == "true":
             return v
 
-        if (
-            info.data.get("environment") == "production"
-            and v == "dev-secret-key-change-in-production"
-        ):
+        if info.data.get("environment") == "production" and v == "dev-secret-key-change-in-production":
             raise ValueError("Secret key must be changed for production")
         return v
-    
-    @model_validator(mode='after')
+
+    @model_validator(mode="after")
     def validate_production_settings(self):
         """Validate production-specific settings after all fields are set"""
         if self.environment == "production" and self.use_stubs:
             raise ValueError("Production environment cannot run with USE_STUBS=true")
-        
+
         # Validate API keys when providers are enabled and not using stubs
         if not self.use_stubs:
             if self.enable_gbp and not self.google_api_key:
@@ -197,7 +194,7 @@ class Settings(BaseSettings):
                 raise ValueError("SendGrid API key required when SendGrid enabled and not using stubs")
             if self.enable_openai and not self.openai_api_key:
                 raise ValueError("OpenAI API key required when OpenAI enabled and not using stubs")
-        
+
         return self
 
     @property
@@ -243,8 +240,12 @@ class Settings(BaseSettings):
 
         keys = {
             "google": self.google_api_key.get_secret_value() if self.google_api_key else None,
-            "google_places": self.google_api_key.get_secret_value() if self.google_api_key else None,  # Google Places uses same API key
-            "pagespeed": self.google_api_key.get_secret_value() if self.google_api_key else None,  # PageSpeed uses Google API key
+            "google_places": self.google_api_key.get_secret_value()
+            if self.google_api_key
+            else None,  # Google Places uses same API key
+            "pagespeed": self.google_api_key.get_secret_value()
+            if self.google_api_key
+            else None,  # PageSpeed uses Google API key
             "stripe": self.stripe_secret_key.get_secret_value() if self.stripe_secret_key else None,
             "sendgrid": self.sendgrid_api_key.get_secret_value() if self.sendgrid_api_key else None,
             "openai": self.openai_api_key.get_secret_value() if self.openai_api_key else None,
@@ -266,34 +267,42 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",  # Ignore extra environment variables
     )
-    
+
     def model_dump(self, **kwargs):
         """Override to mask sensitive fields when serializing"""
         data = super().model_dump(**kwargs)
-        
+
         # List of fields to mask
         sensitive_fields = [
-            "secret_key", "openai_api_key", "sendgrid_api_key", 
-            "stripe_secret_key", "stripe_publishable_key", "stripe_webhook_secret",
-            "hunter_api_key", "data_axle_api_key", "semrush_api_key",
-            "screenshotone_key", "screenshotone_secret", "google_api_key"
+            "secret_key",
+            "openai_api_key",
+            "sendgrid_api_key",
+            "stripe_secret_key",
+            "stripe_publishable_key",
+            "stripe_webhook_secret",
+            "hunter_api_key",
+            "data_axle_api_key",
+            "semrush_api_key",
+            "screenshotone_key",
+            "screenshotone_secret",
+            "google_api_key",
         ]
-        
+
         # Mask sensitive values
         for field in sensitive_fields:
             if field in data and data[field]:
                 # Handle SecretStr values
-                if hasattr(data[field], 'get_secret_value'):
+                if hasattr(data[field], "get_secret_value"):
                     value = data[field].get_secret_value()
                 else:
                     value = str(data[field])
-                    
+
                 # Keep first 4 chars for identification
                 if len(value) > 4:
                     data[field] = value[:4] + "*" * (len(value) - 4)
                 else:
                     data[field] = "*" * len(value)
-        
+
         return data
 
 

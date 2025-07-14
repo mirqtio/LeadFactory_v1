@@ -1,5 +1,7 @@
 # PRP-P0-015 Test Coverage Enhancement to 80%
 
+> 💡 **Claude Implementation Note**: Consider how task subagents can be used to execute portions of this task in parallel to improve efficiency and reduce overall completion time.
+
 ## Goal
 Increase test coverage from 57% to 80% while maintaining CI runtime under 5 minutes through strategic test implementation, mock factories, and performance optimization.
 

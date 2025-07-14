@@ -169,9 +169,7 @@ class QualityControlRules:
     confidence_threshold: float = 0.6
     manual_review_triggers: List[str] = field(default_factory=list)
 
-    def requires_manual_review(
-        self, data: Dict[str, Any], score_result: Dict[str, Any]
-    ) -> bool:
+    def requires_manual_review(self, data: Dict[str, Any], score_result: Dict[str, Any]) -> bool:
         """
         Check if scoring result requires manual review
 
@@ -184,15 +182,11 @@ class QualityControlRules:
                 if self._evaluate_trigger(trigger, data, score_result):
                     return True
             except Exception as e:
-                logger.warning(
-                    f"Failed to evaluate manual review trigger '{trigger}': {e}"
-                )
+                logger.warning(f"Failed to evaluate manual review trigger '{trigger}': {e}")
 
         return False
 
-    def _evaluate_trigger(
-        self, trigger: str, data: Dict[str, Any], score_result: Dict[str, Any]
-    ) -> bool:
+    def _evaluate_trigger(self, trigger: str, data: Dict[str, Any], score_result: Dict[str, Any]) -> bool:
         """Evaluate manual review trigger condition"""
         # Combine data and score_result for evaluation
         evaluation_data = {**data, **score_result}
@@ -300,12 +294,8 @@ class ScoringRulesParser:
         components = self.config.get("scoring_components", {})
 
         for component_name, component_config in components.items():
-            weight = component_config.get(
-                "weight", self.engine_config["default_weight"]
-            )
-            description = component_config.get(
-                "description", f"{component_name} scoring"
-            )
+            weight = component_config.get("weight", self.engine_config["default_weight"])
+            description = component_config.get("description", f"{component_name} scoring")
 
             rules = []
             for rule_config in component_config.get("rules", []):
@@ -422,9 +412,7 @@ class ScoringRulesParser:
                 errors.append(f"Component '{name}' has no rules defined")
 
             if component.weight <= 0:
-                errors.append(
-                    f"Component '{name}' has invalid weight: {component.weight}"
-                )
+                errors.append(f"Component '{name}' has invalid weight: {component.weight}")
 
         # Validate tier rules
         if not self.tier_rules:
@@ -441,14 +429,10 @@ class ScoringRulesParser:
         # Validate quality control
         if self.quality_control:
             if not (0 <= self.quality_control.min_data_completeness <= 1):
-                errors.append(
-                    f"Invalid min_data_completeness: {self.quality_control.min_data_completeness}"
-                )
+                errors.append(f"Invalid min_data_completeness: {self.quality_control.min_data_completeness}")
 
             if not (0 <= self.quality_control.confidence_threshold <= 1):
-                errors.append(
-                    f"Invalid confidence_threshold: {self.quality_control.confidence_threshold}"
-                )
+                errors.append(f"Invalid confidence_threshold: {self.quality_control.confidence_threshold}")
 
         return errors
 
@@ -463,9 +447,7 @@ class ScoringRulesParser:
             "version": self.config.get("version", "unknown"),
             "components_count": len(self.component_rules),
             "component_names": list(self.component_rules.keys()),
-            "total_rules": sum(
-                len(comp.rules) for comp in self.component_rules.values()
-            ),
+            "total_rules": sum(len(comp.rules) for comp in self.component_rules.values()),
             "tiers_count": len(self.tier_rules),
             "tier_names": list(self.tier_rules.keys()),
             "fallbacks_count": len(self.fallbacks),

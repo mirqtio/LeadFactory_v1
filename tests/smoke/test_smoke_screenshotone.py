@@ -4,16 +4,15 @@ PRD v1.2 - Verify screenshot capture functionality
 """
 import asyncio
 import os
-import pytest
 from datetime import datetime
 
-from d0_gateway.providers.screenshotone import ScreenshotOneClient
+import pytest
+
 from core.config import settings
+from d0_gateway.providers.screenshotone import ScreenshotOneClient
 
 # Skip if no API key
-pytestmark = pytest.mark.skipif(
-    not os.getenv("SCREENSHOTONE_KEY"), reason="SCREENSHOTONE_KEY not set"
-)
+pytestmark = pytest.mark.skipif(not os.getenv("SCREENSHOTONE_KEY"), reason="SCREENSHOTONE_KEY not set")
 
 
 class TestScreenshotOneSmoke:
@@ -28,9 +27,7 @@ class TestScreenshotOneSmoke:
         )
 
         # Capture screenshot of example.com
-        result = await client.capture_screenshot(
-            url="https://example.com", full_page=True, format="png"
-        )
+        result = await client.capture_screenshot(url="https://example.com", full_page=True, format="png")
 
         assert result is not None
         assert "url" in result
@@ -77,9 +74,7 @@ class TestScreenshotOneSmoke:
         client.timeout = 8
 
         start = datetime.now()
-        result = await client.capture_screenshot(
-            url="https://nytimes.com", full_page=True  # Heavy page
-        )
+        result = await client.capture_screenshot(url="https://nytimes.com", full_page=True)  # Heavy page
         duration = (datetime.now() - start).total_seconds()
 
         assert duration <= 10  # Should timeout before 10s

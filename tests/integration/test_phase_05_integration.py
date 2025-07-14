@@ -25,15 +25,7 @@ from d1_targeting.bucket_loader import BucketFeatureLoader
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d11_orchestration.bucket_enrichment import bucket_enrichment_flow
 from d11_orchestration.cost_guardrails import cost_guardrail_flow, profit_snapshot_flow
-from database.models import (
-    Business,
-    APICost,
-    DailyCostAggregate,
-    Email,
-    EmailStatus,
-    Purchase,
-    PurchaseStatus,
-)
+from database.models import APICost, Business, DailyCostAggregate, Email, EmailStatus, Purchase, PurchaseStatus
 from database.session import SessionLocal
 
 
@@ -101,9 +93,7 @@ class TestPhase05Integration:
     @pytest.mark.asyncio
     @patch("httpx.AsyncClient.get")
     @patch("httpx.AsyncClient.post")
-    async def test_dataaxle_integration(
-        self, mock_post, mock_get, test_business_data, mock_api_responses
-    ):
+    async def test_dataaxle_integration(self, mock_post, mock_get, test_business_data, mock_api_responses):
         """Test Data Axle business matching integration"""
         # Mock API response
         mock_post.return_value.json.return_value = mock_api_responses["dataaxle"]
@@ -124,20 +114,14 @@ class TestPhase05Integration:
 
         # Verify cost was tracked
         with SessionLocal() as db:
-            cost_record = (
-                db.query(APICost)
-                .filter_by(provider="dataaxle", operation="match_business")
-                .first()
-            )
+            cost_record = db.query(APICost).filter_by(provider="dataaxle", operation="match_business").first()
 
             assert cost_record is not None
             assert float(cost_record.cost_usd) == 0.05
 
     @pytest.mark.asyncio
     @patch("httpx.AsyncClient.get")
-    async def test_hunter_integration(
-        self, mock_get, test_business_data, mock_api_responses
-    ):
+    async def test_hunter_integration(self, mock_get, test_business_data, mock_api_responses):
         """Test Hunter email finding integration"""
         # Mock API response
         mock_get.return_value.json.return_value = mock_api_responses["hunter"]
@@ -158,20 +142,14 @@ class TestPhase05Integration:
 
         # Verify cost was tracked
         with SessionLocal() as db:
-            cost_record = (
-                db.query(APICost)
-                .filter_by(provider="hunter", operation="find_email")
-                .first()
-            )
+            cost_record = db.query(APICost).filter_by(provider="hunter", operation="find_email").first()
 
             assert cost_record is not None
             assert float(cost_record.cost_usd) == 0.01
 
     @pytest.mark.asyncio
     @patch("d4_enrichment.coordinator.APIGatewayFacade")
-    async def test_enrichment_flow_with_phase05(
-        self, mock_gateway_class, test_business_data
-    ):
+    async def test_enrichment_flow_with_phase05(self, mock_gateway_class, test_business_data):
         """Test enrichment flow with Phase 0.5 providers"""
         # Mock gateway
         mock_gateway = Mock()
@@ -200,9 +178,7 @@ class TestPhase05Integration:
         coordinator = EnrichmentCoordinator()
 
         # Run enrichment
-        result = await coordinator.enrich_lead(
-            test_business_data, enable_dataaxle=True, enable_hunter=True
-        )
+        result = await coordinator.enrich_lead(test_business_data, enable_dataaxle=True, enable_hunter=True)
 
         # Verify enrichments were applied
         assert result.get("dataaxle_id") == "DA123456"
@@ -382,9 +358,7 @@ class TestPhase05Integration:
         assert top_bucket["vert_bucket"] == "high-high-medium"
 
     @pytest.mark.asyncio
-    async def test_end_to_end_phase05_flow(
-        self, test_business_data, mock_api_responses
-    ):
+    async def test_end_to_end_phase05_flow(self, test_business_data, mock_api_responses):
         """Test complete Phase 0.5 flow from enrichment to analytics"""
         # This test would require full setup but demonstrates the flow
         # 1. Create business

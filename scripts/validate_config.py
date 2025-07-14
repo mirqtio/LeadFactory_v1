@@ -109,36 +109,22 @@ class ConfigValidator:
         # Check required variables
         missing_required = []
         for var in self.required_env_vars:
-            if (
-                var not in self.env_vars
-                or not self.env_vars[var]
-                or self.env_vars[var].startswith("${")
-            ):
+            if var not in self.env_vars or not self.env_vars[var] or self.env_vars[var].startswith("${"):
                 missing_required.append(var)
 
         if missing_required:
-            self.errors.append(
-                f"Missing required environment variables: {', '.join(missing_required)}"
-            )
+            self.errors.append(f"Missing required environment variables: {', '.join(missing_required)}")
         else:
-            print(
-                f"✅ All {len(self.required_env_vars)} required environment variables are set"
-            )
+            print(f"✅ All {len(self.required_env_vars)} required environment variables are set")
 
         # Check recommended variables
         missing_recommended = []
         for var in self.recommended_env_vars:
-            if (
-                var not in self.env_vars
-                or not self.env_vars[var]
-                or self.env_vars[var].startswith("${")
-            ):
+            if var not in self.env_vars or not self.env_vars[var] or self.env_vars[var].startswith("${"):
                 missing_recommended.append(var)
 
         if missing_recommended:
-            self.warnings.append(
-                f"Missing recommended environment variables: {', '.join(missing_recommended)}"
-            )
+            self.warnings.append(f"Missing recommended environment variables: {', '.join(missing_recommended)}")
 
         # Validate specific formats
         self._validate_secret_key()
@@ -235,9 +221,7 @@ class ConfigValidator:
         if secret_key.startswith("sk_test_"):
             self.warnings.append("STRIPE_SECRET_KEY appears to be a test key")
         elif not secret_key.startswith("sk_live_"):
-            self.warnings.append(
-                "STRIPE_SECRET_KEY should be 'sk_live_' for production"
-            )
+            self.warnings.append("STRIPE_SECRET_KEY should be 'sk_live_' for production")
 
         webhook_secret = self.env_vars.get("STRIPE_WEBHOOK_SECRET", "")
         if not webhook_secret.startswith("whsec_"):
@@ -267,17 +251,13 @@ class ConfigValidator:
         db_config = self.config.get("database", {})
         pool_size = db_config.get("pool_size", 0)
         if pool_size < 10:
-            self.warnings.append(
-                "Database pool_size should be at least 10 for production"
-            )
+            self.warnings.append("Database pool_size should be at least 10 for production")
 
         # Check Redis settings
         redis_config = self.config.get("redis", {})
         max_connections = redis_config.get("max_connections", 0)
         if max_connections < 20:
-            self.warnings.append(
-                "Redis max_connections should be at least 20 for production"
-            )
+            self.warnings.append("Redis max_connections should be at least 20 for production")
 
         # Check monitoring
         monitoring = self.config.get("monitoring", {})
@@ -289,9 +269,7 @@ class ConfigValidator:
         cors = security.get("cors", {})
         allowed_origins = cors.get("allowed_origins", [])
         if not allowed_origins or "localhost" in str(allowed_origins):
-            self.warnings.append(
-                "CORS origins should not include localhost in production"
-            )
+            self.warnings.append("CORS origins should not include localhost in production")
 
         # Check performance settings
         performance = self.config.get("performance", {})
@@ -321,9 +299,7 @@ class ConfigValidator:
 
         required_checks = ["database", "redis", "external_apis"]
         configured_checks = health_checks.get("checks", [])
-        missing_checks = [
-            check for check in required_checks if check not in configured_checks
-        ]
+        missing_checks = [check for check in required_checks if check not in configured_checks]
         if missing_checks:
             self.warnings.append(f"Missing health checks: {', '.join(missing_checks)}")
 
@@ -386,9 +362,7 @@ class ConfigValidator:
                 if response.status_code == 200:
                     print("✅ Google PageSpeed API connectivity confirmed")
                 else:
-                    self.warnings.append(
-                        f"Google PageSpeed API returned status {response.status_code}"
-                    )
+                    self.warnings.append(f"Google PageSpeed API returned status {response.status_code}")
         except Exception as e:
             self.warnings.append(f"Could not test API connectivity: {e}")
 
@@ -398,9 +372,7 @@ class ConfigValidator:
         print("🎯 PRODUCTION CONFIGURATION VALIDATION REPORT")
         print("=" * 80)
 
-        print(
-            f"\n📅 Validation Date: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
-        )
+        print(f"\n📅 Validation Date: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
         print(f"📁 Environment File: {self.env_file}")
         print(f"📁 Config File: {self.config_file}")
 
@@ -456,17 +428,13 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Validate production configuration")
-    parser.add_argument(
-        "--env-file", default=".env.production", help="Path to environment file"
-    )
+    parser.add_argument("--env-file", default=".env.production", help="Path to environment file")
     parser.add_argument(
         "--config-file",
         default="config/production.yaml",
         help="Path to YAML config file",
     )
-    parser.add_argument(
-        "--check", action="store_true", help="Just check if files exist"
-    )
+    parser.add_argument("--check", action="store_true", help="Just check if files exist")
 
     args = parser.parse_args()
 

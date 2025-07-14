@@ -2,7 +2,7 @@
 
 # Weight sum validation thresholds
 WEIGHT_SUM_WARNING_THRESHOLD = 0.005  # Warning if |Σ-1.0| > 0.005 AND ≤ 0.05
-WEIGHT_SUM_ERROR_THRESHOLD = 0.05     # Error if |Σ-1.0| > 0.05
+WEIGHT_SUM_ERROR_THRESHOLD = 0.05  # Error if |Σ-1.0| > 0.05
 
 # Default configuration path
 DEFAULT_SCORING_RULES_PATH = "config/scoring_rules.yaml"

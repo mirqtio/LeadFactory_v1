@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from database.base import Base
-from lead_explorer.models import Lead, AuditLogLead, AuditAction
+from lead_explorer.models import AuditAction, AuditLogLead, Lead
 
 # Import all models to ensure foreign key references are available
 try:
@@ -40,7 +40,7 @@ def sample_lead_data():
         "company_name": "Example Corp",
         "contact_name": "John Doe",
         "is_manual": True,
-        "source": "manual_entry"
+        "source": "manual_entry",
     }
 
 
@@ -63,17 +63,14 @@ def sample_audit_data():
         "user_ip": "127.0.0.1",
         "user_agent": "TestAgent/1.0",
         "new_values": '{"email": "test@example.com", "domain": "example.com"}',
-        "checksum": "test_checksum"
+        "checksum": "test_checksum",
     }
 
 
 @pytest.fixture
 def created_audit_log(db_session, created_lead, sample_audit_data):
     """Create a sample audit log in the database"""
-    audit_log = AuditLogLead(
-        lead_id=created_lead.id,
-        **sample_audit_data
-    )
+    audit_log = AuditLogLead(lead_id=created_lead.id, **sample_audit_data)
     db_session.add(audit_log)
     db_session.commit()
     db_session.refresh(audit_log)

@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+WORKDIR /dashboard
+
+# Copy dashboard files
+COPY ai_cto_dashboard.html .
+COPY dashboard_updater.py .
+
+# Create a simple update script that the container can run
+RUN echo '#!/bin/bash\npython3 -m http.server 8501 --bind 0.0.0.0' > start_server.sh && \
+    chmod +x start_server.sh
+
+EXPOSE 8501
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8501/ai_cto_dashboard.html || exit 1
+
+CMD ["./start_server.sh"]

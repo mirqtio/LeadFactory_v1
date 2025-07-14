@@ -120,15 +120,11 @@ class TestTask027AcceptanceCriteria:
             mock_settings.return_value = settings
             return BusinessDeduplicator(session=mock_session)
 
-    def test_duplicate_detection_works(
-        self, deduplicator, sample_businesses, mock_session
-    ):
+    def test_duplicate_detection_works(self, deduplicator, sample_businesses, mock_session):
         """Test that duplicate detection correctly identifies similar businesses"""
 
         # Mock the database query to return our sample businesses
-        mock_session.query.return_value.filter.return_value.all.return_value = (
-            sample_businesses
-        )
+        mock_session.query.return_value.filter.return_value.all.return_value = sample_businesses
 
         # Run duplicate detection
         duplicates = deduplicator.find_duplicates(confidence_threshold=0.5)
@@ -137,11 +133,7 @@ class TestTask027AcceptanceCriteria:
         assert len(duplicates) >= 1
 
         # Find the Mario's Pizza duplicate match
-        mario_duplicates = [
-            d
-            for d in duplicates
-            if {d.business_1_id, d.business_2_id} == {"biz_001", "biz_002"}
-        ]
+        mario_duplicates = [d for d in duplicates if {d.business_1_id, d.business_2_id} == {"biz_001", "biz_002"}]
 
         assert len(mario_duplicates) == 1
         mario_match = mario_duplicates[0]
@@ -157,9 +149,7 @@ class TestTask027AcceptanceCriteria:
         assert isinstance(mario_match.match_reasons, list)
 
         # Should have similarity scores
-        assert (
-            mario_match.name_similarity > 0.6
-        )  # "Mario's Pizza" vs "Mario's Pizzeria"
+        assert mario_match.name_similarity > 0.6  # "Mario's Pizza" vs "Mario's Pizzeria"
         assert mario_match.phone_similarity > 0.9  # Same number, different format
         assert mario_match.address_similarity > 0.7
 
@@ -193,9 +183,7 @@ class TestTask027AcceptanceCriteria:
         ]
 
         # Test merge with KEEP_MOST_COMPLETE strategy
-        merge_results = deduplicator.merge_duplicates(
-            [duplicate_match], strategy=MergeStrategy.KEEP_MOST_COMPLETE
-        )
+        merge_results = deduplicator.merge_duplicates([duplicate_match], strategy=MergeStrategy.KEEP_MOST_COMPLETE)
 
         assert len(merge_results) == 1
         merge_result = merge_results[0]
@@ -235,9 +223,7 @@ class TestTask027AcceptanceCriteria:
                 fresh_b2,
             ]
 
-            primary = deduplicator._select_primary_business(
-                [fresh_b1, fresh_b2], strategy
-            )
+            primary = deduplicator._select_primary_business([fresh_b1, fresh_b2], strategy)
 
             if strategy == MergeStrategy.KEEP_NEWEST:
                 assert primary.id == "biz_002"  # Newer business
@@ -248,9 +234,7 @@ class TestTask027AcceptanceCriteria:
 
         print("✓ Merge logic correct")
 
-    def test_update_timestamps_properly(
-        self, deduplicator, sample_businesses, mock_session
-    ):
+    def test_update_timestamps_properly(self, deduplicator, sample_businesses, mock_session):
         """Test that timestamps are updated properly during merge operations"""
 
         business1, business2 = sample_businesses[0], sample_businesses[1]
@@ -295,9 +279,7 @@ class TestTask027AcceptanceCriteria:
         assert merge_result.merge_timestamp > original_b2_updated
 
         # Test sourced location timestamp updates
-        with patch.object(
-            deduplicator, "_update_sourced_locations"
-        ) as mock_update_sourced, patch.object(
+        with patch.object(deduplicator, "_update_sourced_locations") as mock_update_sourced, patch.object(
             deduplicator, "_update_yelp_metadata"
         ) as mock_update_yelp:
             deduplicator._update_sourced_locations("primary_id", ["merged_id"])
@@ -337,16 +319,12 @@ class TestTask027AcceptanceCriteria:
 
         # Should group businesses by location
         assert len(location_groups) >= 1
-        total_businesses_in_groups = sum(
-            len(group) for group in location_groups.values()
-        )
+        total_businesses_in_groups = sum(len(group) for group in location_groups.values())
         assert total_businesses_in_groups == len(businesses)
 
         # Test nearby business filtering
         target_business = businesses[0]
-        nearby = deduplicator._get_nearby_businesses(
-            target_business, location_groups, businesses[1:]
-        )
+        nearby = deduplicator._get_nearby_businesses(target_business, location_groups, businesses[1:])
 
         # Should filter to only nearby businesses
         assert len(nearby) <= len(businesses) - 1
@@ -399,9 +377,7 @@ class TestTask027AcceptanceCriteria:
 
         for name1, name2, expected_min in test_cases:
             similarity = deduplicator._calculate_name_similarity(name1, name2)
-            assert (
-                similarity >= expected_min
-            ), f"'{name1}' vs '{name2}' similarity {similarity} < {expected_min}"
+            assert similarity >= expected_min, f"'{name1}' vs '{name2}' similarity {similarity} < {expected_min}"
             assert 0.0 <= similarity <= 1.0
 
         print("✓ Name similarity calculation works")
@@ -421,9 +397,7 @@ class TestTask027AcceptanceCriteria:
 
         for phone1, phone2, expected in test_cases:
             similarity = deduplicator._calculate_phone_similarity(phone1, phone2)
-            assert (
-                similarity == expected
-            ), f"'{phone1}' vs '{phone2}' similarity {similarity} != {expected}"
+            assert similarity == expected, f"'{phone1}' vs '{phone2}' similarity {similarity} != {expected}"
 
         print("✓ Phone similarity calculation works")
 
@@ -444,9 +418,7 @@ class TestTask027AcceptanceCriteria:
 
         for addr1, addr2, expected_min in test_cases:
             similarity = deduplicator._calculate_address_similarity(addr1, addr2)
-            assert (
-                similarity >= expected_min
-            ), f"'{addr1}' vs '{addr2}' similarity {similarity} < {expected_min}"
+            assert similarity >= expected_min, f"'{addr1}' vs '{addr2}' similarity {similarity} < {expected_min}"
             assert 0.0 <= similarity <= 1.0
 
         print("✓ Address similarity calculation works")
@@ -652,15 +624,9 @@ if __name__ == "__main__":
     sample_businesses.append(business2)
 
     # Run tests
-    test_instance.test_duplicate_detection_works(
-        deduplicator, sample_businesses, mock_session
-    )
-    test_instance.test_merge_logic_correct(
-        deduplicator, sample_businesses, mock_session
-    )
-    test_instance.test_update_timestamps_properly(
-        deduplicator, sample_businesses, mock_session
-    )
+    test_instance.test_duplicate_detection_works(deduplicator, sample_businesses, mock_session)
+    test_instance.test_merge_logic_correct(deduplicator, sample_businesses, mock_session)
+    test_instance.test_update_timestamps_properly(deduplicator, sample_businesses, mock_session)
     test_instance.test_performance_optimized(deduplicator, mock_session)
     test_instance.test_name_similarity_calculation(deduplicator)
     test_instance.test_phone_similarity_calculation(deduplicator)

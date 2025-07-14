@@ -5,7 +5,7 @@ Business scoring and tier classification system for qualifying leads
 and prospects based on enrichment data.
 """
 
-from .models import ScoreBreakdown, ScoreHistory, ScoringEngine, D5ScoringResult
+from .models import D5ScoringResult, ScoreBreakdown, ScoreHistory, ScoringEngine
 from .types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
 
 __version__ = "1.0.0"

@@ -412,9 +412,7 @@ class AddressSimilarity:
     }
 
     @classmethod
-    def normalize_address_component(
-        cls, component: str, component_type: str = "general"
-    ) -> str:
+    def normalize_address_component(cls, component: str, component_type: str = "general") -> str:
         """Normalize address component"""
         if not component:
             return ""
@@ -460,9 +458,7 @@ class AddressSimilarity:
 
         # Remove state from address
         if state:
-            address = re.sub(
-                r"\b" + re.escape(state) + r"\s*$", "", address, flags=re.IGNORECASE
-            ).strip()
+            address = re.sub(r"\b" + re.escape(state) + r"\s*$", "", address, flags=re.IGNORECASE).strip()
 
         # Split remaining into parts (very basic parsing)
         parts = [p.strip() for p in address.split(",")]
@@ -526,9 +522,7 @@ class AddressSimilarity:
                 elif val1 and val2:
                     # Use string similarity for non-exact matches
                     if component == "street_name" or component == "city":
-                        component_score = NameSimilarity._character_similarity(
-                            val1, val2
-                        )
+                        component_score = NameSimilarity._character_similarity(val1, val2)
                     else:
                         component_score = 1.0 if val1 == val2 else 0.0
                 else:

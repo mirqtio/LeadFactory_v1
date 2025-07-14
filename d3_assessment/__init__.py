@@ -14,14 +14,7 @@ from .models import (
     PageSpeedAssessment,
     TechStackDetection,
 )
-from .types import (
-    AssessmentStatus,
-    AssessmentType,
-    CostType,
-    InsightCategory,
-    PageSpeedMetric,
-    TechCategory,
-)
+from .types import AssessmentStatus, AssessmentType, CostType, InsightCategory, PageSpeedMetric, TechCategory
 
 __all__ = [
     # Models

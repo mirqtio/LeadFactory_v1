@@ -12,12 +12,7 @@ Acceptance Criteria:
 """
 
 from .finding_scorer import FindingScore, FindingScorer
-from .generator import (
-    GenerationOptions,
-    GenerationResult,
-    ReportGenerator,
-    generate_audit_report,
-)
+from .generator import GenerationOptions, GenerationResult, ReportGenerator, generate_audit_report
 from .models import (
     DeliveryMethod,
     ReportDelivery,
@@ -28,13 +23,7 @@ from .models import (
     ReportType,
     TemplateFormat,
 )
-from .pdf_converter import (
-    PDFConverter,
-    PDFOptions,
-    PDFResult,
-    html_to_pdf,
-    save_html_as_pdf,
-)
+from .pdf_converter import PDFConverter, PDFOptions, PDFResult, html_to_pdf, save_html_as_pdf
 from .prioritizer import FindingPrioritizer, PrioritizationResult
 from .template_engine import TemplateData, TemplateEngine
 

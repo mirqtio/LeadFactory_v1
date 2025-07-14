@@ -1,8 +1,8 @@
 """
 Simple smoke test to verify CI environment
 """
-import sys
 import os
+import sys
 
 
 def test_python_version():
@@ -23,14 +23,14 @@ def test_imports_work():
     # Core imports
     from core.config import Settings
     from core.exceptions import LeadFactoryError
-    
+
+    # Gateway imports
+    from d0_gateway.base import BaseAPIClient
+
     # Database imports
     from database.base import Base
     from database.models import Business
-    
-    # Gateway imports
-    from d0_gateway.base import BaseAPIClient
-    
+
     assert Settings is not None
     assert LeadFactoryError is not None
     assert Base is not None
@@ -41,4 +41,5 @@ def test_imports_work():
 def test_stub_server_import():
     """Test stub server can be imported"""
     from stubs.server import app
+
     assert app is not None

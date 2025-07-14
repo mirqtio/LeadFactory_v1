@@ -54,9 +54,7 @@ class CampaignLauncher:
         self.metrics = MetricsCollector() if PIPELINE_AVAILABLE else None
 
         # Campaign tracking
-        self.campaign_id = (
-            f"launch_batch_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
-        )
+        self.campaign_id = f"launch_batch_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         self.emails_sent = 0
         self.emails_delivered = 0
         self.emails_bounced = 0
@@ -94,9 +92,7 @@ class CampaignLauncher:
         # Check 1: Pipeline components available
         if not PIPELINE_AVAILABLE:
             if not self.dry_run:
-                self.campaign_results["errors"].append(
-                    "Pipeline components not available"
-                )
+                self.campaign_results["errors"].append("Pipeline components not available")
                 validation_checks.append(False)
             else:
                 print("⚠️  Pipeline components not available - dry run mode")
@@ -129,9 +125,7 @@ class CampaignLauncher:
             print("✅ Environment configuration present")
             validation_checks.append(True)
         else:
-            self.campaign_results["errors"].append(
-                "Production environment not configured"
-            )
+            self.campaign_results["errors"].append("Production environment not configured")
             validation_checks.append(False)
 
         # Check 5: Cron jobs configured
@@ -140,18 +134,14 @@ class CampaignLauncher:
             print("✅ Automated scheduling configured")
             validation_checks.append(True)
         else:
-            self.campaign_results["errors"].append(
-                "Automated scheduling not configured"
-            )
+            self.campaign_results["errors"].append("Automated scheduling not configured")
             validation_checks.append(False)
 
         all_valid = all(validation_checks)
         if all_valid:
             print("✅ All prerequisites validated")
         else:
-            print(
-                f"❌ {len([c for c in validation_checks if not c])} prerequisite checks failed"
-            )
+            print(f"❌ {len([c for c in validation_checks if not c])} prerequisite checks failed")
 
         return all_valid
 
@@ -185,9 +175,7 @@ class CampaignLauncher:
             return True
 
         except Exception as e:
-            self.campaign_results["errors"].append(
-                f"Monitoring initialization failed: {e}"
-            )
+            self.campaign_results["errors"].append(f"Monitoring initialization failed: {e}")
             self.logger.error(f"Monitoring initialization failed: {e}")
             return False
 
@@ -204,9 +192,7 @@ class CampaignLauncher:
 
                 # Simulate successful email generation and sending
                 self.emails_sent = self.batch_size
-                self.emails_delivered = (
-                    self.batch_size
-                )  # Perfect delivery in simulation
+                self.emails_delivered = self.batch_size  # Perfect delivery in simulation
                 self.emails_bounced = 0
 
                 print(f"✅ Simulated {self.emails_sent} emails sent")
@@ -226,16 +212,12 @@ class CampaignLauncher:
                 }
 
                 # Run the pipeline
-                result = await daily_lead_generation_flow(
-                    date=datetime.utcnow().isoformat(), config=pipeline_config
-                )
+                result = await daily_lead_generation_flow(date=datetime.utcnow().isoformat(), config=pipeline_config)
 
                 # Extract results
                 summary = result.get("summary", {})
                 self.emails_sent = summary.get("reports_delivered", 0)
-                self.emails_delivered = (
-                    self.emails_sent
-                )  # Assume delivered = sent for now
+                self.emails_delivered = self.emails_sent  # Assume delivered = sent for now
                 self.emails_bounced = 0  # Would be tracked by delivery system
 
                 print(f"✅ Pipeline executed: {self.emails_sent} emails sent")
@@ -246,8 +228,7 @@ class CampaignLauncher:
                     "emails_sent": self.emails_sent,
                     "emails_delivered": self.emails_delivered,
                     "emails_bounced": self.emails_bounced,
-                    "bounce_rate": (self.emails_bounced / max(self.emails_sent, 1))
-                    * 100,
+                    "bounce_rate": (self.emails_bounced / max(self.emails_sent, 1)) * 100,
                 }
             )
 
@@ -306,15 +287,11 @@ class CampaignLauncher:
                     "emails_sent": self.emails_sent,
                     "emails_delivered": self.emails_delivered,
                     "emails_bounced": self.emails_bounced,
-                    "delivery_rate": (self.emails_delivered / max(self.emails_sent, 1))
-                    * 100,
-                    "bounce_rate": (self.emails_bounced / max(self.emails_sent, 1))
-                    * 100,
+                    "delivery_rate": (self.emails_delivered / max(self.emails_sent, 1)) * 100,
+                    "bounce_rate": (self.emails_bounced / max(self.emails_sent, 1)) * 100,
                 }
 
-                await self.metrics.record_campaign_metrics(
-                    campaign_id=self.campaign_id, metrics=metrics_data
-                )
+                await self.metrics.record_campaign_metrics(campaign_id=self.campaign_id, metrics=metrics_data)
 
                 print("✅ Campaign metrics recorded")
 
@@ -370,16 +347,11 @@ class CampaignLauncher:
                 "emails_sent": self.emails_sent,
                 "emails_delivered": self.emails_delivered,
                 "emails_bounced": self.emails_bounced,
-                "delivery_rate_percent": (
-                    self.emails_delivered / max(self.emails_sent, 1)
-                )
-                * 100,
-                "bounce_rate_percent": (self.emails_bounced / max(self.emails_sent, 1))
-                * 100,
+                "delivery_rate_percent": (self.emails_delivered / max(self.emails_sent, 1)) * 100,
+                "bounce_rate_percent": (self.emails_bounced / max(self.emails_sent, 1)) * 100,
             },
             "status": {
-                "success": all(acceptance_criteria.values())
-                and len(self.campaign_results["errors"]) == 0,
+                "success": all(acceptance_criteria.values()) and len(self.campaign_results["errors"]) == 0,
                 "tracking_operational": self.tracking_confirmed,
                 "monitoring_operational": self.monitoring_active,
             },
@@ -427,10 +399,7 @@ class CampaignLauncher:
 
         # Final validation
         acceptance_criteria = self.check_acceptance_criteria()
-        success = (
-            all(acceptance_criteria.values())
-            and len(self.campaign_results["errors"]) == 0
-        )
+        success = all(acceptance_criteria.values()) and len(self.campaign_results["errors"]) == 0
 
         self.campaign_results["success"] = success
         self.campaign_results["tracking_confirmed"] = self.tracking_confirmed
@@ -488,9 +457,7 @@ async def main():
         print("=" * 80)
 
         print(f"\n📅 Campaign: {report['campaign_details']['campaign_id']}")
-        print(
-            f"🔧 Configuration: {args.batch} emails, {'DRY RUN' if args.dry_run else 'PRODUCTION'}"
-        )
+        print(f"🔧 Configuration: {args.batch} emails, {'DRY RUN' if args.dry_run else 'PRODUCTION'}")
         print(f"⏱️  Launch Date: {report['campaign_details']['launch_date']}")
 
         # Results summary
@@ -513,12 +480,8 @@ async def main():
         # System status
         status = report["status"]
         print("\n🔧 System Status:")
-        print(
-            f"   Tracking Operational: {'✅' if status['tracking_operational'] else '❌'}"
-        )
-        print(
-            f"   Monitoring Operational: {'✅' if status['monitoring_operational'] else '❌'}"
-        )
+        print(f"   Tracking Operational: {'✅' if status['tracking_operational'] else '❌'}")
+        print(f"   Monitoring Operational: {'✅' if status['monitoring_operational'] else '❌'}")
 
         # Errors (if any)
         if results["errors"]:

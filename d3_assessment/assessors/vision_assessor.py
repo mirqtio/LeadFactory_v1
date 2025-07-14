@@ -7,15 +7,15 @@ Cost: $0.003 per analysis
 Output: visual_scores_json, visual_warnings, visual_quickwins columns
 """
 import json
-from typing import Dict, Any
+from typing import Any, Dict
 
-from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
-from d3_assessment.models import AssessmentType
-from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
-from d0_gateway.providers.humanloop import HumanloopClient
-from d0_gateway.factory import create_client
-from core.logging import get_logger
 from core.config import settings
+from core.logging import get_logger
+from d0_gateway.factory import create_client
+from d0_gateway.providers.humanloop import HumanloopClient
+from d3_assessment.assessors.base import AssessmentResult, BaseAssessor
+from d3_assessment.exceptions import AssessmentError, AssessmentTimeoutError
+from d3_assessment.models import AssessmentType
 
 logger = get_logger(__name__, domain="d3")
 
@@ -55,9 +55,9 @@ class VisionAssessor(BaseAssessor):
         """
         try:
             # Get screenshot URL from business data or previous assessment
-            screenshot_url = business_data.get("screenshot_url") or business_data.get(
-                "assessments", {}
-            ).get("screenshot_url")
+            screenshot_url = business_data.get("screenshot_url") or business_data.get("assessments", {}).get(
+                "screenshot_url"
+            )
 
             if not screenshot_url:
                 return AssessmentResult(
@@ -110,9 +110,7 @@ class VisionAssessor(BaseAssessor):
                 "visual_appeal": self._clamp_score(scores.get("visual_appeal", 0)),
                 "readability": self._clamp_score(scores.get("readability", 0)),
                 "modernity": self._clamp_score(scores.get("modernity", 0)),
-                "brand_consistency": self._clamp_score(
-                    scores.get("brand_consistency", 0)
-                ),
+                "brand_consistency": self._clamp_score(scores.get("brand_consistency", 0)),
                 "accessibility": self._clamp_score(scores.get("accessibility", 0)),
             }
 
@@ -132,12 +130,8 @@ class VisionAssessor(BaseAssessor):
                     "visual_quickwins": visual_quickwins,
                     "visual_analysis": {
                         "average_score": avg_score,
-                        "lowest_score_area": min(
-                            visual_scores.items(), key=lambda x: x[1]
-                        )[0],
-                        "highest_score_area": max(
-                            visual_scores.items(), key=lambda x: x[1]
-                        )[0],
+                        "lowest_score_area": min(visual_scores.items(), key=lambda x: x[1])[0],
+                        "highest_score_area": max(visual_scores.items(), key=lambda x: x[1])[0],
                         "issues_count": len(visual_warnings),
                         "opportunities_count": len(visual_quickwins),
                     },

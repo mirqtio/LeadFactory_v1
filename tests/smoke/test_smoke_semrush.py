@@ -4,15 +4,14 @@ PRD v1.2 - Verify SEMrush domain overview API
 """
 import asyncio
 import os
+
 import pytest
 
-from d0_gateway.providers.semrush import SEMrushClient
 from core.config import settings
+from d0_gateway.providers.semrush import SEMrushClient
 
 # Skip if no API key
-pytestmark = pytest.mark.skipif(
-    not os.getenv("SEMRUSH_API_KEY"), reason="SEMRUSH_API_KEY not set"
-)
+pytestmark = pytest.mark.skipif(not os.getenv("SEMRUSH_API_KEY"), reason="SEMRUSH_API_KEY not set")
 
 
 class TestSEMrushSmoke:
@@ -77,9 +76,7 @@ class TestSEMrushSmoke:
             max_daily = client.rate_limiter.max_tokens
 
             assert max_daily == 1000, f"Expected 1000 daily limit, got {max_daily}"
-            print(
-                f"\n✓ SEMrush rate limit configured: {available}/{max_daily} calls available"
-            )
+            print(f"\n✓ SEMrush rate limit configured: {available}/{max_daily} calls available")
         else:
             print("\n⚠️  No rate limiter found on SEMrush client")
 

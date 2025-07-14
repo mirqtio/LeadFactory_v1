@@ -3,19 +3,18 @@ Integration test for PRD v1.2 full pipeline
 Tests Yelp sourcing → 7-assessor stack → Email enrichment → Cost tracking
 """
 import asyncio
+
 import pytest
 
 # Mark entire module as slow for CI optimization and xfail for Phase 0.5
-pytestmark = [
-    pytest.mark.slow,
-    pytest.mark.xfail(reason="PRD v1.2 pipeline features are Phase 0.5")
-]
+pytestmark = [pytest.mark.slow, pytest.mark.xfail(reason="PRD v1.2 pipeline features are Phase 0.5")]
+
+from core.config import settings
 
 # Yelp has been removed from the codebase
 from d3_assessment.coordinator_v2 import AssessmentCoordinatorV2
 from d4_enrichment.email_enrichment import get_email_enricher
 from d5_scoring.tiers import TierAssignmentEngine
-from core.config import settings
 
 
 class TestPRDv12Pipeline:
@@ -60,13 +59,9 @@ class TestPRDv12Pipeline:
 
         # These require API keys
         if settings.google_api_key:
-            assert "pagespeed_json" in data or "error" in str(
-                data.get("pagespeed_json", {})
-            )
+            assert "pagespeed_json" in data or "error" in str(data.get("pagespeed_json", {}))
 
-        print(
-            f"✓ Assessment completed with {result['assessments_successful']} assessors"
-        )
+        print(f"✓ Assessment completed with {result['assessments_successful']} assessors")
         print(f"  Total cost: ${result['total_cost']}")
 
     @pytest.mark.asyncio
@@ -158,10 +153,7 @@ class TestPRDv12Pipeline:
         if assessment_data["semrush_json"]["organic_keywords"] < 10:
             issues_found.append("seo_low_keywords")
 
-        if (
-            assessment_data["gbp_json"]["missing_hours"]
-            or assessment_data["yelp_json"]["review_count"] < 5
-        ):
+        if assessment_data["gbp_json"]["missing_hours"] or assessment_data["yelp_json"]["review_count"] < 5:
             issues_found.append("listing_gap")
 
         print("\nPRD v1.2 scoring issues detected:")
@@ -194,7 +186,7 @@ class TestPRDv12Pipeline:
             "state": "CA",
             "rating": 4.5,
             "user_ratings_total": 100,
-            "categories": ["restaurant", "pizza"]
+            "categories": ["restaurant", "pizza"],
         }
         print(f"   ✓ Using: {business['name']}")
 
@@ -219,13 +211,7 @@ class TestPRDv12Pipeline:
 
         # Calculate a mock score based on assessment
         score = 70  # Base score
-        if (
-            assessment["data"]
-            .get("pagespeed_json", {})
-            .get("scores", {})
-            .get("performance", 0)
-            < 50
-        ):
+        if assessment["data"].get("pagespeed_json", {}).get("scores", {}).get("performance", 0) < 50:
             score -= 10
         if email:
             score += 5

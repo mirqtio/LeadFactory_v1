@@ -7,12 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from httpx import AsyncClient, Response
 
-from d0_gateway.exceptions import (
-    APIProviderError,
-    AuthenticationError,
-    RateLimitExceededError,
-)
 from core.exceptions import ValidationError
+from d0_gateway.exceptions import APIProviderError, AuthenticationError, RateLimitExceededError
 from d0_gateway.providers.hunter import HunterClient
 
 # Mark entire module as xfail for Phase 0.5
@@ -34,9 +30,7 @@ def hunter_client(mock_settings):
     """Create Hunter client for testing"""
     with patch("core.config.settings", mock_settings), patch(
         "core.config.get_settings", return_value=mock_settings
-    ), patch("d0_gateway.base.get_settings", return_value=mock_settings), patch(
-        "d0_gateway.base.RateLimiter"
-    ), patch(
+    ), patch("d0_gateway.base.get_settings", return_value=mock_settings), patch("d0_gateway.base.RateLimiter"), patch(
         "d0_gateway.base.CircuitBreaker"
     ), patch(
         "d0_gateway.base.ResponseCache"
@@ -117,9 +111,7 @@ class TestHunterClient:
         assert cost == Decimal("0.00")
 
     @pytest.mark.asyncio
-    async def test_find_email_success_with_domain(
-        self, hunter_client, mock_httpx_client
-    ):
+    async def test_find_email_success_with_domain(self, hunter_client, mock_httpx_client):
         """Test successful email finding with domain"""
         # Mock response
         mock_response = MagicMock(spec=Response)
@@ -181,9 +173,7 @@ class TestHunterClient:
         assert len(result["sources"]) == 1
 
     @pytest.mark.asyncio
-    async def test_find_email_success_with_company(
-        self, hunter_client, mock_httpx_client
-    ):
+    async def test_find_email_success_with_company(self, hunter_client, mock_httpx_client):
         """Test successful email finding with company name"""
         # Mock response
         mock_response = MagicMock(spec=Response)
@@ -239,9 +229,7 @@ class TestHunterClient:
         """Test validation error for missing required fields"""
         company_data = {"first_name": "John"}
 
-        with pytest.raises(
-            ValidationError, match="Either domain or company name is required"
-        ):
+        with pytest.raises(ValidationError, match="Either domain or company name is required"):
             await hunter_client.find_email(company_data)
 
     @pytest.mark.asyncio

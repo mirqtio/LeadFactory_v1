@@ -16,9 +16,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from .models import (
-    ProductType,
-)
+from .models import ProductType
 from .stripe_client import (
     PAYMENT_METHOD_TYPES,
     SESSION_MODES,
@@ -122,9 +120,7 @@ class CheckoutSession:
         self.items = items
         self.purchase_id = purchase_id or str(uuid.uuid4())
         self.config = config or CheckoutConfig()
-        self.stripe_client = stripe_client or StripeClient(
-            StripeConfig(test_mode=self.config.test_mode)
-        )
+        self.stripe_client = stripe_client or StripeClient(StripeConfig(test_mode=self.config.test_mode))
 
         # Validation
         if not items:
@@ -150,9 +146,7 @@ class CheckoutSession:
         """Build cancel URL with purchase ID"""
         return f"{self.config.base_cancel_url}?purchase_id={self.purchase_id}&session_id={{CHECKOUT_SESSION_ID}}"
 
-    def build_metadata(
-        self, additional_metadata: Optional[Dict[str, str]] = None
-    ) -> Dict[str, str]:
+    def build_metadata(self, additional_metadata: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """
         Build metadata for Stripe session - Acceptance Criteria
         """
@@ -179,9 +173,7 @@ class CheckoutSession:
 
         return metadata
 
-    def create_stripe_session(
-        self, additional_metadata: Optional[Dict[str, str]] = None
-    ) -> Dict[str, Any]:
+    def create_stripe_session(self, additional_metadata: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
         Create Stripe checkout session - Acceptance Criteria
         """
@@ -208,21 +200,15 @@ class CheckoutSession:
             # Create session via Stripe
             result = self.stripe_client.create_checkout_session(session_config)
 
-            logger.info(
-                f"Created Stripe session {result['session_id']} for purchase {self.purchase_id}"
-            )
+            logger.info(f"Created Stripe session {result['session_id']} for purchase {self.purchase_id}")
 
             return result
 
         except StripeError as e:
-            logger.error(
-                f"Stripe error creating session for purchase {self.purchase_id}: {e}"
-            )
+            logger.error(f"Stripe error creating session for purchase {self.purchase_id}: {e}")
             raise CheckoutError(f"Failed to create checkout session: {str(e)}")
         except Exception as e:
-            logger.error(
-                f"Unexpected error creating session for purchase {self.purchase_id}: {e}"
-            )
+            logger.error(f"Unexpected error creating session for purchase {self.purchase_id}: {e}")
             raise CheckoutError(f"Unexpected checkout error: {str(e)}")
 
 
@@ -237,9 +223,7 @@ class CheckoutManager:
         stripe_client: Optional[StripeClient] = None,
     ):
         self.config = config or CheckoutConfig()
-        self.stripe_client = stripe_client or StripeClient(
-            StripeConfig(test_mode=self.config.test_mode)
-        )
+        self.stripe_client = stripe_client or StripeClient(StripeConfig(test_mode=self.config.test_mode))
 
     def initiate_checkout(
         self,
@@ -287,9 +271,7 @@ class CheckoutManager:
                 ],
             }
 
-            logger.info(
-                f"Successfully initiated checkout for {customer_email}, purchase {checkout.purchase_id}"
-            )
+            logger.info(f"Successfully initiated checkout for {customer_email}, purchase {checkout.purchase_id}")
 
             return response
 
@@ -297,9 +279,7 @@ class CheckoutManager:
             logger.error(f"Error initiating checkout for {customer_email}: {e}")
             return {"success": False, "error": str(e), "error_type": type(e).__name__}
         except Exception as e:
-            logger.error(
-                f"Unexpected error initiating checkout for {customer_email}: {e}"
-            )
+            logger.error(f"Unexpected error initiating checkout for {customer_email}: {e}")
             return {
                 "success": False,
                 "error": f"Unexpected error: {str(e)}",
@@ -376,9 +356,7 @@ class CheckoutManager:
         Convenience method for creating bulk reports checkout
         """
         if not business_urls:
-            raise CheckoutError(
-                "At least one business URL is required for bulk reports"
-            )
+            raise CheckoutError("At least one business URL is required for bulk reports")
 
         quantity = len(business_urls)
 

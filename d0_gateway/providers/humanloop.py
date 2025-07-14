@@ -8,9 +8,10 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from ..base import BaseAPIClient
 from core.logging import get_logger
 from core.metrics import metrics
+
+from ..base import BaseAPIClient
 
 logger = get_logger(__name__, domain="d0")
 
@@ -115,6 +116,7 @@ class HumanloopClient(BaseAPIClient):
             parts = content.split("---", 2)
             if len(parts) >= 3:
                 import yaml
+
                 metadata = yaml.safe_load(parts[1])
                 prompt_content = parts[2].strip()
             else:
@@ -215,7 +217,7 @@ class HumanloopClient(BaseAPIClient):
                     "model": prompt_config["model"],
                     "duration_ms": int(duration * 1000),
                     "tokens": usage.get("total_tokens", 0),
-                }
+                },
             )
 
             return response
@@ -239,7 +241,7 @@ class HumanloopClient(BaseAPIClient):
                     "prompt_slug": prompt_slug,
                     "error": str(e),
                     "duration_ms": int(duration * 1000),
-                }
+                },
             )
             raise
 
@@ -316,7 +318,7 @@ class HumanloopClient(BaseAPIClient):
                     "model": prompt_config["model"],
                     "duration_ms": int(duration * 1000),
                     "tokens": usage.get("total_tokens", 0),
-                }
+                },
             )
 
             return response
@@ -340,7 +342,7 @@ class HumanloopClient(BaseAPIClient):
                     "prompt_slug": prompt_slug,
                     "error": str(e),
                     "duration_ms": int(duration * 1000),
-                }
+                },
             )
             raise
 
@@ -402,9 +404,7 @@ class HumanloopClient(BaseAPIClient):
 
         return formatted
 
-    async def _simulate_completion(
-        self, payload: Dict[str, Any], prompt_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _simulate_completion(self, payload: Dict[str, Any], prompt_config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Simulate Humanloop completion by calling OpenAI
 
@@ -437,9 +437,7 @@ class HumanloopClient(BaseAPIClient):
             "humanloop_version": "simulated",
         }
 
-    async def _simulate_chat_completion(
-        self, payload: Dict[str, Any], prompt_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _simulate_chat_completion(self, payload: Dict[str, Any], prompt_config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Simulate Humanloop chat completion by calling OpenAI
 
@@ -482,11 +480,7 @@ class HumanloopClient(BaseAPIClient):
 
 
 # Convenience functions for backward compatibility
-async def create_completion(
-    prompt_slug: str,
-    inputs: Dict[str, Any],
-    **kwargs
-) -> Dict[str, Any]:
+async def create_completion(prompt_slug: str, inputs: Dict[str, Any], **kwargs) -> Dict[str, Any]:
     """
     Create a completion using the default Humanloop client
 
@@ -503,10 +497,7 @@ async def create_completion(
 
 
 async def create_chat_completion(
-    prompt_slug: str,
-    inputs: Dict[str, Any],
-    messages: Optional[List[Dict[str, str]]] = None,
-    **kwargs
+    prompt_slug: str, inputs: Dict[str, Any], messages: Optional[List[Dict[str, str]]] = None, **kwargs
 ) -> Dict[str, Any]:
     """
     Create a chat completion using the default Humanloop client

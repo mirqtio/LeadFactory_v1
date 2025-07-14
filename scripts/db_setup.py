@@ -149,9 +149,7 @@ class DatabaseSetup:
                 print("✅ Migrations applied successfully")
                 return True
             else:
-                self.errors.append(
-                    f"Migration verification failed: expected {head_rev}, got {new_rev}"
-                )
+                self.errors.append(f"Migration verification failed: expected {head_rev}, got {new_rev}")
                 return False
 
         except Exception as e:
@@ -290,9 +288,7 @@ echo "Backup process finished at $(date)"
 
             print("✅ Backup script created at scripts/db_backup.sh")
             print("📅 To schedule daily backups, add to crontab:")
-            print(
-                "   0 2 * * * /path/to/scripts/db_backup.sh >> /var/log/db_backup.log 2>&1"
-            )
+            print("   0 2 * * * /path/to/scripts/db_backup.sh >> /var/log/db_backup.log 2>&1")
 
             return True
 
@@ -351,9 +347,7 @@ echo "Backup process finished at $(date)"
                 print(f"✅ Found {len(indexes)} custom indexes")
 
                 # Check migration version
-                version_result = conn.execute(
-                    text("SELECT version_num FROM alembic_version")
-                )
+                version_result = conn.execute(text("SELECT version_num FROM alembic_version"))
                 version = version_result.fetchone()
                 if version:
                     print(f"✅ Migration version: {version[0]}")
@@ -404,9 +398,7 @@ echo "Backup process finished at $(date)"
         print("=" * 80)
 
         print(f"\n📅 Setup Date: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
-        print(
-            f"📊 Database: {self.db_config['database']}@{self.db_config['host']}:{self.db_config['port']}"
-        )
+        print(f"📊 Database: {self.db_config['database']}@{self.db_config['host']}:{self.db_config['port']}")
 
         if not self.errors and not self.warnings:
             print("\n✅ DATABASE SETUP COMPLETED SUCCESSFULLY!")
@@ -440,9 +432,7 @@ def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(description="Setup production database")
     parser.add_argument("--database-url", help="PostgreSQL connection string")
-    parser.add_argument(
-        "--check", action="store_true", help="Only check database connectivity"
-    )
+    parser.add_argument("--check", action="store_true", help="Only check database connectivity")
 
     args = parser.parse_args()
 

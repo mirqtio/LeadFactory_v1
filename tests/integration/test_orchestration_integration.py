@@ -40,9 +40,7 @@ from database.base import Base
 @pytest.fixture
 def test_db():
     """Create test database session"""
-    engine = create_engine(
-        "sqlite:///:memory:", connect_args={"check_same_thread": False}
-    )
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
 
     # Import models to ensure tables are created
 
@@ -184,9 +182,7 @@ class TestTaskExecution:
     def test_task_execution_order(self, test_db):
         """Test that tasks execute in correct sequential order"""
         # Create pipeline run
-        pipeline_run = PipelineRun(
-            pipeline_name="ordered_execution_pipeline", triggered_by="order_test"
-        )
+        pipeline_run = PipelineRun(pipeline_name="ordered_execution_pipeline", triggered_by="order_test")
 
         test_db.add(pipeline_run)
         test_db.commit()
@@ -365,9 +361,7 @@ class TestExperimentApplication:
 
         # Verify experiment application
         total_assignments = (
-            test_db.query(VariantAssignment)
-            .filter(VariantAssignment.experiment_id == experiment.experiment_id)
-            .count()
+            test_db.query(VariantAssignment).filter(VariantAssignment.experiment_id == experiment.experiment_id).count()
         )
 
         assert total_assignments == 10
@@ -396,9 +390,7 @@ class TestExperimentApplication:
 
         # Verify pipeline-experiment linkage
         pipeline_assignments = (
-            test_db.query(VariantAssignment)
-            .filter(VariantAssignment.pipeline_run_id == pipeline_run.run_id)
-            .count()
+            test_db.query(VariantAssignment).filter(VariantAssignment.pipeline_run_id == pipeline_run.run_id).count()
         )
 
         assert pipeline_assignments == 10
@@ -530,9 +522,7 @@ class TestMetricsRecording:
         # Verify metrics were recorded in the database
         assert pipeline_run.records_processed == 950
         assert pipeline_run.records_failed == 50
-        assert (
-            abs(pipeline_run.success_rate - 0.9473684210526315) < 0.001
-        )  # (950-50)/950
+        assert abs(pipeline_run.success_rate - 0.9473684210526315) < 0.001  # (950-50)/950
         assert pipeline_run.execution_time_seconds == 195
 
         # Verify all tasks have metrics
@@ -738,9 +728,7 @@ class TestOrchestrationIntegration:
         pipeline_run.completed_at = datetime.utcnow()
         pipeline_run.records_processed = 100
         pipeline_run.records_failed = 0
-        pipeline_run.execution_time_seconds = sum(
-            task["time"] for task in workflow_tasks
-        )
+        pipeline_run.execution_time_seconds = sum(task["time"] for task in workflow_tasks)
         test_db.commit()
 
         # Step 6: Verify complete workflow
@@ -803,9 +791,7 @@ class TestOrchestrationIntegration:
 
         # Verify experiment is properly linked to pipeline
         experiment_pipeline_link = (
-            test_db.query(VariantAssignment)
-            .filter(VariantAssignment.pipeline_run_id == pipeline_run.run_id)
-            .first()
+            test_db.query(VariantAssignment).filter(VariantAssignment.pipeline_run_id == pipeline_run.run_id).first()
         )
 
         assert experiment_pipeline_link is not None

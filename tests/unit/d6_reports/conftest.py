@@ -3,23 +3,20 @@ Test configuration for d6_reports unit tests
 """
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
-from database.base import Base
 from d6_reports.models import ReportTemplate, ReportType, TemplateFormat
+from database.base import Base
 
 
 @pytest.fixture(scope="function")
 def db_session():
     """Create a database session for testing"""
     engine = create_engine(
-        "sqlite:///:memory:",
-        echo=False,
-        poolclass=StaticPool,
-        connect_args={"check_same_thread": False}
+        "sqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
     )
     Base.metadata.create_all(engine)
 
@@ -61,4 +58,5 @@ def test_report_template(db_session):
 def test_client():
     """Create a test client for API testing"""
     from main import app
+
     return TestClient(app)

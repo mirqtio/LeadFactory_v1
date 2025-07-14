@@ -5,15 +5,7 @@ import asyncio
 import time
 from functools import wraps
 
-from prometheus_client import (
-    CONTENT_TYPE_LATEST,
-    CollectorRegistry,
-    Counter,
-    Gauge,
-    Histogram,
-    Info,
-    generate_latest,
-)
+from prometheus_client import CONTENT_TYPE_LATEST, CollectorRegistry, Counter, Gauge, Histogram, Info, generate_latest
 
 from core.logging import get_logger
 
@@ -21,9 +13,7 @@ from core.logging import get_logger
 REGISTRY = CollectorRegistry()
 
 # Application info
-app_info = Info(
-    "leadfactory_app", "LeadFactory application information", registry=REGISTRY
-)
+app_info = Info("leadfactory_app", "LeadFactory application information", registry=REGISTRY)
 
 # Request metrics
 request_count = Counter(
@@ -80,9 +70,7 @@ assessment_duration = Histogram(
 )
 
 # Resource metrics
-active_campaigns = Gauge(
-    "leadfactory_active_campaigns", "Number of active campaigns", registry=REGISTRY
-)
+active_campaigns = Gauge("leadfactory_active_campaigns", "Number of active campaigns", registry=REGISTRY)
 
 daily_quota_usage = Gauge(
     "leadfactory_daily_quota_usage",
@@ -224,9 +212,7 @@ class MetricsCollector:
         """Track business processing"""
         businesses_processed.labels(source=source, status=status).inc()
 
-    def track_assessment_created(
-        self, assessment_type: str, duration: float, status: str = "success"
-    ):
+    def track_assessment_created(self, assessment_type: str, duration: float, status: str = "success"):
         """Track assessment creation"""
         assessments_created.labels(assessment_type=assessment_type, status=status).inc()
         assessment_duration.labels(assessment_type=assessment_type).observe(duration)
@@ -235,13 +221,9 @@ class MetricsCollector:
         """Track email sending"""
         emails_sent.labels(campaign=campaign, status=status).inc()
 
-    def track_purchase(
-        self, product_type: str, amount: float, experiment: str = "default"
-    ):
+    def track_purchase(self, product_type: str, amount: float, experiment: str = "default"):
         """Track purchase completion"""
-        purchases_completed.labels(
-            product_type=product_type, experiment=experiment
-        ).inc()
+        purchases_completed.labels(product_type=product_type, experiment=experiment).inc()
         revenue_total.labels(product_type=product_type).inc(amount)
 
     def track_error(self, error_type: str, domain: str):
@@ -256,9 +238,7 @@ class MetricsCollector:
         """Update quota usage gauge"""
         daily_quota_usage.labels(provider=provider).set(usage)
 
-    def update_conversion_rate(
-        self, rate: float, experiment: str = "default", variant: str = "control"
-    ):
+    def update_conversion_rate(self, rate: float, experiment: str = "default", variant: str = "control"):
         """Update conversion rate gauge"""
         conversion_rate.labels(experiment=experiment, variant=variant).set(rate)
 
@@ -277,7 +257,7 @@ class MetricsCollector:
     def track_cache_miss(self, cache_type: str = "redis"):
         """Track cache miss"""
         cache_misses.labels(cache_type=cache_type).inc()
-        
+
     def track_prompt_request(
         self,
         prompt_slug: str,
@@ -291,21 +271,17 @@ class MetricsCollector:
         """Track Humanloop prompt request metrics"""
         # Track request count
         prompt_requests.labels(prompt_slug=prompt_slug, model=model, status=status).inc()
-        
+
         # Track duration
         prompt_duration.labels(prompt_slug=prompt_slug, model=model).observe(duration)
-        
+
         # Track token usage
-        prompt_tokens_used.labels(
-            prompt_slug=prompt_slug, model=model, token_type="input"
-        ).inc(tokens_input)
-        prompt_tokens_used.labels(
-            prompt_slug=prompt_slug, model=model, token_type="output"
-        ).inc(tokens_output)
-        
+        prompt_tokens_used.labels(prompt_slug=prompt_slug, model=model, token_type="input").inc(tokens_input)
+        prompt_tokens_used.labels(prompt_slug=prompt_slug, model=model, token_type="output").inc(tokens_output)
+
         # Track cost
         prompt_cost_usd.labels(prompt_slug=prompt_slug, model=model).inc(cost)
-        
+
     def track_config_reload(self, config_type: str, duration: float, status: str = "success"):
         """Track configuration reload metrics"""
         config_reload_total.labels(config_type=config_type, status=status).inc()
@@ -315,46 +291,26 @@ class MetricsCollector:
         """Generic method to increment counters by metric name"""
         # Map metric names to specific counter metrics
         if metric_name == "targeting_universes_created":
-            businesses_processed.labels(
-                source="targeting", status="universe_created"
-            ).inc(amount)
+            businesses_processed.labels(source="targeting", status="universe_created").inc(amount)
         elif metric_name == "targeting_universes_updated":
-            businesses_processed.labels(
-                source="targeting", status="universe_updated"
-            ).inc(amount)
+            businesses_processed.labels(source="targeting", status="universe_updated").inc(amount)
         elif metric_name == "targeting_universes_deleted":
-            businesses_processed.labels(
-                source="targeting", status="universe_deleted"
-            ).inc(amount)
+            businesses_processed.labels(source="targeting", status="universe_deleted").inc(amount)
         elif metric_name == "targeting_campaigns_created":
-            businesses_processed.labels(
-                source="targeting", status="campaign_created"
-            ).inc(amount)
+            businesses_processed.labels(source="targeting", status="campaign_created").inc(amount)
         elif metric_name == "targeting_campaigns_updated":
-            businesses_processed.labels(
-                source="targeting", status="campaign_updated"
-            ).inc(amount)
+            businesses_processed.labels(source="targeting", status="campaign_updated").inc(amount)
         elif metric_name == "targeting_batches_created":
-            businesses_processed.labels(source="targeting", status="batch_created").inc(
-                amount
-            )
+            businesses_processed.labels(source="targeting", status="batch_created").inc(amount)
         elif metric_name == "targeting_batches_updated":
-            businesses_processed.labels(source="targeting", status="batch_updated").inc(
-                amount
-            )
+            businesses_processed.labels(source="targeting", status="batch_updated").inc(amount)
         elif metric_name == "targeting_boundaries_created":
-            businesses_processed.labels(
-                source="targeting", status="boundary_created"
-            ).inc(amount)
+            businesses_processed.labels(source="targeting", status="boundary_created").inc(amount)
         else:
             # Default to generic business processing metric
-            businesses_processed.labels(source="generic", status=metric_name).inc(
-                amount
-            )
+            businesses_processed.labels(source="generic", status=metric_name).inc(amount)
 
-    async def record_pipeline_event(
-        self, pipeline_name: str, event_type: str, run_id: str = None, **kwargs
-    ):
+    async def record_pipeline_event(self, pipeline_name: str, event_type: str, run_id: str = None, **kwargs):
         """Record pipeline event for metrics"""
         # Track pipeline run status changes
         if event_type in ["started", "completed", "failed"]:
@@ -362,9 +318,7 @@ class MetricsCollector:
 
         # Track duration for completed runs
         if event_type == "completed" and "duration" in kwargs:
-            pipeline_duration.labels(pipeline_name=pipeline_name).observe(
-                kwargs["duration"]
-            )
+            pipeline_duration.labels(pipeline_name=pipeline_name).observe(kwargs["duration"])
 
         self.logger.info(
             f"Pipeline event recorded: {pipeline_name} - {event_type}",
@@ -376,9 +330,7 @@ class MetricsCollector:
             },
         )
 
-    async def record_task_execution(
-        self, task_name: str, status: str, duration: float = None, **kwargs
-    ):
+    async def record_task_execution(self, task_name: str, status: str, duration: float = None, **kwargs):
         """Record task execution metrics"""
         # Track task execution
         businesses_processed.labels(source=task_name, status=status).inc()
@@ -420,9 +372,7 @@ def track_time(metric_name: str = None):
                 duration = time.time() - start_time
                 if metric_name:
                     # Custom metric tracking
-                    assessment_duration.labels(assessment_type=metric_name).observe(
-                        duration
-                    )
+                    assessment_duration.labels(assessment_type=metric_name).observe(duration)
 
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
@@ -434,9 +384,7 @@ def track_time(metric_name: str = None):
                 duration = time.time() - start_time
                 if metric_name:
                     # Custom metric tracking
-                    assessment_duration.labels(assessment_type=metric_name).observe(
-                        duration
-                    )
+                    assessment_duration.labels(assessment_type=metric_name).observe(duration)
 
         # Return appropriate wrapper based on function type
         if asyncio.iscoroutinefunction(func):
@@ -463,6 +411,4 @@ def track_api_call(provider: str, endpoint: str, success: bool = True):
     """Track external API calls"""
     # This is handled by D0 Gateway metrics, but we can aggregate here
     status = "success" if success else "failed"
-    request_count.labels(
-        method="API", endpoint=f"{provider}:{endpoint}", status=status
-    ).inc()
+    request_count.labels(method="API", endpoint=f"{provider}:{endpoint}", status=status).inc()

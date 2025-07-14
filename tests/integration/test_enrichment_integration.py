@@ -24,23 +24,11 @@ pytestmark = pytest.mark.slow
 # Ensure we can import our modules
 sys.path.insert(0, "/app")
 
-from d4_enrichment.coordinator import (
-    BatchEnrichmentResult,
-    EnrichmentCoordinator,
-    EnrichmentPriority,
-    enrich_business,
-)
+from d4_enrichment.coordinator import BatchEnrichmentResult, EnrichmentCoordinator, EnrichmentPriority, enrich_business
 from d4_enrichment.gbp_enricher import GBPEnricher, GBPSearchResult
 from d4_enrichment.matchers import BusinessMatcher, MatchConfidence, MatchResult
-from d4_enrichment.models import (
-    EnrichmentResult,
-    EnrichmentSource,
-)
-from d4_enrichment.similarity import (
-    AddressSimilarity,
-    NameSimilarity,
-    PhoneSimilarity,
-)
+from d4_enrichment.models import EnrichmentResult, EnrichmentSource
+from d4_enrichment.similarity import AddressSimilarity, NameSimilarity, PhoneSimilarity
 
 
 class TestTask044AcceptanceCriteria:
@@ -133,9 +121,7 @@ class TestTask044AcceptanceCriteria:
 
             # Step 2: Test single business enrichment flow
             single_business = sample_businesses[0]
-            single_result = await enrich_business(
-                business=single_business, sources=[EnrichmentSource.INTERNAL]
-            )
+            single_result = await enrich_business(business=single_business, sources=[EnrichmentSource.INTERNAL])
 
             # Verify single enrichment result
             if single_result:
@@ -165,17 +151,13 @@ class TestTask044AcceptanceCriteria:
             assert progress.completion_percentage == 100.0
 
             # Verify at least some enrichments succeeded
-            total_success = (
-                batch_result.successful_enrichments + batch_result.skipped_enrichments
-            )
+            total_success = batch_result.successful_enrichments + batch_result.skipped_enrichments
             assert total_success >= 0  # At least no negative results
 
             # Step 4: Test error recovery in enrichment flow
             # This verifies the flow handles errors gracefully
             empty_business = {"id": "empty_test"}
-            empty_result = await enrich_business(
-                business=empty_business, sources=[EnrichmentSource.INTERNAL]
-            )
+            empty_result = await enrich_business(business=empty_business, sources=[EnrichmentSource.INTERNAL])
             # Should not crash, may return None or low-confidence result
 
             print("✓ Full enrichment flow works correctly")
@@ -196,24 +178,18 @@ class TestTask044AcceptanceCriteria:
             phone_matcher = PhoneSimilarity()
 
             # Test exact phone matches
-            exact_match = phone_matcher.calculate_similarity(
-                "+1-415-555-1234", "(415) 555-1234"
-            )
+            exact_match = phone_matcher.calculate_similarity("+1-415-555-1234", "(415) 555-1234")
             assert exact_match.score >= 0.9  # Should be high similarity
 
             # Test different formats
-            format_match = phone_matcher.calculate_similarity(
-                "4155551234", "415-555-1234"
-            )
+            format_match = phone_matcher.calculate_similarity("4155551234", "415-555-1234")
             assert format_match.score >= 0.8  # Should recognize same number
 
             # Step 2: Test business name matching accuracy
             name_matcher = NameSimilarity()
 
             # Test business name variations
-            name_match = name_matcher.calculate_similarity(
-                "Acme Corporation", "ACME CORP"
-            )
+            name_match = name_matcher.calculate_similarity("Acme Corporation", "ACME CORP")
             assert name_match.score >= 0.7  # Should match variations
 
             legal_match = name_matcher.calculate_similarity(
@@ -259,13 +235,9 @@ class TestTask044AcceptanceCriteria:
             gbp_results = await enricher._search_gbp_data(business_data)
 
             if gbp_results:
-                best_match = await enricher._select_best_match(
-                    business_data, gbp_results
-                )
+                best_match = await enricher._select_best_match(business_data, gbp_results)
                 if best_match:
-                    assert (
-                        best_match.search_confidence >= 0.5
-                    )  # Should find reasonable matches
+                    assert best_match.search_confidence >= 0.5  # Should find reasonable matches
 
             print("✓ Matching accuracy verified")
 
@@ -312,9 +284,7 @@ class TestTask044AcceptanceCriteria:
 
             # Verify merge correctness
             assert isinstance(merged_data, dict)
-            assert len(merged_data) >= len(
-                original_data
-            )  # Should have at least original fields
+            assert len(merged_data) >= len(original_data)  # Should have at least original fields
 
             # Verify original data preservation where appropriate
             assert "name" in merged_data or "business_name" in merged_data
@@ -336,9 +306,7 @@ class TestTask044AcceptanceCriteria:
 
             # Should use GBP data for missing fields
             assert merged_incomplete.get("phone") == mock_gbp.phone_number
-            assert (
-                merged_incomplete.get("formatted_address") == mock_gbp.formatted_address
-            )
+            assert merged_incomplete.get("formatted_address") == mock_gbp.formatted_address
             assert merged_incomplete.get("website") == mock_gbp.website
 
             # Step 3: Test end-to-end data merge in enrichment
@@ -391,9 +359,7 @@ class TestTask044AcceptanceCriteria:
             start_time = time.time()
 
             single_business = performance_test_businesses[0]
-            single_result = await enrich_business(
-                business=single_business, sources=[EnrichmentSource.INTERNAL]
-            )
+            single_result = await enrich_business(business=single_business, sources=[EnrichmentSource.INTERNAL])
 
             single_duration = time.time() - start_time
 
@@ -424,9 +390,7 @@ class TestTask044AcceptanceCriteria:
             throughput = len(test_batch) / batch_duration
             assert throughput > 0.5  # At least 0.5 businesses per second
 
-            print(
-                f"✓ Batch enrichment: {batch_duration:.2f}s for {batch_size} businesses"
-            )
+            print(f"✓ Batch enrichment: {batch_duration:.2f}s for {batch_size} businesses")
             print(f"✓ Throughput: {throughput:.2f} businesses/second")
 
             # Step 3: Test concurrent processing performance
@@ -434,12 +398,10 @@ class TestTask044AcceptanceCriteria:
 
             # Test with higher concurrency
             high_concurrency_coordinator = EnrichmentCoordinator(max_concurrent=5)
-            concurrent_result = (
-                await high_concurrency_coordinator.enrich_businesses_batch(
-                    businesses=test_batch,
-                    sources=[EnrichmentSource.INTERNAL],
-                    skip_existing=False,
-                )
+            concurrent_result = await high_concurrency_coordinator.enrich_businesses_batch(
+                businesses=test_batch,
+                sources=[EnrichmentSource.INTERNAL],
+                skip_existing=False,
             )
 
             concurrent_duration = time.time() - start_time
@@ -548,52 +510,36 @@ class TestTask044AcceptanceCriteria:
             execution_time = time.time() - start_time
 
             # Verify full flow completion
-            assert isinstance(
-                batch_result, BatchEnrichmentResult
-            ), "Full enrichment flow failed"
-            assert batch_result.total_processed == len(
-                sample_businesses
-            ), "Not all businesses processed"
+            assert isinstance(batch_result, BatchEnrichmentResult), "Full enrichment flow failed"
+            assert batch_result.total_processed == len(sample_businesses), "Not all businesses processed"
 
             # 2. Matching accuracy verified - check result quality
             successful_results = [r for r in batch_result.results if r]
             if successful_results:
                 for result in successful_results:
-                    assert hasattr(
-                        result, "match_confidence"
-                    ), "Matching confidence missing"
+                    assert hasattr(result, "match_confidence"), "Matching confidence missing"
                     assert hasattr(result, "match_score"), "Match score missing"
                     assert result.match_score >= 0.0, "Invalid match score"
 
             # 3. Data merge correct - verify merged data structure
             for result in batch_result.results:
                 if result and result.processed_data:
-                    assert isinstance(
-                        result.processed_data, dict
-                    ), "Data merge structure incorrect"
+                    assert isinstance(result.processed_data, dict), "Data merge structure incorrect"
                     # Should have business ID preserved
-                    original_business = next(
-                        b for b in sample_businesses if b["id"] == result.business_id
-                    )
+                    original_business = next(b for b in sample_businesses if b["id"] == result.business_id)
                     assert original_business, "Business ID not preserved in merge"
 
             # 4. Performance acceptable - verify timing and throughput
-            assert (
-                execution_time < 60.0
-            ), f"Performance unacceptable: {execution_time:.2f}s"
+            assert execution_time < 60.0, f"Performance unacceptable: {execution_time:.2f}s"
 
             if len(sample_businesses) > 0:
                 throughput = len(sample_businesses) / execution_time
-                assert (
-                    throughput > 0.1
-                ), f"Throughput too low: {throughput:.2f} businesses/second"
+                assert throughput > 0.1, f"Throughput too low: {throughput:.2f} businesses/second"
 
             # Verify progress tracking worked throughout
             progress = batch_result.progress
             assert progress.completion_percentage == 100.0, "Progress tracking failed"
-            assert progress.total_businesses == len(
-                sample_businesses
-            ), "Progress total incorrect"
+            assert progress.total_businesses == len(sample_businesses), "Progress total incorrect"
 
             print(f"✓ Comprehensive integration test passed in {execution_time:.2f}s")
             print(f"   - Processed {batch_result.total_processed} businesses")
@@ -632,8 +578,7 @@ if __name__ == "__main__":
             ]
 
             performance_businesses = [
-                {"id": f"perf_{i}", "name": f"Perf Test {i}", "phone": f"555-{i:04d}"}
-                for i in range(20)
+                {"id": f"perf_{i}", "name": f"Perf Test {i}", "phone": f"555-{i:04d}"} for i in range(20)
             ]
 
             # Run all acceptance criteria tests

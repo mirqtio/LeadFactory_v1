@@ -5,9 +5,10 @@ Build vertical_stats.parquet from Census Economic data.
 This script should be run annually to update baseline revenue statistics 
 by state and NAICS code using Economic Census and SUSB data.
 """
+from pathlib import Path
+
 import pandas as pd
 import requests
-from pathlib import Path
 
 
 def fetch_economic_census_data():
@@ -164,9 +165,7 @@ def build_vertical_stats():
     # Verify CT/238
     ct_238 = result[(result["state"] == "CT") & (result["naics3"] == 238)]
     if not ct_238.empty:
-        print(
-            f"\n✓ CT/238 row found with median receipts: ${ct_238.iloc[0]['median_receipts']:,}"
-        )
+        print(f"\n✓ CT/238 row found with median receipts: ${ct_238.iloc[0]['median_receipts']:,}")
     else:
         print("\n✗ WARNING: CT/238 row not found!")
         return False

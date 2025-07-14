@@ -112,9 +112,7 @@ class ExperimentLoader:
 
         return is_valid
 
-    def validate_single_experiment(
-        self, exp_id: str, exp_config: Dict[str, Any]
-    ) -> bool:
+    def validate_single_experiment(self, exp_id: str, exp_config: Dict[str, Any]) -> bool:
         """Validate a single experiment configuration"""
         is_valid = True
 
@@ -122,9 +120,7 @@ class ExperimentLoader:
         required_fields = ["id", "name", "variants", "primary_metric"]
         for field in required_fields:
             if field not in exp_config:
-                self.validation_errors.append(
-                    f"Experiment {exp_id}: Missing required field '{field}'"
-                )
+                self.validation_errors.append(f"Experiment {exp_id}: Missing required field '{field}'")
                 is_valid = False
 
         # Validate variants
@@ -135,19 +131,13 @@ class ExperimentLoader:
 
         # Check for control variant
         if "control" not in variants:
-            self.validation_warnings.append(
-                f"Experiment {exp_id}: No control variant defined"
-            )
+            self.validation_warnings.append(f"Experiment {exp_id}: No control variant defined")
 
         # Validate variant allocations
         total_allocation = 0.0
         for variant_id, variant_config in variants.items():
             allocation = variant_config.get("allocation", 0.0)
-            if (
-                not isinstance(allocation, (int, float))
-                or allocation < 0
-                or allocation > 1
-            ):
+            if not isinstance(allocation, (int, float)) or allocation < 0 or allocation > 1:
                 self.validation_errors.append(
                     f"Experiment {exp_id}, variant {variant_id}: Invalid allocation {allocation}"
                 )
@@ -163,9 +153,7 @@ class ExperimentLoader:
 
         return is_valid
 
-    def validate_assignment_rule(
-        self, rule_id: str, rule_config: Dict[str, Any]
-    ) -> bool:
+    def validate_assignment_rule(self, rule_id: str, rule_config: Dict[str, Any]) -> bool:
         """Validate an assignment rule configuration"""
         is_valid = True
 
@@ -173,17 +161,13 @@ class ExperimentLoader:
         required_fields = ["experiment_id", "method", "assignment_map"]
         for field in required_fields:
             if field not in rule_config:
-                self.validation_errors.append(
-                    f"Assignment rule {rule_id}: Missing required field '{field}'"
-                )
+                self.validation_errors.append(f"Assignment rule {rule_id}: Missing required field '{field}'")
                 is_valid = False
 
         # Validate assignment map
         assignment_map = rule_config.get("assignment_map", [])
         if not assignment_map:
-            self.validation_errors.append(
-                f"Assignment rule {rule_id}: Empty assignment map"
-            )
+            self.validation_errors.append(f"Assignment rule {rule_id}: Empty assignment map")
             is_valid = False
 
         # Validate hash ranges cover [0.0, 1.0] without gaps or overlaps
@@ -192,9 +176,7 @@ class ExperimentLoader:
             for assignment in assignment_map:
                 hash_range = assignment.get("hash_range", [])
                 if len(hash_range) != 2:
-                    self.validation_errors.append(
-                        f"Assignment rule {rule_id}: Invalid hash_range {hash_range}"
-                    )
+                    self.validation_errors.append(f"Assignment rule {rule_id}: Invalid hash_range {hash_range}")
                     is_valid = False
                 else:
                     ranges.append(tuple(hash_range))
@@ -203,22 +185,16 @@ class ExperimentLoader:
             if ranges:
                 ranges.sort()
                 if ranges[0][0] != 0.0:
-                    self.validation_errors.append(
-                        f"Assignment rule {rule_id}: Hash ranges don't start at 0.0"
-                    )
+                    self.validation_errors.append(f"Assignment rule {rule_id}: Hash ranges don't start at 0.0")
                     is_valid = False
                 if ranges[-1][1] != 1.0:
-                    self.validation_errors.append(
-                        f"Assignment rule {rule_id}: Hash ranges don't end at 1.0"
-                    )
+                    self.validation_errors.append(f"Assignment rule {rule_id}: Hash ranges don't end at 1.0")
                     is_valid = False
 
                 # Check for gaps or overlaps
                 for i in range(1, len(ranges)):
                     if ranges[i][0] != ranges[i - 1][1]:
-                        self.validation_errors.append(
-                            f"Assignment rule {rule_id}: Gap or overlap in hash ranges"
-                        )
+                        self.validation_errors.append(f"Assignment rule {rule_id}: Gap or overlap in hash ranges")
                         is_valid = False
                         break
 
@@ -256,10 +232,7 @@ class ExperimentLoader:
 
         # Check for subject line test
         for exp_id, exp_config in experiments.items():
-            if (
-                "subject" in exp_id.lower()
-                or "subject" in exp_config.get("name", "").lower()
-            ):
+            if "subject" in exp_id.lower() or "subject" in exp_config.get("name", "").lower():
                 criteria["subject_line_test_configured"] = True
                 print(f"✅ Subject line test found: {exp_id}")
 
@@ -273,10 +246,7 @@ class ExperimentLoader:
 
         # Check for price point test
         for exp_id, exp_config in experiments.items():
-            if (
-                "price" in exp_id.lower()
-                or "pricing" in exp_config.get("name", "").lower()
-            ):
+            if "price" in exp_id.lower() or "pricing" in exp_config.get("name", "").lower():
                 criteria["price_point_test_configured"] = True
                 print(f"✅ Price point test found: {exp_id}")
 
@@ -289,14 +259,8 @@ class ExperimentLoader:
                         print("✅ 50/50 split configured for price point test")
 
         # Check for tracking enabled
-        global_tracking = (
-            config.get("global_settings", {}).get("tracking", {}).get("enabled", False)
-        )
-        monitoring_enabled = (
-            config.get("monitoring", {})
-            .get("realtime_tracking", {})
-            .get("enabled", False)
-        )
+        global_tracking = config.get("global_settings", {}).get("tracking", {}).get("enabled", False)
+        monitoring_enabled = config.get("monitoring", {}).get("realtime_tracking", {}).get("enabled", False)
 
         if global_tracking or monitoring_enabled:
             criteria["tracking_enabled"] = True
@@ -326,12 +290,8 @@ class ExperimentLoader:
                     "name": exp_config["name"],
                     "description": exp_config.get("description", ""),
                     "status": ExperimentStatus.ACTIVE,
-                    "start_date": datetime.fromisoformat(
-                        exp_config.get("start_date", "").replace("Z", "+00:00")
-                    ),
-                    "end_date": datetime.fromisoformat(
-                        exp_config.get("end_date", "").replace("Z", "+00:00")
-                    ),
+                    "start_date": datetime.fromisoformat(exp_config.get("start_date", "").replace("Z", "+00:00")),
+                    "end_date": datetime.fromisoformat(exp_config.get("end_date", "").replace("Z", "+00:00")),
                     "config": exp_config,
                 }
 
@@ -341,9 +301,7 @@ class ExperimentLoader:
                     self.experiments_loaded.append(exp_id)
                     print(f"✅ Loaded experiment: {exp_id}")
                 else:
-                    self.validation_errors.append(
-                        f"Failed to load experiment: {exp_id}"
-                    )
+                    self.validation_errors.append(f"Failed to load experiment: {exp_id}")
 
             print(f"📊 Successfully loaded {len(self.experiments_loaded)} experiments")
             return len(self.validation_errors) == 0
@@ -352,9 +310,7 @@ class ExperimentLoader:
             self.validation_errors.append(f"Error loading experiments to system: {e}")
             return False
 
-    def generate_hash_assignment(
-        self, input_string: str, experiment_config: Dict[str, Any]
-    ) -> str:
+    def generate_hash_assignment(self, input_string: str, experiment_config: Dict[str, Any]) -> str:
         """Generate hash-based variant assignment for testing"""
         hash_seed = experiment_config.get("hash_seed", "leadfactory_2025")
         hash_input = f"{hash_seed}:{input_string}"
@@ -367,10 +323,7 @@ class ExperimentLoader:
             assignment_map = rule_config.get("assignment_map", [])
             for assignment in assignment_map:
                 hash_range = assignment.get("hash_range", [])
-                if (
-                    len(hash_range) == 2
-                    and hash_range[0] <= normalized_hash < hash_range[1]
-                ):
+                if len(hash_range) == 2 and hash_range[0] <= normalized_hash < hash_range[1]:
                     return assignment.get("variant", "control")
 
         return "control"  # Default fallback
@@ -394,9 +347,7 @@ class ExperimentLoader:
 
             variant_counts = {}
             for test_input in test_inputs * 20:  # Test with 100 assignments
-                variant = self.generate_hash_assignment(
-                    f"{test_input}_{exp_id}", config
-                )
+                variant = self.generate_hash_assignment(f"{test_input}_{exp_id}", config)
                 variant_counts[variant] = variant_counts.get(variant, 0) + 1
 
             total_assignments = sum(variant_counts.values())
@@ -404,9 +355,7 @@ class ExperimentLoader:
                 percentage = (count / total_assignments) * 100
                 print(f"   {variant}: {count}/{total_assignments} ({percentage:.1f}%)")
 
-    def generate_report(
-        self, config: Dict[str, Any], criteria: Dict[str, bool]
-    ) -> Dict[str, Any]:
+    def generate_report(self, config: Dict[str, Any], criteria: Dict[str, bool]) -> Dict[str, Any]:
         """Generate experiment loading report"""
         report = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -447,9 +396,7 @@ class ExperimentLoader:
 
         # Validate configuration
         if not self.validate_experiment_config(config):
-            print(
-                f"❌ Configuration validation failed: {len(self.validation_errors)} errors"
-            )
+            print(f"❌ Configuration validation failed: {len(self.validation_errors)} errors")
             for error in self.validation_errors:
                 print(f"   - {error}")
             return False
@@ -491,11 +438,7 @@ class ExperimentLoader:
             for warning in self.validation_warnings:
                 print(f"   - {warning}")
 
-        success = (
-            report["validation"]["valid"]
-            and report["summary"]["all_criteria_met"]
-            and system_load_success
-        )
+        success = report["validation"]["valid"] and report["summary"]["all_criteria_met"] and system_load_success
 
         status = "SUCCESS" if success else "FAILED"
         print(f"\n🎉 EXPERIMENT LOADING: {status}")

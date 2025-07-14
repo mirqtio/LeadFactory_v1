@@ -46,9 +46,7 @@ class BaseAPIClient(ABC):
         self.metrics = GatewayMetrics()
 
         # HTTP client with proper timeouts
-        self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(30.0), headers=self._get_headers()
-        )
+        self.client = httpx.AsyncClient(timeout=httpx.Timeout(30.0), headers=self._get_headers())
 
     async def __aenter__(self):
         return self
@@ -76,9 +74,7 @@ class BaseAPIClient(ABC):
         """Calculate cost for a specific operation"""
         pass
 
-    async def make_request(
-        self, method: str, endpoint: str, **kwargs
-    ) -> Dict[str, Any]:
+    async def make_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         """
         Make an authenticated API request with all gateway features
 
@@ -164,9 +160,7 @@ class BaseAPIClient(ABC):
             if isinstance(e, ExternalAPIError):
                 raise
             else:
-                raise ExternalAPIError(
-                    provider=self.provider, message=str(e), status_code=500
-                ) from e
+                raise ExternalAPIError(provider=self.provider, message=str(e), status_code=500) from e
 
         finally:
             # Record metrics

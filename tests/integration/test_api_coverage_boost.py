@@ -2,31 +2,37 @@
 Strategic integration tests to boost coverage for PRP-014
 These tests exercise full code paths through API endpoints
 """
-import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 import os
+from unittest.mock import patch
+
+import pytest
+from fastapi.testclient import TestClient
 
 # Set test environment
 os.environ["ENVIRONMENT"] = "test"
 os.environ["USE_STUBS"] = "true"
 
-from main import app
 from database.session import get_db
-from database.models import Lead, Business, ScoringResult
+from main import app
 
 
 @pytest.fixture
 def client(db_session):
     """Test client for FastAPI app"""
+
     def override_get_db():
         try:
             yield db_session
         finally:
             pass
-    
+
+    # Override database dependency for all modules that have their own get_db
     app.dependency_overrides[get_db] = override_get_db
+    
+    # Also override batch_runner's get_db
+    from batch_runner.api import get_db as batch_get_db
+    app.dependency_overrides[batch_get_db] = override_get_db
+    
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -34,226 +40,248 @@ def client(db_session):
 
 class TestStrategicAPICoverage:
     """High-coverage integration tests that exercise full code paths"""
-    
+
     def test_batch_runner_full_flow(self, client, db_session):
         """Test batch runner API - covers ~250 lines"""
+        # Create test leads in the database
+        from database.models import Lead
+        lead1 = Lead(id="lead-1", email="test1@example.com", domain="example1.com", company_name="Company 1")
+        lead2 = Lead(id="lead-2", email="test2@example.com", domain="example2.com", company_name="Company 2")
+        db_session.add(lead1)
+        db_session.add(lead2)
+        db_session.commit()
+        
         # Mock external dependencies
-        with patch('batch_runner.processor.BatchProcessor') as mock_processor:
-            mock_processor.return_value.process_batch.return_value = {
-                "job_id": "test-123",
-                "status": "completed",
-                "processed": 10,
-                "failed": 0
-            }
-            
-            # Create batch job
-            response = client.post("/api/v1/batch/jobs", json={
-                "name": "Test Batch",
-                "type": "assessment",
-                "targets": [
-                    {"url": "example1.com", "email": "test1@example.com"},
-                    {"url": "example2.com", "email": "test2@example.com"}
-                ]
-            })
+        with patch("batch_runner.processor.BatchProcessor") as mock_processor:
+            # Create async mock for process_batch
+            async def mock_process_batch(batch_id):
+                return {
+                    "job_id": batch_id,
+                    "status": "completed",
+                    "processed": 2,
+                    "failed": 0,
+                }
+            mock_processor.return_value.process_batch = mock_process_batch
+
+            # Preview batch cost
+            response = client.post(
+                "/api/batch/preview",
+                json={
+                    "lead_ids": ["lead-1", "lead-2"],
+                    "template_version": "v1"
+                },
+            )
             assert response.status_code == 200
-            job_data = response.json()
-            
-            # Check job status
-            response = client.get(f"/api/v1/batch/jobs/{job_data['id']}")
+            preview_data = response.json()
+
+            # Start batch processing
+            response = client.post(
+                "/api/batch/start",
+                json={
+                    "lead_ids": ["lead-1", "lead-2"],
+                    "template_version": "v1",
+                    "name": "Test Batch",
+                    "estimated_cost_usd": 10.0,
+                    "cost_approved": True
+                },
+            )
+            assert response.status_code == 201
+            batch_data = response.json()
+
+            # Check batch status
+            response = client.get(f"/api/batch/{batch_data['id']}/status")
             assert response.status_code == 200
-            
-            # Get cost calculation
-            response = client.get(f"/api/v1/batch/jobs/{job_data['id']}/costs")
+
+            # List batches
+            response = client.get("/api/batch")
             assert response.status_code == 200
-    
+
     def test_d1_targeting_api_flow(self, client, db_session):
         """Test targeting API - covers ~300 lines"""
-        with patch('d1_targeting.geo_validator.GeoValidator') as mock_validator:
+        with patch("d1_targeting.geo_validator.GeoValidator") as mock_validator:
             mock_validator.return_value.validate_location.return_value = {
                 "valid": True,
                 "city": "San Francisco",
                 "state": "CA",
-                "country": "US"
+                "country": "US",
             }
-            
+
             # Validate targeting
-            response = client.post("/api/v1/targeting/validate", json={
-                "locations": ["San Francisco, CA", "New York, NY"],
-                "industries": ["restaurant", "medical"],
-                "keywords": ["online ordering", "appointments"]
-            })
+            response = client.post(
+                "/api/v1/targeting/validate",
+                json={
+                    "locations": ["San Francisco, CA", "New York, NY"],
+                    "industries": ["restaurant", "medical"],
+                    "keywords": ["online ordering", "appointments"],
+                },
+            )
             assert response.status_code == 200
-            
+
             # Get target universe
-            response = client.post("/api/v1/targeting/universe", json={
-                "geo_filters": {"states": ["CA", "NY"]},
-                "vertical_filters": {"industries": ["restaurant"]},
-                "size": 1000
-            })
+            response = client.post(
+                "/api/v1/targeting/universe",
+                json={
+                    "geo_filters": {"states": ["CA", "NY"]},
+                    "vertical_filters": {"industries": ["restaurant"]},
+                    "size": 1000,
+                },
+            )
             assert response.status_code == 200
-            
+
             # Check quota
             response = client.get("/api/v1/targeting/quota")
             assert response.status_code == 200
-    
+
     def test_d3_assessment_coordinator_flow(self, client, db_session):
         """Test assessment coordinator - covers ~350 lines"""
-        with patch('d3_assessment.coordinator.AssessmentCoordinator') as mock_coord:
+        with patch("d3_assessment.coordinator.AssessmentCoordinator") as mock_coord:
             mock_coord.return_value.assess_website.return_value = {
                 "assessment_id": "test-456",
                 "status": "completed",
                 "findings": [
                     {"type": "performance", "severity": "high", "impact": 8},
-                    {"type": "seo", "severity": "medium", "impact": 5}
+                    {"type": "seo", "severity": "medium", "impact": 5},
                 ],
-                "score": 72
+                "score": 72,
             }
-            
+
             # Start assessment
-            response = client.post("/api/v1/assessments/assess", json={
-                "url": "https://example.com",
-                "email": "test@example.com",
-                "checks": ["performance", "seo", "security"]
-            })
+            response = client.post(
+                "/api/v1/assessments/assess",
+                json={
+                    "url": "https://example.com",
+                    "email": "test@example.com",
+                    "checks": ["performance", "seo", "security"],
+                },
+            )
             assert response.status_code == 200
             assessment_data = response.json()
-            
+
             # Check status
             response = client.get(f"/api/v1/assessments/{assessment_data['id']}/status")
             assert response.status_code == 200
-            
+
             # Get results
             response = client.get(f"/api/v1/assessments/{assessment_data['id']}/results")
             assert response.status_code == 200
-    
+
     def test_d6_reports_generation_flow(self, client, db_session):
         """Test report generation - covers ~200 lines"""
-        with patch('d6_reports.generator.ReportGenerator') as mock_gen:
+        with patch("d6_reports.generator.ReportGenerator") as mock_gen:
             mock_gen.return_value.generate_report.return_value = {
                 "report_id": "test-789",
                 "status": "completed",
-                "pdf_url": "/reports/test-789.pdf"
+                "pdf_url": "/reports/test-789.pdf",
             }
-            
+
             # Generate report
-            response = client.post("/api/v1/reports/generate", json={
-                "assessment_id": "test-456",
-                "template": "executive_summary",
-                "include_recommendations": True
-            })
+            response = client.post(
+                "/api/v1/reports/generate",
+                json={"assessment_id": "test-456", "template": "executive_summary", "include_recommendations": True},
+            )
             assert response.status_code == 200
-            
+
             # Check generation status
             report_data = response.json()
             response = client.get(f"/api/v1/reports/{report_data['id']}/status")
             assert response.status_code == 200
-            
+
             # Get report metadata
             response = client.get(f"/api/v1/reports/{report_data['id']}")
             assert response.status_code == 200
-    
+
     def test_d8_personalization_flow(self, client, db_session):
         """Test personalization API - covers ~400 lines"""
-        with patch('d8_personalization.personalizer.Personalizer') as mock_pers:
+        with patch("d8_personalization.personalizer.Personalizer") as mock_pers:
             mock_pers.return_value.generate_content.return_value = {
                 "subject": "Boost Your Restaurant's Online Presence",
                 "preview": "3 critical issues found...",
                 "body": "<html>...</html>",
-                "personalization_score": 0.85
+                "personalization_score": 0.85,
             }
-            
+
             # Generate personalized content
-            response = client.post("/api/v1/personalization/generate", json={
-                "lead_id": "test-lead-123",
-                "template": "audit_report",
-                "context": {
-                    "industry": "restaurant",
-                    "findings": ["slow_loading", "no_mobile"],
-                    "score": 65
-                }
-            })
+            response = client.post(
+                "/api/v1/personalization/generate",
+                json={
+                    "lead_id": "test-lead-123",
+                    "template": "audit_report",
+                    "context": {"industry": "restaurant", "findings": ["slow_loading", "no_mobile"], "score": 65},
+                },
+            )
             assert response.status_code == 200
-            
+
             # Check spam score
-            response = client.post("/api/v1/personalization/spam-check", json={
-                "subject": "Test Subject",
-                "body": "Test email body content"
-            })
+            response = client.post(
+                "/api/v1/personalization/spam-check",
+                json={"subject": "Test Subject", "body": "Test email body content"},
+            )
             assert response.status_code == 200
-            
+
             # Generate subject lines
-            response = client.post("/api/v1/personalization/subject-lines", json={
-                "industry": "restaurant",
-                "tone": "urgent",
-                "count": 5
-            })
+            response = client.post(
+                "/api/v1/personalization/subject-lines", json={"industry": "restaurant", "tone": "urgent", "count": 5}
+            )
             assert response.status_code == 200
-    
+
     def test_d5_scoring_formula_evaluation(self, client, db_session):
         """Test scoring formula evaluation - covers formula_evaluator.py"""
         # This covers the uncovered d5_scoring modules
-        response = client.post("/api/v1/scoring/evaluate", json={
-            "formula": "base_score * industry_multiplier + bonus_points",
-            "variables": {
-                "base_score": 70,
-                "industry_multiplier": 1.2,
-                "bonus_points": 10
-            }
-        })
+        response = client.post(
+            "/api/v1/scoring/evaluate",
+            json={
+                "formula": "base_score * industry_multiplier + bonus_points",
+                "variables": {"base_score": 70, "industry_multiplier": 1.2, "bonus_points": 10},
+            },
+        )
         assert response.status_code in [200, 404]  # May not have this endpoint
-        
+
         # Test rules schema validation
-        response = client.post("/api/v1/scoring/validate-rules", json={
-            "rules": [
-                {"condition": "score > 80", "action": "premium_tier"},
-                {"condition": "score > 60", "action": "standard_tier"}
-            ]
-        })
+        response = client.post(
+            "/api/v1/scoring/validate-rules",
+            json={
+                "rules": [
+                    {"condition": "score > 80", "action": "premium_tier"},
+                    {"condition": "score > 60", "action": "standard_tier"},
+                ]
+            },
+        )
         assert response.status_code in [200, 404]
 
 
 class TestHighCoverageProviders:
     """Test d0_gateway providers for coverage boost"""
-    
+
     def test_all_providers_basic_flow(self, client):
         """Test all providers in one shot - covers ~500 lines"""
-        providers = [
-            'dataaxle', 'hunter', 'openai', 'semrush', 
-            'screenshotone', 'pagespeed', 'humanloop'
-        ]
-        
+        providers = ["dataaxle", "hunter", "openai", "semrush", "screenshotone", "pagespeed", "humanloop"]
+
         for provider in providers:
-            with patch(f'd0_gateway.providers.{provider}') as mock_provider:
+            with patch(f"d0_gateway.providers.{provider}") as mock_provider:
                 # Mock successful responses
-                mock_provider.return_value.execute.return_value = {
-                    "status": "success",
-                    "data": {"test": "data"}
-                }
-                
+                mock_provider.return_value.execute.return_value = {"status": "success", "data": {"test": "data"}}
+
                 # Generic provider test endpoint (if exists)
-                response = client.post(f"/api/v1/gateway/{provider}/test", json={
-                    "test": True
-                })
+                response = client.post(f"/api/v1/gateway/{provider}/test", json={"test": True})
                 # Don't fail if endpoint doesn't exist
                 assert response.status_code in [200, 404, 405]
-    
+
     def test_orchestration_pipeline(self, client, db_session):
         """Test orchestration pipeline - covers d11 modules"""
-        with patch('d11_orchestration.pipeline.Pipeline') as mock_pipeline:
+        with patch("d11_orchestration.pipeline.Pipeline") as mock_pipeline:
             mock_pipeline.return_value.execute.return_value = {
                 "pipeline_id": "test-pipeline",
                 "status": "completed",
-                "stages": ["targeting", "sourcing", "assessment", "scoring"]
+                "stages": ["targeting", "sourcing", "assessment", "scoring"],
             }
-            
+
             # Execute pipeline
-            response = client.post("/api/v1/orchestration/pipelines/execute", json={
-                "name": "Full Assessment Pipeline",
-                "targets": ["example.com"],
-                "stages": ["all"]
-            })
+            response = client.post(
+                "/api/v1/orchestration/pipelines/execute",
+                json={"name": "Full Assessment Pipeline", "targets": ["example.com"], "stages": ["all"]},
+            )
             assert response.status_code in [200, 404]
-            
+
             # Check experiments
             response = client.get("/api/v1/orchestration/experiments")
             assert response.status_code in [200, 404]

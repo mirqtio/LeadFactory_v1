@@ -59,9 +59,7 @@ def test_environment_setup():
     ], f"USE_STUBS should be true or false, got {use_stubs}"
 
     # Database URL should point to a test database
-    assert (
-        "test" in db_url or ":memory:" in db_url
-    ), f"DATABASE_URL should contain 'test' or ':memory:', got {db_url}"
+    assert "test" in db_url or ":memory:" in db_url, f"DATABASE_URL should contain 'test' or ':memory:', got {db_url}"
 
 
 def test_project_structure():

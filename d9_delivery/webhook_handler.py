@@ -28,14 +28,7 @@ from sqlalchemy.orm import Session
 from core.config import get_settings
 from core.exceptions import ValidationError
 from d9_delivery.compliance import ComplianceManager
-from d9_delivery.models import (
-    BounceTracking,
-    BounceType,
-    DeliveryEvent,
-    DeliveryStatus,
-    EmailDelivery,
-    EventType,
-)
+from d9_delivery.models import BounceTracking, BounceType, DeliveryEvent, DeliveryStatus, EmailDelivery, EventType
 from database.session import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -106,9 +99,7 @@ class WebhookHandler:
             True if signature is valid, False otherwise
         """
         if not self.webhook_secret:
-            logger.warning(
-                "No webhook secret configured, skipping signature verification"
-            )
+            logger.warning("No webhook secret configured, skipping signature verification")
             return True  # Allow in development/testing
 
         try:
@@ -117,9 +108,7 @@ class WebhookHandler:
                 signature = signature[7:]
 
             # Calculate expected signature
-            expected_signature = hmac.new(
-                self.webhook_secret.encode(), payload.encode(), hashlib.sha256
-            ).hexdigest()
+            expected_signature = hmac.new(self.webhook_secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
             # Compare signatures securely
             is_valid = hmac.compare_digest(signature, expected_signature)
@@ -192,9 +181,7 @@ class WebhookHandler:
                 parsed_timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc)
             else:
                 try:
-                    parsed_timestamp = datetime.fromisoformat(
-                        str(timestamp).replace("Z", "+00:00")
-                    )
+                    parsed_timestamp = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
                 except:
                     parsed_timestamp = datetime.now(timezone.utc)
 
@@ -272,9 +259,7 @@ class WebhookHandler:
 
                     # Track event types
                     event_type_str = event.event_type.value
-                    results["events_by_type"][event_type_str] = (
-                        results["events_by_type"].get(event_type_str, 0) + 1
-                    )
+                    results["events_by_type"][event_type_str] = results["events_by_type"].get(event_type_str, 0) + 1
                 else:
                     results["errors"] += 1
                     results["error_details"].append(
@@ -287,9 +272,7 @@ class WebhookHandler:
                     )
 
             except Exception as e:
-                logger.error(
-                    f"Error processing event {event.event_type.value} for {event.email}: {e}"
-                )
+                logger.error(f"Error processing event {event.event_type.value} for {event.email}: {e}")
                 results["errors"] += 1
                 results["error_details"].append(
                     {
@@ -310,11 +293,7 @@ class WebhookHandler:
         try:
             with SessionLocal() as session:
                 # Check using the sendgrid_event_id field which should be set to event_id
-                existing = (
-                    session.query(DeliveryEvent)
-                    .filter(DeliveryEvent.sendgrid_event_id == event_id)
-                    .first()
-                )
+                existing = session.query(DeliveryEvent).filter(DeliveryEvent.sendgrid_event_id == event_id).first()
                 is_duplicate = existing is not None
                 logger.debug(f"Duplicate check for event_id {event_id}: {is_duplicate}")
                 return is_duplicate
@@ -381,9 +360,7 @@ class WebhookHandler:
                     session.add(delivery_event)
                     session.commit()
                 else:
-                    logger.warning(
-                        f"No delivery found for message ID {event.message_id}, skipping event recording"
-                    )
+                    logger.warning(f"No delivery found for message ID {event.message_id}, skipping event recording")
 
                 logger.debug(f"Processed delivered event for {event.email}")
                 return True
@@ -418,9 +395,7 @@ class WebhookHandler:
                         bounced_at=event.timestamp,
                         sendgrid_bounce_data={
                             "event_id": event.event_id,
-                            "smtp_id": event.raw_event.get("smtp-id")
-                            if event.raw_event
-                            else None,
+                            "smtp_id": event.raw_event.get("smtp-id") if event.raw_event else None,
                             "sg_event_id": event.event_id,
                             "message_id": event.message_id,
                             "ip": event.ip,
@@ -457,25 +432,17 @@ class WebhookHandler:
                     session.add(delivery_event)
                     session.commit()
 
-                    logger.info(
-                        f"Processed {bounce_type.value} bounce for {event.email}: {event.reason}"
-                    )
+                    logger.info(f"Processed {bounce_type.value} bounce for {event.email}: {event.reason}")
                 else:
                     # Still add to suppression list even if no delivery record found
-                    bounce_type = (
-                        BounceType.HARD
-                        if event.bounce_type == "bounce"
-                        else BounceType.SOFT
-                    )
+                    bounce_type = BounceType.HARD if event.bounce_type == "bounce" else BounceType.SOFT
                     if bounce_type == BounceType.HARD:
                         self.compliance_manager.record_suppression(
                             email=event.email,
                             reason="hard_bounce",
                             source="sendgrid_webhook",
                         )
-                    logger.warning(
-                        f"No delivery found for message ID {event.message_id}, skipping bounce tracking"
-                    )
+                    logger.warning(f"No delivery found for message ID {event.message_id}, skipping bounce tracking")
 
                 return True
 
@@ -557,9 +524,7 @@ class WebhookHandler:
                     session.add(delivery_event)
                     session.commit()
 
-                    logger.debug(
-                        f"Processed click event for {event.email} on URL: {event.url}"
-                    )
+                    logger.debug(f"Processed click event for {event.email} on URL: {event.url}")
                 else:
                     logger.warning(
                         f"No delivery found for message ID {event.message_id}, skipping click event recording"
@@ -686,9 +651,7 @@ class WebhookHandler:
                         f"No delivery found for message ID {event.message_id}, skipping dropped event recording"
                     )
 
-                logger.warning(
-                    f"Processed dropped event for {event.email}: {event.reason}"
-                )
+                logger.warning(f"Processed dropped event for {event.email}: {event.reason}")
                 return True
 
         except Exception as e:
@@ -726,9 +689,7 @@ class WebhookHandler:
                         f"No delivery found for message ID {event.message_id}, skipping deferred event recording"
                     )
 
-                logger.debug(
-                    f"Processed deferred event for {event.email}: {event.reason}"
-                )
+                logger.debug(f"Processed deferred event for {event.email}: {event.reason}")
                 return True
 
         except Exception as e:
@@ -806,9 +767,7 @@ class WebhookHandler:
                         f"No delivery found for message ID {event.message_id}, skipping blocked event recording"
                     )
 
-                logger.warning(
-                    f"Processed blocked event for {event.email}: {event.reason}"
-                )
+                logger.warning(f"Processed blocked event for {event.email}: {event.reason}")
                 return True
 
         except Exception as e:
@@ -845,28 +804,20 @@ class WebhookHandler:
                         f"No delivery found for message ID {event.message_id}, skipping generic event recording"
                     )
 
-                logger.debug(
-                    f"Processed generic {event.event_type.value} event for {event.email}"
-                )
+                logger.debug(f"Processed generic {event.event_type.value} event for {event.email}")
                 return True
 
         except Exception as e:
             logger.error(f"Error handling generic event: {e}")
             return False
 
-    def _find_delivery_by_message_id(
-        self, session: Session, message_id: str
-    ) -> Optional[EmailDelivery]:
+    def _find_delivery_by_message_id(self, session: Session, message_id: str) -> Optional[EmailDelivery]:
         """Find delivery record by SendGrid message ID"""
         if not message_id:
             return None
 
         try:
-            return (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == message_id)
-                .first()
-            )
+            return session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == message_id).first()
         except Exception as e:
             logger.error(f"Error finding delivery by message ID {message_id}: {e}")
             return None
@@ -888,11 +839,7 @@ class WebhookHandler:
 
             with SessionLocal() as session:
                 # Total events
-                total_events = (
-                    session.query(DeliveryEvent)
-                    .filter(DeliveryEvent.processed_at >= cutoff_time)
-                    .count()
-                )
+                total_events = session.query(DeliveryEvent).filter(DeliveryEvent.processed_at >= cutoff_time).count()
 
                 # Events by type
                 events_by_type = {}
@@ -911,11 +858,7 @@ class WebhookHandler:
                         events_by_type[event_type.value] = count
 
                 # Bounce statistics
-                bounces = (
-                    session.query(BounceTracking)
-                    .filter(BounceTracking.created_at >= cutoff_time)
-                    .count()
-                )
+                bounces = session.query(BounceTracking).filter(BounceTracking.created_at >= cutoff_time).count()
 
                 return {
                     "period_hours": hours,
@@ -960,9 +903,7 @@ def process_sendgrid_webhook(payload: str, signature: str = None) -> Dict[str, A
     return results
 
 
-def create_test_webhook_event(
-    event_type: str, email: str, message_id: str, **kwargs
-) -> Dict[str, Any]:
+def create_test_webhook_event(event_type: str, email: str, message_id: str, **kwargs) -> Dict[str, Any]:
     """
     Create a test webhook event for testing purposes
 

@@ -23,12 +23,7 @@ try:
 except ImportError:
     # For testing when d0_gateway may not be available
     OpenAIClient = None
-from .models import (
-    ContentStrategy,
-    EmailContentType,
-    PersonalizationStrategy,
-    determine_risk_level,
-)
+from .models import ContentStrategy, EmailContentType, PersonalizationStrategy, determine_risk_level
 from .subject_lines import SubjectLineGenerator, SubjectLineRequest
 
 
@@ -71,9 +66,7 @@ class PersonalizationRequest:
     contact_data: Optional[Dict[str, Any]] = None
     campaign_context: Optional[Dict[str, Any]] = None
     content_type: EmailContentType = EmailContentType.COLD_OUTREACH
-    personalization_strategy: PersonalizationStrategy = (
-        PersonalizationStrategy.WEBSITE_ISSUES
-    )
+    personalization_strategy: PersonalizationStrategy = PersonalizationStrategy.WEBSITE_ISSUES
     content_strategy: ContentStrategy = ContentStrategy.PROBLEM_AGITATION
     format_preference: EmailFormat = EmailFormat.BOTH
     template_id: Optional[str] = None
@@ -135,29 +128,21 @@ class IssueExtractor:
 
         # Extract from PageSpeed data
         if "pagespeed" in assessment_data:
-            pagespeed_issues = self._extract_pagespeed_issues(
-                assessment_data["pagespeed"], business_data
-            )
+            pagespeed_issues = self._extract_pagespeed_issues(assessment_data["pagespeed"], business_data)
             issues.extend(pagespeed_issues)
 
         # Extract from technical stack analysis
         if "techstack" in assessment_data:
-            tech_issues = self._extract_techstack_issues(
-                assessment_data["techstack"], business_data
-            )
+            tech_issues = self._extract_techstack_issues(assessment_data["techstack"], business_data)
             issues.extend(tech_issues)
 
         # Extract from general issues list
         if "issues" in assessment_data:
-            general_issues = self._extract_general_issues(
-                assessment_data["issues"], business_data
-            )
+            general_issues = self._extract_general_issues(assessment_data["issues"], business_data)
             issues.extend(general_issues)
 
         # Sort by impact and return top issues
-        issues.sort(
-            key=lambda x: (self._impact_to_score(x.impact), x.score), reverse=True
-        )
+        issues.sort(key=lambda x: (self._impact_to_score(x.impact), x.score), reverse=True)
 
         return issues[:max_issues]
 
@@ -202,9 +187,7 @@ class IssueExtractor:
         # Accessibility score issue
         accessibility_score = pagespeed_data.get("accessibility_score", 100) / 100
         if accessibility_score < 0.8:
-            impact = (
-                IssueImpact.MEDIUM if accessibility_score < 0.6 else IssueImpact.LOW
-            )
+            impact = IssueImpact.MEDIUM if accessibility_score < 0.6 else IssueImpact.LOW
             issues.append(
                 ExtractedIssue(
                     issue_type="accessibility",
@@ -219,16 +202,12 @@ class IssueExtractor:
 
         # Core Web Vitals issues
         if "core_web_vitals" in pagespeed_data:
-            cwv_issues = self._extract_core_web_vitals_issues(
-                pagespeed_data["core_web_vitals"]
-            )
+            cwv_issues = self._extract_core_web_vitals_issues(pagespeed_data["core_web_vitals"])
             issues.extend(cwv_issues)
 
         return issues
 
-    def _extract_core_web_vitals_issues(
-        self, cwv_data: Dict[str, Any]
-    ) -> List[ExtractedIssue]:
+    def _extract_core_web_vitals_issues(self, cwv_data: Dict[str, Any]) -> List[ExtractedIssue]:
         """Extract issues from Core Web Vitals data"""
         issues = []
 
@@ -319,9 +298,7 @@ class IssueExtractor:
 
         return issues
 
-    def _map_general_issue(
-        self, issue_name: str, business_data: Dict[str, Any]
-    ) -> Optional[ExtractedIssue]:
+    def _map_general_issue(self, issue_name: str, business_data: Dict[str, Any]) -> Optional[ExtractedIssue]:
         """Map general issue names to ExtractedIssue objects"""
         issue_mappings = {
             "slow_loading": ExtractedIssue(
@@ -475,9 +452,7 @@ class SpamChecker:
         details["subject_line_issues"] = subject_issues
 
         # Check formatting issues
-        formatting_score, formatting_issues = self._check_formatting(
-            content, format_type
-        )
+        formatting_score, formatting_issues = self._check_formatting(content, format_type)
         spam_score += formatting_score
         details["formatting_issues"] = formatting_issues
 
@@ -544,35 +519,27 @@ class SpamChecker:
             score += exclamation_count * 0.3
 
         # Check for all caps
-        caps_ratio = (
-            sum(1 for c in subject if c.isupper()) / len(subject) if subject else 0
-        )
+        caps_ratio = sum(1 for c in subject if c.isupper()) / len(subject) if subject else 0
         if caps_ratio > 0.5:
             issues.append("Too many capital letters")
             score += 1.0
 
         return score, issues
 
-    def _check_formatting(
-        self, content: str, format_type: str
-    ) -> Tuple[float, List[str]]:
+    def _check_formatting(self, content: str, format_type: str) -> Tuple[float, List[str]]:
         """Check for formatting-related spam indicators"""
         issues = []
         score = 0.0
 
         if format_type == "html":
             # Check for excessive font colors
-            color_matches = re.findall(
-                r'color\s*[:=]\s*["\']?[^"\'>]+', content, re.IGNORECASE
-            )
+            color_matches = re.findall(r'color\s*[:=]\s*["\']?[^"\'>]+', content, re.IGNORECASE)
             if len(color_matches) > 5:
                 issues.append("Too many font colors")
                 score += 0.4
 
             # Check for excessive font sizes
-            size_matches = re.findall(
-                r'font-size\s*[:=]\s*["\']?[^"\'>]+', content, re.IGNORECASE
-            )
+            size_matches = re.findall(r'font-size\s*[:=]\s*["\']?[^"\'>]+', content, re.IGNORECASE)
             if len(size_matches) > 3:
                 issues.append("Too many font sizes")
                 score += 0.3
@@ -623,9 +590,7 @@ class EmailPersonalizer:
         self.spam_checker = SpamChecker()
         self.subject_line_generator = SubjectLineGenerator()
 
-    async def personalize_email(
-        self, request: PersonalizationRequest
-    ) -> PersonalizedEmail:
+    async def personalize_email(self, request: PersonalizationRequest) -> PersonalizedEmail:
         """Generate personalized email content - Acceptance Criteria"""
 
         # Step 1: Extract issues from assessment data - Acceptance Criteria
@@ -637,27 +602,19 @@ class EmailPersonalizer:
         subject_line = await self._generate_subject_line(request, extracted_issues)
 
         # Step 3: Generate email content using LLM - Acceptance Criteria
-        html_content, text_content = await self._generate_email_content(
-            request, extracted_issues, subject_line
-        )
+        html_content, text_content = await self._generate_email_content(request, extracted_issues, subject_line)
 
         # Step 4: Generate preview text
         preview_text = self._generate_preview_text(text_content)
 
         # Step 5: Calculate spam score - Acceptance Criteria
-        spam_score, spam_details = self.spam_checker.calculate_spam_score(
-            subject_line, html_content, "html"
-        )
+        spam_score, spam_details = self.spam_checker.calculate_spam_score(subject_line, html_content, "html")
 
         # Step 6: Calculate quality metrics
-        quality_metrics = self._calculate_quality_metrics(
-            subject_line, html_content, text_content, extracted_issues
-        )
+        quality_metrics = self._calculate_quality_metrics(subject_line, html_content, text_content, extracted_issues)
 
         # Step 7: Prepare personalization data
-        personalization_data = self._build_personalization_data(
-            request, extracted_issues, spam_details
-        )
+        personalization_data = self._build_personalization_data(request, extracted_issues, spam_details)
 
         # Step 8: Create generation metadata
         generation_metadata = {
@@ -683,9 +640,7 @@ class EmailPersonalizer:
             generation_metadata=generation_metadata,
         )
 
-    async def _generate_subject_line(
-        self, request: PersonalizationRequest, issues: List[ExtractedIssue]
-    ) -> str:
+    async def _generate_subject_line(self, request: PersonalizationRequest, issues: List[ExtractedIssue]) -> str:
         """Generate subject line using the subject line generator"""
         subject_request = SubjectLineRequest(
             business_id=request.business_id,
@@ -718,9 +673,7 @@ class EmailPersonalizer:
         business_name = request.business_data.get("name", "your business")
         contact_name = None
         if request.contact_data:
-            contact_name = request.contact_data.get(
-                "first_name"
-            ) or request.contact_data.get("name")
+            contact_name = request.contact_data.get("first_name") or request.contact_data.get("name")
 
         # Prepare issues summary
         issues_summary = []
@@ -746,27 +699,19 @@ class EmailPersonalizer:
                 ai_body = response.get("email_body", "")
 
                 # Generate HTML version - HTML/text formatting
-                html_content = self._generate_html_content(
-                    ai_body, business_name, contact_name, issues
-                )
+                html_content = self._generate_html_content(ai_body, business_name, contact_name, issues)
 
                 # Generate text version - HTML/text formatting
-                text_content = self._generate_text_content(
-                    ai_body, business_name, contact_name, issues
-                )
+                text_content = self._generate_text_content(ai_body, business_name, contact_name, issues)
 
                 return html_content, text_content
             else:
                 # No OpenAI client available, use fallback
-                return self._generate_fallback_content(
-                    request, issues, business_name, contact_name
-                )
+                return self._generate_fallback_content(request, issues, business_name, contact_name)
 
         except Exception:
             # Fallback content generation
-            return self._generate_fallback_content(
-                request, issues, business_name, contact_name
-            )
+            return self._generate_fallback_content(request, issues, business_name, contact_name)
 
     def _generate_html_content(
         self,
@@ -894,13 +839,9 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
         Based on our analysis, there are {len(issues)} key areas that could enhance your online presence 
         and customer experience."""
 
-        html_content = self._generate_html_content(
-            fallback_body, business_name, contact_name, issues
-        )
+        html_content = self._generate_html_content(fallback_body, business_name, contact_name, issues)
 
-        text_content = self._generate_text_content(
-            fallback_body, business_name, contact_name, issues
-        )
+        text_content = self._generate_text_content(fallback_body, business_name, contact_name, issues)
 
         return html_content, text_content
 
@@ -928,11 +869,7 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
 
         # Content length score
         text_length = len(text_content)
-        length_score = (
-            1.0
-            if 200 <= text_length <= 1000
-            else max(0.3, 1.0 - abs(text_length - 600) / 1000)
-        )
+        length_score = 1.0 if 200 <= text_length <= 1000 else max(0.3, 1.0 - abs(text_length - 600) / 1000)
 
         # Personalization score
         personalization_score = min(len(issues) * 0.3, 1.0)
@@ -951,18 +888,11 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
             "consultation",
             "discuss",
         ]
-        cta_count = sum(
-            1 for indicator in cta_indicators if indicator in text_content.lower()
-        )
+        cta_count = sum(1 for indicator in cta_indicators if indicator in text_content.lower())
         cta_score = min(cta_count * 0.3, 1.0)
 
         # Overall quality score
-        overall_score = (
-            length_score * 0.3
-            + personalization_score * 0.3
-            + readability_score * 0.2
-            + cta_score * 0.2
-        )
+        overall_score = length_score * 0.3 + personalization_score * 0.3 + readability_score * 0.2 + cta_score * 0.2
 
         return {
             "overall_score": overall_score,
@@ -986,9 +916,7 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
             "business_name": request.business_data.get("name"),
             "business_category": request.business_data.get("category"),
             "business_location": request.business_data.get("location"),
-            "contact_name": request.contact_data.get("first_name")
-            if request.contact_data
-            else None,
+            "contact_name": request.contact_data.get("first_name") if request.contact_data else None,
             "issues_extracted": [
                 {
                     "type": issue.issue_type,
@@ -1002,12 +930,8 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
             "content_strategy": request.content_strategy.value,
             "spam_analysis": spam_details,
             "assessment_summary": {
-                "performance_score": request.assessment_data.get("pagespeed", {}).get(
-                    "performance_score"
-                ),
-                "seo_score": request.assessment_data.get("pagespeed", {}).get(
-                    "seo_score"
-                ),
+                "performance_score": request.assessment_data.get("pagespeed", {}).get("performance_score"),
+                "seo_score": request.assessment_data.get("pagespeed", {}).get("seo_score"),
                 "issues_count": len(issues),
             },
         }

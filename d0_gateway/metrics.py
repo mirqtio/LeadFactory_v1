@@ -3,12 +3,7 @@ Prometheus metrics for D0 Gateway monitoring
 """
 from typing import Any, Dict
 
-from prometheus_client import (
-    Counter,
-    Gauge,
-    Histogram,
-    Info,
-)
+from prometheus_client import Counter, Gauge, Histogram, Info
 
 from core.logging import get_logger
 
@@ -84,9 +79,7 @@ class GatewayMetrics:
         )
 
         # Gateway info
-        self.gateway_info = Info(
-            "gateway_info", "Gateway version and configuration info"
-        )
+        self.gateway_info = Info("gateway_info", "Gateway version and configuration info")
 
         # Set initial gateway info
         self.gateway_info.info({"version": "1.0.0", "domain": "d0_gateway"})
@@ -94,27 +87,20 @@ class GatewayMetrics:
         # Mark as initialized
         self.__class__._initialized = True
 
-    def record_api_call(
-        self, provider: str, endpoint: str, status_code: int, duration: float
-    ) -> None:
+    def record_api_call(self, provider: str, endpoint: str, status_code: int, duration: float) -> None:
         """Record an API call with metrics"""
         try:
             # Convert status code to string for labels
             status_str = str(status_code)
 
             # Record call count
-            self.api_calls_total.labels(
-                provider=provider, endpoint=endpoint, status_code=status_str
-            ).inc()
+            self.api_calls_total.labels(provider=provider, endpoint=endpoint, status_code=status_str).inc()
 
             # Record latency
-            self.api_latency_seconds.labels(
-                provider=provider, endpoint=endpoint
-            ).observe(duration)
+            self.api_latency_seconds.labels(provider=provider, endpoint=endpoint).observe(duration)
 
             self.logger.debug(
-                f"Recorded API call: {provider}/{endpoint} "
-                f"status={status_code} duration={duration:.3f}s"
+                f"Recorded API call: {provider}/{endpoint} " f"status={status_code} duration={duration:.3f}s"
             )
 
         except Exception as e:
@@ -123,9 +109,7 @@ class GatewayMetrics:
     def record_cost(self, provider: str, endpoint: str, cost_usd: float) -> None:
         """Record API cost"""
         try:
-            self.api_cost_usd_total.labels(provider=provider, endpoint=endpoint).inc(
-                cost_usd
-            )
+            self.api_cost_usd_total.labels(provider=provider, endpoint=endpoint).inc(cost_usd)
 
             self.logger.debug(f"Recorded cost: {provider}/{endpoint} ${cost_usd:.6f}")
 
@@ -165,23 +149,17 @@ class GatewayMetrics:
     def record_rate_limit_exceeded(self, provider: str, limit_type: str) -> None:
         """Record rate limit exceeded"""
         try:
-            self.rate_limit_exceeded_total.labels(
-                provider=provider, limit_type=limit_type
-            ).inc()
+            self.rate_limit_exceeded_total.labels(provider=provider, limit_type=limit_type).inc()
 
             self.logger.warning(f"Rate limit exceeded: {provider} {limit_type}")
 
         except Exception as e:
             self.logger.error(f"Failed to record rate limit violation: {e}")
 
-    def update_rate_limit_usage(
-        self, provider: str, limit_type: str, current_usage: int
-    ) -> None:
+    def update_rate_limit_usage(self, provider: str, limit_type: str, current_usage: int) -> None:
         """Update current rate limit usage"""
         try:
-            self.rate_limit_usage.labels(provider=provider, limit_type=limit_type).set(
-                current_usage
-            )
+            self.rate_limit_usage.labels(provider=provider, limit_type=limit_type).set(current_usage)
 
         except Exception as e:
             self.logger.error(f"Failed to update rate limit usage: {e}")

@@ -11,17 +11,18 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from alembic import command
-from alembic.config import Config
-from alembic.migration import MigrationContext
-from alembic.autogenerate import compare_metadata
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.pool import NullPool
 
+from alembic import command
+from alembic.autogenerate import compare_metadata
+from alembic.config import Config
+from alembic.migration import MigrationContext
+
 # Import Base and all models
 from database.base import Base
-from database.models import *
 from database.governance_models import *
+from database.models import *
 
 # Import domain models
 try:
@@ -100,33 +101,33 @@ def main():
     # Get database URL
     db_url = os.environ.get("DATABASE_URL", "sqlite:///tmp/leadfactory.db")
     print(f"Checking migrations for database: {db_url}")
-    
+
     # Create engine
     engine = create_engine(db_url, poolclass=NullPool)
-    
+
     # Get alembic configuration
     alembic_ini = project_root / "alembic.ini"
     config = Config(str(alembic_ini))
     config.set_main_option("sqlalchemy.url", db_url)
-    
+
     # First, ensure we're at head
     print("\nUpgrading to head...")
     command.upgrade(config, "head")
-    
+
     # Get current revision
     with engine.connect() as conn:
         context = MigrationContext.configure(conn)
         current_rev = context.get_current_revision()
         print(f"Current revision: {current_rev}")
-    
+
     # Now check for differences
     print("\nChecking for schema differences...")
     with engine.connect() as conn:
         context = MigrationContext.configure(conn)
-        
+
         # Compare metadata
         diff = compare_metadata(context, Base.metadata)
-        
+
         if not diff:
             print("✅ No schema differences found! All migrations are current.")
             return 0

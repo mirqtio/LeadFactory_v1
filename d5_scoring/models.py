@@ -31,11 +31,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from database.base import Base
+from database.base import UUID, Base
 
 from .types import ScoreComponent, ScoringStatus, ScoringTier, ScoringVersion
-
-from database.base import UUID
 
 
 # UUID handling for both PostgreSQL and SQLite
@@ -89,12 +87,8 @@ class D5ScoringResult(Base):
     reviewer_notes = Column(Text)
 
     # Relationships
-    breakdowns = relationship(
-        "ScoreBreakdown", back_populates="scoring_result", cascade="all, delete-orphan"
-    )
-    history = relationship(
-        "ScoreHistory", back_populates="scoring_result", cascade="all, delete-orphan"
-    )
+    breakdowns = relationship("ScoreBreakdown", back_populates="scoring_result", cascade="all, delete-orphan")
+    history = relationship("ScoreHistory", back_populates="scoring_result", cascade="all, delete-orphan")
 
     # Indexing for performance
     __table_args__ = (
@@ -135,7 +129,7 @@ class D5ScoringResult(Base):
         if score >= 80:
             self.tier = "A"
         elif score >= 60:
-            self.tier = "B"  
+            self.tier = "B"
         elif score >= 40:
             self.tier = "C"
         else:
@@ -156,9 +150,7 @@ class D5ScoringResult(Base):
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
             "age_days": self.age_days,
             "is_expired": self.is_expired,
-            "data_completeness": float(self.data_completeness)
-            if self.data_completeness
-            else None,
+            "data_completeness": float(self.data_completeness) if self.data_completeness else None,
             "manual_review_required": self.manual_review_required,
         }
 
@@ -173,9 +165,7 @@ class ScoreBreakdown(Base):
     __tablename__ = "score_breakdowns"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    scoring_result_id = Column(
-        String(36), ForeignKey("d5_scoring_results.id"), nullable=False
-    )
+    scoring_result_id = Column(String(36), ForeignKey("d5_scoring_results.id"), nullable=False)
 
     # Component details
     component = Column(String(50), nullable=False)  # ScoreComponent enum value
@@ -201,12 +191,8 @@ class ScoreBreakdown(Base):
 
     # Indexing
     __table_args__ = (
-        Index(
-            "idx_score_breakdowns_result_component", "scoring_result_id", "component"
-        ),
-        UniqueConstraint(
-            "scoring_result_id", "component", name="uq_score_breakdown_component"
-        ),
+        Index("idx_score_breakdowns_result_component", "scoring_result_id", "component"),
+        UniqueConstraint("scoring_result_id", "component", name="uq_score_breakdown_component"),
     )
 
     @property
@@ -226,20 +212,14 @@ class ScoreBreakdown(Base):
         return {
             "id": self.id,
             "component": self.component,
-            "component_score": float(self.component_score)
-            if self.component_score
-            else None,
-            "max_possible_score": float(self.max_possible_score)
-            if self.max_possible_score
-            else None,
+            "component_score": float(self.component_score) if self.component_score else None,
+            "max_possible_score": float(self.max_possible_score) if self.max_possible_score else None,
             "score_percentage": self.score_percentage,
             "weight": float(self.weight) if self.weight else None,
             "confidence": float(self.confidence) if self.confidence else None,
             "data_quality": self.data_quality,
             "calculation_method": self.calculation_method,
-            "calculated_at": self.calculated_at.isoformat()
-            if self.calculated_at
-            else None,
+            "calculated_at": self.calculated_at.isoformat() if self.calculated_at else None,
         }
 
 
@@ -253,9 +233,7 @@ class ScoreHistory(Base):
     __tablename__ = "score_history"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    scoring_result_id = Column(
-        String(36), ForeignKey("d5_scoring_results.id"), nullable=False
-    )
+    scoring_result_id = Column(String(36), ForeignKey("d5_scoring_results.id"), nullable=False)
     business_id = Column(String(50), nullable=False, index=True)
 
     # Historical score data
@@ -305,9 +283,7 @@ class ScoreHistory(Base):
         return {
             "id": self.id,
             "business_id": self.business_id,
-            "previous_score": float(self.previous_score)
-            if self.previous_score
-            else None,
+            "previous_score": float(self.previous_score) if self.previous_score else None,
             "new_score": float(self.new_score),
             "score_change": float(self.score_change) if self.score_change else None,
             "previous_tier": self.previous_tier,
@@ -335,9 +311,7 @@ class ScoringEngine:
     def __post_init__(self):
         """Initialize default weights if not provided"""
         if not self.weights:
-            self.weights = {
-                component: component.max_points for component in ScoreComponent
-            }
+            self.weights = {component: component.max_points for component in ScoreComponent}
 
     def calculate_score(self, business_data: Dict[str, Any]) -> D5ScoringResult:
         """
@@ -365,9 +339,7 @@ class ScoringEngine:
             total_weight += self.weights[component]
 
         # Calculate overall score (0-100 scale)
-        overall_score = (
-            (total_weighted_score / total_weight) if total_weight > 0 else 0.0
-        )
+        overall_score = (total_weighted_score / total_weight) if total_weight > 0 else 0.0
         overall_score = min(100.0, max(0.0, overall_score))  # Clamp to 0-100
 
         # Determine tier
@@ -393,9 +365,7 @@ class ScoringEngine:
 
         return scoring_result
 
-    def _calculate_component_score(
-        self, component: ScoreComponent, data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _calculate_component_score(self, component: ScoreComponent, data: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate score for individual component"""
         # This is a simplified scoring algorithm
         # In practice, each component would have sophisticated logic
@@ -411,14 +381,10 @@ class ScoringEngine:
             "score": normalized_score,
             "max_score": max_points,
             "raw_data": component_data,
-            "confidence": min(1.0, normalized_score / max_points)
-            if max_points > 0
-            else 0.0,
+            "confidence": min(1.0, normalized_score / max_points) if max_points > 0 else 0.0,
         }
 
-    def _extract_component_data(
-        self, component: ScoreComponent, data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_component_data(self, component: ScoreComponent, data: Dict[str, Any]) -> Dict[str, Any]:
         """Extract relevant data for scoring component"""
         # Map components to data fields
         field_mappings = {
@@ -452,18 +418,14 @@ class ScoringEngine:
 
         return component_data
 
-    def _score_component_data(
-        self, component: ScoreComponent, component_data: Dict[str, Any]
-    ) -> float:
+    def _score_component_data(self, component: ScoreComponent, component_data: Dict[str, Any]) -> float:
         """Score the extracted component data"""
         # Simplified scoring logic - in practice this would be much more sophisticated
         if not component_data:
             return 0.0
 
         # Base score on data completeness and quality
-        completeness = len([v for v in component_data.values() if v]) / len(
-            component_data
-        )
+        completeness = len([v for v in component_data.values() if v]) / len(component_data)
         base_score = completeness * component.max_points * 0.7
 
         # Add quality bonuses based on specific data
@@ -479,24 +441,16 @@ class ScoringEngine:
             if component_data.get("annual_revenue"):
                 quality_bonus += 2.0
         elif component == ScoreComponent.ONLINE_PRESENCE:
-            if component_data.get("website") and "https://" in str(
-                component_data["website"]
-            ):
+            if component_data.get("website") and "https://" in str(component_data["website"]):
                 quality_bonus += 1.5
 
         return base_score + quality_bonus
 
-    def _calculate_confidence(
-        self, data: Dict[str, Any], component_scores: Dict[ScoreComponent, Dict]
-    ) -> float:
+    def _calculate_confidence(self, data: Dict[str, Any], component_scores: Dict[ScoreComponent, Dict]) -> float:
         """Calculate overall confidence in the score"""
         # Base confidence on data quality and component confidence
-        component_confidences = [
-            info["confidence"] for info in component_scores.values()
-        ]
-        avg_component_confidence = sum(component_confidences) / len(
-            component_confidences
-        )
+        component_confidences = [info["confidence"] for info in component_scores.values()]
+        avg_component_confidence = sum(component_confidences) / len(component_confidences)
 
         # Factor in data completeness
         data_completeness = self._calculate_data_completeness(data)
@@ -529,12 +483,8 @@ class ScoringEngine:
             "overall_score": float(scoring_result.overall_score),
             "tier": scoring_result.tier,
             "tier_description": f"{scoring_result.tier.title()} tier business",
-            "confidence": float(scoring_result.confidence)
-            if scoring_result.confidence
-            else None,
-            "data_completeness": float(scoring_result.data_completeness)
-            if scoring_result.data_completeness
-            else None,
+            "confidence": float(scoring_result.confidence) if scoring_result.confidence else None,
+            "data_completeness": float(scoring_result.data_completeness) if scoring_result.data_completeness else None,
             "manual_review_required": scoring_result.manual_review_required,
             "scored_at": scoring_result.scored_at,
             "expires_at": scoring_result.expires_at,

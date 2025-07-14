@@ -35,15 +35,9 @@ class StripeConfig:
 
         # Set API keys based on mode
         if test_mode:
-            self.api_key = os.getenv(
-                "STRIPE_TEST_SECRET_KEY", "sk_test_mock_key_for_testing"
-            )
-            self.publishable_key = os.getenv(
-                "STRIPE_TEST_PUBLISHABLE_KEY", "pk_test_mock_key_for_testing"
-            )
-            self.webhook_secret = os.getenv(
-                "STRIPE_TEST_WEBHOOK_SECRET", "whsec_test_mock_secret"
-            )
+            self.api_key = os.getenv("STRIPE_TEST_SECRET_KEY", "sk_test_mock_key_for_testing")
+            self.publishable_key = os.getenv("STRIPE_TEST_PUBLISHABLE_KEY", "pk_test_mock_key_for_testing")
+            self.webhook_secret = os.getenv("STRIPE_TEST_WEBHOOK_SECRET", "whsec_test_mock_secret")
         else:
             self.api_key = os.getenv("STRIPE_LIVE_SECRET_KEY")
             self.publishable_key = os.getenv("STRIPE_LIVE_PUBLISHABLE_KEY")
@@ -101,10 +95,7 @@ class StripeCheckoutSession:
             "success_url": self.success_url,
             "cancel_url": self.cancel_url,
             "expires_at": int(
-                (
-                    datetime.utcnow()
-                    + timedelta(minutes=config.session_expires_after_minutes)
-                ).timestamp()
+                (datetime.utcnow() + timedelta(minutes=config.session_expires_after_minutes)).timestamp()
             ),
             "billing_address_collection": config.billing_address_collection,
             "allow_promotion_codes": config.allow_promotion_codes,
@@ -156,9 +147,7 @@ class StripeClient:
         # For compatibility with tests that expect direct Stripe SDK access
         self.stripe = stripe
 
-        logger.info(
-            f"Initialized Stripe client in {'test' if self.config.test_mode else 'live'} mode"
-        )
+        logger.info(f"Initialized Stripe client in {'test' if self.config.test_mode else 'live'} mode")
 
     def _run_async(self, coro):
         """Helper to run async gateway methods from sync context"""
@@ -175,9 +164,7 @@ class StripeClient:
             # No event loop running, create one
             return asyncio.run(coro)
 
-    def create_checkout_session(
-        self, session_config: StripeCheckoutSession
-    ) -> Dict[str, Any]:
+    def create_checkout_session(self, session_config: StripeCheckoutSession) -> Dict[str, Any]:
         """
         Create a Stripe checkout session
 
@@ -255,9 +242,7 @@ class StripeClient:
     ) -> Dict[str, Any]:
         """Create a Stripe customer"""
         try:
-            result = self._run_async(
-                self.gateway.create_customer(email=email, name=name, metadata=metadata)
-            )
+            result = self._run_async(self.gateway.create_customer(email=email, name=name, metadata=metadata))
 
             return {
                 "success": True,
@@ -279,11 +264,7 @@ class StripeClient:
     ) -> Dict[str, Any]:
         """Create a Stripe product"""
         try:
-            result = self._run_async(
-                self.gateway.create_product(
-                    name=name, description=description, metadata=metadata
-                )
-            )
+            result = self._run_async(self.gateway.create_product(name=name, description=description, metadata=metadata))
 
             return {
                 "success": True,

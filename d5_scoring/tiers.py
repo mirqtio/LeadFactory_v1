@@ -80,9 +80,7 @@ class TierBoundary:
         if self.min_score > self.max_score:
             raise ValueError("Min score cannot exceed max score")
         if not self.description:
-            self.description = (
-                f"Tier {self.tier.value} ({self.min_score}-{self.max_score} points)"
-            )
+            self.description = f"Tier {self.tier.value} ({self.min_score}-{self.max_score} points)"
 
 
 @dataclass
@@ -109,12 +107,8 @@ class TierConfiguration:
         # Validate no overlapping boundaries
         for i, boundary in enumerate(self.boundaries):
             for j, other in enumerate(self.boundaries[i + 1 :], i + 1):
-                if boundary.tier != other.tier and self._boundaries_overlap(
-                    boundary, other
-                ):
-                    raise ValueError(
-                        f"Overlapping boundaries detected: {boundary.tier} and {other.tier}"
-                    )
+                if boundary.tier != other.tier and self._boundaries_overlap(boundary, other):
+                    raise ValueError(f"Overlapping boundaries detected: {boundary.tier} and {other.tier}")
 
         # Sort boundaries by min_score for efficient lookup
         self.boundaries.sort(key=lambda b: b.min_score)
@@ -165,9 +159,7 @@ class TierDistribution:
 
     configuration_name: str
     total_assignments: int = 0
-    tier_counts: Dict[LeadTier, int] = field(
-        default_factory=lambda: {tier: 0 for tier in LeadTier}
-    )
+    tier_counts: Dict[LeadTier, int] = field(default_factory=lambda: {tier: 0 for tier in LeadTier})
     gate_pass_count: int = 0
     gate_fail_count: int = 0
     last_updated: datetime = field(default_factory=datetime.now)
@@ -185,10 +177,7 @@ class TierDistribution:
         if self.total_assignments == 0:
             return {tier: 0.0 for tier in LeadTier}
 
-        return {
-            tier: (count / self.total_assignments) * 100
-            for tier, count in self.tier_counts.items()
-        }
+        return {tier: (count / self.total_assignments) * 100 for tier, count in self.tier_counts.items()}
 
     def add_assignment(self, assignment: TierAssignment):
         """Add a new assignment to distribution tracking"""
@@ -222,9 +211,7 @@ class TierAssignmentEngine:
         self.assignments: List[TierAssignment] = []
         self._lock = threading.Lock()  # Thread safety for distribution tracking
 
-        logger.info(
-            f"Initialized TierAssignmentEngine with configuration '{self.configuration.name}'"
-        )
+        logger.info(f"Initialized TierAssignmentEngine with configuration '{self.configuration.name}'")
 
     def _create_default_configuration(self) -> TierConfiguration:
         """Create default A/B/C/D tier configuration"""
@@ -237,21 +224,13 @@ class TierAssignmentEngine:
             description="Default A/B/C/D tier configuration (Phase 0: analytics only)",
             boundaries=[
                 TierBoundary(LeadTier.A, 80.0, 100.0, "Tier A: 80-100 points"),
-                TierBoundary(
-                    LeadTier.B, 60.0, 79.9, "Tier B: 60-79.9 points"
-                ),
-                TierBoundary(
-                    LeadTier.C, 40.0, 59.9, "Tier C: 40-59.9 points"
-                ),
-                TierBoundary(
-                    LeadTier.D, 0.0, 39.9, "Tier D: 0-39.9 points"
-                ),
+                TierBoundary(LeadTier.B, 60.0, 79.9, "Tier B: 60-79.9 points"),
+                TierBoundary(LeadTier.C, 40.0, 59.9, "Tier C: 40-59.9 points"),
+                TierBoundary(LeadTier.D, 0.0, 39.9, "Tier D: 0-39.9 points"),
             ],
         )
 
-    def assign_tier(
-        self, lead_id: str, score: float, confidence: float = 1.0, notes: str = ""
-    ) -> TierAssignment:
+    def assign_tier(self, lead_id: str, score: float, confidence: float = 1.0, notes: str = "") -> TierAssignment:
         """
         Assign tier to a lead based on score
 
@@ -329,25 +308,17 @@ class TierAssignmentEngine:
     def get_assignments_by_tier(self, tier: LeadTier) -> List[TierAssignment]:
         """Get all assignments for a specific tier"""
         with self._lock:
-            return [
-                assignment for assignment in self.assignments if assignment.tier == tier
-            ]
+            return [assignment for assignment in self.assignments if assignment.tier == tier]
 
     def get_qualified_leads(self) -> List[TierAssignment]:
         """Get all leads that passed the gate threshold"""
         with self._lock:
-            return [
-                assignment for assignment in self.assignments if assignment.passed_gate
-            ]
+            return [assignment for assignment in self.assignments if assignment.passed_gate]
 
     def get_failed_leads(self) -> List[TierAssignment]:
         """Get all leads that failed the gate threshold"""
         with self._lock:
-            return [
-                assignment
-                for assignment in self.assignments
-                if not assignment.passed_gate
-            ]
+            return [assignment for assignment in self.assignments if not assignment.passed_gate]
 
     def update_configuration(self, new_configuration: TierConfiguration):
         """
@@ -361,13 +332,9 @@ class TierAssignmentEngine:
 
         # Reset distribution tracking for new configuration
         with self._lock:
-            self.distribution = TierDistribution(
-                configuration_name=new_configuration.name
-            )
+            self.distribution = TierDistribution(configuration_name=new_configuration.name)
 
-        logger.info(
-            f"Updated configuration from '{old_config}' to '{new_configuration.name}'"
-        )
+        logger.info(f"Updated configuration from '{old_config}' to '{new_configuration.name}'")
 
     def export_distribution_summary(self) -> Dict[str, Any]:
         """
@@ -390,20 +357,12 @@ class TierAssignmentEngine:
                     "gate_pass_rate": self.distribution.gate_pass_rate,
                     "gate_pass_count": self.distribution.gate_pass_count,
                     "gate_fail_count": self.distribution.gate_fail_count,
-                    "tier_counts": {
-                        tier.value: count
-                        for tier, count in self.distribution.tier_counts.items()
-                    },
-                    "tier_percentages": {
-                        tier.value: pct
-                        for tier, pct in self.distribution.tier_percentages.items()
-                    },
+                    "tier_counts": {tier.value: count for tier, count in self.distribution.tier_counts.items()},
+                    "tier_percentages": {tier.value: pct for tier, pct in self.distribution.tier_percentages.items()},
                     "last_updated": self.distribution.last_updated.isoformat(),
                 },
                 "summary": {
-                    "highest_tier_leads": self.distribution.tier_counts.get(
-                        LeadTier.A, 0
-                    ),
+                    "highest_tier_leads": self.distribution.tier_counts.get(LeadTier.A, 0),
                     "qualified_leads": self.distribution.gate_pass_count,
                     "total_processed": self.distribution.total_assignments,
                 },
@@ -485,9 +444,7 @@ class TierAssignmentEngine:
 # Convenience functions for common operations
 
 
-def assign_lead_tier(
-    lead_id: str, score: float, configuration: Optional[TierConfiguration] = None
-) -> TierAssignment:
+def assign_lead_tier(lead_id: str, score: float, configuration: Optional[TierConfiguration] = None) -> TierAssignment:
     """
     Quick function to assign a single lead tier
 
@@ -515,7 +472,7 @@ def create_standard_configuration(gate_threshold: float = 0.0) -> TierConfigurat
     """
     # TODO Phase 0.5: Re-enable gate threshold logic
     # For Phase 0, all leads pass (gate_threshold = 0.0)
-    
+
     # Standard boundaries matching scoring_rules.yaml
     boundaries = [
         TierBoundary(LeadTier.A, 80.0, 100.0, "Tier A: 80-100 points"),

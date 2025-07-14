@@ -1,0 +1,78 @@
+# Research Context for P0-027
+
+## Key Findings
+- React shell applications with micro-frontend architecture provide independent team velocity and technology diversity
+- Module Federation (Webpack 5+) enables secure, scalable integration of independent React applications
+- Authentication must be centralized in shell to prevent cross-cutting concerns and inconsistent logout flows
+- Lazy loading with React.lazy() and Suspense provides optimal performance for large applications
+- Route-based code splitting is the most effective approach for reducing initial bundle size
+- Design tokens with Tailwind CSS custom properties enable consistent theming across micro-frontends
+
+## Authoritative Sources
+- https://blog.bitsrc.io/application-shell-for-react-micro-frontends-daa944caa8f3 - Application Shell patterns for React micro-frontends
+- https://medium.com/@isuruariyarathna2k00/a-deep-dive-into-micro-frontend-architecture-with-react-js-264ca6edca6b - React micro-frontend architecture deep dive
+- https://blog.logrocket.com/build-micro-frontend-application-react/ - Building micro-frontend applications with React
+- https://www.greatfrontend.com/blog/code-splitting-and-lazy-loading-in-react - Code splitting and lazy loading in React
+- https://ui.dev/react-router-protected-routes-authentication - Protected routes and authentication with React Router
+- https://www.design-tokens.dev/guides/tailwind-css/ - Design tokens implementation with Tailwind CSS
+- https://tailwindcss.com/docs/adding-custom-styles - Tailwind CSS custom styles and configuration
+
+## Current Best Practices
+- **Shell Architecture**: Container/shell app hosts micro-frontends, handles authentication, navigation, and shared services
+- **Module Federation**: Webpack 5 Module Federation for runtime integration with shared dependencies (React, ReactDOM as singletons)
+- **Authentication Strategy**: Centralized authentication in shell with shared session tokens and consistent logout flows
+- **Code Splitting**: Route-based lazy loading using React.lazy() and Suspense for optimal performance
+- **Navigation**: React Router in shell for cross-app navigation, individual micro-frontends handle internal routing
+- **Design System**: Tailwind CSS with design tokens integrated via custom properties and configuration files
+- **Error Handling**: Error boundaries for failed module loads with graceful fallbacks
+
+## Common Pitfalls
+- **Authentication Inconsistency**: Baking authentication into each micro-frontend leads to inconsistent logout behavior
+- **State Management**: Avoid shared runtime state between micro-frontends; use secure API communication
+- **Bundle Duplication**: Must configure shared dependencies (React, ReactDOM) as singletons in Module Federation
+- **Security**: Front-end route protection is UX-only; proper server-side authorization is essential
+- **Performance**: Lazy loading chain can delay component loading after data fetches - consider preloading critical components
+- **Network Failures**: Module loading failures need Error Boundaries for graceful degradation
+
+## Recent Updates
+- **Webpack 5**: Module Federation plugin enables micro-frontend architecture with shared dependencies
+- **React Router 6.4+**: Data routers provide better code splitting integration but require careful lazy loading implementation
+- **Tailwind 4 Beta**: CSS-based configuration replacing JavaScript configuration, improved custom properties support
+- **React 18**: Concurrent features and Suspense improvements for better lazy loading experience
+- **Vite Integration**: Modern build tools provide automatic code splitting and chunk optimization
+
+## Implementation Recommendations
+- **Architecture**: Shell app at `/app/*` routes with lazy-loaded micro-frontend modules
+- **Authentication**: Integrate with existing P0-026 governance system for role-based access control
+- **Routing**: Use React Router 6 with lazy loading and authentication guards for each route
+- **Design System**: Implement design tokens from P0-020 with Tailwind CSS custom properties
+- **Performance**: Bundle size limits (<250kb per micro-frontend), lazy loading with preloading for critical paths
+- **Testing**: Integration tests for authentication flows, error boundaries for module failures
+- **Security**: CSP headers, role-based menu items, server-side authorization validation
+- **Development**: Storybook for component documentation, Chromatic for visual regression testing
+
+## Tools and Libraries to Use
+- **Build Tool**: Webpack 5 with Module Federation plugin or Vite with federation plugin
+- **Routing**: React Router 6 with lazy loading capabilities
+- **Styling**: Tailwind CSS with design token integration
+- **State Management**: React Query for API state, avoid shared global state
+- **Testing**: Jest, React Testing Library, Playwright for E2E
+- **Documentation**: Storybook 7 for component library
+- **Visual Testing**: Chromatic for visual regression testing
+- **Error Handling**: React Error Boundaries for module loading failures
+
+## Security Considerations
+- **CSP Headers**: Content-Security-Policy: default-src 'self'; script-src 'self' for secure script loading
+- **Authentication**: Role-based access control with server-side validation
+- **CSRF Protection**: Proper CSRF tokens and validation
+- **XSS Prevention**: Sanitize user inputs and use secure headers
+- **Rate Limiting**: Prevent abuse with request rate limiting
+- **Session Management**: Secure session tokens with proper expiration
+
+## Performance Optimization
+- **Code Splitting**: Route-based splitting for optimal chunk sizes
+- **Lazy Loading**: React.lazy() with Suspense for component loading
+- **Preloading**: Critical component preloading to prevent UX delays
+- **Bundle Analysis**: Use Webpack Bundle Analyzer for optimization
+- **Caching**: Proper HTTP caching for static assets and API responses
+- **Network Optimization**: Minimize network requests and optimize payload sizes

@@ -18,17 +18,10 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Any, Dict, List, Optional
 
 from .gbp_enricher import GBPEnricher
-from .models import (
-    EnrichmentRequest,
-    EnrichmentResult,
-    EnrichmentSource,
-    EnrichmentStatus,
-    MatchConfidence,
-)
+from .models import EnrichmentRequest, EnrichmentResult, EnrichmentSource, EnrichmentStatus, MatchConfidence
 
 logger = logging.getLogger(__name__)
 
@@ -114,9 +107,7 @@ class EnrichmentCoordinator:
         self.skip_recent_enrichments = skip_recent_enrichments
 
         # Enrichment sources
-        self.enrichers = {
-            EnrichmentSource.INTERNAL: GBPEnricher(api_key=None)  # Mock for now
-        }
+        self.enrichers = {EnrichmentSource.INTERNAL: GBPEnricher(api_key=None)}  # Mock for now
 
         # Phase 0.5: Add Data Axle and Hunter enrichers dynamically
         self._initialize_phase05_enrichers()
@@ -143,6 +134,7 @@ class EnrichmentCoordinator:
         try:
             # Import here to avoid circular dependencies
             from d0_gateway.factory import GatewayClientFactory
+
             from .dataaxle_enricher import DataAxleEnricher
             from .hunter_enricher import HunterEnricher
 
@@ -152,17 +144,13 @@ class EnrichmentCoordinator:
             # Initialize Data Axle if configured
             if gateway._is_provider_enabled("dataaxle"):
                 dataaxle_client = gateway.get_dataaxle_client()
-                self.enrichers[EnrichmentSource.DATA_AXLE] = DataAxleEnricher(
-                    dataaxle_client
-                )
+                self.enrichers[EnrichmentSource.DATA_AXLE] = DataAxleEnricher(dataaxle_client)
                 logger.info("Data Axle enricher initialized")
 
             # Initialize Hunter if configured
             if gateway._is_provider_enabled("hunter"):
                 hunter_client = gateway.get_hunter_client()
-                self.enrichers[EnrichmentSource.HUNTER_IO] = HunterEnricher(
-                    hunter_client
-                )
+                self.enrichers[EnrichmentSource.HUNTER_IO] = HunterEnricher(hunter_client)
                 logger.info("Hunter enricher initialized")
 
         except Exception as e:
@@ -208,9 +196,7 @@ class EnrichmentCoordinator:
 
         try:
             # Batch enrichment with concurrency control
-            enrichment_results = await self._process_batch_concurrent(
-                businesses, sources, request.id, skip_existing
-            )
+            enrichment_results = await self._process_batch_concurrent(businesses, sources, request.id, skip_existing)
 
             # Calculate execution time
             execution_time = (datetime.utcnow() - start_time).total_seconds()
@@ -294,15 +280,11 @@ class EnrichmentCoordinator:
     ) -> List[Optional[EnrichmentResult]]:
         """Process batch with concurrency control"""
 
-        async def process_single_business(
-            business: Dict[str, Any]
-        ) -> Optional[EnrichmentResult]:
+        async def process_single_business(business: Dict[str, Any]) -> Optional[EnrichmentResult]:
             """Process a single business with error handling"""
             async with self._semaphore:
                 try:
-                    return await self._enrich_single_business(
-                        business, sources, request_id, skip_existing
-                    )
+                    return await self._enrich_single_business(business, sources, request_id, skip_existing)
                 except Exception as e:
                     business_id = business.get("id", "unknown")
                     error_msg = f"Failed to enrich business {business_id}: {e}"
@@ -375,18 +357,13 @@ class EnrichmentCoordinator:
                     # Perform enrichment
                     result = await enricher.enrich_business(business, business_id)
 
-                    if (
-                        result
-                        and result.match_confidence != MatchConfidence.UNCERTAIN.value
-                    ):
+                    if result and result.match_confidence != MatchConfidence.UNCERTAIN.value:
                         # Successful enrichment
                         if progress:
                             progress.enriched_businesses += 1
                             progress.processed_businesses += 1
 
-                        logger.debug(
-                            f"Successfully enriched business {business_id} using {source.value}"
-                        )
+                        logger.debug(f"Successfully enriched business {business_id} using {source.value}")
                         return result
                     else:
                         last_error = f"Low confidence result from {source.value}"
@@ -514,119 +491,109 @@ class EnrichmentCoordinator:
         if requests_to_remove:
             logger.info(f"Cleaned up {len(requests_to_remove)} old enrichment requests")
 
-    def merge_enrichment_data(
-        self, existing_data: Dict[str, Any], new_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def merge_enrichment_data(self, existing_data: Dict[str, Any], new_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Merge enrichment data by (field, provider) with freshest collected_at.
-        
+
         Args:
             existing_data: Previously collected enrichment data
             new_data: New enrichment data to merge
-            
+
         Returns:
             Merged data with no duplicates, keeping freshest values
         """
         merged = {}
-        
+
         # Combine all data items for deduplication
         all_items = []
-        
+
         # Process existing data
         if existing_data:
-            for field, value in existing_data.items():
-                if isinstance(value, dict) and 'provider' in value and 'collected_at' in value:
-                    all_items.append((field, value))
+            for field_name, value in existing_data.items():
+                if isinstance(value, dict) and "provider" in value and "collected_at" in value:
+                    all_items.append((field_name, value))
                 else:
                     # Handle legacy format - assume internal provider
-                    all_items.append((field, {
-                        'value': value,
-                        'provider': 'internal',
-                        'collected_at': datetime.utcnow()
-                    }))
-        
+                    all_items.append(
+                        (field_name, {"value": value, "provider": "internal", "collected_at": datetime.utcnow()})
+                    )
+
         # Process new data
         if new_data:
             for field, value in new_data.items():
-                if isinstance(value, dict) and 'provider' in value and 'collected_at' in value:
+                if isinstance(value, dict) and "provider" in value and "collected_at" in value:
                     all_items.append((field, value))
                 else:
                     # Handle legacy format
-                    all_items.append((field, {
-                        'value': value,
-                        'provider': 'internal', 
-                        'collected_at': datetime.utcnow()
-                    }))
-        
+                    all_items.append(
+                        (field, {"value": value, "provider": "internal", "collected_at": datetime.utcnow()})
+                    )
+
         # Merge by (field, provider) keeping freshest
         provider_field_map = {}
         for field, value in all_items:
-            provider = value.get('provider', 'internal')
+            provider = value.get("provider", "internal")
             key = (field, provider)
-            
+
             # Convert collected_at to datetime if it's a string
-            collected_at = value.get('collected_at', datetime.utcnow())
+            collected_at = value.get("collected_at", datetime.utcnow())
             if isinstance(collected_at, str):
                 try:
-                    collected_at = datetime.fromisoformat(collected_at.replace('Z', '+00:00'))
-                except:
+                    collected_at = datetime.fromisoformat(collected_at.replace("Z", "+00:00"))
+                except Exception:
                     collected_at = datetime.utcnow()
-            
+
             # Keep the value if we don't have it yet or if it's newer
             if key not in provider_field_map:
                 provider_field_map[key] = {
-                    'value': value.get('value', value),
-                    'provider': provider,
-                    'collected_at': collected_at
+                    "value": value.get("value", value),
+                    "provider": provider,
+                    "collected_at": collected_at,
                 }
             else:
-                existing_collected_at = provider_field_map[key].get('collected_at', datetime.min)
+                existing_collected_at = provider_field_map[key].get("collected_at", datetime.min)
                 if isinstance(existing_collected_at, str):
                     try:
-                        existing_collected_at = datetime.fromisoformat(
-                            existing_collected_at.replace('Z', '+00:00')
-                        )
-                    except:
+                        existing_collected_at = datetime.fromisoformat(existing_collected_at.replace("Z", "+00:00"))
+                    except Exception:
                         existing_collected_at = datetime.min
-                        
+
                 if collected_at > existing_collected_at:
                     provider_field_map[key] = {
-                        'value': value.get('value', value),
-                        'provider': provider,
-                        'collected_at': collected_at
+                        "value": value.get("value", value),
+                        "provider": provider,
+                        "collected_at": collected_at,
                     }
-        
+
         # Convert back to flat structure
         for (field, provider), value in provider_field_map.items():
             merged[field] = value
-            
+
         return merged
 
-    def generate_cache_key(
-        self, business_id: str, provider: str, timestamp: Optional[datetime] = None
-    ) -> str:
+    def generate_cache_key(self, business_id: str, provider: str, timestamp: Optional[datetime] = None) -> str:
         """
         Generate unique cache key including business, provider, and time window.
-        
+
         Args:
             business_id: Unique business identifier
             provider: Data provider name (e.g., 'google_places', 'pagespeed')
             timestamp: Optional timestamp for time-windowed caching
-            
+
         Returns:
             Unique cache key that prevents collisions
         """
         # Ensure business_id is properly sanitized
         safe_business_id = hashlib.sha256(business_id.encode()).hexdigest()[:16]
-        
+
         # Include provider to prevent cross-provider collisions
-        safe_provider = provider.lower().replace(' ', '_')
-        
+        safe_provider = provider.lower().replace(" ", "_")
+
         # Add time window for cache invalidation (hourly buckets)
         if timestamp is None:
             timestamp = datetime.utcnow()
-        time_bucket = timestamp.strftime('%Y%m%d%H')
-        
+        time_bucket = timestamp.strftime("%Y%m%d%H")
+
         return f"enrichment:v1:{safe_business_id}:{safe_provider}:{time_bucket}"
 
 

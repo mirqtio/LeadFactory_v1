@@ -9,11 +9,7 @@ import pytest
 
 from core.exceptions import ExternalAPIError
 from d0_gateway.base import BaseAPIClient
-from d0_gateway.exceptions import (
-    APIProviderError,
-    CircuitBreakerOpenError,
-    RateLimitExceededError,
-)
+from d0_gateway.exceptions import APIProviderError, CircuitBreakerOpenError, RateLimitExceededError
 from d0_gateway.types import RateLimitType
 
 
@@ -80,9 +76,7 @@ class TestBaseAPIClient:
         # Mock rate limiter to reject request
         mock_client.rate_limiter.is_allowed = AsyncMock(return_value=False)
 
-        with pytest.raises(
-            Exception
-        ):  # Will raise RateLimitError which inherits from Exception
+        with pytest.raises(Exception):  # Will raise RateLimitError which inherits from Exception
             await mock_client.make_request("GET", "/test")
 
     def test_cost_calculation_implemented(self, mock_client):
@@ -297,9 +291,7 @@ class TestBaseAPIClientEnhancements:
         client = MockAPIClient(provider="test", api_key="test-key")
 
         # Mock failed health check
-        client.make_request = AsyncMock(
-            side_effect=ExternalAPIError("test", "Service unavailable", 503)
-        )
+        client.make_request = AsyncMock(side_effect=ExternalAPIError("test", "Service unavailable", 503))
 
         health_result = await client.health_check()
 

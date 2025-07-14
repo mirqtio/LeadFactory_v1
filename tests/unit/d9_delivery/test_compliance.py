@@ -130,9 +130,7 @@ class TestSuppressionChecking:
     """Test suppression list checking functionality"""
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_check_suppression_not_suppressed(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_check_suppression_not_suppressed(self, mock_session_local, compliance_manager):
         """Test checking email that is not suppressed - Acceptance Criteria"""
         # Mock database session
         mock_session = Mock()
@@ -145,9 +143,7 @@ class TestSuppressionChecking:
         mock_session.query.assert_called_once()
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_check_suppression_is_suppressed(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_check_suppression_is_suppressed(self, mock_session_local, compliance_manager):
         """Test checking email that is suppressed - Acceptance Criteria"""
         # Mock database session with suppressed email
         mock_session = Mock()
@@ -155,18 +151,14 @@ class TestSuppressionChecking:
 
         mock_suppression = Mock()
         mock_suppression.expires_at = None  # No expiration
-        mock_session.query.return_value.filter.return_value.first.return_value = (
-            mock_suppression
-        )
+        mock_session.query.return_value.filter.return_value.first.return_value = mock_suppression
 
         result = compliance_manager.check_suppression("suppressed@example.com")
 
         assert result is True
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_check_suppression_expired_suppression(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_check_suppression_expired_suppression(self, mock_session_local, compliance_manager):
         """Test checking email with expired suppression"""
         # Mock database session with expired suppression
         mock_session = Mock()
@@ -175,9 +167,7 @@ class TestSuppressionChecking:
         mock_suppression = Mock()
         mock_suppression.expires_at = datetime.now(timezone.utc) - timedelta(days=1)
         mock_suppression.is_active = True
-        mock_session.query.return_value.filter.return_value.first.return_value = (
-            mock_suppression
-        )
+        mock_session.query.return_value.filter.return_value.first.return_value = mock_suppression
 
         result = compliance_manager.check_suppression("expired@example.com")
 
@@ -187,9 +177,7 @@ class TestSuppressionChecking:
         mock_session.commit.assert_called_once()
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_check_suppression_database_error(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_check_suppression_database_error(self, mock_session_local, compliance_manager):
         """Test suppression check with database error"""
         # Mock database error
         mock_session_local.side_effect = Exception("Database connection failed")
@@ -200,9 +188,7 @@ class TestSuppressionChecking:
         assert result is False
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_check_suppression_case_insensitive(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_check_suppression_case_insensitive(self, mock_session_local, compliance_manager):
         """Test suppression check is case insensitive"""
         mock_session = Mock()
         mock_session_local.return_value.__enter__.return_value = mock_session
@@ -241,9 +227,7 @@ class TestUnsubscribeTokens:
         original_token = compliance_manager.generate_unsubscribe_token(email, list_type)
 
         # Verify token
-        verified_token = compliance_manager.verify_unsubscribe_token(
-            original_token.token
-        )
+        verified_token = compliance_manager.verify_unsubscribe_token(original_token.token)
 
         assert verified_token is not None
         assert verified_token.email == email
@@ -346,9 +330,7 @@ class TestUnsubscribeProcessing:
         # Mock database session
         mock_session = Mock()
         mock_session_local.return_value.__enter__.return_value = mock_session
-        mock_session.query.return_value.filter.return_value.first.return_value = (
-            None  # No existing suppression
-        )
+        mock_session.query.return_value.filter.return_value.first.return_value = None  # No existing suppression
 
         result = compliance_manager.process_unsubscribe(token.token, "user_request")
 
@@ -357,9 +339,7 @@ class TestUnsubscribeProcessing:
         mock_session.commit.assert_called_once()
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_process_unsubscribe_already_suppressed(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_process_unsubscribe_already_suppressed(self, mock_session_local, compliance_manager):
         """Test unsubscribe processing for already suppressed email"""
         email = "already@example.com"
         token = compliance_manager.generate_unsubscribe_token(email)
@@ -369,9 +349,7 @@ class TestUnsubscribeProcessing:
         mock_session_local.return_value.__enter__.return_value = mock_session
 
         mock_existing = Mock()
-        mock_session.query.return_value.filter.return_value.first.return_value = (
-            mock_existing
-        )
+        mock_session.query.return_value.filter.return_value.first.return_value = mock_existing
 
         result = compliance_manager.process_unsubscribe(token.token)
 
@@ -384,9 +362,7 @@ class TestUnsubscribeProcessing:
         assert result is False
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_process_unsubscribe_database_error(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_process_unsubscribe_database_error(self, mock_session_local, compliance_manager):
         """Test unsubscribe processing with database error"""
         email = "dberror@example.com"
         token = compliance_manager.generate_unsubscribe_token(email)
@@ -409,9 +385,7 @@ class TestComplianceHeaders:
         headers = compliance_manager.generate_compliance_headers(email, list_type)
 
         assert isinstance(headers, ComplianceHeaders)
-        assert headers.list_unsubscribe.startswith(
-            "<https://leadfactory.test/unsubscribe"
-        )
+        assert headers.list_unsubscribe.startswith("<https://leadfactory.test/unsubscribe")
         assert "mailto:unsubscribe@leadfactory.com>" in headers.list_unsubscribe
         assert headers.list_unsubscribe_post == "List-Unsubscribe=One-Click"
         assert headers.list_id == "<marketing.leadfactory.com>"
@@ -445,9 +419,7 @@ class TestComplianceHeaders:
         list_type = "newsletter"
 
         # Add compliance to email data
-        updated_email = compliance_manager.add_compliance_to_email_data(
-            sample_email_data, list_type
-        )
+        updated_email = compliance_manager.add_compliance_to_email_data(sample_email_data, list_type)
 
         assert updated_email == sample_email_data  # Should modify in place
         assert updated_email.custom_args is not None
@@ -502,9 +474,7 @@ class TestSuppressionManagement:
         # Mock database session
         mock_session = Mock()
         mock_session_local.return_value.__enter__.return_value = mock_session
-        mock_session.query.return_value.filter.return_value.first.return_value = (
-            None  # No existing
-        )
+        mock_session.query.return_value.filter.return_value.first.return_value = None  # No existing
 
         result = compliance_manager.record_suppression(
             "new@example.com", "spam_complaint", "marketing", "sendgrid_webhook"
@@ -521,29 +491,21 @@ class TestSuppressionManagement:
         mock_session_local.return_value.__enter__.return_value = mock_session
 
         mock_existing = Mock()
-        mock_session.query.return_value.filter.return_value.first.return_value = (
-            mock_existing
-        )
+        mock_session.query.return_value.filter.return_value.first.return_value = mock_existing
 
-        result = compliance_manager.record_suppression(
-            "existing@example.com", "duplicate"
-        )
+        result = compliance_manager.record_suppression("existing@example.com", "duplicate")
 
         assert result is True
         mock_session.add.assert_not_called()
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_record_suppression_with_expiration(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_record_suppression_with_expiration(self, mock_session_local, compliance_manager):
         """Test recording suppression with expiration"""
         mock_session = Mock()
         mock_session_local.return_value.__enter__.return_value = mock_session
         mock_session.query.return_value.filter.return_value.first.return_value = None
 
-        result = compliance_manager.record_suppression(
-            "expiry@example.com", "temporary_block", expires_days=30
-        )
+        result = compliance_manager.record_suppression("expiry@example.com", "temporary_block", expires_days=30)
 
         assert result is True
 
@@ -552,9 +514,7 @@ class TestSuppressionManagement:
         assert add_call.expires_at is not None
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_record_suppression_database_error(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_record_suppression_database_error(self, mock_session_local, compliance_manager):
         """Test recording suppression with database error"""
         mock_session_local.side_effect = Exception("Database error")
 
@@ -566,9 +526,7 @@ class TestSuppressionStats:
     """Test suppression statistics"""
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_get_suppression_stats_success(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_get_suppression_stats_success(self, mock_session_local, compliance_manager):
         """Test getting suppression statistics"""
         # Mock database session
         mock_session = Mock()
@@ -614,9 +572,7 @@ class TestUtilityFunctions:
         result = check_email_suppression("test@example.com", "marketing")
 
         assert result is True
-        mock_manager.check_suppression.assert_called_once_with(
-            "test@example.com", "marketing"
-        )
+        mock_manager.check_suppression.assert_called_once_with("test@example.com", "marketing")
 
     @patch("d9_delivery.compliance.ComplianceManager")
     @patch("d9_delivery.compliance.get_settings")
@@ -650,9 +606,7 @@ class TestUtilityFunctions:
         result = process_unsubscribe_request("test_token", "user_request")
 
         assert result is True
-        mock_manager.process_unsubscribe.assert_called_once_with(
-            "test_token", "user_request"
-        )
+        mock_manager.process_unsubscribe.assert_called_once_with("test_token", "user_request")
 
 
 class TestComplianceIntegration:
@@ -710,18 +664,14 @@ class TestComplianceIntegration:
         email_data.custom_args = {"campaign": "test"}
 
         # Add compliance
-        result = compliance_manager.add_compliance_to_email_data(
-            email_data, "marketing"
-        )
+        result = compliance_manager.add_compliance_to_email_data(email_data, "marketing")
 
         # Verify custom args were preserved and compliance added
         assert result.custom_args["campaign"] == "test"
         assert "List-Unsubscribe" in result.custom_args
 
         # Verify content was modified
-        assert len(result.html_content) > len(
-            "<h1>Marketing Email</h1><p>Content here</p>"
-        )
+        assert len(result.html_content) > len("<h1>Marketing Email</h1><p>Content here</p>")
         assert len(result.text_content) > len("Marketing Email\n\nContent here")
 
         # Verify unsubscribe links are functional
@@ -749,9 +699,7 @@ class TestComplianceEnhancements:
 
     def test_unsubscribe_token_data_structure(self, compliance_manager):
         """Test unsubscribe token data structure validation"""
-        token = compliance_manager.generate_unsubscribe_token(
-            "struct@example.com", "test"
-        )
+        token = compliance_manager.generate_unsubscribe_token("struct@example.com", "test")
 
         # Decode token data manually to verify structure
         parts = token.token.split(":", 1)
@@ -820,9 +768,7 @@ class TestComplianceEnhancements:
         assert parts1[0] != parts2[0]  # Different signatures
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_suppression_expiry_edge_cases(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_suppression_expiry_edge_cases(self, mock_session_local, compliance_manager):
         """Test suppression expiry edge cases"""
         mock_session = Mock()
         mock_session_local.return_value.__enter__.return_value = mock_session
@@ -831,9 +777,7 @@ class TestComplianceEnhancements:
         mock_suppression = Mock()
         mock_suppression.expires_at = datetime.now(timezone.utc)
         mock_suppression.is_active = True
-        mock_session.query.return_value.filter.return_value.first.return_value = (
-            mock_suppression
-        )
+        mock_session.query.return_value.filter.return_value.first.return_value = mock_suppression
 
         result = compliance_manager.check_suppression("edge@example.com")
 
@@ -848,8 +792,7 @@ class TestComplianceEnhancements:
 
         # URL should be properly encoded
         assert (
-            "user%2Btag%40example.com" in headers.list_unsubscribe
-            or "user+tag@example.com" in headers.list_unsubscribe
+            "user%2Btag%40example.com" in headers.list_unsubscribe or "user+tag@example.com" in headers.list_unsubscribe
         )
 
     def test_email_data_without_content(self, compliance_manager):
@@ -889,9 +832,7 @@ class TestComplianceEnhancements:
             assert stats["total_active_suppressions"] == 50
 
     @patch("d9_delivery.compliance.SessionLocal")
-    def test_concurrent_unsubscribe_processing(
-        self, mock_session_local, compliance_manager
-    ):
+    def test_concurrent_unsubscribe_processing(self, mock_session_local, compliance_manager):
         """Test handling concurrent unsubscribe requests"""
         email = "concurrent@example.com"
         token = compliance_manager.generate_unsubscribe_token(email)
@@ -934,9 +875,7 @@ class TestComplianceEnhancements:
 
         data_json = json.dumps(incomplete_data)
         data_b64 = base64.urlsafe_b64encode(data_json.encode()).decode()
-        signature = hmac.new(
-            compliance_manager.secret_key.encode(), data_b64.encode(), hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(compliance_manager.secret_key.encode(), data_b64.encode(), hashlib.sha256).hexdigest()
 
         invalid_token = f"{signature}:{data_b64}"
 
@@ -954,9 +893,7 @@ class TestComplianceEnhancements:
                     None
                 )
 
-                result = compliance_manager.check_suppression(
-                    f"test-{list_type}@example.com", list_type
-                )
+                result = compliance_manager.check_suppression(f"test-{list_type}@example.com", list_type)
                 assert result is False
 
     def test_compliance_constants_and_configuration(self, compliance_manager):

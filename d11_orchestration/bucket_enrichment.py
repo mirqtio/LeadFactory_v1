@@ -73,12 +73,8 @@ def load_bucket_features() -> Dict[str, int]:
     loader = get_bucket_loader()
     stats = loader.get_stats()
 
-    logger.info(
-        f"Loaded features: {stats['total_zip_codes']} ZIPs, {stats['total_categories']} categories"
-    )
-    logger.info(
-        f"Unique buckets: {stats['unique_geo_buckets']} geo, {stats['unique_vert_buckets']} vertical"
-    )
+    logger.info(f"Loaded features: {stats['total_zip_codes']} ZIPs, {stats['total_categories']} categories")
+    logger.info(f"Unique buckets: {stats['unique_geo_buckets']} geo, {stats['unique_vert_buckets']} vertical")
 
     return stats
 
@@ -98,9 +94,7 @@ def get_unenriched_businesses(batch_size: int = 1000) -> List[Dict]:
     with SessionLocal() as db:
         # Find businesses without bucket assignments
         stmt = (
-            select(Business)
-            .where((Business.geo_bucket.is_(None)) | (Business.vert_bucket.is_(None)))
-            .limit(batch_size)
+            select(Business).where((Business.geo_bucket.is_(None)) | (Business.vert_bucket.is_(None))).limit(batch_size)
         )
 
         results = db.execute(stmt).scalars().all()
@@ -146,10 +140,7 @@ def enrich_business_buckets(businesses: List[Dict]) -> List[Dict]:
 
         enriched.append(enriched_biz)
 
-    logger.info(
-        f"Enriched {len(enriched)} businesses "
-        f"({missing_geo} missing geo, {missing_vert} missing vertical)"
-    )
+    logger.info(f"Enriched {len(enriched)} businesses " f"({missing_geo} missing geo, {missing_vert} missing vertical)")
 
     return enriched
 
@@ -203,9 +194,7 @@ def update_business_buckets(enriched_businesses: List[Dict]) -> Dict[str, int]:
     retries=2,
     retry_delay_seconds=300,
 )
-def bucket_enrichment_flow(
-    batch_size: int = 1000, max_batches: int = 10
-) -> Dict[str, int]:
+def bucket_enrichment_flow(batch_size: int = 1000, max_batches: int = 10) -> Dict[str, int]:
     """
     Main bucket enrichment flow
 
@@ -245,9 +234,7 @@ def bucket_enrichment_flow(
         total_errors += update_stats["errors"]
         batches_processed += 1
 
-        logger.info(
-            f"Batch {batch_num + 1} complete: {update_stats['updated']} updated"
-        )
+        logger.info(f"Batch {batch_num + 1} complete: {update_stats['updated']} updated")
 
     # Final summary
     summary = {
@@ -258,8 +245,7 @@ def bucket_enrichment_flow(
     }
 
     logger.info(
-        f"Bucket enrichment complete: {total_updated} updated, "
-        f"{total_errors} errors in {batches_processed} batches"
+        f"Bucket enrichment complete: {total_updated} updated, " f"{total_errors} errors in {batches_processed} batches"
     )
 
     return summary
@@ -285,9 +271,7 @@ def create_nightly_deployment() -> Deployment:
 
 
 # Manual trigger for testing
-async def trigger_bucket_enrichment(
-    batch_size: int = 100, max_batches: int = 1
-) -> Dict[str, int]:
+async def trigger_bucket_enrichment(batch_size: int = 100, max_batches: int = 1) -> Dict[str, int]:
     """Manually trigger bucket enrichment"""
 
     result = bucket_enrichment_flow(batch_size=batch_size, max_batches=max_batches)

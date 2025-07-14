@@ -59,9 +59,7 @@ class BaseWebhookHandler:
             # 3. Update database status
 
             # For now, we'll simulate the trigger
-            logger.info(
-                f"Triggering report generation for purchase {purchase_id}, customer {customer_email}"
-            )
+            logger.info(f"Triggering report generation for purchase {purchase_id}, customer {customer_email}")
 
             # Extract business information from metadata
             business_urls = []
@@ -78,11 +76,7 @@ class BaseWebhookHandler:
 
             # Check for comma-separated list of business URLs (priority over individual URLs)
             if metadata.get("business_urls"):
-                business_urls = [
-                    url.strip()
-                    for url in metadata["business_urls"].split(",")
-                    if url.strip()
-                ]
+                business_urls = [url.strip() for url in metadata["business_urls"].split(",") if url.strip()]
             # Fallback to single business_url if no bulk URLs
             elif not business_urls and metadata.get("business_url"):
                 business_urls = [metadata["business_url"]]
@@ -107,9 +101,7 @@ class BaseWebhookHandler:
             return trigger_result
 
         except Exception as e:
-            logger.error(
-                f"Failed to trigger report generation for purchase {purchase_id}: {e}"
-            )
+            logger.error(f"Failed to trigger report generation for purchase {purchase_id}: {e}")
             return {
                 "success": False,
                 "status": ReportGenerationStatus.FAILED.value,
@@ -121,9 +113,7 @@ class BaseWebhookHandler:
 class CheckoutSessionHandler(BaseWebhookHandler):
     """Handler for checkout session events"""
 
-    def handle_session_completed(
-        self, event_data: Dict[str, Any], event_id: str
-    ) -> Dict[str, Any]:
+    def handle_session_completed(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
         """
         Handle checkout.session.completed event - Acceptance Criteria: Report generation triggered
         """
@@ -152,9 +142,7 @@ class CheckoutSessionHandler(BaseWebhookHandler):
                 logger.info(f"Payment succeeded for purchase {purchase_id}")
 
                 # Trigger report generation
-                generation_result = self._trigger_report_generation(
-                    purchase_id, customer_email, metadata
-                )
+                generation_result = self._trigger_report_generation(purchase_id, customer_email, metadata)
 
                 # Update purchase status (in real implementation)
                 # This would update the database to mark purchase as paid
@@ -175,9 +163,7 @@ class CheckoutSessionHandler(BaseWebhookHandler):
                 }
 
             else:
-                logger.warning(
-                    f"Session {session_id} completed but payment status is {payment_status}"
-                )
+                logger.warning(f"Session {session_id} completed but payment status is {payment_status}")
                 return {
                     "success": True,
                     "status": WebhookStatus.COMPLETED.value,
@@ -197,9 +183,7 @@ class CheckoutSessionHandler(BaseWebhookHandler):
                 "error": str(e),
             }
 
-    def handle_session_expired(
-        self, event_data: Dict[str, Any], event_id: str
-    ) -> Dict[str, Any]:
+    def handle_session_expired(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
         """Handle checkout.session.expired event"""
         try:
             session = event_data.get("object", {})
@@ -236,9 +220,7 @@ class CheckoutSessionHandler(BaseWebhookHandler):
 class PaymentIntentHandler(BaseWebhookHandler):
     """Handler for payment intent events"""
 
-    def handle_payment_succeeded(
-        self, event_data: Dict[str, Any], event_id: str
-    ) -> Dict[str, Any]:
+    def handle_payment_succeeded(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
         """Handle payment_intent.succeeded event"""
         try:
             payment_intent = event_data.get("object", {})
@@ -258,9 +240,7 @@ class PaymentIntentHandler(BaseWebhookHandler):
                 # Additional report generation trigger if not already handled by checkout.session.completed
                 customer_email = metadata.get("customer_email")
                 if customer_email:
-                    generation_result = self._trigger_report_generation(
-                        purchase_id, customer_email, metadata
-                    )
+                    generation_result = self._trigger_report_generation(purchase_id, customer_email, metadata)
                 else:
                     generation_result = {
                         "status": ReportGenerationStatus.SKIPPED.value,
@@ -292,9 +272,7 @@ class PaymentIntentHandler(BaseWebhookHandler):
                 "error": str(e),
             }
 
-    def handle_payment_failed(
-        self, event_data: Dict[str, Any], event_id: str
-    ) -> Dict[str, Any]:
+    def handle_payment_failed(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
         """Handle payment_intent.payment_failed event"""
         try:
             payment_intent = event_data.get("object", {})
@@ -331,9 +309,7 @@ class PaymentIntentHandler(BaseWebhookHandler):
 class CustomerHandler(BaseWebhookHandler):
     """Handler for customer events"""
 
-    def handle_customer_created(
-        self, event_data: Dict[str, Any], event_id: str
-    ) -> Dict[str, Any]:
+    def handle_customer_created(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
         """Handle customer.created event"""
         try:
             customer = event_data.get("object", {})
@@ -371,9 +347,7 @@ class CustomerHandler(BaseWebhookHandler):
 class InvoiceHandler(BaseWebhookHandler):
     """Handler for invoice events"""
 
-    def handle_invoice_event(
-        self, event_type: str, event_data: Dict[str, Any], event_id: str
-    ) -> Dict[str, Any]:
+    def handle_invoice_event(self, event_type: str, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
         """Handle invoice payment events"""
         try:
             invoice = event_data.get("object", {})
@@ -383,9 +357,7 @@ class InvoiceHandler(BaseWebhookHandler):
             currency = invoice.get("currency")
             metadata = invoice.get("metadata", {})
 
-            logger.info(
-                f"Processing invoice event {event_type} for invoice {invoice_id}"
-            )
+            logger.info(f"Processing invoice event {event_type} for invoice {invoice_id}")
 
             if event_type == "invoice.payment_succeeded":
                 action = "payment_succeeded"
@@ -396,13 +368,9 @@ class InvoiceHandler(BaseWebhookHandler):
                     # Trigger report generation for subscription/invoice payments
                     customer_email = metadata.get("customer_email")
                     if customer_email:
-                        generation_result = self._trigger_report_generation(
-                            purchase_id, customer_email, metadata
-                        )
+                        generation_result = self._trigger_report_generation(purchase_id, customer_email, metadata)
                     else:
-                        generation_result = {
-                            "status": ReportGenerationStatus.SKIPPED.value
-                        }
+                        generation_result = {"status": ReportGenerationStatus.SKIPPED.value}
                 else:
                     generation_result = {"status": ReportGenerationStatus.SKIPPED.value}
 

@@ -107,9 +107,7 @@ class TestTask022AcceptanceCriteria:
             campaigns.append(campaign)
 
         # Mock methods
-        scheduler._get_remaining_targets_count = Mock(
-            side_effect=lambda c: 800 - campaigns.index(c) * 200
-        )
+        scheduler._get_remaining_targets_count = Mock(side_effect=lambda c: 800 - campaigns.index(c) * 200)
         scheduler._get_campaign_batch_settings = Mock(return_value=BatchSchedule())
 
         # Test allocation
@@ -122,12 +120,8 @@ class TestTask022AcceptanceCriteria:
         assert total_allocated <= total_quota
 
         # Check that all campaigns get some allocation if they have remaining targets
-        campaigns_with_targets = [
-            c for c in campaigns if scheduler._get_remaining_targets_count(c) > 0
-        ]
-        campaigns_with_quota = [
-            c for c, alloc in allocations.items() if alloc["quota"] > 0
-        ]
+        campaigns_with_targets = [c for c in campaigns if scheduler._get_remaining_targets_count(c) > 0]
+        campaigns_with_quota = [c for c, alloc in allocations.items() if alloc["quota"] > 0]
         assert len(campaigns_with_quota) >= min(len(campaigns_with_targets), 1)
 
         print("✓ Quota allocation is fair")
@@ -203,9 +197,7 @@ class TestTask022AcceptanceCriteria:
         scheduler.quota_tracker.get_daily_quota = Mock(return_value=500)
 
         # Test that campaigns with existing batches are excluded
-        target_date = datetime.utcnow().replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        target_date = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         campaigns = scheduler._get_campaigns_needing_batches(target_date)
 
         # Should return empty list since all campaigns have existing batches
@@ -213,9 +205,7 @@ class TestTask022AcceptanceCriteria:
         assert len(campaigns) == 0
 
         # Test get next batch number to ensure proper sequencing
-        mock_session.query.return_value.filter.return_value.scalar.return_value = (
-            2  # Mock existing max batch number
-        )
+        mock_session.query.return_value.filter.return_value.scalar.return_value = 2  # Mock existing max batch number
 
         next_batch_num = scheduler._get_next_batch_number("campaign-1", target_date)
         assert next_batch_num == 3  # Should be next in sequence
@@ -232,9 +222,7 @@ class TestTask022AcceptanceCriteria:
         mock_session = Mock()
 
         # Mock database queries for quota tracker
-        mock_session.query.return_value.filter.return_value.scalar.return_value = (
-            100  # Mock used quota
-        )
+        mock_session.query.return_value.filter.return_value.scalar.return_value = 100  # Mock used quota
 
         quota_tracker = QuotaTracker(session=mock_session)
 
@@ -278,9 +266,7 @@ class TestTask022AcceptanceCriteria:
         mock_batch.status = BatchProcessingStatus.PENDING.value
         mock_batch.retry_count = 0
 
-        mock_session.query.return_value.filter_by.return_value.first.return_value = (
-            mock_batch
-        )
+        mock_session.query.return_value.filter_by.return_value.first.return_value = mock_batch
 
         # Test marking batch as processing
         result = scheduler.mark_batch_processing("batch-123")
@@ -323,16 +309,12 @@ class TestTask022AcceptanceCriteria:
         )
 
         # Test first batch
-        scheduled_time1 = scheduler._calculate_batch_schedule_time(
-            target_date, 1, batch_settings
-        )
+        scheduled_time1 = scheduler._calculate_batch_schedule_time(target_date, 1, batch_settings)
         expected_start = datetime(2024, 1, 15, 9, 0, 0)
         assert scheduled_time1 == expected_start
 
         # Test second batch (should be 5 minutes later)
-        scheduled_time2 = scheduler._calculate_batch_schedule_time(
-            target_date, 2, batch_settings
-        )
+        scheduled_time2 = scheduler._calculate_batch_schedule_time(target_date, 2, batch_settings)
         expected_second = datetime(2024, 1, 15, 9, 5, 0)
         assert scheduled_time2 == expected_second
 

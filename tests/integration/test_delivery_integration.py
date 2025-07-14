@@ -105,11 +105,7 @@ class TestDeliveryIntegration:
 
         # Verify delivery status updated
         with SessionLocal() as session:
-            delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.delivery_id == delivery_id)
-                .first()
-            )
+            delivery = session.query(EmailDelivery).filter(EmailDelivery.delivery_id == delivery_id).first()
 
             assert delivery is not None
             assert delivery.status == DeliveryStatus.DELIVERED.value
@@ -150,11 +146,7 @@ class TestDeliveryIntegration:
 
         # Verify suppression record exists and is active
         with SessionLocal() as session:
-            suppression = (
-                session.query(SuppressionList)
-                .filter(SuppressionList.email == suppressed_email)
-                .first()
-            )
+            suppression = session.query(SuppressionList).filter(SuppressionList.email == suppressed_email).first()
 
             assert suppression is not None
             assert suppression.is_suppressed() is True
@@ -235,11 +227,7 @@ class TestDeliveryIntegration:
         # Verify database updates
         with SessionLocal() as session:
             # Check delivery status updated to delivered
-            delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == message_id)
-                .first()
-            )
+            delivery = session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == message_id).first()
             assert delivery.status == DeliveryStatus.DELIVERED.value
             assert delivery.delivered_at is not None
 
@@ -263,23 +251,13 @@ class TestDeliveryIntegration:
             assert event_types == expected_types
 
             # Check event details
-            open_event = next(
-                e for e in events if e.event_type == EventType.OPENED.value
-            )
-            assert (
-                open_event.user_agent
-                == "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)"
-            )
+            open_event = next(e for e in events if e.event_type == EventType.OPENED.value)
+            assert open_event.user_agent == "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)"
             assert open_event.ip_address == "192.168.1.100"
 
-            click_event = next(
-                e for e in events if e.event_type == EventType.CLICKED.value
-            )
+            click_event = next(e for e in events if e.event_type == EventType.CLICKED.value)
             assert click_event.url == "https://leadfactory.com/report?business_id=test"
-            assert (
-                click_event.user_agent
-                == "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)"
-            )
+            assert click_event.user_agent == "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)"
             assert click_event.ip_address == "192.168.1.100"
 
         print("✓ Webhook processing works")
@@ -351,31 +329,19 @@ class TestDeliveryIntegration:
         # Verify bounced email is now suppressed
         with SessionLocal() as session:
             # Check bounce tracking record
-            bounce_tracking = (
-                session.query(BounceTracking)
-                .filter(BounceTracking.email == bounce_email)
-                .first()
-            )
+            bounce_tracking = session.query(BounceTracking).filter(BounceTracking.email == bounce_email).first()
             assert bounce_tracking is not None
             assert bounce_tracking.bounce_type == BounceType.HARD.value
             assert bounce_tracking.bounce_reason == "550 Invalid recipient address"
 
             # Check bounce suppression
-            bounce_suppression = (
-                session.query(SuppressionList)
-                .filter(SuppressionList.email == bounce_email)
-                .first()
-            )
+            bounce_suppression = session.query(SuppressionList).filter(SuppressionList.email == bounce_email).first()
             assert bounce_suppression is not None
             assert bounce_suppression.reason == "hard_bounce"
             assert bounce_suppression.is_suppressed() is True
 
             # Check spam suppression
-            spam_suppression = (
-                session.query(SuppressionList)
-                .filter(SuppressionList.email == spam_email)
-                .first()
-            )
+            spam_suppression = session.query(SuppressionList).filter(SuppressionList.email == spam_email).first()
             assert spam_suppression is not None
             assert spam_suppression.reason == "spam_complaint"
             assert spam_suppression.is_suppressed() is True
@@ -389,9 +355,7 @@ class TestDeliveryIntegration:
             assert bounce_delivery.status == DeliveryStatus.BOUNCED.value
 
             spam_delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == "spam_msg_integration")
-                .first()
+                session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == "spam_msg_integration").first()
             )
             assert spam_delivery.status == DeliveryStatus.SPAM.value
 
@@ -479,9 +443,7 @@ class TestDeliveryIntegration:
         import hashlib
         import hmac
 
-        expected_signature = hmac.new(
-            secret.encode(), payload.encode(), hashlib.sha256
-        ).hexdigest()
+        expected_signature = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
         with patch.dict("os.environ", {"SENDGRID_WEBHOOK_SECRET": secret}):
             handler = WebhookHandler()

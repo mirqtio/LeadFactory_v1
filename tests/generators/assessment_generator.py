@@ -430,9 +430,7 @@ class AssessmentGenerator:
             "desktop_score": desktop_score,
         }
 
-    def generate_pagespeed_data(
-        self, scenario: AssessmentScenario, scores: Dict[str, int]
-    ) -> Dict[str, Any]:
+    def generate_pagespeed_data(self, scenario: AssessmentScenario, scores: Dict[str, int]) -> Dict[str, Any]:
         """Generate realistic PageSpeed Insights data"""
         profile = self.profiles[scenario]
 
@@ -497,10 +495,7 @@ class AssessmentGenerator:
         all_techs = []
         for category, techs in self.technologies.items():
             for tech_name, tech_data in techs.items():
-                if (
-                    tech_name != "Unknown"
-                    and tech_name not in profile.common_technologies
-                ):
+                if tech_name != "Unknown" and tech_name not in profile.common_technologies:
                     weight = tech_data.get(
                         "market_share",
                         tech_data.get(
@@ -508,16 +503,12 @@ class AssessmentGenerator:
                             tech_data.get("usage", tech_data.get("adoption", 0.1)),
                         ),
                     )
-                    if (
-                        self.random.random() < weight * 0.3
-                    ):  # Reduce probability for variety
+                    if self.random.random() < weight * 0.3:  # Reduce probability for variety
                         all_techs.append(tech_name)
 
         # Add 2-4 additional technologies
         additional_count = self.random.randint(2, 4)
-        additional_techs = self.random.sample(
-            all_techs, min(additional_count, len(all_techs))
-        )
+        additional_techs = self.random.sample(all_techs, min(additional_count, len(all_techs)))
 
         for tech in additional_techs:
             detected_technologies.append(
@@ -541,9 +532,7 @@ class AssessmentGenerator:
 
         return tech_stack_data
 
-    def generate_ai_insights_data(
-        self, scenario: AssessmentScenario, scores: Dict[str, int]
-    ) -> Dict[str, Any]:
+    def generate_ai_insights_data(self, scenario: AssessmentScenario, scores: Dict[str, int]) -> Dict[str, Any]:
         """Generate realistic AI insights data"""
         profile = self.profiles[scenario]
 
@@ -593,18 +582,10 @@ class AssessmentGenerator:
                 )
             )
         else:
-            issues.extend(
-                self.random.sample(
-                    self.insights_templates["seo_issues"], k=self.random.randint(1, 2)
-                )
-            )
+            issues.extend(self.random.sample(self.insights_templates["seo_issues"], k=self.random.randint(1, 2)))
 
         # Add scenario-specific issues
-        issues.extend(
-            self.random.sample(
-                profile.typical_issues, k=min(2, len(profile.typical_issues))
-            )
-        )
+        issues.extend(self.random.sample(profile.typical_issues, k=min(2, len(profile.typical_issues))))
 
         # Generate recommendations
         rec_count = max(3, len(issues))
@@ -670,9 +651,7 @@ class AssessmentGenerator:
 
         # Determine assessment status
         status_weights = profile.status_weights
-        status = self.random.choices(
-            list(status_weights.keys()), weights=list(status_weights.values())
-        )[0]
+        status = self.random.choices(list(status_weights.keys()), weights=list(status_weights.values()))[0]
 
         # Determine assessment type based on scenario
         assessment_type = AssessmentType.FULL_AUDIT
@@ -692,11 +671,8 @@ class AssessmentGenerator:
             status=AssessmentStatus[status],
             priority=self.random.randint(1, 10),
             # Website info
-            url=business.website
-            or f"https://{business.name.lower().replace(' ', '')}.com",
-            domain=business.website.replace("https://", "")
-            .replace("http://", "")
-            .split("/")[0]
+            url=business.website or f"https://{business.name.lower().replace(' ', '')}.com",
+            domain=business.website.replace("https://", "").replace("http://", "").split("/")[0]
             if business.website
             else f"{business.name.lower().replace(' ', '')}.com",
             is_mobile=scenario == AssessmentScenario.MOBILE_OPTIMIZED,
@@ -741,9 +717,7 @@ class AssessmentGenerator:
 
         return assessments
 
-    def generate_performance_dataset(
-        self, businesses: List[Business], size: str = "small"
-    ) -> List[AssessmentResult]:
+    def generate_performance_dataset(self, businesses: List[Business], size: str = "small") -> List[AssessmentResult]:
         """Generate large assessment datasets for performance testing"""
         sizes = {
             "small": len(businesses),
@@ -796,18 +770,13 @@ class AssessmentGenerator:
     def detect_js_framework(self) -> Optional[str]:
         """Detect JavaScript framework"""
         js_options = list(self.technologies["javascript_frameworks"].keys())
-        weights = [
-            self.technologies["javascript_frameworks"][js]["popularity"]
-            for js in js_options
-        ]
+        weights = [self.technologies["javascript_frameworks"][js]["popularity"] for js in js_options]
         return self.random.choices(js_options, weights=weights)[0]
 
     def detect_css_framework(self) -> Optional[str]:
         """Detect CSS framework"""
         css_options = list(self.technologies["css_frameworks"].keys())
-        weights = [
-            self.technologies["css_frameworks"][css]["usage"] for css in css_options
-        ]
+        weights = [self.technologies["css_frameworks"][css]["usage"] for css in css_options]
         return self.random.choices(css_options, weights=weights)[0]
 
     def detect_analytics(self) -> List[str]:
@@ -865,9 +834,7 @@ class AssessmentGenerator:
                 {"name": "Industry Leader 1", "score": self.random.randint(85, 95)},
                 {"name": "Industry Leader 2", "score": self.random.randint(80, 90)},
             ],
-            "market_position": self.random.choice(
-                ["above_average", "average", "below_average"]
-            ),
+            "market_position": self.random.choice(["above_average", "average", "below_average"]),
         }
 
     def generate_industry_benchmarks(self, scores: Dict[str, int]) -> Dict[str, Any]:
@@ -877,12 +844,8 @@ class AssessmentGenerator:
             "industry_average_accessibility": self.random.randint(60, 80),
             "industry_average_seo": self.random.randint(50, 70),
             "percentile_ranking": {
-                "performance": min(
-                    95, max(5, int((scores["performance_score"] / 100) * 100))
-                ),
-                "accessibility": min(
-                    95, max(5, int((scores["accessibility_score"] / 100) * 100))
-                ),
+                "performance": min(95, max(5, int((scores["performance_score"] / 100) * 100))),
+                "accessibility": min(95, max(5, int((scores["accessibility_score"] / 100) * 100))),
                 "seo": min(95, max(5, int((scores["seo_score"] / 100) * 100))),
             },
         }

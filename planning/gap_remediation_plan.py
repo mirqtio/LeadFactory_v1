@@ -108,9 +108,7 @@ def get_progress_summary() -> Dict:
 
     total_tasks = len(status["tasks"])
     completed = sum(1 for t in status["tasks"].values() if t["status"] == "completed")
-    in_progress = sum(
-        1 for t in status["tasks"].values() if t["status"] == "in_progress"
-    )
+    in_progress = sum(1 for t in status["tasks"].values() if t["status"] == "in_progress")
     pending = sum(1 for t in status["tasks"].values() if t["status"] == "pending")
 
     # Calculate by priority
@@ -177,9 +175,7 @@ def display_next_task(task: Dict) -> None:
 
     print("\n" + "=" * 80)
     print("To start this task, run:")
-    print(
-        f"  python3 planning/gap_remediation_plan.py --update {task['id']} in_progress"
-    )
+    print(f"  python3 planning/gap_remediation_plan.py --update {task['id']} in_progress")
     print("=" * 80 + "\n")
 
 
@@ -191,16 +187,12 @@ def main():
             print("\nGAP REMEDIATION PROGRESS")
             print("=" * 50)
             print(f"Total Tasks: {summary['total_tasks']}")
-            print(
-                f"Completed: {summary['completed']} ({summary['completion_percentage']}%)"
-            )
+            print(f"Completed: {summary['completed']} ({summary['completion_percentage']}%)")
             print(f"In Progress: {summary['in_progress']}")
             print(f"Pending: {summary['pending']}")
             print("\nBy Priority:")
             for priority, stats in summary["by_priority"].items():
-                print(
-                    f"  {priority.capitalize()}: {stats['completed']}/{stats['total']}"
-                )
+                print(f"  {priority.capitalize()}: {stats['completed']}/{stats['total']}")
 
         elif sys.argv[1] == "--update" and len(sys.argv) == 4:
             task_id = sys.argv[2]
@@ -241,9 +233,7 @@ def main():
         else:
             print("\nAll gap remediation tasks completed! 🎉")
             summary = get_progress_summary()
-            print(
-                f"Total tasks completed: {summary['completed']}/{summary['total_tasks']}"
-            )
+            print(f"Total tasks completed: {summary['completed']}/{summary['total_tasks']}")
 
 
 if __name__ == "__main__":

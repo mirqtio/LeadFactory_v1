@@ -2,14 +2,14 @@
 Email enrichment logic for PRD v1.2
 Implements Hunter-first, Data Axle fallback pattern
 """
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
-from d0_gateway.providers.hunter import HunterClient
-from d0_gateway.providers.dataaxle import DataAxleClient
-from d0_gateway.factory import get_gateway_factory
 from core.config import settings
 from core.logging import get_logger
+from d0_gateway.factory import get_gateway_factory
+from d0_gateway.providers.dataaxle import DataAxleClient
+from d0_gateway.providers.hunter import HunterClient
 
 logger = get_logger(__name__, domain="d4")
 
@@ -61,9 +61,7 @@ class EmailEnricher:
         # Extract domain from website
         domain = self._extract_domain(business)
         if not domain:
-            logger.warning(
-                f"No domain found for business {business.get('name', 'unknown')}"
-            )
+            logger.warning(f"No domain found for business {business.get('name', 'unknown')}")
             return None, None
 
         # Try Hunter first
@@ -74,16 +72,10 @@ class EmailEnricher:
 
                 # PRD v1.2: Use if confidence >= 0.75
                 if email and confidence >= 0.75:
-                    logger.info(
-                        f"Found email via Hunter for {domain}: {email} "
-                        f"(confidence: {confidence:.2f})"
-                    )
+                    logger.info(f"Found email via Hunter for {domain}: {email} " f"(confidence: {confidence:.2f})")
                     return email, "hunter"
                 elif email:
-                    logger.info(
-                        f"Hunter email confidence too low for {domain}: "
-                        f"{confidence:.2f} < 0.75"
-                    )
+                    logger.info(f"Hunter email confidence too low for {domain}: " f"{confidence:.2f} < 0.75")
 
             except Exception as e:
                 logger.error(f"Hunter search failed for {domain}: {e}")
@@ -145,9 +137,7 @@ class EmailEnricher:
 
         return None
 
-    async def enrich_batch(
-        self, businesses: List[Dict[str, Any]]
-    ) -> Dict[str, Dict[str, Any]]:
+    async def enrich_batch(self, businesses: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         """
         Enrich multiple businesses with emails
 

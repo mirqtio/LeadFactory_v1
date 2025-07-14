@@ -138,14 +138,10 @@ class TestTask032AcceptanceCriteria:
         }
 
         # Mock content fetching
-        with patch.object(
-            detector, "_fetch_website_content", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(detector, "_fetch_website_content", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = mock_html_content
 
-            detections = await detector.detect_technologies(
-                assessment_id="test-assessment", url="https://example.com"
-            )
+            detections = await detector.detect_technologies(assessment_id="test-assessment", url="https://example.com")
 
             # Should detect multiple frameworks
             detected_names = [d.technology_name for d in detections]
@@ -214,19 +210,13 @@ class TestTask032AcceptanceCriteria:
         }
 
         # Mock content fetching
-        with patch.object(
-            detector, "_fetch_website_content", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(detector, "_fetch_website_content", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = mock_html_content
 
-            detections = await detector.detect_technologies(
-                assessment_id="test-assessment", url="https://example.com"
-            )
+            detections = await detector.detect_technologies(assessment_id="test-assessment", url="https://example.com")
 
             # Should detect WordPress (generator meta tag and /wp-content/)
-            wordpress_detection = next(
-                (d for d in detections if "Wordpress" in d.technology_name), None
-            )
+            wordpress_detection = next((d for d in detections if "Wordpress" in d.technology_name), None)
             assert wordpress_detection is not None
             assert wordpress_detection.category == TechCategory.CMS
             assert wordpress_detection.confidence > 0.5
@@ -245,10 +235,7 @@ class TestTask032AcceptanceCriteria:
             # Verify detection method and metadata
             assert wordpress_detection.detection_method == "pattern_matching"
             assert "patterns_matched" in wordpress_detection.technology_data
-            assert (
-                wordpress_detection.technology_data["detection_method"]
-                == "pattern_matching"
-            )
+            assert wordpress_detection.technology_data["detection_method"] == "pattern_matching"
 
             print("✓ CMS identification works correctly")
 
@@ -292,29 +279,19 @@ class TestTask032AcceptanceCriteria:
         }
 
         # Mock content fetching
-        with patch.object(
-            detector, "_fetch_website_content", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(detector, "_fetch_website_content", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = mock_html_content
 
-            detections = await detector.detect_technologies(
-                assessment_id="test-assessment", url="https://example.com"
-            )
+            detections = await detector.detect_technologies(assessment_id="test-assessment", url="https://example.com")
 
             # Should detect Google Analytics
-            ga_detection = next(
-                (d for d in detections if "Google Analytics" in d.technology_name), None
-            )
+            ga_detection = next((d for d in detections if "Google Analytics" in d.technology_name), None)
             assert ga_detection is not None
             assert ga_detection.category == TechCategory.ANALYTICS
-            assert (
-                ga_detection.confidence > 0.8
-            )  # High confidence due to multiple patterns
+            assert ga_detection.confidence > 0.8  # High confidence due to multiple patterns
 
             # Should detect Facebook Pixel
-            fb_detection = next(
-                (d for d in detections if "Facebook Pixel" in d.technology_name), None
-            )
+            fb_detection = next((d for d in detections if "Facebook Pixel" in d.technology_name), None)
             assert fb_detection is not None
             assert fb_detection.category == TechCategory.ANALYTICS
 
@@ -388,9 +365,7 @@ class TestTask032AcceptanceCriteria:
         jquery_version = detector._extract_version(content_with_versions, "jquery")
         assert jquery_version == "3.6.0"
 
-        wordpress_version = detector._extract_version(
-            content_with_versions, "WordPress"
-        )
+        wordpress_version = detector._extract_version(content_with_versions, "WordPress")
         assert wordpress_version == "6.0.1"
 
         react_version = detector._extract_version(content_with_versions, "React")
@@ -443,9 +418,7 @@ class TestTask032AcceptanceCriteria:
         ]
 
         # Mock single detector
-        with patch.object(
-            batch_detector.detector, "detect_technologies", new_callable=AsyncMock
-        ) as mock_detect:
+        with patch.object(batch_detector.detector, "detect_technologies", new_callable=AsyncMock) as mock_detect:
             mock_detect.return_value = [
                 TechStackDetection(
                     assessment_id="test",
@@ -564,9 +537,7 @@ class TestTask032AcceptanceCriteria:
 
         # Test recommendations
         current_stack = detections_list[0]  # First website's stack
-        recommendations = analyzer.generate_technology_recommendations(
-            current_stack, trends
-        )
+        recommendations = analyzer.generate_technology_recommendations(current_stack, trends)
 
         assert len(recommendations) > 0
         # Should recommend missing categories or popular technologies
@@ -615,14 +586,10 @@ class TestTask032AcceptanceCriteria:
             },
         }
 
-        with patch.object(
-            detector, "_fetch_website_content", new_callable=AsyncMock
-        ) as mock_fetch:
+        with patch.object(detector, "_fetch_website_content", new_callable=AsyncMock) as mock_fetch:
             mock_fetch.return_value = mock_html_content
 
-            detections = await detector.detect_technologies(
-                assessment_id="test-assessment", url="https://example.com"
-            )
+            detections = await detector.detect_technologies(assessment_id="test-assessment", url="https://example.com")
 
             # Should detect technologies from all categories
             categories_detected = {d.category for d in detections}
@@ -670,9 +637,7 @@ if __name__ == "__main__":
             await test_instance.test_batch_detection()
             test_instance.test_technology_summary(detector)
             test_instance.test_technology_analyzer()
-            await test_instance.test_comprehensive_detection_flow(
-                detector, mock_content
-            )
+            await test_instance.test_comprehensive_detection_flow(detector, mock_content)
 
             print()
             print("🎉 All Task 032 acceptance criteria tests pass!")

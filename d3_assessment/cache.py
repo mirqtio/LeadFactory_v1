@@ -206,10 +206,7 @@ class AssessmentCache:
             return self.default_ttl_seconds
 
         # Use minimum TTL of all assessment types
-        ttls = [
-            self._ttl_config.get(atype, self.default_ttl_seconds)
-            for atype in assessment_types
-        ]
+        ttls = [self._ttl_config.get(atype, self.default_ttl_seconds) for atype in assessment_types]
         return min(ttls)
 
     def _calculate_entry_size(self, value: Any) -> int:
@@ -224,10 +221,7 @@ class AssessmentCache:
 
     def _should_evict(self) -> bool:
         """Check if cache eviction is needed"""
-        return (
-            len(self._cache) >= self.max_entries
-            or self._stats.total_size_bytes >= self.max_size_bytes
-        )
+        return len(self._cache) >= self.max_entries or self._stats.total_size_bytes >= self.max_size_bytes
 
     def _evict_entries(self):
         """
@@ -243,24 +237,16 @@ class AssessmentCache:
 
         if self.strategy == CacheStrategy.LRU:
             # Evict least recently used
-            entries_by_access = sorted(
-                self._cache.items(), key=lambda x: x[1].accessed_at
-            )
+            entries_by_access = sorted(self._cache.items(), key=lambda x: x[1].accessed_at)
         elif self.strategy == CacheStrategy.LFU:
             # Evict least frequently used
-            entries_by_access = sorted(
-                self._cache.items(), key=lambda x: (x[1].access_count, x[1].accessed_at)
-            )
+            entries_by_access = sorted(self._cache.items(), key=lambda x: (x[1].access_count, x[1].accessed_at))
         elif self.strategy == CacheStrategy.FIFO:
             # Evict oldest entries
-            entries_by_access = sorted(
-                self._cache.items(), key=lambda x: x[1].created_at
-            )
+            entries_by_access = sorted(self._cache.items(), key=lambda x: x[1].created_at)
         else:  # TTL_ONLY
             # Evict by TTL, then by age
-            entries_by_access = sorted(
-                self._cache.items(), key=lambda x: (x[1].is_expired, x[1].created_at)
-            )
+            entries_by_access = sorted(self._cache.items(), key=lambda x: (x[1].is_expired, x[1].created_at))
 
         # Evict entries
         for i in range(min(evict_count, len(entries_by_access))):
@@ -290,9 +276,7 @@ class AssessmentCache:
 
         Acceptance Criteria: Recent assessments cached, Hit rate tracking
         """
-        key = self._generate_cache_key(
-            business_id, url, assessment_types, industry, **kwargs
-        )
+        key = self._generate_cache_key(business_id, url, assessment_types, industry, **kwargs)
 
         if key not in self._cache:
             self._stats.misses += 1
@@ -332,9 +316,7 @@ class AssessmentCache:
 
         Acceptance Criteria: Recent assessments cached, TTL configuration works
         """
-        key = self._generate_cache_key(
-            business_id, url, assessment_types, industry, **kwargs
-        )
+        key = self._generate_cache_key(business_id, url, assessment_types, industry, **kwargs)
 
         # Determine TTL
         ttl_seconds = ttl_override or self._get_ttl_for_assessment(assessment_types)
@@ -369,9 +351,7 @@ class AssessmentCache:
         self._cache[key] = entry
         self._stats.total_size_bytes += size_bytes
 
-        logger.debug(
-            f"Cached assessment result {key} (TTL: {ttl_seconds}s, Size: {size_bytes}b)"
-        )
+        logger.debug(f"Cached assessment result {key} (TTL: {ttl_seconds}s, Size: {size_bytes}b)")
         return key
 
     async def invalidate(
@@ -402,9 +382,7 @@ class AssessmentCache:
             if business_id or url or assessment_types:
                 # Generate key for comparison
                 if business_id and url and assessment_types:
-                    target_key = self._generate_cache_key(
-                        business_id, url, assessment_types, **kwargs
-                    )
+                    target_key = self._generate_cache_key(business_id, url, assessment_types, **kwargs)
                     if key == target_key:
                         should_remove = True
 
@@ -443,9 +421,7 @@ class AssessmentCache:
             removed_count += 1
 
         if removed_count > 0:
-            logger.info(
-                f"Invalidated {removed_count} cache entries for domain {domain}"
-            )
+            logger.info(f"Invalidated {removed_count} cache entries for domain {domain}")
 
         return removed_count
 
@@ -457,9 +433,7 @@ class AssessmentCache:
         """
         # Update current stats
         self._stats.entry_count = len(self._cache)
-        self._stats.total_size_bytes = sum(
-            entry.size_bytes for entry in self._cache.values()
-        )
+        self._stats.total_size_bytes = sum(entry.size_bytes for entry in self._cache.values())
 
         return CacheStats(
             hits=self._stats.hits,
@@ -476,9 +450,7 @@ class AssessmentCache:
 
         # Calculate additional metrics
         total_requests = stats.hits + stats.misses
-        avg_entry_size = (
-            stats.total_size_bytes / stats.entry_count if stats.entry_count > 0 else 0
-        )
+        avg_entry_size = stats.total_size_bytes / stats.entry_count if stats.entry_count > 0 else 0
 
         # Get entry age distribution
         ages = [entry.age_seconds for entry in self._cache.values()]
@@ -496,18 +468,12 @@ class AssessmentCache:
             "metrics": {
                 "hit_rate_percentage": round(stats.hit_rate * 100, 2),
                 "total_requests": total_requests,
-                "cache_utilization_percentage": round(
-                    (stats.entry_count / self.max_entries) * 100, 2
-                ),
-                "size_utilization_percentage": round(
-                    (stats.total_size_bytes / self.max_size_bytes) * 100, 2
-                ),
+                "cache_utilization_percentage": round((stats.entry_count / self.max_entries) * 100, 2),
+                "size_utilization_percentage": round((stats.total_size_bytes / self.max_size_bytes) * 100, 2),
                 "average_entry_size_bytes": round(avg_entry_size, 2),
                 "average_entry_age_seconds": round(avg_age, 2),
             },
-            "ttl_configuration": {
-                atype.value: ttl for atype, ttl in self._ttl_config.items()
-            },
+            "ttl_configuration": {atype.value: ttl for atype, ttl in self._ttl_config.items()},
         }
 
     async def clear(self) -> int:
@@ -544,9 +510,7 @@ class AssessmentCache:
                     "is_expired": entry.is_expired,
                     "size_bytes": entry.size_bytes,
                     "tags": list(entry.tags),
-                    "business_id": getattr(entry.value, "business_id", "unknown")
-                    if entry.value
-                    else "unknown",
+                    "business_id": getattr(entry.value, "business_id", "unknown") if entry.value else "unknown",
                 }
             )
 
@@ -635,9 +599,7 @@ def cached_assessment(
 
             # Store in cache
             if result is not None:
-                await cache.put(
-                    *args, result, ttl_override=ttl_seconds, tags=tags, **kwargs
-                )
+                await cache.put(*args, result, ttl_override=ttl_seconds, tags=tags, **kwargs)
 
             return result
 

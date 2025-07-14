@@ -114,9 +114,7 @@ class TechStackDetector:
         for pattern in patterns:
             if self._pattern_matches(pattern, content):
                 weight = confidence_weights.get(pattern, 0.5)  # Default confidence
-                matches.append(
-                    {"pattern": pattern, "confidence": weight, "matched": True}
-                )
+                matches.append({"pattern": pattern, "confidence": weight, "matched": True})
                 total_confidence += weight
 
         # Require at least one match with minimum confidence
@@ -222,9 +220,7 @@ class TechStackDetector:
         except Exception:
             return None
 
-    async def analyze_cms_specifically(
-        self, assessment_id: str, url: str, content: str
-    ) -> List[TechStackDetection]:
+    async def analyze_cms_specifically(self, assessment_id: str, url: str, content: str) -> List[TechStackDetection]:
         """
         Focused CMS detection with higher accuracy
 
@@ -292,9 +288,7 @@ class TechStackDetector:
 
         return analytics_detections
 
-    def get_technology_summary(
-        self, detections: List[TechStackDetection]
-    ) -> Dict[str, Any]:
+    def get_technology_summary(self, detections: List[TechStackDetection]) -> Dict[str, Any]:
         """
         Generate summary of detected technologies
 
@@ -451,9 +445,7 @@ class TechStackAnalyzer:
     def __init__(self):
         self.detector = TechStackDetector()
 
-    def analyze_technology_trends(
-        self, detections_list: List[List[TechStackDetection]]
-    ) -> Dict[str, Any]:
+    def analyze_technology_trends(self, detections_list: List[List[TechStackDetection]]) -> Dict[str, Any]:
         """Analyze technology trends across multiple websites"""
         tech_counts = {}
         category_counts = {}
@@ -476,9 +468,7 @@ class TechStackAnalyzer:
                     version_analysis[tech_name].append(detection.version)
 
         return {
-            "popular_technologies": sorted(
-                tech_counts.items(), key=lambda x: x[1], reverse=True
-            )[:10],
+            "popular_technologies": sorted(tech_counts.items(), key=lambda x: x[1], reverse=True)[:10],
             "category_distribution": category_counts,
             "version_distribution": version_analysis,
             "total_websites_analyzed": len(detections_list),
@@ -526,9 +516,7 @@ class TechStackAnalyzer:
 
         return recommendations
 
-    def assess_technology_compatibility(
-        self, detections: List[TechStackDetection]
-    ) -> Dict[str, Any]:
+    def assess_technology_compatibility(self, detections: List[TechStackDetection]) -> Dict[str, Any]:
         """Assess compatibility and potential conflicts between technologies"""
         compatibility_report = {
             "potential_conflicts": [],
@@ -550,9 +538,7 @@ class TechStackAnalyzer:
             compatibility_report["compatibility_score"] -= 0.3
 
         # Check for multiple analytics tools (potentially redundant)
-        analytics_techs = [
-            d for d in detections if d.category == TechCategory.ANALYTICS
-        ]
+        analytics_techs = [d for d in detections if d.category == TechCategory.ANALYTICS]
         if len(analytics_techs) > 3:
             compatibility_report["redundant_technologies"].append(
                 {

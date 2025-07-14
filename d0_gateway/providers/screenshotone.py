@@ -8,14 +8,14 @@ Rate limit: 2/sec
 """
 import asyncio
 import base64
-from typing import Dict, Any, Optional
-from urllib.parse import urlencode
 import hashlib
 import hmac
+from typing import Any, Dict, Optional
+from urllib.parse import urlencode
 
+from core.logging import get_logger
 from d0_gateway.base import BaseAPIClient
 from d0_gateway.exceptions import APIProviderError
-from core.logging import get_logger
 
 logger = get_logger(__name__, domain="d0")
 
@@ -120,9 +120,7 @@ class ScreenshotOneClient(BaseAPIClient):
 
             # Generate thumbnail URL (smaller viewport)
             thumb_params = params.copy()
-            thumb_params.update(
-                {"viewport_width": 400, "viewport_height": 300, "full_page": "false"}
-            )
+            thumb_params.update({"viewport_width": 400, "viewport_height": 300, "full_page": "false"})
             thumbnail_url = self._generate_screenshot_url(thumb_params)
 
             # Track cost

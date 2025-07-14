@@ -57,7 +57,7 @@ class TestTemplateStudioIntegration:
             """,
             is_active=True,
             supports_mobile=True,
-            supports_print=True
+            supports_print=True,
         )
         db_session.add(template)
         db_session.commit()
@@ -75,7 +75,7 @@ class TestTemplateStudioIntegration:
             street_address="456 Business Blvd",
             city="Enterprise City",
             state="NY",
-            zip_code="10001"
+            zip_code="10001",
         )
         db_session.add(lead)
         db_session.commit()
@@ -84,8 +84,10 @@ class TestTemplateStudioIntegration:
     def test_template_workflow(self, test_client, test_template, test_lead, db_session):
         """Test complete template editing workflow"""
         from database.session import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         # 1. List templates
@@ -101,20 +103,14 @@ class TestTemplateStudioIntegration:
         assert detail["content"] == test_template.html_template
 
         # 3. Preview with modifications
-        modified_content = detail["content"].replace(
-            "Business Audit Report",
-            "Premium Business Audit Report"
-        )
-        
-        preview_request = {
-            "template_content": modified_content,
-            "lead_id": test_lead.id
-        }
-        
+        modified_content = detail["content"].replace("Business Audit Report", "Premium Business Audit Report")
+
+        preview_request = {"template_content": modified_content, "lead_id": test_lead.id}
+
         response = test_client.post("/api/template-studio/preview", json=preview_request)
         assert response.status_code == 200
         preview = response.json()
-        
+
         assert "Premium Business Audit Report" in preview["rendered_html"]
         assert "Acme Corporation" in preview["rendered_html"]
         assert preview["render_time_ms"] < 500
@@ -123,8 +119,10 @@ class TestTemplateStudioIntegration:
     def test_template_syntax_validation(self, test_client, db_session):
         """Test template syntax validation catches errors"""
         from database.session import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         # Test various syntax errors
@@ -135,11 +133,10 @@ class TestTemplateStudioIntegration:
         ]
 
         for template_content in syntax_errors:
-            response = test_client.post("/api/template-studio/preview", json={
-                "template_content": template_content,
-                "lead_id": "1"
-            })
-            
+            response = test_client.post(
+                "/api/template-studio/preview", json={"template_content": template_content, "lead_id": "1"}
+            )
+
             assert response.status_code == 200
             result = response.json()
             assert len(result["errors"]) > 0
@@ -151,14 +148,16 @@ class TestTemplateStudioIntegration:
             id="xss-test-lead",
             business_name="<img src=x onerror=alert('XSS')>",
             website="javascript:alert('XSS')",
-            email="test@example.com<script>alert('XSS')</script>"
+            email="test@example.com<script>alert('XSS')</script>",
         )
         db_session.add(xss_lead)
         db_session.commit()
 
         from database.session import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         template_content = """
@@ -167,14 +166,13 @@ class TestTemplateStudioIntegration:
         <p>Email: {{ lead.email }}</p>
         """
 
-        response = test_client.post("/api/template-studio/preview", json={
-            "template_content": template_content,
-            "lead_id": "xss-test-lead"
-        })
+        response = test_client.post(
+            "/api/template-studio/preview", json={"template_content": template_content, "lead_id": "xss-test-lead"}
+        )
 
         assert response.status_code == 200
         result = response.json()
-        
+
         # Check that dangerous content is escaped
         html = result["rendered_html"]
         assert "<img src=x onerror=alert" not in html

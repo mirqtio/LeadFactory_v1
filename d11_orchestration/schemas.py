@@ -25,25 +25,13 @@ class PipelineTriggerRequest(BaseModel):
     """Request schema for triggering a pipeline run"""
 
     pipeline_name: str = Field(..., description="Name of the pipeline to run")
-    pipeline_type: PipelineType = Field(
-        default=PipelineType.MANUAL, description="Type of pipeline execution"
-    )
-    triggered_by: Optional[str] = Field(
-        None, description="User or system triggering the pipeline"
-    )
-    trigger_reason: Optional[str] = Field(
-        None, description="Reason for triggering the pipeline"
-    )
-    parameters: Optional[Dict[str, Any]] = Field(
-        None, description="Pipeline execution parameters"
-    )
-    config: Optional[Dict[str, Any]] = Field(
-        None, description="Pipeline configuration overrides"
-    )
+    pipeline_type: PipelineType = Field(default=PipelineType.MANUAL, description="Type of pipeline execution")
+    triggered_by: Optional[str] = Field(None, description="User or system triggering the pipeline")
+    trigger_reason: Optional[str] = Field(None, description="Reason for triggering the pipeline")
+    parameters: Optional[Dict[str, Any]] = Field(None, description="Pipeline execution parameters")
+    config: Optional[Dict[str, Any]] = Field(None, description="Pipeline configuration overrides")
     environment: str = Field(default="production", description="Execution environment")
-    scheduled_at: Optional[datetime] = Field(
-        None, description="When to schedule the pipeline"
-    )
+    scheduled_at: Optional[datetime] = Field(None, description="When to schedule the pipeline")
 
     @validator("pipeline_name")
     def validate_pipeline_name(cls, v):
@@ -94,9 +82,7 @@ class PipelineRunResponse(BaseModel):
     logs_url: Optional[str]
 
     # Computed properties
-    is_complete: bool = Field(
-        ..., description="Whether the pipeline is in a terminal state"
-    )
+    is_complete: bool = Field(..., description="Whether the pipeline is in a terminal state")
     success_rate: float = Field(..., description="Success rate for processed records")
 
     class Config:
@@ -108,9 +94,7 @@ class PipelineStatusResponse(BaseModel):
 
     run_id: str
     status: PipelineRunStatus
-    progress_pct: Optional[float] = Field(
-        None, description="Estimated progress percentage"
-    )
+    progress_pct: Optional[float] = Field(None, description="Estimated progress percentage")
     current_task: Optional[str] = Field(None, description="Currently executing task")
     tasks_completed: int = Field(0, description="Number of tasks completed")
     tasks_total: int = Field(0, description="Total number of tasks")
@@ -128,31 +112,21 @@ class PipelineRunHistoryRequest(BaseModel):
 
     pipeline_name: Optional[str] = Field(None, description="Filter by pipeline name")
     status: Optional[PipelineRunStatus] = Field(None, description="Filter by status")
-    pipeline_type: Optional[PipelineType] = Field(
-        None, description="Filter by pipeline type"
-    )
+    pipeline_type: Optional[PipelineType] = Field(None, description="Filter by pipeline type")
     environment: Optional[str] = Field(None, description="Filter by environment")
     triggered_by: Optional[str] = Field(None, description="Filter by who triggered")
 
     # Date range filtering
-    start_date: Optional[datetime] = Field(
-        None, description="Filter runs after this date"
-    )
-    end_date: Optional[datetime] = Field(
-        None, description="Filter runs before this date"
-    )
+    start_date: Optional[datetime] = Field(None, description="Filter runs after this date")
+    end_date: Optional[datetime] = Field(None, description="Filter runs before this date")
 
     # Pagination
     page: int = Field(default=1, ge=1, description="Page number")
-    page_size: int = Field(
-        default=50, ge=1, le=1000, description="Number of items per page"
-    )
+    page_size: int = Field(default=50, ge=1, le=1000, description="Number of items per page")
 
     # Sorting
     sort_by: str = Field(default="created_at", description="Field to sort by")
-    sort_order: str = Field(
-        default="desc", pattern="^(asc|desc)$", description="Sort order"
-    )
+    sort_order: str = Field(default="desc", pattern="^(asc|desc)$", description="Sort order")
 
     @validator("end_date")
     def validate_date_range(cls, v, values):
@@ -192,38 +166,20 @@ class ExperimentCreateRequest(BaseModel):
     end_date: Optional[date] = Field(None, description="When to end the experiment")
 
     # Targeting and traffic
-    target_audience: Optional[Dict[str, Any]] = Field(
-        None, description="Audience selection criteria"
-    )
-    traffic_allocation_pct: float = Field(
-        default=100.0, ge=0, le=100, description="% of users in experiment"
-    )
-    minimum_sample_size: Optional[int] = Field(
-        None, description="Minimum sample size needed"
-    )
-    maximum_duration_days: int = Field(
-        default=30, gt=0, description="Maximum experiment duration"
-    )
+    target_audience: Optional[Dict[str, Any]] = Field(None, description="Audience selection criteria")
+    traffic_allocation_pct: float = Field(default=100.0, ge=0, le=100, description="% of users in experiment")
+    minimum_sample_size: Optional[int] = Field(None, description="Minimum sample size needed")
+    maximum_duration_days: int = Field(default=30, gt=0, description="Maximum experiment duration")
 
     # Metrics and success criteria
     primary_metric: str = Field(..., description="Main success metric")
-    secondary_metrics: Optional[List[str]] = Field(
-        None, description="Additional metrics to track"
-    )
-    success_criteria: Optional[Dict[str, Any]] = Field(
-        None, description="Statistical significance criteria"
-    )
+    secondary_metrics: Optional[List[str]] = Field(None, description="Additional metrics to track")
+    success_criteria: Optional[Dict[str, Any]] = Field(None, description="Statistical significance criteria")
 
     # Configuration
-    randomization_unit: str = Field(
-        default="user_id", description="Unit for random assignment"
-    )
-    holdout_pct: float = Field(
-        default=0.0, ge=0, le=100, description="% held out from experiment"
-    )
-    confidence_level: float = Field(
-        default=0.95, gt=0, lt=1, description="Statistical confidence level"
-    )
+    randomization_unit: str = Field(default="user_id", description="Unit for random assignment")
+    holdout_pct: float = Field(default=0.0, ge=0, le=100, description="% held out from experiment")
+    confidence_level: float = Field(default=0.95, gt=0, lt=1, description="Statistical confidence level")
 
     @validator("name")
     def validate_name(cls, v):
@@ -244,21 +200,11 @@ class ExperimentVariantCreateRequest(BaseModel):
     variant_key: str = Field(..., description="Unique variant key")
     name: str = Field(..., description="Variant display name")
     description: Optional[str] = Field(None, description="Variant description")
-    variant_type: VariantType = Field(
-        default=VariantType.TREATMENT, description="Type of variant"
-    )
-    weight: float = Field(
-        default=1.0, ge=0, description="Relative weight for assignment"
-    )
-    is_control: bool = Field(
-        default=False, description="Whether this is the control variant"
-    )
-    config: Optional[Dict[str, Any]] = Field(
-        None, description="Variant-specific configuration"
-    )
-    feature_overrides: Optional[Dict[str, Any]] = Field(
-        None, description="Feature flag overrides"
-    )
+    variant_type: VariantType = Field(default=VariantType.TREATMENT, description="Type of variant")
+    weight: float = Field(default=1.0, ge=0, description="Relative weight for assignment")
+    is_control: bool = Field(default=False, description="Whether this is the control variant")
+    config: Optional[Dict[str, Any]] = Field(None, description="Variant-specific configuration")
+    feature_overrides: Optional[Dict[str, Any]] = Field(None, description="Feature flag overrides")
 
     @validator("variant_key")
     def validate_variant_key(cls, v):
@@ -333,9 +279,7 @@ class ExperimentResponse(BaseModel):
 
     # Computed properties
     is_active: bool = Field(..., description="Whether experiment is currently active")
-    total_traffic_pct: float = Field(
-        ..., description="Total traffic percentage including holdout"
-    )
+    total_traffic_pct: float = Field(..., description="Total traffic percentage including holdout")
 
     class Config:
         from_attributes = True
@@ -375,24 +319,16 @@ class ExperimentListRequest(BaseModel):
     created_by: Optional[str] = Field(None, description="Filter by creator")
 
     # Date range filtering
-    created_after: Optional[datetime] = Field(
-        None, description="Filter experiments created after this date"
-    )
-    created_before: Optional[datetime] = Field(
-        None, description="Filter experiments created before this date"
-    )
+    created_after: Optional[datetime] = Field(None, description="Filter experiments created after this date")
+    created_before: Optional[datetime] = Field(None, description="Filter experiments created before this date")
 
     # Pagination
     page: int = Field(default=1, ge=1, description="Page number")
-    page_size: int = Field(
-        default=50, ge=1, le=1000, description="Number of items per page"
-    )
+    page_size: int = Field(default=50, ge=1, le=1000, description="Number of items per page")
 
     # Sorting
     sort_by: str = Field(default="created_at", description="Field to sort by")
-    sort_order: str = Field(
-        default="desc", pattern="^(asc|desc)$", description="Sort order"
-    )
+    sort_order: str = Field(default="desc", pattern="^(asc|desc)$", description="Sort order")
 
 
 class ExperimentListResponse(BaseModel):
@@ -417,17 +353,11 @@ class VariantAssignmentRequest(BaseModel):
     """Request schema for variant assignment"""
 
     experiment_id: str = Field(..., description="Experiment ID")
-    assignment_unit: str = Field(
-        ..., description="Unit to assign (user_id, session_id, etc.)"
-    )
+    assignment_unit: str = Field(..., description="Unit to assign (user_id, session_id, etc.)")
     user_id: Optional[str] = Field(None, description="User identifier")
     session_id: Optional[str] = Field(None, description="Session identifier")
-    assignment_context: Optional[Dict[str, Any]] = Field(
-        None, description="Context data at assignment time"
-    )
-    user_properties: Optional[Dict[str, Any]] = Field(
-        None, description="User properties at assignment"
-    )
+    assignment_context: Optional[Dict[str, Any]] = Field(None, description="Context data at assignment time")
+    user_properties: Optional[Dict[str, Any]] = Field(None, description="User properties at assignment")
 
 
 class VariantAssignmentResponse(BaseModel):
@@ -458,12 +388,8 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error message")
     error_code: Optional[str] = Field(None, description="Error code")
-    details: Optional[Dict[str, Any]] = Field(
-        None, description="Additional error details"
-    )
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Error timestamp"
-    )
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
 
 
 class SuccessResponse(BaseModel):
@@ -471,9 +397,7 @@ class SuccessResponse(BaseModel):
 
     message: str = Field(..., description="Success message")
     data: Optional[Dict[str, Any]] = Field(None, description="Additional response data")
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Response timestamp"
-    )
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Response timestamp")
 
 
 # Health check schema
@@ -484,7 +408,5 @@ class HealthResponse(BaseModel):
 
     status: str = Field(..., description="Service status")
     version: str = Field(..., description="API version")
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Health check timestamp"
-    )
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Health check timestamp")
     components: Dict[str, str] = Field(..., description="Component health status")

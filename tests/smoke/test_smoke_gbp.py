@@ -4,15 +4,14 @@ PRD v1.2 - Verify GBP API for business profile data
 """
 import asyncio
 import os
+
 import pytest
 
-from d0_gateway.providers.google_places import GooglePlacesClient
 from core.config import settings
+from d0_gateway.providers.google_places import GooglePlacesClient
 
 # Skip if no API key
-pytestmark = pytest.mark.skipif(
-    not os.getenv("GOOGLE_API_KEY"), reason="GOOGLE_API_KEY not set"
-)
+pytestmark = pytest.mark.skipif(not os.getenv("GOOGLE_API_KEY"), reason="GOOGLE_API_KEY not set")
 
 
 class TestGBPSmoke:
@@ -43,9 +42,7 @@ class TestGBPSmoke:
         client = GooglePlacesClient(api_key=settings.google_api_key)
 
         # First find a place
-        results = await client.find_place(
-            query="Apple Store San Francisco", fields=["place_id"]
-        )
+        results = await client.find_place(query="Apple Store San Francisco", fields=["place_id"])
 
         if results:
             place_id = results["place_id"]
@@ -91,9 +88,7 @@ class TestGBPSmoke:
 
         if results:
             place_id = results[0]["place_id"]
-            details = await client.get_place_details(
-                place_id=place_id, fields=["name", "opening_hours"]
-            )
+            details = await client.get_place_details(place_id=place_id, fields=["name", "opening_hours"])
 
             has_hours = bool(details.get("opening_hours", {}).get("periods"))
 
@@ -119,9 +114,7 @@ class TestGBPSmoke:
         client = GooglePlacesClient(api_key=settings.google_api_key)
 
         # Test with invalid place ID
-        details = await client.get_place_details(
-            place_id="InvalidPlaceID123", fields=["name"]
-        )
+        details = await client.get_place_details(place_id="InvalidPlaceID123", fields=["name"])
 
         # Should handle gracefully
         assert details is None or "error" in details
@@ -133,9 +126,7 @@ class TestGBPSmoke:
         client = GooglePlacesClient(api_key=settings.google_api_key)
 
         # Find a restaurant (likely to have all fields)
-        results = await client.find_place(
-            query="Chipotle San Francisco Financial District", fields=["place_id"]
-        )
+        results = await client.find_place(query="Chipotle San Francisco Financial District", fields=["place_id"])
 
         if results:
             place_id = results[0]["place_id"]
@@ -156,9 +147,7 @@ class TestGBPSmoke:
             print("\n✓ GBP fields extraction:")
             print(f"  Name: {details.get('name')}")
             print(f"  Types: {details.get('types', [])[:3]}")
-            print(
-                f"  Price Level: {'$' * details.get('price_level', 0) if details.get('price_level') else 'N/A'}"
-            )
+            print(f"  Price Level: {'$' * details.get('price_level', 0) if details.get('price_level') else 'N/A'}")
             print(f"  Phone: {details.get('formatted_phone_number', 'N/A')}")
             print(f"  Website: {'Yes' if details.get('website') else 'No'}")
 

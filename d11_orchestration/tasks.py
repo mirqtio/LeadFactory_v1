@@ -88,9 +88,7 @@ try:
 except ImportError:
 
     class EmailPersonalizer:
-        async def create_personalized_report(
-            self, business_data, assessment_data, tier
-        ):
+        async def create_personalized_report(self, business_data, assessment_data, tier):
             return {
                 "content": f"Personalized report for {business_data.get('name', 'Business')}",
                 "tier": tier,
@@ -157,9 +155,7 @@ class TargetingTask(BaseTask):
         super().__init__(metrics_collector)
         self.targeting_api = TargetingAPI()
 
-    async def execute(
-        self, execution_date: datetime, config: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    async def execute(self, execution_date: datetime, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Execute business targeting stage"""
 
         start_time = datetime.utcnow()
@@ -170,9 +166,7 @@ class TargetingTask(BaseTask):
 
             # Get targeting parameters from config
             target_count = task_config.get("target_count", 1000)
-            verticals = task_config.get(
-                "verticals", ["restaurant", "retail", "healthcare"]
-            )
+            verticals = task_config.get("verticals", ["restaurant", "retail", "healthcare"])
             location = task_config.get("location", "San Francisco, CA")
 
             # Execute targeting
@@ -254,15 +248,11 @@ class SourcingTask(BaseTask):
                 # Enrich each business in the batch
                 for business in batch:
                     try:
-                        enriched = await self.sourcing_coordinator.enrich_business(
-                            business_data=business
-                        )
+                        enriched = await self.sourcing_coordinator.enrich_business(business_data=business)
                         enriched_businesses.append(enriched)
 
                     except Exception as e:
-                        self.logger.warning(
-                            f"Failed to enrich business {business.get('id', 'unknown')}: {str(e)}"
-                        )
+                        self.logger.warning(f"Failed to enrich business {business.get('id', 'unknown')}: {str(e)}")
                         # Continue with original data
                         enriched_businesses.append(business)
 
@@ -283,9 +273,7 @@ class SourcingTask(BaseTask):
                 "config": task_config,
             }
 
-            self.logger.info(
-                f"Sourcing completed: {len(enriched_businesses)} businesses enriched"
-            )
+            self.logger.info(f"Sourcing completed: {len(enriched_businesses)} businesses enriched")
             return result
 
         except Exception as e:
@@ -337,23 +325,17 @@ class AssessmentTask(BaseTask):
             # Create semaphore for concurrency control
             semaphore = asyncio.Semaphore(max_concurrent)
 
-            async def assess_business(
-                business: Dict[str, Any]
-            ) -> Optional[Dict[str, Any]]:
+            async def assess_business(business: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 async with semaphore:
                     try:
                         # PRD v1.2: Enrich email first
-                        email, email_source = await self.email_enricher.enrich_email(
-                            business
-                        )
+                        email, email_source = await self.email_enricher.enrich_email(business)
                         if email:
                             business["email"] = email
                             business["email_source"] = email_source
 
                         # PRD v1.2: Use new assessment coordinator
-                        result = await self.assessment_coordinator.assess_business(
-                            business_data=business
-                        )
+                        result = await self.assessment_coordinator.assess_business(business_data=business)
 
                         # Add business and email info to result
                         result["business"] = business
@@ -363,9 +345,7 @@ class AssessmentTask(BaseTask):
                         return result
 
                     except Exception as e:
-                        self.logger.warning(
-                            f"Failed to assess business {business.get('id', 'unknown')}: {str(e)}"
-                        )
+                        self.logger.warning(f"Failed to assess business {business.get('id', 'unknown')}: {str(e)}")
                         return None
 
             # Execute assessments concurrently
@@ -394,9 +374,7 @@ class AssessmentTask(BaseTask):
                 "config": task_config,
             }
 
-            self.logger.info(
-                f"Assessment completed: {len(assessments)} businesses assessed"
-            )
+            self.logger.info(f"Assessment completed: {len(assessments)} businesses assessed")
             return result
 
         except Exception as e:
@@ -445,9 +423,7 @@ class ScoringTask(BaseTask):
             for assessment in assessments:
                 try:
                     # Calculate business score
-                    score = await self.tier_system.calculate_business_score(
-                        assessment_data=assessment
-                    )
+                    score = await self.tier_system.calculate_business_score(assessment_data=assessment)
 
                     # Assign tier based on score
                     tier = await self.tier_system.assign_tier(
@@ -496,9 +472,7 @@ class ScoringTask(BaseTask):
                 "config": task_config,
             }
 
-            self.logger.info(
-                f"Scoring completed: {len(scored_businesses)} businesses scored"
-            )
+            self.logger.info(f"Scoring completed: {len(scored_businesses)} businesses scored")
             return result
 
         except Exception as e:
@@ -539,9 +513,7 @@ class PersonalizationTask(BaseTask):
         task_config = config or {}
 
         try:
-            self.logger.info(
-                f"Starting personalization for {len(scored_businesses)} businesses"
-            )
+            self.logger.info(f"Starting personalization for {len(scored_businesses)} businesses")
 
             personalized_reports = []
 
@@ -549,9 +521,7 @@ class PersonalizationTask(BaseTask):
             max_concurrent = task_config.get("max_concurrent_personalization", 5)
             semaphore = asyncio.Semaphore(max_concurrent)
 
-            async def personalize_business(
-                scored_business: Dict[str, Any]
-            ) -> Optional[Dict[str, Any]]:
+            async def personalize_business(scored_business: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 async with semaphore:
                     try:
                         report = await self.personalizer.create_personalized_report(
@@ -570,16 +540,12 @@ class PersonalizationTask(BaseTask):
                         }
 
                     except Exception as e:
-                        self.logger.warning(
-                            f"Failed to personalize for business: {str(e)}"
-                        )
+                        self.logger.warning(f"Failed to personalize for business: {str(e)}")
                         return None
 
             # Execute personalization concurrently
             tasks = [personalize_business(business) for business in scored_businesses]
-            personalization_results = await asyncio.gather(
-                *tasks, return_exceptions=True
-            )
+            personalization_results = await asyncio.gather(*tasks, return_exceptions=True)
 
             # Filter successful personalizations
             for result in personalization_results:
@@ -603,9 +569,7 @@ class PersonalizationTask(BaseTask):
                 "config": task_config,
             }
 
-            self.logger.info(
-                f"Personalization completed: {len(personalized_reports)} reports created"
-            )
+            self.logger.info(f"Personalization completed: {len(personalized_reports)} reports created")
             return result
 
         except Exception as e:
@@ -646,9 +610,7 @@ class DeliveryTask(BaseTask):
         task_config = config or {}
 
         try:
-            self.logger.info(
-                f"Starting delivery for {len(personalized_reports)} reports"
-            )
+            self.logger.info(f"Starting delivery for {len(personalized_reports)} reports")
 
             delivered_count = 0
             failed_deliveries = []
@@ -705,9 +667,7 @@ class DeliveryTask(BaseTask):
                 "config": task_config,
             }
 
-            self.logger.info(
-                f"Delivery completed: {delivered_count}/{len(personalized_reports)} reports delivered"
-            )
+            self.logger.info(f"Delivery completed: {delivered_count}/{len(personalized_reports)} reports delivered")
             return result
 
         except Exception as e:

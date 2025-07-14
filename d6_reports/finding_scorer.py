@@ -133,9 +133,7 @@ class FindingScorer:
         quick_win_score = self._calculate_quick_win_score(impact_score, effort_score)
 
         # Calculate overall priority score
-        priority_score = self._calculate_priority_score(
-            impact_score, effort_score, conversion_impact
-        )
+        priority_score = self._calculate_priority_score(impact_score, effort_score, conversion_impact)
 
         # Determine if this is a quick win
         is_quick_win = quick_win_score >= self.quick_win_threshold
@@ -152,9 +150,7 @@ class FindingScorer:
             is_quick_win=is_quick_win,
         )
 
-    def _calculate_impact_score(
-        self, category: str, severity: str, finding: Dict
-    ) -> float:
+    def _calculate_impact_score(self, category: str, severity: str, finding: Dict) -> float:
         """Calculate impact score based on category and severity"""
         # Base impact from severity
         severity_scores = {
@@ -260,9 +256,7 @@ class FindingScorer:
 
         return min(10.0, conversion_score)
 
-    def _calculate_quick_win_score(
-        self, impact_score: float, effort_score: float
-    ) -> float:
+    def _calculate_quick_win_score(self, impact_score: float, effort_score: float) -> float:
         """Calculate quick win potential (high impact, low effort)"""
         # Quick win formula: emphasize high impact with low effort
         if effort_score == 0:
@@ -274,9 +268,7 @@ class FindingScorer:
         # Normalize to 0-10 scale
         return min(10.0, quick_win_score)
 
-    def _calculate_priority_score(
-        self, impact_score: float, effort_score: float, conversion_impact: float
-    ) -> float:
+    def _calculate_priority_score(self, impact_score: float, effort_score: float, conversion_impact: float) -> float:
         """Calculate overall priority score for ranking"""
         # Weighted combination prioritizing conversion impact
         weights = {

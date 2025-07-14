@@ -142,9 +142,7 @@ gyms,fitness,low,medium,low
 
         assert stats["total_zip_codes"] == 5
         assert stats["total_categories"] == 5
-        assert (
-            stats["unique_geo_buckets"] == 2
-        )  # high-high-high and medium-medium-medium
+        assert stats["unique_geo_buckets"] == 2  # high-high-high and medium-medium-medium
         assert stats["unique_vert_buckets"] == 5  # All different in test data
 
         assert "high-high-high" in stats["geo_bucket_list"]

@@ -3,19 +3,18 @@ Smoke test for OpenAI GPT-4o Vision API
 PRD v1.2 - Verify GPT-4o Vision for website analysis
 """
 import asyncio
-import os
 import json
+import os
+
 import pytest
 
-from d0_gateway.providers.openai import OpenAIClient
 from core.config import settings
+from d0_gateway.providers.openai import OpenAIClient
 
 # Skip if no API key and mark as xfail for Phase 0.5
 pytestmark = [
-    pytest.mark.skipif(
-        not os.getenv("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set"
-    ),
-    pytest.mark.xfail(reason="OpenAI Vision is a Phase 0.5 feature")
+    pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set"),
+    pytest.mark.xfail(reason="OpenAI Vision is a Phase 0.5 feature"),
 ]
 
 
@@ -46,9 +45,7 @@ class TestOpenAIVisionSmoke:
             }
         ]
 
-        response = await client.chat_completion(
-            messages=messages, model="gpt-4o-mini", max_tokens=100
-        )
+        response = await client.chat_completion(messages=messages, model="gpt-4o-mini", max_tokens=100)
 
         assert response is not None
         assert "choices" in response
@@ -178,18 +175,14 @@ Give short bullet phrases only.  Return JSON ONLY."""
                     {"type": "text", "text": "Analyze this"},
                     {
                         "type": "image_url",
-                        "image_url": {
-                            "url": "https://not-a-real-image-url-xyz123.fake/image.png"
-                        },
+                        "image_url": {"url": "https://not-a-real-image-url-xyz123.fake/image.png"},
                     },
                 ],
             }
         ]
 
         try:
-            response = await client.chat_completion(
-                messages=messages, model="gpt-4o-mini"
-            )
+            response = await client.chat_completion(messages=messages, model="gpt-4o-mini")
             # OpenAI might handle this gracefully
             print("\n✓ GPT-4o Vision handled invalid image URL")
         except Exception as e:

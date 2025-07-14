@@ -16,13 +16,7 @@ pytestmark = pytest.mark.slow
 
 sys.path.insert(0, "/app")
 
-from d4_enrichment.matchers import (
-    BatchMatcher,
-    BusinessMatcher,
-    MatchConfidence,
-    MatchConfig,
-    MatchType,
-)
+from d4_enrichment.matchers import BatchMatcher, BusinessMatcher, MatchConfidence, MatchConfig, MatchType
 from d4_enrichment.similarity import (
     AddressSimilarity,
     NameSimilarity,
@@ -124,16 +118,12 @@ class TestTask041AcceptanceCriteria:
         matcher = BusinessMatcher()
 
         # Test exact name and ZIP match
-        result1 = matcher.match_names_and_zips(
-            "Acme Corporation", "94105", "Acme Corporation", "94105"
-        )
+        result1 = matcher.match_names_and_zips("Acme Corporation", "94105", "Acme Corporation", "94105")
         assert result1.overall_score >= 0.9
         assert result1.confidence in [MatchConfidence.HIGH, MatchConfidence.EXACT]
 
         # Test name variations with same ZIP
-        result2 = matcher.match_names_and_zips(
-            "Acme Corporation", "94105", "ACME Corp.", "94105"
-        )
+        result2 = matcher.match_names_and_zips("Acme Corporation", "94105", "ACME Corp.", "94105")
         assert result2.overall_score >= 0.7
         assert result2.confidence in [
             MatchConfidence.MEDIUM,
@@ -142,9 +132,7 @@ class TestTask041AcceptanceCriteria:
         ]
 
         # Test same name with similar ZIP (same area)
-        result3 = matcher.match_names_and_zips(
-            "Test Company", "94105", "Test Company", "94102"  # Same area (941xx)
-        )
+        result3 = matcher.match_names_and_zips("Test Company", "94105", "Test Company", "94102")  # Same area (941xx)
         assert result3.overall_score >= 0.7
 
         # Test business suffix normalization
@@ -223,9 +211,7 @@ class TestTask041AcceptanceCriteria:
         Acceptance Criteria: Weighted combination logic
         """
         # Test with custom weights
-        config = MatchConfig(
-            weights={"business_name": 0.5, "phone": 0.3, "address": 0.15, "zip": 0.05}
-        )
+        config = MatchConfig(weights={"business_name": 0.5, "phone": 0.3, "address": 0.15, "zip": 0.05})
         matcher = BusinessMatcher(config)
 
         # Create test records
@@ -256,9 +242,7 @@ class TestTask041AcceptanceCriteria:
         assert result.component_scores["phone"] == 1.0
 
         # Test weighted similarity directly
-        weighted_result = WeightedSimilarity.calculate_combined_similarity(
-            record1, record2, config.weights
-        )
+        weighted_result = WeightedSimilarity.calculate_combined_similarity(record1, record2, config.weights)
 
         assert weighted_result.score >= 0.7
         assert "component_results" in weighted_result.metadata
@@ -304,9 +288,7 @@ class TestTask041AcceptanceCriteria:
         target_record = sample_business_records[0]
         candidates = sample_business_records[1:]
 
-        matches = matcher.find_best_matches(
-            target_record, candidates, min_score=0.5, max_results=3
-        )
+        matches = matcher.find_best_matches(target_record, candidates, min_score=0.5, max_results=3)
 
         assert len(matches) >= 1  # Should find at least one match
         assert matches[0].overall_score >= 0.5
@@ -323,9 +305,7 @@ class TestTask041AcceptanceCriteria:
             sample_business_records[3],
         ]
 
-        unique_records, duplicates = batch_matcher.deduplicate_dataset(
-            dataset_with_duplicates, min_score=0.7
-        )
+        unique_records, duplicates = batch_matcher.deduplicate_dataset(dataset_with_duplicates, min_score=0.7)
 
         assert len(unique_records) >= 2  # Should have at least 2 unique records
         assert len(duplicates) >= 1  # Should find at least 1 duplicate
@@ -449,9 +429,7 @@ class TestTask041AcceptanceCriteria:
         assert result1.confidence == MatchConfidence.UNCERTAIN
 
         # Test records with missing fields
-        result2 = matcher.match_records(
-            {"business_name": "Test"}, {"phone": "555-1234"}
-        )
+        result2 = matcher.match_records({"business_name": "Test"}, {"phone": "555-1234"})
         assert result2.overall_score >= 0.0  # Should handle gracefully
 
         # Test None values
@@ -463,21 +441,15 @@ class TestTask041AcceptanceCriteria:
 
         # Test very long strings
         long_name = "A" * 1000
-        result4 = matcher.match_records(
-            {"business_name": long_name}, {"business_name": long_name}
-        )
-        assert (
-            result4.overall_score > 0.3
-        )  # Should still show some match with single component
+        result4 = matcher.match_records({"business_name": long_name}, {"business_name": long_name})
+        assert result4.overall_score > 0.3  # Should still show some match with single component
 
         # Test special characters
         result5 = matcher.match_records(
             {"business_name": "Café & Restaurant Inc."},
             {"business_name": "Cafe & Restaurant Inc"},
         )
-        assert (
-            result5.overall_score > 0.3
-        )  # Should handle accents and punctuation with single component
+        assert result5.overall_score > 0.3  # Should handle accents and punctuation with single component
 
         print("✓ Edge cases and error handling work correctly")
 
@@ -498,31 +470,23 @@ class TestTask041AcceptanceCriteria:
         name_sim = NameSimilarity()
 
         # Abbreviations
-        result3 = name_sim.calculate_similarity(
-            "International Business Machines", "IBM"
-        )
+        result3 = name_sim.calculate_similarity("International Business Machines", "IBM")
         # Might be low due to token mismatch, but should handle gracefully
         assert result3.score >= 0.0
 
         # Reordered words
-        result4 = name_sim.calculate_similarity(
-            "ABC Marketing Services", "Marketing Services ABC"
-        )
+        result4 = name_sim.calculate_similarity("ABC Marketing Services", "Marketing Services ABC")
         assert result4.score > 0.5  # Should detect common tokens
 
         # Test address parsing edge cases
         addr_sim = AddressSimilarity()
 
         # Apartment numbers
-        result5 = addr_sim.calculate_similarity(
-            "123 Main St Apt 4B, City, ST 12345", "123 Main St, City, ST 12345"
-        )
+        result5 = addr_sim.calculate_similarity("123 Main St Apt 4B, City, ST 12345", "123 Main St, City, ST 12345")
         assert result5.score > 0.8  # Should still be high match
 
         # PO Boxes
-        result6 = addr_sim.calculate_similarity(
-            "PO Box 123, City, ST 12345", "P.O. Box 123, City, ST 12345"
-        )
+        result6 = addr_sim.calculate_similarity("PO Box 123, City, ST 12345", "P.O. Box 123, City, ST 12345")
         assert result6.score > 0.8
 
         print("✓ Individual similarity algorithms work correctly")

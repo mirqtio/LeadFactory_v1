@@ -2,13 +2,8 @@
 Unit tests for lineage data compression
 """
 
-import pytest
 
-from d6_reports.lineage.compressor import (
-    compress_lineage_data,
-    decompress_lineage_data,
-    _truncate_lineage_data,
-)
+from d6_reports.lineage.compressor import _truncate_lineage_data, compress_lineage_data, decompress_lineage_data
 
 
 class TestCompressor:
@@ -46,7 +41,7 @@ class TestCompressor:
 
         # Should achieve good compression on repetitive data
         assert ratio > 50  # At least 50% compression
-        
+
         # Verify decompression
         decompressed = decompress_lineage_data(compressed)
         assert decompressed["lead_id"] == large_data["lead_id"]
@@ -56,17 +51,17 @@ class TestCompressor:
         """Test compression respects size limit"""
         import random
         import string
-        
+
         # Create data that's hard to compress and exceeds 2MB
         # Use random data that doesn't compress well
-        random_data = ''.join(random.choices(string.ascii_letters + string.digits, k=3*1024*1024))
-        
+        random_data = "".join(random.choices(string.ascii_letters + string.digits, k=3 * 1024 * 1024))
+
         huge_data = {
             "lead_id": "test-123",
             "pipeline_run_id": "run-456",
             "template_version_id": "v1.0.0",
             "huge_field": random_data,  # 3MB of random data
-            "another_huge": ''.join(random.choices(string.printable, k=2*1024*1024)),  # 2MB more
+            "another_huge": "".join(random.choices(string.printable, k=2 * 1024 * 1024)),  # 2MB more
         }
 
         compressed, ratio = compress_lineage_data(huge_data, max_size_mb=2.0)
@@ -156,9 +151,7 @@ class TestCompressor:
         # Less compressible data (random)
         import random
         import string
-        
-        random_data = {
-            "random": "".join(random.choices(string.ascii_letters, k=1000))
-        }
+
+        random_data = {"random": "".join(random.choices(string.ascii_letters, k=1000))}
         compressed2, ratio2 = compress_lineage_data(random_data)
         assert ratio2 < ratio  # Random data compresses less

@@ -1,5 +1,6 @@
 import os
 from logging import ERROR as LOG_ERROR
+
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration

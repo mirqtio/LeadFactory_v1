@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-
 from .stripe_client import StripeClient, StripeError
 
 logger = logging.getLogger(__name__)
@@ -75,9 +74,7 @@ class WebhookProcessor:
         # Track processed events for idempotency
         self._processed_events = set() if enable_idempotency else None
 
-        logger.info(
-            f"Initialized webhook processor with idempotency={'enabled' if enable_idempotency else 'disabled'}"
-        )
+        logger.info(f"Initialized webhook processor with idempotency={'enabled' if enable_idempotency else 'disabled'}")
 
     def verify_signature(self, payload: bytes, signature: str) -> bool:
         """
@@ -211,18 +208,11 @@ class WebhookProcessor:
                 "status": WebhookStatus.FAILED.value,
             }
 
-    def _process_event(
-        self, event_type: str, event_data: Dict[str, Any], event_id: str
-    ) -> Dict[str, Any]:
+    def _process_event(self, event_type: str, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
         """
         Process specific event types
         """
-        from .webhook_handlers import (
-            CheckoutSessionHandler,
-            CustomerHandler,
-            InvoiceHandler,
-            PaymentIntentHandler,
-        )
+        from .webhook_handlers import CheckoutSessionHandler, CustomerHandler, InvoiceHandler, PaymentIntentHandler
 
         try:
             # Route to appropriate handler based on event type
@@ -279,9 +269,7 @@ class WebhookProcessor:
             "stripe_test_mode": self.stripe_client.is_test_mode(),
             "idempotency_enabled": self.enable_idempotency,
             "max_event_age_hours": self.max_event_age_hours,
-            "processed_events_count": len(self._processed_events)
-            if self._processed_events
-            else 0,
+            "processed_events_count": len(self._processed_events) if self._processed_events else 0,
             "supported_events": self.get_supported_events(),
             "webhook_secret_configured": bool(self.stripe_client.config.webhook_secret),
         }

@@ -42,7 +42,6 @@ from tests.e2e.fixtures import *
 
 # Import all models to ensure foreign key references are available
 try:
-    import database.models  # Main database models
     import d1_targeting.models  # D1 targeting models
     import d2_sourcing.models  # D2 sourcing models
     import d3_assessment.models  # D3 assessment models
@@ -54,6 +53,7 @@ try:
     import d9_delivery.models  # D9 delivery models
     import d10_analytics.models  # D10 analytics models
     import d11_orchestration.models  # D11 orchestration models
+    import database.models  # Main database models
 except ImportError:
     # If imports fail, models will be registered when tests import them
     pass
@@ -114,9 +114,7 @@ def test_database_engine(test_settings):
 @pytest.fixture(scope="function")
 def test_db_session(test_database_engine):
     """Cleanup automated - Provide clean database session for each test"""
-    SessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=test_database_engine
-    )
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_database_engine)
     session = SessionLocal()
 
     try:
@@ -142,8 +140,6 @@ def test_db_override(test_db_session):
 @pytest.fixture(scope="session")
 def stub_server():
     """Start stub server for external API mocking"""
-
-
 
     # Start stub server in background thread
     def run_server():
@@ -188,13 +184,7 @@ def clean_test_environment(test_settings, test_db_session):
 def _cleanup_test_data(session):
     """Clean up all test data from database"""
     # Import the actual models that exist
-    from d11_orchestration.models import (
-        Experiment,
-        ExperimentMetric,
-        ExperimentVariant,
-        PipelineRun,
-        VariantAssignment,
-    )
+    from d11_orchestration.models import Experiment, ExperimentMetric, ExperimentVariant, PipelineRun, VariantAssignment
     from database.models import (
         Batch,
         Business,

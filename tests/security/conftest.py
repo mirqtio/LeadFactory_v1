@@ -16,7 +16,6 @@ from database.base import Base
 
 # Import all models to ensure foreign key references are available
 try:
-    import database.models  # Main database models
     import d1_targeting.models  # D1 targeting models
     import d2_sourcing.models  # D2 sourcing models
     import d3_assessment.models  # D3 assessment models
@@ -28,6 +27,7 @@ try:
     import d9_delivery.models  # D9 delivery models
     import d10_analytics.models  # D10 analytics models
     import d11_orchestration.models  # D11 orchestration models
+    import database.models  # Main database models
 except ImportError:
     # If imports fail, models will be registered when tests import them
     pass
@@ -61,11 +61,9 @@ def test_db_session() -> Generator:
 @pytest.fixture(scope="function")
 def mock_security_services():
     """Mock security-related services for testing"""
-    with patch("core.security.verify_token") as mock_verify, patch(
-        "core.security.hash_email"
-    ) as mock_hash, patch("core.security.encrypt_data") as mock_encrypt, patch(
-        "d7_storefront.stripe_client.stripe"
-    ) as mock_stripe:
+    with patch("core.security.verify_token") as mock_verify, patch("core.security.hash_email") as mock_hash, patch(
+        "core.security.encrypt_data"
+    ) as mock_encrypt, patch("d7_storefront.stripe_client.stripe") as mock_stripe:
         # Configure mock security responses
         mock_verify.return_value = {
             "valid": True,

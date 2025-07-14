@@ -35,9 +35,8 @@ class ScoringTier(Enum):
         # DEPRECATED - Use YAML-based tier configuration instead
         # TODO Phase 0.5: Remove this method after migration to A/B/C/D tiers
         import logging
-        logging.warning(
-            "ScoringTier.from_score is deprecated. Use rules_parser.get_tier_for_score() instead."
-        )
+
+        logging.warning("ScoringTier.from_score is deprecated. Use rules_parser.get_tier_for_score() instead.")
         # Map to closest A/B/C/D tier for backwards compatibility
         if score >= 80:
             return cls.PLATINUM  # Maps to A
@@ -53,9 +52,8 @@ class ScoringTier(Enum):
         """Minimum score for this tier"""
         # DEPRECATED - Use YAML-based tier configuration instead
         import logging
-        logging.warning(
-            "ScoringTier.min_score is deprecated. Use YAML configuration instead."
-        )
+
+        logging.warning("ScoringTier.min_score is deprecated. Use YAML configuration instead.")
         return 0.0  # Default for backwards compatibility
 
     @property
@@ -63,9 +61,8 @@ class ScoringTier(Enum):
         """Maximum score for this tier"""
         # DEPRECATED - Use YAML-based tier configuration instead
         import logging
-        logging.warning(
-            "ScoringTier.max_score is deprecated. Use YAML configuration instead."
-        )
+
+        logging.warning("ScoringTier.max_score is deprecated. Use YAML configuration instead.")
         return 100.0  # Default for backwards compatibility
 
 
@@ -108,6 +105,7 @@ class ScoreComponent(Enum):
         # TODO: Remove this method after all callers updated to use YAML config
         # For now, return a default value. Real weights come from config/scoring_rules.yaml
         import logging
+
         logging.warning(
             f"ScoreComponent.max_points is deprecated. "
             f"Component '{self.value}' should use weights from scoring_rules.yaml"
@@ -121,6 +119,7 @@ class ScoreComponent(Enum):
         # TODO: Remove this method after all callers updated to use YAML config
         # Descriptions should come from config/scoring_rules.yaml
         import logging
+
         logging.warning(
             f"ScoreComponent.description is deprecated. "
             f"Component '{self.value}' description should come from scoring_rules.yaml"

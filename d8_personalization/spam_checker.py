@@ -152,9 +152,7 @@ class SpamScoreChecker:
             ),
         ]
 
-    def check_spam_score(
-        self, subject_line: str, email_content: str, content_type: str = "html"
-    ) -> SpamCheckResult:
+    def check_spam_score(self, subject_line: str, email_content: str, content_type: str = "html") -> SpamCheckResult:
         """Check spam score for email content - Acceptance Criteria"""
 
         # Clean content for analysis
@@ -177,9 +175,7 @@ class SpamScoreChecker:
             if not rule.enabled:
                 continue
 
-            rule_score, rule_matches = self._apply_rule(
-                rule, subject_line, clean_content, full_text
-            )
+            rule_score, rule_matches = self._apply_rule(rule, subject_line, clean_content, full_text)
 
             if rule_score > 0:
                 total_score += rule_score
@@ -216,9 +212,7 @@ class SpamScoreChecker:
             analysis_details=analysis_details,
         )
 
-    def _apply_rule(
-        self, rule: SpamRule, subject: str, content: str, full_text: str
-    ) -> Tuple[float, List[str]]:
+    def _apply_rule(self, rule: SpamRule, subject: str, content: str, full_text: str) -> Tuple[float, List[str]]:
         """Apply individual spam rule - Rule-based checks"""
 
         matches = []
@@ -270,23 +264,17 @@ class SpamScoreChecker:
 
         return 0.0
 
-    def _check_frequency_rule(
-        self, rule: SpamRule, text: str
-    ) -> Tuple[float, List[str]]:
+    def _check_frequency_rule(self, rule: SpamRule, text: str) -> Tuple[float, List[str]]:
         """Check frequency-based rules"""
         matches = re.findall(rule.pattern, text, re.IGNORECASE)
         frequency = len(matches)
 
         if rule.threshold and frequency > rule.threshold:
-            return rule.weight * (frequency - rule.threshold), [
-                f"{frequency} occurrences"
-            ]
+            return rule.weight * (frequency - rule.threshold), [f"{frequency} occurrences"]
 
         return 0.0, []
 
-    def _check_formatting_rule(
-        self, rule: SpamRule, text: str
-    ) -> Tuple[float, List[str]]:
+    def _check_formatting_rule(self, rule: SpamRule, text: str) -> Tuple[float, List[str]]:
         """Check formatting-based rules"""
         matches = re.findall(rule.pattern, text)
 
@@ -295,9 +283,7 @@ class SpamScoreChecker:
 
         return 0.0, []
 
-    def _check_structure_rule(
-        self, rule: SpamRule, subject: str, content: str
-    ) -> Tuple[float, List[str]]:
+    def _check_structure_rule(self, rule: SpamRule, subject: str, content: str) -> Tuple[float, List[str]]:
         """Check structural rules"""
         score = 0.0
         issues = []
@@ -355,9 +341,7 @@ class SpamScoreChecker:
 
         # Generate category-specific suggestions
         if "keywords" in categories:
-            suggestions.append(
-                "Remove or replace spam trigger words (FREE, URGENT, etc.)"
-            )
+            suggestions.append("Remove or replace spam trigger words (FREE, URGENT, etc.)")
 
         if "formatting" in categories:
             formatting_issues = categories["formatting"]
@@ -365,9 +349,7 @@ class SpamScoreChecker:
             if caps_issues:
                 suggestions.append("Reduce use of ALL CAPS words")
 
-            exclamation_issues = [
-                r for r in formatting_issues if "exclamation" in r["rule_id"]
-            ]
+            exclamation_issues = [r for r in formatting_issues if "exclamation" in r["rule_id"]]
             if exclamation_issues:
                 suggestions.append("Limit exclamation marks to one per email")
 
@@ -384,17 +366,13 @@ class SpamScoreChecker:
         # General suggestions if score is high
         overall_score = sum(rule["score"] for rule in triggered_rules)
         if overall_score > 50:
-            suggestions.append(
-                "Consider complete email rewrite for better deliverability"
-            )
+            suggestions.append("Consider complete email rewrite for better deliverability")
         elif overall_score > 25:
             suggestions.append("Review and optimize email content for spam filters")
 
         return suggestions[:5]  # Limit to top 5 suggestions
 
-    def reduce_spam_score(
-        self, original_content: str, suggestions: List[str]
-    ) -> Dict[str, str]:
+    def reduce_spam_score(self, original_content: str, suggestions: List[str]) -> Dict[str, str]:
         """Apply automatic score reduction improvements - Score reduction logic"""
 
         improved_content = original_content
@@ -413,9 +391,7 @@ class SpamScoreChecker:
 
             for pattern, replacement in spam_replacements.items():
                 if re.search(pattern, improved_content, re.IGNORECASE):
-                    improved_content = re.sub(
-                        pattern, replacement, improved_content, flags=re.IGNORECASE
-                    )
+                    improved_content = re.sub(pattern, replacement, improved_content, flags=re.IGNORECASE)
                     applied_fixes.append(f"Replaced spam word with '{replacement}'")
 
         if "Reduce use of ALL CAPS words" in " ".join(suggestions):
@@ -426,9 +402,7 @@ class SpamScoreChecker:
                     return word.capitalize()
                 return word
 
-            improved_content = re.sub(
-                r"\b[A-Z]{4,}\b", normalize_caps, improved_content
-            )
+            improved_content = re.sub(r"\b[A-Z]{4,}\b", normalize_caps, improved_content)
             applied_fixes.append("Normalized excessive capital letters")
 
         if "Limit exclamation marks" in " ".join(suggestions):
@@ -485,9 +459,7 @@ class SpamScoreChecker:
 
         # Calculate average weight
         if enabled_rules:
-            stats["average_weight"] = sum(r.weight for r in enabled_rules) / len(
-                enabled_rules
-            )
+            stats["average_weight"] = sum(r.weight for r in enabled_rules) / len(enabled_rules)
 
         return stats
 

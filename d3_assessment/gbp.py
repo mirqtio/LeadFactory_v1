@@ -1,16 +1,11 @@
 """Google Business Profile adapter for trust signal assessment."""
-import os
 import logging
+import os
 from typing import Dict, Optional
 
-from d0_gateway.providers.google_places import GooglePlacesClient
 from d0_gateway.factory import create_client
-from d3_assessment.audit_schema import (
-    AuditFinding,
-    FindingCategory,
-    FindingSeverity,
-    Evidence,
-)
+from d0_gateway.providers.google_places import GooglePlacesClient
+from d3_assessment.audit_schema import AuditFinding, Evidence, FindingCategory, FindingSeverity
 from d3_assessment.rubric import map_severity
 
 logger = logging.getLogger(__name__)
@@ -63,9 +58,7 @@ class GBPAdapter:
             if address:
                 search_query += f" {address}"
 
-            place_result = await client.find_place(
-                query=search_query, fields=["place_id", "name", "formatted_address"]
-            )
+            place_result = await client.find_place(query=search_query, fields=["place_id", "name", "formatted_address"])
 
             if not place_result or not place_result.get("place_id"):
                 logger.warning(f"No GBP found for {business_name}")
@@ -146,7 +139,9 @@ class GBPAdapter:
             if review_count < 20 and rating < 4.0:
                 description = f"Business has only {review_count} reviews with a {rating:.1f} star rating. Both metrics need improvement for better trust signals."
             elif review_count < 20:
-                description = f"Business has only {review_count} reviews. More reviews needed to build trust and social proof."
+                description = (
+                    f"Business has only {review_count} reviews. More reviews needed to build trust and social proof."
+                )
             else:
                 description = f"Business rating of {rating:.1f} stars is below the 4.0 threshold. Higher ratings correlate with increased conversions."
 

@@ -1,14 +1,15 @@
 import asyncio
 import json
+import logging
 import os
 from pathlib import Path
-import logging
+
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Load environment variables
@@ -16,15 +17,17 @@ load_dotenv()
 
 # Ensure the project root is in the Python path
 import sys
+
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 # Local application imports
-from d1_targeting.models import Business, Base
+from d1_targeting.models import Base, Business
 from d3_assessment.coordinator_v3 import AssessmentCoordinatorV3
 from d5_scoring.engine import ConfigurableScoringEngine
-from d6_reports.generator import ReportGenerator, GenerationOptions
 from d5_scoring.utils import make_serializable
+from d6_reports.generator import GenerationOptions, ReportGenerator
+
 
 # --- Database Setup ---
 def init_db():
@@ -67,16 +70,14 @@ async def main():
         business_data = {
             "business_name": "Aloha Snacks",
             "url": "https://alohasnacks.com/",
-            "business_id": "e4d9a4e4-7f2a-4f1e-8c1a-2b9f4e9a0b1a" # Example UUID
+            "business_id": "e4d9a4e4-7f2a-4f1e-8c1a-2b9f4e9a0b1a",  # Example UUID
         }
 
         # Create the business record if it doesn't exist
-        business = db_session.query(Business).filter_by(id=business_data['business_id']).first()
+        business = db_session.query(Business).filter_by(id=business_data["business_id"]).first()
         if not business:
             business = Business(
-                id=business_data['business_id'],
-                name=business_data['business_name'],
-                website=business_data['url']
+                id=business_data["business_id"], name=business_data["business_name"], website=business_data["url"]
             )
             db_session.add(business)
             db_session.commit()
@@ -90,11 +91,11 @@ async def main():
         api_time = asyncio.get_event_loop().time() - start_time
 
         if not assessment_result or assessment_result.get("status") == "error":
-            error_msg = assessment_result.get('error', 'Unknown error')
+            error_msg = assessment_result.get("error", "Unknown error")
             logger.error(f"Assessment failed for {business_data['business_name']}: {error_msg}")
             print(f"\n❌ Assessment failed: {error_msg}")
             results_file = output_dir / "assessment_failed.json"
-            with open(results_file, 'w') as f:
+            with open(results_file, "w") as f:
                 json.dump(make_serializable(assessment_result), f, indent=2)
             print(f"   -> Detailed error info saved to: {results_file}")
             return
@@ -104,10 +105,7 @@ async def main():
 
         # 2. Run Scoring
         print("\n📊 Scoring assessment results...")
-        scoring_result = scorer.calculate_score(
-            business_data=business_data,
-            assessment_data=assessment_results_data
-        )
+        scoring_result = scorer.calculate_score(business_data=business_data, assessment_data=assessment_results_data)
         print(f"   ✔️ Final Score: {scoring_result.overall_score}/100")
 
         # 3. Generate Report
@@ -126,13 +124,13 @@ async def main():
 
         html_content = generation_result.html_content
         html_path = output_dir / "aloha_snacks_production_report.html"
-        with open(html_path, 'w') as f:
+        with open(html_path, "w") as f:
             f.write(html_content)
         print(f"✅ HTML report saved to: {html_path}")
 
         # Save detailed results
         results_file = output_dir / "assessment_results.json"
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(make_serializable(assessment_result), f, indent=2)
         print(f"\n📊 Full results saved to: {results_file}")
 
@@ -140,10 +138,11 @@ async def main():
         print("✅ PRODUCTION ASSESSMENT COMPLETE")
         print("=" * 80)
         print(f"📁 Output directory: {output_dir}/")
-        
+
     except Exception as e:
         logger.error(f"An unexpected error occurred in the main pipeline: {str(e)}", exc_info=True)
         print(f"\n❌ An unexpected error occurred: {str(e)}")
+
 
 if __name__ == "__main__":
     init_db()

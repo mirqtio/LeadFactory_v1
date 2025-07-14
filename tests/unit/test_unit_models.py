@@ -67,9 +67,7 @@ class TestBusinessModel:
     def test_business_relationships(self, test_session):
         """Test business relationships with other models"""
         # Create business
-        business = Business(
-            name="Test Business", vertical="medical"
-        )
+        business = Business(name="Test Business", vertical="medical")
         test_session.add(business)
         test_session.commit()
 

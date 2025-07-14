@@ -29,9 +29,7 @@ class QuotaTracker:
 
         # Default quota settings (can be made configurable)
         self.default_daily_quota = 1000
-        self.default_campaign_max_percentage = (
-            0.4  # Max 40% of daily quota per campaign
-        )
+        self.default_campaign_max_percentage = 0.4  # Max 40% of daily quota per campaign
         self.quota_reset_hour = 0  # Midnight UTC
 
     def get_daily_quota(self, target_date: Optional[date] = None) -> int:
@@ -86,9 +84,7 @@ class QuotaTracker:
 
         return used_quota
 
-    def get_campaign_quota_allocation(
-        self, campaign_id: str, target_date: Optional[date] = None
-    ) -> Dict[str, int]:
+    def get_campaign_quota_allocation(self, campaign_id: str, target_date: Optional[date] = None) -> Dict[str, int]:
         """Get quota allocation details for a specific campaign"""
         if target_date is None:
             target_date = date.today()
@@ -103,9 +99,7 @@ class QuotaTracker:
             "campaign_max_quota": campaign_max,
             "campaign_used_quota": campaign_used,
             "campaign_remaining_quota": campaign_remaining,
-            "campaign_percentage_used": (campaign_used / campaign_max * 100)
-            if campaign_max > 0
-            else 0,
+            "campaign_percentage_used": (campaign_used / campaign_max * 100) if campaign_max > 0 else 0,
         }
 
     def _get_campaign_used_quota(self, campaign_id: str, target_date: date) -> int:
@@ -141,17 +135,13 @@ class QuotaTracker:
 
         # Check campaign-specific quota limits if campaign specified
         if campaign_id:
-            campaign_allocation = self.get_campaign_quota_allocation(
-                campaign_id, target_date
-            )
+            campaign_allocation = self.get_campaign_quota_allocation(campaign_id, target_date)
             if requested_quota > campaign_allocation["campaign_remaining_quota"]:
                 return False
 
         return True
 
-    def reserve_quota(
-        self, campaign_id: str, requested_quota: int, target_date: Optional[date] = None
-    ) -> bool:
+    def reserve_quota(self, campaign_id: str, requested_quota: int, target_date: Optional[date] = None) -> bool:
         """
         Reserve quota for a campaign (used when creating batches)
 
@@ -161,16 +151,12 @@ class QuotaTracker:
             target_date = date.today()
 
         if not self.is_quota_available(requested_quota, campaign_id, target_date):
-            self.logger.warning(
-                f"Quota reservation failed for campaign {campaign_id}: {requested_quota} requested"
-            )
+            self.logger.warning(f"Quota reservation failed for campaign {campaign_id}: {requested_quota} requested")
             return False
 
         # Quota is available, reservation successful
         # Actual quota tracking happens when batches are processed
-        self.logger.info(
-            f"Reserved {requested_quota} quota for campaign {campaign_id} on {target_date}"
-        )
+        self.logger.info(f"Reserved {requested_quota} quota for campaign {campaign_id} on {target_date}")
         return True
 
     def record_batch_completion(self, batch_id: str, targets_processed: int) -> None:
@@ -183,9 +169,7 @@ class QuotaTracker:
         # Quota is automatically tracked via CampaignBatch.targets_processed
         # which is already updated when mark_batch_completed is called
 
-        self.logger.debug(
-            f"Recorded {targets_processed} processed targets for batch {batch_id}"
-        )
+        self.logger.debug(f"Recorded {targets_processed} processed targets for batch {batch_id}")
 
     def get_quota_utilization_stats(self, days_back: int = 7) -> Dict[str, any]:
         """Get quota utilization statistics for analysis"""
@@ -199,9 +183,7 @@ class QuotaTracker:
         while current_date <= end_date:
             daily_quota = self.get_daily_quota(current_date)
             daily_used = self.get_used_quota(current_date)
-            utilization_rate = (
-                (daily_used / daily_quota * 100) if daily_quota > 0 else 0
-            )
+            utilization_rate = (daily_used / daily_quota * 100) if daily_quota > 0 else 0
 
             daily_stats.append(
                 {
@@ -217,19 +199,13 @@ class QuotaTracker:
         # Calculate summary statistics
         total_quota = sum(stat["quota"] for stat in daily_stats)
         total_used = sum(stat["used"] for stat in daily_stats)
-        avg_utilization = (
-            sum(stat["utilization_rate"] for stat in daily_stats) / len(daily_stats)
-            if daily_stats
-            else 0
-        )
+        avg_utilization = sum(stat["utilization_rate"] for stat in daily_stats) / len(daily_stats) if daily_stats else 0
 
         return {
             "period_days": days_back,
             "total_quota": total_quota,
             "total_used": total_used,
-            "overall_utilization_rate": round(
-                (total_used / total_quota * 100) if total_quota > 0 else 0, 2
-            ),
+            "overall_utilization_rate": round((total_used / total_quota * 100) if total_quota > 0 else 0, 2),
             "average_daily_utilization": round(avg_utilization, 2),
             "daily_breakdown": daily_stats,
         }
@@ -260,17 +236,10 @@ class QuotaTracker:
         )
 
         campaign_usage = []
-        total_quota_period = sum(
-            self.get_daily_quota(start_date + timedelta(days=i))
-            for i in range(days_back + 1)
-        )
+        total_quota_period = sum(self.get_daily_quota(start_date + timedelta(days=i)) for i in range(days_back + 1))
 
         for result in results:
-            quota_percentage = (
-                (result.total_processed / total_quota_period * 100)
-                if total_quota_period > 0
-                else 0
-            )
+            quota_percentage = (result.total_processed / total_quota_period * 100) if total_quota_period > 0 else 0
 
             campaign_usage.append(
                 {
@@ -332,11 +301,7 @@ class QuotaTracker:
         # Check if approaching daily quota limit
         remaining_quota = self.get_remaining_quota(today)
         total_quota = self.get_daily_quota(today)
-        utilization_rate = (
-            ((total_quota - remaining_quota) / total_quota * 100)
-            if total_quota > 0
-            else 0
-        )
+        utilization_rate = ((total_quota - remaining_quota) / total_quota * 100) if total_quota > 0 else 0
 
         if utilization_rate > 90:
             alerts.append(
@@ -349,9 +314,7 @@ class QuotaTracker:
             )
 
         # Check for campaigns approaching their limits
-        active_campaigns = (
-            self.session.query(Campaign).filter(Campaign.status == "running").all()
-        )
+        active_campaigns = self.session.query(Campaign).filter(Campaign.status == "running").all()
 
         for campaign in active_campaigns:
             campaign_allocation = self.get_campaign_quota_allocation(campaign.id, today)
@@ -370,9 +333,7 @@ class QuotaTracker:
 
         return alerts
 
-    def optimize_quota_distribution(
-        self, campaigns: List[str], total_quota: int
-    ) -> Dict[str, int]:
+    def optimize_quota_distribution(self, campaigns: List[str], total_quota: int) -> Dict[str, int]:
         """
         Optimize quota distribution across campaigns based on performance metrics
 
@@ -392,16 +353,12 @@ class QuotaTracker:
 
             # Calculate performance metrics
             performance_score = self._calculate_campaign_performance_score(campaign)
-            remaining_targets = max(
-                0, campaign.total_targets - campaign.contacted_targets
-            )
+            remaining_targets = max(0, campaign.total_targets - campaign.contacted_targets)
 
             optimization_data[campaign_id] = {
                 "performance_score": performance_score,
                 "remaining_targets": remaining_targets,
-                "current_utilization": self._get_campaign_used_quota(
-                    campaign_id, date.today()
-                ),
+                "current_utilization": self._get_campaign_used_quota(campaign_id, date.today()),
             }
 
         # Distribute quota based on performance and remaining targets
@@ -421,20 +378,14 @@ class QuotaTracker:
                 continue
 
             # Calculate fair allocation
-            base_allocation = remaining_quota // len(
-                [c for c in sorted_campaigns if c[1]["remaining_targets"] > 0]
-            )
-            performance_bonus = int(
-                base_allocation * 0.2 * (data["performance_score"] / 100)
-            )
+            base_allocation = remaining_quota // len([c for c in sorted_campaigns if c[1]["remaining_targets"] > 0])
+            performance_bonus = int(base_allocation * 0.2 * (data["performance_score"] / 100))
 
             allocated_quota = min(
                 data["remaining_targets"],
                 base_allocation + performance_bonus,
                 remaining_quota,
-                int(
-                    total_quota * self.default_campaign_max_percentage
-                ),  # Respect max percentage
+                int(total_quota * self.default_campaign_max_percentage),  # Respect max percentage
             )
 
             allocations[campaign_id] = allocated_quota
@@ -448,24 +399,16 @@ class QuotaTracker:
             return 50.0  # Default score for new campaigns
 
         # Calculate rates
-        response_rate = (
-            campaign.responded_targets / campaign.contacted_targets
-            if campaign.contacted_targets > 0
-            else 0
-        )
+        response_rate = campaign.responded_targets / campaign.contacted_targets if campaign.contacted_targets > 0 else 0
         conversion_rate = (
-            campaign.converted_targets / campaign.contacted_targets
-            if campaign.contacted_targets > 0
-            else 0
+            campaign.converted_targets / campaign.contacted_targets if campaign.contacted_targets > 0 else 0
         )
 
         # Calculate cost efficiency (lower cost per conversion is better)
         cost_efficiency = 1.0  # Default
         if campaign.converted_targets > 0 and campaign.cost_per_conversion:
             # Normalize cost efficiency (assuming $100 is average cost per conversion)
-            cost_efficiency = max(
-                0.1, min(2.0, 100 / float(campaign.cost_per_conversion))
-            )
+            cost_efficiency = max(0.1, min(2.0, 100 / float(campaign.cost_per_conversion)))
 
         # Weighted score
         score = (

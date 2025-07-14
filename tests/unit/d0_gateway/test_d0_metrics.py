@@ -102,9 +102,7 @@ class TestGatewayMetrics:
     def test_circuit_breaker_state_exposed_mapping(self, gateway_metrics):
         """Test circuit breaker state value mapping"""
         # Test state to number mapping
-        with patch.object(
-            gateway_metrics.circuit_breaker_state, "labels"
-        ) as mock_labels:
+        with patch.object(gateway_metrics.circuit_breaker_state, "labels") as mock_labels:
             mock_gauge = Mock()
             mock_labels.return_value = mock_gauge
 
@@ -245,18 +243,14 @@ class TestGatewayMetrics:
         for provider, data in providers_data.items():
             for endpoint in data["endpoints"]:
                 # Record successful call
-                gateway_metrics.record_api_call(
-                    provider, endpoint, 200, data["typical_latency"]
-                )
+                gateway_metrics.record_api_call(provider, endpoint, 200, data["typical_latency"])
 
                 # Record cache hit
                 gateway_metrics.record_cache_hit(provider, endpoint)
 
                 # Update rate limits
                 for limit_type, limit_value in data["rate_limits"].items():
-                    gateway_metrics.update_rate_limit_usage(
-                        provider, limit_type, int(limit_value * 0.8)
-                    )
+                    gateway_metrics.update_rate_limit_usage(provider, limit_type, int(limit_value * 0.8))
 
                 # Set circuit breaker to closed
                 gateway_metrics.record_circuit_breaker_state(provider, "closed")

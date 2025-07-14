@@ -189,9 +189,7 @@ def create_test_business(business_id: str = "test_biz_001", **kwargs) -> Dict[st
     return defaults
 
 
-def create_test_assessment_result(
-    business_id: str = "test_biz_001", **kwargs
-) -> Dict[str, Any]:
+def create_test_assessment_result(business_id: str = "test_biz_001", **kwargs) -> Dict[str, Any]:
     """Create a test assessment result with sensible defaults."""
     defaults = {
         "business_id": business_id,
@@ -206,9 +204,7 @@ def create_test_assessment_result(
     return defaults
 
 
-def create_test_enrichment_result(
-    business_id: str = "test_biz_001", **kwargs
-) -> Dict[str, Any]:
+def create_test_enrichment_result(business_id: str = "test_biz_001", **kwargs) -> Dict[str, Any]:
     """Create a test enrichment result with sensible defaults."""
     defaults = {
         "business_id": business_id,

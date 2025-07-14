@@ -12,9 +12,7 @@ from d4_enrichment.coordinator import EnrichmentCoordinator
 from d4_enrichment.models import EnrichmentSource, MatchConfidence
 
 
-def create_mock_result(
-    source, email=None, phone=None, confidence=MatchConfidence.HIGH.value
-):
+def create_mock_result(source, email=None, phone=None, confidence=MatchConfidence.HIGH.value):
     """Helper to create mock enrichment result"""
     result = MagicMock()
     result.source = source
@@ -58,14 +56,10 @@ class TestEnrichmentFanoutSimple:
         coordinator = EnrichmentCoordinator()
 
         # Create base result with phone
-        base_result = create_mock_result(
-            source=EnrichmentSource.DATA_AXLE, phone="555-1234"
-        )
+        base_result = create_mock_result(source=EnrichmentSource.DATA_AXLE, phone="555-1234")
 
         # Create new result with email
-        new_result = create_mock_result(
-            source=EnrichmentSource.HUNTER, email="test@example.com"
-        )
+        new_result = create_mock_result(source=EnrichmentSource.HUNTER, email="test@example.com")
 
         # Merge results
         merged = coordinator._merge_enrichment_results(base_result, new_result)
@@ -82,16 +76,12 @@ class TestEnrichmentFanoutSimple:
         # Mock enrichers
         mock_dataaxle = AsyncMock()
         mock_dataaxle.enrich_business = AsyncMock(
-            return_value=create_mock_result(
-                source=EnrichmentSource.DATA_AXLE, phone="555-1234"  # No email
-            )
+            return_value=create_mock_result(source=EnrichmentSource.DATA_AXLE, phone="555-1234")  # No email
         )
 
         mock_hunter = AsyncMock()
         mock_hunter.enrich_business = AsyncMock(
-            return_value=create_mock_result(
-                source=EnrichmentSource.HUNTER, email="contact@test.com"
-            )
+            return_value=create_mock_result(source=EnrichmentSource.HUNTER, email="contact@test.com")
         )
 
         # Add to coordinator

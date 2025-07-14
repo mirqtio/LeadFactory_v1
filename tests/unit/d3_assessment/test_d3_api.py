@@ -138,9 +138,7 @@ class TestTask035AcceptanceCriteria:
                                 "industry": "ecommerce",
                                 "competitive_advantage": "Fast loading improves conversion rates",
                             },
-                            "summary": {
-                                "overall_health": "Good performance with improvement opportunities"
-                            },
+                            "summary": {"overall_health": "Good performance with improvement opportunities"},
                         },
                         "model_version": "gpt-4-0125-preview",
                         "total_cost_usd": 0.35,
@@ -165,9 +163,7 @@ class TestTask035AcceptanceCriteria:
             # Mock the coordinator execution
             mock_coord.execute_comprehensive_assessment = AsyncMock()
 
-            response = client.post(
-                "/api/v1/assessments/trigger", json=sample_trigger_request
-            )
+            response = client.post("/api/v1/assessments/trigger", json=sample_trigger_request)
 
             # Verify response structure
             assert response.status_code == 200
@@ -216,9 +212,7 @@ class TestTask035AcceptanceCriteria:
             "url": "https://example.com",
             "priority": "invalid_priority",
         }
-        response = client.post(
-            "/api/v1/assessments/trigger", json=invalid_priority_request
-        )
+        response = client.post("/api/v1/assessments/trigger", json=invalid_priority_request)
         assert response.status_code == 422
 
         # Test invalid industry
@@ -227,9 +221,7 @@ class TestTask035AcceptanceCriteria:
             "url": "https://example.com",
             "industry": "invalid_industry",
         }
-        response = client.post(
-            "/api/v1/assessments/trigger", json=invalid_industry_request
-        )
+        response = client.post("/api/v1/assessments/trigger", json=invalid_industry_request)
         assert response.status_code == 422
 
         print("✓ Trigger assessment validation errors handled correctly")
@@ -275,9 +267,7 @@ class TestTask035AcceptanceCriteria:
 
         # Test with running assessment (not in sessions)
         running_session_id = "sess_running123"
-        with patch(
-            "d3_assessment.api.coordinator.get_assessment_status"
-        ) as mock_status:
+        with patch("d3_assessment.api.coordinator.get_assessment_status") as mock_status:
             mock_status.return_value = {
                 "status": "running",
                 "progress": "1/3 complete",
@@ -493,9 +483,7 @@ class TestTask035AcceptanceCriteria:
             "batch_id": "batch_test123",
         }
 
-        with patch(
-            "d3_assessment.api.coordinator.execute_batch_assessments"
-        ) as mock_batch:
+        with patch("d3_assessment.api.coordinator.execute_batch_assessments") as mock_batch:
             mock_batch.return_value = []
 
             response = client.post("/api/v1/assessments/batch", json=batch_request)
@@ -561,8 +549,7 @@ class TestTask035AcceptanceCriteria:
         # Test batch with too many assessments
         large_batch = {
             "assessments": [
-                {"business_id": f"biz_{i}", "url": f"https://site{i}.com"}
-                for i in range(51)  # More than max allowed
+                {"business_id": f"biz_{i}", "url": f"https://site{i}.com"} for i in range(51)  # More than max allowed
             ]
         }
         response = client.post("/api/v1/assessments/batch", json=large_batch)
@@ -575,17 +562,13 @@ class TestTask035AcceptanceCriteria:
 
         print("✓ API error handling edge cases work correctly")
 
-    def test_api_response_schemas(
-        self, sample_trigger_request, sample_coordinator_result
-    ):
+    def test_api_response_schemas(self, sample_trigger_request, sample_coordinator_result):
         """Test that API responses match expected schemas"""
         # Test trigger response schema
         with patch("d3_assessment.api.coordinator") as mock_coord:
             mock_coord.execute_comprehensive_assessment = AsyncMock()
 
-            response = client.post(
-                "/api/v1/assessments/trigger", json=sample_trigger_request
-            )
+            response = client.post("/api/v1/assessments/trigger", json=sample_trigger_request)
             data = response.json()
 
             # Validate trigger response fields
@@ -659,9 +642,7 @@ class TestTask035AcceptanceCriteria:
                 started_at=datetime.utcnow(),
                 completed_at=datetime.utcnow(),
             )
-            mock_coord.execute_comprehensive_assessment = AsyncMock(
-                return_value=mock_result
-            )
+            mock_coord.execute_comprehensive_assessment = AsyncMock(return_value=mock_result)
             mock_coord.get_assessment_status.return_value = {
                 "status": "running",
                 "progress": "50%",
@@ -672,9 +653,7 @@ class TestTask035AcceptanceCriteria:
             mock_coord.cancel_session.return_value = True
 
             # 1. Trigger assessment
-            trigger_response = client.post(
-                "/api/v1/assessments/trigger", json=sample_trigger_request
-            )
+            trigger_response = client.post("/api/v1/assessments/trigger", json=sample_trigger_request)
             assert trigger_response.status_code == 200
 
             session_id = trigger_response.json()["session_id"]
@@ -768,9 +747,7 @@ if __name__ == "__main__":
             test_instance.test_cancel_assessment_endpoint()
             test_instance.test_health_check_endpoint()
             test_instance.test_api_error_handling_edge_cases()
-            test_instance.test_api_response_schemas(
-                sample_trigger_request, sample_coordinator_result
-            )
+            test_instance.test_api_response_schemas(sample_trigger_request, sample_coordinator_result)
             test_instance.test_comprehensive_api_flow(sample_trigger_request)
 
             print()

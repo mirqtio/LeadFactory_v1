@@ -6,14 +6,15 @@ following RFC 5322 for emails and proper domain validation.
 """
 import re
 from datetime import datetime
-from typing import Optional, List
 from enum import Enum
+from typing import List, Optional
 
-from pydantic import BaseModel, Field, EmailStr, validator, root_validator
+from pydantic import BaseModel, EmailStr, Field, root_validator, validator
 
 
 class EnrichmentStatusEnum(str, Enum):
     """Enrichment status values"""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -22,6 +23,7 @@ class EnrichmentStatusEnum(str, Enum):
 
 class AuditActionEnum(str, Enum):
     """Audit action types"""
+
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
@@ -30,10 +32,11 @@ class AuditActionEnum(str, Enum):
 # Base schemas
 class BaseResponseSchema(BaseModel):
     """Base response schema with common fields"""
+
     id: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -41,77 +44,84 @@ class BaseResponseSchema(BaseModel):
 # Lead schemas
 class CreateLeadSchema(BaseModel):
     """Schema for creating a new lead"""
+
     email: Optional[EmailStr] = Field(None, description="Contact email address")
     domain: Optional[str] = Field(None, min_length=3, max_length=255, description="Company domain")
     company_name: Optional[str] = Field(None, max_length=500, description="Company name")
     contact_name: Optional[str] = Field(None, max_length=255, description="Contact person name")
     is_manual: bool = Field(False, description="Whether this is a manually added lead")
     source: Optional[str] = Field(None, max_length=100, description="Lead source (manual, csv_upload, etc.)")
-    
-    @validator('domain')
+
+    @validator("domain")
     def validate_domain(cls, v):
         """Validate domain format"""
         if v is None:
             return v
-        
+
         v = v.lower().strip()
-        
+
         # Basic domain validation
-        if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$', v):
-            raise ValueError('Invalid domain format')
-        
+        if not re.match(
+            r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$", v
+        ):
+            raise ValueError("Invalid domain format")
+
         # Must contain at least one dot
-        if '.' not in v:
-            raise ValueError('Domain must contain at least one dot')
-            
+        if "." not in v:
+            raise ValueError("Domain must contain at least one dot")
+
         # Cannot start or end with dot
-        if v.startswith('.') or v.endswith('.'):
-            raise ValueError('Domain cannot start or end with a dot')
-            
+        if v.startswith(".") or v.endswith("."):
+            raise ValueError("Domain cannot start or end with a dot")
+
         return v
-    
+
     @root_validator(skip_on_failure=True)
     def validate_lead_data(cls, values):
         """Ensure at least email or domain is provided"""
-        email = values.get('email')
-        domain = values.get('domain')
-        
+        email = values.get("email")
+        domain = values.get("domain")
+
         if not email and not domain:
-            raise ValueError('Either email or domain must be provided')
-            
+            raise ValueError("Either email or domain must be provided")
+
         return values
 
 
 class UpdateLeadSchema(BaseModel):
     """Schema for updating an existing lead"""
+
     email: Optional[EmailStr] = None
     domain: Optional[str] = Field(None, min_length=3, max_length=255)
     company_name: Optional[str] = Field(None, max_length=500)
     contact_name: Optional[str] = Field(None, max_length=255)
     source: Optional[str] = Field(None, max_length=100)
-    
-    @validator('domain')
+
+    @validator("domain")
     def validate_domain(cls, v):
         """Validate domain format"""
         if v is None:
             return v
-        
+
         v = v.lower().strip()
-        
-        if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$', v):
-            raise ValueError('Invalid domain format')
-        
-        if '.' not in v:
-            raise ValueError('Domain must contain at least one dot')
-            
-        if v.startswith('.') or v.endswith('.'):
-            raise ValueError('Domain cannot start or end with a dot')
-            
+
+        if not re.match(
+            r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$", v
+        ):
+            raise ValueError("Invalid domain format")
+
+        if "." not in v:
+            raise ValueError("Domain must contain at least one dot")
+
+        if v.startswith(".") or v.endswith("."):
+            raise ValueError("Domain cannot start or end with a dot")
+
         return v
 
 
 class LeadResponseSchema(BaseResponseSchema):
     """Schema for lead response data"""
+
     email: Optional[str]
     domain: Optional[str]
     company_name: Optional[str]
@@ -130,44 +140,48 @@ class LeadResponseSchema(BaseResponseSchema):
 
 class QuickAddLeadSchema(BaseModel):
     """Schema for quick-add lead with immediate enrichment"""
+
     email: Optional[EmailStr] = None
     domain: Optional[str] = Field(None, min_length=3, max_length=255)
     company_name: Optional[str] = Field(None, max_length=500)
     contact_name: Optional[str] = Field(None, max_length=255)
-    
-    @validator('domain')
+
+    @validator("domain")
     def validate_domain(cls, v):
         """Validate domain format"""
         if v is None:
             return v
-        
+
         v = v.lower().strip()
-        
-        if not re.match(r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$', v):
-            raise ValueError('Invalid domain format')
-        
-        if '.' not in v:
-            raise ValueError('Domain must contain at least one dot')
-            
-        if v.startswith('.') or v.endswith('.'):
-            raise ValueError('Domain cannot start or end with a dot')
-            
+
+        if not re.match(
+            r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$", v
+        ):
+            raise ValueError("Invalid domain format")
+
+        if "." not in v:
+            raise ValueError("Domain must contain at least one dot")
+
+        if v.startswith(".") or v.endswith("."):
+            raise ValueError("Domain cannot start or end with a dot")
+
         return v
-    
+
     @root_validator(skip_on_failure=True)
     def validate_quick_add_data(cls, values):
         """Ensure at least email or domain is provided for enrichment"""
-        email = values.get('email')
-        domain = values.get('domain')
-        
+        email = values.get("email")
+        domain = values.get("domain")
+
         if not email and not domain:
-            raise ValueError('Either email or domain must be provided for enrichment')
-            
+            raise ValueError("Either email or domain must be provided for enrichment")
+
         return values
 
 
 class QuickAddResponseSchema(BaseModel):
     """Response schema for quick-add operation"""
+
     lead: LeadResponseSchema
     enrichment_task_id: str
     message: str = "Lead created and enrichment started"
@@ -176,6 +190,7 @@ class QuickAddResponseSchema(BaseModel):
 # List and pagination schemas
 class LeadFilterSchema(BaseModel):
     """Schema for filtering leads"""
+
     is_manual: Optional[bool] = None
     enrichment_status: Optional[EnrichmentStatusEnum] = None
     search: Optional[str] = Field(None, max_length=500, description="Search in email, domain, company, or contact name")
@@ -183,6 +198,7 @@ class LeadFilterSchema(BaseModel):
 
 class PaginationSchema(BaseModel):
     """Schema for pagination parameters"""
+
     skip: int = Field(0, ge=0, description="Number of records to skip")
     limit: int = Field(100, ge=1, le=1000, description="Number of records to return")
     sort_by: str = Field("created_at", description="Field to sort by")
@@ -191,6 +207,7 @@ class PaginationSchema(BaseModel):
 
 class LeadListResponseSchema(BaseModel):
     """Schema for paginated lead list response"""
+
     leads: List[LeadResponseSchema]
     total_count: int = Field(description="Total number of leads matching filters")
     page_info: dict = Field(description="Pagination information")
@@ -199,6 +216,7 @@ class LeadListResponseSchema(BaseModel):
 # Audit log schemas
 class AuditLogResponseSchema(BaseResponseSchema):
     """Schema for audit log response"""
+
     lead_id: str
     action: AuditActionEnum
     timestamp: datetime
@@ -212,6 +230,7 @@ class AuditLogResponseSchema(BaseResponseSchema):
 
 class AuditTrailResponseSchema(BaseModel):
     """Schema for audit trail response"""
+
     lead_id: str
     audit_logs: List[AuditLogResponseSchema]
     total_count: int
@@ -220,6 +239,7 @@ class AuditTrailResponseSchema(BaseModel):
 # Error schemas
 class ErrorResponseSchema(BaseModel):
     """Schema for error responses"""
+
     error: str
     message: str
     details: Optional[dict] = None
@@ -227,6 +247,7 @@ class ErrorResponseSchema(BaseModel):
 
 class ValidationErrorSchema(BaseModel):
     """Schema for validation error responses"""
+
     error: str = "VALIDATION_ERROR"
     message: str
     validation_errors: List[dict]
@@ -235,6 +256,7 @@ class ValidationErrorSchema(BaseModel):
 # Health check schema
 class HealthCheckResponseSchema(BaseModel):
     """Schema for health check response"""
+
     status: str = "ok"
     timestamp: datetime
     database: str = "connected"

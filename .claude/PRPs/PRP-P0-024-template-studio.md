@@ -1,5 +1,7 @@
 # PRP-P0-024 Template Studio
 
+> 💡 **Claude Implementation Note**: Consider how task subagents can be used to execute portions of this task in parallel to improve efficiency and reduce overall completion time.
+
 ## Goal
 Create a web-based Jinja2 template editor with live preview and GitHub PR workflow, enabling non-developers to safely modify report templates without deployment friction.
 

@@ -20,13 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
-from .models import (
-    EmailContentType,
-    EmailTemplate,
-    PersonalizationStrategy,
-    SubjectLineVariant,
-    VariantStatus,
-)
+from .models import EmailContentType, EmailTemplate, PersonalizationStrategy, SubjectLineVariant, VariantStatus
 
 
 class GenerationStrategy(str, Enum):
@@ -132,14 +126,10 @@ class SubjectLineGenerator:
                 "business_name": {"default": "your business", "max_length": 50},
                 "contact_name": {"default": "there", "max_length": 30},
             },
-            "generation_rules": {
-                "global_constraints": {"min_length": 10, "max_length": 78}
-            },
+            "generation_rules": {"global_constraints": {"min_length": 10, "max_length": 78}},
         }
 
-    def generate_subject_lines(
-        self, request: SubjectLineRequest
-    ) -> List[GeneratedSubjectLine]:
+    def generate_subject_lines(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
         """Generate subject lines based on request - Acceptance Criteria"""
         if request.generation_strategy == GenerationStrategy.AB_TESTING:
             return self._generate_ab_variants(request)
@@ -150,9 +140,7 @@ class SubjectLineGenerator:
         else:
             return self._generate_template_based(request)
 
-    def _generate_template_based(
-        self, request: SubjectLineRequest
-    ) -> List[GeneratedSubjectLine]:
+    def _generate_template_based(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
         """Generate subject lines using template patterns - Acceptance Criteria"""
         content_type_key = request.content_type.value
         templates = self.templates.get("templates", {}).get(content_type_key, {})
@@ -172,9 +160,7 @@ class SubjectLineGenerator:
                 if template_count >= request.max_variants:
                     break
 
-                subject_line = self._generate_from_template(
-                    template, request, f"{category}_{template_count}"
-                )
+                subject_line = self._generate_from_template(template, request, f"{category}_{template_count}")
 
                 if subject_line and self._passes_quality_checks(subject_line, request):
                     generated_lines.append(subject_line)
@@ -208,20 +194,14 @@ class SubjectLineGenerator:
             subject_text = self._truncate_subject_line(subject_text, max_length)
 
         # Check minimum length
-        min_length = (
-            self.templates.get("generation_rules", {})
-            .get("global_constraints", {})
-            .get("min_length", 10)
-        )
+        min_length = self.templates.get("generation_rules", {}).get("global_constraints", {}).get("min_length", 10)
 
         if len(subject_text) < min_length:
             return None  # Too short to be effective
 
         # Calculate quality scores
         quality_score = self._calculate_quality_score(subject_text, template, request)
-        personalization_score = self._calculate_personalization_score(
-            tokens_resolved, required_tokens
-        )
+        personalization_score = self._calculate_personalization_score(tokens_resolved, required_tokens)
         spam_risk_score = self._calculate_spam_risk_score(subject_text)
 
         return GeneratedSubjectLine(
@@ -231,18 +211,14 @@ class SubjectLineGenerator:
             tokens_resolved=tokens_resolved,
             tokens_failed=tokens_failed,
             length=len(subject_text),
-            tone=ToneStyle(tone)
-            if tone in [t.value for t in ToneStyle]
-            else ToneStyle.PROFESSIONAL,
+            tone=ToneStyle(tone) if tone in [t.value for t in ToneStyle] else ToneStyle.PROFESSIONAL,
             quality_score=quality_score,
             personalization_score=personalization_score,
             spam_risk_score=spam_risk_score,
             generation_method="template_based",
         )
 
-    def _generate_ab_variants(
-        self, request: SubjectLineRequest
-    ) -> List[GeneratedSubjectLine]:
+    def _generate_ab_variants(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
         """Generate A/B testing variants - Acceptance Criteria"""
         variants = []
         ab_config = self.templates.get("ab_testing", {})
@@ -252,61 +228,41 @@ class SubjectLineGenerator:
         if "length_variants" in variant_strategies:
             length_variants = variant_strategies["length_variants"]
             for variant_type, config in length_variants.items():
-                modified_request = self._modify_request_for_variant(
-                    request, "length", config
-                )
+                modified_request = self._modify_request_for_variant(request, "length", config)
                 length_variant = self._generate_template_based(modified_request)[0:1]
                 if length_variant:
                     length_variant[0].variant_name = f"length_{variant_type}"
                     variants.extend(length_variant)
 
         # Generate tone variants
-        if (
-            "tone_variants" in variant_strategies
-            and len(variants) < request.max_variants
-        ):
+        if "tone_variants" in variant_strategies and len(variants) < request.max_variants:
             tone_variants = variant_strategies["tone_variants"]
             for variant_type, config in tone_variants.items():
                 if len(variants) >= request.max_variants:
                     break
-                modified_request = self._modify_request_for_variant(
-                    request, "tone", config
-                )
+                modified_request = self._modify_request_for_variant(request, "tone", config)
                 tone_variant = self._generate_template_based(modified_request)[0:1]
                 if tone_variant:
                     tone_variant[0].variant_name = f"tone_{variant_type}"
                     variants.extend(tone_variant)
 
         # Generate personalization variants
-        if (
-            "personalization_variants" in variant_strategies
-            and len(variants) < request.max_variants
-        ):
+        if "personalization_variants" in variant_strategies and len(variants) < request.max_variants:
             personalization_variants = variant_strategies["personalization_variants"]
             for variant_type, config in personalization_variants.items():
                 if len(variants) >= request.max_variants:
                     break
-                modified_request = self._modify_request_for_variant(
-                    request, "personalization", config
-                )
-                personalization_variant = self._generate_template_based(
-                    modified_request
-                )[0:1]
+                modified_request = self._modify_request_for_variant(request, "personalization", config)
+                personalization_variant = self._generate_template_based(modified_request)[0:1]
                 if personalization_variant:
-                    personalization_variant[
-                        0
-                    ].variant_name = f"personalization_{variant_type}"
+                    personalization_variant[0].variant_name = f"personalization_{variant_type}"
                     variants.extend(personalization_variant)
 
         return variants[: request.max_variants]
 
-    def _generate_performance_optimized(
-        self, request: SubjectLineRequest
-    ) -> List[GeneratedSubjectLine]:
+    def _generate_performance_optimized(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
         """Generate performance-optimized subject lines"""
-        high_performers = self.templates.get("high_performing_patterns", {}).get(
-            "top_performers", []
-        )
+        high_performers = self.templates.get("high_performing_patterns", {}).get("top_performers", [])
         generated_lines = []
 
         for i, performer in enumerate(high_performers[: request.max_variants]):
@@ -318,9 +274,7 @@ class SubjectLineGenerator:
                 "open_rate": performer.get("open_rate", 0.0),
             }
 
-            subject_line = self._generate_from_template(
-                template, request, f"performance_{i}"
-            )
+            subject_line = self._generate_from_template(template, request, f"performance_{i}")
 
             if subject_line:
                 # Boost quality score based on historical performance
@@ -332,9 +286,7 @@ class SubjectLineGenerator:
 
         return generated_lines
 
-    def _generate_industry_specific(
-        self, request: SubjectLineRequest
-    ) -> List[GeneratedSubjectLine]:
+    def _generate_industry_specific(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
         """Generate industry-specific subject lines"""
         # Detect industry from business data
         industry = self._detect_industry(request.business_data)
@@ -346,9 +298,7 @@ class SubjectLineGenerator:
         # Apply industry-specific modifications
         for line in base_lines:
             if industry_config:
-                line.text = self._apply_industry_modifications(
-                    line.text, industry_config
-                )
+                line.text = self._apply_industry_modifications(line.text, industry_config)
                 line.generation_method = f"industry_specific_{industry}"
 
         return base_lines
@@ -369,15 +319,11 @@ class SubjectLineGenerator:
                 else:
                     tokens_failed.append(token)
                     # Use default value
-                    default_value = token_config.get(token, {}).get(
-                        "default", f"{{{token}}}"
-                    )
+                    default_value = token_config.get(token, {}).get("default", f"{{{token}}}")
                     tokens_resolved[token] = default_value
             except Exception:
                 tokens_failed.append(token)
-                default_value = token_config.get(token, {}).get(
-                    "default", f"{{{token}}}"
-                )
+                default_value = token_config.get(token, {}).get("default", f"{{{token}}}")
                 tokens_resolved[token] = default_value
 
         return tokens_resolved, tokens_failed
@@ -395,9 +341,7 @@ class SubjectLineGenerator:
         value = None
 
         if token == "business_name" and request.business_data:
-            value = request.business_data.get("name") or request.business_data.get(
-                "business_name"
-            )
+            value = request.business_data.get("name") or request.business_data.get("business_name")
         elif token == "contact_name" and request.contact_data:
             value = (
                 request.contact_data.get("first_name")
@@ -413,11 +357,7 @@ class SubjectLineGenerator:
         elif token == "location" and request.business_data:
             location_data = request.business_data.get("location", {})
             if isinstance(location_data, dict):
-                value = (
-                    location_data.get("city")
-                    or location_data.get("location")
-                    or request.business_data.get("city")
-                )
+                value = location_data.get("city") or location_data.get("location") or request.business_data.get("city")
             else:
                 value = str(location_data)
         elif token == "speed_score" and request.assessment_data:
@@ -534,17 +474,13 @@ class SubjectLineGenerator:
 
         return min(score, 1.0)
 
-    def _calculate_personalization_score(
-        self, tokens_resolved: Dict[str, str], required_tokens: List[str]
-    ) -> float:
+    def _calculate_personalization_score(self, tokens_resolved: Dict[str, str], required_tokens: List[str]) -> float:
         """Calculate personalization completeness score"""
         if not required_tokens:
             return 1.0
 
         successfully_resolved = sum(
-            1
-            for token in required_tokens
-            if token in tokens_resolved and not tokens_resolved[token].startswith("{")
+            1 for token in required_tokens if token in tokens_resolved and not tokens_resolved[token].startswith("{")
         )
 
         return successfully_resolved / len(required_tokens)
@@ -556,9 +492,7 @@ class SubjectLineGenerator:
 
         # Check for spam words
         spam_words = (
-            self.templates.get("generation_rules", {})
-            .get("global_constraints", {})
-            .get("avoid_spam_words", [])
+            self.templates.get("generation_rules", {}).get("global_constraints", {}).get("avoid_spam_words", [])
         )
 
         for word in spam_words:
@@ -578,8 +512,7 @@ class SubjectLineGenerator:
 
         # Check for excessive numbers/symbols
         number_symbol_ratio = (
-            sum(1 for char in subject_text if char.isdigit() or char in "$%@#")
-            / len(subject_text)
+            sum(1 for char in subject_text if char.isdigit() or char in "$%@#") / len(subject_text)
             if subject_text
             else 0
         )
@@ -601,20 +534,14 @@ class SubjectLineGenerator:
         likely_personalized = sum(
             1
             for word in words
-            if word[0].isupper()
-            and len(word) > 3
-            and word not in ["Quick", "About", "Website", "Your", "Free", "New"]
+            if word[0].isupper() and len(word) > 3 and word not in ["Quick", "About", "Website", "Your", "Free", "New"]
         )
 
         return max(0, likely_personalized - unresolved_tokens)
 
-    def _passes_quality_checks(
-        self, subject_line: GeneratedSubjectLine, request: SubjectLineRequest
-    ) -> bool:
+    def _passes_quality_checks(self, subject_line: GeneratedSubjectLine, request: SubjectLineRequest) -> bool:
         """Check if subject line passes quality thresholds"""
-        constraints = self.templates.get("generation_rules", {}).get(
-            "global_constraints", {}
-        )
+        constraints = self.templates.get("generation_rules", {}).get("global_constraints", {})
 
         # Length constraints
         min_length = constraints.get("min_length", 10)
@@ -671,32 +598,18 @@ class SubjectLineGenerator:
         industry = business_data.get("industry", "").lower()
 
         # Map to standard industry categories
-        if any(
-            term in f"{category} {industry}"
-            for term in ["restaurant", "food", "dining"]
-        ):
+        if any(term in f"{category} {industry}" for term in ["restaurant", "food", "dining"]):
             return "restaurant"
-        elif any(
-            term in f"{category} {industry}"
-            for term in ["medical", "health", "doctor", "clinic"]
-        ):
+        elif any(term in f"{category} {industry}" for term in ["medical", "health", "doctor", "clinic"]):
             return "medical"
-        elif any(
-            term in f"{category} {industry}"
-            for term in ["retail", "store", "shop", "clothing"]
-        ):
+        elif any(term in f"{category} {industry}" for term in ["retail", "store", "shop", "clothing"]):
             return "retail"
-        elif any(
-            term in f"{category} {industry}"
-            for term in ["lawyer", "legal", "attorney", "accountant"]
-        ):
+        elif any(term in f"{category} {industry}" for term in ["lawyer", "legal", "attorney", "accountant"]):
             return "professional_services"
         else:
             return "general"
 
-    def _apply_industry_modifications(
-        self, text: str, industry_config: Dict[str, Any]
-    ) -> str:
+    def _apply_industry_modifications(self, text: str, industry_config: Dict[str, Any]) -> str:
         """Apply industry-specific modifications to subject line"""
         avoid_terms = industry_config.get("avoid_terms", [])
         prefer_terms = industry_config.get("prefer_terms", [])
@@ -745,9 +658,7 @@ class SubjectLineManager:
 
         return variants
 
-    def get_best_performing_variant(
-        self, template_id: str, session
-    ) -> Optional[SubjectLineVariant]:
+    def get_best_performing_variant(self, template_id: str, session) -> Optional[SubjectLineVariant]:
         """Get the best performing variant for a template"""
         if not session:
             return None
@@ -756,9 +667,7 @@ class SubjectLineManager:
             session.query(SubjectLineVariant)
             .filter(
                 SubjectLineVariant.template_id == template_id,
-                SubjectLineVariant.status.in_(
-                    [VariantStatus.ACTIVE, VariantStatus.WINNING]
-                ),
+                SubjectLineVariant.status.in_([VariantStatus.ACTIVE, VariantStatus.WINNING]),
                 SubjectLineVariant.sent_count > 100,  # Minimum sample size
             )
             .all()
@@ -801,14 +710,8 @@ def calculate_subject_line_readability(text: str) -> float:
     word_count = len(words)
 
     # Optimal: 3-7 words, average word length 4-6 characters
-    word_count_score = (
-        1.0 if 3 <= word_count <= 7 else max(0, 1.0 - abs(word_count - 5) * 0.1)
-    )
-    word_length_score = (
-        1.0
-        if 4 <= avg_word_length <= 6
-        else max(0, 1.0 - abs(avg_word_length - 5) * 0.1)
-    )
+    word_count_score = 1.0 if 3 <= word_count <= 7 else max(0, 1.0 - abs(word_count - 5) * 0.1)
+    word_length_score = 1.0 if 4 <= avg_word_length <= 6 else max(0, 1.0 - abs(avg_word_length - 5) * 0.1)
 
     return (word_count_score + word_length_score) / 2
 

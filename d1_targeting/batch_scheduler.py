@@ -48,9 +48,7 @@ class BatchScheduler:
         - No duplicate batches
         """
         if target_date is None:
-            target_date = datetime.utcnow().replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
+            target_date = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
 
         self.logger.info(f"Creating daily batches for {target_date.date()}")
 
@@ -66,22 +64,16 @@ class BatchScheduler:
                 return created_batch_ids
 
             # Calculate priority-based allocation
-            allocations = self._calculate_priority_allocations(
-                campaigns, total_daily_quota
-            )
+            allocations = self._calculate_priority_allocations(campaigns, total_daily_quota)
 
             # Create batches for each campaign
             for campaign, allocation in allocations.items():
                 if allocation["quota"] > 0:
-                    batch_ids = self._create_campaign_batches(
-                        campaign, allocation, target_date
-                    )
+                    batch_ids = self._create_campaign_batches(campaign, allocation, target_date)
                     created_batch_ids.extend(batch_ids)
 
             self.session.commit()
-            self.logger.info(
-                f"Created {len(created_batch_ids)} batches for {len(allocations)} campaigns"
-            )
+            self.logger.info(f"Created {len(created_batch_ids)} batches for {len(allocations)} campaigns")
 
             return created_batch_ids
 
@@ -165,13 +157,9 @@ class BatchScheduler:
                 remaining_targets,
                 remaining_quota // len(campaigns),
             )
-            priority_bonus = int(
-                remaining_quota * 0.1 * (campaign_info["priority"] / 100)
-            )
+            priority_bonus = int(remaining_quota * 0.1 * (campaign_info["priority"] / 100))
 
-            allocated_quota = min(
-                remaining_targets, min_allocation + priority_bonus, remaining_quota
-            )
+            allocated_quota = min(remaining_targets, min_allocation + priority_bonus, remaining_quota)
 
             allocations[campaign] = {
                 "quota": allocated_quota,
@@ -188,11 +176,7 @@ class BatchScheduler:
         score = 50.0  # Base score
 
         # Factor in campaign age (newer campaigns get slight boost)
-        days_running = (
-            (datetime.utcnow() - campaign.actual_start).days
-            if campaign.actual_start
-            else 0
-        )
+        days_running = (datetime.utcnow() - campaign.actual_start).days if campaign.actual_start else 0
         if days_running < 7:
             score += 10
 
@@ -200,19 +184,14 @@ class BatchScheduler:
         if campaign.total_targets > 0:
             conversion_rate = campaign.converted_targets / campaign.total_targets
             response_rate = (
-                campaign.responded_targets / campaign.contacted_targets
-                if campaign.contacted_targets > 0
-                else 0
+                campaign.responded_targets / campaign.contacted_targets if campaign.contacted_targets > 0 else 0
             )
 
             score += conversion_rate * 30  # Up to 30 points for conversion
             score += response_rate * 20  # Up to 20 points for response rate
 
         # Factor in target universe size (larger universes get slight priority)
-        if (
-            hasattr(campaign, "target_universe")
-            and campaign.target_universe.actual_size > 1000
-        ):
+        if hasattr(campaign, "target_universe") and campaign.target_universe.actual_size > 1000:
             score += 5
 
         return min(100.0, max(0.0, score))
@@ -223,9 +202,7 @@ class BatchScheduler:
             self.session.query(CampaignTarget)
             .filter(
                 CampaignTarget.campaign_id == campaign.id,
-                CampaignTarget.status.in_(
-                    ["contacted", "responded", "converted", "excluded"]
-                ),
+                CampaignTarget.status.in_(["contacted", "responded", "converted", "excluded"]),
             )
             .count()
         )
@@ -238,9 +215,7 @@ class BatchScheduler:
             # Parse stored batch settings
             settings_dict = campaign.batch_settings
             return BatchSchedule(
-                batch_size=settings_dict.get(
-                    "batch_size", self.default_batch_settings.batch_size
-                ),
+                batch_size=settings_dict.get("batch_size", self.default_batch_settings.batch_size),
                 max_concurrent_batches=settings_dict.get(
                     "max_concurrent_batches",
                     self.default_batch_settings.max_concurrent_batches,
@@ -249,9 +224,7 @@ class BatchScheduler:
                     "delay_between_batches_seconds",
                     self.default_batch_settings.delay_between_batches_seconds,
                 ),
-                max_daily_targets=settings_dict.get(
-                    "max_daily_targets", self.default_batch_settings.max_daily_targets
-                ),
+                max_daily_targets=settings_dict.get("max_daily_targets", self.default_batch_settings.max_daily_targets),
             )
         else:
             return self.default_batch_settings
@@ -271,9 +244,7 @@ class BatchScheduler:
             batch_size = min(batch_settings.batch_size, remaining_quota)
 
             # Schedule batch at appropriate time during allowed hours
-            scheduled_time = self._calculate_batch_schedule_time(
-                target_date, batch_number, batch_settings
-            )
+            scheduled_time = self._calculate_batch_schedule_time(target_date, batch_number, batch_settings)
 
             # Create batch record
             batch = CampaignBatch(
@@ -295,9 +266,7 @@ class BatchScheduler:
             if len(batch_ids) >= batch_settings.max_concurrent_batches:
                 break
 
-        self.logger.info(
-            f"Created {len(batch_ids)} batches for campaign {campaign.id} with total quota {total_quota}"
-        )
+        self.logger.info(f"Created {len(batch_ids)} batches for campaign {campaign.id} with total quota {total_quota}")
         return batch_ids
 
     def _get_next_batch_number(self, campaign_id: str, target_date: datetime) -> int:
@@ -318,20 +287,14 @@ class BatchScheduler:
     ) -> datetime:
         """Calculate when to schedule a batch"""
         # Start at allowed hours start time
-        start_time = datetime.combine(
-            target_date.date(), batch_settings.allowed_hours_start
-        )
+        start_time = datetime.combine(target_date.date(), batch_settings.allowed_hours_start)
 
         # Add delay based on batch number
-        delay_minutes = (batch_number - 1) * (
-            batch_settings.delay_between_batches_seconds // 60
-        )
+        delay_minutes = (batch_number - 1) * (batch_settings.delay_between_batches_seconds // 60)
         scheduled_time = start_time + timedelta(minutes=delay_minutes)
 
         # Ensure we don't exceed allowed hours
-        end_time = datetime.combine(
-            target_date.date(), batch_settings.allowed_hours_end
-        )
+        end_time = datetime.combine(target_date.date(), batch_settings.allowed_hours_end)
         if scheduled_time >= end_time:
             scheduled_time = start_time  # Wrap to next day or start time
 
@@ -403,20 +366,14 @@ class BatchScheduler:
         # Schedule retry if within limits
         if batch.retry_count < 3:  # Max 3 retries
             batch.status = BatchProcessingStatus.PENDING.value
-            batch.scheduled_at = datetime.utcnow() + timedelta(
-                minutes=5 * batch.retry_count
-            )
+            batch.scheduled_at = datetime.utcnow() + timedelta(minutes=5 * batch.retry_count)
 
         self.session.commit()
         return True
 
-    def get_batch_status_summary(
-        self, campaign_id: Optional[str] = None
-    ) -> Dict[str, int]:
+    def get_batch_status_summary(self, campaign_id: Optional[str] = None) -> Dict[str, int]:
         """Get summary of batch statuses"""
-        query = self.session.query(
-            CampaignBatch.status, func.count(CampaignBatch.id).label("count")
-        )
+        query = self.session.query(CampaignBatch.status, func.count(CampaignBatch.id).label("count"))
 
         if campaign_id:
             query = query.filter(CampaignBatch.campaign_id == campaign_id)

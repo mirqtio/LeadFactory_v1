@@ -9,22 +9,19 @@ from datetime import datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from database.base import Base
 from d6_reports.lineage.models import ReportLineage, ReportLineageAudit
-from d6_reports.models import ReportTemplate, ReportGeneration, ReportType, TemplateFormat
+from d6_reports.models import ReportGeneration, ReportTemplate, ReportType, TemplateFormat
+from database.base import Base
 
 
 @pytest.fixture(scope="function")
 def db_session():
     """Create a database session for testing"""
     engine = create_engine(
-        "sqlite:///:memory:",
-        echo=False,
-        poolclass=StaticPool,
-        connect_args={"check_same_thread": False}
+        "sqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
     )
     Base.metadata.create_all(engine)
 
@@ -43,6 +40,7 @@ def db_session():
 def test_client():
     """Create a test client for API testing"""
     from main import app
+
     return TestClient(app)
 
 
@@ -81,7 +79,7 @@ def sample_report_and_lineage(db_session):
         "business_data": {"name": "Test Business", "website": "test.com"},
         "assessment_results": {"score": 85, "issues": ["Issue 1", "Issue 2"]},
     }
-    compressed_data = gzip.compress(json.dumps(raw_data).encode('utf-8'))
+    compressed_data = gzip.compress(json.dumps(raw_data).encode("utf-8"))
 
     lineage = ReportLineage(
         report_generation_id=report.id,
@@ -93,9 +91,9 @@ def sample_report_and_lineage(db_session):
         pipeline_logs={
             "events": [
                 {"timestamp": "2025-01-01T10:00:00", "event": "Pipeline started"},
-                {"timestamp": "2025-01-01T10:05:00", "event": "Pipeline completed"}
+                {"timestamp": "2025-01-01T10:05:00", "event": "Pipeline completed"},
             ],
-            "summary": {"total_events": 2, "duration_seconds": 300}
+            "summary": {"total_events": 2, "duration_seconds": 300},
         },
         raw_inputs_compressed=compressed_data,
         raw_inputs_size_bytes=len(compressed_data),
@@ -116,15 +114,17 @@ class TestLineageAPI:
 
         # Override the get_db dependency
         from api.dependencies import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{report.id}")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["lineage_id"] == lineage.id
         assert data["report_generation_id"] == report.id
         assert data["lead_id"] == "lead-123"
@@ -138,8 +138,10 @@ class TestLineageAPI:
         report, lineage = sample_report_and_lineage
 
         from api.dependencies import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         # Search without filters
@@ -166,15 +168,17 @@ class TestLineageAPI:
         report, lineage = sample_report_and_lineage
 
         from api.dependencies import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{lineage.id}/logs")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["lineage_id"] == lineage.id
         assert "pipeline_logs" in data
         assert data["pipeline_logs"]["summary"]["total_events"] == 2
@@ -186,16 +190,18 @@ class TestLineageAPI:
         report, lineage = sample_report_and_lineage
 
         from api.dependencies import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get(f"/api/lineage/{lineage.id}/download")
-        
+
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/gzip"
         assert "attachment" in response.headers["content-disposition"]
-        
+
         # Verify content is valid gzip
         decompressed = gzip.decompress(response.content)
         data = json.loads(decompressed)
@@ -204,15 +210,17 @@ class TestLineageAPI:
     def test_get_panel_stats(self, test_client: TestClient, sample_report_and_lineage, db_session):
         """Test getting lineage panel statistics"""
         from api.dependencies import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         response = test_client.get("/api/lineage/panel/stats")
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["total_records"] == 1
         assert "recent_records_24h" in data
         assert "template_distribution" in data
@@ -221,8 +229,10 @@ class TestLineageAPI:
     def test_error_handling(self, test_client: TestClient, db_session):
         """Test error handling for non-existent resources"""
         from api.dependencies import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         # Non-existent report
@@ -242,28 +252,26 @@ class TestLineageAPI:
         report, lineage = sample_report_and_lineage
 
         from api.dependencies import get_db
+
         def override_get_db():
             yield db_session
+
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         # View lineage
         test_client.get(f"/api/lineage/{report.id}")
-        
+
         # Check audit log was created
-        audit = db_session.query(ReportLineageAudit).filter(
-            ReportLineageAudit.lineage_id == lineage.id
-        ).first()
-        
+        audit = db_session.query(ReportLineageAudit).filter(ReportLineageAudit.lineage_id == lineage.id).first()
+
         assert audit is not None
         assert audit.action == "view_lineage"
 
         # View logs
         test_client.get(f"/api/lineage/{lineage.id}/logs")
-        
+
         # Check second audit log
-        audits = db_session.query(ReportLineageAudit).filter(
-            ReportLineageAudit.lineage_id == lineage.id
-        ).all()
-        
+        audits = db_session.query(ReportLineageAudit).filter(ReportLineageAudit.lineage_id == lineage.id).all()
+
         assert len(audits) == 2
         assert audits[1].action == "view_logs"

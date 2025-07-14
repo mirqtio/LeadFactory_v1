@@ -27,13 +27,7 @@ from d3_assessment.models import (
     PageSpeedAssessment,
     TechStackDetection,
 )
-from d3_assessment.types import (
-    AssessmentStatus,
-    AssessmentType,
-    CostType,
-    InsightCategory,
-    TechCategory,
-)
+from d3_assessment.types import AssessmentStatus, AssessmentType, CostType, InsightCategory, TechCategory
 
 
 class TestTask030AcceptanceCriteria:
@@ -199,9 +193,7 @@ class TestTask030AcceptanceCriteria:
             is_mobile=False,
             lighthouse_data={
                 "performance": 85,
-                "audits": {
-                    "first-contentful-paint": {"score": 0.8, "displayValue": "1.2 s"}
-                },
+                "audits": {"first-contentful-paint": {"score": 0.8, "displayValue": "1.2 s"}},
             },
             core_web_vitals={
                 "LCP": {"value": 2500, "classification": "good"},
@@ -268,29 +260,17 @@ class TestTask030AcceptanceCriteria:
         index_names = [idx.name for idx in assessment_indexes if hasattr(idx, "name")]
 
         # Test that key indexes exist
-        assert any(
-            "business_type" in str(idx) for idx in assessment_indexes
-        ), "Business type index missing"
-        assert any(
-            "status" in str(idx) for idx in assessment_indexes
-        ), "Status index missing"
-        assert any(
-            "created" in str(idx) for idx in assessment_indexes
-        ), "Created index missing"
-        assert any(
-            "domain" in str(idx) for idx in assessment_indexes
-        ), "Domain index missing"
-        assert any(
-            "scores" in str(idx) for idx in assessment_indexes
-        ), "Scores index missing"
+        assert any("business_type" in str(idx) for idx in assessment_indexes), "Business type index missing"
+        assert any("status" in str(idx) for idx in assessment_indexes), "Status index missing"
+        assert any("created" in str(idx) for idx in assessment_indexes), "Created index missing"
+        assert any("domain" in str(idx) for idx in assessment_indexes), "Domain index missing"
+        assert any("scores" in str(idx) for idx in assessment_indexes), "Scores index missing"
 
         # Note: GIN indexes were removed for SQLite compatibility
         # JSON fields are indexed differently in cross-database setup
 
         # Test composite indexes
-        assert any(
-            "business_status_type" in str(idx) for idx in assessment_indexes
-        ), "Composite index missing"
+        assert any("business_status_type" in str(idx) for idx in assessment_indexes), "Composite index missing"
 
         # Verify PageSpeedAssessment indexes exist
         pagespeed_indexes = PageSpeedAssessment.__table_args__
@@ -298,39 +278,23 @@ class TestTask030AcceptanceCriteria:
 
         # Verify TechStackDetection indexes
         tech_indexes = TechStackDetection.__table_args__
-        assert any(
-            "category" in str(idx) for idx in tech_indexes
-        ), "Tech category index missing"
-        assert any(
-            "confidence" in str(idx) for idx in tech_indexes
-        ), "Tech confidence index missing"
+        assert any("category" in str(idx) for idx in tech_indexes), "Tech category index missing"
+        assert any("confidence" in str(idx) for idx in tech_indexes), "Tech confidence index missing"
 
         # Verify AIInsight indexes
         insight_indexes = AIInsight.__table_args__
-        assert any(
-            "category" in str(idx) for idx in insight_indexes
-        ), "Insight category index missing"
-        assert any(
-            "priority" in str(idx) for idx in insight_indexes
-        ), "Insight priority index missing"
+        assert any("category" in str(idx) for idx in insight_indexes), "Insight category index missing"
+        assert any("priority" in str(idx) for idx in insight_indexes), "Insight priority index missing"
 
         # Verify AssessmentSession indexes
         session_indexes = AssessmentSession.__table_args__
-        assert any(
-            "status" in str(idx) for idx in session_indexes
-        ), "Session status index missing"
-        assert any(
-            "cost" in str(idx) for idx in session_indexes
-        ), "Session cost index missing"
+        assert any("status" in str(idx) for idx in session_indexes), "Session status index missing"
+        assert any("cost" in str(idx) for idx in session_indexes), "Session cost index missing"
 
         # Verify AssessmentCost indexes
         cost_indexes = AssessmentCost.__table_args__
-        assert any(
-            "type" in str(idx) for idx in cost_indexes
-        ), "Cost type index missing"
-        assert any(
-            "amount" in str(idx) for idx in cost_indexes
-        ), "Cost amount index missing"
+        assert any("type" in str(idx) for idx in cost_indexes), "Cost type index missing"
+        assert any("amount" in str(idx) for idx in cost_indexes), "Cost amount index missing"
 
         print("✓ Proper indexing configured")
 
@@ -529,9 +493,7 @@ class TestTask030AcceptanceCriteria:
         assert TechCategory.FRONTEND.value == "frontend"
 
         # Test InsightCategory enum
-        assert (
-            InsightCategory.PERFORMANCE_OPTIMIZATION.value == "performance_optimization"
-        )
+        assert InsightCategory.PERFORMANCE_OPTIMIZATION.value == "performance_optimization"
         assert InsightCategory.SEO_RECOMMENDATIONS.value == "seo_recommendations"
 
         # Test CostType enum

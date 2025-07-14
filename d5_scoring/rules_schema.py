@@ -15,14 +15,15 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import yaml
-from core.logging import get_logger
 from pydantic import BaseModel, Field, ValidationError, model_validator, validator
 
+from core.logging import get_logger
+
 from .constants import (
-    WEIGHT_SUM_WARNING_THRESHOLD,
-    WEIGHT_SUM_ERROR_THRESHOLD,
     DEFAULT_SCORING_RULES_PATH,
-    VALID_TIER_LABELS
+    VALID_TIER_LABELS,
+    WEIGHT_SUM_ERROR_THRESHOLD,
+    WEIGHT_SUM_WARNING_THRESHOLD,
 )
 
 # ---------------------------------------------------------------------------
@@ -30,7 +31,7 @@ from .constants import (
 # ---------------------------------------------------------------------------
 
 _TOLERANCE_SOFT = WEIGHT_SUM_WARNING_THRESHOLD  # Warn if deviation > 0.005
-_TOLERANCE_HARD = WEIGHT_SUM_ERROR_THRESHOLD    # Error if deviation > 0.05
+_TOLERANCE_HARD = WEIGHT_SUM_ERROR_THRESHOLD  # Error if deviation > 0.05
 _DEFAULT_RULES_PATH = Path(DEFAULT_SCORING_RULES_PATH)
 _logger = get_logger("scoring.rules_schema")
 
@@ -42,10 +43,11 @@ _logger = get_logger("scoring.rules_schema")
 
 class TierConfig(BaseModel):
     """Configuration for a scoring tier."""
+
     min: float = Field(..., ge=0, le=100, description="Minimum score for this tier")
     label: str = Field(..., description="Tier label (A, B, C, or D)")
 
-    @validator('label')
+    @validator("label")
     def validate_label(cls, v):
         if v not in VALID_TIER_LABELS:
             raise ValueError(f"Tier label must be one of {VALID_TIER_LABELS}, got '{v}'")
@@ -54,32 +56,30 @@ class TierConfig(BaseModel):
 
 class FactorConfig(BaseModel):
     """Configuration for a scoring factor within a component."""
+
     weight: float = Field(..., ge=0, le=1, description="Factor weight (0-1)")
 
 
 class ComponentConfig(BaseModel):
     """Configuration for a scoring component."""
+
     weight: float = Field(..., ge=0, le=1, description="Component weight (0-1)")
     factors: Dict[str, FactorConfig] = Field(..., description="Factors within this component")
 
-    @validator('factors')
+    @validator("factors")
     def validate_factor_weights(cls, v):
         """Ensure factor weights sum to 1.0 within tolerance."""
         if not v:
             raise ValueError("Component must have at least one factor")
-        
+
         total = sum(factor.weight for factor in v.values())
         diff = abs(total - 1.0)
-        
+
         if diff > _TOLERANCE_HARD:
-            raise ValueError(
-                f"Factor weights sum to {total:.3f}, must be 1.0 ± {_TOLERANCE_HARD}"
-            )
+            raise ValueError(f"Factor weights sum to {total:.3f}, must be 1.0 ± {_TOLERANCE_HARD}")
         elif diff > _TOLERANCE_SOFT:
-            _logger.warning(
-                f"Factor weights sum to {total:.3f}, should be 1.0 ± {_TOLERANCE_SOFT}"
-            )
-        
+            _logger.warning(f"Factor weights sum to {total:.3f}, should be 1.0 ± {_TOLERANCE_SOFT}")
+
         return v
 
 
@@ -112,29 +112,29 @@ class EngineConfig(BaseModel):
 class ScoringRulesSchema(BaseModel):
     """Root schema for the scoring rules document."""
 
-    version: str = Field(..., pattern=r'^\d+\.\d+$', description="Configuration version")
+    version: str = Field(..., pattern=r"^\d+\.\d+$", description="Configuration version")
     tiers: Dict[str, TierConfig] = Field(..., description="Tier configurations")
     components: Dict[str, ComponentConfig] = Field(..., description="Component configurations")
     formulas: Optional[Dict[str, str]] = Field(default=None, description="Excel formulas for scoring")
-    
+
     # Legacy fields kept for compatibility
     vertical: Optional[str] = None
-    base_rules: Optional[str] = None  
+    base_rules: Optional[str] = None
     engine_config: Optional[EngineConfig] = Field(default_factory=EngineConfig)
     scoring_components: Optional[Dict[str, ScoringComponent]] = None
 
-    @validator('tiers')
+    @validator("tiers")
     def validate_tiers(cls, v):
         """Ensure all tier labels are present and thresholds are valid."""
         labels = {tier.label for tier in v.values()}
         missing = set(VALID_TIER_LABELS) - labels
         if missing:
             raise ValueError(f"Missing tier configurations for: {missing}")
-        
+
         # Check for duplicate labels
         if len(labels) != len(v):
             raise ValueError("Duplicate tier labels found")
-        
+
         # Validate threshold ordering
         sorted_tiers = sorted(v.values(), key=lambda t: t.min, reverse=True)
         for i in range(len(sorted_tiers) - 1):
@@ -144,7 +144,7 @@ class ScoringRulesSchema(BaseModel):
                     f"'{sorted_tiers[i].label}' min ({sorted_tiers[i].min}) must be > "
                     f"'{sorted_tiers[i + 1].label}' min ({sorted_tiers[i + 1].min})"
                 )
-        
+
         return v
 
     @model_validator(mode="after")
@@ -158,13 +158,13 @@ class ScoringRulesSchema(BaseModel):
         components = self.components or self.scoring_components
         if not components:
             raise ValueError("At least one component must be defined")
-        
+
         # Calculate total weight based on component type
         if self.components:
             total_weight = sum(comp.weight for comp in self.components.values())
         else:
             total_weight = sum(comp.weight for comp in self.scoring_components.values())
-        
+
         deviation = abs(total_weight - 1.0)
 
         if deviation > _TOLERANCE_HARD:
@@ -179,26 +179,25 @@ class ScoringRulesSchema(BaseModel):
                 extra={"total_weight": total_weight, "deviation": deviation},
             )
         return self
-    
+
     @model_validator(mode="after")
     def _validate_formulas(self) -> "ScoringRulesSchema":
         """Validate Excel formulas if present."""
         if self.formulas:
             from .formula_evaluator import validate_formula
-            
+
             for formula_name, formula in self.formulas.items():
                 errors = validate_formula(formula)
                 if errors:
-                    raise ValueError(
-                        f"Invalid formula '{formula_name}': {'; '.join(errors)}"
-                    )
-        
+                    raise ValueError(f"Invalid formula '{formula_name}': {'; '.join(errors)}")
+
         return self
 
 
 # ---------------------------------------------------------------------------
 # Helper utilities
 # ---------------------------------------------------------------------------
+
 
 def resolve_rules_path() -> Path:
     """Return the effective scoring rules path.
@@ -238,18 +237,17 @@ def validate_rules(path: os.PathLike | str) -> ScoringRulesSchema:  # noqa: D401
         return ScoringRulesSchema.model_validate(data)
     except ValidationError as exc:
         # Re-raise with clearer context for CI logs
-        raise ValidationError(
-            f"Validation failed for scoring rules file '{path_obj}': {exc}") from exc
+        raise ValidationError(f"Validation failed for scoring rules file '{path_obj}': {exc}") from exc
 
 
 def check_missing_components(schema: ScoringRulesSchema, assessment_fields: List[str]) -> List[str]:
     """
     Check for components in config that don't exist in assessment.
-    
+
     Args:
         schema: Validated scoring rules schema
         assessment_fields: List of available assessment field names
-        
+
     Returns:
         List of component names that don't have matching assessment fields
     """
@@ -257,9 +255,7 @@ def check_missing_components(schema: ScoringRulesSchema, assessment_fields: List
     components = schema.components or schema.scoring_components or {}
     for component_name in components:
         if component_name not in assessment_fields:
-            _logger.warning(
-                f"Component '{component_name}' in scoring rules has no matching assessment field"
-            )
+            _logger.warning(f"Component '{component_name}' in scoring rules has no matching assessment field")
             missing.append(component_name)
     return missing
 
@@ -268,29 +264,30 @@ def check_missing_components(schema: ScoringRulesSchema, assessment_fields: List
 # CLI interface
 # ---------------------------------------------------------------------------
 
+
 def __main__():
     """CLI interface for validating scoring rules."""
     if len(sys.argv) < 2:
         print("Usage: python -m d5_scoring.rules_schema validate <path>")
         sys.exit(1)
-    
+
     command = sys.argv[1]
     if command != "validate":
         print(f"Unknown command: {command}")
         print("Usage: python -m d5_scoring.rules_schema validate <path>")
         sys.exit(1)
-    
+
     if len(sys.argv) < 3:
         print("Usage: python -m d5_scoring.rules_schema validate <path>")
         sys.exit(1)
-    
+
     path = sys.argv[2]
-    
+
     try:
         schema = validate_rules(path)
         print(f"✓ Validation successful for {path}")
         print(f"  Version: {schema.version}")
-        
+
         # Handle both new and legacy components
         if schema.components:
             print(f"  Components: {len(schema.components)}")
@@ -301,10 +298,10 @@ def __main__():
         else:
             print("  Components: 0")
             total_weight = 0
-            
+
         print(f"  Tiers: {', '.join(sorted(t.label for t in schema.tiers.values()))}")
         print(f"  Total component weight: {total_weight:.3f}")
-        
+
     except Exception as e:
         print(f"✗ Validation failed: {e}")
         sys.exit(1)

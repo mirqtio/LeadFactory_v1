@@ -12,17 +12,17 @@ Checks:
 import asyncio
 import time
 from datetime import datetime
-from typing import Dict, Any, List
-import pytest
+from typing import Any, Dict, List
 
+import pytest
 from prefect import flow, task
 from sqlalchemy import text
 
-from database.session import get_db
-from d0_gateway.facade import GatewayFacade
 from core.config import settings
 from core.logging import get_logger
 from core.metrics import metrics
+from d0_gateway.facade import GatewayFacade
+from database.session import get_db
 
 logger = get_logger(__name__)
 
@@ -91,9 +91,7 @@ class DatabaseHealthCheck(ServiceHealthCheck):
             assert result.scalar() == 1
 
             # Test table access
-            result = await db.execute(
-                text("SELECT COUNT(*) FROM businesses WHERE id LIKE 'heartbeat_%'")
-            )
+            result = await db.execute(text("SELECT COUNT(*) FROM businesses WHERE id LIKE 'heartbeat_%'"))
 
             # Cleanup old heartbeat records
             await db.execute(
@@ -118,8 +116,9 @@ class RedisHealthCheck(ServiceHealthCheck):
 
     async def _perform_check(self) -> bool:
         """Test Redis connection and basic operations"""
-        from d0_gateway.cache import ResponseCache
         import redis.asyncio as redis
+
+        from d0_gateway.cache import ResponseCache
 
         try:
             redis_client = redis.from_url(settings.REDIS_URL)
@@ -188,9 +187,7 @@ class SendGridHealthCheck(ServiceHealthCheck):
         assert response.status_code == 200
 
         # Check suppression list access
-        response = await gateway.sendgrid.client.suppression.bounces.get(
-            limit=1, offset=0
-        )
+        response = await gateway.sendgrid.client.suppression.bounces.get(limit=1, offset=0)
 
         assert response.status_code in [200, 404]  # 404 if no bounces
 
@@ -208,9 +205,7 @@ class OpenAIHealthCheck(ServiceHealthCheck):
         gateway = GatewayFacade()
 
         # Test with minimal tokens
-        response = await gateway.openai.complete(
-            prompt="Say 'OK'", model="gpt-4o-mini", max_tokens=5, temperature=0
-        )
+        response = await gateway.openai.complete(prompt="Say 'OK'", model="gpt-4o-mini", max_tokens=5, temperature=0)
 
         assert response is not None
         assert len(response) > 0
@@ -236,9 +231,7 @@ class PageSpeedHealthCheck(ServiceHealthCheck):
         )
 
         assert "lighthouseResult" in result
-        assert (
-            result["lighthouseResult"]["categories"]["performance"]["score"] is not None
-        )
+        assert result["lighthouseResult"]["categories"]["performance"]["score"] is not None
 
         return True
 
@@ -246,9 +239,7 @@ class PageSpeedHealthCheck(ServiceHealthCheck):
 @task(name="run_health_checks", timeout_seconds=30)
 async def run_health_checks(checks: List[ServiceHealthCheck]) -> List[Dict[str, Any]]:
     """Run all health checks concurrently"""
-    results = await asyncio.gather(
-        *[check.check() for check in checks], return_exceptions=True
-    )
+    results = await asyncio.gather(*[check.check() for check in checks], return_exceptions=True)
 
     health_results = []
     for i, result in enumerate(results):
@@ -331,14 +322,11 @@ async def heartbeat_flow() -> Dict[str, Any]:
 
     # Log summary
     logger.info(
-        f"Heartbeat complete: {summary['overall_status']} "
-        f"({summary['healthy']}/{summary['total_checks']} healthy)"
+        f"Heartbeat complete: {summary['overall_status']} " f"({summary['healthy']}/{summary['total_checks']} healthy)"
     )
 
     # Record overall metrics
-    metrics.gauge(
-        "heartbeat_overall_health", 1 if summary["overall_status"] == "healthy" else 0
-    )
+    metrics.gauge("heartbeat_overall_health", 1 if summary["overall_status"] == "healthy" else 0)
     metrics.histogram("heartbeat_total_duration_seconds", summary["duration_seconds"])
 
     # Check duration
@@ -360,18 +348,14 @@ async def send_heartbeat_alert(level: str, details: Dict[str, Any]):
     if level == "critical":
         # Critical failures - would page on-call
         logger.error("CRITICAL: Heartbeat detected failures")
-        logger.error(
-            f"Failed services: {[f['service'] for f in details.get('critical_failures', [])]}"
-        )
+        logger.error(f"Failed services: {[f['service'] for f in details.get('critical_failures', [])]}")
 
         # In production: PagerDuty API call here
 
     elif level == "warning":
         # Degraded service - Slack notification
         logger.warning("WARNING: Heartbeat detected degraded services")
-        logger.warning(
-            f"Affected services: {[w['service'] for w in details.get('warnings', [])]}"
-        )
+        logger.warning(f"Affected services: {[w['service'] for w in details.get('warnings', [])]}")
 
         # In production: Slack webhook here
 

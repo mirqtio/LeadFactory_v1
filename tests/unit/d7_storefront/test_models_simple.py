@@ -20,10 +20,10 @@ sys.path.insert(0, "/app")
 # Import models to test
 from d7_storefront.models import (
     Customer,
+    D7Purchase,
     PaymentMethod,
     PaymentSession,
     ProductType,
-    D7Purchase,
     PurchaseCreateRequest,
     PurchaseItem,
     PurchaseStatus,
@@ -317,9 +317,7 @@ def test_data_classes():
         "utm_campaign": "test_campaign",
     }
 
-    request = PurchaseCreateRequest(
-        customer_email="test@example.com", items=items, attribution=attribution
-    )
+    request = PurchaseCreateRequest(customer_email="test@example.com", items=items, attribution=attribution)
 
     assert request.customer_email == "test@example.com"
     assert len(request.items) == 1

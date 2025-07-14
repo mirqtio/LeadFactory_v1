@@ -44,91 +44,55 @@ class DateRangeFilter(BaseModel):
 class SegmentFilter(BaseModel):
     """Segment filter for analytics queries"""
 
-    campaign_ids: Optional[List[str]] = Field(
-        default=None, description="Filter by campaign IDs"
-    )
-    business_verticals: Optional[List[str]] = Field(
-        default=None, description="Filter by business verticals"
-    )
-    geographic_regions: Optional[List[str]] = Field(
-        default=None, description="Filter by geographic regions"
-    )
-    funnel_stages: Optional[List[str]] = Field(
-        default=None, description="Filter by funnel stages"
-    )
-    event_types: Optional[List[str]] = Field(
-        default=None, description="Filter by event types"
-    )
+    campaign_ids: Optional[List[str]] = Field(default=None, description="Filter by campaign IDs")
+    business_verticals: Optional[List[str]] = Field(default=None, description="Filter by business verticals")
+    geographic_regions: Optional[List[str]] = Field(default=None, description="Filter by geographic regions")
+    funnel_stages: Optional[List[str]] = Field(default=None, description="Filter by funnel stages")
+    event_types: Optional[List[str]] = Field(default=None, description="Filter by event types")
 
 
 class MetricsRequest(BaseModel):
     """Request model for getting metrics data"""
 
     date_range: DateRangeFilter = Field(..., description="Date range for metrics")
-    segment_filter: Optional[SegmentFilter] = Field(
-        default=None, description="Segment filters"
-    )
+    segment_filter: Optional[SegmentFilter] = Field(default=None, description="Segment filters")
     metric_types: Optional[List[str]] = Field(
         default=None, description="Types of metrics to retrieve (defaults to all)"
     )
-    aggregation_period: Optional[str] = Field(
-        default="daily", description="Aggregation period for time series data"
-    )
-    include_breakdowns: bool = Field(
-        default=False, description="Include segment breakdowns in response"
-    )
-    limit: Optional[int] = Field(
-        default=1000, ge=1, le=10000, description="Maximum number of records to return"
-    )
+    aggregation_period: Optional[str] = Field(default="daily", description="Aggregation period for time series data")
+    include_breakdowns: bool = Field(default=False, description="Include segment breakdowns in response")
+    limit: Optional[int] = Field(default=1000, ge=1, le=10000, description="Maximum number of records to return")
 
 
 class FunnelMetricsRequest(BaseModel):
     """Request model for funnel metrics"""
 
     date_range: DateRangeFilter = Field(..., description="Date range for funnel data")
-    segment_filter: Optional[SegmentFilter] = Field(
-        default=None, description="Segment filters"
-    )
-    include_conversion_paths: bool = Field(
-        default=False, description="Include detailed conversion path analysis"
-    )
-    include_drop_off_analysis: bool = Field(
-        default=False, description="Include drop-off analysis for each stage"
-    )
+    segment_filter: Optional[SegmentFilter] = Field(default=None, description="Segment filters")
+    include_conversion_paths: bool = Field(default=False, description="Include detailed conversion path analysis")
+    include_drop_off_analysis: bool = Field(default=False, description="Include drop-off analysis for each stage")
 
 
 class CohortAnalysisRequest(BaseModel):
     """Request model for cohort analysis"""
 
-    cohort_start_date: DateType = Field(
-        ..., description="Start date for cohort analysis"
-    )
+    cohort_start_date: DateType = Field(..., description="Start date for cohort analysis")
     cohort_end_date: DateType = Field(..., description="End date for cohort analysis")
     retention_periods: Optional[List[str]] = Field(
         default=["Day 0", "Week 1", "Week 2", "Week 4", "Month 2"],
         description="Retention periods to analyze",
     )
-    segment_filter: Optional[SegmentFilter] = Field(
-        default=None, description="Segment filters"
-    )
+    segment_filter: Optional[SegmentFilter] = Field(default=None, description="Segment filters")
 
 
 class ExportRequest(BaseModel):
     """Request model for CSV export"""
 
-    export_type: str = Field(
-        ..., description="Type of data to export (metrics, funnel, cohort, events)"
-    )
+    export_type: str = Field(..., description="Type of data to export (metrics, funnel, cohort, events)")
     date_range: DateRangeFilter = Field(..., description="Date range for export")
-    segment_filter: Optional[SegmentFilter] = Field(
-        default=None, description="Segment filters"
-    )
-    include_raw_data: bool = Field(
-        default=False, description="Include raw event data in export"
-    )
-    file_format: str = Field(
-        default="csv", description="Export file format (csv, json, excel)"
-    )
+    segment_filter: Optional[SegmentFilter] = Field(default=None, description="Segment filters")
+    include_raw_data: bool = Field(default=False, description="Include raw event data in export")
+    file_format: str = Field(default="csv", description="Export file format (csv, json, excel)")
 
     @validator("export_type")
     def validate_export_type(cls, v):
@@ -152,9 +116,7 @@ class MetricDataPoint(BaseModel):
     metric_type: str = Field(..., description="Type of metric")
     value: Decimal = Field(..., description="Metric value")
     count: int = Field(..., description="Number of events contributing to this metric")
-    segment_breakdown: Optional[Dict[str, Any]] = Field(
-        default=None, description="Breakdown by segments"
-    )
+    segment_breakdown: Optional[Dict[str, Any]] = Field(default=None, description="Breakdown by segments")
 
 
 class FunnelDataPoint(BaseModel):
@@ -164,22 +126,14 @@ class FunnelDataPoint(BaseModel):
     campaign_id: str = Field(..., description="Campaign identifier")
     from_stage: str = Field(..., description="Source funnel stage")
     to_stage: Optional[str] = Field(..., description="Target funnel stage")
-    sessions_started: int = Field(
-        ..., description="Sessions that started at from_stage"
-    )
-    sessions_converted: int = Field(
-        ..., description="Sessions that converted to to_stage"
-    )
+    sessions_started: int = Field(..., description="Sessions that started at from_stage")
+    sessions_converted: int = Field(..., description="Sessions that converted to to_stage")
     conversion_rate_pct: Decimal = Field(..., description="Conversion rate percentage")
     avg_time_to_convert_hours: Optional[Decimal] = Field(
         default=None, description="Average time to convert between stages"
     )
-    total_cost_cents: int = Field(
-        ..., description="Total cost for this conversion path"
-    )
-    cost_per_conversion_cents: Optional[int] = Field(
-        default=None, description="Cost per conversion"
-    )
+    total_cost_cents: int = Field(..., description="Total cost for this conversion path")
+    cost_per_conversion_cents: Optional[int] = Field(default=None, description="Cost per conversion")
 
 
 class CohortDataPoint(BaseModel):
@@ -229,9 +183,7 @@ class CohortAnalysisResponse(BaseModel):
     total_cohorts: int = Field(..., description="Total number of cohorts")
     avg_retention_rate: Decimal = Field(..., description="Average retention rate")
     data: List[CohortDataPoint] = Field(..., description="Cohort data points")
-    retention_summary: Dict[str, Any] = Field(
-        ..., description="Retention summary by period"
-    )
+    retention_summary: Dict[str, Any] = Field(..., description="Retention summary by period")
     generated_at: datetime = Field(..., description="Response generation timestamp")
 
 
@@ -240,17 +192,11 @@ class ExportResponse(BaseModel):
 
     export_id: str = Field(..., description="Unique export identifier")
     status: str = Field(..., description="Export status")
-    download_url: Optional[str] = Field(
-        default=None, description="Download URL when ready"
-    )
-    file_size_bytes: Optional[int] = Field(
-        default=None, description="File size in bytes"
-    )
+    download_url: Optional[str] = Field(default=None, description="Download URL when ready")
+    file_size_bytes: Optional[int] = Field(default=None, description="File size in bytes")
     record_count: int = Field(..., description="Number of records exported")
     created_at: datetime = Field(..., description="Export creation timestamp")
-    expires_at: Optional[datetime] = Field(
-        default=None, description="Download link expiration"
-    )
+    expires_at: Optional[datetime] = Field(default=None, description="Download link expiration")
 
 
 class HealthCheckResponse(BaseModel):
@@ -260,12 +206,8 @@ class HealthCheckResponse(BaseModel):
     version: str = Field(..., description="API version")
     uptime_seconds: int = Field(..., description="Service uptime in seconds")
     dependencies: Dict[str, str] = Field(..., description="Dependency health status")
-    metrics_count: Optional[int] = Field(
-        default=None, description="Total metrics records"
-    )
-    last_aggregation: Optional[datetime] = Field(
-        default=None, description="Last successful aggregation timestamp"
-    )
+    metrics_count: Optional[int] = Field(default=None, description="Total metrics records")
+    last_aggregation: Optional[datetime] = Field(default=None, description="Last successful aggregation timestamp")
 
 
 class ErrorResponse(BaseModel):
@@ -273,13 +215,9 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error type")
     message: str = Field(..., description="Error message")
-    details: Optional[Dict[str, Any]] = Field(
-        default=None, description="Additional error details"
-    )
+    details: Optional[Dict[str, Any]] = Field(default=None, description="Additional error details")
     request_id: str = Field(..., description="Unique request identifier")
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Error timestamp"
-    )
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat()}

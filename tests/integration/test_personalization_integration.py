@@ -26,22 +26,12 @@ pytestmark = pytest.mark.slow
 sys.path.insert(0, "/app")
 
 # Set environment variables for config validation
-os.environ.setdefault(
-    "SECRET_KEY", "test-secret-key-for-integration-tests-32-chars-long"
-)
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-integration-tests-32-chars-long")
 os.environ.setdefault("DATABASE_URL", "postgresql://test:test@localhost/test")
 os.environ.setdefault("ENVIRONMENT", "development")
 
-from d8_personalization.models import (
-    ContentStrategy,
-    EmailContentType,
-    PersonalizationStrategy,
-)
-from d8_personalization.personalizer import (
-    EmailPersonalizer,
-    IssueExtractor,
-    PersonalizationRequest,
-)
+from d8_personalization.models import ContentStrategy, EmailContentType, PersonalizationStrategy
+from d8_personalization.personalizer import EmailPersonalizer, IssueExtractor, PersonalizationRequest
 from d8_personalization.spam_checker import SpamScoreChecker
 from d8_personalization.subject_lines import SubjectLineGenerator, SubjectLineRequest
 
@@ -72,9 +62,7 @@ class MockOpenAIClient:
             },
         ]
 
-    async def generate_email_content(
-        self, business_name, website_issues, recipient_name=None
-    ):
+    async def generate_email_content(self, business_name, website_issues, recipient_name=None):
         """Generate varied email content for testing"""
         self.call_count += 1
         response_template = self.responses[self.call_count % len(self.responses)]
@@ -83,9 +71,7 @@ class MockOpenAIClient:
             "business_name": business_name,
             "recipient_name": recipient_name,
             "email_subject": response_template["email_subject"].format(business_name),
-            "email_body": response_template["email_body"].format(
-                business_name, business_name
-            ),
+            "email_body": response_template["email_body"].format(business_name, business_name),
             "issues_count": len(website_issues),
             "generated_at": response_template["generated_at"],
             "usage": response_template["usage"],
@@ -207,9 +193,7 @@ class TestPersonalizationIntegration:
 
             for i in range(len(sample_business_data)):
                 business_data = sample_business_data[i]
-                assessment_data = sample_assessment_data[
-                    i % len(sample_assessment_data)
-                ]
+                assessment_data = sample_assessment_data[i % len(sample_assessment_data)]
                 contact_data = sample_contact_data[i % len(sample_contact_data)]
 
                 # Step 1: Create personalization request
@@ -239,9 +223,7 @@ class TestPersonalizationIntegration:
                     max_variants=1,
                 )
 
-                subject_results = subject_line_generator.generate_subject_lines(
-                    subject_request
-                )
+                subject_results = subject_line_generator.generate_subject_lines(subject_request)
 
                 # Step 4: Generate complete personalized email
                 personalized_email = await personalizer.personalize_email(request)
@@ -258,9 +240,7 @@ class TestPersonalizationIntegration:
                     "business_name": business_data["name"],
                     "contact_name": contact_data["first_name"],
                     "issues_extracted": len(extracted_issues),
-                    "subject_line": subject_results[0].text
-                    if subject_results
-                    else personalized_email.subject_line,
+                    "subject_line": subject_results[0].text if subject_results else personalized_email.subject_line,
                     "personalized_email": personalized_email,
                     "spam_check": final_spam_check,
                     "processing_time": 0.5,  # Mock processing time
@@ -298,14 +278,8 @@ class TestPersonalizationIntegration:
             assert email.generation_metadata
 
             # Verify content contains personalization
-            assert (
-                result["business_name"].replace(" LLC", "").replace(" Inc", "")
-                in email.html_content
-            )
-            assert (
-                result["contact_name"] in email.html_content
-                or result["contact_name"] in email.text_content
-            )
+            assert result["business_name"].replace(" LLC", "").replace(" Inc", "") in email.html_content
+            assert result["contact_name"] in email.html_content or result["contact_name"] in email.text_content
 
         print(f"✓ Full generation flow completed for {len(results)} businesses")
 
@@ -325,9 +299,7 @@ class TestPersonalizationIntegration:
 
             for i in range(len(sample_business_data)):
                 business_data = sample_business_data[i]
-                assessment_data = sample_assessment_data[
-                    i % len(sample_assessment_data)
-                ]
+                assessment_data = sample_assessment_data[i % len(sample_assessment_data)]
                 contact_data = sample_contact_data[i % len(sample_contact_data)]
 
                 request = PersonalizationRequest(
@@ -343,9 +315,7 @@ class TestPersonalizationIntegration:
                 quality_score = email.quality_metrics.get("overall_score", 0)
                 spam_score = email.spam_score
                 content_length = len(email.text_content)
-                personalization_score = email.quality_metrics.get(
-                    "personalization_score", 0
-                )
+                personalization_score = email.quality_metrics.get("personalization_score", 0)
 
                 quality_results.append(
                     {
@@ -354,9 +324,7 @@ class TestPersonalizationIntegration:
                         "spam_score": spam_score,
                         "content_length": content_length,
                         "personalization_score": personalization_score,
-                        "has_html": bool(
-                            email.html_content and "<" in email.html_content
-                        ),
+                        "has_html": bool(email.html_content and "<" in email.html_content),
                         "has_text": bool(email.text_content),
                         "has_preview": bool(email.preview_text),
                         "issues_addressed": len(email.extracted_issues),
@@ -370,9 +338,7 @@ class TestPersonalizationIntegration:
         # Quality standards verification
         for result in results:
             # Content quality standards
-            assert (
-                result["quality_score"] >= 0.0
-            ), f"Quality score too low for {result['business']}"
+            assert result["quality_score"] >= 0.0, f"Quality score too low for {result['business']}"
             # Allow higher spam scores for mock content during testing
             assert (
                 result["spam_score"] <= 100.0
@@ -380,40 +346,26 @@ class TestPersonalizationIntegration:
             assert (
                 result["content_length"] >= 50
             ), f"Content too short for {result['business']}: {result['content_length']}"
-            assert (
-                result["personalization_score"] >= 0.0
-            ), f"No personalization for {result['business']}"
+            assert result["personalization_score"] >= 0.0, f"No personalization for {result['business']}"
 
             # Format requirements
             assert result["has_html"], f"Missing HTML content for {result['business']}"
             assert result["has_text"], f"Missing text content for {result['business']}"
-            assert result[
-                "has_preview"
-            ], f"Missing preview text for {result['business']}"
+            assert result["has_preview"], f"Missing preview text for {result['business']}"
 
             # Personalization requirements
-            assert (
-                result["issues_addressed"] >= 0
-            ), f"No issues addressed for {result['business']}"
+            assert result["issues_addressed"] >= 0, f"No issues addressed for {result['business']}"
 
         # Overall quality metrics
         avg_quality = sum(r["quality_score"] for r in results) / len(results)
         avg_spam_score = sum(r["spam_score"] for r in results) / len(results)
-        avg_personalization = sum(r["personalization_score"] for r in results) / len(
-            results
-        )
+        avg_personalization = sum(r["personalization_score"] for r in results) / len(results)
 
         assert avg_quality >= 0.0, f"Overall quality too low: {avg_quality}"
-        assert (
-            avg_spam_score <= 100.0
-        ), f"Overall spam score out of range: {avg_spam_score}"
-        assert (
-            avg_personalization >= 0.0
-        ), f"Overall personalization too low: {avg_personalization}"
+        assert avg_spam_score <= 100.0, f"Overall spam score out of range: {avg_spam_score}"
+        assert avg_personalization >= 0.0, f"Overall personalization too low: {avg_personalization}"
 
-        print(
-            f"✓ Quality checks passed - Avg quality: {avg_quality:.2f}, Avg spam: {avg_spam_score:.1f}"
-        )
+        print(f"✓ Quality checks passed - Avg quality: {avg_quality:.2f}, Avg spam: {avg_spam_score:.1f}")
 
     def test_performance_acceptable(
         self,
@@ -431,9 +383,7 @@ class TestPersonalizationIntegration:
 
             for i in range(len(sample_business_data)):
                 business_data = sample_business_data[i]
-                assessment_data = sample_assessment_data[
-                    i % len(sample_assessment_data)
-                ]
+                assessment_data = sample_assessment_data[i % len(sample_assessment_data)]
                 contact_data = sample_contact_data[i % len(sample_contact_data)]
 
                 request = PersonalizationRequest(
@@ -454,12 +404,9 @@ class TestPersonalizationIntegration:
                     {
                         "business": business_data["name"],
                         "generation_time": generation_time,
-                        "content_size": len(email.html_content)
-                        + len(email.text_content),
+                        "content_size": len(email.html_content) + len(email.text_content),
                         "issues_processed": len(email.extracted_issues),
-                        "tokens_resolved": len(
-                            email.personalization_data.get("issues_extracted", [])
-                        ),
+                        "tokens_resolved": len(email.personalization_data.get("issues_extracted", [])),
                         "quality_score": email.quality_metrics.get("overall_score", 0),
                     }
                 )
@@ -476,17 +423,11 @@ class TestPersonalizationIntegration:
             ), f"Generation too slow for {result['business']}: {result['generation_time']:.2f}s"
 
             # Content size requirements
-            assert (
-                result["content_size"] > 100
-            ), f"Generated content too small for {result['business']}"
-            assert (
-                result["content_size"] < 10000
-            ), f"Generated content too large for {result['business']}"
+            assert result["content_size"] > 100, f"Generated content too small for {result['business']}"
+            assert result["content_size"] < 10000, f"Generated content too large for {result['business']}"
 
             # Processing efficiency
-            assert (
-                result["issues_processed"] >= 0
-            ), f"No issues processed for {result['business']}"
+            assert result["issues_processed"] >= 0, f"No issues processed for {result['business']}"
 
         # Overall performance metrics
         avg_time = sum(r["generation_time"] for r in results) / len(results)
@@ -494,14 +435,10 @@ class TestPersonalizationIntegration:
         total_issues = sum(r["issues_processed"] for r in results)
 
         assert avg_time < 3.0, f"Average generation time too slow: {avg_time:.2f}s"
-        assert (
-            avg_content_size > 500
-        ), f"Average content size too small: {avg_content_size}"
+        assert avg_content_size > 500, f"Average content size too small: {avg_content_size}"
         assert total_issues > 0, "No issues processed across all tests"
 
-        print(
-            f"✓ Performance acceptable - Avg time: {avg_time:.2f}s, Avg size: {avg_content_size:.0f} chars"
-        )
+        print(f"✓ Performance acceptable - Avg time: {avg_time:.2f}s, Avg size: {avg_content_size:.0f} chars")
 
     def test_variety_in_output(
         self,
@@ -572,9 +509,7 @@ class TestPersonalizationIntegration:
                 request = PersonalizationRequest(
                     business_id=f"business_variety_{i}",
                     business_data=business_data,
-                    assessment_data=sample_assessment_data[
-                        i % len(sample_assessment_data)
-                    ],
+                    assessment_data=sample_assessment_data[i % len(sample_assessment_data)],
                     contact_data=sample_contact_data[i % len(sample_contact_data)],
                     content_type=EmailContentType.COLD_OUTREACH,
                     personalization_strategy=PersonalizationStrategy.WEBSITE_ISSUES,
@@ -587,9 +522,7 @@ class TestPersonalizationIntegration:
                         "html_content": email.html_content,
                         "text_content": email.text_content,
                         "business_name": business_data["name"],
-                        "contact_name": sample_contact_data[
-                            i % len(sample_contact_data)
-                        ]["first_name"],
+                        "contact_name": sample_contact_data[i % len(sample_contact_data)]["first_name"],
                     }
                 )
 
@@ -604,37 +537,27 @@ class TestPersonalizationIntegration:
 
         # Check for basic variety (minimum requirement for mock content)
         unique_subjects = len(set(subjects))
-        assert (
-            unique_subjects >= 1
-        ), f"No subject variety: {unique_subjects}/{len(subjects)}"
+        assert unique_subjects >= 1, f"No subject variety: {unique_subjects}/{len(subjects)}"
 
         # Check for basic content variety (minimum requirement for mock content)
         unique_html_hashes = len(set(hash(content[:200]) for content in html_contents))
-        assert (
-            unique_html_hashes >= 1
-        ), f"No HTML content variety: {unique_html_hashes}/{len(html_contents)}"
+        assert unique_html_hashes >= 1, f"No HTML content variety: {unique_html_hashes}/{len(html_contents)}"
 
         unique_text_hashes = len(set(hash(content[:200]) for content in text_contents))
-        assert (
-            unique_text_hashes >= 1
-        ), f"No text content variety: {unique_text_hashes}/{len(text_contents)}"
+        assert unique_text_hashes >= 1, f"No text content variety: {unique_text_hashes}/{len(text_contents)}"
 
         # Check personalization variety
         business_names_in_content = []
         for i, result in enumerate(results):
             if "business_name" in result:
                 # Remove legal suffixes for comparison
-                clean_name = (
-                    result["business_name"].replace(" LLC", "").replace(" Inc", "")
-                )
+                clean_name = result["business_name"].replace(" LLC", "").replace(" Inc", "")
                 if clean_name in result["html_content"]:
                     business_names_in_content.append(result["business_name"])
 
         # Verify business-specific personalization
         unique_businesses = len(set(business_names_in_content))
-        assert (
-            unique_businesses >= 2
-        ), f"Insufficient business personalization variety: {unique_businesses}"
+        assert unique_businesses >= 2, f"Insufficient business personalization variety: {unique_businesses}"
 
         # Check strategy-specific differences
         strategy_outputs = [r for r in results if "strategy" in r]
@@ -685,9 +608,7 @@ def test_mock_integration_environment():
     mock_client = MockOpenAIClient()
 
     async def test_mock():
-        result = await mock_client.generate_email_content(
-            "Test Business", [{"issue": "slow loading"}], "John"
-        )
+        result = await mock_client.generate_email_content("Test Business", [{"issue": "slow loading"}], "John")
         return result
 
     result = asyncio.run(test_mock())

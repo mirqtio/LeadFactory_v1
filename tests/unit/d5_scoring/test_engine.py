@@ -13,13 +13,10 @@ import sys
 import tempfile
 from decimal import Decimal
 
-
 sys.path.insert(0, "/app")
 
 from d5_scoring.engine import ConfigurableScoringEngine
-from d5_scoring.rules_parser import (
-    ScoringRulesParser,
-)
+from d5_scoring.rules_parser import ScoringRulesParser
 
 
 class TestTask046AcceptanceCriteria:
@@ -51,9 +48,7 @@ class TestTask046AcceptanceCriteria:
         component_names = list(parser.component_rules.keys())
         expected_components = ["company_info", "contact_info", "revenue_indicators"]
         for component in expected_components:
-            assert (
-                component in component_names
-            ), f"Component '{component}' should be loaded"
+            assert component in component_names, f"Component '{component}' should be loaded"
 
         # Test tier rules loaded
         tier_names = list(parser.tier_rules.keys())
@@ -115,17 +110,11 @@ class TestTask046AcceptanceCriteria:
         minimal_data = {"id": "test_eval_002", "company_name": "Minimal Corp"}
 
         minimal_result = engine.calculate_score(minimal_data)
-        assert (
-            minimal_result.business_id == "test_eval_002"
-        ), "Should handle minimal data"
-        assert (
-            float(minimal_result.overall_score) >= 0
-        ), "Should calculate score with minimal data"
+        assert minimal_result.business_id == "test_eval_002", "Should handle minimal data"
+        assert float(minimal_result.overall_score) >= 0, "Should calculate score with minimal data"
 
         # Verify different data yields different scores
-        assert (
-            result.overall_score != minimal_result.overall_score
-        ), "Different data should yield different scores"
+        assert result.overall_score != minimal_result.overall_score, "Different data should yield different scores"
 
         print("✓ Rule evaluation works correctly")
 
@@ -177,14 +166,10 @@ class TestTask046AcceptanceCriteria:
                 break
 
         assert revenue_breakdown is not None, "Should have revenue indicators breakdown"
-        assert (
-            float(revenue_breakdown.weight) == 12.0
-        ), "Revenue indicators should have weight 12.0"
+        assert float(revenue_breakdown.weight) == 12.0, "Revenue indicators should have weight 12.0"
 
         # Verify weighted calculation
-        component_contribution = float(revenue_breakdown.component_score) * float(
-            revenue_breakdown.weight
-        )
+        component_contribution = float(revenue_breakdown.component_score) * float(revenue_breakdown.weight)
         assert component_contribution > 0, "Weighted contribution should be positive"
 
         print("✓ Weighted scoring calculation is accurate")
@@ -210,36 +195,22 @@ class TestTask046AcceptanceCriteria:
 
         # Verify fallbacks were applied
         assert "industry" in enriched_data, "Industry fallback should be applied"
-        assert (
-            enriched_data["industry"] == "unknown"
-        ), "Industry should fallback to 'unknown'"
+        assert enriched_data["industry"] == "unknown", "Industry should fallback to 'unknown'"
 
         assert "annual_revenue" in enriched_data, "Revenue fallback should be applied"
         assert enriched_data["annual_revenue"] == 0, "Revenue should fallback to 0"
 
-        assert (
-            "employee_count" in enriched_data
-        ), "Employee count fallback should be applied"
-        assert (
-            enriched_data["employee_count"] == 1
-        ), "Employee count should fallback to 1"
+        assert "employee_count" in enriched_data, "Employee count fallback should be applied"
+        assert enriched_data["employee_count"] == 1, "Employee count should fallback to 1"
 
         # Verify original data is preserved
-        assert (
-            enriched_data["company_name"] == "Incomplete Corp"
-        ), "Original data should be preserved"
-        assert (
-            enriched_data["id"] == "test_fallback_001"
-        ), "Original ID should be preserved"
+        assert enriched_data["company_name"] == "Incomplete Corp", "Original data should be preserved"
+        assert enriched_data["id"] == "test_fallback_001", "Original ID should be preserved"
 
         # Test that engine can score with fallbacks
         result = engine.calculate_score(incomplete_data)
-        assert (
-            result.business_id == "test_fallback_001"
-        ), "Should score with fallback data"
-        assert (
-            float(result.overall_score) >= 0
-        ), "Should calculate valid score with fallbacks"
+        assert result.business_id == "test_fallback_001", "Should score with fallback data"
+        assert float(result.overall_score) >= 0, "Should calculate valid score with fallbacks"
 
         # Test that fallbacks improve scoring compared to completely empty data
         empty_data = {"id": "test_fallback_002"}
@@ -285,15 +256,11 @@ class TestTask046AcceptanceCriteria:
         assert float(result.overall_score) > 50, "Comprehensive data should score well"
 
         # 3. Weighted scoring accurate - get detailed breakdown
-        detailed_result, breakdowns = engine.calculate_detailed_score(
-            comprehensive_data
-        )
+        detailed_result, breakdowns = engine.calculate_detailed_score(comprehensive_data)
 
         total_weighted = 0.0
         for breakdown in breakdowns:
-            weighted_contribution = float(breakdown.component_score) * float(
-                breakdown.weight
-            )
+            weighted_contribution = float(breakdown.component_score) * float(breakdown.weight)
             total_weighted += weighted_contribution
 
         assert total_weighted > 0, "Weighted scoring should calculate correctly"
@@ -307,9 +274,7 @@ class TestTask046AcceptanceCriteria:
         }
 
         incomplete_result = engine.calculate_score(incomplete_data)
-        assert (
-            incomplete_result.business_id == "comprehensive_test_002"
-        ), "Should handle missing data with fallbacks"
+        assert incomplete_result.business_id == "comprehensive_test_002", "Should handle missing data with fallbacks"
 
         # Verify scores are different (comprehensive should score higher)
         assert float(result.overall_score) > float(
@@ -385,28 +350,16 @@ class TestTask046AcceptanceCriteria:
         # Verify explanation structure
         assert "business_id" in explanation, "Should include business ID"
         assert "component_explanations" in explanation, "Should explain components"
-        assert (
-            "overall_calculation" in explanation
-        ), "Should explain overall calculation"
+        assert "overall_calculation" in explanation, "Should explain overall calculation"
         assert "tier_assignment" in explanation, "Should explain tier assignment"
 
         # Verify component explanations
-        assert (
-            len(explanation["component_explanations"]) > 0
-        ), "Should have component details"
+        assert len(explanation["component_explanations"]) > 0, "Should have component details"
 
-        for component_name, component_explanation in explanation[
-            "component_explanations"
-        ].items():
-            assert (
-                "weight" in component_explanation
-            ), f"Component {component_name} should have weight"
-            assert (
-                "total_points" in component_explanation
-            ), f"Component {component_name} should have points"
-            assert (
-                "rule_details" in component_explanation
-            ), f"Component {component_name} should have rule details"
+        for component_name, component_explanation in explanation["component_explanations"].items():
+            assert "weight" in component_explanation, f"Component {component_name} should have weight"
+            assert "total_points" in component_explanation, f"Component {component_name} should have points"
+            assert "rule_details" in component_explanation, f"Component {component_name} should have rule details"
 
         print("✓ Score explanation works correctly")
 

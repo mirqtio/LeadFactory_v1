@@ -3,7 +3,6 @@ Integration Tests for Scoring System - Task 049
 """
 import pytest
 
-
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
 
@@ -24,12 +23,8 @@ from decimal import Decimal
 sys.path.insert(0, "/app")
 
 from d5_scoring.engine import ConfigurableScoringEngine
-from d5_scoring.models import ScoringEngine, D5ScoringResult
-from d5_scoring.tiers import (
-    LeadTier,
-    TierAssignmentEngine,
-    assign_lead_tier,
-)
+from d5_scoring.models import D5ScoringResult, ScoringEngine
+from d5_scoring.tiers import LeadTier, TierAssignmentEngine, assign_lead_tier
 from d5_scoring.vertical_overrides import (
     VerticalScoringEngine,
     create_medical_scoring_engine,
@@ -132,15 +127,9 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
                 D5ScoringResult,
                 f"Should return D5ScoringResult for {business_name}",
             )
-            self.assertEqual(
-                result.business_id, business_data["id"], "Business ID should match"
-            )
-            self.assertIsInstance(
-                result.overall_score, Decimal, "Score should be Decimal"
-            )
-            self.assertTrue(
-                0 <= float(result.overall_score) <= 100, "Score should be 0-100"
-            )
+            self.assertEqual(result.business_id, business_data["id"], "Business ID should match")
+            self.assertIsInstance(result.overall_score, Decimal, "Score should be Decimal")
+            self.assertTrue(0 <= float(result.overall_score) <= 100, "Score should be 0-100")
             self.assertIn(
                 result.tier,
                 ["platinum", "gold", "silver", "bronze", "basic", "unqualified"],
@@ -150,28 +139,20 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         # Test 2: Configurable scoring engine flow
         configurable_engine = ConfigurableScoringEngine()
 
-        premium_result = configurable_engine.calculate_score(
-            self.test_businesses["premium_restaurant"]
-        )
+        premium_result = configurable_engine.calculate_score(self.test_businesses["premium_restaurant"])
         self.assertIsInstance(
             premium_result,
             D5ScoringResult,
             "Configurable engine should return D5ScoringResult",
         )
-        self.assertTrue(
-            float(premium_result.overall_score) > 0, "Premium business should score > 0"
-        )
+        self.assertTrue(float(premium_result.overall_score) > 0, "Premium business should score > 0")
 
         # Test 3: Vertical scoring engine flow
         restaurant_engine = create_restaurant_scoring_engine()
         medical_engine = create_medical_scoring_engine()
 
-        restaurant_result = restaurant_engine.calculate_score(
-            self.test_businesses["premium_restaurant"]
-        )
-        medical_result = medical_engine.calculate_score(
-            self.test_businesses["medical_practice"]
-        )
+        restaurant_result = restaurant_engine.calculate_score(self.test_businesses["premium_restaurant"])
+        medical_result = medical_engine.calculate_score(self.test_businesses["medical_practice"])
 
         self.assertIsInstance(
             restaurant_result,
@@ -192,16 +173,10 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
             score_result = base_engine.calculate_score(business_data)
 
             # Assign tier based on score
-            tier_assignment = tier_engine.assign_tier(
-                business_data["id"], float(score_result.overall_score)
-            )
+            tier_assignment = tier_engine.assign_tier(business_data["id"], float(score_result.overall_score))
 
-            self.assertIn(
-                tier_assignment.tier, LeadTier, "Should assign valid LeadTier"
-            )
-            self.assertEqual(
-                tier_assignment.lead_id, business_data["id"], "Lead ID should match"
-            )
+            self.assertIn(tier_assignment.tier, LeadTier, "Should assign valid LeadTier")
+            self.assertEqual(tier_assignment.lead_id, business_data["id"], "Lead ID should match")
             self.assertEqual(
                 tier_assignment.score,
                 float(score_result.overall_score),
@@ -231,21 +206,15 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         vertical_restaurant_score = restaurant_engine.calculate_score(restaurant_data)
 
         # Vertical engine should apply restaurant-specific rules
-        self.assertIsInstance(
-            base_restaurant_score, D5ScoringResult, "Base engine should work"
-        )
-        self.assertIsInstance(
-            vertical_restaurant_score, D5ScoringResult, "Restaurant engine should work"
-        )
+        self.assertIsInstance(base_restaurant_score, D5ScoringResult, "Base engine should work")
+        self.assertIsInstance(vertical_restaurant_score, D5ScoringResult, "Restaurant engine should work")
 
         # Test detailed scoring breakdown
         (
             restaurant_result,
             restaurant_breakdowns,
         ) = restaurant_engine.calculate_detailed_score(restaurant_data)
-        medical_result, medical_breakdowns = medical_engine.calculate_detailed_score(
-            medical_data
-        )
+        medical_result, medical_breakdowns = medical_engine.calculate_detailed_score(medical_data)
 
         # Verify restaurant-specific components are used
         restaurant_components = [b.component for b in restaurant_breakdowns]
@@ -276,12 +245,8 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         incomplete_result = configurable_engine.calculate_score(incomplete_data)
 
         # Should apply fallback values and still score
-        self.assertIsInstance(
-            incomplete_result, D5ScoringResult, "Should handle incomplete data"
-        )
-        self.assertTrue(
-            float(incomplete_result.overall_score) >= 0, "Should not score negative"
-        )
+        self.assertIsInstance(incomplete_result, D5ScoringResult, "Should handle incomplete data")
+        self.assertTrue(float(incomplete_result.overall_score) >= 0, "Should not score negative")
 
         # Test 3: Rule weight application
         business_with_high_revenue = {
@@ -293,9 +258,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         base_result = base_engine.calculate_score(business_with_high_revenue)
 
         # High revenue should boost score (or at least not decrease it)
-        basic_result = base_engine.calculate_score(
-            self.test_businesses["basic_business"]
-        )
+        basic_result = base_engine.calculate_score(self.test_businesses["basic_business"])
 
         self.assertGreaterEqual(
             float(base_result.overall_score),
@@ -330,33 +293,17 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
             tier_assignments.append((business_name, tier_assignment))
 
         # Verify tier distribution makes sense
-        premium_restaurant_tier = next(
-            t for n, t in tier_assignments if n == "premium_restaurant"
-        ).tier
-        medical_practice_tier = next(
-            t for n, t in tier_assignments if n == "medical_practice"
-        ).tier
-        basic_business_tier = next(
-            t for n, t in tier_assignments if n == "basic_business"
-        ).tier
-        failed_business_tier = next(
-            t for n, t in tier_assignments if n == "failed_business"
-        ).tier
+        premium_restaurant_tier = next(t for n, t in tier_assignments if n == "premium_restaurant").tier
+        medical_practice_tier = next(t for n, t in tier_assignments if n == "medical_practice").tier
+        basic_business_tier = next(t for n, t in tier_assignments if n == "basic_business").tier
+        failed_business_tier = next(t for n, t in tier_assignments if n == "failed_business").tier
 
         # Verify tier assignments are logical (may be FAILED due to rule evaluation issues)
         # Premium businesses should score better than basic/failed businesses
-        premium_score = next(
-            t for n, t in tier_assignments if n == "premium_restaurant"
-        ).score
-        medical_score = next(
-            t for n, t in tier_assignments if n == "medical_practice"
-        ).score
-        basic_score = next(
-            t for n, t in tier_assignments if n == "basic_business"
-        ).score
-        failed_score = next(
-            t for n, t in tier_assignments if n == "failed_business"
-        ).score
+        premium_score = next(t for n, t in tier_assignments if n == "premium_restaurant").score
+        medical_score = next(t for n, t in tier_assignments if n == "medical_practice").score
+        basic_score = next(t for n, t in tier_assignments if n == "basic_business").score
+        failed_score = next(t for n, t in tier_assignments if n == "failed_business").score
 
         # Score ordering should be logical
         self.assertGreaterEqual(
@@ -369,14 +316,10 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
             basic_score,
             "Medical practice should score >= basic business",
         )
-        self.assertGreaterEqual(
-            basic_score, failed_score, "Basic business should score >= failed business"
-        )
+        self.assertGreaterEqual(basic_score, failed_score, "Basic business should score >= failed business")
 
         # Verify tier distribution functionality works (may all be FAILED if gate threshold is high)
-        passed_tiers = [
-            t.tier for n, t in tier_assignments if t.tier != LeadTier.FAILED
-        ]
+        passed_tiers = [t.tier for n, t in tier_assignments if t.tier != LeadTier.FAILED]
         total_tiers = [t.tier for n, t in tier_assignments]
 
         # All businesses should get a tier assignment (even if FAILED)
@@ -415,9 +358,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         failed_leads = tier_engine.get_failed_leads()
 
         # Gate logic should work (may have no qualified leads if threshold is high)
-        self.assertGreaterEqual(
-            len(qualified_leads), 0, "Should track qualified leads (may be 0)"
-        )
+        self.assertGreaterEqual(len(qualified_leads), 0, "Should track qualified leads (may be 0)")
         self.assertTrue(
             len(qualified_leads) + len(failed_leads) == distribution.total_assignments,
             "All leads should be either qualified or failed",
@@ -426,9 +367,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         # Test tier-specific filtering
         tier_a_leads = tier_engine.get_assignments_by_tier(LeadTier.A)
         for assignment in tier_a_leads:
-            self.assertEqual(
-                assignment.tier, LeadTier.A, "Should only return Tier A assignments"
-            )
+            self.assertEqual(assignment.tier, LeadTier.A, "Should only return Tier A assignments")
 
         print("✓ Tier distribution test passed")
 
@@ -452,14 +391,10 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         base_result = base_engine.calculate_score(restaurant_data)
         restaurant_result = restaurant_engine.calculate_score(restaurant_data)
-        tier_assignment = tier_engine.assign_tier(
-            restaurant_data["id"], float(base_result.overall_score)
-        )
+        tier_assignment = tier_engine.assign_tier(restaurant_data["id"], float(base_result.overall_score))
 
         single_scoring_time = time.time() - start_time
-        self.assertLess(
-            single_scoring_time, 1.0, "Single scoring should complete under 1 second"
-        )
+        self.assertLess(single_scoring_time, 1.0, "Single scoring should complete under 1 second")
 
         # Test 2: Batch scoring performance
         start_time = time.time()
@@ -512,9 +447,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         )
 
         # Verify detailed results are comprehensive
-        self.assertGreater(
-            len(detailed_breakdowns), 5, "Should have multiple component breakdowns"
-        )
+        self.assertGreater(len(detailed_breakdowns), 5, "Should have multiple component breakdowns")
 
         # Test 4: Distribution tracking performance
         start_time = time.time()
@@ -556,9 +489,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         base_result = base_engine.calculate_score(business_data)
 
         # Assign tier using score
-        tier_assignment = tier_engine.assign_tier(
-            business_data["id"], float(base_result.overall_score)
-        )
+        tier_assignment = tier_engine.assign_tier(business_data["id"], float(base_result.overall_score))
 
         # Verify integration
         self.assertEqual(
@@ -574,9 +505,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         vertical_result = restaurant_engine.calculate_score(business_data)
 
         # Assign tier using vertical score
-        vertical_tier = assign_lead_tier(
-            business_data["id"], float(vertical_result.overall_score)
-        )
+        vertical_tier = assign_lead_tier(business_data["id"], float(vertical_result.overall_score))
 
         # Verify vertical integration
         self.assertEqual(
@@ -606,9 +535,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         # All engines should produce reasonable scores
         for score in [base_score, vertical_score, configurable_score]:
-            self.assertTrue(
-                0 <= score <= 100, "All engines should produce valid scores"
-            )
+            self.assertTrue(0 <= score <= 100, "All engines should produce valid scores")
 
         # Vertical engine should potentially score differently due to restaurant-specific rules
         # (Not asserting exact difference as it depends on the data and rules)
@@ -627,9 +554,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         try:
             empty_result = base_engine.calculate_score(empty_data)
-            self.assertIsInstance(
-                empty_result, D5ScoringResult, "Should handle empty data gracefully"
-            )
+            self.assertIsInstance(empty_result, D5ScoringResult, "Should handle empty data gracefully")
             self.assertTrue(
                 0 <= float(empty_result.overall_score) <= 100,
                 "Empty data should get valid score",
@@ -648,9 +573,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         minimal_data = {"id": "minimal_001", "company_name": "Minimal Corp"}
 
         minimal_result = base_engine.calculate_score(minimal_data)
-        self.assertIsInstance(
-            minimal_result, D5ScoringResult, "Should handle minimal data"
-        )
+        self.assertIsInstance(minimal_result, D5ScoringResult, "Should handle minimal data")
 
         # Test 4: Very large datasets
         large_batch = {f"large_test_{i}": 50.0 + (i % 30) for i in range(100)}
@@ -660,9 +583,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         large_batch_time = time.time() - start_time
 
         self.assertEqual(len(large_assignments), 100, "Should handle large batches")
-        self.assertLess(
-            large_batch_time, 5.0, "Large batch should complete reasonably fast"
-        )
+        self.assertLess(large_batch_time, 5.0, "Large batch should complete reasonably fast")
 
         # Test 5: Concurrent scoring simulation
         restaurant_engine = create_restaurant_scoring_engine()
@@ -687,17 +608,11 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
             concurrent_results.extend([rest_result, med_result])
 
         # Verify all concurrent results are valid
-        self.assertEqual(
-            len(concurrent_results), 20, "Should handle concurrent scoring"
-        )
+        self.assertEqual(len(concurrent_results), 20, "Should handle concurrent scoring")
 
         for result in concurrent_results:
-            self.assertIsInstance(
-                result, D5ScoringResult, "All concurrent results should be valid"
-            )
-            self.assertTrue(
-                0 <= float(result.overall_score) <= 100, "All scores should be valid"
-            )
+            self.assertIsInstance(result, D5ScoringResult, "All concurrent results should be valid")
+            self.assertTrue(0 <= float(result.overall_score) <= 100, "All scores should be valid")
 
         print("✓ Error handling and edge cases test passed")
 
@@ -726,9 +641,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         # Test 2: Tier assignment consistency
         tier_assignments = []
         for i in range(3):
-            tier_assignment = tier_engine.assign_tier(
-                f"consistency_test_{i}", scores[0]
-            )
+            tier_assignment = tier_engine.assign_tier(f"consistency_test_{i}", scores[0])
             tier_assignments.append(tier_assignment.tier)
 
         # All tier assignments should be identical for same score
@@ -744,9 +657,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         score_result = base_engine.calculate_score(business_data)
 
         # Assign tier
-        tier_assignment = tier_engine.assign_tier(
-            original_id, float(score_result.overall_score)
-        )
+        tier_assignment = tier_engine.assign_tier(original_id, float(score_result.overall_score))
 
         # Verify data integrity
         self.assertEqual(
@@ -775,9 +686,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         )
 
         # Test 5: Detailed scoring data consistency
-        detailed_result, breakdowns = restaurant_engine.calculate_detailed_score(
-            business_data
-        )
+        detailed_result, breakdowns = restaurant_engine.calculate_detailed_score(business_data)
 
         # Detailed result should match main result
         self.assertEqual(
@@ -840,17 +749,13 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
             # Get detailed breakdown
             if hasattr(scoring_engine, "calculate_detailed_score"):
-                detailed_result, breakdowns = scoring_engine.calculate_detailed_score(
-                    business_data
-                )
+                detailed_result, breakdowns = scoring_engine.calculate_detailed_score(business_data)
             else:
                 detailed_result = score_result
                 breakdowns = []
 
             # Assign tier
-            tier_assignment = tier_engine.assign_tier(
-                business_id, float(score_result.overall_score)
-            )
+            tier_assignment = tier_engine.assign_tier(business_id, float(score_result.overall_score))
 
             workflow_results[business_name] = {
                 "business_id": business_id,
@@ -868,9 +773,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         # Restaurant should use restaurant-specific components
         if restaurant_result["breakdowns"]:
-            restaurant_components = [
-                b.component for b in restaurant_result["breakdowns"]
-            ]
+            restaurant_components = [b.component for b in restaurant_result["breakdowns"]]
             self.assertIn(
                 "restaurant_operations",
                 restaurant_components,
@@ -899,30 +802,18 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         failed_score = workflow_results["failed_business"]["tier_assignment"].score
 
         # Score ordering should make sense
-        self.assertGreaterEqual(
-            premium_score, basic_score, "Premium should score >= basic"
-        )
-        self.assertGreaterEqual(
-            medical_score, basic_score, "Medical should score >= basic"
-        )
-        self.assertGreaterEqual(
-            basic_score, failed_score, "Basic should score >= failed"
-        )
+        self.assertGreaterEqual(premium_score, basic_score, "Premium should score >= basic")
+        self.assertGreaterEqual(medical_score, basic_score, "Medical should score >= basic")
+        self.assertGreaterEqual(basic_score, failed_score, "Basic should score >= failed")
 
         # All tiers should be valid
         all_tiers = [premium_tier, medical_tier, basic_tier, failed_tier]
         for tier in all_tiers:
-            self.assertIn(
-                tier, LeadTier, "All tier assignments should be valid LeadTier values"
-            )
+            self.assertIn(tier, LeadTier, "All tier assignments should be valid LeadTier values")
 
         # 4. Performance acceptable - Verify all operations completed quickly
-        total_scoring_time = sum(
-            result["scoring_time"] for result in workflow_results.values()
-        )
-        self.assertLess(
-            total_scoring_time, 2.0, "Complete workflow should finish quickly"
-        )
+        total_scoring_time = sum(result["scoring_time"] for result in workflow_results.values())
+        self.assertLess(total_scoring_time, 2.0, "Complete workflow should finish quickly")
 
         # Verify all businesses were processed successfully
         self.assertEqual(
@@ -933,9 +824,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
 
         for business_name, result in workflow_results.items():
             score = float(result["score_result"].overall_score)
-            self.assertTrue(
-                0 <= score <= 100, f"{business_name} should have valid score"
-            )
+            self.assertTrue(0 <= score <= 100, f"{business_name} should have valid score")
             self.assertIsInstance(
                 result["tier_assignment"].tier,
                 LeadTier,
@@ -947,13 +836,9 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         summary = tier_engine.export_distribution_summary()
 
         # Verify summary contains expected data
-        self.assertGreater(
-            distribution.total_assignments, 0, "Should have processed assignments"
-        )
+        self.assertGreater(distribution.total_assignments, 0, "Should have processed assignments")
         self.assertIn("configuration", summary, "Summary should include configuration")
-        self.assertIn(
-            "distribution", summary, "Summary should include distribution data"
-        )
+        self.assertIn("distribution", summary, "Summary should include distribution data")
 
         print(
             f"✓ Comprehensive workflow test passed - Processed {len(workflow_results)} businesses "

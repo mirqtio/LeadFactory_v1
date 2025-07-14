@@ -16,24 +16,15 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    Boolean,
-    CheckConstraint,
-    Column,
-    DateTime,
-    ForeignKey,
-)
+from sqlalchemy import DECIMAL, JSON, Boolean, CheckConstraint, Column, DateTime
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import Float, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from database.base import Base
-
 # Import lineage models to ensure they're registered
 from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
+from database.base import Base
 
 
 def generate_uuid():
@@ -91,16 +82,12 @@ class ReportGeneration(Base):
 
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    business_id = Column(
-        String, nullable=False
-    )  # Reference to business (FK removed for now)
+    business_id = Column(String, nullable=False)  # Reference to business (FK removed for now)
     user_id = Column(String, nullable=True)  # Customer who requested report
     order_id = Column(String, nullable=True)  # Associated purchase order
 
     # Report metadata
-    report_type = Column(
-        SQLEnum(ReportType), nullable=False, default=ReportType.BUSINESS_AUDIT
-    )
+    report_type = Column(SQLEnum(ReportType), nullable=False, default=ReportType.BUSINESS_AUDIT)
     status = Column(SQLEnum(ReportStatus), nullable=False, default=ReportStatus.PENDING)
     template_id = Column(String, ForeignKey("d6_report_templates.id"), nullable=False)
 
@@ -134,9 +121,7 @@ class ReportGeneration(Base):
 
     # Audit fields
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(
-        DateTime, nullable=False, default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
     created_by = Column(String, nullable=True)
 
     # Relationships
@@ -151,9 +136,7 @@ class ReportGeneration(Base):
         Index("idx_report_gen_requested_at", "requested_at"),
         Index("idx_report_gen_user_order", "user_id", "order_id"),
         CheckConstraint("retry_count >= 0", name="check_retry_count_non_negative"),
-        CheckConstraint(
-            "generation_time_seconds >= 0", name="check_generation_time_positive"
-        ),
+        CheckConstraint("generation_time_seconds >= 0", name="check_generation_time_positive"),
         CheckConstraint(
             "quality_score >= 0 AND quality_score <= 100",
             name="check_quality_score_range",
@@ -161,10 +144,7 @@ class ReportGeneration(Base):
     )
 
     def __repr__(self):
-        return (
-            f"<ReportGeneration(id='{self.id}', business_id='{self.business_id}', "
-            f"status='{self.status.value}')>"
-        )
+        return f"<ReportGeneration(id='{self.id}', business_id='{self.business_id}', " f"status='{self.status.value}')>"
 
     @property
     def is_completed(self) -> bool:
@@ -201,9 +181,7 @@ class ReportTemplate(Base):
 
     # Template metadata
     template_type = Column(SQLEnum(ReportType), nullable=False)
-    format = Column(
-        SQLEnum(TemplateFormat), nullable=False, default=TemplateFormat.HTML
-    )
+    format = Column(SQLEnum(TemplateFormat), nullable=False, default=TemplateFormat.HTML)
     version = Column(String, nullable=False, default="1.0.0")
 
     # Template content
@@ -230,9 +208,7 @@ class ReportTemplate(Base):
 
     # Audit fields
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(
-        DateTime, nullable=False, default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
     created_by = Column(String, nullable=True)
 
     # Relationships
@@ -248,10 +224,7 @@ class ReportTemplate(Base):
     )
 
     def __repr__(self):
-        return (
-            f"<ReportTemplate(id='{self.id}', name='{self.name}', "
-            f"type='{self.template_type.value}')>"
-        )
+        return f"<ReportTemplate(id='{self.id}', name='{self.name}', " f"type='{self.template_type.value}')>"
 
     @property
     def is_mobile_responsive(self) -> bool:
@@ -301,9 +274,7 @@ class ReportSection(Base):
 
     # Audit fields
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(
-        DateTime, nullable=False, default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
     # Relationships
     template = relationship("ReportTemplate", back_populates="sections")
@@ -331,9 +302,7 @@ class ReportDelivery(Base):
 
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    report_generation_id = Column(
-        String, ForeignKey("d6_report_generations.id"), nullable=False
-    )
+    report_generation_id = Column(String, ForeignKey("d6_report_generations.id"), nullable=False)
 
     # Delivery metadata
     delivery_method = Column(SQLEnum(DeliveryMethod), nullable=False)
@@ -365,9 +334,7 @@ class ReportDelivery(Base):
 
     # Audit fields
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(
-        DateTime, nullable=False, default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
     # Relationships
     report_generation = relationship("ReportGeneration", back_populates="deliveries")
@@ -380,9 +347,7 @@ class ReportDelivery(Base):
         Index("idx_delivery_scheduled", "scheduled_at"),
         Index("idx_delivery_recipient", "recipient_email"),
         CheckConstraint("retry_count >= 0", name="check_delivery_retry_non_negative"),
-        CheckConstraint(
-            "download_count >= 0", name="check_download_count_non_negative"
-        ),
+        CheckConstraint("download_count >= 0", name="check_download_count_non_negative"),
         CheckConstraint("open_count >= 0", name="check_open_count_non_negative"),
     )
 

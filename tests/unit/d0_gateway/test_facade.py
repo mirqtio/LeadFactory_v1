@@ -7,12 +7,7 @@ import pytest
 
 from d0_gateway.base import BaseAPIClient
 from d0_gateway.facade import GatewayFacade, get_gateway_facade
-from d0_gateway.factory import (
-    GatewayClientFactory,
-    create_client,
-    get_gateway_factory,
-    register_provider,
-)
+from d0_gateway.factory import GatewayClientFactory, create_client, get_gateway_factory, register_provider
 
 
 class TestGatewayFactory:
@@ -256,7 +251,6 @@ class TestGatewayFacade:
         assert hasattr(facade, "factory")
         assert hasattr(facade, "metrics")
 
-
     @pytest.mark.asyncio
     async def test_pagespeed_api_integration(self, facade, mock_factory):
         """Test PageSpeed API integration through facade"""
@@ -268,9 +262,7 @@ class TestGatewayFacade:
         mock_factory.create_client.return_value = mock_pagespeed_client
 
         # Test website analysis
-        result = await facade.analyze_website(
-            url="https://example.com", strategy="mobile"
-        )
+        result = await facade.analyze_website(url="https://example.com", strategy="mobile")
 
         # Verify factory was called correctly
         mock_factory.create_client.assert_called_with("pagespeed")
@@ -341,9 +333,7 @@ class TestGatewayFacade:
 
         # Run complete analysis with a business URL
         result = await facade.complete_business_analysis(
-            business_id="test-business-123",
-            business_url="https://testrestaurant.com",
-            include_email_generation=True
+            business_id="test-business-123", business_url="https://testrestaurant.com", include_email_generation=True
         )
 
         # Verify all components were called
@@ -428,9 +418,7 @@ class TestGatewayFacade:
             },
         ]
 
-        result = await facade.send_bulk_emails(
-            emails=emails, from_email="sender@example.com", from_name="Test Sender"
-        )
+        result = await facade.send_bulk_emails(emails=emails, from_email="sender@example.com", from_name="Test Sender")
 
         # Verify factory was called correctly
         mock_factory.create_client.assert_called_with("sendgrid")
@@ -459,9 +447,7 @@ class TestGatewayFacade:
         mock_factory.create_client.return_value = mock_sendgrid_client
 
         # Test get stats
-        result = await facade.get_email_stats(
-            start_date="2024-01-01", end_date="2024-01-31", aggregated_by="day"
-        )
+        result = await facade.get_email_stats(start_date="2024-01-01", end_date="2024-01-31", aggregated_by="day")
 
         # Verify factory was called correctly
         mock_factory.create_client.assert_called_with("sendgrid")
@@ -541,9 +527,7 @@ class TestGatewayFacade:
         mock_factory.create_client.assert_called_with("sendgrid")
 
         # Verify client method was called
-        mock_sendgrid_client.validate_email_address.assert_called_once_with(
-            "test@example.com"
-        )
+        mock_sendgrid_client.validate_email_address.assert_called_once_with("test@example.com")
 
         # Verify result
         assert result["result"]["verdict"] == "Valid"
@@ -649,9 +633,7 @@ class TestGatewayFacade:
         mock_factory.create_client.return_value = mock_stripe_client
 
         # Test create payment intent
-        result = await facade.create_payment_intent(
-            amount=1999, currency="usd", description="Website report payment"
-        )
+        result = await facade.create_payment_intent(amount=1999, currency="usd", description="Website report payment")
 
         # Verify factory was called correctly
         mock_factory.create_client.assert_called_with("stripe")
@@ -793,9 +775,7 @@ class TestGatewayFacade:
         """Test Stripe error handling in facade"""
         # Mock Stripe client that raises exception
         mock_stripe_client = AsyncMock()
-        mock_stripe_client.create_checkout_session.side_effect = Exception(
-            "Stripe API error"
-        )
+        mock_stripe_client.create_checkout_session.side_effect = Exception("Stripe API error")
         mock_factory.create_client.return_value = mock_stripe_client
 
         # Test that exception is properly propagated
@@ -950,9 +930,7 @@ class TestGlobalInstances:
 
             create_client("pagespeed", extra_param="value")
 
-            mock_factory.create_client.assert_called_once_with(
-                "pagespeed", extra_param="value"
-            )
+            mock_factory.create_client.assert_called_once_with("pagespeed", extra_param="value")
 
         # Test register_provider convenience function
         with patch("d0_gateway.factory.get_gateway_factory") as mock_get_factory:

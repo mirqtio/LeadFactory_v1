@@ -4,10 +4,11 @@ PRD v1.2 - Verify Data Axle enrichment (skip if no key)
 """
 import asyncio
 import os
+
 import pytest
 
-from d0_gateway.providers.dataaxle import DataAxleClient
 from core.config import settings
+from d0_gateway.providers.dataaxle import DataAxleClient
 
 # Skip if no API key (trial mode optional)
 pytestmark = pytest.mark.skipif(
@@ -95,9 +96,7 @@ class TestDataAxleSmoke:
 
         print("\n✓ Data Axle fallback configuration:")
         print(f"  API Key Present: {bool(settings.data_axle_api_key)}")
-        print(
-            f"  Mode: {'Trial' if 'trial' in str(settings.data_axle_api_key).lower() else 'Full'}"
-        )
+        print(f"  Mode: {'Trial' if 'trial' in str(settings.data_axle_api_key).lower() else 'Full'}")
         print("  Use Case: Email enrichment fallback when Hunter.io confidence < 0.75")
 
         # Test that it can be used as fallback

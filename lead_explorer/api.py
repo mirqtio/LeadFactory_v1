@@ -4,8 +4,8 @@ FastAPI endpoints for Lead Explorer Domain
 Provides REST API for lead management with CRUD operations,
 audit logging, and enrichment tracking.
 """
-from typing import Dict, Optional
 from datetime import datetime
+from typing import Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import ValidationError
@@ -21,21 +21,21 @@ from core.logging import get_logger
 from core.metrics import metrics
 from database.session import SessionLocal
 
-from .repository import LeadRepository, AuditRepository
 from .audit import AuditContext
 from .enrichment_coordinator import get_enrichment_coordinator
+from .repository import AuditRepository, LeadRepository
 from .schemas import (
+    AuditTrailResponseSchema,
     CreateLeadSchema,
-    UpdateLeadSchema,
+    EnrichmentStatusEnum,
+    HealthCheckResponseSchema,
+    LeadFilterSchema,
+    LeadListResponseSchema,
     LeadResponseSchema,
+    PaginationSchema,
     QuickAddLeadSchema,
     QuickAddResponseSchema,
-    LeadFilterSchema,
-    PaginationSchema,
-    LeadListResponseSchema,
-    AuditTrailResponseSchema,
-    HealthCheckResponseSchema,
-    EnrichmentStatusEnum
+    UpdateLeadSchema,
 )
 
 # Initialize logger
@@ -63,7 +63,7 @@ def get_user_context(request: Request) -> Dict[str, Optional[str]]:
     return {
         "user_id": request.headers.get("X-User-ID"),
         "user_ip": request.client.host if request.client else None,
-        "user_agent": request.headers.get("User-Agent")
+        "user_agent": request.headers.get("User-Agent"),
     }
 
 
@@ -77,22 +77,20 @@ def handle_api_errors(func):
         # Set audit context from request if available
         request = None
         for arg in args:
-            if hasattr(arg, 'headers'):  # This is the Request object
+            if hasattr(arg, "headers"):  # This is the Request object
                 request = arg
                 break
         for key, value in kwargs.items():
-            if hasattr(value, 'headers'):  # This is the Request object
+            if hasattr(value, "headers"):  # This is the Request object
                 request = value
                 break
-        
+
         if request:
             user_context = get_user_context(request)
             AuditContext.set_user_context(
-                user_id=user_context["user_id"],
-                user_ip=user_context["user_ip"],
-                user_agent=user_context["user_agent"]
+                user_id=user_context["user_id"], user_ip=user_context["user_ip"], user_agent=user_context["user_agent"]
             )
-        
+
         try:
             return await func(*args, **kwargs)
         except HTTPException:
@@ -106,9 +104,7 @@ def handle_api_errors(func):
             raise HTTPException(status_code=400, detail=str(e))
         except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {str(e)}")
-            raise HTTPException(
-                status_code=409, detail="Lead with this email or domain already exists"
-            )
+            raise HTTPException(status_code=409, detail="Lead with this email or domain already exists")
         except SQLAlchemyError as e:
             logger.error(f"Database error in {func.__name__}: {str(e)}")
             raise HTTPException(status_code=500, detail="Database operation failed")
@@ -129,11 +125,7 @@ def handle_api_errors(func):
 @router.post("/leads", response_model=LeadResponseSchema, status_code=201)
 @limiter.limit("10/second")
 @handle_api_errors
-async def create_lead(
-    lead_data: CreateLeadSchema, 
-    request: Request,
-    db: Session = Depends(get_db)
-):
+async def create_lead(lead_data: CreateLeadSchema, request: Request, db: Session = Depends(get_db)):
     """
     Create a new lead with audit logging.
 
@@ -156,7 +148,7 @@ async def create_lead(
         contact_name=lead_data.contact_name,
         is_manual=lead_data.is_manual,
         source=lead_data.source,
-        created_by=user_context["user_id"]
+        created_by=user_context["user_id"],
     )
 
     metrics.increment_counter("lead_explorer_leads_created")
@@ -168,9 +160,7 @@ async def create_lead(
 @router.get("/leads", response_model=LeadListResponseSchema)
 @handle_api_errors
 async def list_leads(
-    filters: LeadFilterSchema = Depends(),
-    pagination: PaginationSchema = Depends(),
-    db: Session = Depends(get_db)
+    filters: LeadFilterSchema = Depends(), pagination: PaginationSchema = Depends(), db: Session = Depends(get_db)
 ):
     """
     List leads with filtering and pagination.
@@ -180,8 +170,10 @@ async def list_leads(
     - enrichment_status: Current enrichment status
     - search: Search in email, domain, company, contact name
     """
-    logger.info(f"Listing leads with filters: is_manual={filters.is_manual}, "
-               f"enrichment_status={filters.enrichment_status}, search={filters.search}")
+    logger.info(
+        f"Listing leads with filters: is_manual={filters.is_manual}, "
+        f"enrichment_status={filters.enrichment_status}, search={filters.search}"
+    )
 
     lead_repo = LeadRepository(db)
 
@@ -189,6 +181,7 @@ async def list_leads(
     enrichment_status = None
     if filters.enrichment_status:
         from database.models import EnrichmentStatus
+
         enrichment_status = EnrichmentStatus(filters.enrichment_status.value)
 
     leads, total_count = lead_repo.list_leads(
@@ -198,7 +191,7 @@ async def list_leads(
         enrichment_status=enrichment_status,
         search=filters.search,
         sort_by=pagination.sort_by,
-        sort_order=pagination.sort_order
+        sort_order=pagination.sort_order,
     )
 
     # Calculate pagination info
@@ -207,14 +200,10 @@ async def list_leads(
         "total_pages": (total_count + pagination.limit - 1) // pagination.limit,
         "page_size": pagination.limit,
         "has_next": pagination.skip + pagination.limit < total_count,
-        "has_previous": pagination.skip > 0
+        "has_previous": pagination.skip > 0,
     }
 
-    return LeadListResponseSchema(
-        leads=leads,
-        total_count=total_count,
-        page_info=page_info
-    )
+    return LeadListResponseSchema(leads=leads, total_count=total_count, page_info=page_info)
 
 
 @router.get("/leads/{lead_id}", response_model=LeadResponseSchema)
@@ -237,12 +226,7 @@ async def get_lead(lead_id: str, db: Session = Depends(get_db)):
 @router.put("/leads/{lead_id}", response_model=LeadResponseSchema)
 @limiter.limit("10/second")
 @handle_api_errors
-async def update_lead(
-    lead_id: str,
-    lead_data: UpdateLeadSchema,
-    request: Request,
-    db: Session = Depends(get_db)
-):
+async def update_lead(lead_id: str, lead_data: UpdateLeadSchema, request: Request, db: Session = Depends(get_db)):
     """
     Update a lead with audit logging.
     """
@@ -253,11 +237,7 @@ async def update_lead(
 
     # Apply updates (audit logging handled by event listeners)
     update_data = lead_data.dict(exclude_unset=True)
-    updated_lead = lead_repo.update_lead(
-        lead_id=lead_id,
-        updates=update_data,
-        updated_by=user_context["user_id"]
-    )
+    updated_lead = lead_repo.update_lead(lead_id=lead_id, updates=update_data, updated_by=user_context["user_id"])
 
     if not updated_lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -271,11 +251,7 @@ async def update_lead(
 @router.delete("/leads/{lead_id}", response_model=LeadResponseSchema)
 @limiter.limit("10/second")
 @handle_api_errors
-async def delete_lead(
-    lead_id: str,
-    request: Request,
-    db: Session = Depends(get_db)
-):
+async def delete_lead(lead_id: str, request: Request, db: Session = Depends(get_db)):
     """
     Soft delete a lead with audit logging.
     """
@@ -290,10 +266,7 @@ async def delete_lead(
         raise HTTPException(status_code=404, detail="Lead not found")
 
     # Perform soft delete (audit logging handled by event listeners)
-    success = lead_repo.soft_delete_lead(
-        lead_id=lead_id,
-        deleted_by=user_context["user_id"]
-    )
+    success = lead_repo.soft_delete_lead(lead_id=lead_id, deleted_by=user_context["user_id"])
 
     if not success:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -307,11 +280,7 @@ async def delete_lead(
 @router.post("/leads/quick-add", response_model=QuickAddResponseSchema, status_code=201)
 @limiter.limit("10/second")
 @handle_api_errors
-async def quick_add_lead(
-    lead_data: QuickAddLeadSchema,
-    request: Request,
-    db: Session = Depends(get_db)
-):
+async def quick_add_lead(lead_data: QuickAddLeadSchema, request: Request, db: Session = Depends(get_db)):
     """
     Quick-add a lead with immediate enrichment scheduling.
 
@@ -330,19 +299,14 @@ async def quick_add_lead(
         contact_name=lead_data.contact_name,
         is_manual=True,  # Quick-add leads are manual
         source="quick_add",
-        created_by=user_context["user_id"]
+        created_by=user_context["user_id"],
     )
 
     # Start real enrichment process using enrichment coordinator
     coordinator = get_enrichment_coordinator()
-    
-    lead_data = {
-        "id": lead.id,
-        "email": lead.email,
-        "domain": lead.domain,
-        "company_name": lead.company_name
-    }
-    
+
+    lead_data = {"id": lead.id, "email": lead.email, "domain": lead.domain, "company_name": lead.company_name}
+
     enrichment_task_id = await coordinator.start_enrichment(lead.id, lead_data)
 
     # Refresh lead to get updated enrichment status
@@ -352,19 +316,13 @@ async def quick_add_lead(
     logger.info(f"Successfully quick-added lead: {lead.id} with task: {enrichment_task_id}")
 
     return QuickAddResponseSchema(
-        lead=lead,
-        enrichment_task_id=enrichment_task_id,
-        message="Lead created and enrichment started"
+        lead=lead, enrichment_task_id=enrichment_task_id, message="Lead created and enrichment started"
     )
 
 
 @router.get("/leads/{lead_id}/audit-trail", response_model=AuditTrailResponseSchema)
 @handle_api_errors
-async def get_audit_trail(
-    lead_id: str,
-    limit: int = Query(default=50, ge=1, le=200),
-    db: Session = Depends(get_db)
-):
+async def get_audit_trail(lead_id: str, limit: int = Query(default=50, ge=1, le=200), db: Session = Depends(get_db)):
     """
     Get audit trail for a lead.
     """
@@ -379,11 +337,7 @@ async def get_audit_trail(
     audit_repo = AuditRepository(db)
     audit_logs = audit_repo.get_audit_trail(lead_id, limit=limit)
 
-    return AuditTrailResponseSchema(
-        lead_id=lead_id,
-        audit_logs=audit_logs,
-        total_count=len(audit_logs)
-    )
+    return AuditTrailResponseSchema(lead_id=lead_id, audit_logs=audit_logs, total_count=len(audit_logs))
 
 
 @router.put("/leads/{lead_id}/enrichment-status")
@@ -395,27 +349,23 @@ async def update_enrichment_status(
     request: Request,
     task_id: Optional[str] = None,
     error: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Update enrichment status for a lead.
-    
+
     Used by enrichment coordinators to update status.
     """
     logger.info(f"Updating enrichment status for lead: {lead_id}, status={status.value}, task_id={task_id}")
 
     lead_repo = LeadRepository(db)
-    
+
     # Convert schema enum to database enum
     from database.models import EnrichmentStatus
+
     db_status = EnrichmentStatus(status.value)
-    
-    success = lead_repo.update_enrichment_status(
-        lead_id=lead_id,
-        status=db_status,
-        task_id=task_id,
-        error=error
-    )
+
+    success = lead_repo.update_enrichment_status(lead_id=lead_id, status=db_status, task_id=task_id, error=error)
 
     if not success:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -473,16 +423,15 @@ async def lead_explorer_health_check(db: Session = Depends(get_db)):
 
         # Get basic stats
         from database.models import Lead
+
         total_leads = db.query(Lead).filter(~Lead.is_deleted).count()
-        manual_leads = db.query(Lead).filter(
-            ~Lead.is_deleted, Lead.is_manual
-        ).count()
+        manual_leads = db.query(Lead).filter(~Lead.is_deleted, Lead.is_manual).count()
 
         return HealthCheckResponseSchema(
             status="ok",
             timestamp=datetime.utcnow(),
             database="connected",
-            message=f"Lead Explorer is healthy - {total_leads} total leads ({manual_leads} manual)"
+            message=f"Lead Explorer is healthy - {total_leads} total leads ({manual_leads} manual)",
         )
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")

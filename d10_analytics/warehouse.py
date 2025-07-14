@@ -42,19 +42,8 @@ def get_db_session():
     return session_context()
 
 
-from d10_analytics.aggregators import (
-    CostAnalyzer,
-    DailyMetricsAggregator,
-    FunnelCalculator,
-    SegmentBreakdownAnalyzer,
-)
-from d10_analytics.models import (
-    AggregationPeriod,
-    FunnelConversion,
-    FunnelEvent,
-    MetricSnapshot,
-    generate_uuid,
-)
+from d10_analytics.aggregators import CostAnalyzer, DailyMetricsAggregator, FunnelCalculator, SegmentBreakdownAnalyzer
+from d10_analytics.models import AggregationPeriod, FunnelConversion, FunnelEvent, MetricSnapshot, generate_uuid
 
 logger = logging.getLogger(__name__)
 
@@ -116,9 +105,7 @@ class MetricsWarehouse:
 
         logger.info("Metrics warehouse initialized")
 
-    async def build_daily_metrics(
-        self, target_date: date, force_rebuild: bool = False
-    ) -> WarehouseJobResult:
+    async def build_daily_metrics(self, target_date: date, force_rebuild: bool = False) -> WarehouseJobResult:
         """
         Build daily metrics for a specific date - Daily metrics built
 
@@ -158,31 +145,21 @@ class MetricsWarehouse:
                         )
 
                 # Build daily funnel metrics
-                funnel_metrics = await self.daily_aggregator.build_funnel_metrics(
-                    session, target_date
-                )
+                funnel_metrics = await self.daily_aggregator.build_funnel_metrics(session, target_date)
                 metrics_processed += len(funnel_metrics)
 
                 # Build conversion metrics
-                conversion_metrics = (
-                    await self.daily_aggregator.build_conversion_metrics(
-                        session, target_date
-                    )
-                )
+                conversion_metrics = await self.daily_aggregator.build_conversion_metrics(session, target_date)
                 metrics_processed += len(conversion_metrics)
 
                 # Build cost metrics if enabled
                 if self.config.enable_cost_analysis:
-                    cost_metrics = await self.daily_aggregator.build_cost_metrics(
-                        session, target_date
-                    )
+                    cost_metrics = await self.daily_aggregator.build_cost_metrics(session, target_date)
                     metrics_processed += len(cost_metrics)
 
                 # Build segment breakdowns if enabled
                 if self.config.enable_segment_breakdown:
-                    segment_metrics = await self.daily_aggregator.build_segment_metrics(
-                        session, target_date
-                    )
+                    segment_metrics = await self.daily_aggregator.build_segment_metrics(session, target_date)
                     metrics_processed += len(segment_metrics)
 
                 session.commit()
@@ -190,9 +167,7 @@ class MetricsWarehouse:
             end_time = datetime.now(timezone.utc)
             duration = (end_time - start_time).total_seconds()
 
-            logger.info(
-                f"Daily metrics build completed for {target_date}: {metrics_processed} metrics"
-            )
+            logger.info(f"Daily metrics build completed for {target_date}: {metrics_processed} metrics")
 
             return WarehouseJobResult(
                 job_id=job_id,
@@ -219,9 +194,7 @@ class MetricsWarehouse:
                 error_message=str(e),
             )
 
-    async def calculate_funnel_metrics(
-        self, start_date: date, end_date: date
-    ) -> WarehouseJobResult:
+    async def calculate_funnel_metrics(self, start_date: date, end_date: date) -> WarehouseJobResult:
         """
         Calculate funnel metrics for date range - Funnel calculations
 
@@ -236,33 +209,18 @@ class MetricsWarehouse:
 
             with get_db_session() as session:
                 # Calculate stage-to-stage conversions
-                conversions = await self.funnel_calculator.calculate_stage_conversions(
-                    session, start_date, end_date
-                )
+                conversions = await self.funnel_calculator.calculate_stage_conversions(session, start_date, end_date)
 
                 # Calculate funnel performance by segment
-                segment_funnels = (
-                    await self.funnel_calculator.calculate_segment_funnels(
-                        session, start_date, end_date
-                    )
-                )
+                segment_funnels = await self.funnel_calculator.calculate_segment_funnels(session, start_date, end_date)
 
                 # Calculate time-to-convert metrics
-                time_metrics = await self.funnel_calculator.calculate_time_metrics(
-                    session, start_date, end_date
-                )
+                time_metrics = await self.funnel_calculator.calculate_time_metrics(session, start_date, end_date)
 
                 # Calculate drop-off analysis
-                dropoff_analysis = await self.funnel_calculator.analyze_dropoffs(
-                    session, start_date, end_date
-                )
+                dropoff_analysis = await self.funnel_calculator.analyze_dropoffs(session, start_date, end_date)
 
-                total_metrics = (
-                    len(conversions)
-                    + len(segment_funnels)
-                    + len(time_metrics)
-                    + len(dropoff_analysis)
-                )
+                total_metrics = len(conversions) + len(segment_funnels) + len(time_metrics) + len(dropoff_analysis)
 
                 session.commit()
 
@@ -303,9 +261,7 @@ class MetricsWarehouse:
                 error_message=str(e),
             )
 
-    async def analyze_costs(
-        self, start_date: date, end_date: date
-    ) -> WarehouseJobResult:
+    async def analyze_costs(self, start_date: date, end_date: date) -> WarehouseJobResult:
         """
         Perform cost analysis for date range - Cost analysis works
 
@@ -320,33 +276,20 @@ class MetricsWarehouse:
 
             with get_db_session() as session:
                 # Calculate per-lead costs
-                lead_costs = await self.cost_analyzer.calculate_lead_costs(
-                    session, start_date, end_date
-                )
+                lead_costs = await self.cost_analyzer.calculate_lead_costs(session, start_date, end_date)
 
                 # Calculate cost per acquisition (CPA)
-                cpa_metrics = await self.cost_analyzer.calculate_cpa_metrics(
-                    session, start_date, end_date
-                )
+                cpa_metrics = await self.cost_analyzer.calculate_cpa_metrics(session, start_date, end_date)
 
                 # Calculate ROI metrics
-                roi_metrics = await self.cost_analyzer.calculate_roi_metrics(
+                roi_metrics = await self.cost_analyzer.calculate_roi_metrics(session, start_date, end_date)
+
+                # Calculate cost efficiency by channel
+                efficiency_metrics = await self.cost_analyzer.calculate_efficiency_metrics(
                     session, start_date, end_date
                 )
 
-                # Calculate cost efficiency by channel
-                efficiency_metrics = (
-                    await self.cost_analyzer.calculate_efficiency_metrics(
-                        session, start_date, end_date
-                    )
-                )
-
-                total_metrics = (
-                    len(lead_costs)
-                    + len(cpa_metrics)
-                    + len(roi_metrics)
-                    + len(efficiency_metrics)
-                )
+                total_metrics = len(lead_costs) + len(cpa_metrics) + len(roi_metrics) + len(efficiency_metrics)
 
                 session.commit()
 
@@ -417,38 +360,28 @@ class MetricsWarehouse:
                 for segment in segments:
                     # Build geographic breakdowns
                     if segment == "geography":
-                        geo_metrics = (
-                            await self.segment_analyzer.build_geographic_breakdown(
-                                session, start_date, end_date
-                            )
+                        geo_metrics = await self.segment_analyzer.build_geographic_breakdown(
+                            session, start_date, end_date
                         )
                         total_metrics += len(geo_metrics)
 
                     # Build business vertical breakdowns
                     elif segment == "business_vertical":
-                        vertical_metrics = (
-                            await self.segment_analyzer.build_vertical_breakdown(
-                                session, start_date, end_date
-                            )
+                        vertical_metrics = await self.segment_analyzer.build_vertical_breakdown(
+                            session, start_date, end_date
                         )
                         total_metrics += len(vertical_metrics)
 
                     # Build campaign breakdowns
                     elif segment == "campaign":
-                        campaign_metrics = (
-                            await self.segment_analyzer.build_campaign_breakdown(
-                                session, start_date, end_date
-                            )
+                        campaign_metrics = await self.segment_analyzer.build_campaign_breakdown(
+                            session, start_date, end_date
                         )
                         total_metrics += len(campaign_metrics)
 
                     # Build funnel stage breakdowns
                     elif segment == "funnel_stage":
-                        stage_metrics = (
-                            await self.segment_analyzer.build_stage_breakdown(
-                                session, start_date, end_date
-                            )
-                        )
+                        stage_metrics = await self.segment_analyzer.build_stage_breakdown(session, start_date, end_date)
                         total_metrics += len(stage_metrics)
 
                 session.commit()
@@ -487,9 +420,7 @@ class MetricsWarehouse:
                 error_message=str(e),
             )
 
-    async def backfill_metrics(
-        self, start_date: date, end_date: Optional[date] = None
-    ) -> List[WarehouseJobResult]:
+    async def backfill_metrics(self, start_date: date, end_date: Optional[date] = None) -> List[WarehouseJobResult]:
         """
         Backfill metrics for a date range
 
@@ -509,22 +440,16 @@ class MetricsWarehouse:
             results.append(result)
 
             if result.status == WarehouseJobStatus.FAILED:
-                logger.warning(
-                    f"Backfill failed for {current_date}: {result.error_message}"
-                )
+                logger.warning(f"Backfill failed for {current_date}: {result.error_message}")
 
             current_date += timedelta(days=1)
 
-        successful_jobs = len(
-            [r for r in results if r.status == WarehouseJobStatus.COMPLETED]
-        )
+        successful_jobs = len([r for r in results if r.status == WarehouseJobStatus.COMPLETED])
         logger.info(f"Backfill completed: {successful_jobs}/{len(results)} successful")
 
         return results
 
-    async def run_full_warehouse_build(
-        self, target_date: Optional[date] = None
-    ) -> Dict[str, WarehouseJobResult]:
+    async def run_full_warehouse_build(self, target_date: Optional[date] = None) -> Dict[str, WarehouseJobResult]:
         """
         Run complete warehouse build for a date
 
@@ -539,13 +464,9 @@ class MetricsWarehouse:
         # Run all warehouse jobs in parallel
         tasks = {
             "daily_metrics": self.build_daily_metrics(target_date),
-            "funnel_calculations": self.calculate_funnel_metrics(
-                target_date, target_date
-            ),
+            "funnel_calculations": self.calculate_funnel_metrics(target_date, target_date),
             "cost_analysis": self.analyze_costs(target_date, target_date),
-            "segment_breakdowns": self.build_segment_breakdowns(
-                target_date, target_date
-            ),
+            "segment_breakdowns": self.build_segment_breakdowns(target_date, target_date),
         }
 
         # Execute tasks concurrently
@@ -568,9 +489,7 @@ class MetricsWarehouse:
 
         # Log summary
         total_metrics = sum(r.metrics_processed for r in results.values())
-        successful_jobs = len(
-            [r for r in results.values() if r.status == WarehouseJobStatus.COMPLETED]
-        )
+        successful_jobs = len([r for r in results.values() if r.status == WarehouseJobStatus.COMPLETED])
 
         logger.info(
             f"Full warehouse build completed for {target_date}: "
@@ -579,9 +498,7 @@ class MetricsWarehouse:
 
         return results
 
-    def get_metrics_summary(
-        self, start_date: date, end_date: Optional[date] = None
-    ) -> Dict[str, Any]:
+    def get_metrics_summary(self, start_date: date, end_date: Optional[date] = None) -> Dict[str, Any]:
         """
         Get summary of metrics in the warehouse
 
@@ -634,9 +551,7 @@ class MetricsWarehouse:
                     "start_date": str(start_date),
                     "end_date": str(end_date),
                 },
-                "metrics_by_type": {
-                    str(metric_type): count for metric_type, count in metric_counts
-                },
+                "metrics_by_type": {str(metric_type): count for metric_type, count in metric_counts},
                 "events_by_stage": {str(stage): count for stage, count in event_counts},
                 "total_conversions": conversion_count,
                 "summary_generated_at": datetime.now(timezone.utc).isoformat(),

@@ -27,17 +27,8 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from d6_reports.models import (
-    DeliveryMethod,
-    ReportDelivery,
-    ReportGeneration,
-    ReportStatus,
-    ReportType,
-)
-from d11_orchestration.models import (
-    PipelineRunStatus,
-    VariantAssignment,
-)
+from d6_reports.models import DeliveryMethod, ReportDelivery, ReportGeneration, ReportStatus, ReportType
+from d11_orchestration.models import PipelineRunStatus, VariantAssignment
 
 # Import models from all domains
 from database.models import (
@@ -59,9 +50,7 @@ from database.models import (
 
 
 @pytest.mark.e2e
-def test_complete_flow_works(
-    test_db_session, mock_external_services, simple_workflow_data, performance_monitor
-):
+def test_complete_flow_works(test_db_session, mock_external_services, simple_workflow_data, performance_monitor):
     """Complete flow works - End-to-end pipeline from targeting to delivery"""
 
     start_time = time.time()
@@ -285,9 +274,7 @@ def test_complete_flow_works(
 
     # Verify pipeline performance
     assert total_time < 30, f"Pipeline took {total_time:.2f}s, should be under 30s"
-    assert (
-        memory_delta < 50 * 1024 * 1024
-    ), f"Memory usage increased by {memory_delta/1024/1024:.2f}MB"
+    assert memory_delta < 50 * 1024 * 1024, f"Memory usage increased by {memory_delta/1024/1024:.2f}MB"
 
     print("\n=== COMPLETE FLOW PIPELINE TEST ===")
     print(f"Businesses Processed: {len(businesses)}")
@@ -299,9 +286,7 @@ def test_complete_flow_works(
 
 
 @pytest.mark.e2e
-def test_all_domains_integrate(
-    test_db_session, mock_external_services, simple_workflow_data, performance_monitor
-):
+def test_all_domains_integrate(test_db_session, mock_external_services, simple_workflow_data, performance_monitor):
     """All domains integrate - Cross-domain data flow and dependencies work correctly"""
 
     # Create test data spanning all domains
@@ -434,18 +419,12 @@ def test_all_domains_integrate(
     print(f"✓ D2 Sourcing → D5 Scoring: {test_business.id} → {score.business_id}")
     print(f"✓ D5 Scoring → D8/D9 Email: {score.tier} tier → Email sent")
     print("✓ D9 Delivery → D7 Purchase: Email delivered → Purchase completed")
-    print(
-        f"✓ D7 Purchase → D6 Reports: ${purchase.amount_cents/100} → Report generated"
-    )
-    print(
-        f"✓ D11 Orchestration: {pipeline_run.records_processed} processed, {pipeline_run.records_failed} failed"
-    )
+    print(f"✓ D7 Purchase → D6 Reports: ${purchase.amount_cents/100} → Report generated")
+    print(f"✓ D11 Orchestration: {pipeline_run.records_processed} processed, {pipeline_run.records_failed} failed")
 
 
 @pytest.mark.e2e
-def test_metrics_recorded(
-    test_db_session, mock_external_services, simple_workflow_data, performance_monitor
-):
+def test_metrics_recorded(test_db_session, mock_external_services, simple_workflow_data, performance_monitor):
     """Metrics recorded - All key metrics and events are properly tracked"""
 
     start_time = time.time()
@@ -524,12 +503,8 @@ def test_metrics_recorded(
 
     # Gateway metrics
     total_gateway_cost = sum(m.cost_usd for m in gateway_metrics)
-    cache_hit_rate = len([m for m in gateway_metrics if m.cache_hit]) / len(
-        gateway_metrics
-    )
-    avg_response_time = sum(m.response_time_ms for m in gateway_metrics) / len(
-        gateway_metrics
-    )
+    cache_hit_rate = len([m for m in gateway_metrics if m.cache_hit]) / len(gateway_metrics)
+    avg_response_time = sum(m.response_time_ms for m in gateway_metrics) / len(gateway_metrics)
 
     # Email metrics
     emails_sent = len(email_metrics)
@@ -539,17 +514,11 @@ def test_metrics_recorded(
 
     # Purchase metrics
     total_revenue = sum(p.amount_cents for p in purchase_metrics) / 100
-    conversion_rate = (
-        (len(purchase_metrics) / emails_sent * 100) if emails_sent > 0 else 0
-    )
+    conversion_rate = (len(purchase_metrics) / emails_sent * 100) if emails_sent > 0 else 0
 
     # Pipeline metrics
     pipeline_efficiency = (
-        (
-            pipeline.records_processed
-            / (pipeline.records_processed + pipeline.records_failed)
-            * 100
-        )
+        (pipeline.records_processed / (pipeline.records_processed + pipeline.records_failed) * 100)
         if (pipeline.records_processed + pipeline.records_failed) > 0
         else 0
     )
@@ -578,21 +547,15 @@ def test_metrics_recorded(
     print(f"Gateway Calls: {len(gateway_metrics)}, Cost: ${total_gateway_cost:.4f}")
     print(f"Cache Hit Rate: {cache_hit_rate:.2%}")
     print(f"Avg Response Time: {avg_response_time:.0f}ms")
-    print(
-        f"Email Metrics: {emails_sent} sent, {emails_opened} opened ({open_rate:.1f}%), {email_clicks} clicks"
-    )
-    print(
-        f"Revenue: ${total_revenue:.2f} from {len(purchase_metrics)} purchases ({conversion_rate:.1f}% conversion)"
-    )
+    print(f"Email Metrics: {emails_sent} sent, {emails_opened} opened ({open_rate:.1f}%), {email_clicks} clicks")
+    print(f"Revenue: ${total_revenue:.2f} from {len(purchase_metrics)} purchases ({conversion_rate:.1f}% conversion)")
     print(
         f"Pipeline: {pipeline.records_processed} processed, {pipeline.records_failed} failed ({pipeline_efficiency:.1f}% efficiency)"
     )
 
 
 @pytest.mark.e2e
-def test_no_data_leaks(
-    test_db_session, mock_external_services, simple_workflow_data, performance_monitor
-):
+def test_no_data_leaks(test_db_session, mock_external_services, simple_workflow_data, performance_monitor):
     """No data leaks - Sensitive data is properly isolated and not exposed"""
 
     # Create test data with sensitive information
@@ -620,9 +583,7 @@ def test_no_data_leaks(
     import hashlib
 
     email_hash = hashlib.sha256(sensitive_email.lower().encode()).hexdigest()
-    suppression = EmailSuppression(
-        email_hash=email_hash, reason="privacy_test", source="test_system"
-    )
+    suppression = EmailSuppression(email_hash=email_hash, reason="privacy_test", source="test_system")
     test_db_session.add(suppression)
 
     # Create report with business data (should not contain customer payment details)
@@ -663,9 +624,7 @@ def test_no_data_leaks(
     # Verify data leak protections
 
     # 1. Email suppression uses hashed emails, not plain text
-    stored_suppression = (
-        test_db_session.query(EmailSuppression).filter_by(email_hash=email_hash).first()
-    )
+    stored_suppression = test_db_session.query(EmailSuppression).filter_by(email_hash=email_hash).first()
     assert stored_suppression is not None
     assert stored_suppression.email_hash == email_hash
     assert len(stored_suppression.email_hash) == 64  # SHA-256 hash length
@@ -684,14 +643,8 @@ def test_no_data_leaks(
     assert purchase.stripe_session_id not in str(report.report_data)
 
     # 3. Gateway logs should not contain sensitive business data
-    assert gateway_log.error_message is None or sensitive_email not in str(
-        gateway_log.error_message
-    )
-    assert (
-        test_business.name not in str(gateway_log.endpoint)
-        if gateway_log.endpoint
-        else True
-    )
+    assert gateway_log.error_message is None or sensitive_email not in str(gateway_log.error_message)
+    assert test_business.name not in str(gateway_log.endpoint) if gateway_log.endpoint else True
 
     # 4. Customer email should only be in appropriate places
     # OK: Purchase records (for order fulfillment)
@@ -717,9 +670,7 @@ def test_no_data_leaks(
     memory_sample = str(
         {
             "purchase_id": purchase.id,
-            "report_data_keys": list(report.report_data.keys())
-            if report.report_data
-            else [],
+            "report_data_keys": list(report.report_data.keys()) if report.report_data else [],
             "suppression_hash_prefix": email_hash[:8],
         }
     )
@@ -738,9 +689,7 @@ def test_no_data_leaks(
 
 
 @pytest.mark.e2e
-def test_full_pipeline_integration(
-    test_db_session, mock_external_services, simple_workflow_data, performance_monitor
-):
+def test_full_pipeline_integration(test_db_session, mock_external_services, simple_workflow_data, performance_monitor):
     """Integration test covering all pipeline acceptance criteria"""
 
     start_time = time.time()
@@ -861,9 +810,7 @@ def test_full_pipeline_integration(
     pipeline_run.status = PipelineRunStatus.SUCCESS
     pipeline_run.completed_at = datetime.utcnow()
     execution_time = time.time() - start_time
-    pipeline_run.execution_time_seconds = max(
-        1, int(execution_time)
-    )  # Ensure at least 1 second for testing
+    pipeline_run.execution_time_seconds = max(1, int(execution_time))  # Ensure at least 1 second for testing
     pipeline_run.records_processed = businesses_processed
     pipeline_run.records_failed = 0
     pipeline_run.cost_cents = int(total_cost * 100)
@@ -898,23 +845,15 @@ def test_full_pipeline_integration(
     assert total_time < 60, f"Pipeline took {total_time:.2f}s, should be under 60s"
 
     # Business metrics
-    conversion_rate = (
-        (purchases_completed / emails_sent * 100) if emails_sent > 0 else 0
-    )
-    report_fulfillment_rate = (
-        (reports_generated / purchases_completed * 100)
-        if purchases_completed > 0
-        else 0
-    )
+    conversion_rate = (purchases_completed / emails_sent * 100) if emails_sent > 0 else 0
+    report_fulfillment_rate = (reports_generated / purchases_completed * 100) if purchases_completed > 0 else 0
 
     print("\n=== FULL PIPELINE INTEGRATION TEST COMPLETE ===")
     print(f"Pipeline Status: {pipeline_run.status.value}")
     print(f"Businesses Processed: {businesses_processed}")
     print(f"Emails Sent: {emails_sent}")
     print(f"Purchases: {purchases_completed} ({conversion_rate:.1f}% conversion)")
-    print(
-        f"Reports Generated: {reports_generated} ({report_fulfillment_rate:.1f}% fulfillment)"
-    )
+    print(f"Reports Generated: {reports_generated} ({report_fulfillment_rate:.1f}% fulfillment)")
     print(f"Total Cost: ${total_cost:.4f}")
     print(f"Execution Time: {pipeline_run.execution_time_seconds}s")
     print(f"Memory Delta: {memory_delta/1024/1024:.2f}MB")

@@ -53,27 +53,19 @@ class DailyMetricsAggregator:
     def __init__(self):
         self.logger = logging.getLogger(f"{__name__}.DailyMetricsAggregator")
 
-    async def build_funnel_metrics(
-        self, session: Session, target_date: date
-    ) -> List[MetricSnapshot]:
+    async def build_funnel_metrics(self, session: Session, target_date: date) -> List[MetricSnapshot]:
         """Build daily funnel metrics for all stages"""
         self.logger.info(f"Building funnel metrics for {target_date}")
 
         metrics = []
 
         # Get events for the target date
-        start_datetime = datetime.combine(target_date, datetime.min.time()).replace(
-            tzinfo=timezone.utc
-        )
-        end_datetime = datetime.combine(target_date, datetime.max.time()).replace(
-            tzinfo=timezone.utc
-        )
+        start_datetime = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_datetime = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
 
         # Build metrics for each funnel stage
         for stage in FunnelStage:
-            stage_metrics = await self._build_stage_metrics(
-                session, stage, start_datetime, end_datetime, target_date
-            )
+            stage_metrics = await self._build_stage_metrics(session, stage, start_datetime, end_datetime, target_date)
             metrics.extend(stage_metrics)
 
         # Save all metrics
@@ -97,9 +89,7 @@ class DailyMetricsAggregator:
 
         # Event counts by type
         event_counts = (
-            session.query(
-                FunnelEvent.event_type, func.count(FunnelEvent.event_id).label("count")
-            )
+            session.query(FunnelEvent.event_type, func.count(FunnelEvent.event_id).label("count"))
             .filter(
                 FunnelEvent.funnel_stage == stage,
                 FunnelEvent.occurred_at >= start_datetime,
@@ -198,21 +188,15 @@ class DailyMetricsAggregator:
 
         return metrics
 
-    async def build_conversion_metrics(
-        self, session: Session, target_date: date
-    ) -> List[MetricSnapshot]:
+    async def build_conversion_metrics(self, session: Session, target_date: date) -> List[MetricSnapshot]:
         """Build daily conversion metrics"""
         self.logger.info(f"Building conversion metrics for {target_date}")
 
         metrics = []
 
         # Get conversion events for the target date
-        start_datetime = datetime.combine(target_date, datetime.min.time()).replace(
-            tzinfo=timezone.utc
-        )
-        end_datetime = datetime.combine(target_date, datetime.max.time()).replace(
-            tzinfo=timezone.utc
-        )
+        start_datetime = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_datetime = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
 
         conversion_count = (
             session.query(func.count(FunnelEvent.event_id))
@@ -276,20 +260,14 @@ class DailyMetricsAggregator:
         self.logger.info(f"Created {len(metrics)} conversion metrics for {target_date}")
         return metrics
 
-    async def build_cost_metrics(
-        self, session: Session, target_date: date
-    ) -> List[MetricSnapshot]:
+    async def build_cost_metrics(self, session: Session, target_date: date) -> List[MetricSnapshot]:
         """Build daily cost metrics"""
         self.logger.info(f"Building cost metrics for {target_date}")
 
         metrics = []
 
-        start_datetime = datetime.combine(target_date, datetime.min.time()).replace(
-            tzinfo=timezone.utc
-        )
-        end_datetime = datetime.combine(target_date, datetime.max.time()).replace(
-            tzinfo=timezone.utc
-        )
+        start_datetime = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_datetime = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
 
         # Total cost in cents
         total_cost_cents = (
@@ -353,29 +331,21 @@ class DailyMetricsAggregator:
         self.logger.info(f"Created {len(metrics)} cost metrics for {target_date}")
         return metrics
 
-    async def build_segment_metrics(
-        self, session: Session, target_date: date
-    ) -> List[MetricSnapshot]:
+    async def build_segment_metrics(self, session: Session, target_date: date) -> List[MetricSnapshot]:
         """Build daily segment metrics"""
         self.logger.info(f"Building segment metrics for {target_date}")
 
         metrics = []
 
-        start_datetime = datetime.combine(target_date, datetime.min.time()).replace(
-            tzinfo=timezone.utc
-        )
-        end_datetime = datetime.combine(target_date, datetime.max.time()).replace(
-            tzinfo=timezone.utc
-        )
+        start_datetime = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_datetime = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
 
         # Campaign-level metrics
         campaign_metrics = (
             session.query(
                 FunnelEvent.campaign_id,
                 func.count(FunnelEvent.event_id).label("event_count"),
-                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label(
-                    "success_count"
-                ),
+                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label("success_count"),
             )
             .filter(
                 FunnelEvent.occurred_at >= start_datetime,
@@ -445,9 +415,7 @@ class FunnelCalculator:
         self, session: Session, start_date: date, end_date: date
     ) -> List[FunnelConversion]:
         """Calculate conversions between funnel stages"""
-        self.logger.info(
-            f"Calculating stage conversions for {start_date} to {end_date}"
-        )
+        self.logger.info(f"Calculating stage conversions for {start_date} to {end_date}")
 
         conversions = []
         stages = list(FunnelStage)
@@ -508,12 +476,7 @@ class FunnelCalculator:
             .subquery()
         )
 
-        completed_count = (
-            session.query(
-                func.count(func.distinct(completed_subquery.c.session_id))
-            ).scalar()
-            or 0
-        )
+        completed_count = session.query(func.count(func.distinct(completed_subquery.c.session_id))).scalar() or 0
 
         # Calculate conversion rate
         conversion_rate = Decimal(completed_count) / Decimal(started_count)
@@ -554,9 +517,7 @@ class FunnelCalculator:
 
         # Calculate funnel for each campaign
         for (campaign_id,) in campaigns:
-            campaign_conversions = await self._calculate_campaign_funnel(
-                session, campaign_id, start_date, end_date
-            )
+            campaign_conversions = await self._calculate_campaign_funnel(session, campaign_id, start_date, end_date)
             conversions.extend(campaign_conversions)
 
         # Save conversions
@@ -626,9 +587,7 @@ class FunnelCalculator:
 
         return conversions
 
-    async def calculate_time_metrics(
-        self, session: Session, start_date: date, end_date: date
-    ) -> List[MetricSnapshot]:
+    async def calculate_time_metrics(self, session: Session, start_date: date, end_date: date) -> List[MetricSnapshot]:
         """Calculate time-based funnel metrics"""
         self.logger.info(f"Calculating time metrics for {start_date} to {end_date}")
 
@@ -653,12 +612,8 @@ class FunnelCalculator:
                     metric_type=MetricType.DURATION,
                     funnel_stage=stage,
                     period_type=AggregationPeriod.DAILY,
-                    period_start=datetime.combine(
-                        start_date, datetime.min.time()
-                    ).replace(tzinfo=timezone.utc),
-                    period_end=datetime.combine(end_date, datetime.max.time()).replace(
-                        tzinfo=timezone.utc
-                    ),
+                    period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                    period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                     period_date=start_date,
                     value=Decimal(str(avg_duration)),
                     count=1,
@@ -671,9 +626,7 @@ class FunnelCalculator:
         self.logger.info(f"Created {len(metrics)} time metrics")
         return metrics
 
-    async def analyze_dropoffs(
-        self, session: Session, start_date: date, end_date: date
-    ) -> List[MetricSnapshot]:
+    async def analyze_dropoffs(self, session: Session, start_date: date, end_date: date) -> List[MetricSnapshot]:
         """Analyze drop-off points in the funnel"""
         self.logger.info(f"Analyzing dropoffs for {start_date} to {end_date}")
 
@@ -717,12 +670,8 @@ class FunnelCalculator:
                     metric_type=MetricType.SUCCESS_RATE,  # Using success rate type for dropoff
                     funnel_stage=stage,
                     period_type=AggregationPeriod.DAILY,
-                    period_start=datetime.combine(
-                        start_date, datetime.min.time()
-                    ).replace(tzinfo=timezone.utc),
-                    period_end=datetime.combine(end_date, datetime.max.time()).replace(
-                        tzinfo=timezone.utc
-                    ),
+                    period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                    period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                     period_date=start_date,
                     value=dropoff_rate,
                     count=entries,
@@ -747,9 +696,7 @@ class CostAnalyzer:
     def __init__(self):
         self.logger = logging.getLogger(f"{__name__}.CostAnalyzer")
 
-    async def calculate_lead_costs(
-        self, session: Session, start_date: date, end_date: date
-    ) -> List[MetricSnapshot]:
+    async def calculate_lead_costs(self, session: Session, start_date: date, end_date: date) -> List[MetricSnapshot]:
         """Calculate per-lead cost metrics"""
         self.logger.info(f"Calculating lead costs for {start_date} to {end_date}")
 
@@ -786,12 +733,8 @@ class CostAnalyzer:
                 metric_name="cost_per_lead_cents",
                 metric_type=MetricType.COST,
                 period_type=AggregationPeriod.DAILY,
-                period_start=datetime.combine(start_date, datetime.min.time()).replace(
-                    tzinfo=timezone.utc
-                ),
-                period_end=datetime.combine(end_date, datetime.max.time()).replace(
-                    tzinfo=timezone.utc
-                ),
+                period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                 period_date=start_date,
                 value=cost_per_lead,
                 count=total_leads,
@@ -804,9 +747,7 @@ class CostAnalyzer:
         self.logger.info(f"Created {len(metrics)} lead cost metrics")
         return metrics
 
-    async def calculate_cpa_metrics(
-        self, session: Session, start_date: date, end_date: date
-    ) -> List[MetricSnapshot]:
+    async def calculate_cpa_metrics(self, session: Session, start_date: date, end_date: date) -> List[MetricSnapshot]:
         """Calculate cost-per-acquisition metrics"""
         self.logger.info(f"Calculating CPA metrics for {start_date} to {end_date}")
 
@@ -843,12 +784,8 @@ class CostAnalyzer:
                 metric_name="cost_per_acquisition_cents",
                 metric_type=MetricType.COST,
                 period_type=AggregationPeriod.DAILY,
-                period_start=datetime.combine(start_date, datetime.min.time()).replace(
-                    tzinfo=timezone.utc
-                ),
-                period_end=datetime.combine(end_date, datetime.max.time()).replace(
-                    tzinfo=timezone.utc
-                ),
+                period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                 period_date=start_date,
                 value=cpa,
                 count=total_conversions,
@@ -861,9 +798,7 @@ class CostAnalyzer:
         self.logger.info(f"Created {len(metrics)} CPA metrics")
         return metrics
 
-    async def calculate_roi_metrics(
-        self, session: Session, start_date: date, end_date: date
-    ) -> List[MetricSnapshot]:
+    async def calculate_roi_metrics(self, session: Session, start_date: date, end_date: date) -> List[MetricSnapshot]:
         """Calculate ROI metrics"""
         self.logger.info(f"Calculating ROI metrics for {start_date} to {end_date}")
 
@@ -905,12 +840,8 @@ class CostAnalyzer:
                     metric_type=MetricType.COST,
                     funnel_stage=stage,
                     period_type=AggregationPeriod.DAILY,
-                    period_start=datetime.combine(
-                        start_date, datetime.min.time()
-                    ).replace(tzinfo=timezone.utc),
-                    period_end=datetime.combine(end_date, datetime.max.time()).replace(
-                        tzinfo=timezone.utc
-                    ),
+                    period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                    period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                     period_date=start_date,
                     value=cost_per_event,
                     count=stage_events,
@@ -927,9 +858,7 @@ class CostAnalyzer:
         self, session: Session, start_date: date, end_date: date
     ) -> List[MetricSnapshot]:
         """Calculate cost efficiency metrics by channel/campaign"""
-        self.logger.info(
-            f"Calculating efficiency metrics for {start_date} to {end_date}"
-        )
+        self.logger.info(f"Calculating efficiency metrics for {start_date} to {end_date}")
 
         metrics = []
 
@@ -939,9 +868,7 @@ class CostAnalyzer:
                 FunnelEvent.campaign_id,
                 func.sum(FunnelEvent.cost_cents).label("total_cost"),
                 func.count(FunnelEvent.event_id).label("total_events"),
-                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label(
-                    "successful_events"
-                ),
+                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label("successful_events"),
             )
             .filter(
                 func.date(FunnelEvent.occurred_at) >= start_date,
@@ -968,12 +895,8 @@ class CostAnalyzer:
                     metric_type=MetricType.COST,
                     campaign_id=campaign_id,
                     period_type=AggregationPeriod.DAILY,
-                    period_start=datetime.combine(
-                        start_date, datetime.min.time()
-                    ).replace(tzinfo=timezone.utc),
-                    period_end=datetime.combine(end_date, datetime.max.time()).replace(
-                        tzinfo=timezone.utc
-                    ),
+                    period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                    period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                     period_date=start_date,
                     value=cost_per_event,
                     count=total_events,
@@ -992,12 +915,8 @@ class CostAnalyzer:
                         metric_type=MetricType.COST,
                         campaign_id=campaign_id,
                         period_type=AggregationPeriod.DAILY,
-                        period_start=datetime.combine(
-                            start_date, datetime.min.time()
-                        ).replace(tzinfo=timezone.utc),
-                        period_end=datetime.combine(
-                            end_date, datetime.max.time()
-                        ).replace(tzinfo=timezone.utc),
+                        period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                        period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                         period_date=start_date,
                         value=cost_per_success,
                         count=successful_events,
@@ -1026,9 +945,7 @@ class SegmentBreakdownAnalyzer:
         self, session: Session, start_date: date, end_date: date
     ) -> List[MetricSnapshot]:
         """Build geographic breakdown of metrics"""
-        self.logger.info(
-            f"Building geographic breakdown for {start_date} to {end_date}"
-        )
+        self.logger.info(f"Building geographic breakdown for {start_date} to {end_date}")
 
         metrics = []
 
@@ -1065,9 +982,7 @@ class SegmentBreakdownAnalyzer:
             session.query(
                 FunnelEvent.campaign_id,
                 func.count(FunnelEvent.event_id).label("total_events"),
-                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label(
-                    "successful_events"
-                ),
+                func.sum(case((FunnelEvent.success == True, 1), else_=0)).label("successful_events"),
                 func.sum(FunnelEvent.cost_cents).label("total_cost"),
             )
             .filter(
@@ -1089,12 +1004,8 @@ class SegmentBreakdownAnalyzer:
                     metric_type=MetricType.SUCCESS_RATE,
                     campaign_id=campaign_id,
                     period_type=AggregationPeriod.DAILY,
-                    period_start=datetime.combine(
-                        start_date, datetime.min.time()
-                    ).replace(tzinfo=timezone.utc),
-                    period_end=datetime.combine(end_date, datetime.max.time()).replace(
-                        tzinfo=timezone.utc
-                    ),
+                    period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                    period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                     period_date=start_date,
                     value=success_rate,
                     count=total_events,
@@ -1107,9 +1018,7 @@ class SegmentBreakdownAnalyzer:
         self.logger.info(f"Created {len(metrics)} campaign breakdown metrics")
         return metrics
 
-    async def build_stage_breakdown(
-        self, session: Session, start_date: date, end_date: date
-    ) -> List[MetricSnapshot]:
+    async def build_stage_breakdown(self, session: Session, start_date: date, end_date: date) -> List[MetricSnapshot]:
         """Build funnel stage breakdown of metrics"""
         self.logger.info(f"Building stage breakdown for {start_date} to {end_date}")
 
@@ -1120,9 +1029,7 @@ class SegmentBreakdownAnalyzer:
             stage_stats = (
                 session.query(
                     func.count(FunnelEvent.event_id).label("total_events"),
-                    func.sum(case((FunnelEvent.success == True, 1), else_=0)).label(
-                        "successful_events"
-                    ),
+                    func.sum(case((FunnelEvent.success == True, 1), else_=0)).label("successful_events"),
                     func.avg(FunnelEvent.duration_ms).label("avg_duration"),
                 )
                 .filter(
@@ -1140,12 +1047,8 @@ class SegmentBreakdownAnalyzer:
                     metric_type=MetricType.COUNT,
                     funnel_stage=stage,
                     period_type=AggregationPeriod.DAILY,
-                    period_start=datetime.combine(
-                        start_date, datetime.min.time()
-                    ).replace(tzinfo=timezone.utc),
-                    period_end=datetime.combine(end_date, datetime.max.time()).replace(
-                        tzinfo=timezone.utc
-                    ),
+                    period_start=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                    period_end=datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc),
                     period_date=start_date,
                     value=Decimal(stage_stats.total_events),
                     count=stage_stats.total_events,

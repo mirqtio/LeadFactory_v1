@@ -35,10 +35,7 @@ from d11_orchestration.models import (
 )
 
 # Import models from the database models file
-from database.models import (
-    Business,
-    Target,
-)
+from database.models import Business, Target
 
 fake = Faker()
 

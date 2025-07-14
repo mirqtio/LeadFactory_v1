@@ -13,11 +13,13 @@ Acceptance Criteria:
 """
 
 import os
+
 import pytest
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
 from pathlib import Path
+
 from jinja2 import Environment, FileSystemLoader
 
 
@@ -298,10 +300,7 @@ class TestAuditTeaserTemplate:
         rendered = template.render(**malicious_data)
 
         # Should contain the escaped content (Jinja2 auto-escapes by default)
-        assert (
-            "&lt;script&gt;" in rendered
-            or "<script>alert('xss')</script>" not in rendered
-        )
+        assert "&lt;script&gt;" in rendered or "<script>alert('xss')</script>" not in rendered
 
     def test_benefits_section(self, jinja_env, sample_template_data):
         """Test that benefits section renders correctly"""
@@ -385,31 +384,19 @@ class TestTemplateIntegration:
 
 def test_template_file_permissions():
     """Test that template file has correct permissions"""
-    template_path = (
-        Path(__file__).parent.parent.parent.parent
-        / "templates"
-        / "email"
-        / "audit_teaser.html"
-    )
+    template_path = Path(__file__).parent.parent.parent.parent / "templates" / "email" / "audit_teaser.html"
 
     if template_path.exists():
         # File should be readable
         assert os.access(template_path, os.R_OK), "Template file should be readable"
 
         # File should not be executable (security)
-        assert not os.access(
-            template_path, os.X_OK
-        ), "Template file should not be executable"
+        assert not os.access(template_path, os.X_OK), "Template file should not be executable"
 
 
 def test_template_encoding():
     """Test that template file uses correct encoding"""
-    template_path = (
-        Path(__file__).parent.parent.parent.parent
-        / "templates"
-        / "email"
-        / "audit_teaser.html"
-    )
+    template_path = Path(__file__).parent.parent.parent.parent / "templates" / "email" / "audit_teaser.html"
 
     if template_path.exists():
         try:
@@ -428,12 +415,7 @@ if __name__ == "__main__":
 
     try:
         # Test template existence
-        template_path = (
-            Path(__file__).parent.parent.parent.parent
-            / "templates"
-            / "email"
-            / "audit_teaser.html"
-        )
+        template_path = Path(__file__).parent.parent.parent.parent / "templates" / "email" / "audit_teaser.html"
         assert template_path.exists(), "Template file should exist"
         print("✓ Template file exists")
 

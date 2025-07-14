@@ -8,8 +8,8 @@ Create Date: 2025-07-12 17:24:03.637314
 
 
 # revision identifiers, used by Alembic.
-revision = 'e468c64e4301'
-down_revision = ('b05a0dd84dfc', 'batch_runner_001')
+revision = "e468c64e4301"
+down_revision = ("b05a0dd84dfc", "batch_runner_001")
 branch_labels = None
 depends_on = None
 

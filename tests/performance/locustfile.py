@@ -56,12 +56,8 @@ class LeadFactoryUser(HttpUser):
     def search_businesses(self):
         """Search for businesses - high frequency task"""
         search_params = {
-            "location": random.choice(
-                ["San Francisco", "New York", "Chicago", "Austin", "Boston"]
-            ),
-            "vertical": random.choice(
-                ["restaurants", "retail", "services", "healthcare"]
-            ),
+            "location": random.choice(["San Francisco", "New York", "Chicago", "Austin", "Boston"]),
+            "vertical": random.choice(["restaurants", "retail", "services", "healthcare"]),
             "limit": random.randint(10, 50),
         }
 
@@ -341,9 +337,7 @@ class AdminUser(HttpUser):
     @task(2)
     def manage_experiments(self):
         """Manage A/B testing experiments"""
-        with self.client.get(
-            "/api/v1/admin/experiments", catch_response=True, name="admin_experiments"
-        ) as response:
+        with self.client.get("/api/v1/admin/experiments", catch_response=True, name="admin_experiments") as response:
             if response.status_code == 200:
                 try:
                     data = response.json()
@@ -354,9 +348,7 @@ class AdminUser(HttpUser):
                 except Exception as e:
                     response.failure(f"Invalid experiment response: {e}")
             else:
-                response.failure(
-                    f"Experiment management failed: {response.status_code}"
-                )
+                response.failure(f"Experiment management failed: {response.status_code}")
 
 
 class BulkProcessingUser(HttpUser):
@@ -403,9 +395,7 @@ from locust import events
 
 
 @events.request.add_listener
-def request_stats_handler(
-    request_type, name, response_time, response_length, exception, context, **kwargs
-):
+def request_stats_handler(request_type, name, response_time, response_length, exception, context, **kwargs):
     """Custom request handler for detailed performance tracking"""
     if exception:
         print(f"Request failed: {name} - {exception}")
@@ -444,9 +434,7 @@ def on_test_stop(environment, **kwargs):
 
     if slow_endpoints:
         print("⚠️  Performance bottlenecks identified:")
-        for endpoint, avg_time in sorted(
-            slow_endpoints, key=lambda x: x[1], reverse=True
-        ):
+        for endpoint, avg_time in sorted(slow_endpoints, key=lambda x: x[1], reverse=True):
             print(f"  - {endpoint}: {avg_time:.2f}ms average")
     else:
         print("✅ No significant bottlenecks detected")

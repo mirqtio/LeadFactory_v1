@@ -336,9 +336,7 @@ Provide only valid JSON output."""
             savings = issue.get("savings_ms", 0)
 
             if savings > 0:
-                formatted_issues.append(
-                    f"• {title} (Impact: {impact}, Saves: {savings}ms)"
-                )
+                formatted_issues.append(f"• {title} (Impact: {impact}, Saves: {savings}ms)")
             else:
                 formatted_issues.append(f"• {title} (Impact: {impact})")
 
@@ -368,18 +366,14 @@ Provide only valid JSON output."""
             "metrics": InsightPrompts._format_key_metrics(assessment_data),
             "barriers": InsightPrompts._identify_conversion_barriers(assessment_data),
             "ux_issues": InsightPrompts._identify_ux_issues(assessment_data),
-            "performance_problems": InsightPrompts._format_performance_problems(
-                performance_issues
-            ),
+            "performance_problems": InsightPrompts._format_performance_problems(performance_issues),
             "performance_issues": InsightPrompts.format_issues(performance_issues),
         }
 
     @staticmethod
     def _extract_hosting(tech_stack: list) -> str:
         """Extract hosting platform from tech stack"""
-        hosting_techs = [
-            tech for tech in tech_stack if tech.get("category") == "hosting"
-        ]
+        hosting_techs = [tech for tech in tech_stack if tech.get("category") == "hosting"]
         if hosting_techs:
             return hosting_techs[0].get("technology_name", "Unknown")
         return "Not detected"

@@ -76,13 +76,9 @@ async def test_yelp_to_assessment_flow(
     test_db_session.refresh(test_business)
 
     # Step 2: Test assessment flow
-    with patch(
-        "d3_assessment.pagespeed.PageSpeedAnalyzer.analyze"
-    ) as mock_pagespeed, patch(
+    with patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed, patch(
         "d3_assessment.techstack.TechStackDetector.detect"
-    ) as mock_techstack, patch(
-        "d3_assessment.llm_insights.LLMInsightGenerator.generate_insights"
-    ) as mock_llm:
+    ) as mock_techstack, patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm:
         # Mock assessment responses
         mock_pagespeed.return_value = {
             "performance_score": 85,
@@ -121,11 +117,7 @@ async def test_yelp_to_assessment_flow(
     # Step 3: Verify data consistency
     # Reload business from database to verify persistence
     test_db_session.refresh(test_business)
-    assessment_from_db = (
-        test_db_session.query(AssessmentResult)
-        .filter_by(business_id=test_business.id)
-        .first()
-    )
+    assessment_from_db = test_db_session.query(AssessmentResult).filter_by(business_id=test_business.id).first()
 
     assert assessment_from_db is not None
     assert assessment_from_db.business_id == test_business.id
@@ -201,9 +193,7 @@ def test_scoring_applied_correctly(
         "industry": test_business.vertical,
         "pagespeed_score": assessment_result.pagespeed_score,
         "tech_stack": assessment_result.tech_stack,
-        "llm_quality_score": assessment_result.llm_insights.get(
-            "lead_quality_score", 0.5
-        ),
+        "llm_quality_score": assessment_result.llm_insights.get("lead_quality_score", 0.5),
     }
 
     # Apply scoring
@@ -274,13 +264,9 @@ async def test_data_consistency_verified(
     assert test_business.name == "Consistency Test Business"
 
     # Step 2: Run assessment
-    with patch(
-        "d3_assessment.pagespeed.PageSpeedAnalyzer.analyze"
-    ) as mock_pagespeed, patch(
+    with patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed, patch(
         "d3_assessment.techstack.TechStackDetector.detect"
-    ) as mock_techstack, patch(
-        "d3_assessment.llm_insights.LLMInsightGenerator.generate_insights"
-    ) as mock_llm:
+    ) as mock_techstack, patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm:
         mock_pagespeed.return_value = {"performance_score": 80}
         mock_techstack.return_value = {"cms": "Custom"}
         mock_llm.return_value = {"lead_quality_score": 0.75}
@@ -289,11 +275,7 @@ async def test_data_consistency_verified(
 
     # Verify assessment data consistency
     assert assessment.business_id == test_business.id
-    assessment_count = (
-        test_db_session.query(AssessmentResult)
-        .filter_by(business_id=test_business.id)
-        .count()
-    )
+    assessment_count = test_db_session.query(AssessmentResult).filter_by(business_id=test_business.id).count()
     assert assessment_count == 1
 
     # Step 3: Run enrichment
@@ -324,11 +306,7 @@ async def test_data_consistency_verified(
 
     # Verify all related records exist and are linked
     test_db_session.refresh(test_business)
-    related_assessments = (
-        test_db_session.query(AssessmentResult)
-        .filter_by(business_id=test_business.id)
-        .all()
-    )
+    related_assessments = test_db_session.query(AssessmentResult).filter_by(business_id=test_business.id).all()
 
     assert len(related_assessments) == 1
     assert related_assessments[0].business_id == test_business.id
@@ -394,13 +372,9 @@ async def test_performance_benchmarked(
     assessment_start = time.time()
     assessments = []
 
-    with patch(
-        "d3_assessment.pagespeed.PageSpeedAnalyzer.analyze"
-    ) as mock_pagespeed, patch(
+    with patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed, patch(
         "d3_assessment.techstack.TechStackDetector.detect"
-    ) as mock_techstack, patch(
-        "d3_assessment.llm_insights.LLMInsightGenerator.generate_insights"
-    ) as mock_llm:
+    ) as mock_techstack, patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm:
         # Mock consistent responses for performance testing
         mock_pagespeed.return_value = {"performance_score": 85}
         mock_techstack.return_value = {"cms": "WordPress"}
@@ -502,13 +476,9 @@ async def test_complete_sourcing_to_scoring_integration(
     test_db_session.refresh(business)
 
     # 2. Assess business
-    with patch(
-        "d3_assessment.pagespeed.PageSpeedAnalyzer.analyze"
-    ) as mock_pagespeed, patch(
+    with patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed, patch(
         "d3_assessment.techstack.TechStackDetector.detect"
-    ) as mock_techstack, patch(
-        "d3_assessment.llm_insights.LLMInsightGenerator.generate_insights"
-    ) as mock_llm:
+    ) as mock_techstack, patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm:
         mock_pagespeed.return_value = {
             "performance_score": 92,
             "accessibility_score": 88,
@@ -574,20 +544,14 @@ async def test_complete_sourcing_to_scoring_integration(
     # ✓ Data consistency verified
     # Verify all data is properly linked
     test_db_session.refresh(business)
-    db_assessment = (
-        test_db_session.query(AssessmentResult)
-        .filter_by(business_id=business.id)
-        .first()
-    )
+    db_assessment = test_db_session.query(AssessmentResult).filter_by(business_id=business.id).first()
 
     assert db_assessment is not None
     assert db_assessment.business_id == business.id
     assert scoring_result.business_id == business.id
 
     # ✓ Performance benchmarked
-    assert (
-        total_time < 20
-    ), f"Integration test took {total_time:.2f}s, should be under 20s"
+    assert total_time < 20, f"Integration test took {total_time:.2f}s, should be under 20s"
 
     # Verify high-quality lead detection
     score_float = float(scoring_result.overall_score)

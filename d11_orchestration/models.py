@@ -15,15 +15,7 @@ import enum
 import uuid
 from typing import Dict, Optional
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    Boolean,
-    CheckConstraint,
-    Column,
-    Date,
-    DateTime,
-)
+from sqlalchemy import DECIMAL, JSON, Boolean, CheckConstraint, Column, Date, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
@@ -109,22 +101,16 @@ class PipelineRun(Base):
         default=PipelineRunStatus.PENDING,
         index=True,
     )
-    pipeline_type = Column(
-        SQLEnum(PipelineType), nullable=False, default=PipelineType.MANUAL
-    )
+    pipeline_type = Column(SQLEnum(PipelineType), nullable=False, default=PipelineType.MANUAL)
     triggered_by = Column(String(255), nullable=True)  # User or system that triggered
-    trigger_reason = Column(
-        String(500), nullable=True
-    )  # Why the pipeline was triggered
+    trigger_reason = Column(String(500), nullable=True)  # Why the pipeline was triggered
 
     # Timing information
     scheduled_at = Column(DateTime, nullable=True)
     started_at = Column(DateTime, nullable=True, index=True)
     completed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(
-        DateTime, nullable=False, default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
     # Execution details
     execution_time_seconds = Column(Integer, nullable=True)
@@ -150,9 +136,7 @@ class PipelineRun(Base):
     logs_url = Column(String(1000), nullable=True)  # Link to execution logs
 
     # Relationships
-    experiment_assignments = relationship(
-        "VariantAssignment", back_populates="pipeline_run"
-    )
+    experiment_assignments = relationship("VariantAssignment", back_populates="pipeline_run")
 
     # Indexes for performance
     __table_args__ = (
@@ -160,9 +144,7 @@ class PipelineRun(Base):
         Index("idx_pipeline_runs_name_started", "pipeline_name", "started_at"),
         Index("idx_pipeline_runs_type_environment", "pipeline_type", "environment"),
         CheckConstraint("retry_count <= max_retries", name="check_retry_count"),
-        CheckConstraint(
-            "records_failed <= records_processed", name="check_failed_records"
-        ),
+        CheckConstraint("records_failed <= records_processed", name="check_failed_records"),
     )
 
     def __repr__(self):
@@ -183,9 +165,7 @@ class PipelineRun(Base):
         """Calculate success rate for processed records"""
         if self.records_processed == 0:
             return 0.0
-        return (
-            self.records_processed - (self.records_failed or 0)
-        ) / self.records_processed
+        return (self.records_processed - (self.records_failed or 0)) / self.records_processed
 
     def calculate_duration(self) -> Optional[int]:
         """Calculate execution duration in seconds"""
@@ -224,15 +204,11 @@ class Experiment(Base):
     start_date = Column(Date, nullable=True, index=True)
     end_date = Column(Date, nullable=True, index=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(
-        DateTime, nullable=False, default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
     # Targeting and traffic
     target_audience = Column(JSON, nullable=True)  # Audience selection criteria
-    traffic_allocation_pct = Column(
-        Float, nullable=False, default=100.0
-    )  # % of users in experiment
+    traffic_allocation_pct = Column(Float, nullable=False, default=100.0)  # % of users in experiment
     minimum_sample_size = Column(Integer, nullable=True)
     maximum_duration_days = Column(Integer, nullable=True, default=30)
 
@@ -242,12 +218,8 @@ class Experiment(Base):
     success_criteria = Column(JSON, nullable=True)  # Statistical significance criteria
 
     # Configuration
-    randomization_unit = Column(
-        String(100), nullable=False, default="user_id"
-    )  # unit for random assignment
-    holdout_pct = Column(
-        Float, nullable=False, default=0.0
-    )  # % held out from experiment
+    randomization_unit = Column(String(100), nullable=False, default="user_id")  # unit for random assignment
+    holdout_pct = Column(Float, nullable=False, default=0.0)  # % held out from experiment
     force_assignment = Column(JSON, nullable=True)  # Force specific users to variants
 
     # Results and analysis
@@ -260,12 +232,8 @@ class Experiment(Base):
     feature_flag_key = Column(String(255), nullable=True)
 
     # Relationships
-    variants = relationship(
-        "ExperimentVariant", back_populates="experiment", cascade="all, delete-orphan"
-    )
-    assignments = relationship(
-        "VariantAssignment", back_populates="experiment", cascade="all, delete-orphan"
-    )
+    variants = relationship("ExperimentVariant", back_populates="experiment", cascade="all, delete-orphan")
+    assignments = relationship("VariantAssignment", back_populates="experiment", cascade="all, delete-orphan")
 
     # Indexes and constraints
     __table_args__ = (
@@ -275,16 +243,12 @@ class Experiment(Base):
             "traffic_allocation_pct >= 0 AND traffic_allocation_pct <= 100",
             name="check_traffic_allocation",
         ),
-        CheckConstraint(
-            "holdout_pct >= 0 AND holdout_pct <= 100", name="check_holdout_pct"
-        ),
+        CheckConstraint("holdout_pct >= 0 AND holdout_pct <= 100", name="check_holdout_pct"),
         CheckConstraint(
             "confidence_level > 0 AND confidence_level < 1",
             name="check_confidence_level",
         ),
-        CheckConstraint(
-            "end_date IS NULL OR end_date >= start_date", name="check_date_range"
-        ),
+        CheckConstraint("end_date IS NULL OR end_date >= start_date", name="check_date_range"),
     )
 
     def __repr__(self):
@@ -324,22 +288,16 @@ class ExperimentVariant(Base):
 
     # Primary identification
     variant_id = Column(String(36), primary_key=True, default=generate_uuid)
-    experiment_id = Column(
-        String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True
-    )
+    experiment_id = Column(String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True)
     variant_key = Column(String(100), nullable=False)  # e.g., "control", "treatment_a"
 
     # Variant configuration
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    variant_type = Column(
-        SQLEnum(VariantType), nullable=False, default=VariantType.TREATMENT
-    )
+    variant_type = Column(SQLEnum(VariantType), nullable=False, default=VariantType.TREATMENT)
 
     # Traffic allocation
-    weight = Column(
-        Float, nullable=False, default=1.0
-    )  # Relative weight for assignment
+    weight = Column(Float, nullable=False, default=1.0)  # Relative weight for assignment
     is_control = Column(Boolean, nullable=False, default=False)
 
     # Variant parameters
@@ -348,9 +306,7 @@ class ExperimentVariant(Base):
 
     # Metrics
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(
-        DateTime, nullable=False, default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
     # Relationships
     experiment = relationship("Experiment", back_populates="variants")
@@ -358,9 +314,7 @@ class ExperimentVariant(Base):
 
     # Constraints
     __table_args__ = (
-        UniqueConstraint(
-            "experiment_id", "variant_key", name="uq_experiment_variant_key"
-        ),
+        UniqueConstraint("experiment_id", "variant_key", name="uq_experiment_variant_key"),
         Index("idx_variants_experiment_type", "experiment_id", "variant_type"),
         CheckConstraint("weight >= 0", name="check_weight_positive"),
     )
@@ -381,9 +335,7 @@ class VariantAssignment(Base):
 
     # Primary identification
     assignment_id = Column(String(36), primary_key=True, default=generate_uuid)
-    experiment_id = Column(
-        String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True
-    )
+    experiment_id = Column(String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True)
     variant_id = Column(
         String(36),
         ForeignKey("experiment_variants.variant_id"),
@@ -394,32 +346,22 @@ class VariantAssignment(Base):
     # Assignment details
     user_id = Column(String(255), nullable=True, index=True)  # User identifier
     session_id = Column(String(255), nullable=True, index=True)  # Session identifier
-    assignment_unit = Column(
-        String(255), nullable=False, index=True
-    )  # The actual unit assigned
+    assignment_unit = Column(String(255), nullable=False, index=True)  # The actual unit assigned
     assignment_hash = Column(String(64), nullable=False)  # Hash used for assignment
 
     # Assignment metadata
     assigned_at = Column(DateTime, nullable=False, default=func.now(), index=True)
     first_exposure_at = Column(DateTime, nullable=True)  # When user first saw variant
-    pipeline_run_id = Column(
-        String(36), ForeignKey("pipeline_runs.run_id"), nullable=True, index=True
-    )
+    pipeline_run_id = Column(String(36), ForeignKey("pipeline_runs.run_id"), nullable=True, index=True)
 
     # Context information
     assignment_context = Column(JSON, nullable=True)  # Context data at assignment time
     user_properties = Column(JSON, nullable=True)  # User properties at assignment
-    experiment_version = Column(
-        String(50), nullable=True
-    )  # Experiment version at assignment
+    experiment_version = Column(String(50), nullable=True)  # Experiment version at assignment
 
     # Tracking
-    is_forced = Column(
-        Boolean, nullable=False, default=False
-    )  # Whether assignment was forced
-    is_holdout = Column(
-        Boolean, nullable=False, default=False
-    )  # Whether user is in holdout
+    is_forced = Column(Boolean, nullable=False, default=False)  # Whether assignment was forced
+    is_holdout = Column(Boolean, nullable=False, default=False)  # Whether user is in holdout
 
     # Relationships
     experiment = relationship("Experiment", back_populates="assignments")
@@ -428,9 +370,7 @@ class VariantAssignment(Base):
 
     # Indexes and constraints
     __table_args__ = (
-        UniqueConstraint(
-            "experiment_id", "assignment_unit", name="uq_experiment_assignment_unit"
-        ),
+        UniqueConstraint("experiment_id", "assignment_unit", name="uq_experiment_assignment_unit"),
         Index("idx_assignments_user_experiment", "user_id", "experiment_id"),
         Index("idx_assignments_session_experiment", "session_id", "experiment_id"),
         Index("idx_assignments_assigned_at", "assigned_at"),
@@ -463,9 +403,7 @@ class PipelineTask(Base):
 
     # Primary identification
     task_id = Column(String(36), primary_key=True, default=generate_uuid)
-    pipeline_run_id = Column(
-        String(36), ForeignKey("pipeline_runs.run_id"), nullable=False, index=True
-    )
+    pipeline_run_id = Column(String(36), ForeignKey("pipeline_runs.run_id"), nullable=False, index=True)
     task_name = Column(String(255), nullable=False, index=True)
     task_type = Column(String(100), nullable=False)
 
@@ -525,9 +463,7 @@ class ExperimentMetric(Base):
 
     # Primary identification
     metric_id = Column(String(36), primary_key=True, default=generate_uuid)
-    experiment_id = Column(
-        String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True
-    )
+    experiment_id = Column(String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True)
     variant_id = Column(
         String(36),
         ForeignKey("experiment_variants.variant_id"),

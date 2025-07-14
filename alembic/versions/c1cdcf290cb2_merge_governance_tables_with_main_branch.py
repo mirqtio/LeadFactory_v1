@@ -8,8 +8,8 @@ Create Date: 2025-07-12 21:14:27.004388
 
 
 # revision identifiers, used by Alembic.
-revision = 'c1cdcf290cb2'
-down_revision = ('e468c64e4301', 'governance_tables_001')
+revision = "c1cdcf290cb2"
+down_revision = ("e468c64e4301", "governance_tables_001")
 branch_labels = None
 depends_on = None
 

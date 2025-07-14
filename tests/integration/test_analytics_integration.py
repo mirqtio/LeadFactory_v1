@@ -148,9 +148,7 @@ class TestAnalyticsIntegration:
         """Test metrics calculation verification - Metrics calculation verified"""
 
         # Mock the warehouse to return sample data
-        with patch.object(
-            MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock
-        ) as mock_get_metrics:
+        with patch.object(MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock) as mock_get_metrics:
             mock_get_metrics.return_value = sample_metrics_data
 
             # Test metrics endpoint
@@ -198,9 +196,7 @@ class TestAnalyticsIntegration:
     def test_api_responses_correct(self, client, sample_funnel_data):
         """Test API response correctness - API responses correct"""
 
-        with patch.object(
-            MetricsWarehouse, "calculate_funnel_conversions", new_callable=AsyncMock
-        ) as mock_funnel:
+        with patch.object(MetricsWarehouse, "calculate_funnel_conversions", new_callable=AsyncMock) as mock_funnel:
             mock_funnel.return_value = sample_funnel_data
 
             # Test funnel metrics endpoint
@@ -259,9 +255,7 @@ class TestAnalyticsIntegration:
         # Mock fast responses for performance testing
         fast_metrics_data = {"records": []}
 
-        with patch.object(
-            MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock
-        ) as mock_metrics:
+        with patch.object(MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock) as mock_metrics:
             mock_metrics.return_value = fast_metrics_data
 
             # Test metrics endpoint performance
@@ -289,9 +283,7 @@ class TestAnalyticsIntegration:
             health_response_time = end_time - start_time
 
             assert health_response.status_code == 200
-            assert (
-                health_response_time < 0.5
-            ), f"Health check too slow: {health_response_time:.3f}s"
+            assert health_response_time < 0.5, f"Health check too slow: {health_response_time:.3f}s"
 
             # Test multiple concurrent requests
             async def make_request():
@@ -313,18 +305,14 @@ class TestAnalyticsIntegration:
 
             # Average time per request should be reasonable
             avg_time = concurrent_time / 5
-            assert (
-                avg_time < 1.0
-            ), f"Average concurrent response time too slow: {avg_time:.3f}s"
+            assert avg_time < 1.0, f"Average concurrent response time too slow: {avg_time:.3f}s"
 
             print("✓ Performance acceptable")
 
     def test_data_consistency(self, client, sample_metrics_data, sample_funnel_data):
         """Test data consistency across endpoints - Data consistency"""
 
-        with patch.object(
-            MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock
-        ) as mock_metrics, patch.object(
+        with patch.object(MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock) as mock_metrics, patch.object(
             MetricsWarehouse, "calculate_funnel_conversions", new_callable=AsyncMock
         ) as mock_funnel, patch.object(
             MetricsWarehouse, "analyze_cohort_retention", new_callable=AsyncMock
@@ -337,9 +325,7 @@ class TestAnalyticsIntegration:
 
             # Get metrics data
             metrics_request = {"date_range": date_range, "include_breakdowns": True}
-            metrics_response = client.post(
-                "/api/v1/analytics/metrics", json=metrics_request
-            )
+            metrics_response = client.post("/api/v1/analytics/metrics", json=metrics_request)
             assert metrics_response.status_code == 200
             metrics_data = metrics_response.json()
 
@@ -348,9 +334,7 @@ class TestAnalyticsIntegration:
                 "date_range": date_range,
                 "include_conversion_paths": True,
             }
-            funnel_response = client.post(
-                "/api/v1/analytics/funnel", json=funnel_request
-            )
+            funnel_response = client.post("/api/v1/analytics/funnel", json=funnel_request)
             assert funnel_response.status_code == 200
             funnel_data = funnel_response.json()
 
@@ -360,9 +344,7 @@ class TestAnalyticsIntegration:
                 "cohort_end_date": "2025-06-02",
                 "retention_periods": ["Day 0", "Week 1"],
             }
-            cohort_response = client.post(
-                "/api/v1/analytics/cohort", json=cohort_request
-            )
+            cohort_response = client.post("/api/v1/analytics/cohort", json=cohort_request)
             assert cohort_response.status_code == 200
             cohort_data = cohort_response.json()
 
@@ -380,15 +362,9 @@ class TestAnalyticsIntegration:
             assert metrics_data["request_id"] != cohort_data["request_id"]
 
             # 3. Timestamps should be recent and consistent
-            metrics_time = datetime.fromisoformat(
-                metrics_data["generated_at"].replace("Z", "+00:00")
-            )
-            funnel_time = datetime.fromisoformat(
-                funnel_data["generated_at"].replace("Z", "+00:00")
-            )
-            cohort_time = datetime.fromisoformat(
-                cohort_data["generated_at"].replace("Z", "+00:00")
-            )
+            metrics_time = datetime.fromisoformat(metrics_data["generated_at"].replace("Z", "+00:00"))
+            funnel_time = datetime.fromisoformat(funnel_data["generated_at"].replace("Z", "+00:00"))
+            cohort_time = datetime.fromisoformat(cohort_data["generated_at"].replace("Z", "+00:00"))
 
             now = datetime.now().replace(tzinfo=metrics_time.tzinfo)
 
@@ -399,13 +375,9 @@ class TestAnalyticsIntegration:
 
             # 4. Data integrity checks
             assert metrics_data["total_records"] == len(metrics_data["data"])
-            assert funnel_data["total_conversions"] == sum(
-                dp["sessions_converted"] for dp in funnel_data["data"]
-            )
+            assert funnel_data["total_conversions"] == sum(dp["sessions_converted"] for dp in funnel_data["data"])
             assert cohort_data["total_cohorts"] == len(
-                set(
-                    (dp["cohort_date"], dp["campaign_id"]) for dp in cohort_data["data"]
-                )
+                set((dp["cohort_date"], dp["campaign_id"]) for dp in cohort_data["data"])
             )
 
             # 5. Segment consistency in metrics
@@ -438,9 +410,7 @@ class TestAnalyticsIntegration:
 
         # Test future dates
         future_date = (date.today() + timedelta(days=10)).isoformat()
-        future_request = {
-            "date_range": {"start_date": future_date, "end_date": future_date}
-        }
+        future_request = {"date_range": {"start_date": future_date, "end_date": future_date}}
 
         response = client.post("/api/v1/analytics/metrics", json=future_request)
         assert response.status_code == 422  # FastAPI validation error for future dates
@@ -454,9 +424,7 @@ class TestAnalyticsIntegration:
     def test_export_functionality_integration(self, client, sample_metrics_data):
         """Test export functionality end-to-end"""
 
-        with patch.object(
-            MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock
-        ) as mock_metrics:
+        with patch.object(MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock) as mock_metrics:
             mock_metrics.return_value = sample_metrics_data
 
             # Test export request

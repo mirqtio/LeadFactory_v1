@@ -54,9 +54,7 @@ class CircuitBreaker:
             elif self.state == CircuitState.OPEN:
                 # Check if we should move to half-open
                 if now - self.last_failure_time >= self.config.recovery_timeout:
-                    self.logger.info(
-                        f"Circuit breaker half-opening for {self.provider}"
-                    )
+                    self.logger.info(f"Circuit breaker half-opening for {self.provider}")
                     self.state = CircuitState.HALF_OPEN
                     self.success_count = 0
                     return True
@@ -95,8 +93,7 @@ class CircuitBreaker:
                 # Open circuit if too many failures
                 if self.failure_count >= self.config.failure_threshold:
                     self.logger.warning(
-                        f"Circuit breaker opening for {self.provider} "
-                        f"after {self.failure_count} failures"
+                        f"Circuit breaker opening for {self.provider} " f"after {self.failure_count} failures"
                     )
                     self.state = CircuitState.OPEN
 

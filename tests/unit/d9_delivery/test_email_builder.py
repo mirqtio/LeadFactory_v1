@@ -3,16 +3,8 @@ import pytest
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
-from d9_delivery.email_builder import (
-    select_email_findings,
-    prepare_email_context,
-    _calculate_revenue_range,
-)
-from d3_assessment.audit_schema import (
-    AuditFinding,
-    FindingSeverity,
-    FindingCategory,
-)
+from d3_assessment.audit_schema import AuditFinding, FindingCategory, FindingSeverity
+from d9_delivery.email_builder import _calculate_revenue_range, prepare_email_context, select_email_findings
 
 
 def create_test_finding(
@@ -193,12 +185,8 @@ def test_prepare_email_context():
 def test_complexity_formatting():
     """Test effort estimate formatting."""
     findings = [
-        create_test_finding(
-            "test1", "Test 1", FindingSeverity.HIGH, FindingCategory.SEO, 0.01, "easy"
-        ),
-        create_test_finding(
-            "test2", "Test 2", FindingSeverity.HIGH, FindingCategory.SEO, 0.01, "hard"
-        ),
+        create_test_finding("test1", "Test 1", FindingSeverity.HIGH, FindingCategory.SEO, 0.01, "easy"),
+        create_test_finding("test2", "Test 2", FindingSeverity.HIGH, FindingCategory.SEO, 0.01, "hard"),
     ]
 
     result = select_email_findings(findings)
@@ -238,9 +226,7 @@ def test_jinja_render_compatibility():
         ),
     ]
 
-    context = prepare_email_context(
-        business_name="Test", overall_score=50, findings=findings
-    )
+    context = prepare_email_context(business_name="Test", overall_score=50, findings=findings)
 
     rendered = template.render(**context)
 

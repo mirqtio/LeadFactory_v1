@@ -74,9 +74,7 @@ async def health_check():
 
 
 @router.post("/pipelines/trigger", response_model=PipelineRunResponse)
-async def trigger_pipeline(
-    request: PipelineTriggerRequest, db: Session = Depends(get_db)
-):
+async def trigger_pipeline(request: PipelineTriggerRequest, db: Session = Depends(get_db)):
     """
     Trigger a new pipeline run
 
@@ -136,9 +134,7 @@ async def trigger_pipeline(
         return response
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to trigger pipeline: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to trigger pipeline: {str(e)}")
 
 
 @router.get("/pipelines/{run_id}/status", response_model=PipelineStatusResponse)
@@ -168,9 +164,7 @@ async def get_pipeline_status(
 
     # Get current task
     current_task = None
-    running_task = next(
-        (t for t in tasks if t.status == PipelineRunStatus.RUNNING), None
-    )
+    running_task = next((t for t in tasks if t.status == PipelineRunStatus.RUNNING), None)
     if running_task:
         current_task = running_task.task_name
 
@@ -240,9 +234,7 @@ async def get_pipeline_run(
 
 
 @router.post("/pipelines/history", response_model=PipelineRunHistoryResponse)
-async def get_pipeline_history(
-    request: PipelineRunHistoryRequest, db: Session = Depends(get_db)
-):
+async def get_pipeline_history(request: PipelineRunHistoryRequest, db: Session = Depends(get_db)):
     """
     Get pipeline run history with filtering and pagination
 
@@ -343,9 +335,7 @@ async def get_pipeline_history(
 
 
 @router.post("/experiments", response_model=ExperimentResponse)
-async def create_experiment(
-    request: ExperimentCreateRequest, db: Session = Depends(get_db)
-):
+async def create_experiment(request: ExperimentCreateRequest, db: Session = Depends(get_db)):
     """
     Create a new experiment
 
@@ -354,9 +344,7 @@ async def create_experiment(
     # Check if experiment name already exists
     existing = db.query(Experiment).filter(Experiment.name == request.name).first()
     if existing:
-        raise HTTPException(
-            status_code=400, detail="Experiment with this name already exists"
-        )
+        raise HTTPException(status_code=400, detail="Experiment with this name already exists")
 
     try:
         # Create experiment
@@ -386,9 +374,7 @@ async def create_experiment(
         return _experiment_to_response(experiment)
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create experiment: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create experiment: {str(e)}")
 
 
 @router.get("/experiments/{experiment_id}", response_model=ExperimentResponse)
@@ -397,9 +383,7 @@ async def get_experiment(
     db: Session = Depends(get_db),
 ):
     """Get experiment details"""
-    experiment = (
-        db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
-    )
+    experiment = db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
 
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
@@ -414,9 +398,7 @@ async def update_experiment(
     db: Session = Depends(get_db),
 ):
     """Update an experiment"""
-    experiment = (
-        db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
-    )
+    experiment = db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
 
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
@@ -432,15 +414,11 @@ async def update_experiment(
         return _experiment_to_response(experiment)
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to update experiment: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to update experiment: {str(e)}")
 
 
 @router.post("/experiments/list", response_model=ExperimentListResponse)
-async def list_experiments(
-    request: ExperimentListRequest, db: Session = Depends(get_db)
-):
+async def list_experiments(request: ExperimentListRequest, db: Session = Depends(get_db)):
     """List experiments with filtering and pagination"""
     query = db.query(Experiment)
 
@@ -496,18 +474,14 @@ async def delete_experiment(
     db: Session = Depends(get_db),
 ):
     """Delete an experiment"""
-    experiment = (
-        db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
-    )
+    experiment = db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
 
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
 
     # Check if experiment is running
     if experiment.status == ExperimentStatus.RUNNING:
-        raise HTTPException(
-            status_code=400, detail="Cannot delete a running experiment"
-        )
+        raise HTTPException(status_code=400, detail="Cannot delete a running experiment")
 
     try:
         db.delete(experiment)
@@ -515,26 +489,20 @@ async def delete_experiment(
         return SuccessResponse(message="Experiment deleted successfully")
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to delete experiment: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to delete experiment: {str(e)}")
 
 
 # Experiment variant endpoints
 
 
-@router.post(
-    "/experiments/{experiment_id}/variants", response_model=ExperimentVariantResponse
-)
+@router.post("/experiments/{experiment_id}/variants", response_model=ExperimentVariantResponse)
 async def create_experiment_variant(
     request: ExperimentVariantCreateRequest,
     experiment_id: str = Path(..., description="Experiment ID"),
     db: Session = Depends(get_db),
 ):
     """Create a new experiment variant"""
-    experiment = (
-        db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
-    )
+    experiment = db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
 
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
@@ -552,9 +520,7 @@ async def create_experiment_variant(
     )
 
     if existing:
-        raise HTTPException(
-            status_code=400, detail="Variant with this key already exists in experiment"
-        )
+        raise HTTPException(status_code=400, detail="Variant with this key already exists in experiment")
 
     try:
         variant = ExperimentVariant(
@@ -589,9 +555,7 @@ async def create_experiment_variant(
         )
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create variant: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create variant: {str(e)}")
 
 
 @router.get(
@@ -603,18 +567,12 @@ async def get_experiment_variants(
     db: Session = Depends(get_db),
 ):
     """Get all variants for an experiment"""
-    experiment = (
-        db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
-    )
+    experiment = db.query(Experiment).filter(Experiment.experiment_id == experiment_id).first()
 
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
 
-    variants = (
-        db.query(ExperimentVariant)
-        .filter(ExperimentVariant.experiment_id == experiment_id)
-        .all()
-    )
+    variants = db.query(ExperimentVariant).filter(ExperimentVariant.experiment_id == experiment_id).all()
 
     return [
         ExperimentVariantResponse(
@@ -639,15 +597,9 @@ async def get_experiment_variants(
 
 
 @router.post("/experiments/assign", response_model=VariantAssignmentResponse)
-async def assign_variant(
-    request: VariantAssignmentRequest, db: Session = Depends(get_db)
-):
+async def assign_variant(request: VariantAssignmentRequest, db: Session = Depends(get_db)):
     """Assign a user to an experiment variant"""
-    experiment = (
-        db.query(Experiment)
-        .filter(Experiment.experiment_id == request.experiment_id)
-        .first()
-    )
+    experiment = db.query(Experiment).filter(Experiment.experiment_id == request.experiment_id).first()
 
     if not experiment:
         raise HTTPException(status_code=404, detail="Experiment not found")
@@ -685,11 +637,7 @@ async def assign_variant(
         )
 
     # Get experiment variants
-    variants = (
-        db.query(ExperimentVariant)
-        .filter(ExperimentVariant.experiment_id == request.experiment_id)
-        .all()
-    )
+    variants = db.query(ExperimentVariant).filter(ExperimentVariant.experiment_id == request.experiment_id).all()
 
     if not variants:
         raise HTTPException(status_code=400, detail="No variants found for experiment")
@@ -746,9 +694,7 @@ async def assign_variant(
         )
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to assign variant: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to assign variant: {str(e)}")
 
 
 # Helper functions

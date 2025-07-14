@@ -149,9 +149,7 @@ class TaskManager:
         ready_count = 0
         for phase in self.plan["phases"]:
             for task in phase["tasks"]:
-                if self.get_task_status(
-                    task["id"]
-                ) == "pending" and self.check_dependencies_met(task):
+                if self.get_task_status(task["id"]) == "pending" and self.check_dependencies_met(task):
                     ready_count += 1
         stats["ready"] = ready_count
         stats["pending"] -= ready_count
@@ -173,9 +171,7 @@ class TaskManager:
             for task in phase["tasks"]:
                 for dep_id in task.get("dependencies", []):
                     if dep_id not in all_task_ids:
-                        issues.append(
-                            f"Task {task['id']} has invalid dependency: {dep_id}"
-                        )
+                        issues.append(f"Task {task['id']} has invalid dependency: {dep_id}")
 
         return issues
 
@@ -189,12 +185,8 @@ class TaskManager:
         report.append("")
 
         # Overall progress
-        completion_pct = (
-            (stats["completed"] / stats["total"] * 100) if stats["total"] > 0 else 0
-        )
-        report.append(
-            f"Overall Progress: {stats['completed']}/{stats['total']} ({completion_pct:.1f}%)"
-        )
+        completion_pct = (stats["completed"] / stats["total"] * 100) if stats["total"] > 0 else 0
+        report.append(f"Overall Progress: {stats['completed']}/{stats['total']} ({completion_pct:.1f}%)")
         report.append("")
 
         # Status breakdown
@@ -209,11 +201,7 @@ class TaskManager:
         # Phase progress
         report.append("Progress by Phase:")
         for phase_name, phase_stats in stats["by_phase"].items():
-            phase_pct = (
-                (phase_stats["completed"] / phase_stats["total"] * 100)
-                if phase_stats["total"] > 0
-                else 0
-            )
+            phase_pct = (phase_stats["completed"] / phase_stats["total"] * 100) if phase_stats["total"] > 0 else 0
             status = "✓" if phase_pct == 100 else "◯" if phase_pct == 0 else "◐"
             report.append(
                 f"  {status} {phase_name:30s} {phase_stats['completed']:2d}/{phase_stats['total']:2d} ({phase_pct:5.1f}%)"
@@ -224,11 +212,7 @@ class TaskManager:
         # Domain progress
         report.append("Progress by Domain:")
         for domain, domain_stats in sorted(stats["by_domain"].items()):
-            domain_pct = (
-                (domain_stats["completed"] / domain_stats["total"] * 100)
-                if domain_stats["total"] > 0
-                else 0
-            )
+            domain_pct = (domain_stats["completed"] / domain_stats["total"] * 100) if domain_stats["total"] > 0 else 0
             report.append(
                 f"  {domain:15s} {domain_stats['completed']:2d}/{domain_stats['total']:2d} ({domain_pct:5.1f}%)"
             )
@@ -238,21 +222,11 @@ class TaskManager:
 
 def main():
     parser = argparse.ArgumentParser(description="LeadFactory task management tool")
-    parser.add_argument(
-        "--update", nargs=2, metavar=("TASK_ID", "STATUS"), help="Update task status"
-    )
-    parser.add_argument(
-        "--progress", action="store_true", help="Show progress statistics"
-    )
-    parser.add_argument(
-        "--verify", action="store_true", help="Verify task dependencies"
-    )
-    parser.add_argument(
-        "--report", action="store_true", help="Generate progress report"
-    )
-    parser.add_argument(
-        "--task", metavar="TASK_ID", help="Show details for specific task"
-    )
+    parser.add_argument("--update", nargs=2, metavar=("TASK_ID", "STATUS"), help="Update task status")
+    parser.add_argument("--progress", action="store_true", help="Show progress statistics")
+    parser.add_argument("--verify", action="store_true", help="Verify task dependencies")
+    parser.add_argument("--report", action="store_true", help="Generate progress report")
+    parser.add_argument("--task", metavar="TASK_ID", help="Show details for specific task")
 
     args = parser.parse_args()
 

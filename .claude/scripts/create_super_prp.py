@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Create a combined super PRP from all individual PRPs"""
+"""Create a combined super PRP from all individual PRPs."""
 
 from pathlib import Path
 
 
 def extract_prp_content(prp_path):
-    """Extract key content from a PRP, excluding the repetitive context sections"""
-    with open(prp_path, 'r') as f:
+    """Extract key content from a PRP, excluding the repetitive context sections."""
+    with open(prp_path, "r") as f:
         content = f.read()
 
     # Find where the Critical Context section starts
@@ -19,12 +19,12 @@ def extract_prp_content(prp_path):
 
 
 def create_super_prp():
-    """Combine all PRPs into one super document"""
+    """Combine all PRPs into one super document."""
     prp_dir = Path(".claude/PRPs")
     super_prp_path = prp_dir / "SUPER-PRP-ALL-TASKS.md"
 
     # Read existing header
-    with open(super_prp_path, 'r') as f:
+    with open(super_prp_path, "r") as f:
         header = f.read()
 
     # Collect all PRPs
@@ -43,7 +43,7 @@ def create_super_prp():
         combined_content.append(f"\n---\n\n## {task_id}\n")
 
         # Remove the redundant title line and adjust headers
-        lines = prp_content.split('\n')
+        lines = prp_content.split("\n")
         adjusted_lines = []
 
         for line in lines:
@@ -60,10 +60,11 @@ def create_super_prp():
             else:
                 adjusted_lines.append(line)
 
-        combined_content.append('\n'.join(adjusted_lines))
+        combined_content.append("\n".join(adjusted_lines))
 
     # Add shared context sections at the end
-    combined_content.append("""
+    combined_content.append(
+        """
 ---
 
 ## Shared Context (Applies to All Tasks)
@@ -101,18 +102,20 @@ python -m py_compile $(git ls-files "*.py")   # Syntax check
 
 ---
 
-**Note**: The full CLAUDE.md and CURRENT_STATE.md content has been removed from individual PRPs above to reduce redundancy. These documents should be reviewed separately and apply to all tasks.
-""")
+**Note**: The full CLAUDE.md and CURRENT_STATE.md content has been removed from individual PRPs above to reduce
+redundancy. These documents should be reviewed separately and apply to all tasks.
+"""
+    )
 
     # Write combined file
-    with open(super_prp_path, 'w') as f:
-        f.write('\n'.join(combined_content))
+    with open(super_prp_path, "w") as f:
+        f.write("\n".join(combined_content))
 
     print(f"✓ Created super PRP with {len(prp_files)} tasks")
     print(f"  Location: {super_prp_path}")
 
     # Count lines
-    with open(super_prp_path, 'r') as f:
+    with open(super_prp_path, "r") as f:
         line_count = len(f.readlines())
     print(f"  Total lines: {line_count:,}")
 

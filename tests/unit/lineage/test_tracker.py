@@ -5,10 +5,8 @@ Unit tests for lineage tracker
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-import pytest
-
-from d6_reports.lineage.tracker import LineageData, LineageTracker
 from d6_reports.lineage.models import ReportLineage
+from d6_reports.lineage.tracker import LineageData, LineageTracker
 from d6_reports.models import ReportGeneration, ReportType
 
 
@@ -48,9 +46,7 @@ class TestLineageTracker:
         assert lineage.raw_inputs_compressed is not None
         assert lineage.compression_ratio > 0
 
-    def test_capture_lineage_with_feature_flag_disabled(
-        self, db_session, test_report_template
-    ):
+    def test_capture_lineage_with_feature_flag_disabled(self, db_session, test_report_template):
         """Test lineage capture when feature flag is disabled"""
         report = ReportGeneration(
             business_id="business-123",
@@ -72,10 +68,10 @@ class TestLineageTracker:
         # Disable feature flag
         with patch("d6_reports.lineage.tracker.settings") as mock_settings:
             mock_settings.ENABLE_REPORT_LINEAGE = False
-            
+
             tracker = LineageTracker(db_session)
             lineage = tracker.capture_lineage(report.id, lineage_data)
-            
+
             assert lineage is None
 
     def test_capture_lineage_with_error(self, db_session):
@@ -93,7 +89,7 @@ class TestLineageTracker:
 
         tracker = LineageTracker(db_session)
         lineage = tracker.capture_lineage("invalid-report-id", lineage_data)
-        
+
         # Should return None on error
         assert lineage is None
 

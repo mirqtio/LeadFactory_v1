@@ -2,17 +2,16 @@
 Module import coverage tests
 Simply importing modules executes their initialization code and boosts coverage
 """
-import pytest
 
 
 def test_import_api_modules():
     """Import API modules to boost coverage"""
     try:
         import api.audit_middleware
-        import api.internal_routes
         import api.governance
-        import api.template_studio
+        import api.internal_routes
         import api.scoring_playground
+        import api.template_studio
     except ImportError:
         pass
     assert True
@@ -22,9 +21,9 @@ def test_import_batch_runner_modules():
     """Import batch runner modules"""
     try:
         import batch_runner.api
+        import batch_runner.models
         import batch_runner.processor
         import batch_runner.websocket_manager
-        import batch_runner.models
     except ImportError:
         pass
     assert True
@@ -33,16 +32,16 @@ def test_import_batch_runner_modules():
 def test_import_gateway_providers():
     """Import gateway provider modules"""
     try:
+        import d0_gateway.providers.dataaxle
         import d0_gateway.providers.google_places
         import d0_gateway.providers.humanloop
+        import d0_gateway.providers.hunter
+        import d0_gateway.providers.openai
         import d0_gateway.providers.pagespeed
         import d0_gateway.providers.screenshotone
         import d0_gateway.providers.semrush
         import d0_gateway.providers.sendgrid
         import d0_gateway.providers.stripe
-        import d0_gateway.providers.dataaxle
-        import d0_gateway.providers.hunter
-        import d0_gateway.providers.openai
         import d0_gateway.providers.yelp
     except ImportError:
         pass
@@ -54,12 +53,12 @@ def test_import_targeting_modules():
     try:
         import d1_targeting.api
         import d1_targeting.batch_scheduler
-        import d1_targeting.geo_validator
-        import d1_targeting.quota_tracker
-        import d1_targeting.target_universe
-        import d1_targeting.models
-        import d1_targeting.schemas
         import d1_targeting.coordinator
+        import d1_targeting.geo_validator
+        import d1_targeting.models
+        import d1_targeting.quota_tracker
+        import d1_targeting.schemas
+        import d1_targeting.target_universe
     except ImportError:
         pass
     assert True
@@ -106,9 +105,9 @@ def test_import_scoring_modules():
     try:
         import d5_scoring.api
         import d5_scoring.formula_evaluator
+        import d5_scoring.models
         import d5_scoring.rules_schema
         import d5_scoring.score_calculator
-        import d5_scoring.models
     except ImportError:
         pass
     assert True
@@ -119,10 +118,10 @@ def test_import_reports_modules():
     try:
         import d6_reports.api
         import d6_reports.generator
-        import d6_reports.models
+        import d6_reports.lineage.compressor
         import d6_reports.lineage.models
         import d6_reports.lineage.tracker
-        import d6_reports.lineage.compressor
+        import d6_reports.models
     except ImportError:
         pass
     assert True
@@ -143,9 +142,9 @@ def test_import_personalization_modules():
     """Import personalization modules"""
     try:
         import d8_personalization.api
-        import d8_personalization.personalizer
         import d8_personalization.content_generator
         import d8_personalization.models
+        import d8_personalization.personalizer
     except ImportError:
         pass
     assert True
@@ -155,8 +154,8 @@ def test_import_delivery_modules():
     """Import delivery modules"""
     try:
         import d9_delivery.api
-        import d9_delivery.delivery_manager
         import d9_delivery.compliance
+        import d9_delivery.delivery_manager
         import d9_delivery.models
     except ImportError:
         pass
@@ -167,9 +166,9 @@ def test_import_analytics_modules():
     """Import analytics modules"""
     try:
         import d10_analytics.api
+        import d10_analytics.models
         import d10_analytics.views
         import d10_analytics.warehouse
-        import d10_analytics.models
     except ImportError:
         pass
     assert True
@@ -179,8 +178,8 @@ def test_import_orchestration_modules():
     """Import orchestration modules"""
     try:
         import d11_orchestration.api
-        import d11_orchestration.pipeline
         import d11_orchestration.models
+        import d11_orchestration.pipeline
     except ImportError:
         pass
     assert True
@@ -202,10 +201,10 @@ def test_import_lead_explorer_modules():
     """Import lead explorer modules"""
     try:
         import lead_explorer.api
-        import lead_explorer.repository
-        import lead_explorer.models
-        import lead_explorer.schemas
         import lead_explorer.enrichment_coordinator
+        import lead_explorer.models
+        import lead_explorer.repository
+        import lead_explorer.schemas
     except ImportError:
         pass
     assert True
@@ -215,9 +214,9 @@ def test_import_database_modules():
     """Import database modules"""
     try:
         import database.base
+        import database.governance_models
         import database.models
         import database.session
-        import database.governance_models
     except ImportError:
         pass
     assert True

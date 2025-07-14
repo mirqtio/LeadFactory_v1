@@ -46,9 +46,7 @@ class GatewayFacade:
         """
         try:
             client = self.factory.create_client("pagespeed")
-            result = await client.analyze_url(
-                url=url, strategy=strategy, categories=categories
-            )
+            result = await client.analyze_url(url=url, strategy=strategy, categories=categories)
 
             self.logger.info(f"PageSpeed analysis completed: {url} ({strategy})")
             return result
@@ -57,9 +55,7 @@ class GatewayFacade:
             self.logger.error(f"PageSpeed analysis failed: {e}")
             raise
 
-    async def get_core_web_vitals(
-        self, url: str, strategy: str = "mobile"
-    ) -> Dict[str, Any]:
+    async def get_core_web_vitals(self, url: str, strategy: str = "mobile") -> Dict[str, Any]:
         """
         Get Core Web Vitals for a website
 
@@ -81,9 +77,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to get Core Web Vitals: {e}")
             raise
 
-    async def analyze_multiple_websites(
-        self, urls: List[str], strategy: str = "mobile"
-    ) -> Dict[str, Any]:
+    async def analyze_multiple_websites(self, urls: List[str], strategy: str = "mobile") -> Dict[str, Any]:
         """
         Analyze multiple websites in parallel
 
@@ -253,9 +247,7 @@ class GatewayFacade:
                 template_id=template_id,
             )
 
-            self.logger.info(
-                f"Bulk email sent: {result['sent']} sent, {result['failed']} failed"
-            )
+            self.logger.info(f"Bulk email sent: {result['sent']} sent, {result['failed']} failed")
             return result
 
         except Exception as e:
@@ -281,13 +273,9 @@ class GatewayFacade:
         """
         try:
             client = self.factory.create_client("sendgrid")
-            result = await client.get_email_stats(
-                start_date=start_date, end_date=end_date, aggregated_by=aggregated_by
-            )
+            result = await client.get_email_stats(start_date=start_date, end_date=end_date, aggregated_by=aggregated_by)
 
-            self.logger.info(
-                f"SendGrid statistics retrieved: {start_date} to {end_date}"
-            )
+            self.logger.info(f"SendGrid statistics retrieved: {start_date} to {end_date}")
             return result
 
         except Exception as e:
@@ -315,9 +303,7 @@ class GatewayFacade:
         """
         try:
             client = self.factory.create_client("sendgrid")
-            result = await client.get_bounces(
-                start_time=start_time, end_time=end_time, limit=limit, offset=offset
-            )
+            result = await client.get_bounces(start_time=start_time, end_time=end_time, limit=limit, offset=offset)
 
             self.logger.info("Retrieved bounce information")
             return result
@@ -598,9 +584,7 @@ class GatewayFacade:
         try:
             client = self.factory.create_client("stripe")
 
-            result = await client.create_customer(
-                email=email, name=name, description=description, metadata=metadata
-            )
+            result = await client.create_customer(email=email, name=name, description=description, metadata=metadata)
 
             self.logger.info(f"Customer created: {result.get('id')}")
             return result
@@ -652,9 +636,7 @@ class GatewayFacade:
         try:
             client = self.factory.create_client("stripe")
 
-            result = await client.create_product(
-                name=name, description=description, metadata=metadata, active=active
-            )
+            result = await client.create_product(name=name, description=description, metadata=metadata, active=active)
 
             self.logger.info(f"Product created: {result.get('id')}")
             return result
@@ -683,13 +665,9 @@ class GatewayFacade:
         try:
             client = self.factory.create_client("stripe")
 
-            result = await client.list_charges(
-                customer_id=customer_id, limit=limit, starting_after=starting_after
-            )
+            result = await client.list_charges(customer_id=customer_id, limit=limit, starting_after=starting_after)
 
-            self.logger.info(
-                f"Listed charges: {result.get('data', []).__len__()} charges"
-            )
+            self.logger.info(f"Listed charges: {result.get('data', []).__len__()} charges")
             return result
 
         except Exception as e:
@@ -763,9 +741,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to create webhook endpoint: {e}")
             raise
 
-    async def construct_webhook_event(
-        self, payload: str, signature: str, endpoint_secret: str
-    ) -> Dict[str, Any]:
+    async def construct_webhook_event(self, payload: str, signature: str, endpoint_secret: str) -> Dict[str, Any]:
         """
         Verify and construct webhook event
 
@@ -840,15 +816,11 @@ class GatewayFacade:
                         "location": {},
                     }
 
-                    ai_insights = await self.generate_website_insights(
-                        website_analysis, business_context
-                    )
+                    ai_insights = await self.generate_website_insights(website_analysis, business_context)
                     analysis_results["ai_insights"] = ai_insights
 
                     # Step 4: Generate email content if requested
-                    if include_email_generation and ai_insights.get(
-                        "ai_recommendations"
-                    ):
+                    if include_email_generation and ai_insights.get("ai_recommendations"):
                         try:
                             email_content = await self.generate_personalized_email(
                                 business_name=business_id,
@@ -858,9 +830,7 @@ class GatewayFacade:
                             analysis_results["email_content"] = email_content
 
                         except Exception as e:
-                            analysis_results["errors"].append(
-                                f"Email generation failed: {e}"
-                            )
+                            analysis_results["errors"].append(f"Email generation failed: {e}")
 
                 except Exception as e:
                     analysis_results["errors"].append(f"AI insights failed: {e}")

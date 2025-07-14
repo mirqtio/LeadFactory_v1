@@ -19,10 +19,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from d10_analytics.api import get_warehouse, router
-from d10_analytics.schemas import (
-    DateRangeFilter,
-    SegmentFilter,
-)
+from d10_analytics.schemas import DateRangeFilter, SegmentFilter
 
 # Removed enum imports to avoid circular imports - using string literals instead
 
@@ -140,17 +137,13 @@ class TestAnalyticsAPI:
         client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
 
         # Test valid date range
-        request_data = {
-            "date_range": {"start_date": "2025-06-01", "end_date": "2025-06-07"}
-        }
+        request_data = {"date_range": {"start_date": "2025-06-01", "end_date": "2025-06-07"}}
 
         response = client.post("/api/v1/analytics/metrics", json=request_data)
         assert response.status_code == 200
 
         # Test invalid date range (end before start)
-        invalid_request = {
-            "date_range": {"start_date": "2025-06-07", "end_date": "2025-06-01"}
-        }
+        invalid_request = {"date_range": {"start_date": "2025-06-07", "end_date": "2025-06-01"}}
 
         response = client.post("/api/v1/analytics/metrics", json=invalid_request)
         assert response.status_code == 422  # FastAPI returns 422 for validation errors
@@ -171,9 +164,7 @@ class TestAnalyticsAPI:
 
         print("✓ Date range filtering works")
 
-    def test_segment_filtering(
-        self, client, mock_warehouse, sample_date_range, sample_segment_filter
-    ):
+    def test_segment_filtering(self, client, mock_warehouse, sample_date_range, sample_segment_filter):
         """Test segment filtering - Segment filtering"""
         # Mock warehouse response
         mock_warehouse.get_daily_metrics.return_value = {"records": []}
@@ -481,9 +472,7 @@ class TestAnalyticsAPI:
         assert response.status_code == 422  # FastAPI validation error
 
         # Test invalid date format
-        invalid_request = {
-            "date_range": {"start_date": "invalid-date", "end_date": "2025-06-07"}
-        }
+        invalid_request = {"date_range": {"start_date": "invalid-date", "end_date": "2025-06-07"}}
 
         response = client.post("/api/v1/analytics/metrics", json=invalid_request)
         assert response.status_code == 422

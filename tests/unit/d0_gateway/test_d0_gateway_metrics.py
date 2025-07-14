@@ -68,9 +68,7 @@ class TestGatewayMetrics:
 
         # Should have provider label
         expected_labels = ["provider"]
-        assert gateway_metrics.circuit_breaker_state._labelnames == tuple(
-            expected_labels
-        )
+        assert gateway_metrics.circuit_breaker_state._labelnames == tuple(expected_labels)
 
     def test_api_call_recording(self, gateway_metrics):
         """Test API call recording functionality"""
@@ -88,9 +86,7 @@ class TestGatewayMetrics:
             )
 
             # Verify counter was called correctly
-            mock_labels.assert_called_once_with(
-                provider="test_provider", endpoint="/test/endpoint", status_code="200"
-            )
+            mock_labels.assert_called_once_with(provider="test_provider", endpoint="/test/endpoint", status_code="200")
             mock_counter.inc.assert_called_once()
 
     def test_latency_recording(self, gateway_metrics):
@@ -109,9 +105,7 @@ class TestGatewayMetrics:
             )
 
             # Verify histogram was called correctly
-            mock_labels.assert_called_once_with(
-                provider="test_provider", endpoint="/test/endpoint"
-            )
+            mock_labels.assert_called_once_with(provider="test_provider", endpoint="/test/endpoint")
             mock_histogram.observe.assert_called_once_with(2.5)
 
     def test_cost_recording_accurate(self, gateway_metrics):
@@ -123,22 +117,16 @@ class TestGatewayMetrics:
 
             # Record API cost
             test_cost = 0.00045
-            gateway_metrics.record_cost(
-                provider="openai", endpoint="/v1/chat/completions", cost_usd=test_cost
-            )
+            gateway_metrics.record_cost(provider="openai", endpoint="/v1/chat/completions", cost_usd=test_cost)
 
             # Verify cost was recorded accurately
-            mock_labels.assert_called_once_with(
-                provider="openai", endpoint="/v1/chat/completions"
-            )
+            mock_labels.assert_called_once_with(provider="openai", endpoint="/v1/chat/completions")
             mock_counter.inc.assert_called_once_with(test_cost)
 
     def test_circuit_breaker_state_exposed_recording(self, gateway_metrics):
         """Test circuit breaker state recording and exposure"""
         # Mock the gauge to verify calls
-        with patch.object(
-            gateway_metrics.circuit_breaker_state, "labels"
-        ) as mock_labels:
+        with patch.object(gateway_metrics.circuit_breaker_state, "labels") as mock_labels:
             mock_gauge = Mock()
             mock_labels.return_value = mock_gauge
 
@@ -146,9 +134,7 @@ class TestGatewayMetrics:
             test_cases = [("closed", 0), ("open", 1), ("half_open", 2)]
 
             for state_name, expected_value in test_cases:
-                gateway_metrics.record_circuit_breaker_state(
-                    "test_provider", state_name
-                )
+                gateway_metrics.record_circuit_breaker_state("test_provider", state_name)
 
                 # Verify gauge was set correctly
                 mock_labels.assert_called_with(provider="test_provider")
@@ -163,9 +149,7 @@ class TestGatewayMetrics:
 
             gateway_metrics.record_cache_hit("pagespeed", "/runPagespeed")
 
-            mock_labels.assert_called_once_with(
-                provider="pagespeed", endpoint="/runPagespeed"
-            )
+            mock_labels.assert_called_once_with(provider="pagespeed", endpoint="/runPagespeed")
             mock_counter.inc.assert_called_once()
 
         # Test cache miss recording
@@ -175,17 +159,13 @@ class TestGatewayMetrics:
 
             gateway_metrics.record_cache_miss("pagespeed", "/runPagespeed")
 
-            mock_labels.assert_called_once_with(
-                provider="pagespeed", endpoint="/runPagespeed"
-            )
+            mock_labels.assert_called_once_with(provider="pagespeed", endpoint="/runPagespeed")
             mock_counter.inc.assert_called_once()
 
     def test_rate_limit_metrics_recording(self, gateway_metrics):
         """Test rate limiting metrics recording"""
         # Test rate limit exceeded recording
-        with patch.object(
-            gateway_metrics.rate_limit_exceeded_total, "labels"
-        ) as mock_labels:
+        with patch.object(gateway_metrics.rate_limit_exceeded_total, "labels") as mock_labels:
             mock_counter = Mock()
             mock_labels.return_value = mock_counter
 
@@ -253,13 +233,9 @@ class TestGatewayMetrics:
     def test_comprehensive_api_call_flow(self, gateway_metrics):
         """Test comprehensive API call recording flow"""
         # Mock all relevant metrics
-        with patch.object(
-            gateway_metrics.api_calls_total, "labels"
-        ) as mock_calls, patch.object(
+        with patch.object(gateway_metrics.api_calls_total, "labels") as mock_calls, patch.object(
             gateway_metrics.api_latency_seconds, "labels"
-        ) as mock_latency, patch.object(
-            gateway_metrics.api_cost_usd_total, "labels"
-        ) as mock_cost:
+        ) as mock_latency, patch.object(gateway_metrics.api_cost_usd_total, "labels") as mock_cost:
             mock_call_counter = Mock()
             mock_latency_histogram = Mock()
             mock_cost_counter = Mock()
@@ -282,9 +258,7 @@ class TestGatewayMetrics:
             gateway_metrics.record_cost(provider, endpoint, cost)
 
             # Verify all metrics were recorded
-            mock_calls.assert_called_once_with(
-                provider=provider, endpoint=endpoint, status_code="200"
-            )
+            mock_calls.assert_called_once_with(provider=provider, endpoint=endpoint, status_code="200")
             mock_call_counter.inc.assert_called_once()
 
             mock_latency.assert_called_once_with(provider=provider, endpoint=endpoint)
@@ -311,9 +285,7 @@ class TestGatewayMetricsIntegration:
         for attr in expected_attributes:
             assert hasattr(metrics, attr), f"Metrics instance missing attribute: {attr}"
             metric_obj = getattr(metrics, attr)
-            assert hasattr(
-                metric_obj, "_name"
-            ), f"Metric {attr} missing _name attribute"
+            assert hasattr(metric_obj, "_name"), f"Metric {attr} missing _name attribute"
 
         # Test that metrics work by recording some data
         metrics.record_api_call("test", "/test", 200, 1.0)
@@ -358,12 +330,8 @@ class TestGatewayMetricsIntegration:
         def record_metrics(thread_id):
             try:
                 for i in range(10):
-                    metrics.record_api_call(
-                        f"provider_{thread_id}", f"/endpoint_{i}", 200, 0.1 * i
-                    )
-                    metrics.record_cost(
-                        f"provider_{thread_id}", f"/endpoint_{i}", 0.001
-                    )
+                    metrics.record_api_call(f"provider_{thread_id}", f"/endpoint_{i}", 200, 0.1 * i)
+                    metrics.record_cost(f"provider_{thread_id}", f"/endpoint_{i}", 0.001)
                 results.append(True)
             except Exception as e:
                 results.append(f"Thread {thread_id} failed: {e}")
@@ -380,6 +348,4 @@ class TestGatewayMetricsIntegration:
             thread.join()
 
         # All threads should complete successfully
-        assert all(
-            result is True for result in results
-        ), f"Concurrent recording failed: {results}"
+        assert all(result is True for result in results), f"Concurrent recording failed: {results}"

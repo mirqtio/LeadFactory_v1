@@ -4,6 +4,8 @@
 **Estimated Effort**: 3 days  
 **Dependencies**: P0-024
 
+> 💡 **Claude Implementation Note**: Consider how task subagents can be used to execute portions of this task in parallel to improve efficiency and reduce overall completion time.
+
 ## Goal & Success Criteria
 
 Create a web-based scoring playground that enables safe experimentation with YAML weight vectors using Google Sheets, displays real-time score deltas on a 100-lead sample, and facilitates GitHub PR creation for weight updates.

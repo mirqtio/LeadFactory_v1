@@ -16,13 +16,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import (
-    JSON,
-    TIMESTAMP,
-    Boolean,
-    CheckConstraint,
-    Column,
-)
+from sqlalchemy import JSON, TIMESTAMP, Boolean, CheckConstraint, Column
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Index, Integer, String, Text
 
@@ -91,17 +85,13 @@ class D7Purchase(Base):
     business_id = Column(
         String, ForeignKey("businesses.id"), nullable=True
     )  # Optional - may be purchase before business selection
-    customer_id = Column(
-        String, ForeignKey("d7_customers.id"), nullable=True
-    )  # Link to customer record
+    customer_id = Column(String, ForeignKey("d7_customers.id"), nullable=True)  # Link to customer record
 
     # Stripe ID fields - Acceptance Criteria
     stripe_checkout_session_id = Column(String(255), unique=True, index=True)
     stripe_payment_intent_id = Column(String(255), unique=True, index=True)
     stripe_customer_id = Column(String(255), index=True)
-    stripe_subscription_id = Column(
-        String(255), unique=True, index=True
-    )  # For recurring billing
+    stripe_subscription_id = Column(String(255), unique=True, index=True)  # For recurring billing
 
     # Payment details
     amount_cents = Column(Integer, nullable=False)
@@ -129,9 +119,7 @@ class D7Purchase(Base):
     attribution_metadata = Column(JsonColumn)  # Additional attribution data
 
     # Status management - Acceptance Criteria
-    status = Column(
-        SQLEnum(PurchaseStatus), default=PurchaseStatus.CART, nullable=False, index=True
-    )
+    status = Column(SQLEnum(PurchaseStatus), default=PurchaseStatus.CART, nullable=False, index=True)
     checkout_started_at = Column(TIMESTAMP)
     payment_completed_at = Column(TIMESTAMP)
     report_delivered_at = Column(TIMESTAMP)
@@ -145,18 +133,12 @@ class D7Purchase(Base):
 
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    updated_at = Column(
-        TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False
-    )
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # Relationships
-    items = relationship(
-        "PurchaseItem", back_populates="purchase", cascade="all, delete-orphan"
-    )
+    items = relationship("PurchaseItem", back_populates="purchase", cascade="all, delete-orphan")
     # customer = relationship("Customer", back_populates="purchases", foreign_keys=[customer_id])  # Disabled for testing
-    sessions = relationship(
-        "PaymentSession", back_populates="purchase", cascade="all, delete-orphan"
-    )
+    sessions = relationship("PaymentSession", back_populates="purchase", cascade="all, delete-orphan")
 
     # Indexes for performance
     __table_args__ = (
@@ -165,9 +147,7 @@ class D7Purchase(Base):
         Index("idx_d7_purchase_customer_id", "customer_id"),
         Index("idx_d7_purchase_business_id", "business_id"),
         Index("idx_d7_purchase_stripe_session", "stripe_checkout_session_id"),
-        Index(
-            "idx_d7_purchase_attribution", "utm_source", "utm_medium", "utm_campaign"
-        ),
+        Index("idx_d7_purchase_attribution", "utm_source", "utm_medium", "utm_campaign"),
         CheckConstraint("amount_cents >= 0", name="check_amount_positive"),
         CheckConstraint("total_cents >= amount_cents", name="check_total_gte_amount"),
     )
@@ -216,9 +196,7 @@ class PurchaseItem(Base):
     total_price_cents = Column(Integer, nullable=False)  # unit_price * quantity
 
     # Item-specific data
-    business_id = Column(
-        String, ForeignKey("businesses.id")
-    )  # Business this report is for
+    business_id = Column(String, ForeignKey("businesses.id"))  # Business this report is for
     report_config = Column(JsonColumn)  # Configuration for this specific report
 
     # Delivery tracking
@@ -228,9 +206,7 @@ class PurchaseItem(Base):
 
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    updated_at = Column(
-        TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False
-    )
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # Relationships
     purchase = relationship("D7Purchase", back_populates="items")
@@ -289,9 +265,7 @@ class Customer(Base):
 
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    updated_at = Column(
-        TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False
-    )
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # Relationships
     # purchases = relationship("Purchase", back_populates="customer")  # Disabled for testing
@@ -347,9 +321,7 @@ class PaymentSession(Base):
 
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    updated_at = Column(
-        TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False
-    )
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # Relationships
     purchase = relationship("D7Purchase", back_populates="sessions")
@@ -366,11 +338,7 @@ class PaymentSession(Base):
 
     def is_active(self) -> bool:
         """Check if session is still active"""
-        return (
-            not self.is_expired()
-            and self.completed_at is None
-            and self.cancelled_at is None
-        )
+        return not self.is_expired() and self.completed_at is None and self.cancelled_at is None
 
 
 # Data classes for API responses and internal use

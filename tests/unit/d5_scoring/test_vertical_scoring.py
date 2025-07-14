@@ -77,9 +77,7 @@ class TestTask047AcceptanceCriteria:
 
         # Verify restaurant-specific scoring
         vertical_info = engine.get_vertical_info()
-        assert (
-            vertical_info["vertical"] == "restaurant"
-        ), "Should identify as restaurant vertical"
+        assert vertical_info["vertical"] == "restaurant", "Should identify as restaurant vertical"
         assert (
             "restaurant_operations" in vertical_info["override_components"]
         ), "Should have restaurant-specific components"
@@ -89,17 +87,11 @@ class TestTask047AcceptanceCriteria:
 
         # Check for restaurant-specific components
         component_names = [breakdown.component for breakdown in breakdowns]
-        assert (
-            "restaurant_operations" in component_names
-        ), "Should include restaurant operations component"
-        assert (
-            "food_and_service" in component_names
-        ), "Should include food and service component"
+        assert "restaurant_operations" in component_names, "Should include restaurant operations component"
+        assert "food_and_service" in component_names, "Should include food and service component"
 
         # Verify restaurant should score reasonably well with good data
-        assert (
-            float(result.overall_score) > 40
-        ), "Good restaurant data should score above 40"
+        assert float(result.overall_score) > 40, "Good restaurant data should score above 40"
 
         print("✓ Restaurant rules work correctly")
 
@@ -154,32 +146,20 @@ class TestTask047AcceptanceCriteria:
 
         # Verify medical-specific scoring
         vertical_info = engine.get_vertical_info()
-        assert (
-            vertical_info["vertical"] == "medical"
-        ), "Should identify as medical vertical"
-        assert (
-            "medical_credentials" in vertical_info["override_components"]
-        ), "Should have medical-specific components"
+        assert vertical_info["vertical"] == "medical", "Should identify as medical vertical"
+        assert "medical_credentials" in vertical_info["override_components"], "Should have medical-specific components"
 
         # Test detailed breakdown
         detailed_result, breakdowns = engine.calculate_detailed_score(medical_data)
 
         # Check for medical-specific components
         component_names = [breakdown.component for breakdown in breakdowns]
-        assert (
-            "medical_credentials" in component_names
-        ), "Should include medical credentials component"
-        assert (
-            "patient_care_quality" in component_names
-        ), "Should include patient care quality component"
-        assert (
-            "medical_specialization" in component_names
-        ), "Should include medical specialization component"
+        assert "medical_credentials" in component_names, "Should include medical credentials component"
+        assert "patient_care_quality" in component_names, "Should include patient care quality component"
+        assert "medical_specialization" in component_names, "Should include medical specialization component"
 
         # Verify medical practice should score well with good credentials
-        assert (
-            float(result.overall_score) > 50
-        ), "Good medical data should score above 50"
+        assert float(result.overall_score) > 50, "Good medical data should score above 50"
 
         print("✓ Medical rules work correctly")
 
@@ -225,12 +205,8 @@ class TestTask047AcceptanceCriteria:
 
         # Verify override information
         override_summary = restaurant_explanation["override_summary"]
-        assert (
-            len(override_summary["overridden_components"]) > 0
-        ), "Should have overridden components"
-        assert (
-            len(override_summary["vertical_specific_components"]) > 0
-        ), "Should have vertical-specific components"
+        assert len(override_summary["overridden_components"]) > 0, "Should have overridden components"
+        assert len(override_summary["vertical_specific_components"]) > 0, "Should have vertical-specific components"
 
         # Verify specific components are overridden
         component_explanations = restaurant_explanation["component_explanations"]
@@ -258,12 +234,8 @@ class TestTask047AcceptanceCriteria:
         vertical_info = restaurant_engine.get_vertical_info()
 
         # Should have both overridden and inherited components
-        assert (
-            len(vertical_info["override_components"]) > 0
-        ), "Should have some overridden components"
-        assert (
-            len(vertical_info["inherited_components"]) > 0
-        ), "Should have some inherited components"
+        assert len(vertical_info["override_components"]) > 0, "Should have some overridden components"
+        assert len(vertical_info["inherited_components"]) > 0, "Should have some inherited components"
 
         # Test with data to verify inheritance
         test_data = {
@@ -280,9 +252,7 @@ class TestTask047AcceptanceCriteria:
 
         # Verify some components are marked as inherited
         inherited_found = False
-        for component_name, component_info in explanation[
-            "component_explanations"
-        ].items():
+        for component_name, component_info in explanation["component_explanations"].items():
             if component_info["override_status"] == "inherited":
                 inherited_found = True
                 break
@@ -294,12 +264,8 @@ class TestTask047AcceptanceCriteria:
 
         # For inherited components, scoring logic should be identical
         # We'll test this by checking that the base parsing rules are used
-        assert (
-            restaurant_engine.base_parser.component_rules
-        ), "Should have base rules available"
-        assert (
-            restaurant_engine.merged_parser.component_rules
-        ), "Should have merged rules"
+        assert restaurant_engine.base_parser.component_rules, "Should have base rules available"
+        assert restaurant_engine.merged_parser.component_rules, "Should have merged rules"
 
         print("✓ Base rules inheritance works correctly")
 
@@ -357,12 +323,8 @@ class TestTask047AcceptanceCriteria:
         assert medical_tier is not None, "Medical should assign tier for score 75"
 
         # Verify tier rules are loaded from vertical configurations
-        assert (
-            len(restaurant_engine.merged_parser.tier_rules) > 0
-        ), "Restaurant should have tier rules"
-        assert (
-            len(medical_engine.merged_parser.tier_rules) > 0
-        ), "Medical should have tier rules"
+        assert len(restaurant_engine.merged_parser.tier_rules) > 0, "Restaurant should have tier rules"
+        assert len(medical_engine.merged_parser.tier_rules) > 0, "Medical should have tier rules"
 
         print("✓ Vertical tier thresholds work correctly")
 
@@ -382,16 +344,10 @@ class TestTask047AcceptanceCriteria:
 
         # Verify restaurant-specific fallbacks were applied
         assert "cuisine_type" in enriched_data, "Should apply cuisine_type fallback"
-        assert (
-            enriched_data["cuisine_type"] == "american"
-        ), "Should use restaurant fallback value"
+        assert enriched_data["cuisine_type"] == "american", "Should use restaurant fallback value"
 
-        assert (
-            "seating_capacity" in enriched_data
-        ), "Should apply seating_capacity fallback"
-        assert (
-            enriched_data["seating_capacity"] == 50
-        ), "Should use restaurant fallback value"
+        assert "seating_capacity" in enriched_data, "Should apply seating_capacity fallback"
+        assert enriched_data["seating_capacity"] == 50, "Should use restaurant fallback value"
 
         print("✓ Vertical fallback values work correctly")
 
@@ -412,9 +368,7 @@ class TestTask047AcceptanceCriteria:
         result = medical_engine.calculate_score(medical_data)
 
         # Should require manual review due to medical-specific triggers
-        assert (
-            result.manual_review_required
-        ), "Should require manual review for inactive license"
+        assert result.manual_review_required, "Should require manual review for inactive license"
 
         print("✓ Quality control overrides work correctly")
 
@@ -441,9 +395,7 @@ class TestTask047AcceptanceCriteria:
         }
 
         restaurant_result = restaurant_engine.calculate_score(restaurant_data)
-        assert isinstance(
-            restaurant_result.overall_score, Decimal
-        ), "Restaurant rules should work"
+        assert isinstance(restaurant_result.overall_score, Decimal), "Restaurant rules should work"
 
         # 2. Medical rules work - create medical engine and score
         medical_engine = create_medical_scoring_engine()
@@ -461,21 +413,15 @@ class TestTask047AcceptanceCriteria:
         }
 
         medical_result = medical_engine.calculate_score(medical_data)
-        assert isinstance(
-            medical_result.overall_score, Decimal
-        ), "Medical rules should work"
+        assert isinstance(medical_result.overall_score, Decimal), "Medical rules should work"
 
         # 3. Override logic correct - verify override components exist
         vertical_info = restaurant_engine.get_vertical_info()
-        assert (
-            len(vertical_info["override_components"]) > 0
-        ), "Should have override components"
+        assert len(vertical_info["override_components"]) > 0, "Should have override components"
 
         # 4. Base rules inherited - verify inheritance
         restaurant_info = restaurant_engine.get_vertical_info()
-        assert (
-            len(restaurant_info["inherited_components"]) > 0
-        ), "Should inherit base rules"
+        assert len(restaurant_info["inherited_components"]) > 0, "Should inherit base rules"
 
         print("✓ All acceptance criteria working together successfully")
 

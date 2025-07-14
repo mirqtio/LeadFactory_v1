@@ -22,14 +22,7 @@ import pytest
 pytestmark = pytest.mark.slow
 
 # Import models and services
-from database.models import (
-    Business,
-    Email,
-    EmailStatus,
-    EmailSuppression,
-    Purchase,
-    PurchaseStatus,
-)
+from database.models import Business, Email, EmailStatus, EmailSuppression, Purchase, PurchaseStatus
 
 
 @pytest.mark.security
@@ -236,12 +229,8 @@ def test_api_authentication_verification(test_db_session):
     passed_tests = [v for v in security_validations if v["passed"]]
 
     assert len(failed_tests) == 0, f"Security validation failures: {failed_tests}"
-    assert (
-        len(passed_tests) >= 15
-    ), f"Expected at least 15 security validations, got {len(passed_tests)}"
-    assert all(
-        auth_mechanisms.values()
-    ), "All authentication mechanisms should be implemented"
+    assert len(passed_tests) >= 15, f"Expected at least 15 security validations, got {len(passed_tests)}"
+    assert all(auth_mechanisms.values()), "All authentication mechanisms should be implemented"
 
     print("\n=== API AUTHENTICATION VERIFICATION ===")
     print(f"✅ Total Security Tests: {len(security_validations)}")
@@ -261,9 +250,7 @@ def test_api_authentication_verification(test_db_session):
 
     for category, results in categories.items():
         total = results["passed"] + results["failed"]
-        print(
-            f"  {category.replace('_', ' ').title()}: {results['passed']}/{total} passed"
-        )
+        print(f"  {category.replace('_', ' ').title()}: {results['passed']}/{total} passed")
 
     print("\n🔐 Authentication Mechanisms:")
     for mechanism, implemented in auth_mechanisms.items():
@@ -310,9 +297,7 @@ def test_data_privacy_compliance(test_db_session):
 
     # Create email suppression with hashed email
     email_hash = hashlib.sha256(customer_email.lower().encode()).hexdigest()
-    suppression = EmailSuppression(
-        email_hash=email_hash, reason="privacy_compliance_test", source="test_system"
-    )
+    suppression = EmailSuppression(email_hash=email_hash, reason="privacy_compliance_test", source="test_system")
     test_db_session.add(suppression)
     test_db_session.commit()
 
@@ -419,17 +404,11 @@ def test_data_privacy_compliance(test_db_session):
     compliance_results = []
 
     # 1. Test email hashing compliance
-    stored_suppression = (
-        test_db_session.query(EmailSuppression).filter_by(email_hash=email_hash).first()
-    )
+    stored_suppression = test_db_session.query(EmailSuppression).filter_by(email_hash=email_hash).first()
     assert stored_suppression is not None, "Email suppression record should exist"
     assert stored_suppression.email_hash == email_hash, "Email hash should match"
-    assert (
-        len(stored_suppression.email_hash) == 64
-    ), "Email hash should be SHA-256 (64 chars)"
-    assert (
-        customer_email not in stored_suppression.email_hash
-    ), "Plain email should not be in hash"
+    assert len(stored_suppression.email_hash) == 64, "Email hash should be SHA-256 (64 chars)"
+    assert customer_email not in stored_suppression.email_hash, "Plain email should not be in hash"
 
     compliance_results.append(
         {
@@ -442,12 +421,8 @@ def test_data_privacy_compliance(test_db_session):
 
     # 2. Test data isolation
     # Customer payment data should not leak into business records
-    assert (
-        business.email != purchase.customer_email
-    ), "Customer email should not leak into business records"
-    assert (
-        business.phone != sensitive_phone
-    ), "Customer sensitive phone should not be in business records"
+    assert business.email != purchase.customer_email, "Customer email should not leak into business records"
+    assert business.phone != sensitive_phone, "Customer sensitive phone should not be in business records"
 
     compliance_results.append(
         {
@@ -467,9 +442,7 @@ def test_data_privacy_compliance(test_db_session):
     ]
 
     # Mock log content (in real implementation, would check actual logs)
-    mock_log_content = (
-        "Processing business privacy_test_business for customer with ID 12345"
-    )
+    mock_log_content = "Processing business privacy_test_business for customer with ID 12345"
 
     for pattern in sensitive_patterns:
         matches = re.findall(pattern, mock_log_content)
@@ -494,9 +467,7 @@ def test_data_privacy_compliance(test_db_session):
     for control_category in all_controls:
         for control_name, control_config in control_category.items():
             if isinstance(control_config, dict):
-                all_passed = (
-                    all(control_config.values()) if control_config.values() else True
-                )
+                all_passed = all(control_config.values()) if control_config.values() else True
             else:
                 all_passed = bool(control_config)
 
@@ -514,9 +485,7 @@ def test_data_privacy_compliance(test_db_session):
     passed_tests = [r for r in compliance_results if r["passed"]]
 
     assert len(failed_tests) == 0, f"Privacy compliance failures: {failed_tests}"
-    assert (
-        len(passed_tests) >= 10
-    ), f"Expected at least 10 privacy tests, got {len(passed_tests)}"
+    assert len(passed_tests) >= 10, f"Expected at least 10 privacy tests, got {len(passed_tests)}"
 
     print("\n=== DATA PRIVACY COMPLIANCE ===")
     print(f"✅ Total Privacy Tests: {len(compliance_results)}")
@@ -778,24 +747,16 @@ def test_email_compliance(test_db_session):
         compliance_checks.append(check)
 
     # Validate unsubscribe mechanism
-    assert unsubscribe_compliance[
-        "unsubscribe_link_present"
-    ], "Unsubscribe link must be present"
-    assert unsubscribe_compliance[
-        "unsubscribe_link_functional"
-    ], "Unsubscribe link must be functional"
-    assert unsubscribe_compliance[
-        "one_click_unsubscribe"
-    ], "One-click unsubscribe must be supported"
+    assert unsubscribe_compliance["unsubscribe_link_present"], "Unsubscribe link must be present"
+    assert unsubscribe_compliance["unsubscribe_link_functional"], "Unsubscribe link must be functional"
+    assert unsubscribe_compliance["one_click_unsubscribe"], "One-click unsubscribe must be supported"
 
     # Verify all compliance checks passed
     failed_checks = [c for c in compliance_checks if not c["passed"]]
     passed_checks = [c for c in compliance_checks if c["passed"]]
 
     assert len(failed_checks) == 0, f"Email compliance failures: {failed_checks}"
-    assert (
-        len(passed_checks) >= 12
-    ), f"Expected at least 12 compliance checks, got {len(passed_checks)}"
+    assert len(passed_checks) >= 12, f"Expected at least 12 compliance checks, got {len(passed_checks)}"
 
     print("\n=== EMAIL COMPLIANCE VERIFICATION ===")
     print(f"✅ Total Compliance Checks: {len(compliance_checks)}")
@@ -815,9 +776,7 @@ def test_email_compliance(test_db_session):
     print("\n📧 Compliance by Category:")
     for category, stats in categories.items():
         percentage = (stats["passed"] / stats["total"]) * 100
-        print(
-            f"  {category.upper()}: {stats['passed']}/{stats['total']} ({percentage:.0f}%)"
-        )
+        print(f"  {category.upper()}: {stats['passed']}/{stats['total']} ({percentage:.0f}%)")
 
     print("\n📋 Key Compliance Elements:")
     print("  ✅ Sender Identification: LeadFactory Team")
@@ -1092,43 +1051,27 @@ def test_payment_security(test_db_session):
     # 1. Verify no card data stored in database
     payment_json = json.dumps(secure_payment.__dict__, default=str)
     card_pattern = r"\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}"
-    assert not re.search(
-        card_pattern, payment_json
-    ), "No credit card numbers should be stored"
+    assert not re.search(card_pattern, payment_json), "No credit card numbers should be stored"
 
     # 2. Verify only Stripe tokens stored
-    assert secure_payment.stripe_session_id.startswith(
-        "cs_"
-    ), "Should use Stripe session ID"
-    assert secure_payment.stripe_payment_intent_id.startswith(
-        "pi_"
-    ), "Should use Stripe payment intent ID"
-    assert secure_payment.stripe_customer_id.startswith(
-        "cus_"
-    ), "Should use Stripe customer ID"
+    assert secure_payment.stripe_session_id.startswith("cs_"), "Should use Stripe session ID"
+    assert secure_payment.stripe_payment_intent_id.startswith("pi_"), "Should use Stripe payment intent ID"
+    assert secure_payment.stripe_customer_id.startswith("cus_"), "Should use Stripe customer ID"
 
     # 3. Verify amount is in cents (no decimal handling issues)
-    assert isinstance(
-        secure_payment.amount_cents, int
-    ), "Amount should be stored as integer cents"
+    assert isinstance(secure_payment.amount_cents, int), "Amount should be stored as integer cents"
     assert secure_payment.amount_cents > 0, "Amount should be positive"
 
     # 4. Verify currency is valid
     valid_currencies = ["USD", "EUR", "GBP", "CAD", "AUD"]
-    assert (
-        secure_payment.currency in valid_currencies
-    ), f"Currency should be valid: {secure_payment.currency}"
+    assert secure_payment.currency in valid_currencies, f"Currency should be valid: {secure_payment.currency}"
 
     # Validate all security requirements
     failed_validations = [v for v in security_validations if not v["passed"]]
     passed_validations = [v for v in security_validations if v["passed"]]
 
-    assert (
-        len(failed_validations) == 0
-    ), f"Payment security failures: {failed_validations}"
-    assert (
-        len(passed_validations) >= 20
-    ), f"Expected at least 20 security validations, got {len(passed_validations)}"
+    assert len(failed_validations) == 0, f"Payment security failures: {failed_validations}"
+    assert len(passed_validations) >= 20, f"Expected at least 20 security validations, got {len(passed_validations)}"
 
     print("\n=== PAYMENT SECURITY VERIFICATION ===")
     print(f"✅ Total Security Validations: {len(security_validations)}")
@@ -1148,9 +1091,7 @@ def test_payment_security(test_db_session):
     print("\n🔒 Security by Category:")
     for category, stats in categories.items():
         percentage = (stats["passed"] / stats["total"]) * 100
-        print(
-            f"  {category.replace('_', ' ').title()}: {stats['passed']}/{stats['total']} ({percentage:.0f}%)"
-        )
+        print(f"  {category.replace('_', ' ').title()}: {stats['passed']}/{stats['total']} ({percentage:.0f}%)")
 
     print("\n💳 Payment Security Highlights:")
     print("  ✅ PCI DSS Compliance: All 12 requirements met")
@@ -1166,6 +1107,4 @@ def test_payment_security(test_db_session):
         all(incident_response["response_procedures"].values()),
         all(incident_response["recovery_procedures"].values()),
     ]
-    assert all(
-        all_incident_capabilities
-    ), "All incident response capabilities must be implemented"
+    assert all(all_incident_capabilities), "All incident response capabilities must be implemented"

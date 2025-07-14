@@ -24,10 +24,10 @@ from sqlalchemy.pool import StaticPool
 # Import models to test
 from d7_storefront.models import (
     Customer,
+    D7Purchase,
     PaymentMethod,
     PaymentSession,
     ProductType,
-    D7Purchase,
     PurchaseCreateRequest,
     PurchaseItem,
     PurchaseStatus,
@@ -246,9 +246,7 @@ class TestPurchaseItemModel:
     def test_purchase_item_creation(self, db_session):
         """Test purchase item creation"""
         # Create parent purchase
-        purchase = D7Purchase(
-            customer_email="items@example.com", amount_cents=2999, total_cents=2999
-        )
+        purchase = D7Purchase(customer_email="items@example.com", amount_cents=2999, total_cents=2999)
         db_session.add(purchase)
         db_session.commit()
 
@@ -307,9 +305,7 @@ class TestPurchaseItemModel:
 
     def test_purchase_item_delivery_tracking(self, db_session):
         """Test item delivery tracking"""
-        purchase = D7Purchase(
-            customer_email="delivery@example.com", amount_cents=2999, total_cents=2999
-        )
+        purchase = D7Purchase(customer_email="delivery@example.com", amount_cents=2999, total_cents=2999)
         db_session.add(purchase)
         db_session.commit()
 
@@ -410,9 +406,7 @@ class TestPaymentSessionModel:
     def test_payment_session_creation(self, db_session):
         """Test payment session creation"""
         # Create parent purchase
-        purchase = D7Purchase(
-            customer_email="session@example.com", amount_cents=2999, total_cents=2999
-        )
+        purchase = D7Purchase(customer_email="session@example.com", amount_cents=2999, total_cents=2999)
         db_session.add(purchase)
         db_session.commit()
 
@@ -441,9 +435,7 @@ class TestPaymentSessionModel:
 
     def test_session_expiration(self, db_session):
         """Test session expiration logic"""
-        purchase = D7Purchase(
-            customer_email="expiry@example.com", amount_cents=2999, total_cents=2999
-        )
+        purchase = D7Purchase(customer_email="expiry@example.com", amount_cents=2999, total_cents=2999)
         db_session.add(purchase)
         db_session.commit()
 
@@ -453,8 +445,7 @@ class TestPaymentSessionModel:
             stripe_session_id="cs_test_expired_123",
             success_url="https://example.com/success",
             cancel_url="https://example.com/cancel",
-            session_expires_at=datetime.utcnow()
-            - timedelta(minutes=1),  # Expired 1 minute ago
+            session_expires_at=datetime.utcnow() - timedelta(minutes=1),  # Expired 1 minute ago
         )
 
         db_session.add(expired_session)
@@ -470,8 +461,7 @@ class TestPaymentSessionModel:
             stripe_session_id="cs_test_active_123",
             success_url="https://example.com/success",
             cancel_url="https://example.com/cancel",
-            session_expires_at=datetime.utcnow()
-            + timedelta(hours=1),  # Expires in 1 hour
+            session_expires_at=datetime.utcnow() + timedelta(hours=1),  # Expires in 1 hour
         )
 
         db_session.add(active_session)
@@ -607,9 +597,7 @@ class TestModelRelationships:
         db_session.commit()
 
         # Create purchase
-        purchase = D7Purchase(
-            customer_email=customer.email, amount_cents=2999, total_cents=2999
-        )
+        purchase = D7Purchase(customer_email=customer.email, amount_cents=2999, total_cents=2999)
         # Manually set customer relationship
         purchase.customer = customer
 
@@ -623,9 +611,7 @@ class TestModelRelationships:
     def test_purchase_items_relationship(self, db_session):
         """Test purchase-items relationship"""
         # Create purchase
-        purchase = D7Purchase(
-            customer_email="items_rel@example.com", amount_cents=5998, total_cents=5998
-        )
+        purchase = D7Purchase(customer_email="items_rel@example.com", amount_cents=5998, total_cents=5998)
         db_session.add(purchase)
         db_session.commit()
 
@@ -702,9 +688,7 @@ class TestModelValidation:
         db_session.add(purchase)
 
         # Should raise an error when trying to commit without required fields
-        with pytest.raises(
-            Exception
-        ):  # SQLAlchemy will raise IntegrityError or similar
+        with pytest.raises(Exception):  # SQLAlchemy will raise IntegrityError or similar
             db_session.commit()
 
         db_session.rollback()
@@ -770,9 +754,7 @@ class TestModelValidation:
 
         assert purchase.status == PurchaseStatus.REFUNDED
         assert purchase.refunded_at is not None
-        assert (
-            purchase.is_paid() is True
-        )  # Refunded purchases are still considered "paid"
+        assert purchase.is_paid() is True  # Refunded purchases are still considered "paid"
 
 
 if __name__ == "__main__":

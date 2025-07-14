@@ -67,18 +67,13 @@ class SendGridClient:
     def __init__(self, api_key: Optional[str] = None, sandbox_mode: bool = False):
         """Initialize SendGrid client"""
         self.config = get_settings()
-        self.sandbox_mode = (
-            sandbox_mode
-            or os.getenv("SENDGRID_SANDBOX_MODE", "false").lower() == "true"
-        )
+        self.sandbox_mode = sandbox_mode or os.getenv("SENDGRID_SANDBOX_MODE", "false").lower() == "true"
 
         # Get gateway facade
         self.gateway = get_gateway_facade()
 
         # Default settings
-        self.default_from_email = os.getenv(
-            "SENDGRID_FROM_EMAIL", "noreply@leadfactory.com"
-        )
+        self.default_from_email = os.getenv("SENDGRID_FROM_EMAIL", "noreply@leadfactory.com")
         self.default_from_name = os.getenv("SENDGRID_FROM_NAME", "LeadFactory")
         self.default_categories = ["leadfactory", "automated"]
 
@@ -106,9 +101,7 @@ class SendGridClient:
         tracking_settings = {
             "click_tracking": {"enable": True, "enable_text": False},
             "open_tracking": {"enable": True},
-            "subscription_tracking": {
-                "enable": False  # We'll handle unsubscribes ourselves
-            },
+            "subscription_tracking": {"enable": False},  # We'll handle unsubscribes ourselves
         }
 
         # Add sandbox mode to tracking settings
@@ -154,9 +147,7 @@ class SendGridClient:
 
         except Exception as e:
             logger.error(f"Unexpected error sending email: {e}")
-            return SendGridResponse(
-                success=False, error_message=f"Unexpected error: {str(e)}"
-            )
+            return SendGridResponse(success=False, error_message=f"Unexpected error: {str(e)}")
 
     def _prepare_custom_args(self, email_data: EmailData) -> Dict[str, str]:
         """
@@ -222,9 +213,7 @@ class SendGridClient:
         for i, response in enumerate(responses):
             if isinstance(response, Exception):
                 logger.error(f"Batch email {i} failed: {response}")
-                results.append(
-                    SendGridResponse(success=False, error_message=str(response))
-                )
+                results.append(SendGridResponse(success=False, error_message=str(response)))
             else:
                 results.append(response)
 
@@ -241,9 +230,7 @@ class SendGridClient:
             # Try to get email stats for today - minimal API call
             from datetime import date
 
-            await self.gateway.get_email_stats(
-                start_date=date.today().isoformat(), end_date=date.today().isoformat()
-            )
+            await self.gateway.get_email_stats(start_date=date.today().isoformat(), end_date=date.today().isoformat())
             return True
         except Exception as e:
             logger.error(f"Error validating SendGrid API key: {e}")

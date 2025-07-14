@@ -1,13 +1,15 @@
 """Email builder for audit report teasers."""
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
-from d3_assessment.audit_schema import AuditFinding, FindingSeverity, FindingCategory
+
+from d3_assessment.audit_schema import AuditFinding, FindingCategory, FindingSeverity
 from d8_personalization.models import EmailTemplate
 
 
 @dataclass
 class PersonalizationData:
     """Data structure for email personalization"""
+
     business_name: str
     contact_name: Optional[str] = None
     contact_first_name: Optional[str] = None
@@ -19,9 +21,7 @@ class PersonalizationData:
     custom_data: Optional[Dict[str, Any]] = None
 
 
-def select_email_findings(
-    findings: List[AuditFinding], has_gbp: bool = True
-) -> Dict[str, any]:
+def select_email_findings(findings: List[AuditFinding], has_gbp: bool = True) -> Dict[str, any]:
     """
     Select findings for email teaser based on strategy.
 
@@ -62,16 +62,13 @@ def select_email_findings(
     gbp_findings = [
         f
         for f in findings
-        if f.category == FindingCategory.TRUST
-        and ("gbp" in f.issue_id.lower() or "google" in f.title.lower())
+        if f.category == FindingCategory.TRUST and ("gbp" in f.issue_id.lower() or "google" in f.title.lower())
     ]
 
     if gbp_findings and not has_gbp:
         result["has_gbp_issue"] = True
         result["gbp_issue"] = gbp_findings[0]
-        result["gbp_issue_description"] = _simplify_description(
-            gbp_findings[0].description
-        )
+        result["gbp_issue_description"] = _simplify_description(gbp_findings[0].description)
         result["gbp_impact"] = int(gbp_findings[0].conversion_impact * 100)
 
         # Remove GBP from main findings list for hook selection
@@ -92,18 +89,12 @@ def select_email_findings(
 
     # Select additional issue if high severity
     remaining = sorted_findings[1:] if len(sorted_findings) > 1 else []
-    critical_remaining = [
-        f
-        for f in remaining
-        if f.severity in [FindingSeverity.CRITICAL, FindingSeverity.HIGH]
-    ]
+    critical_remaining = [f for f in remaining if f.severity in [FindingSeverity.CRITICAL, FindingSeverity.HIGH]]
 
     if critical_remaining:
         result["additional_issue"] = critical_remaining[0]
         result["additional_issue_title"] = critical_remaining[0].title
-        result["additional_issue_description"] = _simplify_description(
-            critical_remaining[0].description
-        )
+        result["additional_issue_description"] = _simplify_description(critical_remaining[0].description)
 
     return result
 
@@ -132,9 +123,7 @@ def _format_complexity(effort: str) -> str:
     return mapping.get(effort.lower(), "Medium")
 
 
-def _calculate_revenue_range(
-    finding: AuditFinding, base_revenue: float = 1_000_000
-) -> Tuple[int, int]:
+def _calculate_revenue_range(finding: AuditFinding, base_revenue: float = 1_000_000) -> Tuple[int, int]:
     """
     Calculate revenue impact range based on finding.
 
@@ -179,8 +168,7 @@ def prepare_email_context(
     """
     # Check if business has GBP based on findings
     has_gbp = not any(
-        f.category == FindingCategory.TRUST
-        and ("gbp" in f.issue_id.lower() or "google" in f.title.lower())
+        f.category == FindingCategory.TRUST and ("gbp" in f.issue_id.lower() or "google" in f.title.lower())
         for f in findings
     )
 
@@ -247,9 +235,7 @@ def prepare_email_context(
             {
                 "additional_issue": True,
                 "additional_issue_title": selected["additional_issue_title"],
-                "additional_issue_description": selected[
-                    "additional_issue_description"
-                ],
+                "additional_issue_description": selected["additional_issue_description"],
             }
         )
 
@@ -258,40 +244,47 @@ def prepare_email_context(
 
 class EmailBuilder:
     """Email builder with template support"""
-    
+
     def __init__(self):
         self.templates = {}
         # Add default templates
         self.templates["audit_teaser"] = EmailTemplate()
         self.templates["report_ready"] = EmailTemplate()
-    
+
     def add_template(self, template: EmailTemplate):
         """Add a custom template"""
-        if hasattr(template, 'name'):
+        if hasattr(template, "name"):
             self.templates[template.name] = template
-    
+
     def get_template_names(self) -> List[str]:
         """Get list of available template names"""
         return list(self.templates.keys())
-    
-    def build_email(self, template_name: str = "audit_teaser", 
-                   personalization: Optional[PersonalizationData] = None,
-                   to_email: Optional[str] = None,
-                   to_name: Optional[str] = None) -> Dict[str, Any]:
+
+    def build_email(
+        self,
+        template_name: str = "audit_teaser",
+        personalization: Optional[PersonalizationData] = None,
+        to_email: Optional[str] = None,
+        to_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Build email from template and personalization data"""
         if template_name not in self.templates:
             raise ValueError(f"Template {template_name} not found")
-        
+
         # Basic email structure
         email = {
             "to": to_email or "test@example.com",
             "to_name": to_name or personalization.contact_name if personalization else None,
-            "subject": f"Website Analysis for {personalization.business_name}" if personalization else "Website Analysis",
-            "html_content": f"<p>Analysis ready for {personalization.business_name}</p>" if personalization else "<p>Analysis ready</p>",
+            "subject": f"Website Analysis for {personalization.business_name}"
+            if personalization
+            else "Website Analysis",
+            "html_content": f"<p>Analysis ready for {personalization.business_name}</p>"
+            if personalization
+            else "<p>Analysis ready</p>",
             "categories": ["audit", "leadfactory"],
-            "custom_args": {"template": template_name}
+            "custom_args": {"template": template_name},
         }
-        
+
         return email
 
 
@@ -300,25 +293,20 @@ def create_personalization_data(business_name: str, **kwargs) -> Personalization
     return PersonalizationData(business_name=business_name, **kwargs)
 
 
-def build_audit_email(business_name: str, findings: List[AuditFinding], 
-                     contact_email: str, **kwargs) -> Dict[str, Any]:
+def build_audit_email(business_name: str, findings: List[AuditFinding], contact_email: str, **kwargs) -> Dict[str, Any]:
     """Build audit email from findings"""
     # Select key findings for email
     email_findings = select_email_findings(findings)
-    
+
     # Create personalization
     personalization = PersonalizationData(
         business_name=business_name,
         issues_found=[
             {"title": finding.title, "suggestion": finding.recommendation}
             for finding in findings[:2]  # First 2 findings
-        ]
+        ],
     )
-    
+
     # Build email
     builder = EmailBuilder()
-    return builder.build_email(
-        template_name="audit_teaser",
-        personalization=personalization,
-        to_email=contact_email
-    )
+    return builder.build_email(template_name="audit_teaser", personalization=personalization, to_email=contact_email)

@@ -774,9 +774,7 @@ class BusinessGenerator:
             "longitude": round(lng, 6),
         }
 
-    def generate_contact_info(
-        self, business_name: str, scenario: BusinessScenario
-    ) -> Dict[str, str]:
+    def generate_contact_info(self, business_name: str, scenario: BusinessScenario) -> Dict[str, str]:
         """Generate realistic contact information"""
         profile = self.profiles[scenario]
 
@@ -799,12 +797,7 @@ class BusinessGenerator:
         # Generate email (30% have email)
         email = None
         if self.random.random() < 0.3:
-            clean_name = (
-                business_name.lower()
-                .replace(" ", "")
-                .replace("'", "")
-                .replace("&", "and")[:15]
-            )
+            clean_name = business_name.lower().replace(" ", "").replace("'", "").replace("&", "and")[:15]
             domains = ["gmail.com", "yahoo.com", "outlook.com", "businessname.com"]
             email = f"info@{clean_name}.{self.random.choice(domains)}"
 
@@ -819,9 +812,7 @@ class BusinessGenerator:
 
         return {"phone": phone, "email": email, "website": website}
 
-    def generate_business_data(
-        self, business_name: str, scenario: BusinessScenario
-    ) -> Dict[str, Any]:
+    def generate_business_data(self, business_name: str, scenario: BusinessScenario) -> Dict[str, Any]:
         """Generate comprehensive business data"""
         profile = self.profiles[scenario]
 
@@ -835,18 +826,14 @@ class BusinessGenerator:
         price_level = self.random.randint(price_min, price_max)
 
         # Categories
-        categories = self.random.sample(
-            profile.common_categories, k=self.random.randint(1, 3)
-        )
+        categories = self.random.sample(profile.common_categories, k=self.random.randint(1, 3))
 
         # Business hours (simplified)
         hours = profile.typical_hours.copy()
 
         # Business status
         status_weights = profile.business_status_weights
-        status = self.random.choices(
-            list(status_weights.keys()), weights=list(status_weights.values())
-        )[0]
+        status = self.random.choices(list(status_weights.keys()), weights=list(status_weights.values()))[0]
 
         return {
             "vertical": profile.vertical,
@@ -858,9 +845,7 @@ class BusinessGenerator:
             "business_status": status,
         }
 
-    def generate_business(
-        self, scenario: BusinessScenario, business_id: Optional[str] = None
-    ) -> Business:
+    def generate_business(self, scenario: BusinessScenario, business_id: Optional[str] = None) -> Business:
         """Generate a complete realistic business for given scenario"""
         # Generate basic info
         business_name = self.generate_business_name(scenario)
@@ -903,9 +888,7 @@ class BusinessGenerator:
 
         return business
 
-    def generate_businesses(
-        self, count: int, scenarios: Optional[List[BusinessScenario]] = None
-    ) -> List[Business]:
+    def generate_businesses(self, count: int, scenarios: Optional[List[BusinessScenario]] = None) -> List[Business]:
         """Generate multiple businesses for testing"""
         if scenarios is None:
             scenarios = list(BusinessScenario)
@@ -925,15 +908,11 @@ class BusinessGenerator:
         count = sizes.get(size, 100)
         return self.generate_businesses(count)
 
-    def generate_scenario_dataset(
-        self, scenario: BusinessScenario, count: int = 50
-    ) -> List[Business]:
+    def generate_scenario_dataset(self, scenario: BusinessScenario, count: int = 50) -> List[Business]:
         """Generate businesses for specific scenario testing"""
         return [self.generate_business(scenario) for _ in range(count)]
 
-    def generate_mixed_dataset(
-        self, counts_by_scenario: Dict[BusinessScenario, int]
-    ) -> List[Business]:
+    def generate_mixed_dataset(self, counts_by_scenario: Dict[BusinessScenario, int]) -> List[Business]:
         """Generate businesses with specific counts per scenario"""
         businesses = []
         for scenario, count in counts_by_scenario.items():

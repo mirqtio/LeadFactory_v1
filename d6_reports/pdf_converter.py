@@ -104,26 +104,20 @@ class ConcurrencyManager:
         self.active_count = 0
         self.lock = threading.Lock()
 
-        logger.info(
-            f"Initialized ConcurrencyManager with max_concurrent={max_concurrent}"
-        )
+        logger.info(f"Initialized ConcurrencyManager with max_concurrent={max_concurrent}")
 
     async def acquire(self) -> None:
         """Acquire a slot for PDF generation"""
         await self.semaphore.acquire()
         with self.lock:
             self.active_count += 1
-            logger.debug(
-                f"Acquired PDF generation slot. Active: {self.active_count}/{self.max_concurrent}"
-            )
+            logger.debug(f"Acquired PDF generation slot. Active: {self.active_count}/{self.max_concurrent}")
 
     def release(self) -> None:
         """Release a slot after PDF generation"""
         with self.lock:
             self.active_count -= 1
-            logger.debug(
-                f"Released PDF generation slot. Active: {self.active_count}/{self.max_concurrent}"
-            )
+            logger.debug(f"Released PDF generation slot. Active: {self.active_count}/{self.max_concurrent}")
         self.semaphore.release()
 
     def get_active_count(self) -> int:
@@ -310,9 +304,7 @@ class PDFConverter:
             generation_time = (datetime.now() - start_time).total_seconds() * 1000
             file_size = len(pdf_data)
 
-            logger.info(
-                f"PDF generated successfully. Size: {file_size} bytes, Time: {generation_time:.1f}ms"
-            )
+            logger.info(f"PDF generated successfully. Size: {file_size} bytes, Time: {generation_time:.1f}ms")
 
             return PDFResult(
                 success=True,
@@ -329,9 +321,7 @@ class PDFConverter:
             # Always release concurrency slot
             self.concurrency_manager.release()
 
-    async def _generate_pdf_internal(
-        self, html_content: str, options: PDFOptions
-    ) -> Optional[bytes]:
+    async def _generate_pdf_internal(self, html_content: str, options: PDFOptions) -> Optional[bytes]:
         """Internal PDF generation using Playwright"""
         if not self._browser:
             raise RuntimeError("Browser not initialized. Use async context manager.")
@@ -445,9 +435,7 @@ class PDFConverter:
             generation_time = (datetime.now() - start_time).total_seconds() * 1000
             file_size = len(pdf_data)
 
-            logger.info(
-                f"URL PDF generated successfully. Size: {file_size} bytes, Time: {generation_time:.1f}ms"
-            )
+            logger.info(f"URL PDF generated successfully. Size: {file_size} bytes, Time: {generation_time:.1f}ms")
 
             return PDFResult(
                 success=True,
@@ -488,10 +476,7 @@ class PDFConverter:
         logger.info(f"Starting batch conversion of {len(html_contents)} HTML documents")
 
         # Create conversion tasks
-        tasks = [
-            self.convert_html_to_pdf(html_content, options, optimize)
-            for html_content in html_contents
-        ]
+        tasks = [self.convert_html_to_pdf(html_content, options, optimize) for html_content in html_contents]
 
         # Execute all tasks concurrently (respecting concurrency limits)
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -500,16 +485,12 @@ class PDFConverter:
         final_results = []
         for result in results:
             if isinstance(result, Exception):
-                final_results.append(
-                    PDFResult(success=False, error_message=str(result))
-                )
+                final_results.append(PDFResult(success=False, error_message=str(result)))
             else:
                 final_results.append(result)
 
         successful_count = sum(1 for r in final_results if r.success)
-        logger.info(
-            f"Batch conversion completed. {successful_count}/{len(html_contents)} successful"
-        )
+        logger.info(f"Batch conversion completed. {successful_count}/{len(html_contents)} successful")
 
         return final_results
 
@@ -518,17 +499,12 @@ class PDFConverter:
         return {
             "max_concurrent": self.concurrency_manager.max_concurrent,
             "active_count": self.concurrency_manager.get_active_count(),
-            "available_slots": (
-                self.concurrency_manager.max_concurrent
-                - self.concurrency_manager.get_active_count()
-            ),
+            "available_slots": (self.concurrency_manager.max_concurrent - self.concurrency_manager.get_active_count()),
         }
 
 
 # Utility functions for easy usage
-async def html_to_pdf(
-    html_content: str, options: Optional[PDFOptions] = None, optimize: bool = True
-) -> PDFResult:
+async def html_to_pdf(html_content: str, options: Optional[PDFOptions] = None, optimize: bool = True) -> PDFResult:
     """
     Convenience function to convert HTML to PDF
 

@@ -281,9 +281,7 @@ class VariableResolver:
 
         for variable in template.variables:
             if variable in self.resolution_methods:
-                resolved[variable] = self.resolution_methods[variable](
-                    business_data, contact_data, issues
-                )
+                resolved[variable] = self.resolution_methods[variable](business_data, contact_data, issues)
             else:
                 resolved[variable] = f"{{{variable}}}"  # Unresolved placeholder
 
@@ -453,12 +451,8 @@ class ContentFormatter:
         # Replace variables in template sections
         subject = self._replace_variables(template.subject_template, resolved_variables)
         opening = self._replace_variables(template.opening_template, resolved_variables)
-        problem = self._replace_variables(
-            template.problem_statement, resolved_variables
-        )
-        solution = self._replace_variables(
-            template.solution_statement, resolved_variables
-        )
+        problem = self._replace_variables(template.problem_statement, resolved_variables)
+        solution = self._replace_variables(template.solution_statement, resolved_variables)
         cta = self._replace_variables(template.call_to_action, resolved_variables)
         closing = self._replace_variables(template.closing_template, resolved_variables)
 
@@ -521,12 +515,8 @@ class ContentFormatter:
 
         # Replace variables in template sections
         opening = self._replace_variables(template.opening_template, resolved_variables)
-        problem = self._replace_variables(
-            template.problem_statement, resolved_variables
-        )
-        solution = self._replace_variables(
-            template.solution_statement, resolved_variables
-        )
+        problem = self._replace_variables(template.problem_statement, resolved_variables)
+        solution = self._replace_variables(template.solution_statement, resolved_variables)
         cta = self._replace_variables(template.call_to_action, resolved_variables)
         closing = self._replace_variables(template.closing_template, resolved_variables)
 
@@ -626,31 +616,21 @@ class AdvancedContentGenerator:
         templates = self.template_library.get_templates(strategy)
 
         # Find best matching template
-        template = self._select_best_template(
-            templates, content_type, business_data, issues
-        )
+        template = self._select_best_template(templates, content_type, business_data, issues)
 
         if not template:
             return self._generate_fallback_content(business_data, contact_data, issues)
 
         # Resolve variables
-        resolved_variables = self.variable_resolver.resolve_variables(
-            template, business_data, contact_data, issues
-        )
+        resolved_variables = self.variable_resolver.resolve_variables(template, business_data, contact_data, issues)
 
         # Generate formatted content
-        html_content = self.content_formatter.format_html_email(
-            template, resolved_variables, issues
-        )
+        html_content = self.content_formatter.format_html_email(template, resolved_variables, issues)
 
-        text_content = self.content_formatter.format_text_email(
-            template, resolved_variables, issues
-        )
+        text_content = self.content_formatter.format_text_email(template, resolved_variables, issues)
 
         # Extract individual components
-        subject_line = self._replace_variables(
-            template.subject_template, resolved_variables
-        )
+        subject_line = self._replace_variables(template.subject_template, resolved_variables)
         opening = self._replace_variables(template.opening_template, resolved_variables)
         body = self._replace_variables(
             f"{template.problem_statement} {template.solution_statement}",
@@ -739,11 +719,7 @@ class AdvancedContentGenerator:
         contact_name = "there"
 
         if contact_data:
-            contact_name = (
-                contact_data.get("first_name")
-                or contact_data.get("name", "").split()[0]
-                or "there"
-            )
+            contact_name = contact_data.get("first_name") or contact_data.get("name", "").split()[0] or "there"
 
         # Simple fallback content
         subject_line = f"Website insights for {business_name}"
@@ -789,14 +765,10 @@ class AdvancedContentGenerator:
 def clean_html_content(html_content: str) -> str:
     """Clean and validate HTML content"""
     # Remove script tags for security
-    html_content = re.sub(
-        r"<script[^>]*>.*?</script>", "", html_content, flags=re.DOTALL | re.IGNORECASE
-    )
+    html_content = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.DOTALL | re.IGNORECASE)
 
     # Remove inline event handlers
-    html_content = re.sub(
-        r'\s*on\w+\s*=\s*["\'][^"\']*["\']', "", html_content, flags=re.IGNORECASE
-    )
+    html_content = re.sub(r'\s*on\w+\s*=\s*["\'][^"\']*["\']', "", html_content, flags=re.IGNORECASE)
 
     return html_content
 
@@ -818,8 +790,7 @@ def validate_email_content(subject: str, content: str) -> Dict[str, bool]:
         "subject_length_ok": 10 <= len(subject) <= 60,
         "content_length_ok": 100 <= len(content) <= 2000,
         "has_call_to_action": any(
-            word in content.lower()
-            for word in ["call", "click", "reply", "schedule", "contact"]
+            word in content.lower() for word in ["call", "click", "reply", "schedule", "contact"]
         ),
         "personalization_present": any(char.isupper() for char in content),
         "no_excessive_punctuation": content.count("!") <= 2 and content.count("?") <= 2,

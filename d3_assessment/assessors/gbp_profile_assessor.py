@@ -6,14 +6,14 @@ Timeout: 5s
 Cost: $0.002 per assessment
 Output: gbp_profile_json column
 """
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from d3_assessment.assessors.base import BaseAssessor, AssessmentResult
-from d3_assessment.models import AssessmentType
-from d0_gateway.providers.google_places import GooglePlacesClient
-from d0_gateway.factory import create_client
-from core.logging import get_logger
 from core.config import settings
+from core.logging import get_logger
+from d0_gateway.factory import create_client
+from d0_gateway.providers.google_places import GooglePlacesClient
+from d3_assessment.assessors.base import AssessmentResult, BaseAssessor
+from d3_assessment.models import AssessmentType
 
 logger = get_logger(__name__, domain="d3")
 
@@ -148,9 +148,7 @@ class GBPProfileAssessor(BaseAssessor):
                 error_message=f"GBP API error: {str(e)}",
             )
 
-    async def _find_place(
-        self, client: GooglePlacesClient, business_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def _find_place(self, client: GooglePlacesClient, business_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Find place using business data"""
         # Build search query
         name = business_data.get("name", "")
@@ -164,9 +162,7 @@ class GBPProfileAssessor(BaseAssessor):
             return None
 
         try:
-            results = await client.find_place(
-                query=query, fields=["place_id", "name", "formatted_address"]
-            )
+            results = await client.find_place(query=query, fields=["place_id", "name", "formatted_address"])
 
             if results and len(results) > 0:
                 return results[0]

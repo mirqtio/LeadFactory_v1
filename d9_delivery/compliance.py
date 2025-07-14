@@ -120,9 +120,7 @@ class ComplianceManager:
             # On error, assume not suppressed to avoid blocking legitimate emails
             return False
 
-    def generate_unsubscribe_token(
-        self, email: str, list_type: str = "marketing"
-    ) -> UnsubscribeToken:
+    def generate_unsubscribe_token(self, email: str, list_type: str = "marketing") -> UnsubscribeToken:
         """
         Generate secure unsubscribe token
 
@@ -134,9 +132,7 @@ class ComplianceManager:
             UnsubscribeToken object
         """
         # Create token data as JSON then base64 encode
-        expires_at = datetime.now(timezone.utc) + timedelta(
-            days=self.token_expiration_days
-        )
+        expires_at = datetime.now(timezone.utc) + timedelta(days=self.token_expiration_days)
         token_data_dict = {
             "email": email,
             "list_type": list_type,
@@ -146,16 +142,12 @@ class ComplianceManager:
         token_data_b64 = base64.urlsafe_b64encode(token_data_json.encode()).decode()
 
         # Generate HMAC signature
-        signature = hmac.new(
-            self.secret_key.encode(), token_data_b64.encode(), hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(self.secret_key.encode(), token_data_b64.encode(), hashlib.sha256).hexdigest()
 
         # Create final token
         token = f"{signature}:{token_data_b64}"
 
-        return UnsubscribeToken(
-            token=token, email=email, expires_at=expires_at, list_type=list_type
-        )
+        return UnsubscribeToken(token=token, email=email, expires_at=expires_at, list_type=list_type)
 
     def verify_unsubscribe_token(self, token: str) -> Optional[UnsubscribeToken]:
         """
@@ -177,9 +169,7 @@ class ComplianceManager:
             signature, token_data_b64 = parts
 
             # Verify signature
-            expected_signature = hmac.new(
-                self.secret_key.encode(), token_data_b64.encode(), hashlib.sha256
-            ).hexdigest()
+            expected_signature = hmac.new(self.secret_key.encode(), token_data_b64.encode(), hashlib.sha256).hexdigest()
 
             if not hmac.compare_digest(signature, expected_signature):
                 logger.warning(f"Invalid token signature: {token[:20]}...")
@@ -187,9 +177,7 @@ class ComplianceManager:
 
             # Decode and parse token data
             try:
-                token_data_json = base64.urlsafe_b64decode(
-                    token_data_b64.encode()
-                ).decode()
+                token_data_json = base64.urlsafe_b64decode(token_data_b64.encode()).decode()
                 token_data_dict = json.loads(token_data_json)
             except Exception:
                 logger.warning(f"Invalid token data encoding: {token[:20]}...")
@@ -211,9 +199,7 @@ class ComplianceManager:
                 logger.warning(f"Expired unsubscribe token for {email}")
                 return None
 
-            return UnsubscribeToken(
-                token=token, email=email, expires_at=expires_at, list_type=list_type
-            )
+            return UnsubscribeToken(token=token, email=email, expires_at=expires_at, list_type=list_type)
 
         except Exception as e:
             logger.error(f"Error verifying unsubscribe token: {e}")
@@ -263,9 +249,7 @@ class ComplianceManager:
                 session.add(suppression)
                 session.commit()
 
-                logger.info(
-                    f"Successfully unsubscribed {token_data.email} from {token_data.list_type}"
-                )
+                logger.info(f"Successfully unsubscribed {token_data.email} from {token_data.list_type}")
                 return True
 
         except Exception as e:
@@ -309,9 +293,7 @@ class ComplianceManager:
 
         return headers
 
-    def add_compliance_to_email_data(
-        self, email_data: Any, list_type: str = "marketing"
-    ) -> Any:
+    def add_compliance_to_email_data(self, email_data: Any, list_type: str = "marketing") -> Any:
         """
         Add compliance headers and unsubscribe links to email data
 
@@ -344,9 +326,7 @@ class ComplianceManager:
         if email_data.html_content:
             token = self.generate_unsubscribe_token(email_data.to_email, list_type)
             unsubscribe_params = {"token": token.token, "email": email_data.to_email}
-            unsubscribe_url = (
-                f"{self.base_url}/unsubscribe?{urlencode(unsubscribe_params)}"
-            )
+            unsubscribe_url = f"{self.base_url}/unsubscribe?{urlencode(unsubscribe_params)}"
 
             # Add unsubscribe footer to HTML
             unsubscribe_footer = f"""
@@ -364,9 +344,7 @@ class ComplianceManager:
         if email_data.text_content:
             token = self.generate_unsubscribe_token(email_data.to_email, list_type)
             unsubscribe_params = {"token": token.token, "email": email_data.to_email}
-            unsubscribe_url = (
-                f"{self.base_url}/unsubscribe?{urlencode(unsubscribe_params)}"
-            )
+            unsubscribe_url = f"{self.base_url}/unsubscribe?{urlencode(unsubscribe_params)}"
 
             # Add unsubscribe footer to text
             unsubscribe_footer = f"""
@@ -423,9 +401,7 @@ Contact: support@leadfactory.com
                 # Calculate expiration if specified
                 expires_at = None
                 if expires_days:
-                    expires_at = datetime.now(timezone.utc) + timedelta(
-                        days=expires_days
-                    )
+                    expires_at = datetime.now(timezone.utc) + timedelta(days=expires_days)
 
                 # Create suppression
                 suppression = SuppressionList(
@@ -455,11 +431,7 @@ Contact: support@leadfactory.com
         try:
             with SessionLocal() as session:
                 # Total active suppressions
-                total_active = (
-                    session.query(SuppressionList)
-                    .filter(SuppressionList.is_active == True)
-                    .count()
-                )
+                total_active = session.query(SuppressionList).filter(SuppressionList.is_active == True).count()
 
                 # By source (since no list_type field)
                 unsubscribe_source_count = (
@@ -490,9 +462,7 @@ Contact: support@leadfactory.com
                     .filter(
                         and_(
                             SuppressionList.is_active == True,
-                            SuppressionList.reason.in_(
-                                ["hard_bounce", "spam_complaint"]
-                            ),
+                            SuppressionList.reason.in_(["hard_bounce", "spam_complaint"]),
                         )
                     )
                     .count()

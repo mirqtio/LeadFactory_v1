@@ -1,0 +1,58 @@
+# Research Context for P3-005
+
+## Key Findings
+- Industry standard for production code is 80% test coverage as a balance between thoroughness and velocity
+- Pytest-cov is the standard tool for measuring Python test coverage, built on Coverage.py
+- Property-based testing with Hypothesis can generate edge cases automatically
+- Test execution time is critical - must maintain <5 minute CI runtime
+- Coverage enforcement in CI prevents regression
+
+## Authoritative Sources
+- Official pytest documentation: https://docs.pytest.org/en/stable/
+- pytest-cov PyPI page: https://pypi.org/project/pytest-cov/
+- Coverage.py documentation: https://coverage.readthedocs.io/
+- Hypothesis documentation: https://hypothesis.readthedocs.io/
+- Google's testing best practices guide
+
+## Current Best Practices
+
+### Coverage Configuration
+- Use pytest.ini or pyproject.toml for configuration (not setup.cfg)
+- Set coverage failure threshold with --cov-fail-under=80
+- Generate both terminal and HTML reports for visibility
+- Use --cov-report=term-missing to identify uncovered lines
+
+### Testing Strategies
+- Prioritize critical business logic and high-traffic features
+- Use fixtures for reusable setup/teardown code
+- Follow AAA pattern: Arrange, Act, Assert
+- Implement property-based testing for complex functions
+- Create mock factories for external dependencies
+
+### Performance Optimization
+- Use pytest-xdist for parallel test execution
+- Implement test markers for selective execution
+- Cache expensive fixtures at session scope
+- Use database transactions for test isolation
+
+## Common Pitfalls
+- 100% coverage doesn't guarantee bug-free code
+- Testing implementation details instead of behavior
+- Slow test suites that discourage frequent runs
+- Flaky tests that undermine confidence
+- Missing edge cases despite high coverage
+
+## Recent Updates
+- pytest 8.x improved collection performance
+- Coverage.py 7.x added better branch coverage
+- Hypothesis 6.x improved shrinking algorithms
+- New pytest plugins for async testing
+- Better support for type checking in tests
+
+## Implementation Recommendations
+- Start with modules under 40% coverage (gateway providers, targeting, batch runner)
+- Create comprehensive mock factories for external APIs
+- Use property-based testing for formula evaluators
+- Implement coverage gates in CI to prevent regression
+- Focus on testing critical paths and edge cases
+- Maintain test runtime under 5 minutes using parallelization

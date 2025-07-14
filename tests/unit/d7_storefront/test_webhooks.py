@@ -320,9 +320,7 @@ class TestCheckoutSessionHandler:
         """Test handling expired checkout session"""
         handler = CheckoutSessionHandler(StripeClient())
 
-        event_data = {
-            "object": {"id": "cs_test_123", "metadata": {"purchase_id": "purchase_123"}}
-        }
+        event_data = {"object": {"id": "cs_test_123", "metadata": {"purchase_id": "purchase_123"}}}
 
         result = handler.handle_session_expired(event_data, "evt_123")
 
@@ -365,9 +363,7 @@ class TestPaymentIntentHandler:
         """Test handling failed payment intent"""
         handler = PaymentIntentHandler(StripeClient())
 
-        event_data = {
-            "object": {"id": "pi_test_123", "metadata": {"purchase_id": "purchase_123"}}
-        }
+        event_data = {"object": {"id": "pi_test_123", "metadata": {"purchase_id": "purchase_123"}}}
 
         result = handler.handle_payment_failed(event_data, "evt_123")
 
@@ -423,9 +419,7 @@ class TestInvoiceHandler:
             }
         }
 
-        result = handler.handle_invoice_event(
-            "invoice.payment_succeeded", event_data, "evt_123"
-        )
+        result = handler.handle_invoice_event("invoice.payment_succeeded", event_data, "evt_123")
 
         assert result["success"] is True
         assert result["status"] == WebhookStatus.COMPLETED.value
@@ -447,9 +441,7 @@ class TestInvoiceHandler:
             }
         }
 
-        result = handler.handle_invoice_event(
-            "invoice.payment_failed", event_data, "evt_123"
-        )
+        result = handler.handle_invoice_event("invoice.payment_failed", event_data, "evt_123")
 
         assert result["success"] is True
         assert result["status"] == WebhookStatus.COMPLETED.value
@@ -516,9 +508,7 @@ class TestUtilityFunctions:
         assert formatted["status"] == "success"
         assert formatted["webhook"]["event_id"] == "evt_test_123"
         assert formatted["webhook"]["event_type"] == "checkout.session.completed"
-        assert (
-            formatted["webhook"]["processing_status"] == WebhookStatus.COMPLETED.value
-        )
+        assert formatted["webhook"]["processing_status"] == WebhookStatus.COMPLETED.value
 
     def test_format_webhook_response_for_api_error(self):
         """Test API response formatting for error"""
@@ -608,9 +598,7 @@ class TestAcceptanceCriteria:
     @patch.object(StripeClient, "verify_webhook_signature")
     @patch.object(StripeClient, "construct_webhook_event")
     @patch.object(WebhookProcessor, "_process_event")
-    def test_event_processing_works_acceptance_criteria(
-        self, mock_process, mock_construct, mock_verify
-    ):
+    def test_event_processing_works_acceptance_criteria(self, mock_process, mock_construct, mock_verify):
         """Test: Event processing works ✓"""
         # Setup mocks
         mock_verify.return_value = True
@@ -692,14 +680,9 @@ class TestAcceptanceCriteria:
         assert result["success"] is True
         assert "report_generation" in result["data"]
         assert result["data"]["report_generation"]["success"] is True
-        assert (
-            result["data"]["report_generation"]["status"]
-            == ReportGenerationStatus.TRIGGERED.value
-        )
+        assert result["data"]["report_generation"]["status"] == ReportGenerationStatus.TRIGGERED.value
         assert result["data"]["report_generation"]["purchase_id"] == "purchase_123"
-        assert (
-            result["data"]["report_generation"]["customer_email"] == "test@example.com"
-        )
+        assert result["data"]["report_generation"]["customer_email"] == "test@example.com"
         assert "job_id" in result["data"]["report_generation"]
 
         print("✓ Report generation triggered")
@@ -739,9 +722,7 @@ class TestWebhookEnhancements:
 
     @patch.object(StripeClient, "verify_webhook_signature")
     @patch.object(StripeClient, "construct_webhook_event")
-    def test_webhook_processor_construct_event_failure(
-        self, mock_construct, mock_verify
-    ):
+    def test_webhook_processor_construct_event_failure(self, mock_construct, mock_verify):
         """Test event construction failure handling"""
         mock_verify.return_value = True
         mock_construct.return_value = {
@@ -772,9 +753,7 @@ class TestWebhookEnhancements:
 
     @patch.object(StripeClient, "verify_webhook_signature")
     @patch.object(StripeClient, "construct_webhook_event")
-    def test_webhook_processor_event_too_old_handling(
-        self, mock_construct, mock_verify
-    ):
+    def test_webhook_processor_event_too_old_handling(self, mock_construct, mock_verify):
         """Test handling of events that are too old"""
         mock_verify.return_value = True
 
@@ -801,9 +780,7 @@ class TestWebhookEnhancements:
     @patch.object(StripeClient, "verify_webhook_signature")
     @patch.object(StripeClient, "construct_webhook_event")
     @patch.object(WebhookProcessor, "_process_event")
-    def test_webhook_processor_event_processing_exception(
-        self, mock_process, mock_construct, mock_verify
-    ):
+    def test_webhook_processor_event_processing_exception(self, mock_process, mock_construct, mock_verify):
         """Test exception handling in event processing"""
         mock_verify.return_value = True
         mock_construct.return_value = {
@@ -848,13 +825,9 @@ class TestWebhookEnhancements:
         processor = WebhookProcessor()
 
         # Test with invalid event data that causes handler to fail
-        with patch(
-            "d7_storefront.webhook_handlers.CheckoutSessionHandler"
-        ) as mock_handler_class:
+        with patch("d7_storefront.webhook_handlers.CheckoutSessionHandler") as mock_handler_class:
             mock_handler = Mock()
-            mock_handler.handle_session_completed.side_effect = Exception(
-                "Handler error"
-            )
+            mock_handler.handle_session_completed.side_effect = Exception("Handler error")
             mock_handler_class.return_value = mock_handler
 
             result = processor._process_event(
@@ -945,10 +918,7 @@ class TestWebhookEnhancements:
         result = handler.handle_payment_succeeded(event_data, "evt_123")
 
         assert result["success"] is True
-        assert (
-            result["data"]["report_generation"]["status"]
-            == ReportGenerationStatus.SKIPPED.value
-        )
+        assert result["data"]["report_generation"]["status"] == ReportGenerationStatus.SKIPPED.value
         assert "No customer email" in result["data"]["report_generation"]["reason"]
 
     def test_payment_intent_handler_no_purchase_id(self):
@@ -968,10 +938,7 @@ class TestWebhookEnhancements:
         result = handler.handle_payment_succeeded(event_data, "evt_123")
 
         assert result["success"] is True
-        assert (
-            result["data"]["report_generation"]["status"]
-            == ReportGenerationStatus.SKIPPED.value
-        )
+        assert result["data"]["report_generation"]["status"] == ReportGenerationStatus.SKIPPED.value
         assert "No purchase ID" in result["data"]["report_generation"]["reason"]
 
     def test_payment_intent_handler_exception_handling(self):
@@ -1055,34 +1022,22 @@ class TestWebhookEnhancements:
             }
         }
 
-        result = handler.handle_invoice_event(
-            "invoice.payment_succeeded", event_data, "evt_123"
-        )
+        result = handler.handle_invoice_event("invoice.payment_succeeded", event_data, "evt_123")
 
         assert result["success"] is True
-        assert (
-            result["data"]["report_generation"]["status"]
-            == ReportGenerationStatus.SKIPPED.value
-        )
+        assert result["data"]["report_generation"]["status"] == ReportGenerationStatus.SKIPPED.value
 
     def test_invoice_handler_unknown_event_type(self):
         """Test invoice handler with unknown event type"""
         handler = InvoiceHandler(StripeClient())
 
-        event_data = {
-            "object": {"id": "in_test_123", "customer": "cus_test_123", "metadata": {}}
-        }
+        event_data = {"object": {"id": "in_test_123", "customer": "cus_test_123", "metadata": {}}}
 
-        result = handler.handle_invoice_event(
-            "invoice.unknown_event", event_data, "evt_123"
-        )
+        result = handler.handle_invoice_event("invoice.unknown_event", event_data, "evt_123")
 
         assert result["success"] is True
         assert result["data"]["action"] == "unknown"
-        assert (
-            result["data"]["report_generation"]["status"]
-            == ReportGenerationStatus.SKIPPED.value
-        )
+        assert result["data"]["report_generation"]["status"] == ReportGenerationStatus.SKIPPED.value
 
     def test_invoice_handler_exception_handling(self):
         """Test invoice handler exception handling"""
@@ -1100,9 +1055,7 @@ class TestWebhookEnhancements:
                 }
             }
 
-            result = handler.handle_invoice_event(
-                "invoice.payment_succeeded", event_data, "evt_123"
-            )
+            result = handler.handle_invoice_event("invoice.payment_succeeded", event_data, "evt_123")
 
             assert result["success"] is False
             assert result["status"] == WebhookStatus.FAILED.value
@@ -1145,9 +1098,7 @@ class TestWebhookEnhancements:
             "item_count": "3",
         }
 
-        result = handler._trigger_report_generation(
-            "purchase_123", "test@example.com", metadata
-        )
+        result = handler._trigger_report_generation("purchase_123", "test@example.com", metadata)
 
         assert result["success"] is True
         assert result["status"] == ReportGenerationStatus.TRIGGERED.value
@@ -1162,9 +1113,7 @@ class TestWebhookEnhancements:
             "item_count": "1",
         }
 
-        result = handler._trigger_report_generation(
-            "purchase_123", "test@example.com", metadata
-        )
+        result = handler._trigger_report_generation("purchase_123", "test@example.com", metadata)
 
         assert result["success"] is True
         assert result["report_type"] == "single"
@@ -1178,9 +1127,7 @@ class TestWebhookEnhancements:
         with patch("d7_storefront.webhook_handlers.datetime") as mock_datetime:
             mock_datetime.utcnow.side_effect = Exception("Time error")
 
-            result = handler._trigger_report_generation(
-                "purchase_123", "test@example.com", {}
-            )
+            result = handler._trigger_report_generation("purchase_123", "test@example.com", {})
 
             assert result["success"] is False
             assert result["status"] == ReportGenerationStatus.FAILED.value
@@ -1264,9 +1211,7 @@ class TestWebhookEnhancements:
 
         metadata = {"campaign": "test", "priority": "high"}
 
-        request = format_report_generation_request(
-            "purchase_123", "test@example.com", business_info, metadata
-        )
+        request = format_report_generation_request("purchase_123", "test@example.com", business_info, metadata)
 
         assert request["purchase_id"] == "purchase_123"
         assert request["customer_email"] == "test@example.com"
@@ -1277,9 +1222,7 @@ class TestWebhookEnhancements:
 
         # Test single URL (should be "single" type)
         business_info["urls"] = ["https://single.com"]
-        request = format_report_generation_request(
-            "purchase_123", "test@example.com", business_info, metadata
-        )
+        request = format_report_generation_request("purchase_123", "test@example.com", business_info, metadata)
         assert request["report_type"] == "single"
 
     def test_webhook_constants_and_configuration(self):
@@ -1307,11 +1250,7 @@ class TestWebhookEnhancements:
         assert WEBHOOK_RESPONSE_CODES["MALFORMED_REQUEST"] == 400
 
         # Test webhook configuration from webhooks.py
-        from d7_storefront.webhooks import (
-            WEBHOOK_CONFIG,
-            WEBHOOK_ENDPOINTS,
-            WEBHOOK_EVENTS_TO_SUBSCRIBE,
-        )
+        from d7_storefront.webhooks import WEBHOOK_CONFIG, WEBHOOK_ENDPOINTS, WEBHOOK_EVENTS_TO_SUBSCRIBE
 
         assert "PRODUCTION" in WEBHOOK_ENDPOINTS
         assert "checkout.session.completed" in WEBHOOK_EVENTS_TO_SUBSCRIBE
@@ -1332,27 +1271,12 @@ class TestWebhookEnhancements:
     def test_webhook_event_type_enum(self):
         """Test WebhookEventType enum"""
         # Test all event types are defined
-        assert (
-            WebhookEventType.CHECKOUT_SESSION_COMPLETED.value
-            == "checkout.session.completed"
-        )
-        assert (
-            WebhookEventType.CHECKOUT_SESSION_EXPIRED.value
-            == "checkout.session.expired"
-        )
-        assert (
-            WebhookEventType.PAYMENT_INTENT_SUCCEEDED.value
-            == "payment_intent.succeeded"
-        )
-        assert (
-            WebhookEventType.PAYMENT_INTENT_FAILED.value
-            == "payment_intent.payment_failed"
-        )
+        assert WebhookEventType.CHECKOUT_SESSION_COMPLETED.value == "checkout.session.completed"
+        assert WebhookEventType.CHECKOUT_SESSION_EXPIRED.value == "checkout.session.expired"
+        assert WebhookEventType.PAYMENT_INTENT_SUCCEEDED.value == "payment_intent.succeeded"
+        assert WebhookEventType.PAYMENT_INTENT_FAILED.value == "payment_intent.payment_failed"
         assert WebhookEventType.CUSTOMER_CREATED.value == "customer.created"
-        assert (
-            WebhookEventType.INVOICE_PAYMENT_SUCCEEDED.value
-            == "invoice.payment_succeeded"
-        )
+        assert WebhookEventType.INVOICE_PAYMENT_SUCCEEDED.value == "invoice.payment_succeeded"
         assert WebhookEventType.INVOICE_PAYMENT_FAILED.value == "invoice.payment_failed"
 
         # Test enum membership

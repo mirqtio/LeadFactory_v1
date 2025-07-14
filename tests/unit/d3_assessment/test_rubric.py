@@ -17,32 +17,16 @@ def test_visual_cta_below_fold():
 def test_performance_severity():
     """Test performance metric severity mappings."""
     # Page load time
-    assert (
-        map_severity("performance", {"name": "page_load_time", "value": 2.5}) == 1
-    )  # < 3s
-    assert (
-        map_severity("performance", {"name": "page_load_time", "value": 4.0}) == 2
-    )  # 3-5s
-    assert (
-        map_severity("performance", {"name": "page_load_time", "value": 7.0}) == 3
-    )  # 5-10s
-    assert (
-        map_severity("performance", {"name": "page_load_time", "value": 12.0}) == 4
-    )  # > 10s
+    assert map_severity("performance", {"name": "page_load_time", "value": 2.5}) == 1  # < 3s
+    assert map_severity("performance", {"name": "page_load_time", "value": 4.0}) == 2  # 3-5s
+    assert map_severity("performance", {"name": "page_load_time", "value": 7.0}) == 3  # 5-10s
+    assert map_severity("performance", {"name": "page_load_time", "value": 12.0}) == 4  # > 10s
 
     # Mobile score (inverse - lower is worse)
-    assert (
-        map_severity("performance", {"name": "mobile_score", "value": 85}) == 1
-    )  # > 70
-    assert (
-        map_severity("performance", {"name": "mobile_score", "value": 60}) == 2
-    )  # 50-70
-    assert (
-        map_severity("performance", {"name": "mobile_score", "value": 40}) == 3
-    )  # 30-50
-    assert (
-        map_severity("performance", {"name": "mobile_score", "value": 25}) == 4
-    )  # < 30
+    assert map_severity("performance", {"name": "mobile_score", "value": 85}) == 1  # > 70
+    assert map_severity("performance", {"name": "mobile_score", "value": 60}) == 2  # 50-70
+    assert map_severity("performance", {"name": "mobile_score", "value": 40}) == 3  # 30-50
+    assert map_severity("performance", {"name": "mobile_score", "value": 25}) == 4  # < 30
 
 
 def test_seo_severity():

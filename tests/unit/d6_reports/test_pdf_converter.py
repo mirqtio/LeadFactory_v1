@@ -24,33 +24,21 @@ pytestmark = pytest.mark.slow
 
 # Import the modules to test
 try:
-    from d6_reports.pdf_converter import (
-        PDFConverter,
-        PDFOptions,
-        PDFResult,
-        html_to_pdf,
-        save_html_as_pdf,
-    )
     from d6_reports import pdf_converter as pdf_converter_module
+    from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult, html_to_pdf, save_html_as_pdf
 except ImportError:
-    import sys
     import os
+    import sys
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-    from d6_reports.pdf_converter import (
-        PDFConverter,
-        PDFOptions,
-        PDFResult,
-        html_to_pdf,
-        save_html_as_pdf,
-    )
     from d6_reports import pdf_converter as pdf_converter_module
+    from d6_reports.pdf_converter import PDFConverter, PDFOptions, PDFResult, html_to_pdf, save_html_as_pdf
 
 # Import additional classes
 try:
-    from d6_reports.pdf_converter import PDFOptimizer, ConcurrencyManager
+    from d6_reports.pdf_converter import ConcurrencyManager, PDFOptimizer
 except ImportError:
-    from d6_reports.pdf_converter import PDFOptimizer, ConcurrencyManager
+    from d6_reports.pdf_converter import ConcurrencyManager, PDFOptimizer
 
 
 class TestPDFOptions:
@@ -229,9 +217,7 @@ class TestPDFOptimizer:
 
     def test_optimize_html_with_existing_head(self):
         """Test optimization with existing head tag"""
-        html_content = (
-            "<html><head><title>Test</title></head><body><h1>Test</h1></body></html>"
-        )
+        html_content = "<html><head><title>Test</title></head><body><h1>Test</h1></body></html>"
         optimized = PDFOptimizer.optimize_html_for_pdf(html_content)
 
         # Should preserve existing head content
@@ -296,9 +282,7 @@ class TestPDFConverter:
         # Mock Playwright as None
         with patch.object(pdf_converter_module, "async_playwright", None):
             converter = PDFConverter()
-            result = await converter.convert_html_to_pdf(
-                "<html><body>Test</body></html>"
-            )
+            result = await converter.convert_html_to_pdf("<html><body>Test</body></html>")
 
             assert result.success is False
             assert "Playwright not available" in result.error_message
@@ -323,15 +307,11 @@ class TestPDFConverter:
         mock_playwright_ctx = AsyncMock()
         mock_playwright_ctx.start.return_value = mock_playwright
 
-        with patch.object(
-            pdf_converter_module, "async_playwright"
-        ) as mock_async_playwright:
+        with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
             mock_async_playwright.return_value = mock_playwright_ctx
 
             async with PDFConverter() as converter:
-                result = await converter.convert_html_to_pdf(
-                    "<html><body>Test</body></html>"
-                )
+                result = await converter.convert_html_to_pdf("<html><body>Test</body></html>")
 
                 assert result.success is True
                 assert result.pdf_data == mock_pdf_data
@@ -359,17 +339,13 @@ class TestPDFConverter:
         mock_playwright_ctx = AsyncMock()
         mock_playwright_ctx.start.return_value = mock_playwright
 
-        with patch.object(
-            pdf_converter_module, "async_playwright"
-        ) as mock_async_playwright:
+        with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
             mock_async_playwright.return_value = mock_playwright_ctx
 
             options = PDFOptions(format="Letter", landscape=True)
 
             async with PDFConverter() as converter:
-                result = await converter.convert_html_to_pdf(
-                    "<html><body>Test</body></html>", options=options
-                )
+                result = await converter.convert_html_to_pdf("<html><body>Test</body></html>", options=options)
 
                 assert result.success is True
 
@@ -393,15 +369,11 @@ class TestPDFConverter:
         mock_playwright_ctx = AsyncMock()
         mock_playwright_ctx.start.return_value = mock_playwright
 
-        with patch.object(
-            pdf_converter_module, "async_playwright"
-        ) as mock_async_playwright:
+        with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
             mock_async_playwright.return_value = mock_playwright_ctx
 
             async with PDFConverter() as converter:
-                result = await converter.convert_html_to_pdf(
-                    "<html><body>Test</body></html>"
-                )
+                result = await converter.convert_html_to_pdf("<html><body>Test</body></html>")
 
                 assert result.success is False
                 assert "PDF generation failed" in result.error_message
@@ -423,9 +395,7 @@ class TestPDFConverter:
         mock_playwright_ctx = AsyncMock()
         mock_playwright_ctx.start.return_value = mock_playwright
 
-        with patch.object(
-            pdf_converter_module, "async_playwright"
-        ) as mock_async_playwright:
+        with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
             mock_async_playwright.return_value = mock_playwright_ctx
 
             html_contents = [
@@ -475,9 +445,7 @@ class TestPDFConverter:
             mock_playwright_ctx = AsyncMock()
             mock_playwright_ctx.start.return_value = mock_playwright
 
-            with patch.object(
-                pdf_converter_module, "async_playwright"
-            ) as mock_async_playwright:
+            with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
                 mock_async_playwright.return_value = mock_playwright_ctx
 
                 async with PDFConverter() as converter:
@@ -501,10 +469,7 @@ class TestPDFConverter:
         result = await converter.convert_html_file_to_pdf("/nonexistent/file.html")
 
         assert result.success is False
-        assert (
-            "No such file or directory" in result.error_message
-            or "cannot find" in result.error_message.lower()
-        )
+        assert "No such file or directory" in result.error_message or "cannot find" in result.error_message.lower()
 
     @pytest.mark.asyncio
     async def test_convert_url_to_pdf_mocked(self):
@@ -523,9 +488,7 @@ class TestPDFConverter:
         mock_playwright_ctx = AsyncMock()
         mock_playwright_ctx.start.return_value = mock_playwright
 
-        with patch.object(
-            pdf_converter_module, "async_playwright"
-        ) as mock_async_playwright:
+        with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
             mock_async_playwright.return_value = mock_playwright_ctx
 
             async with PDFConverter() as converter:
@@ -535,9 +498,7 @@ class TestPDFConverter:
                 assert result.pdf_data == mock_pdf_data
 
                 # Verify URL navigation was called
-                mock_page.goto.assert_called_once_with(
-                    "https://example.com", wait_until="networkidle"
-                )
+                mock_page.goto.assert_called_once_with("https://example.com", wait_until="networkidle")
 
 
 class TestUtilityFunctions:
@@ -560,9 +521,7 @@ class TestUtilityFunctions:
         mock_playwright_ctx = AsyncMock()
         mock_playwright_ctx.start.return_value = mock_playwright
 
-        with patch.object(
-            pdf_converter_module, "async_playwright"
-        ) as mock_async_playwright:
+        with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
             mock_async_playwright.return_value = mock_playwright_ctx
 
             result = await html_to_pdf("<html><body>Test</body></html>")
@@ -587,9 +546,7 @@ class TestUtilityFunctions:
         mock_playwright_ctx = AsyncMock()
         mock_playwright_ctx.start.return_value = mock_playwright
 
-        with patch.object(
-            pdf_converter_module, "async_playwright"
-        ) as mock_async_playwright:
+        with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
             mock_async_playwright.return_value = mock_playwright_ctx
 
             # Create temporary output file
@@ -597,9 +554,7 @@ class TestUtilityFunctions:
                 output_path = f.name
 
             try:
-                success = await save_html_as_pdf(
-                    "<html><body>Test</body></html>", output_path
-                )
+                success = await save_html_as_pdf("<html><body>Test</body></html>", output_path)
 
                 assert success is True
 
@@ -619,9 +574,7 @@ class TestUtilityFunctions:
         """Test save_html_as_pdf when conversion fails"""
         # Mock failed conversion
         with patch.object(pdf_converter_module, "async_playwright", None):
-            success = await save_html_as_pdf(
-                "<html><body>Test</body></html>", "/tmp/test.pdf"
-            )
+            success = await save_html_as_pdf("<html><body>Test</body></html>", "/tmp/test.pdf")
 
             assert success is False
 
@@ -651,18 +604,13 @@ class TestConcurrencyIntegration:
         mock_playwright_ctx = AsyncMock()
         mock_playwright_ctx.start.return_value = mock_playwright
 
-        with patch.object(
-            pdf_converter_module, "async_playwright"
-        ) as mock_async_playwright:
+        with patch.object(pdf_converter_module, "async_playwright") as mock_async_playwright:
             mock_async_playwright.return_value = mock_playwright_ctx
 
             # Create converter with max 2 concurrent operations
             async with PDFConverter(max_concurrent=2) as converter:
                 # Start 4 conversions simultaneously
-                tasks = [
-                    converter.convert_html_to_pdf(f"<html><body>Test {i}</body></html>")
-                    for i in range(4)
-                ]
+                tasks = [converter.convert_html_to_pdf(f"<html><body>Test {i}</body></html>") for i in range(4)]
 
                 # Track active count during execution
                 start_time = datetime.now()

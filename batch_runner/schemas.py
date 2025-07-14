@@ -5,14 +5,15 @@ Provides request/response schemas with comprehensive validation
 for batch processing operations.
 """
 from datetime import datetime
-from typing import List, Optional, Dict, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
 
 class BatchStatusEnum(str, Enum):
     """Batch processing status values"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -22,6 +23,7 @@ class BatchStatusEnum(str, Enum):
 
 class LeadProcessingStatusEnum(str, Enum):
     """Individual lead processing status values"""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -32,7 +34,7 @@ class LeadProcessingStatusEnum(str, Enum):
 # Base schemas
 class BaseResponseSchema(BaseModel):
     """Base response schema with common fields"""
-    
+
     class Config:
         from_attributes = True
 
@@ -40,27 +42,29 @@ class BaseResponseSchema(BaseModel):
 # Request schemas
 class CreateBatchSchema(BaseModel):
     """Schema for creating batch cost preview"""
+
     lead_ids: List[str] = Field(..., min_items=1, max_items=1000, description="List of lead IDs to process")
     template_version: str = Field(default="v1", description="Report template version")
-    
-    @validator('lead_ids')
+
+    @validator("lead_ids")
     def validate_lead_ids(cls, v):
         """Validate lead IDs format"""
         if not v:
             raise ValueError("At least one lead ID is required")
-        
+
         if len(v) > 1000:
             raise ValueError("Maximum 1000 leads per batch")
-        
+
         # Check for duplicates
         if len(v) != len(set(v)):
             raise ValueError("Duplicate lead IDs are not allowed")
-        
+
         return v
 
 
 class StartBatchSchema(BaseModel):
     """Schema for starting batch processing"""
+
     lead_ids: List[str] = Field(..., min_items=1, max_items=1000)
     name: Optional[str] = Field(None, max_length=255, description="Batch name")
     description: Optional[str] = Field(None, max_length=1000, description="Batch description")
@@ -71,28 +75,29 @@ class StartBatchSchema(BaseModel):
     retry_failed: bool = Field(True, description="Whether to retry failed leads")
     retry_count: Optional[int] = Field(3, ge=0, le=5, description="Maximum retry attempts")
     created_by: Optional[str] = Field(None, description="User who created the batch")
-    
-    @validator('lead_ids')
+
+    @validator("lead_ids")
     def validate_lead_ids(cls, v):
         """Validate lead IDs format"""
         if len(v) > 1000:
             raise ValueError("Maximum 1000 leads per batch")
-        
+
         if len(v) != len(set(v)):
             raise ValueError("Duplicate lead IDs are not allowed")
-        
+
         return v
 
 
 class BatchFilterSchema(BaseModel):
     """Schema for filtering batch list"""
+
     status: Optional[List[str]] = Field(None, description="Filter by batch status")
     created_by: Optional[str] = Field(None, description="Filter by creator")
     template_version: Optional[str] = Field(None, description="Filter by template version")
     created_after: Optional[datetime] = Field(None, description="Filter by creation date")
     created_before: Optional[datetime] = Field(None, description="Filter by creation date")
-    
-    @validator('status')
+
+    @validator("status")
     def validate_status(cls, v):
         """Validate status values"""
         if v:
@@ -105,6 +110,7 @@ class BatchFilterSchema(BaseModel):
 
 class PaginationSchema(BaseModel):
     """Schema for pagination parameters"""
+
     skip: int = Field(0, ge=0, description="Number of records to skip")
     limit: int = Field(50, ge=1, le=200, description="Number of records to return")
 
@@ -112,6 +118,7 @@ class PaginationSchema(BaseModel):
 # Response schemas
 class BatchPreviewSchema(BaseModel):
     """Schema for batch cost preview response"""
+
     lead_count: int = Field(description="Number of leads to process")
     valid_lead_ids: List[str] = Field(description="Valid lead IDs found")
     template_version: str = Field(description="Report template version")
@@ -127,6 +134,7 @@ class BatchPreviewSchema(BaseModel):
 
 class BatchResponseSchema(BaseModel):
     """Schema for batch processing response"""
+
     id: str = Field(description="Batch ID")
     name: Optional[str] = Field(description="Batch name")
     description: Optional[str] = Field(description="Batch description")
@@ -145,13 +153,14 @@ class BatchResponseSchema(BaseModel):
     completed_at: Optional[datetime] = Field(description="Completion timestamp")
     created_by: Optional[str] = Field(description="User who created the batch")
     error_message: Optional[str] = Field(description="Error message if failed")
-    
+
     class Config:
         from_attributes = True
 
 
 class BatchStatusResponseSchema(BaseModel):
     """Schema for detailed batch status response"""
+
     batch_id: str = Field(description="Batch ID")
     status: str = Field(description="Current status")
     progress_percentage: float = Field(description="Progress percentage")
@@ -171,6 +180,7 @@ class BatchStatusResponseSchema(BaseModel):
 
 class BatchListResponseSchema(BaseModel):
     """Schema for batch list response"""
+
     batches: List[BatchResponseSchema] = Field(description="List of batches")
     total_count: int = Field(description="Total number of batches")
     page_info: Dict[str, Any] = Field(description="Pagination information")
@@ -178,6 +188,7 @@ class BatchListResponseSchema(BaseModel):
 
 class LeadResultSchema(BaseModel):
     """Schema for individual lead processing result"""
+
     lead_id: str = Field(description="Lead ID")
     status: str = Field(description="Processing status")
     report_url: Optional[str] = Field(None, description="Generated report URL")
@@ -192,6 +203,7 @@ class LeadResultSchema(BaseModel):
 
 class WebSocketMessageSchema(BaseModel):
     """Schema for WebSocket progress messages"""
+
     type: str = Field(description="Message type")
     batch_id: str = Field(description="Batch ID")
     timestamp: str = Field(description="Message timestamp")
@@ -208,6 +220,7 @@ class WebSocketMessageSchema(BaseModel):
 
 class ErrorResponseSchema(BaseModel):
     """Schema for error responses"""
+
     error: str = Field(description="Error type")
     message: str = Field(description="Error message")
     details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
@@ -215,6 +228,7 @@ class ErrorResponseSchema(BaseModel):
 
 class ValidationErrorSchema(BaseModel):
     """Schema for validation error responses"""
+
     error: str = Field(default="VALIDATION_ERROR", description="Error type")
     message: str = Field(description="Validation error message")
     validation_errors: List[Dict[str, str]] = Field(description="Detailed validation errors")
@@ -222,6 +236,7 @@ class ValidationErrorSchema(BaseModel):
 
 class HealthCheckResponseSchema(BaseModel):
     """Schema for health check response"""
+
     status: str = Field(default="ok", description="Service status")
     timestamp: datetime = Field(description="Health check timestamp")
     database: str = Field(default="connected", description="Database status")
@@ -230,6 +245,7 @@ class HealthCheckResponseSchema(BaseModel):
 
 class BatchAnalyticsSchema(BaseModel):
     """Schema for batch analytics response"""
+
     period_days: int = Field(description="Analysis period in days")
     start_date: str = Field(description="Analysis start date")
     statistics: Dict[str, float] = Field(description="Aggregate statistics")
@@ -241,6 +257,7 @@ class BatchAnalyticsSchema(BaseModel):
 
 class CostBreakdownSchema(BaseModel):
     """Schema for detailed cost breakdown"""
+
     base_cost: float = Field(description="Base report generation cost")
     provider_costs: float = Field(description="Total provider costs")
     subtotal: float = Field(description="Subtotal before discounts")
@@ -253,6 +270,7 @@ class CostBreakdownSchema(BaseModel):
 
 class ProviderBreakdownSchema(BaseModel):
     """Schema for provider-specific cost breakdown"""
+
     leads_processed: int = Field(description="Number of leads processed by this provider")
     cost_per_lead: float = Field(description="Cost per lead for this provider")
     total_cost: float = Field(description="Total cost for this provider")
@@ -260,6 +278,7 @@ class ProviderBreakdownSchema(BaseModel):
 
 class BatchConfigurationSchema(BaseModel):
     """Schema for batch processing configuration"""
+
     max_concurrent_leads: int = Field(default=5, ge=1, le=20, description="Maximum concurrent processing")
     timeout_seconds: int = Field(default=30, ge=10, le=300, description="Processing timeout per lead")
     retry_failed_leads: bool = Field(default=True, description="Whether to retry failed leads")
@@ -270,6 +289,7 @@ class BatchConfigurationSchema(BaseModel):
 
 class BatchSummarySchema(BaseModel):
     """Schema for batch completion summary"""
+
     batch_id: str = Field(description="Batch ID")
     total_leads: int = Field(description="Total leads processed")
     successful_leads: int = Field(description="Successfully processed leads")

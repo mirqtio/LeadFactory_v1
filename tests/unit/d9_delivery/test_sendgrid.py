@@ -128,9 +128,7 @@ class TestSendGridClient:
         """Test successful email sending"""
 
         with patch.dict("os.environ", {"SENDGRID_API_KEY": "test_key"}):
-            with patch(
-                "d9_delivery.sendgrid_client.get_gateway_facade"
-            ) as mock_get_facade:
+            with patch("d9_delivery.sendgrid_client.get_gateway_facade") as mock_get_facade:
                 mock_facade = AsyncMock()
                 mock_get_facade.return_value = mock_facade
 
@@ -157,16 +155,12 @@ class TestSendGridClient:
         """Test rate limit handling"""
 
         with patch.dict("os.environ", {"SENDGRID_API_KEY": "test_key"}):
-            with patch(
-                "d9_delivery.sendgrid_client.get_gateway_facade"
-            ) as mock_get_facade:
+            with patch("d9_delivery.sendgrid_client.get_gateway_facade") as mock_get_facade:
                 mock_facade = AsyncMock()
                 mock_get_facade.return_value = mock_facade
 
                 # Mock gateway to raise RateLimitError
-                mock_facade.send_email.side_effect = RateLimitError(
-                    provider="SendGrid", retry_after=60
-                )
+                mock_facade.send_email.side_effect = RateLimitError(provider="SendGrid", retry_after=60)
 
                 client = SendGridClient()
 
@@ -181,16 +175,12 @@ class TestSendGridClient:
         """Test API error handling"""
 
         with patch.dict("os.environ", {"SENDGRID_API_KEY": "test_key"}):
-            with patch(
-                "d9_delivery.sendgrid_client.get_gateway_facade"
-            ) as mock_get_facade:
+            with patch("d9_delivery.sendgrid_client.get_gateway_facade") as mock_get_facade:
                 mock_facade = AsyncMock()
                 mock_get_facade.return_value = mock_facade
 
                 # Mock gateway to raise ExternalAPIError
-                error = ExternalAPIError(
-                    provider="SendGrid", message="Bad request", status_code=400
-                )
+                error = ExternalAPIError(provider="SendGrid", message="Bad request", status_code=400)
                 mock_facade.send_email.side_effect = error
 
                 client = SendGridClient()
@@ -222,9 +212,7 @@ class TestSendGridClient:
             # Mock successful responses
             mock_responses = []
             for i in range(3):
-                response = SendGridResponse(
-                    success=True, message_id=f"msg_{i}", status_code=202
-                )
+                response = SendGridResponse(success=True, message_id=f"msg_{i}", status_code=202)
                 mock_responses.append(response)
 
             with patch.object(client, "send_email", side_effect=mock_responses):
@@ -241,9 +229,7 @@ class TestSendGridClient:
         """Test API key validation"""
 
         with patch.dict("os.environ", {"SENDGRID_API_KEY": "test_key"}):
-            with patch(
-                "d9_delivery.sendgrid_client.get_gateway_facade"
-            ) as mock_get_facade:
+            with patch("d9_delivery.sendgrid_client.get_gateway_facade") as mock_get_facade:
                 mock_facade = AsyncMock()
                 mock_get_facade.return_value = mock_facade
 
@@ -504,9 +490,7 @@ class TestUtilityFunctions:
             mock_client.__aenter__.return_value = mock_client
             mock_client.send_email.return_value = mock_response
 
-            with patch(
-                "d9_delivery.sendgrid_client.SendGridClient", return_value=mock_client
-            ):
+            with patch("d9_delivery.sendgrid_client.SendGridClient", return_value=mock_client):
                 response = await send_single_email(
                     to_email="test@example.com",
                     subject="Test Subject",
@@ -663,9 +647,7 @@ class TestSendGridResponse:
     def test_sendgrid_response_error(self):
         """Test error SendGridResponse"""
 
-        response = SendGridResponse(
-            success=False, error_message="API Error", status_code=400
-        )
+        response = SendGridResponse(success=False, error_message="API Error", status_code=400)
 
         assert response.success is False
         assert response.error_message == "API Error"

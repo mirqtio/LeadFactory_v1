@@ -21,17 +21,8 @@ pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from d10_analytics.aggregators import (
-    CostAnalyzer,
-    DailyMetricsAggregator,
-    FunnelCalculator,
-)
-from d10_analytics.models import (
-    EventType,
-    FunnelEvent,
-    FunnelStage,
-    MetricSnapshot,
-)
+from d10_analytics.aggregators import CostAnalyzer, DailyMetricsAggregator, FunnelCalculator
+from d10_analytics.models import EventType, FunnelEvent, FunnelStage, MetricSnapshot
 from d10_analytics.warehouse import (
     MetricsWarehouse,
     MetricsWarehouseConfig,
@@ -79,9 +70,7 @@ class TestMetricsWarehouse:
         events = []
 
         # Create events across different stages
-        for i, stage in enumerate(
-            [FunnelStage.TARGETING, FunnelStage.ASSESSMENT, FunnelStage.SCORING]
-        ):
+        for i, stage in enumerate([FunnelStage.TARGETING, FunnelStage.ASSESSMENT, FunnelStage.SCORING]):
             for j in range(10):
                 event = FunnelEvent(
                     funnel_stage=stage,
@@ -93,9 +82,7 @@ class TestMetricsWarehouse:
                     duration_ms=1000 + (j * 100),
                     cost_cents=50 + (j * 10),
                     success=j % 4 != 0,  # 75% success rate
-                    occurred_at=datetime.combine(
-                        target_date, datetime.min.time()
-                    ).replace(tzinfo=timezone.utc),
+                    occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc),
                 )
                 events.append(event)
                 db_session.add(event)
@@ -109,9 +96,7 @@ class TestMetricsWarehouse:
                 campaign_id=f"campaign_{k % 2}",
                 session_id=f"session_conversion_{k}",
                 event_name=f"conversion_{k}",
-                occurred_at=datetime.combine(target_date, datetime.min.time()).replace(
-                    tzinfo=timezone.utc
-                ),
+                occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc),
             )
             events.append(conversion_event)
             db_session.add(conversion_event)
@@ -132,9 +117,7 @@ class TestMetricsWarehouse:
         print("✓ Warehouse initialization works")
 
     @pytest.mark.asyncio
-    async def test_build_daily_metrics(
-        self, warehouse, db_session, sample_funnel_events
-    ):
+    async def test_build_daily_metrics(self, warehouse, db_session, sample_funnel_events):
         """Test daily metrics building - Daily metrics built"""
         target_date = date(2025, 6, 9)
 
@@ -153,19 +136,13 @@ class TestMetricsWarehouse:
         assert result.error_message is None
 
         # Verify metrics were created in database
-        metrics_count = (
-            db_session.query(MetricSnapshot)
-            .filter(MetricSnapshot.period_date == target_date)
-            .count()
-        )
+        metrics_count = db_session.query(MetricSnapshot).filter(MetricSnapshot.period_date == target_date).count()
         assert metrics_count > 0
 
         print("✓ Daily metrics building works")
 
     @pytest.mark.asyncio
-    async def test_calculate_funnel_metrics(
-        self, warehouse, db_session, sample_funnel_events
-    ):
+    async def test_calculate_funnel_metrics(self, warehouse, db_session, sample_funnel_events):
         """Test funnel calculations - Funnel calculations"""
         start_date = date(2025, 6, 9)
         end_date = date(2025, 6, 9)
@@ -209,9 +186,7 @@ class TestMetricsWarehouse:
         print("✓ Cost analysis works")
 
     @pytest.mark.asyncio
-    async def test_build_segment_breakdowns(
-        self, warehouse, db_session, sample_funnel_events
-    ):
+    async def test_build_segment_breakdowns(self, warehouse, db_session, sample_funnel_events):
         """Test segment breakdowns - Segment breakdowns"""
         start_date = date(2025, 6, 9)
         end_date = date(2025, 6, 9)
@@ -222,9 +197,7 @@ class TestMetricsWarehouse:
             mock_get_db.return_value.__exit__.return_value = None
 
             # Build segment breakdowns
-            result = await warehouse.build_segment_breakdowns(
-                start_date, end_date, segments
-            )
+            result = await warehouse.build_segment_breakdowns(start_date, end_date, segments)
 
         # Verify result
         assert result.status == WarehouseJobStatus.COMPLETED
@@ -243,9 +216,7 @@ class TestMetricsWarehouse:
 
         # Mock the build_daily_metrics method
         warehouse.build_daily_metrics = AsyncMock()
-        warehouse.build_daily_metrics.return_value = Mock(
-            status=WarehouseJobStatus.COMPLETED, metrics_processed=10
-        )
+        warehouse.build_daily_metrics.return_value = Mock(status=WarehouseJobStatus.COMPLETED, metrics_processed=10)
 
         # Backfill metrics
         results = await warehouse.backfill_metrics(start_date, end_date)
@@ -323,9 +294,7 @@ class TestMetricsWarehouse:
 
         # Mock a failing aggregator
         warehouse.daily_aggregator.build_funnel_metrics = AsyncMock()
-        warehouse.daily_aggregator.build_funnel_metrics.side_effect = Exception(
-            "Test error"
-        )
+        warehouse.daily_aggregator.build_funnel_metrics.side_effect = Exception("Test error")
 
         with patch("d10_analytics.warehouse.get_db_session") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = db_session
@@ -372,9 +341,7 @@ class TestDailyMetricsAggregator:
             event_name="test_event",
             duration_ms=1000,
             success=True,
-            occurred_at=datetime.combine(target_date, datetime.min.time()).replace(
-                tzinfo=timezone.utc
-            ),
+            occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc),
         )
         db_session.add(event)
         db_session.commit()
@@ -420,18 +387,14 @@ class TestFunnelCalculator:
                 event_type=EventType.ENTRY,
                 session_id="session_1",
                 event_name="targeting_entry",
-                occurred_at=datetime.combine(start_date, datetime.min.time()).replace(
-                    tzinfo=timezone.utc
-                ),
+                occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
             ),
             FunnelEvent(
                 funnel_stage=FunnelStage.ASSESSMENT,
                 event_type=EventType.ENTRY,
                 session_id="session_1",
                 event_name="assessment_entry",
-                occurred_at=datetime.combine(start_date, datetime.min.time()).replace(
-                    tzinfo=timezone.utc
-                ),
+                occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
             ),
         ]
 
@@ -440,9 +403,7 @@ class TestFunnelCalculator:
         db_session.commit()
 
         # Calculate conversions
-        conversions = await calculator.calculate_stage_conversions(
-            db_session, start_date, end_date
-        )
+        conversions = await calculator.calculate_stage_conversions(db_session, start_date, end_date)
 
         # Verify conversions
         assert isinstance(conversions, list)
@@ -482,9 +443,7 @@ class TestCostAnalyzer:
             business_id="business_1",
             event_name="test_event",
             cost_cents=100,
-            occurred_at=datetime.combine(start_date, datetime.min.time()).replace(
-                tzinfo=timezone.utc
-            ),
+            occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
         )
         db_session.add(event)
         db_session.commit()
@@ -511,9 +470,7 @@ class TestUtilityFunctions:
         with patch("d10_analytics.warehouse.MetricsWarehouse") as mock_warehouse_class:
             mock_warehouse = Mock()
             mock_warehouse.build_daily_metrics = AsyncMock()
-            mock_warehouse.build_daily_metrics.return_value = Mock(
-                status=WarehouseJobStatus.COMPLETED
-            )
+            mock_warehouse.build_daily_metrics.return_value = Mock(status=WarehouseJobStatus.COMPLETED)
             mock_warehouse_class.return_value = mock_warehouse
 
             # Call utility function

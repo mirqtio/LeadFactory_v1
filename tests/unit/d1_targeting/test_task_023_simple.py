@@ -17,11 +17,7 @@ pytestmark = pytest.mark.slow
 sys.path.insert(0, "/app")
 
 from d1_targeting.api import router
-from d1_targeting.schemas import (
-    CreateTargetUniverseSchema,
-    GeographicConstraintSchema,
-    TargetingCriteriaSchema,
-)
+from d1_targeting.schemas import CreateTargetUniverseSchema, GeographicConstraintSchema, TargetingCriteriaSchema
 from d1_targeting.types import GeographyLevel, VerticalMarket
 
 
@@ -40,9 +36,7 @@ class TestTask023AcceptanceCriteriaSimple:
         expected_paths = ["/universes", "/campaigns", "/batches", "/health"]
 
         for expected_path in expected_paths:
-            assert any(
-                expected_path in path for path in route_paths
-            ), f"Missing route: {expected_path}"
+            assert any(expected_path in path for path in route_paths), f"Missing route: {expected_path}"
 
         print("✓ FastAPI routes work")
 
@@ -50,9 +44,7 @@ class TestTask023AcceptanceCriteriaSimple:
         """Test that validation is complete and working"""
 
         # Test valid geographic constraint
-        valid_constraint = GeographicConstraintSchema(
-            level=GeographyLevel.STATE, values=["CA", "NY"]
-        )
+        valid_constraint = GeographicConstraintSchema(level=GeographyLevel.STATE, values=["CA", "NY"])
         assert valid_constraint.level == GeographyLevel.STATE
         assert valid_constraint.values == ["CA", "NY"]
 
@@ -97,11 +89,7 @@ class TestTask023AcceptanceCriteriaSimple:
                 name="",  # Empty name should fail
                 targeting_criteria=TargetingCriteriaSchema(
                     verticals=[VerticalMarket.RESTAURANTS],
-                    geographic_constraints=[
-                        GeographicConstraintSchema(
-                            level=GeographyLevel.STATE, values=["CA"]
-                        )
-                    ],
+                    geographic_constraints=[GeographicConstraintSchema(level=GeographyLevel.STATE, values=["CA"])],
                 ),
             )
 
@@ -129,9 +117,7 @@ class TestTask023AcceptanceCriteriaSimple:
         ]
 
         for endpoint in expected_endpoints:
-            assert any(
-                endpoint in path for path in route_paths
-            ), f"Missing endpoint: {endpoint}"
+            assert any(endpoint in path for path in route_paths), f"Missing endpoint: {endpoint}"
 
         # Test that schemas have proper annotations for documentation
         assert hasattr(CreateTargetUniverseSchema, "__annotations__")
@@ -144,9 +130,7 @@ class TestTask023AcceptanceCriteriaSimple:
         """Test that schema structure is complete"""
 
         # Test that key schemas exist and can be imported
-        from d1_targeting.schemas import (
-            CreateTargetUniverseSchema,
-        )
+        from d1_targeting.schemas import CreateTargetUniverseSchema
 
         # Test that schemas have proper field types
         universe_schema = CreateTargetUniverseSchema
@@ -273,9 +257,7 @@ class TestTask023AcceptanceCriteriaSimple:
         # Test that enums work in schema validation
         criteria = TargetingCriteriaSchema(
             verticals=[VerticalMarket.RESTAURANTS, VerticalMarket.RETAIL],
-            geographic_constraints=[
-                GeographicConstraintSchema(level=GeographyLevel.STATE, values=["CA"])
-            ],
+            geographic_constraints=[GeographicConstraintSchema(level=GeographyLevel.STATE, values=["CA"])],
         )
         assert len(criteria.verticals) == 2
 

@@ -1,10 +1,11 @@
 """Omega (online dependence) calculator for impact scaling."""
-import yaml
 import ast
 import operator
-from pathlib import Path
-from typing import Dict, Any, Optional
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import yaml
 
 # Define allowed operators for safe evaluation
 ALLOWED_OPS = {

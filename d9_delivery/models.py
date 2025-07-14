@@ -128,9 +128,7 @@ class EmailDelivery(Base):
     text_content = Column(Text, nullable=True)
 
     # Delivery tracking
-    status = Column(
-        String(50), nullable=False, default=DeliveryStatus.PENDING.value, index=True
-    )
+    status = Column(String(50), nullable=False, default=DeliveryStatus.PENDING.value, index=True)
 
     # SendGrid integration
     sendgrid_message_id = Column(String(255), nullable=True, index=True)
@@ -153,9 +151,7 @@ class EmailDelivery(Base):
     # Business context
     business_id = Column(String(255), nullable=True, index=True)  # Associated business
     campaign_id = Column(String(255), nullable=True, index=True)  # Campaign tracking
-    personalization_id = Column(
-        String(255), nullable=True, index=True
-    )  # Personalization reference
+    personalization_id = Column(String(255), nullable=True, index=True)  # Personalization reference
 
     # Cost tracking
     estimated_cost = Column(Float, nullable=True, default=0.0)
@@ -166,12 +162,8 @@ class EmailDelivery(Base):
     max_retries = Column(Integer, nullable=False, default=3)
 
     # Relationships
-    bounce_tracking = relationship(
-        "BounceTracking", back_populates="email_delivery", uselist=False
-    )
-    delivery_events = relationship(
-        "DeliveryEvent", back_populates="email_delivery", cascade="all, delete-orphan"
-    )
+    bounce_tracking = relationship("BounceTracking", back_populates="email_delivery", uselist=False)
+    delivery_events = relationship("DeliveryEvent", back_populates="email_delivery", cascade="all, delete-orphan")
 
     # Indexes for performance
     __table_args__ = (
@@ -215,9 +207,7 @@ class EmailDelivery(Base):
             "custom_args": self.custom_args,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "sent_at": self.sent_at.isoformat() if self.sent_at else None,
-            "delivered_at": self.delivered_at.isoformat()
-            if self.delivered_at
-            else None,
+            "delivered_at": self.delivered_at.isoformat() if self.delivered_at else None,
             "business_id": self.business_id,
             "campaign_id": self.campaign_id,
             "personalization_id": self.personalization_id,
@@ -242,18 +232,12 @@ class BounceTracking(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Associated email delivery
-    email_delivery_id = Column(
-        Integer, ForeignKey("email_deliveries.id"), nullable=False, index=True
-    )
+    email_delivery_id = Column(Integer, ForeignKey("email_deliveries.id"), nullable=False, index=True)
 
     # Bounce details
-    bounce_type = Column(
-        String(50), nullable=False, index=True
-    )  # soft, hard, block, spam
+    bounce_type = Column(String(50), nullable=False, index=True)  # soft, hard, block, spam
     bounce_reason = Column(String(255), nullable=True)
-    bounce_classification = Column(
-        String(100), nullable=True
-    )  # SendGrid classification
+    bounce_classification = Column(String(100), nullable=True)  # SendGrid classification
 
     # Email address that bounced
     email = Column(String(255), nullable=False, index=True)
@@ -334,9 +318,7 @@ class SuppressionList(Base):
 
     # Management fields
     is_active = Column(Boolean, nullable=False, default=True, index=True)
-    expires_at = Column(
-        DateTime(timezone=True), nullable=True, index=True
-    )  # Optional expiration
+    expires_at = Column(DateTime(timezone=True), nullable=True, index=True)  # Optional expiration
 
     # Administrative
     created_by = Column(String(255), nullable=True)  # User/system that added
@@ -391,9 +373,7 @@ class DeliveryEvent(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Associated email delivery
-    email_delivery_id = Column(
-        Integer, ForeignKey("email_deliveries.id"), nullable=False, index=True
-    )
+    email_delivery_id = Column(Integer, ForeignKey("email_deliveries.id"), nullable=False, index=True)
 
     # Event details
     event_type = Column(String(50), nullable=False, index=True)

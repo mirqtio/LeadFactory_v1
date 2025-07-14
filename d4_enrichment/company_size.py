@@ -1,7 +1,8 @@
 """Company size utility functions for enrichment."""
-import pandas as pd
-from pathlib import Path
 from functools import lru_cache
+from pathlib import Path
+
+import pandas as pd
 
 
 @lru_cache(maxsize=1)

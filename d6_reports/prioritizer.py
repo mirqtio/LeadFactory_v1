@@ -70,9 +70,7 @@ class FindingPrioritizer:
         self.top_issues_count = top_issues_count
         self.max_quick_wins = max_quick_wins
 
-        logger.info(
-            f"Initialized FindingPrioritizer with top_issues_count={top_issues_count}"
-        )
+        logger.info(f"Initialized FindingPrioritizer with top_issues_count={top_issues_count}")
 
     def prioritize_findings(
         self,
@@ -112,9 +110,7 @@ class FindingPrioritizer:
                 scored_finding = self.scorer.score_finding(finding)
                 scored_findings.append(scored_finding)
             except Exception as e:
-                logger.error(
-                    f"Failed to score finding {finding.get('id', 'unknown')}: {e}"
-                )
+                logger.error(f"Failed to score finding {finding.get('id', 'unknown')}: {e}")
                 continue
 
         logger.info(f"Successfully scored {len(scored_findings)} findings")
@@ -143,15 +139,12 @@ class FindingPrioritizer:
         )
 
         logger.info(
-            f"Prioritization complete: {len(top_issues)} top issues, "
-            f"{len(quick_wins)} quick wins identified"
+            f"Prioritization complete: {len(top_issues)} top issues, " f"{len(quick_wins)} quick wins identified"
         )
 
         return result
 
-    def _extract_findings(
-        self, assessment_results: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def _extract_findings(self, assessment_results: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Extract findings from various assessment result formats"""
         findings = []
 
@@ -177,9 +170,7 @@ class FindingPrioritizer:
 
         return findings
 
-    def _extract_pagespeed_findings(
-        self, pagespeed_data: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def _extract_pagespeed_findings(self, pagespeed_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Extract findings from PageSpeed Insights data"""
         findings = []
 
@@ -193,28 +184,18 @@ class FindingPrioritizer:
                     "id": f"pagespeed_{audit_id}",
                     "title": audit_data.get("title", audit_id),
                     "category": self._categorize_pagespeed_audit(audit_id),
-                    "severity": self._pagespeed_score_to_severity(
-                        audit_data.get("score", 1.0)
-                    ),
+                    "severity": self._pagespeed_score_to_severity(audit_data.get("score", 1.0)),
                     "fix_type": self._pagespeed_audit_to_fix_type(audit_id),
                     "description": audit_data.get("description", ""),
-                    "impact_factors": self._get_pagespeed_impact_factors(
-                        audit_id, audit_data
-                    ),
-                    "effort_factors": self._get_pagespeed_effort_factors(
-                        audit_id, audit_data
-                    ),
-                    "conversion_factors": self._get_pagespeed_conversion_factors(
-                        audit_id, audit_data
-                    ),
+                    "impact_factors": self._get_pagespeed_impact_factors(audit_id, audit_data),
+                    "effort_factors": self._get_pagespeed_effort_factors(audit_id, audit_data),
+                    "conversion_factors": self._get_pagespeed_conversion_factors(audit_id, audit_data),
                 }
                 findings.append(finding)
 
         return findings
 
-    def _extract_ai_insights_findings(
-        self, ai_insights: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def _extract_ai_insights_findings(self, ai_insights: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Extract findings from AI insights data"""
         findings = []
 
@@ -235,9 +216,7 @@ class FindingPrioritizer:
 
         return findings
 
-    def _extract_tech_stack_findings(
-        self, tech_stack: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def _extract_tech_stack_findings(self, tech_stack: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Extract findings from tech stack analysis"""
         findings = []
 
@@ -308,18 +287,14 @@ class FindingPrioritizer:
 
         return findings
 
-    def _select_top_issues(
-        self, scored_findings: List[FindingScore]
-    ) -> List[FindingScore]:
+    def _select_top_issues(self, scored_findings: List[FindingScore]) -> List[FindingScore]:
         """
         Select top issues based on priority score
 
         Acceptance Criteria: Top 3 issues selected
         """
         # Filter out quick wins to avoid overlap
-        non_quick_win_findings = [
-            f for f in scored_findings if not f.is_quick_win or f.priority_score >= 8.5
-        ]
+        non_quick_win_findings = [f for f in scored_findings if not f.is_quick_win or f.priority_score >= 8.5]
 
         # Ensure diversity in categories
         top_issues = []
@@ -340,16 +315,12 @@ class FindingPrioritizer:
         # If we still need more, fill from remaining high-scoring findings
         remaining_needed = self.top_issues_count - len(top_issues)
         if remaining_needed > 0:
-            remaining_findings = [f for f in scored_findings if f not in top_issues][
-                :remaining_needed
-            ]
+            remaining_findings = [f for f in scored_findings if f not in top_issues][:remaining_needed]
             top_issues.extend(remaining_findings)
 
         return top_issues[: self.top_issues_count]
 
-    def _identify_quick_wins(
-        self, scored_findings: List[FindingScore]
-    ) -> List[FindingScore]:
+    def _identify_quick_wins(self, scored_findings: List[FindingScore]) -> List[FindingScore]:
         """
         Identify quick wins based on high impact and low effort
 
@@ -375,16 +346,12 @@ class FindingPrioritizer:
         # Calculate averages
         avg_impact = sum(f.impact_score for f in all_findings) / len(all_findings)
         avg_effort = sum(f.effort_score for f in all_findings) / len(all_findings)
-        avg_conversion_impact = sum(f.conversion_impact for f in all_findings) / len(
-            all_findings
-        )
+        avg_conversion_impact = sum(f.conversion_impact for f in all_findings) / len(all_findings)
 
         # Count by category
         category_counts = {}
         for finding in all_findings:
-            category_counts[finding.category] = (
-                category_counts.get(finding.category, 0) + 1
-            )
+            category_counts[finding.category] = category_counts.get(finding.category, 0) + 1
 
         # Count by impact level
         impact_levels = {
@@ -403,19 +370,13 @@ class FindingPrioritizer:
             "average_conversion_impact": round(avg_conversion_impact, 2),
             "findings_by_category": category_counts,
             "findings_by_impact_level": impact_levels,
-            "highest_impact_finding": max(
-                all_findings, key=lambda x: x.impact_score
-            ).title,
-            "easiest_quick_win": min(quick_wins, key=lambda x: x.effort_score).title
-            if quick_wins
-            else None,
+            "highest_impact_finding": max(all_findings, key=lambda x: x.impact_score).title,
+            "easiest_quick_win": min(quick_wins, key=lambda x: x.effort_score).title if quick_wins else None,
         }
 
     def _empty_result(self) -> PrioritizationResult:
         """Return empty result when no findings are available"""
-        return PrioritizationResult(
-            top_issues=[], quick_wins=[], all_findings=[], summary={"total_findings": 0}
-        )
+        return PrioritizationResult(top_issues=[], quick_wins=[], all_findings=[], summary={"total_findings": 0})
 
     # Helper methods for PageSpeed categorization
     def _categorize_pagespeed_audit(self, audit_id: str) -> str:
@@ -482,9 +443,7 @@ class FindingPrioritizer:
         else:
             return "html_structure"
 
-    def _get_pagespeed_impact_factors(
-        self, audit_id: str, audit_data: Dict
-    ) -> Dict[str, bool]:
+    def _get_pagespeed_impact_factors(self, audit_id: str, audit_data: Dict) -> Dict[str, bool]:
         """Get impact factors for PageSpeed audit"""
         core_vitals = [
             "first-contentful-paint",
@@ -495,15 +454,12 @@ class FindingPrioritizer:
 
         return {
             "affects_core_web_vitals": audit_id in core_vitals,
-            "above_the_fold": audit_id
-            in ["first-contentful-paint", "largest-contentful-paint"],
+            "above_the_fold": audit_id in ["first-contentful-paint", "largest-contentful-paint"],
             "mobile_specific": False,  # Would need mobile-specific data
             "affects_forms": audit_id in ["color-contrast", "label", "button-name"],
         }
 
-    def _get_pagespeed_effort_factors(
-        self, audit_id: str, audit_data: Dict
-    ) -> Dict[str, Any]:
+    def _get_pagespeed_effort_factors(self, audit_id: str, audit_data: Dict) -> Dict[str, Any]:
         """Get effort factors for PageSpeed audit"""
         easy_fixes = ["image-alt", "meta-description", "document-title"]
         automated_fixes = ["uses-optimized-images", "uses-webp-images"]
@@ -516,9 +472,7 @@ class FindingPrioritizer:
             "requires_third_party": False,
         }
 
-    def _get_pagespeed_conversion_factors(
-        self, audit_id: str, audit_data: Dict
-    ) -> Dict[str, bool]:
+    def _get_pagespeed_conversion_factors(self, audit_id: str, audit_data: Dict) -> Dict[str, bool]:
         """Get conversion factors for PageSpeed audit"""
         performance_critical = [
             "first-contentful-paint",

@@ -5,26 +5,9 @@ Based on PRD specifications for all domains (D0-D11)
 import enum
 import uuid
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    TIMESTAMP,
-    Boolean,
-    CheckConstraint,
-    Column,
-    Date,
-)
+from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint, Column, Date
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import (
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    Numeric,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import Float, ForeignKey, Index, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -86,9 +69,7 @@ class GatewayUsage(Base):
     error_message = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now())
 
-    __table_args__ = (
-        Index("idx_gateway_usage_provider_created", "provider", "created_at"),
-    )
+    __table_args__ = (Index("idx_gateway_usage_provider_created", "provider", "created_at"),)
 
 
 class GatewayRateLimit(Base):
@@ -116,12 +97,8 @@ class Target(Base):
     created_at = Column(TIMESTAMP, server_default=func.now())
 
     # Bucket columns for targeting intelligence (Phase 0.5)
-    geo_bucket = Column(
-        String(80), nullable=True, index=True
-    )  # {affluence}-{density}-{broadband}
-    vert_bucket = Column(
-        String(80), nullable=True, index=True
-    )  # {urgency}-{ticket}-{maturity}
+    geo_bucket = Column(String(80), nullable=True, index=True)  # {affluence}-{density}-{broadband}
+    vert_bucket = Column(String(80), nullable=True, index=True)  # {urgency}-{ticket}-{maturity}
 
     # Relationships
     batches = relationship("Batch", back_populates="target")
@@ -177,12 +154,8 @@ class Business(Base):
     categories = Column(JSON)
 
     # Bucket columns for targeting intelligence (Phase 0.5)
-    geo_bucket = Column(
-        String(80), nullable=True, index=True
-    )  # {affluence}-{density}-{broadband}
-    vert_bucket = Column(
-        String(80), nullable=True, index=True
-    )  # {urgency}-{ticket}-{maturity}
+    geo_bucket = Column(String(80), nullable=True, index=True)  # {affluence}-{density}-{broadband}
+    vert_bucket = Column(String(80), nullable=True, index=True)  # {urgency}-{ticket}-{maturity}
 
     # PRD v1.2 additions
     domain_hash = Column(Text, nullable=True, index=True)
@@ -374,16 +347,12 @@ class APICost(Base):
     id = Column(Integer, primary_key=True)
     provider = Column(String(50), nullable=False)  # dataaxle, hunter, openai, etc.
     operation = Column(String(100), nullable=False)  # match_business, find_email, etc.
-    lead_id = Column(
-        Integer, nullable=True
-    )  # ForeignKey("dim_lead.id", ondelete="CASCADE") when lead table exists
+    lead_id = Column(Integer, nullable=True)  # ForeignKey("dim_lead.id", ondelete="CASCADE") when lead table exists
     campaign_id = Column(
         Integer, nullable=True
     )  # ForeignKey("dim_campaign.id", ondelete="CASCADE") when campaign table exists
     cost_usd = Column(Numeric(10, 4), nullable=False)
-    timestamp = Column(
-        TIMESTAMP(timezone=True), server_default=func.now(), nullable=False
-    )
+    timestamp = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     request_id = Column(String(100))  # For correlation with provider logs
     meta_data = Column(JSON)  # Additional context (e.g., match confidence)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
@@ -416,9 +385,7 @@ class DailyCostAggregate(Base):
     total_cost_usd = Column(Numeric(10, 4), nullable=False)
     request_count = Column(Integer, nullable=False, default=0)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-    updated_at = Column(
-        TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships (commented out until Campaign model exists)
     # campaign = relationship("Campaign", backref="daily_costs")
@@ -438,14 +405,16 @@ class DailyCostAggregate(Base):
 # Lead Explorer models - added for P0-021
 class EnrichmentStatus(str, enum.Enum):
     """Status of lead enrichment process"""
+
     PENDING = "pending"
-    IN_PROGRESS = "in_progress" 
+    IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
 
 
 class AuditAction(str, enum.Enum):
     """Types of audit actions"""
+
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
@@ -453,84 +422,83 @@ class AuditAction(str, enum.Enum):
 
 class Lead(Base):
     """Lead model for managing prospect data with enrichment tracking."""
+
     __tablename__ = "leads"
-    
+
     # Primary identification
     id = Column(String, primary_key=True, default=generate_uuid)
-    
+
     # Core lead data
     email = Column(String(255), nullable=True, index=True)
     domain = Column(String(255), nullable=True, index=True)
     company_name = Column(String(500), nullable=True)
     contact_name = Column(String(255), nullable=True)
-    
+
     # Enrichment tracking
     enrichment_status = Column(
-        DatabaseAgnosticEnum(EnrichmentStatus),
-        nullable=False,
-        default=EnrichmentStatus.PENDING,
-        index=True
+        DatabaseAgnosticEnum(EnrichmentStatus), nullable=False, default=EnrichmentStatus.PENDING, index=True
     )
     enrichment_task_id = Column(String(255), nullable=True, index=True)
     enrichment_error = Column(Text, nullable=True)
-    
+
     # Metadata
     is_manual = Column(Boolean, nullable=False, default=False, index=True)
     source = Column(String(100), nullable=True)
-    
+
     # Soft delete
     is_deleted = Column(Boolean, nullable=False, default=False, index=True)
-    
+
     # Timestamps
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now(), index=True)
     updated_at = Column(TIMESTAMP, nullable=False, server_default=func.now(), onupdate=func.now())
     deleted_at = Column(TIMESTAMP, nullable=True)
-    
+
     # User tracking
     created_by = Column(String(255), nullable=True)
     updated_by = Column(String(255), nullable=True)
     deleted_by = Column(String(255), nullable=True)
-    
+
     # Additional indexes for performance
     __table_args__ = (
-        Index('ix_leads_email_domain', 'email', 'domain'),
-        Index('ix_leads_enrichment_lookup', 'enrichment_status', 'enrichment_task_id'),
-        Index('ix_leads_active_manual', 'is_deleted', 'is_manual'),
-        Index('ix_leads_created_status', 'created_at', 'enrichment_status'),
-        UniqueConstraint('email', name='uq_leads_email'),
-        UniqueConstraint('domain', name='uq_leads_domain'),
+        Index("ix_leads_email_domain", "email", "domain"),
+        Index("ix_leads_enrichment_lookup", "enrichment_status", "enrichment_task_id"),
+        Index("ix_leads_active_manual", "is_deleted", "is_manual"),
+        Index("ix_leads_created_status", "created_at", "enrichment_status"),
+        UniqueConstraint("email", name="uq_leads_email"),
+        UniqueConstraint("domain", name="uq_leads_domain"),
     )
 
 
 class AuditLogLead(Base):
     """Immutable audit log for all Lead mutations."""
+
     __tablename__ = "audit_log_leads"
-    
+
     # Primary key
     id = Column(String, primary_key=True, default=generate_uuid)
-    
+
     # Reference to the lead
     lead_id = Column(String, nullable=False, index=True)
-    
+
     # Audit metadata
     action = Column(SQLEnum(AuditAction), nullable=False, index=True)
     timestamp = Column(TIMESTAMP, nullable=False, server_default=func.now(), index=True)
-    
+
     # User context
     user_id = Column(String(255), nullable=True)
     user_ip = Column(String(45), nullable=True)
     user_agent = Column(String(500), nullable=True)
-    
+
     # Change data
     old_values = Column(Text, nullable=True)
     new_values = Column(Text, nullable=True)
-    
+
     # Tamper detection
     checksum = Column(String(64), nullable=False)
-    
+
     # Performance indexes
     __table_args__ = (
-        Index('ix_audit_leads_lead_id_timestamp', 'lead_id', 'timestamp'),
-        Index('ix_audit_leads_action_timestamp', 'action', 'timestamp'),
-        Index('ix_audit_leads_user_timestamp', 'user_id', 'timestamp'),
+        Index("ix_audit_leads_lead_id_timestamp", "lead_id", "timestamp"),
+        Index("ix_audit_leads_action_timestamp", "action", "timestamp"),
+        Index("ix_audit_leads_user_timestamp", "user_id", "timestamp"),
     )

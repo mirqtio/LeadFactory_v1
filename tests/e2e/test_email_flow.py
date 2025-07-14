@@ -32,9 +32,7 @@ from database.models import Email, EmailClick, EmailSuppression
 
 
 @pytest.mark.e2e
-def test_personalization_works(
-    test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor
-):
+def test_personalization_works(test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor):
     """Personalization works - Email content generation and personalization functionality"""
 
     # Create test business for personalization
@@ -74,19 +72,15 @@ def test_personalization_works(
 
     # Test content quality
     assert not any(
-        spam_word in personalized_content["subject"].lower()
-        for spam_word in ["urgent", "limited time", "act now"]
+        spam_word in personalized_content["subject"].lower() for spam_word in ["urgent", "limited time", "act now"]
     )
     assert not any(
-        spam_word in personalized_content["body"].lower()
-        for spam_word in ["guaranteed", "risk-free", "no obligation"]
+        spam_word in personalized_content["body"].lower() for spam_word in ["guaranteed", "risk-free", "no obligation"]
     )
 
 
 @pytest.mark.e2e
-def test_sendgrid_integration(
-    test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor
-):
+def test_sendgrid_integration(test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor):
     """SendGrid integration - Integration with SendGrid email service provider"""
 
     test_business = sample_yelp_businesses[0]
@@ -151,9 +145,7 @@ def test_sendgrid_integration(
 
 
 @pytest.mark.e2e
-def test_compliance_verified(
-    test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor
-):
+def test_compliance_verified(test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor):
     """Compliance verified - Email compliance requirements (CAN-SPAM, unsubscribe, etc.)"""
 
     test_business = sample_yelp_businesses[0]
@@ -204,43 +196,29 @@ def test_compliance_verified(
     import hashlib
 
     email_hash = hashlib.sha256(unsubscribe_data["email"].lower().encode()).hexdigest()
-    suppression = EmailSuppression(
-        email_hash=email_hash, reason=unsubscribe_data["reason"], source="email_test"
-    )
+    suppression = EmailSuppression(email_hash=email_hash, reason=unsubscribe_data["reason"], source="email_test")
     test_db_session.add(suppression)
     test_db_session.commit()
 
     # Test suppression list checking
-    suppressed_emails = (
-        test_db_session.query(EmailSuppression).filter_by(email_hash=email_hash).all()
-    )
+    suppressed_emails = test_db_session.query(EmailSuppression).filter_by(email_hash=email_hash).all()
     assert len(suppressed_emails) > 0
     assert suppressed_emails[0].reason == "user_request"
 
     # Test bounce handling
-    bounce_email_hash = hashlib.sha256(
-        "bounce@example.com".lower().encode()
-    ).hexdigest()
-    bounce_suppression = EmailSuppression(
-        email_hash=bounce_email_hash, reason="User unknown", source="bounce_handler"
-    )
+    bounce_email_hash = hashlib.sha256("bounce@example.com".lower().encode()).hexdigest()
+    bounce_suppression = EmailSuppression(email_hash=bounce_email_hash, reason="User unknown", source="bounce_handler")
     test_db_session.add(bounce_suppression)
     test_db_session.commit()
 
     # Verify bounce is handled
-    bounced_emails = (
-        test_db_session.query(EmailSuppression)
-        .filter_by(email_hash=bounce_email_hash)
-        .all()
-    )
+    bounced_emails = test_db_session.query(EmailSuppression).filter_by(email_hash=bounce_email_hash).all()
     assert len(bounced_emails) > 0
     assert bounced_emails[0].reason == "User unknown"
 
 
 @pytest.mark.e2e
-def test_tracking_confirmed(
-    test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor
-):
+def test_tracking_confirmed(test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor):
     """Tracking confirmed - Email delivery tracking and metrics collection"""
 
     test_business = sample_yelp_businesses[0]
@@ -281,9 +259,7 @@ def test_tracking_confirmed(
     test_db_session.commit()
 
     # Verify click tracking
-    recorded_clicks = (
-        test_db_session.query(EmailClick).filter_by(email_id=test_email.id).all()
-    )
+    recorded_clicks = test_db_session.query(EmailClick).filter_by(email_id=test_email.id).all()
     assert len(recorded_clicks) >= 1
     assert recorded_clicks[0].url == "https://leadfactory.ai/demo"
     assert recorded_clicks[0].ip_address == "192.168.1.100"
@@ -291,30 +267,13 @@ def test_tracking_confirmed(
     # Test delivery metrics calculation
     from database.models import EmailStatus
 
-    campaign_emails = (
-        test_db_session.query(Email).filter(Email.business_id == test_business.id).all()
-    )
+    campaign_emails = test_db_session.query(Email).filter(Email.business_id == test_business.id).all()
 
     sent_count = len(
-        [
-            e
-            for e in campaign_emails
-            if e.status in [EmailStatus.SENT, EmailStatus.OPENED, EmailStatus.CLICKED]
-        ]
+        [e for e in campaign_emails if e.status in [EmailStatus.SENT, EmailStatus.OPENED, EmailStatus.CLICKED]]
     )
-    opened_count = len(
-        [
-            e
-            for e in campaign_emails
-            if e.status in [EmailStatus.OPENED, EmailStatus.CLICKED]
-        ]
-    )
-    clicked_count = (
-        test_db_session.query(EmailClick)
-        .join(Email)
-        .filter(Email.business_id == test_business.id)
-        .count()
-    )
+    opened_count = len([e for e in campaign_emails if e.status in [EmailStatus.OPENED, EmailStatus.CLICKED]])
+    clicked_count = test_db_session.query(EmailClick).join(Email).filter(Email.business_id == test_business.id).count()
 
     # Calculate rates
     open_rate = (opened_count / sent_count * 100) if sent_count > 0 else 0

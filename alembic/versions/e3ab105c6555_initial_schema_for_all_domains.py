@@ -58,9 +58,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("yelp_id"),
     )
     op.create_index("idx_business_created", "businesses", ["created_at"], unique=False)
-    op.create_index(
-        "idx_business_vertical_city", "businesses", ["vertical", "city"], unique=False
-    )
+    op.create_index("idx_business_vertical_city", "businesses", ["vertical", "city"], unique=False)
     op.create_table(
         "email_suppressions",
         sa.Column("email_hash", sa.String(length=64), nullable=False),
@@ -160,9 +158,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("flow_run_id"),
     )
-    op.create_index(
-        "idx_pipeline_run_created", "pipeline_runs", ["created_at"], unique=False
-    )
+    op.create_index("idx_pipeline_run_created", "pipeline_runs", ["created_at"], unique=False)
     op.create_table(
         "targets",
         sa.Column("id", sa.String(), nullable=False),
@@ -256,9 +252,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("target_id", "batch_date"),
     )
-    op.create_index(
-        "idx_batch_date_status", "batches", ["batch_date", "status"], unique=False
-    )
+    op.create_index("idx_batch_date_status", "batches", ["batch_date", "status"], unique=False)
     op.create_table(
         "emails",
         sa.Column("id", sa.String(), nullable=False),
@@ -347,9 +341,7 @@ def upgrade() -> None:
         sa.Column("attribution_metadata", sa.JSON(), nullable=True),
         sa.Column(
             "status",
-            sa.Enum(
-                "PENDING", "COMPLETED", "REFUNDED", "FAILED", name="purchasestatus"
-            ),
+            sa.Enum("PENDING", "COMPLETED", "REFUNDED", "FAILED", name="purchasestatus"),
             nullable=True,
         ),
         sa.Column("completed_at", sa.TIMESTAMP(), nullable=True),

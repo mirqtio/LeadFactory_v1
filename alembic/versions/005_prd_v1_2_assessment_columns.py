@@ -8,9 +8,10 @@ Adds columns for new assessment stack:
 - domain_hash and phone_hash to businesses
 - New assessment data columns to assessment_results
 """
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "005"
@@ -25,7 +26,7 @@ def upgrade():
     dialect_name = bind.dialect.name
 
     # Use appropriate JSON type based on database
-    if dialect_name == 'postgresql':
+    if dialect_name == "postgresql":
         json_type = postgresql.JSONB(astext_type=sa.Text())
     else:
         # For SQLite and other databases, use Text type
@@ -42,9 +43,7 @@ def upgrade():
     )
     op.add_column(
         "assessment_results",
-        sa.Column(
-            "semrush_json", json_type, nullable=True
-        ),
+        sa.Column("semrush_json", json_type, nullable=True),
     )
     op.add_column(
         "assessment_results",
@@ -52,40 +51,28 @@ def upgrade():
     )
     op.add_column(
         "assessment_results",
-        sa.Column(
-            "gbp_profile_json", json_type, nullable=True
-        ),
+        sa.Column("gbp_profile_json", json_type, nullable=True),
     )
-    op.add_column(
-        "assessment_results", sa.Column("screenshot_url", sa.Text(), nullable=True)
-    )
+    op.add_column("assessment_results", sa.Column("screenshot_url", sa.Text(), nullable=True))
     op.add_column(
         "assessment_results",
         sa.Column("screenshot_thumb_url", sa.Text(), nullable=True),
     )
     op.add_column(
         "assessment_results",
-        sa.Column(
-            "visual_scores_json", json_type, nullable=True
-        ),
+        sa.Column("visual_scores_json", json_type, nullable=True),
     )
     op.add_column(
         "assessment_results",
-        sa.Column(
-            "visual_warnings", json_type, nullable=True
-        ),
+        sa.Column("visual_warnings", json_type, nullable=True),
     )
     op.add_column(
         "assessment_results",
-        sa.Column(
-            "visual_quickwins", json_type, nullable=True
-        ),
+        sa.Column("visual_quickwins", json_type, nullable=True),
     )
 
     # Create index on domain_hash for faster lookups
-    op.create_index(
-        "idx_business_domain_hash", "businesses", ["domain_hash"], unique=False
-    )
+    op.create_index("idx_business_domain_hash", "businesses", ["domain_hash"], unique=False)
 
 
 def downgrade():

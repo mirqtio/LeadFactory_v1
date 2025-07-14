@@ -23,23 +23,13 @@ from .models import ProductType
 class CheckoutItemRequest(BaseModel):
     """Schema for checkout item in API request"""
 
-    product_name: str = Field(
-        ..., min_length=1, max_length=200, description="Name of the product"
-    )
+    product_name: str = Field(..., min_length=1, max_length=200, description="Name of the product")
     amount_usd: Decimal = Field(..., gt=0, le=10000, description="Price in USD")
     quantity: int = Field(default=1, ge=1, le=100, description="Quantity of items")
-    description: Optional[str] = Field(
-        None, max_length=500, description="Product description"
-    )
-    product_type: ProductType = Field(
-        default=ProductType.AUDIT_REPORT, description="Type of product"
-    )
-    business_id: Optional[str] = Field(
-        None, max_length=100, description="Associated business ID"
-    )
-    metadata: Optional[Dict[str, str]] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
+    description: Optional[str] = Field(None, max_length=500, description="Product description")
+    product_type: ProductType = Field(default=ProductType.AUDIT_REPORT, description="Type of product")
+    business_id: Optional[str] = Field(None, max_length=100, description="Associated business ID")
+    metadata: Optional[Dict[str, str]] = Field(default_factory=dict, description="Additional metadata")
 
     @validator("amount_usd")
     def validate_amount(cls, v):
@@ -66,15 +56,9 @@ class CheckoutInitiationRequest(BaseModel):
     """Schema for checkout initiation API request - Acceptance Criteria"""
 
     customer_email: EmailStr = Field(..., description="Customer email address")
-    items: List[CheckoutItemRequest] = Field(
-        ..., min_items=1, max_items=50, description="Items to purchase"
-    )
-    attribution_data: Optional[Dict[str, str]] = Field(
-        default_factory=dict, description="Marketing attribution data"
-    )
-    additional_metadata: Optional[Dict[str, str]] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
+    items: List[CheckoutItemRequest] = Field(..., min_items=1, max_items=50, description="Items to purchase")
+    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Marketing attribution data")
+    additional_metadata: Optional[Dict[str, str]] = Field(default_factory=dict, description="Additional metadata")
     success_url: Optional[str] = Field(None, description="Custom success URL")
     cancel_url: Optional[str] = Field(None, description="Custom cancel URL")
 
@@ -93,9 +77,7 @@ class CheckoutInitiationRequest(BaseModel):
                 if len(key) > 100:
                     raise ValueError(f'Metadata key "{key}" too long (max 100 chars)')
                 if len(str(value)) > 500:
-                    raise ValueError(
-                        f'Metadata value for "{key}" too long (max 500 chars)'
-                    )
+                    raise ValueError(f'Metadata value for "{key}" too long (max 500 chars)')
         return v
 
     class Config:
@@ -283,9 +265,7 @@ class SuccessPageResponse(BaseModel):
     payment_status: Optional[str] = Field(None, description="Payment status")
     items: Optional[List[Dict[str, Any]]] = Field(None, description="Purchased items")
     report_status: Optional[str] = Field(None, description="Report generation status")
-    estimated_delivery: Optional[str] = Field(
-        None, description="Estimated delivery time"
-    )
+    estimated_delivery: Optional[str] = Field(None, description="Estimated delivery time")
     error: Optional[str] = Field(None, description="Error message if failed")
 
     class Config:
@@ -317,12 +297,8 @@ class ErrorResponse(BaseModel):
     error: str = Field(..., description="Error message")
     error_type: str = Field(..., description="Error type/category")
     error_code: Optional[str] = Field(None, description="Specific error code")
-    details: Optional[Dict[str, Any]] = Field(
-        None, description="Additional error details"
-    )
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Error timestamp"
-    )
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
 
     class Config:
         json_schema_extra = {
@@ -345,15 +321,9 @@ class AuditReportCheckoutRequest(BaseModel):
 
     customer_email: EmailStr = Field(..., description="Customer email address")
     business_url: str = Field(..., description="Business website URL to audit")
-    business_name: Optional[str] = Field(
-        None, max_length=200, description="Business name"
-    )
-    amount_usd: Optional[Decimal] = Field(
-        default=Decimal("29.99"), description="Custom amount"
-    )
-    attribution_data: Optional[Dict[str, str]] = Field(
-        default_factory=dict, description="Attribution data"
-    )
+    business_name: Optional[str] = Field(None, max_length=200, description="Business name")
+    amount_usd: Optional[Decimal] = Field(default=Decimal("29.99"), description="Custom amount")
+    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Attribution data")
 
     @validator("business_url")
     def validate_business_url(cls, v):
@@ -383,15 +353,9 @@ class BulkReportsCheckoutRequest(BaseModel):
     """Schema for bulk reports checkout convenience endpoint"""
 
     customer_email: EmailStr = Field(..., description="Customer email address")
-    business_urls: List[str] = Field(
-        ..., min_items=2, max_items=50, description="List of business URLs"
-    )
-    amount_per_report_usd: Optional[Decimal] = Field(
-        default=Decimal("24.99"), description="Price per report"
-    )
-    attribution_data: Optional[Dict[str, str]] = Field(
-        default_factory=dict, description="Attribution data"
-    )
+    business_urls: List[str] = Field(..., min_items=2, max_items=50, description="List of business URLs")
+    amount_per_report_usd: Optional[Decimal] = Field(default=Decimal("24.99"), description="Price per report")
+    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Attribution data")
 
     @validator("business_urls")
     def validate_business_urls(cls, v):
@@ -432,9 +396,7 @@ class APIStatusResponse(BaseModel):
 
     status: str = Field(..., description="API status")
     version: str = Field(..., description="API version")
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Current timestamp"
-    )
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Current timestamp")
     services: Dict[str, str] = Field(..., description="Service status")
 
     class Config:

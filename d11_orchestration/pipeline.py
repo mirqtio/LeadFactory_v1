@@ -71,14 +71,7 @@ except ImportError:
 from core.metrics import MetricsCollector
 
 from .models import PipelineRun, PipelineRunStatus, PipelineType
-from .tasks import (
-    AssessmentTask,
-    DeliveryTask,
-    PersonalizationTask,
-    ScoringTask,
-    SourcingTask,
-    TargetingTask,
-)
+from .tasks import AssessmentTask, DeliveryTask, PersonalizationTask, ScoringTask, SourcingTask, TargetingTask
 
 
 class PipelineOrchestrator:
@@ -183,21 +176,15 @@ async def daily_lead_generation_flow(
     logger.info(f"Starting daily lead generation pipeline for {execution_date.date()}")
 
     # Create pipeline run
-    pipeline_run = await orchestrator.create_pipeline_run(
-        pipeline_name="daily_lead_generation", config=config or {}
-    )
+    pipeline_run = await orchestrator.create_pipeline_run(pipeline_name="daily_lead_generation", config=config or {})
 
     try:
-        await orchestrator.update_pipeline_status(
-            pipeline_run, PipelineRunStatus.RUNNING
-        )
+        await orchestrator.update_pipeline_status(pipeline_run, PipelineRunStatus.RUNNING)
 
         # Task dependencies correct - Execute pipeline stages in order
 
         # Stage 1: Targeting (identify target businesses)
-        targeting_result = await targeting_stage.submit(
-            execution_date=execution_date, config=config
-        )
+        targeting_result = await targeting_stage.submit(execution_date=execution_date, config=config)
 
         # Stage 2: Sourcing (gather business data)
         sourcing_result = await sourcing_stage.submit(
@@ -235,9 +222,7 @@ async def daily_lead_generation_flow(
         )
 
         # Update pipeline success
-        await orchestrator.update_pipeline_status(
-            pipeline_run, PipelineRunStatus.SUCCESS
-        )
+        await orchestrator.update_pipeline_status(pipeline_run, PipelineRunStatus.SUCCESS)
 
         # Aggregate results
         final_result = {
@@ -254,9 +239,7 @@ async def daily_lead_generation_flow(
             },
             "summary": {
                 "businesses_targeted": len(targeting_result.get("businesses", [])),
-                "businesses_sourced": len(
-                    sourcing_result.get("enriched_businesses", [])
-                ),
+                "businesses_sourced": len(sourcing_result.get("enriched_businesses", [])),
                 "businesses_assessed": len(assessment_result.get("assessments", [])),
                 "businesses_scored": len(scoring_result.get("scored_businesses", [])),
                 "reports_personalized": len(personalization_result.get("reports", [])),
@@ -298,9 +281,7 @@ async def daily_lead_generation_flow(
     retry_delay_seconds=60,
     timeout_seconds=1800,  # 30 minutes
 )
-async def targeting_stage(
-    execution_date: datetime, config: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+async def targeting_stage(execution_date: datetime, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Execute targeting stage with error handling and retries"""
 
     logger = get_run_logger()
@@ -308,13 +289,9 @@ async def targeting_stage(
 
     try:
         task_executor = TargetingTask()
-        result = await task_executor.execute(
-            execution_date=execution_date, config=config or {}
-        )
+        result = await task_executor.execute(execution_date=execution_date, config=config or {})
 
-        logger.info(
-            f"Targeting completed: {len(result.get('businesses', []))} businesses"
-        )
+        logger.info(f"Targeting completed: {len(result.get('businesses', []))} businesses")
         return result
 
     except Exception as e:
@@ -341,13 +318,9 @@ async def sourcing_stage(
 
     try:
         task_executor = SourcingTask()
-        result = await task_executor.execute(
-            businesses=businesses, execution_date=execution_date, config=config or {}
-        )
+        result = await task_executor.execute(businesses=businesses, execution_date=execution_date, config=config or {})
 
-        logger.info(
-            f"Sourcing completed: {len(result.get('enriched_businesses', []))} enriched"
-        )
+        logger.info(f"Sourcing completed: {len(result.get('enriched_businesses', []))} enriched")
         return result
 
     except Exception as e:
@@ -374,13 +347,9 @@ async def assessment_stage(
 
     try:
         task_executor = AssessmentTask()
-        result = await task_executor.execute(
-            businesses=businesses, execution_date=execution_date, config=config or {}
-        )
+        result = await task_executor.execute(businesses=businesses, execution_date=execution_date, config=config or {})
 
-        logger.info(
-            f"Assessment completed: {len(result.get('assessments', []))} assessments"
-        )
+        logger.info(f"Assessment completed: {len(result.get('assessments', []))} assessments")
         return result
 
     except Exception as e:
@@ -411,9 +380,7 @@ async def scoring_stage(
             assessments=assessments, execution_date=execution_date, config=config or {}
         )
 
-        logger.info(
-            f"Scoring completed: {len(result.get('scored_businesses', []))} scored"
-        )
+        logger.info(f"Scoring completed: {len(result.get('scored_businesses', []))} scored")
         return result
 
     except Exception as e:
@@ -436,9 +403,7 @@ async def personalization_stage(
     """Execute personalization stage with error handling and retries"""
 
     logger = get_run_logger()
-    logger.info(
-        f"Starting personalization stage for {len(scored_businesses)} businesses"
-    )
+    logger.info(f"Starting personalization stage for {len(scored_businesses)} businesses")
 
     try:
         task_executor = PersonalizationTask()
@@ -448,9 +413,7 @@ async def personalization_stage(
             config=config or {},
         )
 
-        logger.info(
-            f"Personalization completed: {len(result.get('reports', []))} reports"
-        )
+        logger.info(f"Personalization completed: {len(result.get('reports', []))} reports")
         return result
 
     except Exception as e:
@@ -519,9 +482,7 @@ def create_daily_deployment() -> Deployment:
 # Utility functions for pipeline management
 
 
-async def trigger_manual_run(
-    date: Optional[str] = None, config: Optional[Dict[str, Any]] = None
-) -> str:
+async def trigger_manual_run(date: Optional[str] = None, config: Optional[Dict[str, Any]] = None) -> str:
     """Trigger a manual pipeline run"""
 
     flow_run = await daily_lead_generation_flow.submit(date=date, config=config)
@@ -559,9 +520,7 @@ if __name__ == "__main__":
     async def test_pipeline():
         """Test the pipeline locally"""
 
-        result = await daily_lead_generation_flow(
-            config={"environment": "test", "batch_size": 10}
-        )
+        result = await daily_lead_generation_flow(config={"environment": "test", "batch_size": 10})
 
         print(f"Pipeline result: {result}")
 

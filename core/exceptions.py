@@ -86,8 +86,7 @@ class ExternalAPIError(LeadFactoryError):
                 "response_body": response_body,
                 **details,
             },
-            status_code=status_code
-            or 502,  # Use provided status_code or default to Bad Gateway
+            status_code=status_code or 502,  # Use provided status_code or default to Bad Gateway
         )
 
 
@@ -183,9 +182,7 @@ class EmailDeliveryError(LeadFactoryError):
 class AssessmentError(LeadFactoryError):
     """Raised when website assessment fails"""
 
-    def __init__(
-        self, message: str, assessment_type: str, url: Optional[str] = None, **details
-    ):
+    def __init__(self, message: str, assessment_type: str, url: Optional[str] = None, **details):
         super().__init__(
             message=message,
             error_code="ASSESSMENT_ERROR",

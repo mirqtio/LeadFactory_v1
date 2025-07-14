@@ -17,8 +17,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
-from .models import ScoreBreakdown
-from .models import D5ScoringResult
+from .models import D5ScoringResult, ScoreBreakdown
 from .rules_parser import ScoringRulesParser
 from .types import ScoringStatus, ScoringVersion
 
@@ -36,9 +35,7 @@ class ScoringMetrics:
     manual_review_rate: float = 0.0
     average_confidence: float = 0.0
 
-    def add_evaluation(
-        self, execution_time: float, tier: str, requires_review: bool, confidence: float
-    ):
+    def add_evaluation(self, execution_time: float, tier: str, requires_review: bool, confidence: float):
         """Add metrics for a single evaluation"""
         self.total_evaluations += 1
         self.total_execution_time += execution_time
@@ -51,9 +48,7 @@ class ScoringMetrics:
                 (self.manual_review_rate * (self.total_evaluations - 1)) + 1
             ) / self.total_evaluations
         else:
-            self.manual_review_rate = (
-                self.manual_review_rate * (self.total_evaluations - 1)
-            ) / self.total_evaluations
+            self.manual_review_rate = (self.manual_review_rate * (self.total_evaluations - 1)) / self.total_evaluations
 
         self.average_confidence = (
             (self.average_confidence * (self.total_evaluations - 1)) + confidence
@@ -62,11 +57,7 @@ class ScoringMetrics:
     @property
     def average_execution_time(self) -> float:
         """Get average execution time per evaluation"""
-        return (
-            self.total_execution_time / self.total_evaluations
-            if self.total_evaluations > 0
-            else 0.0
-        )
+        return self.total_execution_time / self.total_evaluations if self.total_evaluations > 0 else 0.0
 
 
 class ConfigurableScoringEngine:
@@ -164,29 +155,31 @@ class ConfigurableScoringEngine:
                 component_results[component_name] = component_result
 
                 # Add to weighted total
-                weighted_score = (
-                    component_result["total_points"] * component_result["weight"]
-                )
+                weighted_score = component_result["total_points"] * component_result["weight"]
                 total_weighted_score += weighted_score
                 total_weight += component_result["weight"]
 
             # Calculate overall score (normalized to 0-100)
             max_possible_score = self.rules_parser.engine_config.get("max_score", 100.0)
-            
+
             # Check if there's a formula for overall score calculation
-            if hasattr(self.rules_parser, 'schema') and self.rules_parser.schema and \
-               hasattr(self.rules_parser.schema, 'formulas') and self.rules_parser.schema.formulas:
-                overall_formula = self.rules_parser.schema.formulas.get('weighted_score')
+            if (
+                hasattr(self.rules_parser, "schema")
+                and self.rules_parser.schema
+                and hasattr(self.rules_parser.schema, "formulas")
+                and self.rules_parser.schema.formulas
+            ):
+                overall_formula = self.rules_parser.schema.formulas.get("weighted_score")
                 if overall_formula:
                     from .formula_evaluator import evaluate_formula
+
                     try:
                         # Prepare data for formula
                         formula_data = {
-                            'total_weighted_score': total_weighted_score,
-                            'total_weight': total_weight,
-                            'max_score': max_possible_score,
-                            **{f'component_{k}': v['weighted_score'] 
-                               for k, v in component_results.items()}
+                            "total_weighted_score": total_weighted_score,
+                            "total_weight": total_weight,
+                            "max_score": max_possible_score,
+                            **{f"component_{k}": v["weighted_score"] for k, v in component_results.items()},
                         }
                         overall_score = evaluate_formula(overall_formula, formula_data)
                         if overall_score is None:
@@ -237,18 +230,14 @@ class ConfigurableScoringEngine:
                 "tier": tier,
             }
             requires_manual_review = (
-                self.rules_parser.quality_control.requires_manual_review(
-                    enriched_data, score_result_data
-                )
+                self.rules_parser.quality_control.requires_manual_review(enriched_data, score_result_data)
                 if self.rules_parser.quality_control
                 else False
             )
 
             # Create scoring result
             scoring_result = D5ScoringResult(
-                business_id=business_data.get(
-                    "id", business_data.get("business_id", "unknown")
-                ),
+                business_id=business_data.get("id", business_data.get("business_id", "unknown")),
                 overall_score=Decimal(str(round(overall_score, 2))),
                 tier=tier,
                 confidence=Decimal(str(round(confidence, 2))),
@@ -264,9 +253,7 @@ class ConfigurableScoringEngine:
             # Record metrics
             execution_time = time.time() - start_time
             if self.enable_metrics and self.metrics:
-                self.metrics.add_evaluation(
-                    execution_time, tier, requires_manual_review, confidence
-                )
+                self.metrics.add_evaluation(execution_time, tier, requires_manual_review, confidence)
 
             logger.info(
                 f"Scored business {scoring_result.business_id}: {overall_score:.2f} ({tier}) in {execution_time:.3f}s"
@@ -275,14 +262,10 @@ class ConfigurableScoringEngine:
             return scoring_result
 
         except Exception as e:
-            logger.error(
-                f"Error calculating score for business {business_data.get('id', 'unknown')}: {e}"
-            )
+            logger.error(f"Error calculating score for business {business_data.get('id', 'unknown')}: {e}")
             raise
 
-    def calculate_detailed_score(
-        self, business_data: Dict[str, Any]
-    ) -> Tuple[D5ScoringResult, List[ScoreBreakdown]]:
+    def calculate_detailed_score(self, business_data: Dict[str, Any]) -> Tuple[D5ScoringResult, List[ScoreBreakdown]]:
         """
         Calculate score with detailed component breakdowns
 
@@ -307,28 +290,20 @@ class ConfigurableScoringEngine:
             breakdown = ScoreBreakdown(
                 scoring_result_id=scoring_result.id,
                 component=component_name,
-                component_score=Decimal(
-                    str(round(component_result["total_points"], 2))
-                ),
-                max_possible_score=Decimal(
-                    str(round(component_result["max_points"], 2))
-                ),
+                component_score=Decimal(str(round(component_result["total_points"], 2))),
+                max_possible_score=Decimal(str(round(component_result["max_points"], 2))),
                 weight=Decimal(str(round(component_result["weight"], 2))),
                 raw_value=enriched_data,
                 calculation_method="yaml_rules_evaluation",
                 confidence=Decimal(str(round(component_result["percentage"] / 100, 2))),
-                data_quality=self._assess_component_data_quality(
-                    enriched_data, component_name
-                ),
+                data_quality=self._assess_component_data_quality(enriched_data, component_name),
                 calculation_notes=f"Evaluated {len(component_rules.rules)} rules",
             )
             breakdowns.append(breakdown)
 
         return scoring_result, breakdowns
 
-    def _calculate_confidence(
-        self, data: Dict[str, Any], component_results: Dict[str, Any]
-    ) -> float:
+    def _calculate_confidence(self, data: Dict[str, Any], component_results: Dict[str, Any]) -> float:
         """
         Calculate overall confidence in the scoring result
 
@@ -346,9 +321,7 @@ class ConfigurableScoringEngine:
                 component_performances.append(performance)
 
         avg_component_performance = (
-            sum(component_performances) / len(component_performances)
-            if component_performances
-            else 0.0
+            sum(component_performances) / len(component_performances) if component_performances else 0.0
         )
 
         # Weight data completeness more heavily
@@ -398,9 +371,7 @@ class ConfigurableScoringEngine:
 
         return filled_fields / len(expected_fields)
 
-    def _assess_component_data_quality(
-        self, data: Dict[str, Any], component_name: str
-    ) -> str:
+    def _assess_component_data_quality(self, data: Dict[str, Any], component_name: str) -> str:
         """
         Assess data quality for a specific component
 
@@ -480,9 +451,7 @@ class ConfigurableScoringEngine:
             "average_confidence": self.metrics.average_confidence,
         }
 
-    def test_rules_on_sample_data(
-        self, sample_data_list: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def test_rules_on_sample_data(self, sample_data_list: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Test rules against sample data for validation
 
@@ -505,9 +474,7 @@ class ConfigurableScoringEngine:
                 scoring_result = self.calculate_score(sample_data)
                 execution_time = time.time() - start_time
 
-                tier_counts[scoring_result.tier] = (
-                    tier_counts.get(scoring_result.tier, 0) + 1
-                )
+                tier_counts[scoring_result.tier] = tier_counts.get(scoring_result.tier, 0) + 1
                 total_time += execution_time
 
                 results.append(
@@ -523,18 +490,14 @@ class ConfigurableScoringEngine:
                 )
 
             except Exception as e:
-                results.append(
-                    {"sample_index": i, "error": str(e), "execution_time": 0.0}
-                )
+                results.append({"sample_index": i, "error": str(e), "execution_time": 0.0})
 
         return {
             "total_samples": len(sample_data_list),
             "successful_evaluations": len([r for r in results if "error" not in r]),
             "failed_evaluations": len([r for r in results if "error" in r]),
             "tier_distribution": tier_counts,
-            "average_execution_time": total_time / len(sample_data_list)
-            if sample_data_list
-            else 0.0,
+            "average_execution_time": total_time / len(sample_data_list) if sample_data_list else 0.0,
             "total_execution_time": total_time,
             "results": results,
         }
@@ -625,9 +588,7 @@ class ConfigurableScoringEngine:
         explanation["tier_assignment"] = {
             "score": overall_score,
             "assigned_tier": tier_rule.name if tier_rule else "unqualified",
-            "tier_range": f"{tier_rule.min_score}-{tier_rule.max_score}"
-            if tier_rule
-            else "0-49.9",
+            "tier_range": f"{tier_rule.min_score}-{tier_rule.max_score}" if tier_rule else "0-49.9",
             "tier_description": tier_rule.description if tier_rule else "Not qualified",
         }
 

@@ -15,17 +15,8 @@ Acceptance Criteria Tests:
 import pytest
 
 from core.exceptions import ValidationError
-from d11_orchestration.experiments import (
-    ExperimentConfig,
-    ExperimentManager,
-    VariantConfig,
-)
-from d11_orchestration.models import (
-    Experiment,
-    ExperimentStatus,
-    ExperimentVariant,
-    VariantType,
-)
+from d11_orchestration.experiments import ExperimentConfig, ExperimentManager, VariantConfig
+from d11_orchestration.models import Experiment, ExperimentStatus, ExperimentVariant, VariantType
 from d11_orchestration.variant_assigner import VariantAssigner
 
 
@@ -78,9 +69,7 @@ class TestExperimentManager:
             ),
         ]
 
-    def test_create_experiment(
-        self, experiment_manager, sample_experiment_config, sample_variants
-    ):
+    def test_create_experiment(self, experiment_manager, sample_experiment_config, sample_variants):
         """Test experiment creation - Variant assignment works"""
 
         # Create experiment
@@ -93,10 +82,7 @@ class TestExperimentManager:
         # Verify experiment properties
         assert experiment.name == "homepage_cta_test"
         assert experiment.description == "Test different CTA button colors"
-        assert (
-            experiment.hypothesis
-            == "Red CTA button will increase conversion rate by 15%"
-        )
+        assert experiment.hypothesis == "Red CTA button will increase conversion rate by 15%"
         assert experiment.primary_metric == "conversion_rate"
         assert experiment.secondary_metrics == ["click_rate", "bounce_rate"]
         assert experiment.traffic_allocation_pct == 100.0
@@ -127,9 +113,7 @@ class TestExperimentManager:
 
         print("✓ Experiment creation verified")
 
-    def test_assign_variant(
-        self, experiment_manager, sample_experiment_config, sample_variants
-    ):
+    def test_assign_variant(self, experiment_manager, sample_experiment_config, sample_variants):
         """Test variant assignment - Variant assignment works"""
 
         # Create and start experiment
@@ -168,17 +152,13 @@ class TestExperimentManager:
         assert assignment.variant_id is not None
 
         # Verify assigned variant exists
-        assigned_variant = next(
-            v for v in experiment.variants if v.variant_id == assignment.variant_id
-        )
+        assigned_variant = next(v for v in experiment.variants if v.variant_id == assignment.variant_id)
         assert assigned_variant is not None
         assert assigned_variant.variant_key in ["control", "treatment"]
 
         print("✓ Variant assignment verified")
 
-    def test_deterministic_assignment(
-        self, experiment_manager, sample_experiment_config, sample_variants
-    ):
+    def test_deterministic_assignment(self, experiment_manager, sample_experiment_config, sample_variants):
         """Test deterministic assignment - Deterministic hashing"""
 
         # Create and start experiment
@@ -207,16 +187,12 @@ class TestExperimentManager:
 
         # Test with variant getter
         for _ in range(5):
-            variant = experiment_manager.get_variant_for_user(
-                experiment, assignment_unit
-            )
+            variant = experiment_manager.get_variant_for_user(experiment, assignment_unit)
             assert variant.variant_id == assignments[0]
 
         print("✓ Deterministic assignment verified")
 
-    def test_experiment_lifecycle(
-        self, experiment_manager, sample_experiment_config, sample_variants
-    ):
+    def test_experiment_lifecycle(self, experiment_manager, sample_experiment_config, sample_variants):
         """Test experiment lifecycle management"""
 
         # Create experiment
@@ -289,9 +265,7 @@ class TestExperimentManager:
 
         for i in range(100):
             assignment_unit = f"user_{i}"
-            assignment = experiment_manager.assign_variant(
-                experiment=experiment, assignment_unit=assignment_unit
-            )
+            assignment = experiment_manager.assign_variant(experiment=experiment, assignment_unit=assignment_unit)
 
             if assignment.is_holdout:
                 holdout_count += 1
@@ -444,9 +418,7 @@ class TestVariantAssigner:
 
         for i in range(1000):
             assignment_unit = f"user_{i}"
-            variant = variant_assigner.assign_variant(
-                sample_experiment, assignment_unit
-            )
+            variant = variant_assigner.assign_variant(sample_experiment, assignment_unit)
 
             if variant.variant_key not in assignments:
                 assignments[variant.variant_key] = 0
@@ -477,14 +449,10 @@ class TestVariantAssigner:
             assignment_unit = f"user_{i}"
 
             # Check if user is in control group
-            is_control = variant_assigner.is_in_control_group(
-                sample_experiment, assignment_unit
-            )
+            is_control = variant_assigner.is_in_control_group(sample_experiment, assignment_unit)
 
             # Get actual assignment
-            variant = variant_assigner.assign_variant(
-                sample_experiment, assignment_unit
-            )
+            variant = variant_assigner.assign_variant(sample_experiment, assignment_unit)
 
             # Verify consistency
             if is_control:
@@ -506,12 +474,8 @@ class TestVariantAssigner:
         """Test assignment probability calculation"""
 
         # Test probability calculation
-        control_prob = variant_assigner.get_assignment_probability(
-            sample_experiment, "control"
-        )
-        treatment_prob = variant_assigner.get_assignment_probability(
-            sample_experiment, "treatment"
-        )
+        control_prob = variant_assigner.get_assignment_probability(sample_experiment, "control")
+        treatment_prob = variant_assigner.get_assignment_probability(sample_experiment, "treatment")
 
         # Expected probabilities based on weights (2:1 ratio)
         expected_control = 2.0 / 3.0
@@ -521,12 +485,7 @@ class TestVariantAssigner:
         assert abs(treatment_prob - expected_treatment) < 0.001
 
         # Non-existent variant should return 0
-        assert (
-            variant_assigner.get_assignment_probability(
-                sample_experiment, "nonexistent"
-            )
-            == 0.0
-        )
+        assert variant_assigner.get_assignment_probability(sample_experiment, "nonexistent") == 0.0
 
         print("✓ Assignment probability verified")
 
@@ -615,15 +574,11 @@ class TestVariantAssigner:
 
         print("✓ Assignment bucket calculation verified")
 
-    def test_simulate_assignment_distribution(
-        self, variant_assigner, sample_experiment
-    ):
+    def test_simulate_assignment_distribution(self, variant_assigner, sample_experiment):
         """Test assignment distribution simulation"""
 
         # Simulate assignments
-        distribution = variant_assigner.simulate_assignment_distribution(
-            sample_experiment, 1000
-        )
+        distribution = variant_assigner.simulate_assignment_distribution(sample_experiment, 1000)
 
         # Should have distribution for both variants
         assert "control" in distribution
@@ -642,9 +597,7 @@ class TestVariantAssigner:
         """Test deterministic assignment debugging info"""
 
         assignment_unit = "user_12345"
-        info = variant_assigner.get_deterministic_assignment_info(
-            sample_experiment, assignment_unit
-        )
+        info = variant_assigner.get_deterministic_assignment_info(sample_experiment, assignment_unit)
 
         # Verify info structure
         assert info["assignment_unit"] == assignment_unit

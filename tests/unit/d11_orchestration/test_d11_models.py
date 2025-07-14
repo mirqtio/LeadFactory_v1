@@ -88,11 +88,7 @@ class TestOrchestrationModels:
         session.commit()
 
         # Verify pipeline run was created
-        run = (
-            session.query(PipelineRun)
-            .filter_by(pipeline_name="daily_lead_processing")
-            .first()
-        )
+        run = session.query(PipelineRun).filter_by(pipeline_name="daily_lead_processing").first()
         assert run is not None
         assert run.pipeline_name == "daily_lead_processing"
         assert run.status == PipelineRunStatus.PENDING
@@ -168,9 +164,7 @@ class TestOrchestrationModels:
         session.commit()
 
         # Verify variants
-        experiment = (
-            session.query(Experiment).filter_by(experiment_id=exp.experiment_id).first()
-        )
+        experiment = session.query(Experiment).filter_by(experiment_id=exp.experiment_id).first()
         assert len(experiment.variants) == 2
 
         # Test variant weights calculation
@@ -233,9 +227,7 @@ class TestOrchestrationModels:
         session.commit()
 
         # Verify assignment
-        saved_assignment = (
-            session.query(VariantAssignment).filter_by(user_id="user_12345").first()
-        )
+        saved_assignment = session.query(VariantAssignment).filter_by(user_id="user_12345").first()
         assert saved_assignment is not None
         assert saved_assignment.assignment_unit == "user_12345"
         assert saved_assignment.assignment_hash == "a1b2c3d4e5f6"
@@ -332,11 +324,7 @@ class TestOrchestrationModels:
         session.commit()
 
         # Verify task status
-        pipeline_run = (
-            session.query(PipelineRun)
-            .filter_by(run_id=sample_pipeline_run.run_id)
-            .first()
-        )
+        pipeline_run = session.query(PipelineRun).filter_by(run_id=sample_pipeline_run.run_id).first()
         tasks = (
             session.query(PipelineTask)
             .filter_by(pipeline_run_id=pipeline_run.run_id)
@@ -386,9 +374,7 @@ class TestOrchestrationModels:
         session.commit()
 
         # Verify metric tracking
-        saved_metric = (
-            session.query(ExperimentMetric).filter_by(metric_name="click_rate").first()
-        )
+        saved_metric = session.query(ExperimentMetric).filter_by(metric_name="click_rate").first()
         assert saved_metric is not None
         assert saved_metric.value == Decimal("0.125")
         assert saved_metric.sample_size == 1000
@@ -499,11 +485,7 @@ class TestOrchestrationModels:
         session.commit()
 
         # Test relationships
-        loaded_experiment = (
-            session.query(Experiment)
-            .filter_by(experiment_id=experiment.experiment_id)
-            .first()
-        )
+        loaded_experiment = session.query(Experiment).filter_by(experiment_id=experiment.experiment_id).first()
         assert len(loaded_experiment.variants) == 1
         assert len(loaded_experiment.assignments) == 1
         assert loaded_experiment.variants[0].variant_key == "test_variant"
@@ -514,19 +496,11 @@ class TestOrchestrationModels:
         session.commit()
 
         # Variants should be deleted (cascade)
-        remaining_variants = (
-            session.query(ExperimentVariant)
-            .filter_by(experiment_id=experiment.experiment_id)
-            .all()
-        )
+        remaining_variants = session.query(ExperimentVariant).filter_by(experiment_id=experiment.experiment_id).all()
         assert len(remaining_variants) == 0
 
         # Assignments should also be deleted (cascade)
-        remaining_assignments = (
-            session.query(VariantAssignment)
-            .filter_by(experiment_id=experiment.experiment_id)
-            .all()
-        )
+        remaining_assignments = session.query(VariantAssignment).filter_by(experiment_id=experiment.experiment_id).all()
         assert len(remaining_assignments) == 0
 
         print("✓ Model relationships verified")

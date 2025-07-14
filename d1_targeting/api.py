@@ -81,9 +81,7 @@ def handle_api_errors(func):
             raise HTTPException(status_code=400, detail=str(e))
         except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {str(e)}")
-            raise HTTPException(
-                status_code=409, detail="Resource conflict or constraint violation"
-            )
+            raise HTTPException(status_code=409, detail="Resource conflict or constraint violation")
         except SQLAlchemyError as e:
             logger.error(f"Database error in {func.__name__}: {str(e)}")
             raise HTTPException(status_code=500, detail="Database operation failed")
@@ -100,9 +98,7 @@ def handle_api_errors(func):
 # Target Universe endpoints
 @router.post("/universes", response_model=TargetUniverseResponseSchema, status_code=201)
 @handle_api_errors
-async def create_target_universe(
-    request: CreateTargetUniverseSchema, db: Session = Depends(get_db)
-):
+async def create_target_universe(request: CreateTargetUniverseSchema, db: Session = Depends(get_db)):
     """
     Create a new target universe with specified targeting criteria.
 
@@ -149,12 +145,8 @@ async def list_target_universes(
     db: Session = Depends(get_db),
     page: int = Query(default=1, ge=1, description="Page number"),
     size: int = Query(default=20, ge=1, le=100, description="Items per page"),
-    name_contains: Optional[str] = Query(
-        None, description="Filter by name containing text"
-    ),
-    verticals: Optional[List[VerticalMarket]] = Query(
-        None, description="Filter by verticals"
-    ),
+    name_contains: Optional[str] = Query(None, description="Filter by name containing text"),
+    verticals: Optional[List[VerticalMarket]] = Query(None, description="Filter by verticals"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
     min_size: Optional[int] = Query(None, ge=0, description="Minimum universe size"),
     max_size: Optional[int] = Query(None, ge=0, description="Maximum universe size"),
@@ -212,9 +204,7 @@ async def get_target_universe(universe_id: str, db: Session = Depends(get_db)):
 
 @router.put("/universes/{universe_id}", response_model=TargetUniverseResponseSchema)
 @handle_api_errors
-async def update_target_universe(
-    universe_id: str, request: UpdateTargetUniverseSchema, db: Session = Depends(get_db)
-):
+async def update_target_universe(universe_id: str, request: UpdateTargetUniverseSchema, db: Session = Depends(get_db)):
     """
     Update a target universe.
     """
@@ -364,9 +354,7 @@ async def get_campaign(campaign_id: str, db: Session = Depends(get_db)):
 
 @router.put("/campaigns/{campaign_id}", response_model=CampaignResponseSchema)
 @handle_api_errors
-async def update_campaign(
-    campaign_id: str, request: UpdateCampaignSchema, db: Session = Depends(get_db)
-):
+async def update_campaign(campaign_id: str, request: UpdateCampaignSchema, db: Session = Depends(get_db)):
     """
     Update a campaign.
     """
@@ -411,9 +399,7 @@ async def create_batches(request: CreateBatchesSchema, db: Session = Depends(get
     scheduler = BatchScheduler(session=db)
 
     target_date = request.target_date or date.today()
-    batch_ids = scheduler.create_daily_batches(
-        datetime.combine(target_date, datetime.min.time())
-    )
+    batch_ids = scheduler.create_daily_batches(datetime.combine(target_date, datetime.min.time()))
 
     metrics.increment_counter("targeting_batches_created", len(batch_ids))
     logger.info(f"Successfully created {len(batch_ids)} batches")
@@ -464,9 +450,7 @@ async def list_batches(
 
 @router.get("/batches/pending", response_model=List[BatchResponseSchema])
 @handle_api_errors
-async def get_pending_batches(
-    limit: Optional[int] = Query(None, ge=1, le=100), db: Session = Depends(get_db)
-):
+async def get_pending_batches(limit: Optional[int] = Query(None, ge=1, le=100), db: Session = Depends(get_db)):
     """
     Get batches ready for processing.
     """
@@ -480,9 +464,7 @@ async def get_pending_batches(
 
 @router.put("/batches/{batch_id}/status", response_model=BaseResponseSchema)
 @handle_api_errors
-async def update_batch_status(
-    batch_id: str, request: BatchStatusUpdateSchema, db: Session = Depends(get_db)
-):
+async def update_batch_status(batch_id: str, request: BatchStatusUpdateSchema, db: Session = Depends(get_db)):
     """
     Update batch processing status.
     """
@@ -500,9 +482,7 @@ async def update_batch_status(
             request.targets_failed or 0,
         )
     elif request.status.value == "failed":
-        success = scheduler.mark_batch_failed(
-            batch_id, request.error_message or "Unknown error"
-        )
+        success = scheduler.mark_batch_failed(batch_id, request.error_message or "Unknown error")
     else:
         raise HTTPException(status_code=400, detail="Invalid status update")
 
@@ -518,9 +498,7 @@ async def update_batch_status(
 # Analytics endpoints
 @router.get("/analytics/quota", response_model=QuotaAllocationResponseSchema)
 @handle_api_errors
-async def get_quota_allocation(
-    target_date: Optional[date] = Query(None), db: Session = Depends(get_db)
-):
+async def get_quota_allocation(target_date: Optional[date] = Query(None), db: Session = Depends(get_db)):
     """
     Get current quota allocation and usage.
 
@@ -542,9 +520,7 @@ async def get_quota_allocation(
     campaign_allocations = {}
 
     for campaign in active_campaigns:
-        allocation = quota_tracker.get_campaign_quota_allocation(
-            campaign.id, target_date
-        )
+        allocation = quota_tracker.get_campaign_quota_allocation(campaign.id, target_date)
         campaign_allocations[campaign.id] = {
             "campaign_name": campaign.name,
             **allocation,
@@ -561,13 +537,9 @@ async def get_quota_allocation(
     )
 
 
-@router.get(
-    "/analytics/priorities", response_model=List[UniversePriorityResponseSchema]
-)
+@router.get("/analytics/priorities", response_model=List[UniversePriorityResponseSchema])
 @handle_api_errors
-async def get_universe_priorities(
-    limit: Optional[int] = Query(10, ge=1, le=50), db: Session = Depends(get_db)
-):
+async def get_universe_priorities(limit: Optional[int] = Query(10, ge=1, le=50), db: Session = Depends(get_db)):
     """
     Get target universe priorities for scheduling.
 
@@ -606,9 +578,7 @@ async def get_universe_priorities(
     status_code=201,
 )
 @handle_api_errors
-async def create_geographic_boundary(
-    request: CreateGeographicBoundarySchema, db: Session = Depends(get_db)
-):
+async def create_geographic_boundary(request: CreateGeographicBoundarySchema, db: Session = Depends(get_db)):
     """
     Create a new geographic boundary.
     """
@@ -625,9 +595,7 @@ async def create_geographic_boundary(
     return boundary
 
 
-@router.get(
-    "/geographic-boundaries", response_model=List[GeographicBoundaryResponseSchema]
-)
+@router.get("/geographic-boundaries", response_model=List[GeographicBoundaryResponseSchema])
 @handle_api_errors
 async def list_geographic_boundaries(
     level: Optional[str] = Query(None, description="Filter by geography level"),
@@ -665,9 +633,7 @@ async def targeting_health_check(db: Session = Depends(get_db)):
         db.execute("SELECT 1")
 
         # Get basic stats
-        universe_count = (
-            db.query(TargetUniverse).filter(TargetUniverse.is_active == True).count()
-        )
+        universe_count = db.query(TargetUniverse).filter(TargetUniverse.is_active == True).count()
         campaign_count = db.query(Campaign).filter(Campaign.status == "running").count()
 
         return {

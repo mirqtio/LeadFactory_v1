@@ -12,12 +12,13 @@ class PageSpeedClient(BaseAPIClient):
 
     def __init__(self, api_key: Optional[str] = None):
         from core.config import get_settings
+
         settings = get_settings()
-        
+
         # Check if PageSpeed is enabled
         if not settings.enable_pagespeed:
             raise RuntimeError("PageSpeed client initialized but ENABLE_PAGESPEED=false")
-            
+
         super().__init__(provider="pagespeed", api_key=api_key)
 
     def _get_base_url(self) -> str:
@@ -91,9 +92,7 @@ class PageSpeedClient(BaseAPIClient):
         if utm_source:
             params["utm_source"] = utm_source
 
-        return await self.make_request(
-            "GET", "/pagespeedonline/v5/runPagespeed", params=params
-        )
+        return await self.make_request("GET", "/pagespeedonline/v5/runPagespeed", params=params)
 
     async def analyze_mobile_and_desktop(self, url: str) -> Dict[str, Any]:
         """
@@ -115,9 +114,7 @@ class PageSpeedClient(BaseAPIClient):
             "analyzed_at": mobile_result.get("analysisUTCTimestamp"),
         }
 
-    async def get_core_web_vitals(
-        self, url: str, strategy: str = "mobile"
-    ) -> Dict[str, Any]:
+    async def get_core_web_vitals(self, url: str, strategy: str = "mobile") -> Dict[str, Any]:
         """
         Extract Core Web Vitals from PageSpeed analysis
 
@@ -225,7 +222,7 @@ class PageSpeedClient(BaseAPIClient):
                 results[url] = result
 
             except Exception as e:
-                if hasattr(self, 'logger'):
+                if hasattr(self, "logger"):
                     self.logger.error(f"Failed to analyze URL {url}: {e}")
                 else:
                     print(f"WARNING: No logger available. Failed to analyze URL {url}: {e}")
@@ -238,9 +235,7 @@ class PageSpeedClient(BaseAPIClient):
             "strategy": strategy,
         }
 
-    def extract_opportunities(
-        self, pagespeed_result: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def extract_opportunities(self, pagespeed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Extract optimization opportunities from PageSpeed result
 
@@ -269,9 +264,7 @@ class PageSpeedClient(BaseAPIClient):
                         "description": audit.get("description", ""),
                         "savings_ms": audit["details"].get("overallSavingsMs", 0),
                         "score": audit.get("score", 0),
-                        "impact": self._categorize_impact(
-                            audit["details"].get("overallSavingsMs", 0)
-                        ),
+                        "impact": self._categorize_impact(audit["details"].get("overallSavingsMs", 0)),
                     }
                 )
 

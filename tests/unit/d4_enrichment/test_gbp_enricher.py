@@ -16,12 +16,7 @@ import pytest
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
 
-from d4_enrichment.gbp_enricher import (
-    BatchGBPEnricher,
-    GBPDataQuality,
-    GBPEnricher,
-    GBPSearchResult,
-)
+from d4_enrichment.gbp_enricher import BatchGBPEnricher, GBPDataQuality, GBPEnricher, GBPSearchResult
 from d4_enrichment.matchers import BusinessMatcher, MatchConfidence
 from d4_enrichment.models import EnrichmentResult, EnrichmentSource
 
@@ -86,9 +81,7 @@ class TestTask042AcceptanceCriteria:
             assert gbp_results[0].name == sample_business_data["name"]
 
             # Test different search strategies
-            results_by_name = await gbp_enricher._search_by_name_and_location(
-                sample_business_data
-            )
+            results_by_name = await gbp_enricher._search_by_name_and_location(sample_business_data)
             assert len(results_by_name) > 0
             assert results_by_name[0].search_confidence == 0.8
 
@@ -96,9 +89,7 @@ class TestTask042AcceptanceCriteria:
             assert len(results_by_phone) > 0
             assert results_by_phone[0].search_confidence == 0.9
 
-            results_by_address = await gbp_enricher._search_by_address(
-                sample_business_data
-            )
+            results_by_address = await gbp_enricher._search_by_address(sample_business_data)
             assert len(results_by_address) > 0
             assert results_by_address[0].search_confidence == 0.7
 
@@ -111,9 +102,7 @@ class TestTask042AcceptanceCriteria:
 
         asyncio.run(run_test())
 
-    def test_best_match_selection(
-        self, gbp_enricher, sample_business_data, sample_gbp_result
-    ):
+    def test_best_match_selection(self, gbp_enricher, sample_business_data, sample_gbp_result):
         """
         Test that best match selection works properly
 
@@ -138,9 +127,7 @@ class TestTask042AcceptanceCriteria:
                 ),
             ]
 
-            best_match = await gbp_enricher._select_best_match(
-                sample_business_data, gbp_results
-            )
+            best_match = await gbp_enricher._select_best_match(sample_business_data, gbp_results)
 
             assert best_match is not None
             assert best_match.place_id == sample_gbp_result.place_id
@@ -156,33 +143,25 @@ class TestTask042AcceptanceCriteria:
                 )
             ]
 
-            no_match = await gbp_enricher._select_best_match(
-                sample_business_data, low_quality_results
-            )
+            no_match = await gbp_enricher._select_best_match(sample_business_data, low_quality_results)
             assert no_match is None  # Should reject low-quality matches
 
             # Test with empty results
-            empty_match = await gbp_enricher._select_best_match(
-                sample_business_data, []
-            )
+            empty_match = await gbp_enricher._select_best_match(sample_business_data, [])
             assert empty_match is None
 
             print("✓ Best match selection works correctly")
 
         asyncio.run(run_test())
 
-    def test_business_data_merge(
-        self, gbp_enricher, sample_business_data, sample_gbp_result
-    ):
+    def test_business_data_merge(self, gbp_enricher, sample_business_data, sample_gbp_result):
         """
         Test that business data merge works properly
 
         Acceptance Criteria: Business data merge
         """
         # Test merging with complete original data
-        merged_data = gbp_enricher._merge_business_data(
-            sample_business_data, sample_gbp_result
-        )
+        merged_data = gbp_enricher._merge_business_data(sample_business_data, sample_gbp_result)
 
         # Original data should be preserved where present
         assert merged_data["name"] == sample_business_data["name"]
@@ -201,52 +180,33 @@ class TestTask042AcceptanceCriteria:
             # Missing phone, address, etc.
         }
 
-        merged_incomplete = gbp_enricher._merge_business_data(
-            incomplete_data, sample_gbp_result
-        )
+        merged_incomplete = gbp_enricher._merge_business_data(incomplete_data, sample_gbp_result)
 
         # Should use GBP data for missing fields
         assert merged_incomplete["phone"] == sample_gbp_result.phone_number
-        assert (
-            merged_incomplete["formatted_address"]
-            == sample_gbp_result.formatted_address
-        )
+        assert merged_incomplete["formatted_address"] == sample_gbp_result.formatted_address
         assert merged_incomplete["website"] == sample_gbp_result.website
 
         # Test address component parsing
-        address_components = gbp_enricher._parse_address_components(
-            "123 Main St, San Francisco, CA 94105, USA"
-        )
+        address_components = gbp_enricher._parse_address_components("123 Main St, San Francisco, CA 94105, USA")
         assert "street_address" in address_components
         assert address_components["city"] == "San Francisco"
 
         # Test data quality assessment
         assert gbp_enricher._is_gbp_data_better("", "new_value", "any_field") is True
-        assert (
-            gbp_enricher._is_gbp_data_better(
-                "http://old.com", "https://new.com", "website"
-            )
-            is True
-        )
-        assert (
-            gbp_enricher._is_gbp_data_better("555-1234", "+1-555-123-4567", "phone")
-            is True
-        )
+        assert gbp_enricher._is_gbp_data_better("http://old.com", "https://new.com", "website") is True
+        assert gbp_enricher._is_gbp_data_better("555-1234", "+1-555-123-4567", "phone") is True
 
         print("✓ Business data merge works correctly")
 
-    def test_confidence_scoring(
-        self, gbp_enricher, sample_business_data, sample_gbp_result
-    ):
+    def test_confidence_scoring(self, gbp_enricher, sample_business_data, sample_gbp_result):
         """
         Test that confidence scoring works properly
 
         Acceptance Criteria: Confidence scoring
         """
         # Test confidence score calculation
-        confidence_score = gbp_enricher._calculate_confidence_score(
-            sample_business_data, sample_gbp_result
-        )
+        confidence_score = gbp_enricher._calculate_confidence_score(sample_business_data, sample_gbp_result)
 
         assert 0.0 <= confidence_score <= 1.0
         assert confidence_score >= 0.7  # Should be high for good match
@@ -279,9 +239,7 @@ class TestTask042AcceptanceCriteria:
             # Missing most fields
         )
 
-        incomplete_completeness = gbp_enricher._calculate_completeness_factor(
-            incomplete_result
-        )
+        incomplete_completeness = gbp_enricher._calculate_completeness_factor(incomplete_result)
         assert incomplete_completeness < completeness
 
         print("✓ Confidence scoring works correctly")
@@ -304,10 +262,7 @@ class TestTask042AcceptanceCriteria:
             assert result.api_calls_used >= 0
 
             # Verify processed data
-            assert (
-                "status" not in result.processed_data
-                or result.processed_data.get("status") != "failed"
-            )
+            assert "status" not in result.processed_data or result.processed_data.get("status") != "failed"
 
             # Test statistics tracking
             stats = gbp_enricher.get_statistics()
@@ -360,14 +315,8 @@ class TestTask042AcceptanceCriteria:
     def test_utility_functions(self, gbp_enricher):
         """Test utility functions"""
         # Test domain extraction
-        assert (
-            gbp_enricher._extract_domain("https://www.example.com/path")
-            == "example.com"
-        )
-        assert (
-            gbp_enricher._extract_domain("http://subdomain.example.com")
-            == "subdomain.example.com"
-        )
+        assert gbp_enricher._extract_domain("https://www.example.com/path") == "example.com"
+        assert gbp_enricher._extract_domain("http://subdomain.example.com") == "subdomain.example.com"
         assert gbp_enricher._extract_domain("example.com") == "example.com"
         assert gbp_enricher._extract_domain(None) is None
         assert gbp_enricher._extract_domain("") is None
@@ -423,9 +372,7 @@ class TestTask042AcceptanceCriteria:
         """Test batch GBP enrichment functionality"""
 
         async def run_test():
-            batch_enricher = BatchGBPEnricher(
-                enricher=gbp_enricher, max_concurrent=2, batch_size=3
-            )
+            batch_enricher = BatchGBPEnricher(enricher=gbp_enricher, max_concurrent=2, batch_size=3)
 
             # Test businesses data
             businesses = [
@@ -467,9 +414,7 @@ class TestTask042AcceptanceCriteria:
         assert mock_result.raw_data["mock"] is True
 
         # Test create_mock_result
-        custom_mock = gbp_enricher._create_mock_result(
-            "Custom Business", "Test Location", 0.95
-        )
+        custom_mock = gbp_enricher._create_mock_result("Custom Business", "Test Location", 0.95)
 
         assert custom_mock.name == "Custom Business"
         assert custom_mock.search_confidence == 0.95
@@ -502,9 +447,7 @@ class TestTask042AcceptanceCriteria:
 
         asyncio.run(run_test())
 
-    def test_comprehensive_acceptance_criteria(
-        self, gbp_enricher, sample_business_data
-    ):
+    def test_comprehensive_acceptance_criteria(self, gbp_enricher, sample_business_data):
         """Comprehensive test covering all acceptance criteria"""
 
         async def run_test():
@@ -516,28 +459,18 @@ class TestTask042AcceptanceCriteria:
 
             # 2. Best match selection - verify best match is selected using
             # fuzzy matching
-            best_match = await gbp_enricher._select_best_match(
-                sample_business_data, gbp_results
-            )
+            best_match = await gbp_enricher._select_best_match(sample_business_data, gbp_results)
             assert best_match is not None, "Best match selection failed"
             assert best_match.search_confidence >= 0.5, "Best match quality too low"
 
             # 3. Business data merge - verify original and GBP data are properly merged
-            merged_data = gbp_enricher._merge_business_data(
-                sample_business_data, best_match
-            )
-            assert (
-                "business_name" in merged_data or "name" in merged_data
-            ), "Name merge failed"
-            assert len(merged_data) >= len(
-                sample_business_data
-            ), "Data merge lost information"
+            merged_data = gbp_enricher._merge_business_data(sample_business_data, best_match)
+            assert "business_name" in merged_data or "name" in merged_data, "Name merge failed"
+            assert len(merged_data) >= len(sample_business_data), "Data merge lost information"
 
             # 4. Confidence scoring - verify confidence is calculated and mapped
             # correctly
-            confidence_score = gbp_enricher._calculate_confidence_score(
-                sample_business_data, best_match
-            )
+            confidence_score = gbp_enricher._calculate_confidence_score(sample_business_data, best_match)
             assert 0.0 <= confidence_score <= 1.0, "Confidence score out of range"
 
             confidence_level = gbp_enricher._map_confidence_to_level(confidence_score)
@@ -545,12 +478,8 @@ class TestTask042AcceptanceCriteria:
 
             # End-to-end test - all criteria working together
             final_result = await gbp_enricher.enrich_business(sample_business_data)
-            assert isinstance(
-                final_result, EnrichmentResult
-            ), "End-to-end enrichment failed"
-            assert final_result.match_confidence in [
-                conf.value for conf in MatchConfidence
-            ], "Invalid final confidence"
+            assert isinstance(final_result, EnrichmentResult), "End-to-end enrichment failed"
+            assert final_result.match_confidence in [conf.value for conf in MatchConfidence], "Invalid final confidence"
 
             print("✓ All acceptance criteria working together successfully")
 
@@ -588,12 +517,8 @@ if __name__ == "__main__":
 
             # Run all acceptance criteria tests
             test_instance.test_gbp_data_extraction(enricher, sample_business)
-            test_instance.test_best_match_selection(
-                enricher, sample_business, sample_gbp
-            )
-            test_instance.test_business_data_merge(
-                enricher, sample_business, sample_gbp
-            )
+            test_instance.test_best_match_selection(enricher, sample_business, sample_gbp)
+            test_instance.test_business_data_merge(enricher, sample_business, sample_gbp)
             test_instance.test_confidence_scoring(enricher, sample_business, sample_gbp)
             test_instance.test_end_to_end_enrichment(enricher, sample_business)
             test_instance.test_error_handling_and_edge_cases(enricher)
@@ -602,9 +527,7 @@ if __name__ == "__main__":
             test_instance.test_batch_gbp_enricher(enricher)
             test_instance.test_mock_data_generation(enricher)
             test_instance.test_integration_with_fuzzy_matcher(sample_business)
-            test_instance.test_comprehensive_acceptance_criteria(
-                enricher, sample_business
-            )
+            test_instance.test_comprehensive_acceptance_criteria(enricher, sample_business)
 
             print()
             print("🎉 All Task 042 acceptance criteria tests pass!")

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Test the validation gates"""
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from recursive_prp_processor import PRPGenerator, Task
@@ -16,7 +17,7 @@ test_task = Task(
     integration_points=["leadfactory/data/crud.py", "leadfactory/core/database.py"],
     tests_to_pass=["pytest tests/test_database.py"],
     acceptance_criteria=["Connection pool handles 100 concurrent requests", "No connection leaks after 1 hour"],
-    wave="A"
+    wave="A",
 )
 
 # Test with good task
@@ -36,7 +37,7 @@ bad_task = Task(
     integration_points=["leadfactory/providers/provider_yelp.py"],
     tests_to_pass=["pytest tests/test_yelp.py"],
     acceptance_criteria=["Yelp data fetched successfully"],
-    wave="B"
+    wave="B",
 )
 
 path, success = generator.generate_prp(bad_task)
@@ -53,7 +54,7 @@ invalid_task = Task(
     integration_points=[],  # Empty list should fail
     tests_to_pass=[],
     acceptance_criteria=[],  # Empty list should fail
-    wave="C"  # Invalid wave
+    wave="C",  # Invalid wave
 )
 
 try:

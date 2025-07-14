@@ -35,17 +35,11 @@ try:
     )
 except ImportError:
     # Fallback for test environments
-    import sys
     import os
+    import sys
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-    from d6_reports import (
-        FindingPrioritizer,
-        GenerationOptions,
-        PDFOptions,
-        ReportGenerator,
-        TemplateEngine,
-    )
+    from d6_reports import FindingPrioritizer, GenerationOptions, PDFOptions, ReportGenerator, TemplateEngine
 
 
 class TestReportGenerationIntegration:
@@ -85,10 +79,7 @@ class TestReportGenerationIntegration:
         assert result.html_content is not None
         assert len(result.html_content) > 0
         assert "<html>" in result.html_content
-        assert (
-            "integration_test_123" in result.html_content
-            or "Business integration_test_123" in result.html_content
-        )
+        assert "integration_test_123" in result.html_content or "Business integration_test_123" in result.html_content
 
         # Verify timing metrics are tracked
         assert result.generation_time_seconds > 0
@@ -159,17 +150,12 @@ class TestReportGenerationIntegration:
         # Verify HTML content quality
         assert "<html>" in result.html_content
         assert "</html>" in result.html_content
-        assert (
-            "integration_test_456" in result.html_content
-            or "Business integration_test_456" in result.html_content
-        )
+        assert "integration_test_456" in result.html_content or "Business integration_test_456" in result.html_content
 
         # Verify PDF converter was called with HTML content
         mock_pdf_converter.convert_html_to_pdf.assert_called_once()
         call_args = mock_pdf_converter.convert_html_to_pdf.call_args
-        assert (
-            call_args[0][0] == result.html_content
-        )  # HTML content passed to PDF converter
+        assert call_args[0][0] == result.html_content  # HTML content passed to PDF converter
 
         print("✓ Full generation flow with PDF works")
         print("✓ PDF quality verified through mocked converter")
@@ -234,9 +220,7 @@ class TestReportGenerationIntegration:
             finding_prioritizer=prioritizer,
         )
 
-        options = GenerationOptions(
-            include_pdf=False, include_html=True, timeout_seconds=5
-        )
+        options = GenerationOptions(include_pdf=False, include_html=True, timeout_seconds=5)
 
         # Test concurrent generation
         business_ids = ["concurrent_1", "concurrent_2", "concurrent_3"]
@@ -259,10 +243,7 @@ class TestReportGenerationIntegration:
         # Verify individual reports are still good quality
         for i, result in enumerate(results):
             expected_id = business_ids[i]
-            assert (
-                expected_id in result.html_content
-                or f"Business {expected_id}" in result.html_content
-            )
+            assert expected_id in result.html_content or f"Business {expected_id}" in result.html_content
 
         print(f"✓ Concurrent performance acceptable: {total_time:.2f}s for 3 reports")
 
@@ -275,15 +256,11 @@ class TestReportGenerationIntegration:
         """
         # Test 1: Template rendering error
         mock_template_engine = Mock()
-        mock_template_engine.render_template.side_effect = Exception(
-            "Template rendering failed"
-        )
+        mock_template_engine.render_template.side_effect = Exception("Template rendering failed")
         mock_template_engine.create_template_data.return_value = Mock()
 
         mock_prioritizer = Mock()
-        mock_prioritizer.prioritize_findings.return_value = Mock(
-            top_issues=[], quick_wins=[]
-        )
+        mock_prioritizer.prioritize_findings.return_value = Mock(top_issues=[], quick_wins=[])
 
         generator = ReportGenerator(
             template_engine=mock_template_engine,
@@ -534,9 +511,7 @@ class TestReportGenerationIntegration:
         total_prioritized = len(result.top_issues) + len(result.quick_wins)
         assert total_prioritized > 0
 
-        print(
-            f"✓ Finding prioritizer integration works: {len(result.all_scored_findings)} findings processed"
-        )
+        print(f"✓ Finding prioritizer integration works: {len(result.all_scored_findings)} findings processed")
         print(f"  - Top issues: {len(result.top_issues)}")
         print(f"  - Quick wins: {len(result.quick_wins)}")
 
@@ -567,9 +542,7 @@ class TestReportQualityVerification:
         html_content = template_engine.render_template("basic_report", data)
 
         # HTML quality checks
-        assert html_content.startswith("<!DOCTYPE html>") or html_content.startswith(
-            "<html"
-        )
+        assert html_content.startswith("<!DOCTYPE html>") or html_content.startswith("<html")
         assert "<html" in html_content and "</html>" in html_content
         assert "<head>" in html_content and "</head>" in html_content
         assert "<body>" in html_content and "</body>" in html_content
@@ -582,9 +555,7 @@ class TestReportQualityVerification:
 
         # Accessibility and structure checks
         assert "<h1>" in html_content or "<h2>" in html_content  # Proper headings
-        assert (
-            "style>" in html_content or "css" in html_content.lower()
-        )  # Styling included
+        assert "style>" in html_content or "css" in html_content.lower()  # Styling included
 
         # Print CSS optimization check (for PDF)
         assert "@media print" in html_content  # Print optimization
@@ -596,9 +567,7 @@ class TestReportQualityVerification:
         # Mock a high-quality PDF conversion
         mock_pdf_result = Mock()
         mock_pdf_result.success = True
-        mock_pdf_result.pdf_data = (
-            b"mock high quality pdf content with proper formatting"
-        )
+        mock_pdf_result.pdf_data = b"mock high quality pdf content with proper formatting"
         mock_pdf_result.file_size = len(mock_pdf_result.pdf_data)
         mock_pdf_result.generation_time_ms = 120
         mock_pdf_result.optimization_ratio = 0.25  # Good optimization

@@ -22,10 +22,7 @@ from d10_analytics.models import EventType, FunnelEvent, FunnelStage
 from database.base import Base
 
 
-@pytest.mark.skipif(
-    'sqlite' in os.getenv('DATABASE_URL', 'sqlite:///'),
-    reason="Materialized views require PostgreSQL"
-)
+@pytest.mark.skipif("sqlite" in os.getenv("DATABASE_URL", "sqlite:///"), reason="Materialized views require PostgreSQL")
 class TestMaterializedViews:
     """Test materialized views functionality"""
 
@@ -55,16 +52,14 @@ class TestMaterializedViews:
                 event_type=EventType.PIPELINE_START,
                 session_id=session_id,
                 business_id=f"business_{i}",
-                timestamp=datetime.combine(base_date, datetime.min.time()).replace(
-                    tzinfo=timezone.utc
-                ),
+                timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
                 event_metadata={
                     "campaign_id": "test_campaign",
                     "event_name": "targeting_entry",
                     "duration_ms": 1000,
                     "cost_cents": 100,
-                    "success": True
-                }
+                    "success": True,
+                },
             )
             events.append(event)
             db_session.add(event)
@@ -76,16 +71,14 @@ class TestMaterializedViews:
                     event_type=EventType.ASSESSMENT_START,
                     session_id=session_id,
                     business_id=f"business_{i}",
-                    timestamp=datetime.combine(
-                        base_date, datetime.min.time()
-                    ).replace(tzinfo=timezone.utc),
+                    timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
                     event_metadata={
                         "campaign_id": "test_campaign",
                         "event_name": "assessment_entry",
                         "duration_ms": 2000,
                         "cost_cents": 150,
-                        "success": True
-                    }
+                        "success": True,
+                    },
                 )
                 events.append(event)
                 db_session.add(event)
@@ -97,13 +90,8 @@ class TestMaterializedViews:
                         event_type=EventType.PAYMENT_SUCCESS,
                         session_id=session_id,
                         business_id=f"business_{i}",
-                        timestamp=datetime.combine(
-                            base_date, datetime.min.time()
-                        ).replace(tzinfo=timezone.utc),
-                        event_metadata={
-                            "campaign_id": "test_campaign",
-                            "event_name": "conversion"
-                        }
+                        timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                        event_metadata={"campaign_id": "test_campaign", "event_name": "conversion"},
                     )
                     events.append(event)
                     db_session.add(event)
@@ -149,12 +137,8 @@ class TestMaterializedViews:
         assert "assessment" in stages_found
 
         # Verify targeting has most sessions (funnel entry point)
-        targeting_sessions = next(
-            (row[2] for row in result if row[1].lower() == "targeting"), 0
-        )
-        assessment_sessions = next(
-            (row[2] for row in result if row[1].lower() == "assessment"), 0
-        )
+        targeting_sessions = next((row[2] for row in result if row[1].lower() == "targeting"), 0)
+        assessment_sessions = next((row[2] for row in result if row[1].lower() == "assessment"), 0)
 
         assert targeting_sessions >= assessment_sessions  # Funnel drop-off
 
@@ -414,10 +398,7 @@ class TestMaterializedViews:
         print("✓ View performance monitoring works")
 
 
-@pytest.mark.skipif(
-    'sqlite' in os.getenv('DATABASE_URL', 'sqlite:///'),
-    reason="Materialized views require PostgreSQL"
-)
+@pytest.mark.skipif("sqlite" in os.getenv("DATABASE_URL", "sqlite:///"), reason="Materialized views require PostgreSQL")
 class TestViewQueries:
     """Test specific view query functionality"""
 
@@ -432,15 +413,9 @@ class TestViewQueries:
         }
 
         # Calculate conversion rates
-        targeting_to_assessment = (
-            funnel_data["assessment_sessions"] / funnel_data["targeting_sessions"]
-        ) * 100
-        assessment_to_scoring = (
-            funnel_data["scoring_sessions"] / funnel_data["assessment_sessions"]
-        ) * 100
-        overall_conversion = (
-            funnel_data["conversion_sessions"] / funnel_data["targeting_sessions"]
-        ) * 100
+        targeting_to_assessment = (funnel_data["assessment_sessions"] / funnel_data["targeting_sessions"]) * 100
+        assessment_to_scoring = (funnel_data["scoring_sessions"] / funnel_data["assessment_sessions"]) * 100
+        overall_conversion = (funnel_data["conversion_sessions"] / funnel_data["targeting_sessions"]) * 100
 
         assert targeting_to_assessment == 80.0
         assert assessment_to_scoring == 75.0
@@ -460,15 +435,9 @@ class TestViewQueries:
         }
 
         # Calculate retention rates
-        week_1_retention = (
-            cohort_data["week_1_users"] / cohort_data["day_0_users"]
-        ) * 100
-        week_2_retention = (
-            cohort_data["week_2_users"] / cohort_data["day_0_users"]
-        ) * 100
-        month_2_retention = (
-            cohort_data["month_2_users"] / cohort_data["day_0_users"]
-        ) * 100
+        week_1_retention = (cohort_data["week_1_users"] / cohort_data["day_0_users"]) * 100
+        week_2_retention = (cohort_data["week_2_users"] / cohort_data["day_0_users"]) * 100
+        month_2_retention = (cohort_data["month_2_users"] / cohort_data["day_0_users"]) * 100
 
         assert week_1_retention == 70.0
         assert week_2_retention == 50.0
@@ -480,10 +449,7 @@ class TestViewQueries:
         print("✓ Cohort retention calculations work")
 
 
-@pytest.mark.skipif(
-    'sqlite' in os.getenv('DATABASE_URL', 'sqlite:///'),
-    reason="Materialized views require PostgreSQL"
-)
+@pytest.mark.skipif("sqlite" in os.getenv("DATABASE_URL", "sqlite:///"), reason="Materialized views require PostgreSQL")
 def test_all_acceptance_criteria():
     """Test that all acceptance criteria are met"""
 

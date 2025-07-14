@@ -28,10 +28,7 @@ from d11_orchestration.pipeline import (
     targeting_stage,
     trigger_manual_run,
 )
-from d11_orchestration.tasks import (
-    SourcingTask,
-    TargetingTask,
-)
+from d11_orchestration.tasks import SourcingTask, TargetingTask
 
 # Avoid importing models directly to prevent SQLAlchemy configuration issues
 # from d11_orchestration.models import PipelineRun, PipelineRunStatus, PipelineType
@@ -179,9 +176,7 @@ class TestPipelineFlow:
     async def test_daily_flow_success(self):
         """Test successful daily flow execution - Daily flow defined"""
 
-        with patch(
-            "d11_orchestration.pipeline.PipelineOrchestrator"
-        ) as MockOrchestrator:
+        with patch("d11_orchestration.pipeline.PipelineOrchestrator") as MockOrchestrator:
             # Setup mocks
             mock_orchestrator = Mock()
             mock_run = Mock()
@@ -192,13 +187,9 @@ class TestPipelineFlow:
             mock_orchestrator.update_pipeline_status = AsyncMock()
 
             # Mock all stage tasks
-            with patch(
-                "d11_orchestration.pipeline.targeting_stage"
-            ) as mock_targeting, patch(
+            with patch("d11_orchestration.pipeline.targeting_stage") as mock_targeting, patch(
                 "d11_orchestration.pipeline.sourcing_stage"
-            ) as mock_sourcing, patch(
-                "d11_orchestration.pipeline.assessment_stage"
-            ) as mock_assessment, patch(
+            ) as mock_sourcing, patch("d11_orchestration.pipeline.assessment_stage") as mock_assessment, patch(
                 "d11_orchestration.pipeline.scoring_stage"
             ) as mock_scoring, patch(
                 "d11_orchestration.pipeline.personalization_stage"
@@ -206,27 +197,15 @@ class TestPipelineFlow:
                 "d11_orchestration.pipeline.delivery_stage"
             ) as mock_delivery:
                 # Configure stage mocks
-                mock_targeting.submit = AsyncMock(
-                    return_value={"businesses": [{"id": "1"}]}
-                )
-                mock_sourcing.submit = AsyncMock(
-                    return_value={"enriched_businesses": [{"id": "1"}]}
-                )
-                mock_assessment.submit = AsyncMock(
-                    return_value={"assessments": [{"business": {"id": "1"}}]}
-                )
-                mock_scoring.submit = AsyncMock(
-                    return_value={"scored_businesses": [{"business": {"id": "1"}}]}
-                )
-                mock_personalization.submit = AsyncMock(
-                    return_value={"reports": [{"business": {"id": "1"}}]}
-                )
+                mock_targeting.submit = AsyncMock(return_value={"businesses": [{"id": "1"}]})
+                mock_sourcing.submit = AsyncMock(return_value={"enriched_businesses": [{"id": "1"}]})
+                mock_assessment.submit = AsyncMock(return_value={"assessments": [{"business": {"id": "1"}}]})
+                mock_scoring.submit = AsyncMock(return_value={"scored_businesses": [{"business": {"id": "1"}}]})
+                mock_personalization.submit = AsyncMock(return_value={"reports": [{"business": {"id": "1"}}]})
                 mock_delivery.submit = AsyncMock(return_value={"delivered_count": 1})
 
                 # Execute flow
-                result = await daily_lead_generation_flow(
-                    date="2025-06-09T12:00:00", config={"test": True}
-                )
+                result = await daily_lead_generation_flow(date="2025-06-09T12:00:00", config={"test": True})
 
                 # Verify result structure
                 assert result["status"] == "success"
@@ -244,9 +223,7 @@ class TestPipelineFlow:
 
                 # Verify orchestrator calls
                 mock_orchestrator.create_pipeline_run.assert_called_once()
-                assert (
-                    mock_orchestrator.update_pipeline_status.call_count >= 2
-                )  # Start and success
+                assert mock_orchestrator.update_pipeline_status.call_count >= 2  # Start and success
 
         print("✓ Daily flow success verified")
 
@@ -254,9 +231,7 @@ class TestPipelineFlow:
     async def test_daily_flow_error_handling(self):
         """Test daily flow error handling - Error handling works"""
 
-        with patch(
-            "d11_orchestration.pipeline.PipelineOrchestrator"
-        ) as MockOrchestrator:
+        with patch("d11_orchestration.pipeline.PipelineOrchestrator") as MockOrchestrator:
             # Setup mocks
             mock_orchestrator = Mock()
             mock_run = Mock()
@@ -268,9 +243,7 @@ class TestPipelineFlow:
 
             # Mock targeting stage to fail
             with patch("d11_orchestration.pipeline.targeting_stage") as mock_targeting:
-                mock_targeting.submit = AsyncMock(
-                    side_effect=Exception("Targeting failed")
-                )
+                mock_targeting.submit = AsyncMock(side_effect=Exception("Targeting failed"))
 
                 # Execute flow and expect failure
                 with pytest.raises(Exception) as exc_info:
@@ -306,9 +279,7 @@ class TestIndividualTasks:
             )
 
             # Execute targeting stage
-            result = await targeting_stage(
-                execution_date=datetime.utcnow(), config={"target_count": 100}
-            )
+            result = await targeting_stage(execution_date=datetime.utcnow(), config={"target_count": 100})
 
             # Verify result
             assert "businesses" in result
@@ -329,9 +300,7 @@ class TestIndividualTasks:
             # Setup mock
             mock_coordinator = Mock()
             MockCoordinator.return_value = mock_coordinator
-            mock_coordinator.enrich_business = AsyncMock(
-                return_value={"id": "1", "enriched": True}
-            )
+            mock_coordinator.enrich_business = AsyncMock(return_value={"id": "1", "enriched": True})
 
             # Input businesses
             businesses = [{"id": "1", "name": "Business 1"}]
@@ -360,9 +329,7 @@ class TestIndividualTasks:
             # Setup mock
             mock_coordinator = Mock()
             MockCoordinator.return_value = mock_coordinator
-            mock_coordinator.assess_business = AsyncMock(
-                return_value={"business": {"id": "1"}, "score": 85}
-            )
+            mock_coordinator.assess_business = AsyncMock(return_value={"business": {"id": "1"}, "score": 85})
 
             # Input businesses
             businesses = [{"id": "1", "name": "Business 1"}]
@@ -398,9 +365,7 @@ class TestIndividualTasks:
             assessments = [{"business": {"id": "1"}, "score": 85}]
 
             # Execute scoring stage
-            result = await scoring_stage(
-                assessments=assessments, execution_date=datetime.utcnow(), config={}
-            )
+            result = await scoring_stage(assessments=assessments, execution_date=datetime.utcnow(), config={})
 
             # Verify result
             assert "scored_businesses" in result
@@ -421,9 +386,7 @@ class TestIndividualTasks:
             # Setup mock
             mock_personalizer = Mock()
             MockPersonalizer.return_value = mock_personalizer
-            mock_personalizer.create_personalized_report = AsyncMock(
-                return_value={"content": "Personalized report"}
-            )
+            mock_personalizer.create_personalized_report = AsyncMock(return_value={"content": "Personalized report"})
 
             # Input scored businesses
             scored_businesses = [
@@ -562,9 +525,7 @@ class TestTaskExecutors:
 
             # Create and execute task
             task = TargetingTask()
-            result = await task.execute(
-                execution_date=datetime.utcnow(), config={"target_count": 10}
-            )
+            result = await task.execute(execution_date=datetime.utcnow(), config={"target_count": 10})
 
             assert "businesses" in result
             assert result["target_count"] == 1
@@ -578,9 +539,7 @@ class TestTaskExecutors:
         with patch("d11_orchestration.tasks.SourcingCoordinator") as MockCoordinator:
             mock_coordinator = Mock()
             MockCoordinator.return_value = mock_coordinator
-            mock_coordinator.enrich_business = AsyncMock(
-                return_value={"id": "1", "enriched": True}
-            )
+            mock_coordinator.enrich_business = AsyncMock(return_value={"id": "1", "enriched": True})
 
             # Create and execute task
             task = SourcingTask()
@@ -645,20 +604,14 @@ class TestPipelineDeployment:
     async def test_trigger_manual_run(self):
         """Test manual pipeline trigger"""
 
-        with patch(
-            "d11_orchestration.pipeline.daily_lead_generation_flow"
-        ) as mock_flow:
+        with patch("d11_orchestration.pipeline.daily_lead_generation_flow") as mock_flow:
             mock_flow.submit = AsyncMock(return_value=Mock(id="flow-run-123"))
 
             # Trigger manual run
-            flow_run_id = await trigger_manual_run(
-                date="2025-06-09T12:00:00", config={"test": True}
-            )
+            flow_run_id = await trigger_manual_run(date="2025-06-09T12:00:00", config={"test": True})
 
             assert flow_run_id == "flow-run-123"
-            mock_flow.submit.assert_called_once_with(
-                date="2025-06-09T12:00:00", config={"test": True}
-            )
+            mock_flow.submit.assert_called_once_with(date="2025-06-09T12:00:00", config={"test": True})
 
         print("✓ Manual pipeline trigger verified")
 

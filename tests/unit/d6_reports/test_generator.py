@@ -20,20 +20,22 @@ import pytest
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
 
-# Import the modules to test
-from d6_reports.generator import GenerationOptions, GenerationResult, ReportGenerator
-from d6_reports.prioritizer import PrioritizationResult
-from d6_reports.pdf_converter import PDFOptions, PDFResult
-from d6_reports.template_engine import TemplateData
-
 # Import additional classes from generator module
 from d6_reports import generator as generator_module
+
+# Import the modules to test
 from d6_reports.generator import (
     DataLoader,
+    GenerationOptions,
+    GenerationResult,
+    ReportGenerator,
     generate_audit_report,
     generate_html_report,
     generate_pdf_report,
 )
+from d6_reports.pdf_converter import PDFOptions, PDFResult
+from d6_reports.prioritizer import PrioritizationResult
+from d6_reports.template_engine import TemplateData
 
 
 class TestGenerationOptions:
@@ -108,9 +110,7 @@ class TestGenerationResult:
 
     def test_generation_result_to_dict(self):
         """Test generation result serialization"""
-        pdf_result = PDFResult(
-            success=True, pdf_data=b"fake pdf", file_size=150, optimization_ratio=0.2
-        )
+        pdf_result = PDFResult(success=True, pdf_data=b"fake pdf", file_size=150, optimization_ratio=0.2)
         result = GenerationResult(
             success=True,
             html_content="<html>Test</html>",
@@ -269,13 +269,9 @@ class TestReportGenerator:
 
         # Test different impact levels
         assert generator._calculate_impact_from_savings(1500) == 9  # High impact (>1s)
-        assert (
-            generator._calculate_impact_from_savings(750) == 6
-        )  # Medium impact (500ms+)
+        assert generator._calculate_impact_from_savings(750) == 6  # Medium impact (500ms+)
         assert generator._calculate_impact_from_savings(250) == 3  # Low impact (100ms+)
-        assert (
-            generator._calculate_impact_from_savings(50) == 1
-        )  # Minimal impact (<100ms)
+        assert generator._calculate_impact_from_savings(50) == 1  # Minimal impact (<100ms)
 
     @pytest.mark.asyncio
     async def test_generate_report_success(self):
@@ -469,9 +465,7 @@ class TestReportGenerator:
         assert result.pdf_result == mock_pdf_result
 
         # Verify PDF options were passed
-        mock_pdf_converter.convert_html_to_pdf.assert_called_with(
-            "<html>For PDF</html>", options=pdf_options
-        )
+        mock_pdf_converter.convert_html_to_pdf.assert_called_with("<html>For PDF</html>", options=pdf_options)
 
     @pytest.mark.asyncio
     async def test_batch_generate(self):
@@ -602,9 +596,7 @@ class TestUtilityFunctions:
     @pytest.mark.asyncio
     async def test_generate_html_report_function(self):
         """Test the generate_html_report utility function"""
-        mock_result = GenerationResult(
-            success=True, html_content="<html>HTML Test</html>"
-        )
+        mock_result = GenerationResult(success=True, html_content="<html>HTML Test</html>")
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
             mock_generator = Mock()
@@ -614,16 +606,12 @@ class TestUtilityFunctions:
             html_content = await generate_html_report("test123", "custom_template")
 
             assert html_content == "<html>HTML Test</html>"
-            mock_generator.generate_html_only.assert_called_once_with(
-                "test123", "custom_template"
-            )
+            mock_generator.generate_html_only.assert_called_once_with("test123", "custom_template")
 
     @pytest.mark.asyncio
     async def test_generate_html_report_function_failure(self):
         """Test generate_html_report function with failure"""
-        mock_result = GenerationResult(
-            success=False, error_message="HTML generation failed"
-        )
+        mock_result = GenerationResult(success=False, error_message="HTML generation failed")
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
             mock_generator = Mock()
@@ -639,9 +627,7 @@ class TestUtilityFunctions:
     async def test_generate_pdf_report_function(self):
         """Test the generate_pdf_report utility function"""
         pdf_data = b"fake pdf content"
-        mock_pdf_result = PDFResult(
-            success=True, pdf_data=pdf_data, file_size=len(pdf_data)
-        )
+        mock_pdf_result = PDFResult(success=True, pdf_data=pdf_data, file_size=len(pdf_data))
         mock_result = GenerationResult(success=True, pdf_result=mock_pdf_result)
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
@@ -653,16 +639,12 @@ class TestUtilityFunctions:
             pdf_bytes = await generate_pdf_report("test123", pdf_options)
 
             assert pdf_bytes == pdf_data
-            mock_generator.generate_pdf_only.assert_called_once_with(
-                "test123", pdf_options
-            )
+            mock_generator.generate_pdf_only.assert_called_once_with("test123", pdf_options)
 
     @pytest.mark.asyncio
     async def test_generate_pdf_report_function_failure(self):
         """Test generate_pdf_report function with failure"""
-        mock_result = GenerationResult(
-            success=False, error_message="PDF generation failed"
-        )
+        mock_result = GenerationResult(success=False, error_message="PDF generation failed")
 
         with patch.object(generator_module, "ReportGenerator") as mock_generator_class:
             mock_generator = Mock()
@@ -743,9 +725,7 @@ class TestTimeoutAndPerformance:
 
         # Mock components for consistent behavior
         mock_template_engine = Mock()
-        mock_template_engine.render_template.return_value = (
-            "<html>Concurrent Test</html>"
-        )
+        mock_template_engine.render_template.return_value = "<html>Concurrent Test</html>"
         mock_template_engine.create_template_data.return_value = TemplateData(
             business={},
             assessment={},
@@ -769,10 +749,7 @@ class TestTimeoutAndPerformance:
 
         start_time = time.time()
 
-        tasks = [
-            generator.generate_report(business_id, options)
-            for business_id in business_ids
-        ]
+        tasks = [generator.generate_report(business_id, options) for business_id in business_ids]
         results = await asyncio.gather(*tasks)
 
         end_time = time.time()

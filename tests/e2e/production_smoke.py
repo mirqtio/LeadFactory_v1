@@ -10,19 +10,19 @@ Test Matrix:
 - Rotating vertical
 """
 import asyncio
+import json
 import time
 from datetime import datetime
-from typing import Dict, Any
-import pytest
-import json
+from typing import Any, Dict
 
+import pytest
 from prefect import flow, task
 from prefect.task_runners import ConcurrentTaskRunner
 
-from database.session import get_db
-from database.models import Business
 from core.logging import get_logger
 from core.metrics import metrics
+from database.models import Business
+from database.session import get_db
 
 logger = get_logger(__name__)
 
@@ -250,9 +250,7 @@ async def run_smoke_variant(variant: SmokeTestVariant) -> Dict[str, Any]:
 
         # Create test business
         async with get_db() as db:
-            business = Business(
-                id=f"smoke_{variant.name}_{int(time.time())}", **variant.fixture_data
-            )
+            business = Business(id=f"smoke_{variant.name}_{int(time.time())}", **variant.fixture_data)
             db.add(business)
             await db.commit()
 
@@ -281,28 +279,20 @@ async def run_smoke_variant(variant: SmokeTestVariant) -> Dict[str, Any]:
             results["email"] = email_result
 
             # Check email timing
-            assert (
-                results["timings"]["email_delivery"]
-                < TASK_TIMEOUT_LIMITS["email_delivery"]
-            )
+            assert results["timings"]["email_delivery"] < TASK_TIMEOUT_LIMITS["email_delivery"]
         else:
             results["email"] = {"status": "invalid_email"}
 
         # Run payment flow if email was sent
         if results["email"].get("status") == "sent":
             payment_start = time.time()
-            purchase_result = await run_payment_flow(
-                business, variant.fixture_data.get("stripe_test_card")
-            )
+            purchase_result = await run_payment_flow(business, variant.fixture_data.get("stripe_test_card"))
             results["timings"]["stripe_webhook"] = time.time() - payment_start
             results["purchase"] = purchase_result
 
             # Check payment timing
             if results["timings"].get("stripe_webhook"):
-                assert (
-                    results["timings"]["stripe_webhook"]
-                    < TASK_TIMEOUT_LIMITS["stripe_webhook"]
-                )
+                assert results["timings"]["stripe_webhook"] < TASK_TIMEOUT_LIMITS["stripe_webhook"]
 
         # Variant-specific validations
         variant.validate_results(results)
@@ -334,8 +324,8 @@ async def run_smoke_variant(variant: SmokeTestVariant) -> Dict[str, Any]:
 
 async def run_assessment(business: Business) -> Dict[str, Any]:
     """Run assessment for smoke test"""
-    from d3_assessment.coordinator import AssessmentCoordinator
     from d0_gateway.facade import GatewayFacade
+    from d3_assessment.coordinator import AssessmentCoordinator
 
     gateway = GatewayFacade()
     coordinator = AssessmentCoordinator(gateway)
@@ -366,17 +356,15 @@ async def run_scoring(business: Business, assessment: Dict[str, Any]) -> Dict[st
 
 async def run_email_flow(business: Business, scoring: Dict[str, Any]) -> Dict[str, Any]:
     """Run email personalization and delivery"""
+    from d0_gateway.facade import GatewayFacade
     from d8_personalization.personalizer import EmailPersonalizer
     from d9_delivery.delivery_manager import EmailDeliveryManager
-    from d0_gateway.facade import GatewayFacade
 
     gateway = GatewayFacade()
     personalizer = EmailPersonalizer(gateway.openai)
 
     # Generate email
-    email = await personalizer.generate_email(
-        business, scoring["data"], {"results": {}}  # Minimal assessment data
-    )
+    email = await personalizer.generate_email(business, scoring["data"], {"results": {}})  # Minimal assessment data
 
     # Add smoke test marker to subject
     run_id = f"SMOKE-{datetime.utcnow().strftime('%H%M')}"
@@ -397,8 +385,8 @@ async def run_email_flow(business: Business, scoring: Dict[str, Any]) -> Dict[st
 
 async def run_payment_flow(business: Business, test_card: str = None) -> Dict[str, Any]:
     """Run payment flow for smoke test"""
-    from d7_storefront.checkout import CheckoutManager
     from d0_gateway.facade import GatewayFacade
+    from d7_storefront.checkout import CheckoutManager
 
     gateway = GatewayFacade()
     checkout = CheckoutManager(gateway.stripe)
@@ -487,9 +475,7 @@ async def daily_smoke_flow():
     ]
 
     # Run all variants in parallel
-    results = await asyncio.gather(
-        *[run_smoke_variant(variant) for variant in variants], return_exceptions=True
-    )
+    results = await asyncio.gather(*[run_smoke_variant(variant) for variant in variants], return_exceptions=True)
 
     # Process results
     summary = {
@@ -503,9 +489,7 @@ async def daily_smoke_flow():
     for i, result in enumerate(results):
         if isinstance(result, Exception):
             summary["failed"] += 1
-            summary["errors"].append(
-                {"variant": variants[i].name, "error": str(result)}
-            )
+            summary["errors"].append({"variant": variants[i].name, "error": str(result)})
         elif result["status"] == "PASS":
             summary["passed"] += 1
             # Aggregate timings

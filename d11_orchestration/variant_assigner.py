@@ -45,9 +45,7 @@ class VariantAssigner:
         """
         self.hash_algorithm = hash_algorithm
 
-    def assign_variant(
-        self, experiment: Experiment, assignment_unit: str
-    ) -> ExperimentVariant:
+    def assign_variant(self, experiment: Experiment, assignment_unit: str) -> ExperimentVariant:
         """
         Variant assignment works - Assign user to experiment variant
 
@@ -107,9 +105,7 @@ class VariantAssigner:
         hasher.update(combined_string.encode("utf-8"))
         return hasher.hexdigest()
 
-    def get_variant_weights(
-        self, variants: List[ExperimentVariant]
-    ) -> Dict[str, float]:
+    def get_variant_weights(self, variants: List[ExperimentVariant]) -> Dict[str, float]:
         """
         Weight distribution - Calculate normalized variant weights
 
@@ -141,9 +137,7 @@ class VariantAssigner:
 
         return normalized_weights
 
-    def calculate_assignment_bucket(
-        self, assignment_hash: str, bucket_count: int = 10000
-    ) -> int:
+    def calculate_assignment_bucket(self, assignment_hash: str, bucket_count: int = 10000) -> int:
         """
         Calculate assignment bucket from hash for percentage-based assignment
 
@@ -190,15 +184,11 @@ class VariantAssigner:
         assignment_hash = self.calculate_hash(experiment.experiment_id, assignment_unit)
 
         # Check if assigned to control variant
-        assigned_variant = self._select_variant_by_weight(
-            experiment.variants, assignment_hash
-        )
+        assigned_variant = self._select_variant_by_weight(experiment.variants, assignment_hash)
 
         return assigned_variant.is_control
 
-    def get_assignment_probability(
-        self, experiment: Experiment, variant_key: str
-    ) -> float:
+    def get_assignment_probability(self, experiment: Experiment, variant_key: str) -> float:
         """
         Get the probability of assignment to a specific variant
 
@@ -259,9 +249,7 @@ class VariantAssigner:
 
         return True
 
-    def simulate_assignment_distribution(
-        self, experiment: Experiment, sample_size: int = 10000
-    ) -> Dict[str, float]:
+    def simulate_assignment_distribution(self, experiment: Experiment, sample_size: int = 10000) -> Dict[str, float]:
         """
         Simulate variant assignment distribution for testing
 
@@ -296,9 +284,7 @@ class VariantAssigner:
 
         return actual_distribution
 
-    def _select_variant_by_weight(
-        self, variants: List[ExperimentVariant], assignment_hash: str
-    ) -> ExperimentVariant:
+    def _select_variant_by_weight(self, variants: List[ExperimentVariant], assignment_hash: str) -> ExperimentVariant:
         """
         Weight distribution - Select variant based on weights and hash
 
@@ -326,9 +312,7 @@ class VariantAssigner:
             variant_weight = (variant.weight / total_weight) * 10000
             cumulative_weight += variant_weight
 
-            weighted_variants.append(
-                VariantWeight(variant=variant, cumulative_weight=cumulative_weight)
-            )
+            weighted_variants.append(VariantWeight(variant=variant, cumulative_weight=cumulative_weight))
 
         # Find variant based on assignment bucket
         for weighted_variant in weighted_variants:
@@ -338,9 +322,7 @@ class VariantAssigner:
         # Fallback to last variant (handles floating point precision issues)
         return weighted_variants[-1].variant
 
-    def get_deterministic_assignment_info(
-        self, experiment: Experiment, assignment_unit: str
-    ) -> Dict[str, Any]:
+    def get_deterministic_assignment_info(self, experiment: Experiment, assignment_unit: str) -> Dict[str, Any]:
         """
         Get detailed information about deterministic assignment
 

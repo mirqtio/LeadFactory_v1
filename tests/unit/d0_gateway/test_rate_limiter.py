@@ -79,9 +79,7 @@ class TestRateLimiter:
         rate_limiter._redis = mock_redis
 
         # Test executing Lua script
-        result = await rate_limiter._execute_lua_script(
-            mock_redis, "check_daily", ["test_key"], ["10", "86400"]
-        )
+        result = await rate_limiter._execute_lua_script(mock_redis, "check_daily", ["test_key"], ["10", "86400"])
 
         # Should have called Redis eval with Lua script
         mock_redis.eval.assert_called_once()
@@ -96,13 +94,8 @@ class TestRateLimiter:
         openai_limiter = RateLimiter("openai")
 
         # Verify limits are different
-        assert (
-            yelp_limiter.limits["daily_limit"]
-            != pagespeed_limiter.limits["daily_limit"]
-        )
-        assert (
-            yelp_limiter.limits["burst_limit"] != openai_limiter.limits["burst_limit"]
-        )
+        assert yelp_limiter.limits["daily_limit"] != pagespeed_limiter.limits["daily_limit"]
+        assert yelp_limiter.limits["burst_limit"] != openai_limiter.limits["burst_limit"]
 
         # Verify specific expected values
         assert yelp_limiter.limits["daily_limit"] == 5000
@@ -411,9 +404,7 @@ class TestRateLimiterEnhancements:
         mock_redis.eval.side_effect = Exception("Lua script execution failed")
 
         with pytest.raises(Exception):
-            await limiter._execute_lua_script(
-                mock_redis, "test_command", ["test_key"], ["test_arg"]
-            )
+            await limiter._execute_lua_script(mock_redis, "test_command", ["test_key"], ["test_arg"])
 
     @pytest.mark.asyncio
     async def test_lua_script_execution_without_script(self):
@@ -424,9 +415,7 @@ class TestRateLimiterEnhancements:
         mock_redis = AsyncMock()
 
         with pytest.raises(RuntimeError, match="Lua script not loaded"):
-            await limiter._execute_lua_script(
-                mock_redis, "test_command", ["test_key"], ["test_arg"]
-            )
+            await limiter._execute_lua_script(mock_redis, "test_command", ["test_key"], ["test_arg"])
 
     @pytest.mark.asyncio
     async def test_usage_statistics_error_handling(self):
@@ -544,9 +533,7 @@ class TestRateLimiterEnhancements:
 
         allowed = await limiter._simple_daily_check(mock_redis)
         assert allowed is True
-        mock_redis.expire.assert_called_once_with(
-            f"rate_limit:daily:{limiter.provider}", 86400
-        )
+        mock_redis.expire.assert_called_once_with(f"rate_limit:daily:{limiter.provider}", 86400)
 
         # Test at exact limit
         mock_redis.get.return_value = str(limiter.limits["daily_limit"])
@@ -610,9 +597,7 @@ class TestRateLimiterEnhancements:
             await limiter._get_redis()
 
             # Should use Redis URL from settings
-            mock_from_url.assert_called_once_with(
-                limiter.settings.redis_url, decode_responses=True
-            )
+            mock_from_url.assert_called_once_with(limiter.settings.redis_url, decode_responses=True)
 
     def test_logger_initialization(self):
         """Test logger initialization with provider context"""
@@ -634,9 +619,7 @@ class TestRateLimiterEnhancements:
 
         with patch.object(limiter.settings, "use_stubs", False):
             # Test Redis connection failure
-            with patch.object(
-                limiter, "_get_redis", side_effect=Exception("Redis connection failed")
-            ):
+            with patch.object(limiter, "_get_redis", side_effect=Exception("Redis connection failed")):
                 allowed = await limiter.is_allowed()
                 assert allowed is True  # Should fail open
 
@@ -658,9 +641,7 @@ class TestRateLimiterEnhancements:
         original_limits = RateLimiter.PROVIDER_LIMITS.copy()
 
         # Create multiple limiters
-        limiters = [
-            RateLimiter(provider) for provider in ["yelp", "openai", "pagespeed"]
-        ]
+        limiters = [RateLimiter(provider) for provider in ["yelp", "openai", "pagespeed"]]
 
         # Modify instance limits
         for limiter in limiters:

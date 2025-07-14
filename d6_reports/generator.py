@@ -187,9 +187,7 @@ class DataLoader:
         }
 
     @staticmethod
-    def validate_data(
-        business_data: Dict[str, Any], assessment_data: Dict[str, Any]
-    ) -> List[str]:
+    def validate_data(business_data: Dict[str, Any], assessment_data: Dict[str, Any]) -> List[str]:
         """Validate loaded data and return any warnings"""
         warnings = []
 
@@ -242,9 +240,7 @@ class ReportGenerator:
 
         logger.info("Initialized ReportGenerator")
 
-    async def generate_report(
-        self, business_id: str, options: Optional[GenerationOptions] = None
-    ) -> GenerationResult:
+    async def generate_report(self, business_id: str, options: Optional[GenerationOptions] = None) -> GenerationResult:
         """
         Generate a complete audit report for a business
 
@@ -271,9 +267,7 @@ class ReportGenerator:
             )
 
         except asyncio.TimeoutError:
-            result.error_message = (
-                f"Report generation exceeded {options.timeout_seconds} second timeout"
-            )
+            result.error_message = f"Report generation exceeded {options.timeout_seconds} second timeout"
             logger.error(f"Report generation timeout for business {business_id}")
 
         except Exception as e:
@@ -286,14 +280,10 @@ class ReportGenerator:
         finally:
             result.generation_time_seconds = time.time() - start_time
 
-        logger.info(
-            f"Report generation completed for business {business_id} in {result.generation_time_seconds:.2f}s"
-        )
+        logger.info(f"Report generation completed for business {business_id} in {result.generation_time_seconds:.2f}s")
         return result
 
-    async def _generate_report_internal(
-        self, business_id: str, options: GenerationOptions
-    ) -> GenerationResult:
+    async def _generate_report_internal(self, business_id: str, options: GenerationOptions) -> GenerationResult:
         """Internal report generation logic"""
         result = GenerationResult(success=False)
 
@@ -317,9 +307,7 @@ class ReportGenerator:
         findings = self._extract_findings(assessment_data, options.max_findings)
 
         # Prioritize findings to get top issues and quick wins
-        prioritization_result = self.finding_prioritizer.prioritize_findings(
-            assessment_data
-        )
+        prioritization_result = self.finding_prioritizer.prioritize_findings(assessment_data)
 
         # Limit results based on options
         top_issues = prioritization_result.top_issues[: options.max_top_issues]
@@ -350,15 +338,9 @@ class ReportGenerator:
             template_start = time.time()
 
             try:
-                result.html_content = self.template_engine.render_template(
-                    options.template_name, template_data
-                )
-                result.template_rendering_time_ms = (
-                    time.time() - template_start
-                ) * 1000
-                logger.debug(
-                    f"Template rendering completed in {result.template_rendering_time_ms:.1f}ms"
-                )
+                result.html_content = self.template_engine.render_template(options.template_name, template_data)
+                result.template_rendering_time_ms = (time.time() - template_start) * 1000
+                logger.debug(f"Template rendering completed in {result.template_rendering_time_ms:.1f}ms")
 
             except Exception as e:
                 raise Exception(f"Template rendering failed: {str(e)}")
@@ -373,42 +355,30 @@ class ReportGenerator:
 
                 # Use the PDF converter with the rendered HTML
                 async with self.pdf_converter as converter:
-                    result.pdf_result = await converter.convert_html_to_pdf(
-                        result.html_content, options=pdf_options
-                    )
+                    result.pdf_result = await converter.convert_html_to_pdf(result.html_content, options=pdf_options)
 
                 result.pdf_generation_time_ms = (time.time() - pdf_start) * 1000
-                logger.debug(
-                    f"PDF generation completed in {result.pdf_generation_time_ms:.1f}ms"
-                )
+                logger.debug(f"PDF generation completed in {result.pdf_generation_time_ms:.1f}ms")
 
                 if not result.pdf_result.success:
-                    result.warnings.append(
-                        f"PDF generation failed: {result.pdf_result.error_message}"
-                    )
+                    result.warnings.append(f"PDF generation failed: {result.pdf_result.error_message}")
 
             except Exception as e:
                 result.warnings.append(f"PDF generation error: {str(e)}")
                 logger.error(f"PDF generation error: {e}")
 
         # Mark as successful if we have at least one output format
-        result.success = bool(
-            result.html_content or (result.pdf_result and result.pdf_result.success)
-        )
+        result.success = bool(result.html_content or (result.pdf_result and result.pdf_result.success))
 
         if result.success:
             logger.info(f"Report generation successful for business {business_id}")
         else:
             result.error_message = "No output generated"
-            logger.warning(
-                f"Report generation produced no output for business {business_id}"
-            )
+            logger.warning(f"Report generation produced no output for business {business_id}")
 
         return result
 
-    def _extract_findings(
-        self, assessment_data: Dict[str, Any], max_findings: int
-    ) -> List[Dict[str, Any]]:
+    def _extract_findings(self, assessment_data: Dict[str, Any], max_findings: int) -> List[Dict[str, Any]]:
         """Extract and format findings from assessment data"""
         findings = []
 
@@ -420,9 +390,7 @@ class ReportGenerator:
                     "title": opp.get("title", "Performance Issue"),
                     "description": opp.get("description", ""),
                     "category": "performance",
-                    "impact_score": self._calculate_impact_from_savings(
-                        opp.get("numeric_value", 0)
-                    ),
+                    "impact_score": self._calculate_impact_from_savings(opp.get("numeric_value", 0)),
                     "effort_score": 3,  # Default medium effort
                     "source": "pagespeed",
                     "display_value": opp.get("display_value", ""),
@@ -464,9 +432,7 @@ class ReportGenerator:
         else:
             return 1  # Minimal impact
 
-    async def generate_html_only(
-        self, business_id: str, template_name: str = "basic_report"
-    ) -> GenerationResult:
+    async def generate_html_only(self, business_id: str, template_name: str = "basic_report") -> GenerationResult:
         """
         Generate HTML report only (faster than full generation)
 
@@ -486,9 +452,7 @@ class ReportGenerator:
 
         return await self.generate_report(business_id, options)
 
-    async def generate_pdf_only(
-        self, business_id: str, pdf_options: Optional[PDFOptions] = None
-    ) -> GenerationResult:
+    async def generate_pdf_only(self, business_id: str, pdf_options: Optional[PDFOptions] = None) -> GenerationResult:
         """
         Generate PDF report only
 
@@ -534,9 +498,7 @@ class ReportGenerator:
         logger.info(f"Starting batch generation for {len(business_ids)} businesses")
 
         # Generate all reports concurrently
-        tasks = [
-            self.generate_report(business_id, options) for business_id in business_ids
-        ]
+        tasks = [self.generate_report(business_id, options) for business_id in business_ids]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -549,36 +511,26 @@ class ReportGenerator:
                     error_message=f"Batch generation failed: {str(result)}",
                 )
                 final_results.append(failed_result)
-                logger.error(
-                    f"Batch generation failed for business {business_ids[i]}: {result}"
-                )
+                logger.error(f"Batch generation failed for business {business_ids[i]}: {result}")
             else:
                 final_results.append(result)
 
         successful_count = sum(1 for r in final_results if r.success)
-        logger.info(
-            f"Batch generation completed: {successful_count}/{len(business_ids)} successful"
-        )
+        logger.info(f"Batch generation completed: {successful_count}/{len(business_ids)} successful")
 
         return final_results
 
     def get_status(self) -> Dict[str, Any]:
         """Get generator status and statistics"""
         return {
-            "template_engine": {
-                "available_templates": self.template_engine.list_templates()
-            },
+            "template_engine": {"available_templates": self.template_engine.list_templates()},
             "pdf_converter": self.pdf_converter.get_concurrency_status(),
-            "finding_prioritizer": {
-                "scorer_available": self.finding_prioritizer.scorer is not None
-            },
+            "finding_prioritizer": {"scorer_available": self.finding_prioritizer.scorer is not None},
         }
 
 
 # Utility functions for convenience
-async def generate_audit_report(
-    business_id: str, options: Optional[GenerationOptions] = None
-) -> GenerationResult:
+async def generate_audit_report(business_id: str, options: Optional[GenerationOptions] = None) -> GenerationResult:
     """
     Convenience function to generate an audit report
 
@@ -593,9 +545,7 @@ async def generate_audit_report(
     return await generator.generate_report(business_id, options)
 
 
-async def generate_html_report(
-    business_id: str, template_name: str = "basic_report"
-) -> str:
+async def generate_html_report(business_id: str, template_name: str = "basic_report") -> str:
     """
     Convenience function to generate HTML report and return content
 
@@ -618,9 +568,7 @@ async def generate_html_report(
     return result.html_content
 
 
-async def generate_pdf_report(
-    business_id: str, pdf_options: Optional[PDFOptions] = None
-) -> bytes:
+async def generate_pdf_report(business_id: str, pdf_options: Optional[PDFOptions] = None) -> bytes:
     """
     Convenience function to generate PDF report and return bytes
 
@@ -638,9 +586,7 @@ async def generate_pdf_report(
     result = await generator.generate_pdf_only(business_id, pdf_options)
 
     if not result.success or not result.pdf_result or not result.pdf_result.success:
-        error_msg = result.error_message or (
-            result.pdf_result.error_message if result.pdf_result else "Unknown error"
-        )
+        error_msg = result.error_message or (result.pdf_result.error_message if result.pdf_result else "Unknown error")
         raise Exception(f"PDF generation failed: {error_msg}")
 
     return result.pdf_result.pdf_data

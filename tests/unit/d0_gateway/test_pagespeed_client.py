@@ -134,13 +134,9 @@ class TestPageSpeedClient:
         }
 
         # Mock both calls
-        pagespeed_client.make_request = AsyncMock(
-            side_effect=[mobile_response, desktop_response]
-        )
+        pagespeed_client.make_request = AsyncMock(side_effect=[mobile_response, desktop_response])
 
-        result = await pagespeed_client.analyze_mobile_and_desktop(
-            "https://example.com"
-        )
+        result = await pagespeed_client.analyze_mobile_and_desktop("https://example.com")
 
         # Should make two API calls
         assert pagespeed_client.make_request.call_count == 2
@@ -312,9 +308,7 @@ class TestPageSpeedClient:
         )
 
         urls = ["https://site1.com", "https://site2.com", "https://site3.com"]
-        result = await pagespeed_client.batch_analyze_urls(
-            urls=urls, strategy="desktop", include_core_web_vitals=True
-        )
+        result = await pagespeed_client.batch_analyze_urls(urls=urls, strategy="desktop", include_core_web_vitals=True)
 
         # Verify all URLs were analyzed
         assert pagespeed_client.get_core_web_vitals.call_count == 3
@@ -358,10 +352,7 @@ class TestPageSpeedClient:
 
         # Failed URL should have error info
         assert "error" in result["urls"]["https://invalid-url.com"]
-        assert (
-            result["urls"]["https://invalid-url.com"]["url"]
-            == "https://invalid-url.com"
-        )
+        assert result["urls"]["https://invalid-url.com"]["url"] == "https://invalid-url.com"
 
         # Successful URLs should have data
         assert "performance_score" in result["urls"]["https://good-url.com"]
@@ -370,9 +361,7 @@ class TestPageSpeedClient:
     def test_cost_calculation(self, pagespeed_client):
         """Test cost calculation for PageSpeed operations"""
         # PageSpeed API is free up to 25k queries per day
-        analysis_cost = pagespeed_client.calculate_cost(
-            "GET:/pagespeedonline/v5/runPagespeed"
-        )
+        analysis_cost = pagespeed_client.calculate_cost("GET:/pagespeedonline/v5/runPagespeed")
         assert analysis_cost == Decimal("0.000")
 
         # Other operations might have cost
@@ -385,9 +374,7 @@ class TestPageSpeedClient:
         from core.exceptions import ExternalAPIError
 
         # Mock API error response
-        pagespeed_client.make_request = AsyncMock(
-            side_effect=ExternalAPIError("Invalid URL", 400)
-        )
+        pagespeed_client.make_request = AsyncMock(side_effect=ExternalAPIError("Invalid URL", 400))
 
         with pytest.raises(ExternalAPIError):
             await pagespeed_client.analyze_url("invalid-url")
@@ -398,9 +385,7 @@ class TestPageSpeedClient:
         from core.exceptions import RateLimitError
 
         # Mock quota exceeded error
-        pagespeed_client.make_request = AsyncMock(
-            side_effect=RateLimitError("pagespeed", "daily")
-        )
+        pagespeed_client.make_request = AsyncMock(side_effect=RateLimitError("pagespeed", "daily"))
 
         with pytest.raises(RateLimitError):
             await pagespeed_client.analyze_url("https://example.com")
@@ -411,9 +396,7 @@ class TestPageSpeedClient:
         import httpx
 
         # Test network timeout
-        pagespeed_client.make_request = AsyncMock(
-            side_effect=httpx.TimeoutException("Request timeout")
-        )
+        pagespeed_client.make_request = AsyncMock(side_effect=httpx.TimeoutException("Request timeout"))
 
         with pytest.raises(httpx.TimeoutException):
             await pagespeed_client.analyze_url("https://example.com")
@@ -426,14 +409,10 @@ class TestPageSpeedClientIntegration:
         pagespeed_client = PageSpeedClient()
 
         # Mock rate limiter to indicate limit exceeded
-        with patch.object(
-            pagespeed_client.rate_limiter, "is_allowed", return_value=False
-        ):
+        with patch.object(pagespeed_client.rate_limiter, "is_allowed", return_value=False):
             from core.exceptions import RateLimitError
 
-            pagespeed_client.make_request = AsyncMock(
-                side_effect=RateLimitError("pagespeed", "daily")
-            )
+            pagespeed_client.make_request = AsyncMock(side_effect=RateLimitError("pagespeed", "daily"))
 
             with pytest.raises(RateLimitError):
                 await pagespeed_client.analyze_url("https://example.com")
@@ -444,14 +423,10 @@ class TestPageSpeedClientIntegration:
         pagespeed_client = PageSpeedClient()
 
         # Mock circuit breaker to indicate open state
-        with patch.object(
-            pagespeed_client.circuit_breaker, "can_execute", return_value=False
-        ):
+        with patch.object(pagespeed_client.circuit_breaker, "can_execute", return_value=False):
             from d0_gateway.exceptions import CircuitBreakerOpenError
 
-            pagespeed_client.make_request = AsyncMock(
-                side_effect=CircuitBreakerOpenError("pagespeed", 5)
-            )
+            pagespeed_client.make_request = AsyncMock(side_effect=CircuitBreakerOpenError("pagespeed", 5))
 
             with pytest.raises(CircuitBreakerOpenError):
                 await pagespeed_client.analyze_url("https://example.com")
@@ -467,9 +442,7 @@ class TestPageSpeedClientIntegration:
 
         # Test cache key generation for URL analysis
         analysis_params = {"url": "https://example.com", "strategy": "mobile"}
-        cache_key = pagespeed_client.cache.generate_key(
-            "/pagespeedonline/v5/runPagespeed", analysis_params
-        )
+        cache_key = pagespeed_client.cache.generate_key("/pagespeedonline/v5/runPagespeed", analysis_params)
 
         # Cache key should be deterministic
         assert isinstance(cache_key, str)
@@ -608,17 +581,13 @@ class TestPageSpeedClientDataExtraction:
         pagespeed_client.make_request = AsyncMock(return_value=comprehensive_response)
 
         # Test full analysis
-        result = await pagespeed_client.analyze_url(
-            "https://example.com", strategy="desktop"
-        )
+        result = await pagespeed_client.analyze_url("https://example.com", strategy="desktop")
 
         # Test Core Web Vitals extraction
         pagespeed_client.make_request.reset_mock()
         pagespeed_client.make_request.return_value = comprehensive_response
 
-        cwv = await pagespeed_client.get_core_web_vitals(
-            "https://example.com", strategy="desktop"
-        )
+        cwv = await pagespeed_client.get_core_web_vitals("https://example.com", strategy="desktop")
 
         # Test opportunities extraction
         opportunities = pagespeed_client.extract_opportunities(result)

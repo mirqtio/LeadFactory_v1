@@ -37,15 +37,7 @@ if os.getcwd() not in sys.path:
 from d3_assessment.models import AssessmentResult, AssessmentStatus, AssessmentType
 from d6_reports.models import ReportGeneration, ReportStatus, ReportType
 from d11_orchestration.models import PipelineRun, PipelineRunStatus
-from database.models import (
-    Batch,
-    BatchStatus,
-    Business,
-    Email,
-    EmailStatus,
-    GeoType,
-    Target,
-)
+from database.models import Batch, BatchStatus, Business, Email, EmailStatus, GeoType, Target
 
 # Import test fixtures and models
 from tests.e2e.fixtures import *
@@ -117,9 +109,7 @@ def test_api_failures_handled(test_db_session):
         print(f"\n🧪 Testing API failure scenario: {scenario_name}")
 
         # Simulate API failure scenarios without needing real service classes
-        print(
-            f"  🎭 Simulating {scenario['error_type']} for {scenario['service']} service"
-        )
+        print(f"  🎭 Simulating {scenario['error_type']} for {scenario['service']} service")
 
         # Track error handling behavior
         error_start_time = time.time()
@@ -133,25 +123,19 @@ def test_api_failures_handled(test_db_session):
             if scenario["service"] == "yelp":
                 # Test Yelp business search failure - simulate the error
                 if scenario["error_type"] == "TimeoutError":
-                    raise TimeoutError(
-                        "Yelp API timeout - graceful degradation applied"
-                    )
+                    raise TimeoutError("Yelp API timeout - graceful degradation applied")
                 final_result = {"businesses": [], "fallback": True}
 
             elif scenario["service"] == "openai":
                 # Test OpenAI assessment failure - simulate the error
                 if scenario["error_type"] == "RateLimitError":
-                    raise Exception(
-                        "OpenAI rate limit exceeded - exponential backoff applied"
-                    )
+                    raise Exception("OpenAI rate limit exceeded - exponential backoff applied")
                 final_result = {"analysis": "limited", "retried": True}
 
             elif scenario["service"] == "pagespeed":
                 # Test PageSpeed API failure - simulate the error
                 if scenario["error_type"] == "ServiceUnavailable":
-                    raise Exception(
-                        "PageSpeed service unavailable - skipping with default score"
-                    )
+                    raise Exception("PageSpeed service unavailable - skipping with default score")
                 final_result = {"score": 50, "default": True}
 
             elif scenario["service"] == "sendgrid":
@@ -163,9 +147,7 @@ def test_api_failures_handled(test_db_session):
             elif scenario["service"] == "stripe":
                 # Test Stripe payment failure - simulate the error
                 if scenario["error_type"] == "NetworkError":
-                    raise ConnectionError(
-                        "Stripe network error - immediate retry applied"
-                    )
+                    raise ConnectionError("Stripe network error - immediate retry applied")
                 final_result = {"session_id": "cs_test_123", "retried": True}
 
         except Exception as e:
@@ -176,34 +158,19 @@ def test_api_failures_handled(test_db_session):
             # Verify the error was handled appropriately
             if scenario["expected_behavior"] == "graceful_degradation":
                 # Should provide fallback data or continue with limited functionality
-                behavior_correct = (
-                    "timeout" in error_message.lower()
-                    or "graceful" in error_message.lower()
-                )
+                behavior_correct = "timeout" in error_message.lower() or "graceful" in error_message.lower()
             elif scenario["expected_behavior"] == "exponential_backoff":
                 # Should indicate retry with backoff
-                behavior_correct = (
-                    "backoff" in error_message.lower()
-                    or "rate limit" in error_message.lower()
-                )
+                behavior_correct = "backoff" in error_message.lower() or "rate limit" in error_message.lower()
             elif scenario["expected_behavior"] == "skip_with_warning":
                 # Should log warning and continue
-                behavior_correct = (
-                    "unavailable" in error_message.lower()
-                    or "skip" in error_message.lower()
-                )
+                behavior_correct = "unavailable" in error_message.lower() or "skip" in error_message.lower()
             elif scenario["expected_behavior"] == "queue_for_retry":
                 # Should queue for later retry
-                behavior_correct = (
-                    "queue" in error_message.lower()
-                    or "authentication" in error_message.lower()
-                )
+                behavior_correct = "queue" in error_message.lower() or "authentication" in error_message.lower()
             elif scenario["expected_behavior"] == "immediate_retry":
                 # Should retry immediately for critical operations
-                behavior_correct = (
-                    "network" in error_message.lower()
-                    or "immediate" in error_message.lower()
-                )
+                behavior_correct = "network" in error_message.lower() or "immediate" in error_message.lower()
 
         error_duration = time.time() - error_start_time
 
@@ -251,18 +218,12 @@ def test_api_failures_handled(test_db_session):
     api_failures_handled = [r for r in error_handling_results if "scenario" in r]
     failed_handling = [r for r in api_failures_handled if not r["behavior_correct"]]
 
-    assert (
-        len(failed_handling) == 0
-    ), f"API failure handling failures: {failed_handling}"
-    assert (
-        len(api_failures_handled) >= 5
-    ), f"Expected at least 5 API failure tests, got {len(api_failures_handled)}"
+    assert len(failed_handling) == 0, f"API failure handling failures: {failed_handling}"
+    assert len(api_failures_handled) >= 5, f"Expected at least 5 API failure tests, got {len(api_failures_handled)}"
 
     print("\n=== API FAILURES HANDLED ===")
     print(f"✅ Total API Failure Scenarios: {len(api_failures_handled)}")
-    print(
-        f"✅ Successfully Handled: {len([r for r in api_failures_handled if r['behavior_correct']])}"
-    )
+    print(f"✅ Successfully Handled: {len([r for r in api_failures_handled if r['behavior_correct']])}")
     print(f"❌ Failed Handling: {len(failed_handling)}")
 
     print("\n🛡️ API Error Handling Summary:")
@@ -446,9 +407,7 @@ def test_partial_results_saved(test_db_session):
 
             elif i == scenario["failure_point"]:
                 # Simulate failure at this point
-                print(
-                    f"  💥 Simulated failure at item {i+1}: {scenario['failure_type']}"
-                )
+                print(f"  💥 Simulated failure at item {i+1}: {scenario['failure_type']}")
 
                 # Attempt to save partial progress before failing
                 try:
@@ -468,9 +427,7 @@ def test_partial_results_saved(test_db_session):
                 elif scenario["failure_type"] == "database_connection_lost":
                     failure_error = Exception("Database connection lost")
                 else:
-                    failure_error = Exception(
-                        f"Unknown failure: {scenario['failure_type']}"
-                    )
+                    failure_error = Exception(f"Unknown failure: {scenario['failure_type']}")
 
                 # Break processing loop due to failure
                 break
@@ -486,11 +443,7 @@ def test_partial_results_saved(test_db_session):
                 .count()
             )
         elif "email" in scenario["name"]:
-            saved_count = (
-                test_db_session.query(Email)
-                .filter(Email.id.like(f"{scenario['name']}_item_%"))
-                .count()
-            )
+            saved_count = test_db_session.query(Email).filter(Email.id.like(f"{scenario['name']}_item_%")).count()
         elif "report" in scenario["name"]:
             saved_count = (
                 test_db_session.query(ReportGeneration)
@@ -499,9 +452,7 @@ def test_partial_results_saved(test_db_session):
             )
         elif "pipeline" in scenario["name"]:
             saved_count = (
-                test_db_session.query(PipelineRun)
-                .filter(PipelineRun.run_id.like(f"{scenario['name']}_item_%"))
-                .count()
+                test_db_session.query(PipelineRun).filter(PipelineRun.run_id.like(f"{scenario['name']}_item_%")).count()
             )
         else:
             saved_count = len(saved_items)
@@ -516,9 +467,7 @@ def test_partial_results_saved(test_db_session):
             "failure_type": scenario["failure_type"],
             "recovery_possible": scenario["recovery_possible"],
             "saved_correctly": saved_count == scenario["expected_saved"],
-            "processing_time": (
-                scenario_end_time - scenario_start_time
-            ).total_seconds(),
+            "processing_time": (scenario_end_time - scenario_start_time).total_seconds(),
         }
         partial_results.append(result)
 
@@ -527,9 +476,7 @@ def test_partial_results_saved(test_db_session):
     successful_saves = [r for r in partial_results if r["saved_correctly"]]
 
     assert len(failed_saves) == 0, f"Partial save failures: {failed_saves}"
-    assert (
-        len(successful_saves) >= 4
-    ), f"Expected at least 4 successful partial saves, got {len(successful_saves)}"
+    assert len(successful_saves) >= 4, f"Expected at least 4 successful partial saves, got {len(successful_saves)}"
 
     # Test recovery from partial state
     recovery_results = []
@@ -567,9 +514,7 @@ def test_partial_results_saved(test_db_session):
                 "recovered_count": recovered_count,
                 "recovery_successful": recovery_successful,
                 "recovery_error": recovery_error,
-                "recovery_time": (
-                    recovery_end_time - recovery_start_time
-                ).total_seconds(),
+                "recovery_time": (recovery_end_time - recovery_start_time).total_seconds(),
             }
             recovery_results.append(recovery_result)
 
@@ -581,17 +526,13 @@ def test_partial_results_saved(test_db_session):
     print("\n💾 Partial Save Results:")
     for result in partial_results:
         status = "✅" if result["saved_correctly"] else "❌"
-        print(
-            f"  {status} {result['scenario']}: {result['actual_saved']}/{result['expected_saved']} saved"
-        )
+        print(f"  {status} {result['scenario']}: {result['actual_saved']}/{result['expected_saved']} saved")
 
     print("\n🔄 Recovery Test Results:")
     successful_recoveries = [r for r in recovery_results if r["recovery_successful"]]
     for result in recovery_results:
         status = "✅" if result["recovery_successful"] else "❌"
-        print(
-            f"  {status} {result['scenario']}: {result['recovered_count']} items recovered"
-        )
+        print(f"  {status} {result['scenario']}: {result['recovered_count']} items recovered")
 
     assert (
         len(successful_recoveries) >= 3
@@ -706,9 +647,7 @@ def test_retries_work_properly(test_db_session):
                 break
 
             # Check circuit breaker status
-            if scenario.get("circuit_breaker", False) and attempt_count >= scenario.get(
-                "circuit_threshold", 5
-            ):
+            if scenario.get("circuit_breaker", False) and attempt_count >= scenario.get("circuit_threshold", 5):
                 circuit_opened = True
                 print(f"    🔄 Circuit breaker opened after {attempt_count} attempts")
                 break
@@ -722,8 +661,7 @@ def test_retries_work_properly(test_db_session):
                 if attempt < scenario["max_retries"]:
                     if scenario["name"] == "exponential_backoff_retry":
                         delay = min(
-                            scenario["base_delay"]
-                            * (scenario["backoff_factor"] ** attempt),
+                            scenario["base_delay"] * (scenario["backoff_factor"] ** attempt),
                             scenario["max_delay"],
                         )
                         if scenario.get("jitter", False):
@@ -733,9 +671,7 @@ def test_retries_work_properly(test_db_session):
                     elif scenario["name"] == "immediate_retry":
                         delay = scenario["base_delay"]
                     elif scenario["name"] == "circuit_breaker_retry":
-                        delay = scenario["base_delay"] * (
-                            scenario["backoff_factor"] ** attempt
-                        )
+                        delay = scenario["base_delay"] * (scenario["backoff_factor"] ** attempt)
                     else:
                         delay = scenario["base_delay"]
 
@@ -761,22 +697,16 @@ def test_retries_work_properly(test_db_session):
         # Check attempt count
         if attempt_count != scenario["expected_attempts"]:
             behavior_correct = False
-            validation_notes.append(
-                f"Expected {scenario['expected_attempts']} attempts, got {attempt_count}"
-            )
+            validation_notes.append(f"Expected {scenario['expected_attempts']} attempts, got {attempt_count}")
 
         # Check final success
         if final_success != scenario["expected_success"]:
             behavior_correct = False
-            validation_notes.append(
-                f"Expected success: {scenario['expected_success']}, got: {final_success}"
-            )
+            validation_notes.append(f"Expected success: {scenario['expected_success']}, got: {final_success}")
 
         # Check circuit breaker behavior
         if scenario.get("circuit_breaker", False):
-            if not circuit_opened and attempt_count >= scenario.get(
-                "circuit_threshold", 5
-            ):
+            if not circuit_opened and attempt_count >= scenario.get("circuit_threshold", 5):
                 behavior_correct = False
                 validation_notes.append("Circuit breaker should have opened")
 
@@ -865,12 +795,8 @@ def test_retries_work_properly(test_db_session):
                     item["retry_count"] += 1
                     if item["retry_count"] < item["max_retries"]:
                         # Requeue for another retry
-                        item["next_retry_at"] = (
-                            current_time + queue_test["retry_interval"]
-                        )
-                        print(
-                            f"  🔄 Requeued {item['id']} for retry {item['retry_count'] + 1}"
-                        )
+                        item["next_retry_at"] = current_time + queue_test["retry_interval"]
+                        print(f"  🔄 Requeued {item['id']} for retry {item['retry_count'] + 1}")
                     else:
                         print(f"  ❌ Max retries exceeded for {item['id']}")
 
@@ -893,18 +819,14 @@ def test_retries_work_properly(test_db_session):
     successful_retries = [r for r in retry_results if r["behavior_correct"]]
 
     assert len(failed_retries) == 0, f"Retry mechanism failures: {failed_retries}"
-    assert (
-        len(successful_retries) >= 5
-    ), f"Expected at least 5 successful retry tests, got {len(successful_retries)}"
+    assert len(successful_retries) >= 5, f"Expected at least 5 successful retry tests, got {len(successful_retries)}"
 
     # Verify retry queues work
     failed_queues = [q for q in queue_results if not q["queue_functional"]]
     successful_queues = [q for q in queue_results if q["queue_functional"]]
 
     assert len(failed_queues) == 0, f"Retry queue failures: {failed_queues}"
-    assert (
-        len(successful_queues) >= 3
-    ), f"Expected at least 3 functional retry queues, got {len(successful_queues)}"
+    assert len(successful_queues) >= 3, f"Expected at least 3 functional retry queues, got {len(successful_queues)}"
 
     print("\n=== RETRIES WORK PROPERLY ===")
     print(f"✅ Total Retry Strategy Tests: {len(retry_results)}")
@@ -924,9 +846,7 @@ def test_retries_work_properly(test_db_session):
     print("\n📥 Retry Queue Results:")
     for result in queue_results:
         status = "✅" if result["queue_functional"] else "❌"
-        print(
-            f"  {status} {result['queue_type']}: {result['successful_retries']}/{result['items_queued']} successful"
-        )
+        print(f"  {status} {result['queue_type']}: {result['successful_retries']}/{result['items_queued']} successful")
 
 
 @pytest.mark.e2e
@@ -1039,9 +959,7 @@ def test_no_data_corruption(test_db_session):
                     print(f"  🔄 Executing: {operation}")
 
                     # Check if this operation should fail
-                    should_fail = (
-                        "failure_point" in scenario and i == scenario["failure_point"]
-                    )
+                    should_fail = "failure_point" in scenario and i == scenario["failure_point"]
 
                     if operation == "update_performance_score":
                         # Test concurrent assessment score updates
@@ -1132,9 +1050,7 @@ def test_no_data_corruption(test_db_session):
                         business_num = operation.split("_")[-1]
 
                         if "fails" in business_num:
-                            raise Exception(
-                                f"Simulated processing failure for {business_num}"
-                            )
+                            raise Exception(f"Simulated processing failure for {business_num}")
                         else:
                             # Create successful processing record
                             processing_record = AssessmentResult(
@@ -1197,9 +1113,7 @@ def test_no_data_corruption(test_db_session):
         try:
             # Verify no orphaned records
             orphaned_emails = (
-                test_db_session.query(Email)
-                .filter(~Email.business_id.in_(test_db_session.query(Business.id)))
-                .count()
+                test_db_session.query(Email).filter(~Email.business_id.in_(test_db_session.query(Business.id))).count()
             )
 
             consistency_checks.append(
@@ -1215,11 +1129,7 @@ def test_no_data_corruption(test_db_session):
             # Verify referential integrity
             invalid_assessments = (
                 test_db_session.query(AssessmentResult)
-                .filter(
-                    ~AssessmentResult.business_id.in_(
-                        test_db_session.query(Business.id)
-                    )
-                )
+                .filter(~AssessmentResult.business_id.in_(test_db_session.query(Business.id)))
                 .count()
             )
 
@@ -1235,9 +1145,7 @@ def test_no_data_corruption(test_db_session):
             if scenario["type"] == "transaction_rollback":
                 # If transaction failed, nothing should be saved
                 transaction_records = (
-                    test_db_session.query(Email)
-                    .filter(Email.subject == "Consistency Test Email")
-                    .count()
+                    test_db_session.query(Email).filter(Email.subject == "Consistency Test Email").count()
                 )
 
                 expected_records = 0 if len(operations_failed) > 0 else 1
@@ -1261,9 +1169,7 @@ def test_no_data_corruption(test_db_session):
 
         if len(failed_checks) > 0:
             consistency_maintained = False
-            consistency_notes.extend(
-                [f"{c['check']}: {c['details']}" for c in failed_checks]
-            )
+            consistency_notes.extend([f"{c['check']}: {c['details']}" for c in failed_checks])
 
         # Record corruption test results
         result = {
@@ -1276,9 +1182,7 @@ def test_no_data_corruption(test_db_session):
             "consistency_checks_passed": len(passed_checks),
             "consistency_checks_failed": len(failed_checks),
             "consistency_notes": consistency_notes,
-            "processing_time": (
-                scenario_end_time - scenario_start_time
-            ).total_seconds(),
+            "processing_time": (scenario_end_time - scenario_start_time).total_seconds(),
             "rollback_strategy": scenario["rollback_on_failure"],
         }
         corruption_test_results.append(result)
@@ -1377,28 +1281,18 @@ def test_no_data_corruption(test_db_session):
         stress_test_results.append(stress_result)
 
     # Verify no data corruption occurred
-    failed_corruption_tests = [
-        r for r in corruption_test_results if not r["consistency_maintained"]
-    ]
-    successful_corruption_tests = [
-        r for r in corruption_test_results if r["consistency_maintained"]
-    ]
+    failed_corruption_tests = [r for r in corruption_test_results if not r["consistency_maintained"]]
+    successful_corruption_tests = [r for r in corruption_test_results if r["consistency_maintained"]]
 
     failed_stress_tests = [r for r in stress_test_results if not r["behavior_met"]]
     successful_stress_tests = [r for r in stress_test_results if r["behavior_met"]]
 
-    assert (
-        len(failed_corruption_tests) == 0
-    ), f"Data corruption detected: {failed_corruption_tests}"
+    assert len(failed_corruption_tests) == 0, f"Data corruption detected: {failed_corruption_tests}"
     assert (
         len(successful_corruption_tests) >= 5
     ), f"Expected at least 5 corruption tests, got {len(successful_corruption_tests)}"
-    assert (
-        len(failed_stress_tests) == 0
-    ), f"Concurrent access failures: {failed_stress_tests}"
-    assert (
-        len(successful_stress_tests) >= 3
-    ), f"Expected at least 3 stress tests, got {len(successful_stress_tests)}"
+    assert len(failed_stress_tests) == 0, f"Concurrent access failures: {failed_stress_tests}"
+    assert len(successful_stress_tests) >= 3, f"Expected at least 3 stress tests, got {len(successful_stress_tests)}"
 
     print("\n=== NO DATA CORRUPTION ===")
     print(f"✅ Total Corruption Tests: {len(corruption_test_results)}")
@@ -1408,9 +1302,7 @@ def test_no_data_corruption(test_db_session):
     print("\n🛡️ Data Consistency Results:")
     for result in corruption_test_results:
         status = "✅" if result["consistency_maintained"] else "❌"
-        print(
-            f"  {status} {result['scenario']}: {result['consistency_checks_passed']} checks passed"
-        )
+        print(f"  {status} {result['scenario']}: {result['consistency_checks_passed']} checks passed")
         if result["consistency_notes"]:
             for note in result["consistency_notes"]:
                 print(f"    ⚠️ {note}")

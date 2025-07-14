@@ -15,13 +15,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Depends,
-    HTTPException,
-    Request,
-)
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from pydantic import ValidationError
@@ -131,9 +125,7 @@ async def initiate_checkout(
     the checkout URL for the customer to complete payment.
     """
     try:
-        logger.info(
-            f"Initiating checkout for {request.customer_email} with {len(request.items)} items"
-        )
+        logger.info(f"Initiating checkout for {request.customer_email} with {len(request.items)} items")
 
         # Convert request items to checkout items
         checkout_items = []
@@ -158,14 +150,10 @@ async def initiate_checkout(
         )
 
         if result["success"]:
-            logger.info(
-                f"Successfully initiated checkout for {request.customer_email}: {result['purchase_id']}"
-            )
+            logger.info(f"Successfully initiated checkout for {request.customer_email}: {result['purchase_id']}")
             return CheckoutInitiationResponse(**result)
         else:
-            logger.error(
-                f"Checkout initiation failed for {request.customer_email}: {result.get('error')}"
-            )
+            logger.error(f"Checkout initiation failed for {request.customer_email}: {result.get('error')}")
             return CheckoutInitiationResponse(
                 success=False,
                 error=result.get("error", "Unknown error"),
@@ -178,15 +166,11 @@ async def initiate_checkout(
 
     except (CheckoutError, StripeError) as e:
         logger.error(f"Checkout/Stripe error during initiation: {e}")
-        return CheckoutInitiationResponse(
-            success=False, error=str(e), error_type=type(e).__name__
-        )
+        return CheckoutInitiationResponse(success=False, error=str(e), error_type=type(e).__name__)
 
     except Exception as e:
         logger.error(f"Unexpected error during checkout initiation: {e}")
-        return CheckoutInitiationResponse(
-            success=False, error="Internal server error", error_type="InternalError"
-        )
+        return CheckoutInitiationResponse(success=False, error="Internal server error", error_type="InternalError")
 
 
 @router.post(
@@ -221,9 +205,7 @@ async def stripe_webhook(
         result = processor.process_webhook(payload, stripe_signature)
 
         if result["success"]:
-            logger.info(
-                f"Successfully processed webhook event: {result.get('event_id')}"
-            )
+            logger.info(f"Successfully processed webhook event: {result.get('event_id')}")
 
             # For completed payments, potentially trigger background tasks
             if (
@@ -243,9 +225,7 @@ async def stripe_webhook(
             )
         else:
             logger.error(f"Webhook processing failed: {result.get('error')}")
-            return WebhookEventResponse(
-                success=False, error=result.get("error", "Webhook processing failed")
-            )
+            return WebhookEventResponse(success=False, error=result.get("error", "Webhook processing failed"))
 
     except HTTPException:
         raise
@@ -289,15 +269,11 @@ async def get_session_status(
 
     except StripeError as e:
         logger.error(f"Stripe error retrieving session status: {e}")
-        return CheckoutSessionStatusResponse(
-            success=False, error=str(e), error_type="StripeError"
-        )
+        return CheckoutSessionStatusResponse(success=False, error=str(e), error_type="StripeError")
 
     except Exception as e:
         logger.error(f"Unexpected error retrieving session status: {e}")
-        return CheckoutSessionStatusResponse(
-            success=False, error="Internal server error", error_type="InternalError"
-        )
+        return CheckoutSessionStatusResponse(success=False, error="Internal server error", error_type="InternalError")
 
 
 @router.get(
@@ -318,20 +294,14 @@ async def payment_success(
     and report generation status to the customer.
     """
     try:
-        logger.info(
-            f"Processing success page for session: {session_id}, purchase: {purchase_id}"
-        )
+        logger.info(f"Processing success page for session: {session_id}, purchase: {purchase_id}")
 
         # Retrieve session details
         session_result = manager.retrieve_session_status(session_id)
 
         if not session_result["success"]:
-            logger.error(
-                f"Failed to retrieve session {session_id}: {session_result.get('error')}"
-            )
-            return SuccessPageResponse(
-                success=False, error="Session not found or invalid"
-            )
+            logger.error(f"Failed to retrieve session {session_id}: {session_result.get('error')}")
+            return SuccessPageResponse(success=False, error="Session not found or invalid")
 
         # Extract session information
         session_data = session_result
@@ -352,9 +322,7 @@ async def payment_success(
             for i in range(item_count):
                 item_name = metadata.get(f"item_{i}_name")
                 item_type = metadata.get(f"item_{i}_type")
-                business_url = metadata.get(f"item_{i}_business_url") or metadata.get(
-                    "business_url"
-                )
+                business_url = metadata.get(f"item_{i}_business_url") or metadata.get("business_url")
 
                 if item_name:
                     items.append(
@@ -391,9 +359,7 @@ async def payment_success(
                 estimated_delivery=estimated_delivery,
             )
         else:
-            logger.warning(
-                f"Payment not completed for session {session_id}: status={payment_status}"
-            )
+            logger.warning(f"Payment not completed for session {session_id}: status={payment_status}")
             return SuccessPageResponse(
                 success=False,
                 session_id=session_id,
@@ -447,9 +413,7 @@ async def create_audit_report_checkout(
 
     except Exception as e:
         logger.error(f"Error creating audit report checkout: {e}")
-        return CheckoutInitiationResponse(
-            success=False, error="Internal server error", error_type="InternalError"
-        )
+        return CheckoutInitiationResponse(success=False, error="Internal server error", error_type="InternalError")
 
 
 @router.post(
@@ -469,9 +433,7 @@ async def create_bulk_reports_checkout(
     website audit reports with bulk pricing.
     """
     try:
-        logger.info(
-            f"Creating bulk reports checkout for {len(request.business_urls)} URLs"
-        )
+        logger.info(f"Creating bulk reports checkout for {len(request.business_urls)} URLs")
 
         result = manager.create_bulk_reports_checkout(
             customer_email=request.customer_email,
@@ -491,9 +453,7 @@ async def create_bulk_reports_checkout(
 
     except Exception as e:
         logger.error(f"Error creating bulk reports checkout: {e}")
-        return CheckoutInitiationResponse(
-            success=False, error="Internal server error", error_type="InternalError"
-        )
+        return CheckoutInitiationResponse(success=False, error="Internal server error", error_type="InternalError")
 
 
 # Health and status endpoints
@@ -522,32 +482,18 @@ async def get_api_status(
         stripe_status = stripe_client.get_status()
 
         services = {
-            "stripe": "connected"
-            if stripe_status.get("webhook_configured")
-            else "limited",
-            "checkout_manager": "active"
-            if checkout_status.get("test_mode") is not None
-            else "inactive",
-            "webhook_processor": "active"
-            if webhook_status.get("idempotency_enabled") is not None
-            else "inactive",
+            "stripe": "connected" if stripe_status.get("webhook_configured") else "limited",
+            "checkout_manager": "active" if checkout_status.get("test_mode") is not None else "inactive",
+            "webhook_processor": "active" if webhook_status.get("idempotency_enabled") is not None else "inactive",
         }
 
-        overall_status = (
-            "healthy"
-            if all(s in ["connected", "active"] for s in services.values())
-            else "degraded"
-        )
+        overall_status = "healthy" if all(s in ["connected", "active"] for s in services.values()) else "degraded"
 
-        return APIStatusResponse(
-            status=overall_status, version="1.0.0", services=services
-        )
+        return APIStatusResponse(status=overall_status, version="1.0.0", services=services)
 
     except Exception as e:
         logger.error(f"Error getting API status: {e}")
-        return APIStatusResponse(
-            status="error", version="1.0.0", services={"error": str(e)}
-        )
+        return APIStatusResponse(status="error", version="1.0.0", services={"error": str(e)})
 
 
 # Error handlers - these would be added to the main FastAPI app, not the router
@@ -565,9 +511,7 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
 
 async def checkout_exception_handler(request: Request, exc: CheckoutError):
     """Handle checkout errors"""
-    return create_error_response(
-        error_message=str(exc), error_type="CheckoutError", status_code=400
-    )
+    return create_error_response(error_message=str(exc), error_type="CheckoutError", status_code=400)
 
 
 async def stripe_exception_handler(request: Request, exc: StripeError):
@@ -582,9 +526,7 @@ async def stripe_exception_handler(request: Request, exc: StripeError):
 
 async def webhook_exception_handler(request: Request, exc: WebhookError):
     """Handle webhook errors"""
-    return create_error_response(
-        error_message=str(exc), error_type="WebhookError", status_code=400
-    )
+    return create_error_response(error_message=str(exc), error_type="WebhookError", status_code=400)
 
 
 # Utility functions for background tasks

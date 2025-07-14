@@ -54,9 +54,7 @@ def setup_logging() -> None:
 
     if settings.log_format == "json":
         # JSON format for production/structured logging
-        formatter = CustomJsonFormatter(
-            "%(timestamp)s %(level)s %(name)s %(message)s", timestamp=True
-        )
+        formatter = CustomJsonFormatter("%(timestamp)s %(level)s %(name)s %(message)s", timestamp=True)
     else:
         # Human-readable format for development
         formatter = logging.Formatter(
@@ -70,9 +68,7 @@ def setup_logging() -> None:
     # Adjust third-party loggers
     logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("sqlalchemy.engine").setLevel(
-        logging.INFO if settings.database_echo else logging.WARNING
-    )
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO if settings.database_echo else logging.WARNING)
 
 
 class LoggerAdapter(logging.LoggerAdapter):

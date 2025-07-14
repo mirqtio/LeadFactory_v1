@@ -9,7 +9,9 @@ from database.base import Base
 
 # Import all models to ensure they're registered
 try:
-    import database.models
+    import database.models  # Core models including Lead
+    import database.governance_models  # RBAC and audit models
+    import batch_runner.models
     import d1_targeting.models
     import d2_sourcing.models
     import d3_assessment.models
@@ -22,7 +24,6 @@ try:
     import d10_analytics.models
     import d11_orchestration.models
     import lead_explorer.models
-    import batch_runner.models
     from d6_reports.lineage.models import ReportLineage, ReportLineageAudit
 except ImportError:
     pass
@@ -32,11 +33,9 @@ except ImportError:
 def db_session():
     """Create a database session for testing"""
     from sqlalchemy.pool import StaticPool
+
     engine = create_engine(
-        "sqlite:///:memory:", 
-        echo=False,
-        poolclass=StaticPool,
-        connect_args={"check_same_thread": False}
+        "sqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
     )
     Base.metadata.create_all(engine)
 

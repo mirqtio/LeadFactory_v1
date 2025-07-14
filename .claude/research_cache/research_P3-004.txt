@@ -1,0 +1,51 @@
+# Research Context for P3-004
+
+## Key Findings
+- WebSocket provides persistent, bi-directional communication for real-time progress updates
+- React hooks (useWebSocket, react-use-websocket) simplify WebSocket state management in React
+- FastAPI supports native WebSocket endpoints with async/await patterns
+- Batch processing best handled with task queues (Celery/RQ) + WebSocket for progress updates
+- Modern pattern: Task queue for processing + WebSocket for real-time UI updates
+
+## Authoritative Sources
+- https://fastapi.tiangolo.com/advanced/websockets/ - Official FastAPI WebSocket documentation
+- https://ably.com/blog/websockets-react-tutorial - Complete guide to WebSockets with React
+- https://testdriven.io/blog/fastapi-and-celery/ - Asynchronous Tasks with FastAPI and Celery
+- https://medium.com/@SanchezAllanManuel/optimizing-real-time-performance-websockets-and-react-js-integration-part-i-e563664647d3 - WebSocket React optimization
+
+## Current Best Practices
+- Use single WebSocket connection with multiplexing for all messages
+- Implement proper lifecycle management with useEffect cleanup
+- Memoize WebSocket data with useMemo to prevent unnecessary re-renders
+- Create custom hooks for reusable WebSocket logic
+- Use JSON message format with sendJsonMessage for structured data
+- Implement heartbeat/ping-pong for connection health monitoring
+- Set appropriate message size limits and connection limits
+- Use connection pooling for database operations in background tasks
+
+## Common Pitfalls
+- Not properly closing WebSocket connections on component unmount (memory leaks)
+- Opening multiple WebSocket connections instead of multiplexing
+- Not handling WebSocket reconnection logic
+- Missing error boundaries for WebSocket failures
+- Sending large payloads without compression
+- Not implementing proper authentication for WebSocket connections
+- Blocking operations in WebSocket handlers (use background tasks)
+- Not limiting concurrent connections or message sizes (DoS vulnerability)
+
+## Recent Updates
+- React 18+ concurrent features work well with WebSocket state updates
+- FastAPI 0.100+ improved WebSocket error handling and typing
+- New react-use-websocket features: automatic reconnection, SSE fallback
+- Celery 5.3+ better async support with FastAPI
+- Modern browsers support WebSocket compression by default
+
+## Implementation Recommendations
+- Architecture: FastAPI backend with WebSocket endpoint + Celery for batch processing
+- Frontend: React with react-use-websocket hook for connection management
+- Progress tracking: Celery task updates Redis, WebSocket broadcasts to UI
+- State management: Use React Context or Zustand for WebSocket state
+- UI Components: Progress bars with real-time updates, status indicators
+- Error handling: Implement reconnection logic with exponential backoff
+- Security: Authenticate WebSocket connections, validate all messages
+- Testing: Use pytest-asyncio for WebSocket endpoints, React Testing Library for UI

@@ -26,12 +26,7 @@ sys.path.insert(0, "/app")
 
 from d3_assessment.api import router
 from d3_assessment.cache import AssessmentCache
-from d3_assessment.coordinator import (
-    AssessmentCoordinator,
-    AssessmentPriority,
-    AssessmentRequest,
-    CoordinatorResult,
-)
+from d3_assessment.coordinator import AssessmentCoordinator, AssessmentPriority, AssessmentRequest, CoordinatorResult
 from d3_assessment.formatter import AssessmentReportFormatter, ReportFormat
 from d3_assessment.metrics import AssessmentMetrics
 from d3_assessment.types import AssessmentStatus, AssessmentType
@@ -369,9 +364,7 @@ class TestAssessmentIntegrationTask039:
         # Verify the completed assessment has proper data
         pagespeed_result = result.partial_results[AssessmentType.PAGESPEED]
         assert pagespeed_result.status == AssessmentStatus.COMPLETED
-        assert (
-            pagespeed_result.performance_score == 45
-        )  # Poor performance from timeout site
+        assert pagespeed_result.performance_score == 45  # Poor performance from timeout site
         assert pagespeed_result.url == "https://timeout-site.com"
 
         # Verify that failed assessments are not in partial_results
@@ -379,9 +372,7 @@ class TestAssessmentIntegrationTask039:
         assert AssessmentType.AI_INSIGHTS not in result.partial_results
 
         # Verify cost is lower due to partial completion
-        assert result.total_cost_usd == Decimal(
-            "0.05"
-        )  # Only cost from completed PageSpeed
+        assert result.total_cost_usd == Decimal("0.05")  # Only cost from completed PageSpeed
 
         print("✓ Timeouts handled properly")
 
@@ -423,10 +414,7 @@ class TestAssessmentIntegrationTask039:
         assert techstack_result.tech_stack_data is not None
         assert "technologies" in techstack_result.tech_stack_data
         assert len(techstack_result.tech_stack_data["technologies"]) == 1
-        assert (
-            techstack_result.tech_stack_data["technologies"][0]["technology_name"]
-            == "React"
-        )
+        assert techstack_result.tech_stack_data["technologies"][0]["technology_name"] == "React"
 
         # Check AI Insights result structure
         ai_result = mock_result.partial_results[AssessmentType.AI_INSIGHTS]
@@ -554,9 +542,7 @@ class TestAssessmentIntegrationTask039:
             industry="ecommerce",
         )
 
-        metrics.track_cost(
-            assessment_type=AssessmentType.AI_INSIGHTS, cost_usd=Decimal("0.15")
-        )
+        metrics.track_cost(assessment_type=AssessmentType.AI_INSIGHTS, cost_usd=Decimal("0.15"))
 
         # Test metrics retrieval
         summary = metrics.get_metrics_summary()

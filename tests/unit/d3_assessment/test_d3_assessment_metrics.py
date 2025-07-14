@@ -59,9 +59,7 @@ class TestTask037AcceptanceCriteria:
         industry = "ecommerce"
 
         # Track assessment start
-        tracking_id = assessment_metrics.track_assessment_start(
-            business_id, assessment_type, industry
-        )
+        tracking_id = assessment_metrics.track_assessment_start(business_id, assessment_type, industry)
 
         assert tracking_id is not None
         assert tracking_id.startswith("track_")
@@ -85,14 +83,10 @@ class TestTask037AcceptanceCriteria:
 
         # Verify success window updated
         assert len(assessment_metrics._success_window) == 1
-        assert (
-            assessment_metrics._success_window[0]["assessment_type"] == assessment_type
-        )
+        assert assessment_metrics._success_window[0]["assessment_type"] == assessment_type
 
         # Track another assessment that fails
-        tracking_id2 = assessment_metrics.track_assessment_start(
-            business_id, AssessmentType.TECH_STACK, industry
-        )
+        tracking_id2 = assessment_metrics.track_assessment_start(business_id, AssessmentType.TECH_STACK, industry)
 
         assessment_metrics.track_assessment_complete(
             tracking_id=tracking_id2,
@@ -104,10 +98,7 @@ class TestTask037AcceptanceCriteria:
 
         # Verify error window updated
         assert len(assessment_metrics._error_window) == 1
-        assert (
-            assessment_metrics._error_window[0]["assessment_type"]
-            == AssessmentType.TECH_STACK
-        )
+        assert assessment_metrics._error_window[0]["assessment_type"] == AssessmentType.TECH_STACK
 
         print("✓ Assessment counts tracked correctly")
 
@@ -161,19 +152,13 @@ class TestTask037AcceptanceCriteria:
             assessment_metrics.track_cost(assessment_type, cost, category)
 
         # Test cost tracking with very small amounts
-        assessment_metrics.track_cost(
-            AssessmentType.PAGESPEED, Decimal("0.001"), "minimal_api"
-        )
+        assessment_metrics.track_cost(AssessmentType.PAGESPEED, Decimal("0.001"), "minimal_api")
 
         # Test cost tracking with larger amounts
-        assessment_metrics.track_cost(
-            AssessmentType.AI_INSIGHTS, Decimal("5.50"), "premium_llm"
-        )
+        assessment_metrics.track_cost(AssessmentType.AI_INSIGHTS, Decimal("5.50"), "premium_llm")
 
         # Verify cost is tracked in assessment completion
-        tracking_id = assessment_metrics.track_assessment_start(
-            "biz_123", AssessmentType.PAGESPEED, "retail"
-        )
+        tracking_id = assessment_metrics.track_assessment_start("biz_123", AssessmentType.PAGESPEED, "retail")
 
         assessment_metrics.track_assessment_complete(
             tracking_id=tracking_id,
@@ -205,9 +190,7 @@ class TestTask037AcceptanceCriteria:
 
         # Track assessments
         for assessment_type, status in assessment_results:
-            tracking_id = assessment_metrics.track_assessment_start(
-                "test_biz", assessment_type, "technology"
-            )
+            tracking_id = assessment_metrics.track_assessment_start("test_biz", assessment_type, "technology")
 
             assessment_metrics.track_assessment_complete(
                 tracking_id=tracking_id,
@@ -242,9 +225,7 @@ class TestTask037AcceptanceCriteria:
         assert tech_stack_stats["success"] == 1
         assert tech_stack_stats["errors"] == 1
 
-        ai_insights_stats = summary["assessment_types"][
-            AssessmentType.AI_INSIGHTS.value
-        ]
+        ai_insights_stats = summary["assessment_types"][AssessmentType.AI_INSIGHTS.value]
         assert ai_insights_stats["success"] == 1
         assert ai_insights_stats["errors"] == 0
 
@@ -287,12 +268,8 @@ class TestTask037AcceptanceCriteria:
         assessment_metrics.update_queue_size("low", 25)
 
         # Update memory usage
-        assessment_metrics.update_memory_usage(
-            AssessmentType.PAGESPEED, 1024 * 1024 * 50  # 50MB
-        )
-        assessment_metrics.update_memory_usage(
-            AssessmentType.AI_INSIGHTS, 1024 * 1024 * 150  # 150MB
-        )
+        assessment_metrics.update_memory_usage(AssessmentType.PAGESPEED, 1024 * 1024 * 50)  # 50MB
+        assessment_metrics.update_memory_usage(AssessmentType.AI_INSIGHTS, 1024 * 1024 * 150)  # 150MB
 
         print("✓ Queue and resource metrics work correctly")
 
@@ -300,12 +277,8 @@ class TestTask037AcceptanceCriteria:
         """Test rolling window cleanup functionality"""
         # Add old entries that should be cleaned up
         old_time = datetime.utcnow() - timedelta(minutes=20)
-        assessment_metrics._success_window.append(
-            {"timestamp": old_time, "assessment_type": AssessmentType.PAGESPEED}
-        )
-        assessment_metrics._error_window.append(
-            {"timestamp": old_time, "assessment_type": AssessmentType.TECH_STACK}
-        )
+        assessment_metrics._success_window.append({"timestamp": old_time, "assessment_type": AssessmentType.PAGESPEED})
+        assessment_metrics._error_window.append({"timestamp": old_time, "assessment_type": AssessmentType.TECH_STACK})
 
         # Add recent entries that should be kept
         recent_time = datetime.utcnow() - timedelta(minutes=5)
@@ -323,10 +296,7 @@ class TestTask037AcceptanceCriteria:
         # Verify old entries removed
         assert len(assessment_metrics._success_window) == 1
         assert len(assessment_metrics._error_window) == 0
-        assert (
-            assessment_metrics._success_window[0]["assessment_type"]
-            == AssessmentType.AI_INSIGHTS
-        )
+        assert assessment_metrics._success_window[0]["assessment_type"] == AssessmentType.AI_INSIGHTS
 
         print("✓ Window cleanup works correctly")
 
@@ -390,9 +360,7 @@ class TestTask037AcceptanceCriteria:
         industry = "finance"
 
         # 1. Start tracking
-        tracking_id = assessment_metrics.track_assessment_start(
-            business_id, assessment_type, industry
-        )
+        tracking_id = assessment_metrics.track_assessment_start(business_id, assessment_type, industry)
 
         # 2. Track API calls during assessment
         assessment_metrics.track_api_call(assessment_type, "pagespeed_api", 200)

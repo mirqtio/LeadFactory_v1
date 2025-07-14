@@ -10,13 +10,9 @@ import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from d0_gateway.base import BaseAPIClient
-from d0_gateway.exceptions import (
-    APIProviderError,
-    AuthenticationError,
-    RateLimitExceededError,
-)
 from core.exceptions import ValidationError
+from d0_gateway.base import BaseAPIClient
+from d0_gateway.exceptions import APIProviderError, AuthenticationError, RateLimitExceededError
 
 logger = logging.getLogger(__name__)
 
@@ -81,9 +77,7 @@ class SEMrushClient(BaseAPIClient):
             "Accept": "application/json",
         }
 
-    async def get_domain_overview(
-        self, domain: str, lead_id: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+    async def get_domain_overview(self, domain: str, lead_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
         Get domain overview including organic keywords count
 
@@ -251,9 +245,7 @@ class SEMrushClient(BaseAPIClient):
         """Make GET request using base client or test client"""
         if self._client:
             # Test mode - use injected client
-            response = await self._client.get(
-                endpoint, headers=self._get_headers(), **kwargs
-            )
+            response = await self._client.get(endpoint, headers=self._get_headers(), **kwargs)
             return response.text if hasattr(response, "text") else response.json()
         else:
             # Production mode - use our custom make_request

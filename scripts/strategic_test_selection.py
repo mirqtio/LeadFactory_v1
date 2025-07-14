@@ -45,12 +45,13 @@ EXCLUDE_TESTS = [
     "tests/unit/d9_delivery/test_sendgrid.py",
 ]
 
+
 # Generate pytest command
 def generate_pytest_cmd():
     ignore_args = []
     for test in SLOW_TESTS + EXCLUDE_TESTS:
         ignore_args.append(f"--ignore={test}")
-    
+
     cmd = f"""pytest \\
   tests/unit \\
   tests/integration/test_stub_server.py \\
@@ -62,6 +63,7 @@ def generate_pytest_cmd():
   -n auto --tb=short
 """
     return cmd
+
 
 if __name__ == "__main__":
     print(generate_pytest_cmd())

@@ -2,22 +2,15 @@
 Tests for analytics views - Phase 0.5 Task AN-08
 """
 
-import pytest
 from datetime import datetime
 from decimal import Decimal
+
+import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from database.base import Base
-from database.models import (
-    Business,
-    Email,
-    EmailStatus,
-    Purchase,
-    PurchaseStatus,
-    ScoringResult,
-    DailyCostAggregate,
-)
+from database.models import Business, DailyCostAggregate, Email, EmailStatus, Purchase, PurchaseStatus, ScoringResult
 
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
@@ -213,9 +206,7 @@ class TestAnalyticsViews:
         test_db.commit()
 
         # Query view
-        results = test_db.execute(
-            text("SELECT * FROM bucket_performance ORDER BY total_businesses DESC")
-        ).fetchall()
+        results = test_db.execute(text("SELECT * FROM bucket_performance ORDER BY total_businesses DESC")).fetchall()
 
         assert len(results) == 2  # Two unique bucket combinations
 
@@ -239,12 +230,8 @@ class TestAnalyticsViews:
     def test_empty_views(self, test_db):
         """Test views with no data"""
         # Query empty views
-        unit_result = test_db.execute(
-            text("SELECT * FROM unit_economics_day")
-        ).fetchall()
-        bucket_result = test_db.execute(
-            text("SELECT * FROM bucket_performance")
-        ).fetchall()
+        unit_result = test_db.execute(text("SELECT * FROM unit_economics_day")).fetchall()
+        bucket_result = test_db.execute(text("SELECT * FROM bucket_performance")).fetchall()
 
         assert len(unit_result) == 0
         assert len(bucket_result) == 0

@@ -4,22 +4,10 @@ Database models for lead sourcing domain
 import uuid
 from datetime import datetime
 
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    ForeignKey,
-    Index,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from database.base import Base
-
 
 # YelpMetadata class removed per P0-009 - Yelp provider no longer supported
 
@@ -33,9 +21,7 @@ class SourcedLocation(Base):
     business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
 
     # Source identification
-    source_provider = Column(
-        String(50), nullable=False, index=True
-    )  # yelp, google, manual, etc.
+    source_provider = Column(String(50), nullable=False, index=True)  # yelp, google, manual, etc.
     source_id = Column(String(255), nullable=False, index=True)  # Provider's ID
     source_url = Column(String(500), nullable=True)
 
@@ -54,9 +40,7 @@ class SourcedLocation(Base):
     # Source metadata
     source_data = Column(JSON, nullable=True)  # Full source response
     discovered_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    last_updated = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    last_updated = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Processing flags
     is_primary = Column(Boolean, nullable=False, default=False)  # Primary data source
@@ -68,9 +52,7 @@ class SourcedLocation(Base):
     business = relationship("Business")
 
     __table_args__ = (
-        UniqueConstraint(
-            "source_provider", "source_id", name="uq_sourced_locations_provider_id"
-        ),
+        UniqueConstraint("source_provider", "source_id", name="uq_sourced_locations_provider_id"),
         Index("idx_sourced_locations_business", "business_id", "is_primary"),
         Index("idx_sourced_locations_confidence", "match_confidence", "is_duplicate"),
         Index("idx_sourced_locations_review", "needs_review", "is_conflicting"),

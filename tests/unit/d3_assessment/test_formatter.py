@@ -450,9 +450,7 @@ class TestUtilityFunctions:
         assert "Website Assessment Report" in result
 
         # Test with JSON format
-        result_json = format_assessment_report(
-            sample_assessment, format_type="json", include_technical=False
-        )
+        result_json = format_assessment_report(sample_assessment, format_type="json", include_technical=False)
         assert isinstance(result_json, dict)
         assert "business_name" in result_json
 

@@ -27,22 +27,14 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from d6_reports.models import (
-    DeliveryMethod,
-    ReportDelivery,
-    ReportGeneration,
-    ReportStatus,
-    ReportType,
-)
+from d6_reports.models import DeliveryMethod, ReportDelivery, ReportGeneration, ReportStatus, ReportType
 
 # Import models
 from database.models import Purchase, PurchaseStatus, WebhookEvent
 
 
 @pytest.mark.e2e
-def test_stripe_checkout_works(
-    test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor
-):
+def test_stripe_checkout_works(test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor):
     """Stripe checkout works - Stripe checkout session creation and payment processing"""
 
     test_business = sample_yelp_businesses[0]
@@ -97,9 +89,7 @@ def test_stripe_checkout_works(
 
 
 @pytest.mark.e2e
-def test_webhook_processing(
-    test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor
-):
+def test_webhook_processing(test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor):
     """Webhook processing - Stripe webhook events processing for payment completion"""
 
     test_business = sample_yelp_businesses[0]
@@ -153,18 +143,14 @@ def test_webhook_processing(
     assert purchase.completed_at is not None
 
     # Verify webhook event was stored
-    stored_webhook = (
-        test_db_session.query(WebhookEvent).filter_by(id="evt_test_webhook_456").first()
-    )
+    stored_webhook = test_db_session.query(WebhookEvent).filter_by(id="evt_test_webhook_456").first()
     assert stored_webhook is not None
     assert stored_webhook.type == "checkout.session.completed"
     assert stored_webhook.payload["data"]["object"]["payment_status"] == "paid"
 
 
 @pytest.mark.e2e
-def test_report_generation(
-    test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor
-):
+def test_report_generation(test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor):
     """Report generation - Triggered report generation after successful payment"""
 
     test_business = sample_yelp_businesses[0]
@@ -195,9 +181,7 @@ def test_report_generation(
             "business_name": test_business.name,
             "business_website": test_business.website,
             "business_phone": test_business.phone,
-            "business_rating": float(test_business.rating)
-            if test_business.rating
-            else None,
+            "business_rating": float(test_business.rating) if test_business.rating else None,
             "review_count": test_business.user_ratings_total,
             "vertical": test_business.vertical,
         },
@@ -253,9 +237,7 @@ def test_report_generation(
 
 
 @pytest.mark.e2e
-def test_delivery_confirmed(
-    test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor
-):
+def test_delivery_confirmed(test_db_session, mock_external_services, sample_yelp_businesses, performance_monitor):
     """Delivery confirmed - Report delivery tracking and confirmation"""
 
     test_business = sample_yelp_businesses[0]
@@ -301,9 +283,7 @@ def test_delivery_confirmed(
         # Simulate successful delivery
         report_delivery.delivered_at = datetime.utcnow()
         report_delivery.delivery_status = "delivered"
-        report_delivery.download_url = (
-            f"https://reports.leadfactory.ai/download/{report_delivery.id}"
-        )
+        report_delivery.download_url = f"https://reports.leadfactory.ai/download/{report_delivery.id}"
         test_db_session.commit()
         test_db_session.refresh(report_delivery)
 
@@ -432,11 +412,7 @@ def test_complete_purchase_flow_integration(
     assert purchase.amount_cents == 4997
 
     # ✓ Webhook processing
-    stored_webhook = (
-        test_db_session.query(WebhookEvent)
-        .filter_by(id="evt_integration_test_999")
-        .first()
-    )
+    stored_webhook = test_db_session.query(WebhookEvent).filter_by(id="evt_integration_test_999").first()
     assert stored_webhook is not None
     assert stored_webhook.type == "checkout.session.completed"
 

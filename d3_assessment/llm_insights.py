@@ -21,7 +21,6 @@ from typing import Any, Dict, List, Optional
 # Use Humanloop for all LLM operations
 from d0_gateway.providers.humanloop import HumanloopClient
 
-
 from .models import AssessmentCost, AssessmentResult
 from .prompts import InsightPrompts
 from .types import CostType, InsightType
@@ -101,16 +100,12 @@ class LLMInsightGenerator:
             total_cost = Decimal("0.00")
 
             if InsightType.RECOMMENDATIONS in insight_types:
-                recommendations, cost = await self._generate_recommendations(
-                    assessment_data, industry, insight_id
-                )
+                recommendations, cost = await self._generate_recommendations(assessment_data, industry, insight_id)
                 insights["recommendations"] = recommendations
                 total_cost += cost
 
             if InsightType.TECHNICAL_ANALYSIS in insight_types:
-                technical_analysis, cost = await self._generate_technical_analysis(
-                    assessment_data, insight_id
-                )
+                technical_analysis, cost = await self._generate_technical_analysis(assessment_data, insight_id)
                 insights["technical_analysis"] = technical_analysis
                 total_cost += cost
 
@@ -123,9 +118,7 @@ class LLMInsightGenerator:
 
             # Generate quick wins if requested
             if InsightType.QUICK_WINS in insight_types:
-                quick_wins, cost = await self._generate_quick_wins(
-                    assessment_data, insight_id
-                )
+                quick_wins, cost = await self._generate_quick_wins(assessment_data, insight_id)
                 insights["quick_wins"] = quick_wins
                 total_cost += cost
 
@@ -141,9 +134,7 @@ class LLMInsightGenerator:
                 generated_at=started_at,
                 completed_at=datetime.utcnow(),
                 model_version="humanloop-v1",
-                processing_time_ms=max(
-                    1, int((datetime.utcnow() - started_at).total_seconds() * 1000)
-                ),
+                processing_time_ms=max(1, int((datetime.utcnow() - started_at).total_seconds() * 1000)),
             )
 
             # Validate output meets acceptance criteria
@@ -165,9 +156,7 @@ class LLMInsightGenerator:
                 completed_at=datetime.utcnow(),
                 error_message=str(e),
                 model_version="humanloop-v1",
-                processing_time_ms=max(
-                    1, int((datetime.utcnow() - started_at).total_seconds() * 1000)
-                ),
+                processing_time_ms=max(1, int((datetime.utcnow() - started_at).total_seconds() * 1000)),
             )
 
     async def _generate_recommendations(
@@ -187,9 +176,7 @@ class LLMInsightGenerator:
         )
 
         # Track cost
-        cost = await self._track_llm_cost(
-            insight_id, "recommendations", response.get("usage", {}), "Website Analysis"
-        )
+        cost = await self._track_llm_cost(insight_id, "recommendations", response.get("usage", {}), "Website Analysis")
 
         # Parse structured output
         try:
@@ -198,9 +185,7 @@ class LLMInsightGenerator:
             # Validate 3 recommendations
             recommendations = parsed_response.get("recommendations", [])
             if len(recommendations) < 3:
-                raise ValueError(
-                    f"Expected 3 recommendations, got {len(recommendations)}"
-                )
+                raise ValueError(f"Expected 3 recommendations, got {len(recommendations)}")
 
             return parsed_response, cost
 
@@ -266,9 +251,7 @@ class LLMInsightGenerator:
             metadata={"insight_id": insight_id, "type": "quick_wins"},
         )
 
-        cost = await self._track_llm_cost(
-            insight_id, "quick_wins", response.get("usage", {}), "Quick Wins"
-        )
+        cost = await self._track_llm_cost(insight_id, "quick_wins", response.get("usage", {}), "Quick Wins")
 
         try:
             return json.loads(response.get("output", "{}")), cost
@@ -304,9 +287,7 @@ class LLMInsightGenerator:
             return tech_data.get("technologies", [])
         return []
 
-    def _extract_performance_issues(
-        self, assessment: AssessmentResult
-    ) -> List[Dict[str, Any]]:
+    def _extract_performance_issues(self, assessment: AssessmentResult) -> List[Dict[str, Any]]:
         """Extract performance issues from PageSpeed data"""
         pagespeed_data = getattr(assessment, "pagespeed_data", {})
         if isinstance(pagespeed_data, dict):
@@ -322,9 +303,7 @@ class LLMInsightGenerator:
                             "title": audit.get("title", ""),
                             "description": audit.get("description", ""),
                             "impact": self._categorize_audit_impact(audit),
-                            "savings_ms": audit.get("details", {}).get(
-                                "overallSavingsMs", 0
-                            ),
+                            "savings_ms": audit.get("details", {}).get("overallSavingsMs", 0),
                         }
                     )
 
@@ -373,9 +352,7 @@ class LLMInsightGenerator:
         input_cost_per_token = Decimal("0.00003")  # $0.03 per 1K tokens
         output_cost_per_token = Decimal("0.00006")  # $0.06 per 1K tokens
 
-        total_cost = (input_tokens * input_cost_per_token) + (
-            output_tokens * output_cost_per_token
-        )
+        total_cost = (input_tokens * input_cost_per_token) + (output_tokens * output_cost_per_token)
 
         # Track the cost
         AssessmentCost(
@@ -404,18 +381,14 @@ class LLMInsightGenerator:
         if "recommendations" in insights:
             recommendations = insights["recommendations"].get("recommendations", [])
             if len(recommendations) < 3:
-                raise ValueError(
-                    f"Expected 3 recommendations, got {len(recommendations)}"
-                )
+                raise ValueError(f"Expected 3 recommendations, got {len(recommendations)}")
 
             # Validate recommendation structure
             for i, rec in enumerate(recommendations):
                 required_fields = ["title", "description", "priority", "effort"]
                 for field in required_fields:
                     if field not in rec:
-                        raise ValueError(
-                            f"Recommendation {i+1} missing required field: {field}"
-                        )
+                        raise ValueError(f"Recommendation {i+1} missing required field: {field}")
 
         # Validate industry insights if present
         if "industry_benchmark" in insights:
@@ -439,10 +412,7 @@ class LLMInsightGenerator:
 
         # Extract recommendation-like content
         for i, line in enumerate(lines):
-            if any(
-                keyword in line.lower()
-                for keyword in ["recommend", "improve", "optimize"]
-            ):
+            if any(keyword in line.lower() for keyword in ["recommend", "improve", "optimize"]):
                 recommendations.append(
                     {
                         "title": line.strip()[:100],
@@ -450,9 +420,7 @@ class LLMInsightGenerator:
                         "priority": "Medium",
                         "effort": "Medium",
                         "impact": "Performance improvement",
-                        "implementation_steps": [
-                            "Review and implement suggested changes"
-                        ],
+                        "implementation_steps": ["Review and implement suggested changes"],
                         "industry_context": "General website optimization",
                     }
                 )
@@ -506,9 +474,7 @@ class LLMInsightGenerator:
             ],
             "infrastructure_insights": {
                 "current_setup": "Analysis required",
-                "optimization_opportunities": content[:200]
-                if content
-                else "Review needed",
+                "optimization_opportunities": content[:200] if content else "Review needed",
                 "modernization_path": "Follow web performance best practices",
             },
         }
@@ -595,9 +561,7 @@ class LLMInsightBatchGenerator:
         async def generate_single(assessment: AssessmentResult) -> LLMInsightResult:
             async with semaphore:
                 industry = industry_mapping.get(assessment.id, "default")
-                return await self.generator.generate_comprehensive_insights(
-                    assessment, industry
-                )
+                return await self.generator.generate_comprehensive_insights(assessment, industry)
 
         tasks = [generate_single(assessment) for assessment in assessments]
         return await asyncio.gather(*tasks, return_exceptions=True)

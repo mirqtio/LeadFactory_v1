@@ -104,11 +104,7 @@ class TestAnalyticsModels:
         db_session.commit()
 
         # Verify event was created
-        saved_event = (
-            db_session.query(FunnelEvent)
-            .filter_by(event_id=sample_funnel_event.event_id)
-            .first()
-        )
+        saved_event = db_session.query(FunnelEvent).filter_by(event_id=sample_funnel_event.event_id).first()
 
         assert saved_event is not None
         assert saved_event.funnel_stage == FunnelStage.TARGETING
@@ -146,11 +142,7 @@ class TestAnalyticsModels:
         db_session.commit()
 
         # Verify all events were created
-        stage_count = (
-            db_session.query(FunnelEvent)
-            .filter(FunnelEvent.event_name.like("test_%"))
-            .count()
-        )
+        stage_count = db_session.query(FunnelEvent).filter(FunnelEvent.event_name.like("test_%")).count()
 
         assert stage_count == len(FunnelStage) + len(EventType)
 
@@ -164,9 +156,7 @@ class TestAnalyticsModels:
 
         # Verify snapshot was created
         saved_snapshot = (
-            db_session.query(MetricSnapshot)
-            .filter_by(snapshot_id=sample_metric_snapshot.snapshot_id)
-            .first()
+            db_session.query(MetricSnapshot).filter_by(snapshot_id=sample_metric_snapshot.snapshot_id).first()
         )
 
         assert saved_snapshot is not None
@@ -240,11 +230,7 @@ class TestAnalyticsModels:
         db_session.commit()
 
         # Verify all snapshots were created
-        metric_count = (
-            db_session.query(MetricSnapshot)
-            .filter(MetricSnapshot.metric_name.like("test_%"))
-            .count()
-        )
+        metric_count = db_session.query(MetricSnapshot).filter(MetricSnapshot.metric_name.like("test_%")).count()
 
         assert metric_count == len(MetricType) + len(AggregationPeriod)
 
@@ -325,11 +311,7 @@ class TestAnalyticsModels:
         db_session.commit()
 
         # Verify dashboard metric
-        saved_metric = (
-            db_session.query(DashboardMetric)
-            .filter_by(dashboard_name="operations_dashboard")
-            .first()
-        )
+        saved_metric = db_session.query(DashboardMetric).filter_by(dashboard_name="operations_dashboard").first()
 
         assert saved_metric is not None
         assert saved_metric.widget_name == "conversion_widget"
@@ -381,9 +363,7 @@ class TestAnalyticsModels:
         events = []
         for i in range(10):
             event = FunnelEvent(
-                funnel_stage=FunnelStage.TARGETING
-                if i % 2 == 0
-                else FunnelStage.ASSESSMENT,
+                funnel_stage=FunnelStage.TARGETING if i % 2 == 0 else FunnelStage.ASSESSMENT,
                 event_type=EventType.ENTRY if i % 3 == 0 else EventType.COMPLETION,
                 business_id=f"business_{i % 3}",
                 campaign_id=f"campaign_{i % 2}",
@@ -419,9 +399,7 @@ class TestAnalyticsModels:
         assert len(business_time_results) > 0
 
         # Query by success status
-        success_results = (
-            db_session.query(FunnelEvent).filter(FunnelEvent.success == True).all()
-        )
+        success_results = db_session.query(FunnelEvent).filter(FunnelEvent.success == True).all()
         assert len(success_results) > 0
 
         print("✓ Efficient indexing queries work")

@@ -267,11 +267,7 @@ class TestTask040AcceptanceCriteria:
             assert result.source_url == source_data["source_url"]
 
         # Test querying by source
-        clearbit_results = (
-            test_session.query(EnrichmentResult)
-            .filter_by(source=EnrichmentSource.CLEARBIT.value)
-            .all()
-        )
+        clearbit_results = test_session.query(EnrichmentResult).filter_by(source=EnrichmentSource.CLEARBIT.value).all()
         assert len(clearbit_results) == 1
         assert clearbit_results[0].source_record_id == "clearbit_123456"
 
@@ -367,9 +363,7 @@ class TestTask040AcceptanceCriteria:
 
         test_session.commit()
 
-        updated_request = (
-            test_session.query(EnrichmentRequest).filter_by(id=request.id).first()
-        )
+        updated_request = test_session.query(EnrichmentRequest).filter_by(id=request.id).first()
         assert updated_request.status == EnrichmentStatus.IN_PROGRESS.value
         assert updated_request.started_at is not None
         assert updated_request.total_sources == 3
@@ -523,9 +517,7 @@ class TestTask040AcceptanceCriteria:
 
         print("✓ Model indexing and constraints work correctly")
 
-    def test_enrichment_comprehensive_workflow(
-        self, test_session, sample_enrichment_data
-    ):
+    def test_enrichment_comprehensive_workflow(self, test_session, sample_enrichment_data):
         """Test comprehensive enrichment workflow"""
         # Step 1: Create enrichment request
         request = EnrichmentRequest(
@@ -586,9 +578,7 @@ class TestTask040AcceptanceCriteria:
         test_session.commit()
 
         # Step 5: Verify complete workflow
-        final_request = (
-            test_session.query(EnrichmentRequest).filter_by(id=request.id).first()
-        )
+        final_request = test_session.query(EnrichmentRequest).filter_by(id=request.id).first()
 
         assert final_request.status == EnrichmentStatus.COMPLETED.value
         assert len(final_request.results) == 2

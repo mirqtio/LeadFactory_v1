@@ -4,13 +4,13 @@ Assessment assessors for PRD v1.2
 from typing import Dict, Type
 
 from d3_assessment.assessors.base import BaseAssessor
+from d3_assessment.assessors.beautifulsoup_assessor import BeautifulSoupAssessor
+from d3_assessment.assessors.gbp_profile_assessor import GBPProfileAssessor
 
 # Import all assessors
 from d3_assessment.assessors.pagespeed_assessor import PageSpeedAssessor
-from d3_assessment.assessors.beautifulsoup_assessor import BeautifulSoupAssessor
-from d3_assessment.assessors.semrush_assessor import SEMrushAssessor
-from d3_assessment.assessors.gbp_profile_assessor import GBPProfileAssessor
 from d3_assessment.assessors.screenshot_assessor import ScreenshotAssessor
+from d3_assessment.assessors.semrush_assessor import SEMrushAssessor
 from d3_assessment.assessors.vision_assessor import VisionAssessor
 
 # Assessor registry

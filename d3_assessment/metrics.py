@@ -86,13 +86,9 @@ assessment_error_rate = Gauge(
 )
 
 # Active assessment metrics
-active_assessments = Gauge(
-    "assessment_active", "Number of currently active assessments", ["assessment_type"]
-)
+active_assessments = Gauge("assessment_active", "Number of currently active assessments", ["assessment_type"])
 
-assessment_queue_size = Gauge(
-    "assessment_queue_size", "Number of assessments in queue", ["priority"]
-)
+assessment_queue_size = Gauge("assessment_queue_size", "Number of assessments in queue", ["priority"])
 
 # Resource usage metrics
 assessment_memory_usage = Gauge(
@@ -176,12 +172,8 @@ class AssessmentMetrics:
 
         # Track by industry and hour
         current_hour = datetime.utcnow().hour
-        assessment_by_industry.labels(
-            industry=industry, assessment_type=assessment_type.value
-        ).inc()
-        assessment_by_hour.labels(
-            hour=str(current_hour), assessment_type=assessment_type.value
-        ).inc()
+        assessment_by_industry.labels(industry=industry, assessment_type=assessment_type.value).inc()
+        assessment_by_hour.labels(hour=str(current_hour), assessment_type=assessment_type.value).inc()
 
         # Generate tracking ID
         tracking_id = f"track_{int(time.time() * 1000)}_{assessment_type.value}"
@@ -241,33 +233,21 @@ class AssessmentMetrics:
         # Update success/failure rates
         self._update_success_failure_rates()
 
-        logger.debug(
-            f"Completed tracking assessment {tracking_id} with status {status}"
-        )
+        logger.debug(f"Completed tracking assessment {tracking_id} with status {status}")
 
-    def track_duration(
-        self, assessment_type: AssessmentType, industry: str, duration_seconds: float
-    ):
+    def track_duration(self, assessment_type: AssessmentType, industry: str, duration_seconds: float):
         """
         Track assessment duration
 
         Acceptance Criteria: Duration histograms
         """
-        assessment_duration.labels(
-            assessment_type=assessment_type.value, industry=industry
-        ).observe(duration_seconds)
+        assessment_duration.labels(assessment_type=assessment_type.value, industry=industry).observe(duration_seconds)
 
-        logger.debug(
-            f"Tracked duration {duration_seconds}s for {assessment_type.value}"
-        )
+        logger.debug(f"Tracked duration {duration_seconds}s for {assessment_type.value}")
 
-    def track_processing_step(
-        self, assessment_type: AssessmentType, step: str, duration_seconds: float
-    ):
+    def track_processing_step(self, assessment_type: AssessmentType, step: str, duration_seconds: float):
         """Track duration of specific processing step"""
-        assessment_processing_time.labels(
-            assessment_type=assessment_type.value, step=step
-        ).observe(duration_seconds)
+        assessment_processing_time.labels(assessment_type=assessment_type.value, step=step).observe(duration_seconds)
 
     def track_cost(
         self,
@@ -283,20 +263,14 @@ class AssessmentMetrics:
         cost_float = float(cost_usd)
 
         # Track total cost
-        assessment_cost_total.labels(
-            assessment_type=assessment_type.value, cost_category=cost_category
-        ).inc(cost_float)
+        assessment_cost_total.labels(assessment_type=assessment_type.value, cost_category=cost_category).inc(cost_float)
 
         # Track cost per request
-        assessment_cost_per_request.labels(
-            assessment_type=assessment_type.value
-        ).observe(cost_float)
+        assessment_cost_per_request.labels(assessment_type=assessment_type.value).observe(cost_float)
 
         logger.debug(f"Tracked cost ${cost_float} for {assessment_type.value}")
 
-    def track_api_call(
-        self, assessment_type: AssessmentType, api_provider: str, status_code: int
-    ):
+    def track_api_call(self, assessment_type: AssessmentType, api_provider: str, status_code: int):
         """Track API call made during assessment"""
         assessment_api_calls.labels(
             assessment_type=assessment_type.value,
@@ -318,35 +292,25 @@ class AssessmentMetrics:
 
     def update_memory_usage(self, assessment_type: AssessmentType, bytes_used: int):
         """Update memory usage metric"""
-        assessment_memory_usage.labels(assessment_type=assessment_type.value).set(
-            bytes_used
-        )
+        assessment_memory_usage.labels(assessment_type=assessment_type.value).set(bytes_used)
 
     def _add_to_success_window(self, assessment_type: AssessmentType):
         """Add successful assessment to rolling window"""
-        self._success_window.append(
-            {"timestamp": datetime.utcnow(), "assessment_type": assessment_type}
-        )
+        self._success_window.append({"timestamp": datetime.utcnow(), "assessment_type": assessment_type})
         self._cleanup_windows()
 
     def _add_to_error_window(self, assessment_type: AssessmentType):
         """Add failed assessment to rolling window"""
-        self._error_window.append(
-            {"timestamp": datetime.utcnow(), "assessment_type": assessment_type}
-        )
+        self._error_window.append({"timestamp": datetime.utcnow(), "assessment_type": assessment_type})
         self._cleanup_windows()
 
     def _cleanup_windows(self):
         """Remove old entries from rolling windows"""
         cutoff_time = datetime.utcnow() - self._window_duration
 
-        self._success_window = [
-            entry for entry in self._success_window if entry["timestamp"] > cutoff_time
-        ]
+        self._success_window = [entry for entry in self._success_window if entry["timestamp"] > cutoff_time]
 
-        self._error_window = [
-            entry for entry in self._error_window if entry["timestamp"] > cutoff_time
-        ]
+        self._error_window = [entry for entry in self._error_window if entry["timestamp"] > cutoff_time]
 
     def _update_success_failure_rates(self):
         """
@@ -356,26 +320,13 @@ class AssessmentMetrics:
         """
         # Calculate rates by assessment type
         assessment_types = set(
-            [e["assessment_type"] for e in self._success_window]
-            + [e["assessment_type"] for e in self._error_window]
+            [e["assessment_type"] for e in self._success_window] + [e["assessment_type"] for e in self._error_window]
         )
 
         for assessment_type in assessment_types:
-            success_count = len(
-                [
-                    e
-                    for e in self._success_window
-                    if e["assessment_type"] == assessment_type
-                ]
-            )
+            success_count = len([e for e in self._success_window if e["assessment_type"] == assessment_type])
 
-            error_count = len(
-                [
-                    e
-                    for e in self._error_window
-                    if e["assessment_type"] == assessment_type
-                ]
-            )
+            error_count = len([e for e in self._error_window if e["assessment_type"] == assessment_type])
 
             total_count = success_count + error_count
 
@@ -383,13 +334,9 @@ class AssessmentMetrics:
                 success_rate = success_count / total_count
                 error_rate = error_count / total_count
 
-                assessment_success_rate.labels(
-                    assessment_type=assessment_type.value, window="15m"
-                ).set(success_rate)
+                assessment_success_rate.labels(assessment_type=assessment_type.value, window="15m").set(success_rate)
 
-                assessment_error_rate.labels(
-                    assessment_type=assessment_type.value, window="15m"
-                ).set(error_rate)
+                assessment_error_rate.labels(assessment_type=assessment_type.value, window="15m").set(error_rate)
 
     def get_metrics_summary(self) -> Dict[str, Any]:
         """Get summary of current metrics"""
@@ -405,21 +352,11 @@ class AssessmentMetrics:
             "total_in_window": total_assessments,
             "success_in_window": total_success,
             "errors_in_window": total_errors,
-            "overall_success_rate": (
-                total_success / total_assessments if total_assessments > 0 else 0
-            ),
+            "overall_success_rate": (total_success / total_assessments if total_assessments > 0 else 0),
             "assessment_types": {
                 atype.value: {
-                    "success": len(
-                        [
-                            e
-                            for e in self._success_window
-                            if e["assessment_type"] == atype
-                        ]
-                    ),
-                    "errors": len(
-                        [e for e in self._error_window if e["assessment_type"] == atype]
-                    ),
+                    "success": len([e for e in self._success_window if e["assessment_type"] == atype]),
+                    "errors": len([e for e in self._error_window if e["assessment_type"] == atype]),
                 }
                 for atype in AssessmentType
             },
@@ -432,9 +369,7 @@ metrics = AssessmentMetrics()
 
 # Context managers and decorators
 @contextmanager
-def track_assessment_duration(
-    assessment_type: AssessmentType, industry: str = "unknown"
-):
+def track_assessment_duration(assessment_type: AssessmentType, industry: str = "unknown"):
     """
     Context manager to track assessment duration
 
@@ -489,9 +424,7 @@ def track_assessment(assessment_type: AssessmentType, industry: str = "unknown")
                 business_id = args[0] if isinstance(args[0], str) else "unknown"
 
             # Start tracking
-            tracking_id = metrics.track_assessment_start(
-                business_id, assessment_type, industry
-            )
+            tracking_id = metrics.track_assessment_start(business_id, assessment_type, industry)
 
             start_time = time.time()
             try:
@@ -500,11 +433,7 @@ def track_assessment(assessment_type: AssessmentType, industry: str = "unknown")
 
                 # Track completion
                 duration = time.time() - start_time
-                cost = (
-                    getattr(result, "total_cost_usd", Decimal("0"))
-                    if result
-                    else Decimal("0")
-                )
+                cost = getattr(result, "total_cost_usd", Decimal("0")) if result else Decimal("0")
 
                 metrics.track_assessment_complete(
                     tracking_id=tracking_id,

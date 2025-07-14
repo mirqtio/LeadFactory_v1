@@ -57,9 +57,7 @@ class TestTask021AcceptanceCriteria:
         mock_session.commit.assert_called_once()
 
         # Test READ operation
-        mock_session.query.return_value.filter_by.return_value.first.return_value = (
-            universe
-        )
+        mock_session.query.return_value.filter_by.return_value.first.return_value = universe
         retrieved = manager.get_universe(universe.id)
         assert retrieved == universe
 
@@ -90,9 +88,7 @@ class TestTask021AcceptanceCriteria:
         conflicts = validator.detect_conflicts(geography_config)
 
         # Should detect hierarchy conflict
-        hierarchy_conflicts = [
-            c for c in conflicts if c.conflict_type == "hierarchy_conflict"
-        ]
+        hierarchy_conflicts = [c for c in conflicts if c.conflict_type == "hierarchy_conflict"]
         assert len(hierarchy_conflicts) > 0
         assert hierarchy_conflicts[0].severity == "error"
 
@@ -105,9 +101,7 @@ class TestTask021AcceptanceCriteria:
         }
 
         format_conflicts = validator.detect_conflicts(bad_format_config)
-        format_errors = [
-            c for c in format_conflicts if c.conflict_type == "format_error"
-        ]
+        format_errors = [c for c in format_conflicts if c.conflict_type == "format_error"]
         assert len(format_errors) >= 2
 
         # Test clean configuration
@@ -145,9 +139,7 @@ class TestTask021AcceptanceCriteria:
 
         # Test ranking functionality
         mock_universes = [mock_universe]
-        mock_session.query.return_value.filter_by.return_value.limit.return_value.all.return_value = (
-            mock_universes
-        )
+        mock_session.query.return_value.filter_by.return_value.limit.return_value.all.return_value = mock_universes
 
         ranked = manager.rank_universes_by_priority(limit=10)
 
@@ -168,9 +160,7 @@ class TestTask021AcceptanceCriteria:
         # Create mock universe
         mock_universe = Mock()
         mock_universe.actual_size = 1000
-        mock_session.query.return_value.filter_by.return_value.first.return_value = (
-            mock_universe
-        )
+        mock_session.query.return_value.filter_by.return_value.first.return_value = mock_universe
 
         # Test freshness update
         manager.update_freshness_metrics("test-id")
@@ -200,9 +190,7 @@ class TestTask021AcceptanceCriteria:
         assert never_score == 0.0
 
         # Test finding stale universes
-        mock_session.query.return_value.filter.return_value.all.return_value = [
-            stale_universe
-        ]
+        mock_session.query.return_value.filter.return_value.all.return_value = [stale_universe]
         stale_universes = manager.get_stale_universes(max_age_hours=24)
         assert len(stale_universes) == 1
 
@@ -232,10 +220,7 @@ class TestTask021AcceptanceCriteria:
     def test_integration_with_existing_models(self):
         """Test integration with existing database models"""
         # Test that we can import and use the models
-        from d1_targeting.models import (
-            Campaign,
-            TargetUniverse,
-        )
+        from d1_targeting.models import Campaign, TargetUniverse
 
         # Test that models can be instantiated
         universe = TargetUniverse(

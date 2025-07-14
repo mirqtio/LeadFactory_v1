@@ -16,7 +16,6 @@ from database.base import Base
 
 # Import all models to ensure foreign key references are available
 try:
-    import database.models  # Main database models
     import d1_targeting.models  # D1 targeting models
     import d2_sourcing.models  # D2 sourcing models
     import d3_assessment.models  # D3 assessment models
@@ -28,6 +27,7 @@ try:
     import d9_delivery.models  # D9 delivery models
     import d10_analytics.models  # D10 analytics models
     import d11_orchestration.models  # D11 orchestration models
+    import database.models  # Main database models
 except ImportError:
     # If imports fail, models will be registered when tests import them
     pass
@@ -61,13 +61,9 @@ def test_db_session() -> Generator:
 @pytest.fixture(scope="function")
 def mock_external_services():
     """Mock external services for performance testing"""
-    with patch(
-        "d0_gateway.providers.pagespeed.PageSpeedClient"
-    ) as mock_pagespeed, patch(
+    with patch("d0_gateway.providers.pagespeed.PageSpeedClient") as mock_pagespeed, patch(
         "d0_gateway.providers.openai.OpenAIClient"
-    ) as mock_openai, patch(
-        "d0_gateway.providers.sendgrid.SendGridClient"
-    ) as mock_sendgrid:
+    ) as mock_openai, patch("d0_gateway.providers.sendgrid.SendGridClient") as mock_sendgrid:
         # Configure mock responses for consistent performance testing
         # Yelp removed from codebase
 
