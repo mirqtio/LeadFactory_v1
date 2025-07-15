@@ -185,7 +185,7 @@ class Experiment(Base):
     __tablename__ = "experiments"
 
     # Primary identification
-    experiment_id = Column(String(36), primary_key=True, default=generate_uuid)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     name = Column(String(255), nullable=False, unique=True, index=True)
     description = Column(Text, nullable=True)
     hypothesis = Column(Text, nullable=True)
