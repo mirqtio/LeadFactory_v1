@@ -28,22 +28,19 @@ class GenerateReportRequest(BaseModel):
 
 
 @router.post("/generate")
-async def generate_report(
-    request: GenerateReportRequest,
-    db: Session = Depends(get_db)
-) -> Dict:
+async def generate_report(request: GenerateReportRequest, db: Session = Depends(get_db)) -> Dict:
     """Generate a new report for an assessment."""
     try:
         # For now, return a mock response
         # In a real implementation, this would call the actual ReportGenerator
         report_id = f"report-{request.assessment_id}-789"
-        
+
         return {
             "id": report_id,
             "status": "completed",
             "pdf_url": f"/reports/{report_id}.pdf",
             "assessment_id": request.assessment_id,
-            "template": request.template
+            "template": request.template,
         }
     except Exception as e:
         logger.error(f"Failed to generate report: {str(e)}")
@@ -51,10 +48,7 @@ async def generate_report(
 
 
 @router.get("/{report_id}/status")
-async def get_report_status(
-    report_id: str,
-    db: Session = Depends(get_db)
-) -> Dict:
+async def get_report_status(report_id: str, db: Session = Depends(get_db)) -> Dict:
     """Get the status of a report generation."""
     try:
         # In a real implementation, this would query the database
@@ -63,7 +57,7 @@ async def get_report_status(
             "report_id": report_id,
             "status": "completed",
             "progress": 100,
-            "message": "Report generation completed"
+            "message": "Report generation completed",
         }
     except Exception as e:
         logger.error(f"Failed to get report status: {str(e)}")
@@ -71,10 +65,7 @@ async def get_report_status(
 
 
 @router.get("/{report_id}")
-async def get_report_metadata(
-    report_id: str,
-    db: Session = Depends(get_db)
-) -> Dict:
+async def get_report_metadata(report_id: str, db: Session = Depends(get_db)) -> Dict:
     """Get report metadata."""
     try:
         # In a real implementation, this would query the database
@@ -86,7 +77,7 @@ async def get_report_metadata(
             "created_at": "2024-01-15T10:00:00Z",
             "pdf_url": f"/reports/{report_id}.pdf",
             "assessment_id": "test-456",
-            "include_recommendations": True
+            "include_recommendations": True,
         }
     except Exception as e:
         logger.error(f"Failed to get report metadata: {str(e)}")

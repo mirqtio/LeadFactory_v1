@@ -13,6 +13,15 @@ Each PRP now automatically includes:
 
 **IMPORTANT**: Always follow CURRENT_STATE.md when there's any conflict with older documentation. The DO NOT IMPLEMENT section is critical.
 
+## Pre-Execution Setup
+
+**CRITICAL**: Before starting ANY PRP implementation:
+```bash
+# Ensure CI is currently GREEN
+git pull origin main
+make bpci  # Must pass before starting work
+```
+
 ## Execution Process
 
 1. **Load PRP**
@@ -37,12 +46,32 @@ Each PRP now automatically includes:
    - Execute the PRP
    - Implement all the code
    - Follow CLAUDE.md rules strictly
+   - Run `make quick-check` frequently during development for fast feedback
 
-5. **Validate Implementation**
+5. **Local Validation with BPCI**
+   **MANDATORY before any push:**
+   ```bash
+   # Format and lint code
+   make format
+   make lint
+   
+   # Run BPCI - MUST PASS before proceeding
+   make bpci
+   ```
+   - If BPCI fails, fix ALL issues and re-run until it passes
+   - BPCI runs the EXACT same tests as GitHub CI locally
+   - Never push code that fails BPCI
+
+6. **Validate Implementation**
    - Run each validation command from the PRP
    - Fix any failures
    - Re-run until all pass
-   - Verify CI is green after pushing
+   - Push changes (pre-push hook will run BPCI automatically)
+   - Monitor GitHub Actions - ALL workflows must be GREEN:
+     - ✅ CI Pipeline (tests + docker build)
+     - ✅ Linting and Code Quality
+     - ✅ Minimal Test Suite
+     - ✅ Deploy to VPS (if on main branch)
 
 6. **PRP Completion Validation (MANDATORY)**
    **CRITICAL: PRP is NOT complete until this passes with 100% score**
@@ -94,11 +123,48 @@ Each PRP now automatically includes:
 
 ## Success Criteria (Per PRP)
 - All acceptance criteria fully implemented and tested
+- BPCI passes locally (`make bpci` shows all tests GREEN)
 - PRP Completion Validation score: 100/100
-- All tests passing in CI 
-- No regression in existing functionality
+- **ALL GitHub CI checks showing GREEN status:**
+  - CI Pipeline (tests + docker build) ✅
+  - Linting and Code Quality ✅
+  - Minimal Test Suite ✅
+  - Deploy to VPS ✅ (if applicable)
+- No regression in existing functionality (CI was green before and after)
 - Rollback procedure tested and documented
 - Progress tracked in .claude/prp_progress.json
 - Automatic continuation to next PRP only after 100% validation
+
+**REMEMBER**: A task is ONLY complete when ALL CI checks pass GREEN. If CI was green before and isn't now, the changes broke it and must be fixed.
+
+## Quick Reference Commands
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `make quick-check` | Fast validation | During active development |
+| `make bpci` | Full CI validation | Before pushing (MANDATORY) |
+| `make pre-push` | Clean + BPCI | Automatically on git push |
+| `make format` | Auto-format code | Before committing |
+| `make lint` | Check code style | Before committing |
+
+## Troubleshooting
+
+### BPCI Fails Locally
+1. Check Docker services: `docker compose -f docker-compose.test.yml ps`
+2. View logs: `docker compose -f docker-compose.test.yml logs`
+3. Ensure test database is clean: `docker compose -f docker-compose.test.yml down -v`
+4. Re-run: `make bpci`
+
+### CI Fails on GitHub but BPCI Passed Locally
+1. This should be rare since BPCI mirrors CI exactly
+2. Pull latest main: `git pull origin main`
+3. Re-run BPCI: `make bpci`
+4. Check GitHub Actions logs for environment-specific issues
+
+### Pre-push Hook Blocks Push
+1. This is working as intended - it prevents breaking CI
+2. Fix the issues identified by BPCI
+3. Re-run `make bpci` until it passes
+4. Then push will succeed
 
 Note: This recursive execution follows the Wave A → Wave B sequence defined in INITIAL.md

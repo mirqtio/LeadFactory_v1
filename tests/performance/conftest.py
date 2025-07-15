@@ -13,10 +13,7 @@ from database.base import Base
 def db_session():
     """Create a database session for testing"""
     engine = create_engine(
-        "sqlite:///:memory:", 
-        echo=False, 
-        poolclass=StaticPool, 
-        connect_args={"check_same_thread": False}
+        "sqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
     )
     Base.metadata.create_all(engine)
 

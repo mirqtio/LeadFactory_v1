@@ -212,15 +212,15 @@ async def search_leads(
 ):
     """
     Search leads by email, domain, company name, or contact name.
-    
+
     This is a convenience endpoint that wraps the list endpoint with search functionality.
     """
     skip = (page - 1) * page_size
     filters = LeadFilterSchema(search=q)
     pagination = PaginationSchema(skip=skip, limit=page_size)
-    
+
     logger.info(f"Searching leads with query: {q}")
-    
+
     # Use the repository to search
     lead_repo = LeadRepository(db)
     leads, total_count = lead_repo.list_leads(
@@ -228,7 +228,7 @@ async def search_leads(
         limit=page_size,
         search=q,
     )
-    
+
     # Calculate pagination info
     page_info = {
         "current_page": page,
@@ -237,7 +237,7 @@ async def search_leads(
         "has_next": skip + page_size < total_count,
         "has_previous": page > 1,
     }
-    
+
     return LeadListResponseSchema(leads=leads, total_count=total_count, page_info=page_info)
 
 

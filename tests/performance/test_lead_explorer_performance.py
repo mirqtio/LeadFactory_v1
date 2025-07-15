@@ -19,18 +19,17 @@ class TestLeadExplorerPerformance:
     def client(self, db_session):
         """Create test client with overridden database"""
         from database.session import get_db
-        
+
         def override_get_db():
             try:
                 yield db_session
             finally:
                 pass
-                
+
         app.dependency_overrides[get_db] = override_get_db
         with TestClient(app) as test_client:
             yield test_client
         app.dependency_overrides.clear()
-
 
     @pytest.fixture
     def sample_lead(self, db_session):

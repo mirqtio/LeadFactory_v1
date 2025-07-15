@@ -661,6 +661,7 @@ if __name__ == "__main__":
     # Disable logging if JSON output is requested
     if args.json:
         import logging
+
         logging.disable(logging.CRITICAL)
         # Also suppress any root logger output
         logging.getLogger().handlers = []
