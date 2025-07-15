@@ -2,53 +2,75 @@
 
 ## Overview
 
-This document contains the canonical validation command sequences used by the orchestrator and developers to verify task completion.
+This document contains the canonical validation command sequences used by developers to verify code quality and prevent CI failures.
 
-## Wave A Validation (80% Coverage)
+## Primary Validation - BPCI (Bulletproof CI)
+
+The primary validation system is BPCI, which runs the exact same Docker-based test environment as GitHub CI:
 
 ```bash
-# Standard Wave A validation script
-bash scripts/validate_wave_a.sh
+# Run full CI validation locally
+make bpci
 ```
 
-### Manual Wave A validation:
-```bash
-# 1. Run KEEP test suite (excluding slow and future tests)
-pytest -m "not phase_future and not slow" -q
+This command:
+- Builds the test Docker image
+- Starts PostgreSQL and stub server containers
+- Runs the complete test suite
+- Generates coverage and JUnit reports
+- Provides clear pass/fail status
 
-# 2. Check unit test coverage (80% required)
+## Quick Validation
+
+For rapid iteration during development:
+
+```bash
+# Fast validation (30 seconds)
+make quick-check
+```
+
+This runs:
+- Code formatting (black + isort)
+- Linting (flake8)
+- Basic unit tests
+
+## Docker-based Test Validation
+
+For running tests in Docker without full BPCI:
+
+```bash
+# Build and run tests in Docker
+make docker-test
+```
+
+## Coverage Validation
+
+### Check Test Coverage (80% minimum)
+```bash
+# Run tests with coverage
 coverage run -m pytest tests/unit
 coverage report --fail-under=80
 
-# 3. Verify Python syntax
-python -m py_compile $(git ls-files "*.py")
-
-# 4. Optional Docker validation
-docker build -f Dockerfile.test -t leadfactory-test .
-docker run --rm leadfactory-test pytest -q
+# Generate HTML coverage report
+coverage html
+open htmlcov/index.html
 ```
 
-## Wave B Validation (95% Coverage)
-
+### High Coverage Target (95%)
 ```bash
-# Standard Wave B validation script
-bash scripts/validate_wave_b.sh
-```
-
-### Manual Wave B validation:
-```bash
-# 1. Run full test suite
-pytest -q
-
-# 2. Check unit test coverage (95% required)
+# For critical modules requiring 95% coverage
 coverage run -m pytest tests/unit
 coverage report --fail-under=95
+```
 
-# 3. Verify Python syntax
+## Python Syntax Validation
+
+```bash
+# Verify all Python files compile
 python -m py_compile $(git ls-files "*.py")
 
-# 4. Mandatory Docker validation for Wave B
-make docker-test
+# Check for import errors
+python -m compileall . -q
 ```
 
 ## Task-Specific Validations
@@ -69,7 +91,10 @@ docker-compose exec postgres pg_isready
 docker build -f Dockerfile.test -t leadfactory-test .
 
 # Run tests in container
-docker run --rm leadfactory-test make validate-standard
+docker run --rm leadfactory-test
+
+# Or use BPCI for full validation
+make bpci
 ```
 
 ### Deployment Tasks (P0-011, P0-012)
@@ -89,7 +114,7 @@ After running rollback:
 make rollback TASK_ID=<task>
 
 # Re-run validation to ensure system still works
-make validate-standard
+make bpci
 ```
 
 ## Common Validation Patterns

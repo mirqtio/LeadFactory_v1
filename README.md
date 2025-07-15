@@ -69,6 +69,24 @@ docker-compose up
 
 ## Development
 
+### Pre-push Validation
+
+**IMPORTANT**: Always run validation before pushing to prevent CI failures:
+
+```bash
+# Quick validation (30 seconds) - for small changes
+make quick-check
+
+# Full CI validation (5-10 minutes) - before pushing
+make bpci
+```
+
+The `make bpci` command runs the **Bulletproof CI** system (`scripts/bpci.sh`) which:
+- Builds the exact same Docker test environment as GitHub CI
+- Starts PostgreSQL and stub server containers
+- Runs the complete test suite with coverage
+- Ensures your code will pass GitHub CI
+
 ### Tests
 
 **CI Test Strategy (PRP-014 Optimized)**

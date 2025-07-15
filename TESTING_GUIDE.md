@@ -2,6 +2,20 @@
 
 This guide provides patterns and best practices for writing tests in the LeadFactory codebase. Following these patterns ensures fast, reliable, and maintainable tests.
 
+## Pre-Push Validation (Required)
+
+Before pushing code, always run local CI validation to prevent breaking the build:
+
+```bash
+# Full CI validation (recommended)
+make bpci
+
+# Quick validation for small changes
+make quick-check
+```
+
+The `make bpci` command runs our Bulletproof CI system that mirrors GitHub Actions exactly.
+
 ## Table of Contents
 - [Test Organization](#test-organization)
 - [Mock Factory Pattern](#mock-factory-pattern)

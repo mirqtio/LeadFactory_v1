@@ -58,35 +58,35 @@ Never delete or overwrite existing code unless explicitly instructed to or if pa
 - Use the GitHub token in .env when checking CI logs on GitHub
 
 🛠️ Development Tools
-- There is a local CI/CD bootstrap you can use.
-- **BPCI v2 (Bulletproof CI)**: Run `make bpci` before pushing to catch issues locally
-  - Validates imports, models, linting, tests, Docker environment, and API endpoints
-  - 10 comprehensive validation phases that mirror GitHub CI
-  - Pre-push hook automatically runs BPCI v2 to prevent CI failures
+- **BPCI (Bulletproof CI)**: The unified CI/CD validation system that runs EXACTLY what GitHub CI runs
+  - Located at `scripts/bpci.sh` - this is the single source of truth for CI validation
+  - Uses Docker Compose to create the same test environment as GitHub Actions
+  - Runs the complete test suite with PostgreSQL and stub server dependencies
+  - Generates coverage reports and JUnit test results
 
 🛡️ BULLETPROOF CI REQUIREMENTS (MANDATORY)
 🚨 BEFORE EVERY COMMIT: Claude Code MUST run validation commands:
 - For quick commits: `make quick-check` (30 seconds)  
 - For significant changes: `make pre-push` (5-10 minutes)
-- For complete CI simulation: `make ci-local` (full pipeline)
+- For complete CI simulation: `make bpci` (full Docker-based CI validation)
 
 🚨 NEVER PUSH CODE WITHOUT LOCAL VALIDATION
 - These commands catch issues locally instead of breaking CI
-- They mirror GitHub CI exactly - if local passes, CI will pass
-- Prevents the chronic CI failure cycle that wastes time
+- BPCI runs the EXACT same Docker Compose setup as GitHub CI
+- If `make bpci` passes locally, GitHub CI will pass
 
 🚨 VALIDATION FAILURE = STOP WORK
 - If `make quick-check` fails, fix issues before proceeding
-- If `make pre-push` fails, the push would break CI - fix first
-- Use this system to debug current CI issues faster
+- If `make pre-push` or `make bpci` fails, the push would break CI - fix first
+- Check Docker logs for failures: `docker compose -f docker-compose.test.yml logs`
 
 Available validation commands:
-- `make quick-check` - Fast linting, formatting, basic tests
-- `make bpci` - Bulletproof CI v2 (10-phase comprehensive validation)
-- `make pre-push` - Complete pre-push validation (uses BPCI v2)  
-- `make ci-local` - Full GitHub CI simulation
-- `make format` - Auto-fix code formatting
-- `make lint` - Check code quality
+- `make quick-check` - Fast linting, formatting, basic unit tests
+- `make bpci` - Full Bulletproof CI validation using Docker (mirrors GitHub CI exactly)
+- `make pre-push` - Alias for `make bpci` for pre-push validation
+- `make format` - Auto-fix code formatting (black + isort)
+- `make lint` - Check code quality with flake8
+- `make docker-test` - Run tests in Docker without full BPCI setup
 
 🤖 Agent Workflow
 - Use Task Subagents when possible.

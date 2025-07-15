@@ -402,11 +402,32 @@ def test_suppression_list_checking():
 
 ## CI/CD Integration
 
+### Local Validation with BPCI
+
+**IMPORTANT**: Always validate locally before pushing to prevent CI failures:
+
+```bash
+# Run Bulletproof CI - exactly mirrors GitHub Actions
+make bpci
+
+# Quick validation for small changes
+make quick-check
+```
+
+The BPCI (Bulletproof CI) system at `scripts/bpci.sh`:
+- Creates the same Docker Compose environment as GitHub CI
+- Starts PostgreSQL and stub server containers
+- Runs the complete test suite with coverage
+- Provides colored output and clear pass/fail status
+- Cleans up containers automatically on exit
+
 ### GitHub Actions
 
+The GitHub Actions workflow uses the same Docker Compose setup that BPCI validates locally:
+
 ```yaml
-# .github/workflows/test.yml
-name: Test Suite
+# .github/workflows/main.yml
+name: CI Pipeline
 on: [push, pull_request]
 
 jobs:
@@ -414,12 +435,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build test container
-        run: docker build -f Dockerfile.test -t leadfactory-test .
-      - name: Run tests with coverage
+      - name: Run tests with Docker Compose
         run: |
-          docker run --rm leadfactory-test python3 scripts/coverage_report.py \
-            --ci-check --xml --html --json
+          docker compose -f docker-compose.test.yml up \
+            --abort-on-container-exit \
+            --exit-code-from test
 ```
 
 ### Coverage Gates

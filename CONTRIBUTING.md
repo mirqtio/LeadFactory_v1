@@ -1,5 +1,23 @@
 # Contributing to LeadFactory
 
+## Pre-Push Validation (Required)
+
+Before pushing any code changes, you MUST run local CI validation:
+
+```bash
+# For quick changes (30 seconds)
+make quick-check
+
+# For any significant changes (5-10 minutes)
+make bpci
+```
+
+The `make bpci` command runs our Bulletproof CI system that exactly mirrors GitHub Actions:
+- Uses the same Docker Compose test environment
+- Runs the full test suite with real PostgreSQL
+- Generates coverage and test reports
+- If this passes, GitHub CI will pass
+
 ## Testing Guidelines
 
 ### Test Organization

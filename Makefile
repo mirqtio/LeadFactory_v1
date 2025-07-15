@@ -1,4 +1,4 @@
-.PHONY: help install test lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test validate-standard validate-wave-b rollback bpci pre-push quick-check
+.PHONY: help install test lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test rollback bpci pre-push quick-check
 
 # Default target
 help:
@@ -175,21 +175,9 @@ prod-status:
 	@echo ""
 	@docker-compose -f docker-compose.production.yml ps
 
-# Validation targets for PRPs
-validate-standard:
-	@echo "Running standard Wave A validation (80% coverage)..."
-	pytest -m "not phase_future and not slow" -q
-	coverage run -m pytest tests/unit
-	coverage report --fail-under=80
-	python -m py_compile $$(git ls-files "*.py")
-
-validate-wave-b:
-	@echo "Running Wave B validation (95% coverage)..."
-	pytest -m "not phase_future and not slow" -q
-	coverage run -m pytest tests/unit
-	coverage report --fail-under=95
-	python -m py_compile $$(git ls-files "*.py")
-	make docker-test
+# Legacy validation targets - replaced by BPCI
+# Use 'make bpci' for full CI validation
+# Use 'make quick-check' for rapid validation
 
 # Rollback command
 rollback:
