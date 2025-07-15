@@ -51,15 +51,17 @@ python -m pytest \
     --junitxml=/app/test-results/junit.xml \
     --cov-config=/app/.coveragerc \
     -p no:warnings \
-    --durations=10 \
-    || {
-        echo "pytest command failed with exit code $?"
-        echo "Trying simpler pytest command..."
-        python -m pytest -v --tb=short
-    }
+    --durations=10
 
-# Check if test execution was successful
+# Capture the exit code immediately
 TEST_EXIT_CODE=$?
+
+# If tests failed, try simpler command to get more info
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+    echo "pytest command failed with exit code $TEST_EXIT_CODE"
+    echo "Running simpler pytest command for debugging..."
+    python -m pytest -v --tb=short || true
+fi
 
 echo ""
 echo "=== Test Results ==="

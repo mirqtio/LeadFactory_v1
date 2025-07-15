@@ -1,4 +1,4 @@
-.PHONY: help install test lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test validate-standard validate-wave-b rollback
+.PHONY: help install test lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test validate-standard validate-wave-b rollback bpci pre-push quick-check
 
 # Default target
 help:
@@ -115,12 +115,12 @@ ci-local:
 
 # BPCI - Bulletproof CI validation that catches issues BEFORE GitHub CI
 bpci:
-	@bash scripts/bpci.sh
+	bash scripts/bpci.sh
 
 # Pre-push validation - runs ALL CI checks locally using BPCI
 pre-push: clean
 	@echo "🔍 Pre-push validation using BPCI..."
-	@make bpci
+	$(MAKE) bpci
 
 # Quick validation - for frequent commits
 quick-check:
