@@ -60,8 +60,8 @@ lint:
 
 # Format code
 format:
-	black . --line-length=120 --exclude=".venv"
-	isort . --profile=black --line-length=120 --skip=.venv
+	black . --line-length=120 --exclude="(.venv|venv)"
+	isort . --profile=black --line-length=120 --skip=.venv --skip=venv
 
 # Clean temporary files
 clean:
