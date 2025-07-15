@@ -365,41 +365,74 @@ fi
 # 10. Database Migration Validation
 echo -e "\n📋 Phase 10: Database Migration Validation"
 echo "========================================="
+echo "Testing database migrations in isolated environment..."
+
+# Create temporary database for migration testing
+export TEST_DB_PATH="/tmp/bpci_test_$(date +%s).db"
+export DATABASE_URL="sqlite:///${TEST_DB_PATH}"
+
+# Run migrations in a subprocess to catch errors
 if python -c "
-from sqlalchemy import create_engine, inspect, text
+import os
+import sys
+import tempfile
 from alembic import command
 from alembic.config import Config
-import sys
+from sqlalchemy import create_engine, text
+
+# Set test database URL
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///tmp/bpci_test.db')
+print(f'Testing migrations with: {db_url}')
 
 try:
-    # Check if funnel_events table has campaign_id column
-    engine = create_engine('sqlite:///:memory:')
+    # Create Alembic config
+    config = Config('alembic.ini')
+    config.set_main_option('sqlalchemy.url', db_url)
     
-    # First create the database schema
-    from database.base import Base
-    Base.metadata.create_all(bind=engine)
+    # Run migrations to latest
+    print('Running migrations to head...')
+    command.upgrade(config, 'head')
+    print('✓ All migrations completed successfully')
     
-    # Check table structure
-    inspector = inspect(engine)
-    if 'funnel_events' in inspector.get_table_names():
-        columns = [col['name'] for col in inspector.get_columns('funnel_events')]
-        if 'campaign_id' not in columns:
-            print('✗ funnel_events table missing campaign_id column')
-            sys.exit(1)
+    # Verify critical tables exist
+    engine = create_engine(db_url)
+    with engine.connect() as conn:
+        # Check if analytics views can be queried (this would fail if campaign_id missing)
+        if 'sqlite' not in db_url:
+            result = conn.execute(text('SELECT 1 FROM funnel_analysis_mv LIMIT 1'))
+            print('✓ Analytics views are accessible')
         else:
-            print('✓ funnel_events table has campaign_id column')
-    else:
-        print('⚠️  funnel_events table not found - may be created by migrations')
+            # For SQLite, just check tables exist
+            result = conn.execute(text(\"SELECT name FROM sqlite_master WHERE type='table' AND name='funnel_events'\"))
+            if result.fetchone():
+                # Check column exists
+                result = conn.execute(text(\"PRAGMA table_info(funnel_events)\"))
+                columns = [row[1] for row in result]
+                if 'campaign_id' in columns:
+                    print('✓ funnel_events.campaign_id column exists')
+                else:
+                    print('✗ funnel_events.campaign_id column missing')
+                    sys.exit(1)
     
-    print('✓ Database migration structure validated')
 except Exception as e:
-    print(f'✗ Migration validation failed: {e}')
+    print(f'✗ Migration failed: {str(e)[:200]}...')
     sys.exit(1)
+finally:
+    # Cleanup
+    if 'TEST_DB_PATH' in os.environ and os.path.exists(os.environ['TEST_DB_PATH']):
+        try:
+            os.unlink(os.environ['TEST_DB_PATH'])
+        except:
+            pass
 " 2>&1; then
     log_success "Database migration validation"
 else
     log_failure "Database migration validation"
 fi
+
+# Cleanup test database
+rm -f "$TEST_DB_PATH" 2>/dev/null || true
+unset TEST_DB_PATH
 
 # 11. Docker Build Test
 echo -e "\n📋 Phase 11: Docker Build Validation"
