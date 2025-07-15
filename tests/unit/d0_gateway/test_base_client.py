@@ -10,8 +10,8 @@ from core.exceptions import ExternalAPIError, RateLimitError
 from d0_gateway.base import BaseAPIClient
 
 
-class TestAPIClient(BaseAPIClient):
-    """Test implementation of BaseAPIClient"""
+class MockAPIClient(BaseAPIClient):
+    """Mock implementation of BaseAPIClient for testing"""
 
     def _get_base_url(self) -> str:
         return "https://api.example.com"
@@ -30,7 +30,7 @@ class TestBaseAPIClient:
     @pytest.fixture
     def api_client(self):
         """Create test API client"""
-        return TestAPIClient(provider="test", api_key="test-key")
+        return MockAPIClient(provider="test", api_key="test-key")
 
     def test_client_initialization(self, api_client):
         """Test client initializes correctly"""
@@ -54,7 +54,7 @@ class TestBaseAPIClient:
             mock_settings.return_value.use_stubs = True
             mock_settings.return_value.stub_base_url = "http://stub:5010"
 
-            client = TestAPIClient(provider="test")
+            client = MockAPIClient(provider="test")
 
             assert client.api_key == "stub-test-key"
             assert client.base_url == "http://stub:5010"
