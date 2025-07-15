@@ -109,29 +109,34 @@ def test_exception_hierarchy():
 
 def test_model_validation():
     """Test basic model validation without external dependencies"""
-    from d1_targeting.schemas import TargetUniverseCreate
+    from d1_targeting.schemas import CreateTargetUniverseSchema, TargetingCriteriaSchema, GeographicConstraintSchema
+    from d1_targeting.types import VerticalMarket, GeographyLevel
     from pydantic import ValidationError as PydanticValidationError
     
     # Valid input using actual pydantic schema
-    valid_target = TargetUniverseCreate(
+    valid_target = CreateTargetUniverseSchema(
         name="Test Universe",
         description="Test description",
-        verticals=["restaurants"],
-        geography_config={
-            "level": "city",
-            "values": ["New York"]
-        }
+        targeting_criteria=TargetingCriteriaSchema(
+            verticals=[VerticalMarket.RESTAURANTS],
+            geographic_constraints=[
+                GeographicConstraintSchema(
+                    level=GeographyLevel.CITY,
+                    values=["New York"]
+                )
+            ]
+        )
     )
     assert valid_target.name == "Test Universe"
-    assert valid_target.verticals == ["restaurants"]
-    assert valid_target.geography_config["level"] == "city"
+    assert valid_target.targeting_criteria.verticals == [VerticalMarket.RESTAURANTS]
+    assert valid_target.targeting_criteria.geographic_constraints[0].level == GeographyLevel.CITY
     
     # Invalid input - missing required fields
     try:
-        invalid_target = TargetUniverseCreate(name="Test")
+        invalid_target = CreateTargetUniverseSchema(name="Test")
         assert False, "Should have raised validation error"
     except PydanticValidationError as e:
-        assert "verticals" in str(e) or "geography_config" in str(e)
+        assert "targeting_criteria" in str(e)
 
 
 def test_database_models():
