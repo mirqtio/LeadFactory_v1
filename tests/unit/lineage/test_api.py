@@ -19,8 +19,9 @@ class TestLineageAPI:
     def app(self):
         """Create FastAPI test app"""
         from fastapi import FastAPI
+
         from api.lineage.routes import router
-        
+
         app = FastAPI()
         app.include_router(router)
         return app
@@ -29,20 +30,21 @@ class TestLineageAPI:
     def test_client(self, app, db_session):
         """Create test client with database override"""
         from fastapi.testclient import TestClient
+
         # Import get_db from where the routes import it
         from api.dependencies import get_db
-        
+
         def override_get_db():
             try:
                 yield db_session
             finally:
                 pass  # Don't close the session here as it's managed by the fixture
-        
+
         app.dependency_overrides[get_db] = override_get_db
-        
+
         with TestClient(app) as client:
             yield client
-        
+
         app.dependency_overrides.clear()
 
     @pytest.fixture

@@ -174,7 +174,7 @@ def view_lineage_logs(
         "truncated": truncated,
         "log_size": len(str(pipeline_logs)) if pipeline_logs else 0,
     }
-    
+
     return response_data
 
 
@@ -250,9 +250,7 @@ def get_panel_stats(
     )
 
     template_distribution = [
-        {"version": stats[0], "count": stats[1]} 
-        for stats in template_stats 
-        if stats[0] is not None
+        {"version": stats[0], "count": stats[1]} for stats in template_stats if stats[0] is not None
     ]
 
     # Total storage in MB
@@ -280,9 +278,9 @@ def delete_lineage(
     lineage = db.query(ReportLineage).filter(ReportLineage.id == lineage_id).first()
     if not lineage:
         raise HTTPException(status_code=404, detail="Lineage not found")
-    
+
     # Delete the lineage
     db.delete(lineage)
     db.commit()
-    
+
     return {"message": f"Lineage {lineage_id} deleted successfully"}

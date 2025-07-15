@@ -23,7 +23,7 @@ from sqlalchemy import Float, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB as PostgreSQL_JSONB
 from sqlalchemy.orm import relationship
 
-from database.base import Base, UUID
+from database.base import UUID, Base
 
 
 def generate_uuid() -> str:

@@ -16,21 +16,21 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
-
-# Import models needed for lineage tests
-from d6_reports.models import ReportGeneration, ReportTemplate, ReportType, TemplateFormat  # noqa: F401
-from database.base import Base
-
-# Import all models to ensure tables are created
-import database.models  # noqa: F401
-import d1_targeting.models  # noqa: F401 
+import d1_targeting.models  # noqa: F401
 import d2_sourcing.models  # noqa: F401
 import d3_assessment.models  # noqa: F401
 import d4_enrichment.models  # noqa: F401
 import d5_scoring.models  # noqa: F401
 import d7_storefront.models  # noqa: F401
 import d10_analytics.models  # noqa: F401
+
+# Import all models to ensure tables are created
+import database.models  # noqa: F401
+from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
+
+# Import models needed for lineage tests
+from d6_reports.models import ReportGeneration, ReportTemplate, ReportType, TemplateFormat  # noqa: F401
+from database.base import Base
 
 
 @pytest.fixture(scope="function")
@@ -86,28 +86,27 @@ def test_report_template(db_session):
 @pytest.fixture
 def test_client(db_session):
     """Create a test client for API testing"""
-    from main import app
     from database import session as db_module
-    
+    from main import app
+
     # Monkey-patch SessionLocal to use our test engine
     original_session_local = db_module.SessionLocal
     db_module.SessionLocal = lambda: db_session
-    
+
     # Override the dependency to use our test session
     def override_get_db():
         try:
             yield db_session
         finally:
             pass  # Don't close the session, let the fixture handle it
-    
+
     from database.session import get_db
+
     app.dependency_overrides[get_db] = override_get_db
-    
+
     with TestClient(app) as client:
         yield client
-        
+
     # Clean up
     app.dependency_overrides.clear()
     db_module.SessionLocal = original_session_local
-
-

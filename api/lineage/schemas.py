@@ -67,6 +67,7 @@ class LineageAuditLog(BaseModel):
 
 class TemplateDistribution(BaseModel):
     """Template distribution item"""
+
     version: str
     count: int
 

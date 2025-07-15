@@ -19,8 +19,9 @@ class TestLineageAPIv2:
     def app(self):
         """Create FastAPI test app"""
         from fastapi import FastAPI
+
         from api.lineage.routes import router
-        
+
         app = FastAPI()
         app.include_router(router)
         return app
@@ -29,20 +30,21 @@ class TestLineageAPIv2:
     def test_client(self, app, db_session):
         """Create test client with database override"""
         from fastapi.testclient import TestClient
+
         # Import get_db from where the routes import it
         from api.dependencies import get_db
-        
+
         def override_get_db():
             try:
                 yield db_session
             finally:
                 pass  # Don't close the session here as it's managed by the fixture
-        
+
         app.dependency_overrides[get_db] = override_get_db
-        
+
         with TestClient(app) as client:
             yield client
-        
+
         app.dependency_overrides.clear()
 
     @pytest.fixture
@@ -119,7 +121,7 @@ class TestLineageAPIv2:
     def test_search_lineage_no_filters(self, test_client: TestClient, db_session, test_report_template):
         """Test searching lineage records without filters"""
         from d6_reports.models import ReportGeneration
-        
+
         # Create multiple lineages
         for i in range(3):
             # First create the report generation
@@ -130,7 +132,7 @@ class TestLineageAPIv2:
             )
             db_session.add(report)
             db_session.commit()
-            
+
             lineage = ReportLineage(
                 report_generation_id=report.id,
                 lead_id=f"lead-{i}",
@@ -153,10 +155,12 @@ class TestLineageAPIv2:
         lead_ids = [r["lead_id"] for r in results]
         assert set(lead_ids) == {"lead-0", "lead-1", "lead-2"}
 
-    def test_search_lineage_with_filters(self, test_client: TestClient, sample_lineage_data, db_session, test_report_template):
+    def test_search_lineage_with_filters(
+        self, test_client: TestClient, sample_lineage_data, db_session, test_report_template
+    ):
         """Test searching lineage records with filters"""
         from d6_reports.models import ReportGeneration
-        
+
         # Create another report and lineage
         report2 = ReportGeneration(
             id="report-002",
@@ -165,7 +169,7 @@ class TestLineageAPIv2:
         )
         db_session.add(report2)
         db_session.commit()
-        
+
         lineage2 = ReportLineage(
             report_generation_id=report2.id,
             lead_id="lead-456",
@@ -242,7 +246,7 @@ class TestLineageAPIv2:
     def test_get_panel_stats(self, test_client: TestClient, db_session, test_report_template):
         """Test getting lineage panel statistics"""
         from d6_reports.models import ReportGeneration
-        
+
         # Create test data
         for i in range(5):
             # First create the report generation
@@ -253,7 +257,7 @@ class TestLineageAPIv2:
             )
             db_session.add(report)
             db_session.commit()
-            
+
             lineage = ReportLineage(
                 report_generation_id=report.id,
                 lead_id=f"lead-{i}",

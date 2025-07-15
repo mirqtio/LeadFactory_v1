@@ -57,7 +57,7 @@ class TestWebhookHandler:
     def webhook_handler(self, db_session):
         """WebhookHandler instance for testing"""
         # Patch SessionLocal to use our test session
-        with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+        with patch("d9_delivery.webhook_handler.SessionLocal") as mock_session:
             mock_session.return_value.__enter__.return_value = db_session
             handler = WebhookHandler()
             handler._session = db_session  # Also store session directly for tests
@@ -299,7 +299,9 @@ class TestWebhookHandler:
         assert delivery.status == DeliveryStatus.BOUNCED.value
 
         # Verify bounce tracking was created
-        bounce = webhook_handler._session.query(BounceTracking).filter(BounceTracking.email == "test@example.com").first()
+        bounce = (
+            webhook_handler._session.query(BounceTracking).filter(BounceTracking.email == "test@example.com").first()
+        )
         assert bounce is not None
         assert bounce.bounce_type == BounceType.HARD.value
         assert bounce.bounce_reason == "Invalid email address"
@@ -668,7 +670,7 @@ class TestUtilityFunctions:
         signature = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
         with patch.dict("os.environ", {"SENDGRID_WEBHOOK_SECRET": secret}):
-            with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+            with patch("d9_delivery.webhook_handler.SessionLocal") as mock_session:
                 mock_session.return_value.__enter__.return_value = db_session
                 results = process_sendgrid_webhook(payload, f"sha256={signature}")
 
@@ -693,7 +695,7 @@ class TestUtilityFunctions:
         )
 
         with patch.dict("os.environ", {"SENDGRID_WEBHOOK_SECRET": "test_secret"}):
-            with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+            with patch("d9_delivery.webhook_handler.SessionLocal") as mock_session:
                 mock_session.return_value.__enter__.return_value = db_session
                 with pytest.raises(ValidationError) as exc_info:
                     process_sendgrid_webhook(payload, "invalid_signature")
@@ -715,7 +717,7 @@ class TestUtilityFunctions:
             ]
         )
 
-        with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+        with patch("d9_delivery.webhook_handler.SessionLocal") as mock_session:
             mock_session.return_value.__enter__.return_value = db_session
             results = process_sendgrid_webhook(payload)
 
@@ -803,7 +805,7 @@ class TestIntegration:
         )
 
         # Process webhook
-        with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+        with patch("d9_delivery.webhook_handler.SessionLocal") as mock_session:
             mock_session.return_value.__enter__.return_value = db_session
             results = process_sendgrid_webhook(payload)
 
@@ -863,7 +865,7 @@ class TestIntegration:
         )
 
         # Process webhook
-        with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+        with patch("d9_delivery.webhook_handler.SessionLocal") as mock_session:
             mock_session.return_value.__enter__.return_value = db_session
             results = process_sendgrid_webhook(payload)
 
