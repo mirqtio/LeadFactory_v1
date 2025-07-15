@@ -94,24 +94,24 @@ jobs:
     
     - name: Run CI smoke test
       run: |
-        python -m pytest -xvs tests/test_ci_smoke.py --timeout=10 || true
+        python -m pytest -c pytest-minimal.ini -xvs tests/test_ci_smoke.py --timeout=10 || true
     
     - name: Run core unit tests
       run: |
-        python -m pytest -xvs tests/unit/test_core.py --timeout=30 || true
+        python -m pytest -c pytest-minimal.ini -xvs tests/unit/test_core.py --timeout=30 || true
     
     - name: Run model tests
       run: |
-        python -m pytest -xvs tests/unit/test_unit_models.py --timeout=30 || true
+        python -m pytest -c pytest-minimal.ini -xvs tests/unit/test_unit_models.py --timeout=30 || true
     
     - name: Run integration tests  
       run: |
-        python -m pytest -xvs tests/integration/test_stub_server.py --timeout=60 || true
+        python -m pytest -c pytest-minimal.ini -xvs tests/integration/test_stub_server.py --timeout=60 || true
     
     - name: Check test results
       run: |
         # Run all tests again to get proper exit code
-        python -m pytest tests/test_ci_smoke.py tests/unit/test_core.py tests/unit/test_unit_models.py tests/integration/test_stub_server.py --tb=short
+        python -m pytest -c pytest-minimal.ini tests/test_ci_smoke.py tests/unit/test_core.py tests/unit/test_unit_models.py tests/integration/test_stub_server.py --tb=short
     
     - name: Stop stub server
       if: always()
