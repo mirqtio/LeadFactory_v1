@@ -205,11 +205,11 @@ def generate_slug(text: str, max_length: int = 50) -> str:
 def slugify(text: str, max_length: int = 50) -> str:
     """
     Generate URL-safe slug from text (alias for generate_slug for backward compatibility).
-    
+
     Args:
         text: Text to convert to slug
         max_length: Maximum length of the slug
-        
+
     Returns:
         URL-safe slug string
     """
@@ -219,12 +219,12 @@ def slugify(text: str, max_length: int = 50) -> str:
 def truncate(text: str, max_length: int, suffix: str = "...") -> str:
     """
     Truncate text to max length with suffix (alias for truncate_text for backward compatibility).
-    
+
     Args:
         text: Text to truncate
         max_length: Maximum length
         suffix: Suffix to add when truncating
-        
+
     Returns:
         Truncated text
     """
@@ -275,44 +275,47 @@ def calculate_rate_limit_wait(
 def remove_html(text: str) -> str:
     """
     Remove HTML tags from text.
-    
+
     Args:
         text: Text containing HTML tags
-        
+
     Returns:
         Text with HTML tags removed
     """
     import re
-    return re.sub(r'<[^>]+>', '', text)
+
+    return re.sub(r"<[^>]+>", "", text)
 
 
 def validate_email(email: str) -> bool:
     """
     Validate email address format.
-    
+
     Args:
         email: Email address to validate
-        
+
     Returns:
         True if valid email format
     """
     import re
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     return bool(re.match(pattern, email))
 
 
 def validate_url(url: str) -> bool:
     """
     Validate URL format.
-    
+
     Args:
         url: URL to validate
-        
+
     Returns:
         True if valid URL format
     """
     try:
         from urllib.parse import urlparse
+
         result = urlparse(url)
         return all([result.scheme, result.netloc])
     except Exception:
@@ -322,33 +325,34 @@ def validate_url(url: str) -> bool:
 def validate_phone(phone: str) -> bool:
     """
     Validate phone number format.
-    
+
     Args:
         phone: Phone number to validate
-        
+
     Returns:
         True if valid phone format
     """
     import re
+
     # Simple validation for international format
-    pattern = r'^\+?1?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$'
-    return bool(re.match(pattern, phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')))
+    pattern = r"^\+?1?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$"
+    return bool(re.match(pattern, phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")))
 
 
 def get_nested(data: Dict[str, Any], path: str, default: Any = None) -> Any:
     """
     Get nested value from dictionary using dot notation.
-    
+
     Args:
         data: Dictionary to search
         path: Dot-separated path (e.g., "a.b.c")
         default: Default value if path not found
-        
+
     Returns:
         Value at path or default
     """
     try:
-        keys = path.split('.')
+        keys = path.split(".")
         current = data
         for key in keys:
             current = current[key]
@@ -360,32 +364,33 @@ def get_nested(data: Dict[str, Any], path: str, default: Any = None) -> Any:
 def retry_with_backoff(max_retries: int = 3, backoff_factor: float = 1.0, exceptions: tuple = (Exception,)):
     """
     Decorator for retrying functions with exponential backoff.
-    
+
     Args:
         max_retries: Maximum number of retries
         backoff_factor: Backoff factor for delay
         exceptions: Exception types to catch and retry
-        
+
     Returns:
         Decorated function
     """
     import time
-    
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             last_exception = None
-            
+
             for attempt in range(max_retries + 1):
                 try:
                     return func(*args, **kwargs)
                 except exceptions as e:
                     last_exception = e
                     if attempt < max_retries:
-                        delay = backoff_factor * (2 ** attempt)
+                        delay = backoff_factor * (2**attempt)
                         time.sleep(delay)
-                    
+
             raise last_exception
-            
+
         return wrapper
+
     return decorator

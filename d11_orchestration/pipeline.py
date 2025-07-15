@@ -517,7 +517,7 @@ class Pipeline:
     """
     Generic pipeline class for backward compatibility with tests.
     """
-    
+
     def __init__(self, stages: Optional[List[Any]] = None):
         """Initialize pipeline with optional stages."""
         self.stages = stages or []
@@ -526,11 +526,11 @@ class Pipeline:
         except Exception:
             # If orchestrator can't be initialized, use None
             self.orchestrator = None
-        
+
     def add_stage(self, stage: Any) -> None:
         """Add a stage to the pipeline."""
         self.stages.append(stage)
-        
+
     def execute(self, data: Any = None) -> Dict[str, Any]:
         """Execute the pipeline stages."""
         try:
@@ -552,12 +552,12 @@ class PipelineStage:
     """
     Generic pipeline stage class for backward compatibility with tests.
     """
-    
+
     def __init__(self, name: str, processor: Optional[Callable] = None):
         """Initialize pipeline stage."""
         self.name = name
         self.processor = processor
-        
+
     def execute(self, data: Any = None) -> Dict[str, Any]:
         """Execute the stage."""
         try:
@@ -565,7 +565,7 @@ class PipelineStage:
                 result = self.processor(data)
             else:
                 result = data
-                
+
             return {
                 "stage": self.name,
                 "status": "success",

@@ -658,6 +658,17 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Disable logging if JSON output is requested
+    if args.json:
+        import logging
+        logging.disable(logging.CRITICAL)
+        # Also suppress any root logger output
+        logging.getLogger().handlers = []
+        # Suppress structured logging as well
+        for logger_name in logging.Logger.manager.loggerDict:
+            logging.getLogger(logger_name).handlers = []
+            logging.getLogger(logger_name).propagate = False
+
     # Run validation
     validator = PrerequisiteValidator()
 
@@ -686,7 +697,7 @@ if __name__ == "__main__":
     if args.json:
         import json
 
-        print(json.dumps(result.dict(), indent=2))
+        print(json.dumps(result.model_dump(), indent=2))
     elif not args.quiet:
         print_results(result)
 

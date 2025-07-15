@@ -149,9 +149,10 @@ class TestProviderFeatureFlags:
 
     def test_selective_provider_enabling(self):
         """Test enabling only specific providers"""
-        from pydantic import SecretStr
         import os
         from unittest import mock
+
+        from pydantic import SecretStr
 
         # Mock CI environment variable to allow use_stubs=False
         with mock.patch.dict(os.environ, {"CI": ""}, clear=False):

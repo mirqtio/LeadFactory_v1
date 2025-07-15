@@ -84,8 +84,8 @@ class TestEnvironmentConfig:
         with patch.dict(
             os.environ,
             {
-                "ENVIRONMENT": "development", 
-                "USE_STUBS": "false", 
+                "ENVIRONMENT": "development",
+                "USE_STUBS": "false",
                 "CI": "",  # Make sure CI is not set
                 "GOOGLE_API_KEY": "test-google-key",
                 "SENDGRID_API_KEY": "test-sendgrid-key",

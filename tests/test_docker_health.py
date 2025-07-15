@@ -27,15 +27,15 @@ def test_import_core_modules():
     """Test that core modules can be imported"""
     try:
         import importlib.util
-        
+
         # Check if modules are available
-        modules_to_check = ['fastapi', 'psycopg2', 'pytest', 'sqlalchemy', 'alembic', 'coverage']
-        
+        modules_to_check = ["fastapi", "psycopg2", "pytest", "sqlalchemy", "alembic", "coverage"]
+
         for module_name in modules_to_check:
             spec = importlib.util.find_spec(module_name)
             if spec is None:
                 pytest.fail(f"Module {module_name} is not available")
-                
+
     except ImportError as e:
         pytest.fail(f"Failed to import required module: {e}")
 

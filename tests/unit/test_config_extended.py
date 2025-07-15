@@ -54,7 +54,7 @@ class TestExtendedConfig:
         with mock.patch.dict(os.environ, {"DATABASE_URL": "postgresql://user:pass@host:5432/db", "TESTING": "false"}):
             settings = Settings()
             assert settings.database_url == "postgresql://user:pass@host:5432/db"
-            
+
     def test_database_configuration_testing_mode(self):
         """Test database URL configuration in testing mode."""
         with mock.patch.dict(os.environ, {"DATABASE_URL": "postgresql://user:pass@host:5432/db", "TESTING": "true"}):

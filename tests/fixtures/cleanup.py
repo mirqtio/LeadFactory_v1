@@ -23,7 +23,7 @@ def cleanup_database(db_session):
     """Automatically clean up database tables after each test."""
     # Let the test run
     yield
-    
+
     # Clean up after the test
     try:
         # Use raw SQL to truncate tables to avoid ORM overhead
@@ -38,7 +38,7 @@ def cleanup_database(db_session):
             except Exception:
                 # Table might not exist in all test scenarios
                 pass
-        
+
         db_session.commit()
     except Exception as e:
         print(f"Warning: Database cleanup failed: {e}")

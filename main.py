@@ -24,7 +24,9 @@ from core.logging import get_logger
 from core.metrics import get_metrics_response, metrics
 from d1_targeting.api import router as targeting_router
 from d3_assessment.api import router as assessment_router
+from d6_reports.api import router as reports_router
 from d7_storefront.api import router as storefront_router
+from d8_personalization.api import router as personalization_router
 from d10_analytics.api import router as analytics_router
 from d11_orchestration.api import router as orchestration_router
 from lead_explorer.api import limiter
@@ -155,8 +157,12 @@ app.include_router(health_router, tags=["health"])
 app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])
 # Note: d3_assessment already includes prefix in router definition
 app.include_router(assessment_router)
+# Register d6_reports router
+app.include_router(reports_router, prefix="/api/v1/reports", tags=["reports"])
 # Note: d7_storefront already includes prefix in router definition
 app.include_router(storefront_router)
+# Register d8_personalization router
+app.include_router(personalization_router, prefix="/api/v1/personalization", tags=["personalization"])
 # Note: d10_analytics already includes prefix in router definition
 app.include_router(analytics_router)
 # Note: d11_orchestration already includes prefix in router definition

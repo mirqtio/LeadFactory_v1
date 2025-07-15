@@ -941,11 +941,11 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
     def generate_content(self, business_data: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """
         Generate personalized content for backward compatibility with tests.
-        
+
         Args:
             business_data: Business data dictionary
             **kwargs: Additional arguments for personalization
-            
+
         Returns:
             Dictionary with generated content
         """
@@ -958,9 +958,10 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
                 contact_data=kwargs.get("contact_data"),
                 campaign_context=kwargs.get("campaign_context"),
             )
-            
+
             # Generate content using the main method
             import asyncio
+
             if asyncio.iscoroutinefunction(self.personalize_email):
                 # For async usage, create a simple sync wrapper
                 loop = asyncio.new_event_loop()
@@ -971,7 +972,7 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
                     loop.close()
             else:
                 result = self.personalize_email(request)
-            
+
             # Return in the format expected by tests
             return {
                 "subject": result.subject_line,
@@ -979,7 +980,7 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
                 "body": result.html_content,
                 "personalization_score": result.quality_metrics.get("personalization_score", 0.8),
             }
-            
+
         except Exception:
             # Return fallback content for tests
             business_name = business_data.get("name", "your business")

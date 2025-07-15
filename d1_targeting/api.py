@@ -628,37 +628,37 @@ async def validate_targeting_criteria(request: Dict[str, Any], db: Session = Dep
     Validate targeting criteria for locations and industries.
     """
     logger.info("Validating targeting criteria")
-    
+
     # Basic validation logic
     locations = request.get("locations", [])
     industries = request.get("industries", [])
-    
+
     # Mock validation - in real implementation, would validate against known data
     valid_locations = []
     invalid_locations = []
-    
+
     for location in locations:
         if location and len(location) > 2:  # Basic validation
             valid_locations.append(location)
         else:
             invalid_locations.append(location)
-    
+
     valid_industries = []
     invalid_industries = []
-    
+
     for industry in industries:
         if industry and len(industry) > 2:  # Basic validation
             valid_industries.append(industry)
         else:
             invalid_industries.append(industry)
-    
+
     return {
         "valid": len(invalid_locations) == 0 and len(invalid_industries) == 0,
         "valid_locations": valid_locations,
         "invalid_locations": invalid_locations,
         "valid_industries": valid_industries,
         "invalid_industries": invalid_industries,
-        "message": "Validation completed"
+        "message": "Validation completed",
     }
 
 

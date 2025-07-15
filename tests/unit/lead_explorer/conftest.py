@@ -2,6 +2,7 @@
 Shared test configuration for Lead Explorer tests
 """
 import uuid
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker

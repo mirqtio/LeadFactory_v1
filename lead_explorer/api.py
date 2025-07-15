@@ -199,6 +199,48 @@ async def list_leads(
     return LeadListResponseSchema(leads=leads, total_count=total_count, page_info=page_info)
 
 
+# Search endpoint - convenience wrapper around the list endpoint with search parameter
+@router.get("/leads/search", response_model=LeadListResponseSchema)
+@handle_api_errors
+@limiter.limit("5/minute")
+async def search_leads(
+    request: Request,
+    q: str = Query(..., description="Search query"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """
+    Search leads by email, domain, company name, or contact name.
+    
+    This is a convenience endpoint that wraps the list endpoint with search functionality.
+    """
+    skip = (page - 1) * page_size
+    filters = LeadFilterSchema(search=q)
+    pagination = PaginationSchema(skip=skip, limit=page_size)
+    
+    logger.info(f"Searching leads with query: {q}")
+    
+    # Use the repository to search
+    lead_repo = LeadRepository(db)
+    leads, total_count = lead_repo.list_leads(
+        skip=skip,
+        limit=page_size,
+        search=q,
+    )
+    
+    # Calculate pagination info
+    page_info = {
+        "current_page": page,
+        "total_pages": (total_count + page_size - 1) // page_size,
+        "page_size": page_size,
+        "has_next": skip + page_size < total_count,
+        "has_previous": page > 1,
+    }
+    
+    return LeadListResponseSchema(leads=leads, total_count=total_count, page_info=page_info)
+
+
 @router.get("/leads/{lead_id}", response_model=LeadResponseSchema)
 @handle_api_errors
 async def get_lead(lead_id: str, db: Session = Depends(get_db)):

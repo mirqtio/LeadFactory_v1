@@ -6,6 +6,7 @@ Create Date: 2025-07-15 17:10:00.000000
 
 """
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -25,10 +26,14 @@ def upgrade() -> None:
         sa.Column("lead_id", sa.Integer(), nullable=True),
         sa.Column("campaign_id", sa.Integer(), nullable=True),
         sa.Column("cost_usd", sa.Numeric(precision=10, scale=4), nullable=False),
-        sa.Column("timestamp", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
+        sa.Column(
+            "timestamp", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+        ),
         sa.Column("request_id", sa.String(length=100), nullable=True),
         sa.Column("meta_data", sa.JSON(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=True),
+        sa.Column(
+            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=True
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("idx_api_cost_provider", "fct_api_cost", ["provider"], unique=False)
@@ -41,7 +46,7 @@ def upgrade() -> None:
     bind = op.get_bind()
     inspector = sa.inspect(bind)
     tables = inspector.get_table_names()
-    
+
     if "campaigns" not in tables:
         # Create campaigns table first
         op.create_table(
@@ -81,11 +86,11 @@ def upgrade() -> None:
     # Create experiment_variants table
     # First check if experiments table has experiment_id or id column
     if "experiments" in tables:
-        columns = [col['name'] for col in inspector.get_columns('experiments')]
+        columns = [col["name"] for col in inspector.get_columns("experiments")]
         experiment_id_col = "experiment_id" if "experiment_id" in columns else "id"
     else:
         experiment_id_col = "id"
-    
+
     op.create_table(
         "experiment_variants",
         sa.Column("variant_id", sa.String(length=36), nullable=False),
@@ -93,7 +98,12 @@ def upgrade() -> None:
         sa.Column("variant_key", sa.String(length=100), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("variant_type", sa.Enum("CONTROL", "TREATMENT", name="varianttype"), nullable=False, server_default="TREATMENT"),
+        sa.Column(
+            "variant_type",
+            sa.Enum("CONTROL", "TREATMENT", name="varianttype"),
+            nullable=False,
+            server_default="TREATMENT",
+        ),
         sa.Column("weight", sa.Float(), nullable=False, server_default="1.0"),
         sa.Column("is_control", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column("config", sa.JSON(), nullable=True),
@@ -105,11 +115,13 @@ def upgrade() -> None:
         sa.UniqueConstraint("experiment_id", "variant_key", name="uq_experiment_variant_key"),
         sa.CheckConstraint("weight >= 0", name="check_weight_positive"),
     )
-    op.create_index("idx_variants_experiment_type", "experiment_variants", ["experiment_id", "variant_type"], unique=False)
+    op.create_index(
+        "idx_variants_experiment_type", "experiment_variants", ["experiment_id", "variant_type"], unique=False
+    )
 
     # Add missing columns to businesses table
     if "businesses" in tables:
-        columns = [col['name'] for col in inspector.get_columns('businesses')]
+        columns = [col["name"] for col in inspector.get_columns("businesses")]
         if "geo_bucket" not in columns:
             op.add_column("businesses", sa.Column("geo_bucket", sa.String(length=80), nullable=True))
             op.create_index("idx_businesses_geo_bucket", "businesses", ["geo_bucket"], unique=False)
@@ -119,7 +131,7 @@ def upgrade() -> None:
 
     # Add missing columns to targets table if it exists
     if "targets" in tables:
-        columns = [col['name'] for col in inspector.get_columns('targets')]
+        columns = [col["name"] for col in inspector.get_columns("targets")]
         if "geo_bucket" not in columns:
             op.add_column("targets", sa.Column("geo_bucket", sa.String(length=80), nullable=True))
             op.create_index("idx_targets_geo_bucket", "targets", ["geo_bucket"], unique=False)
@@ -133,9 +145,9 @@ def downgrade() -> None:
     bind = op.get_bind()
     inspector = sa.inspect(bind)
     tables = inspector.get_table_names()
-    
+
     if "targets" in tables:
-        columns = [col['name'] for col in inspector.get_columns('targets')]
+        columns = [col["name"] for col in inspector.get_columns("targets")]
         if "vert_bucket" in columns:
             op.drop_index("idx_targets_vert_bucket", table_name="targets")
             op.drop_column("targets", "vert_bucket")
@@ -145,7 +157,7 @@ def downgrade() -> None:
 
     # Drop indexes and columns from businesses table
     if "businesses" in tables:
-        columns = [col['name'] for col in inspector.get_columns('businesses')]
+        columns = [col["name"] for col in inspector.get_columns("businesses")]
         if "vert_bucket" in columns:
             op.drop_index("idx_businesses_vert_bucket", table_name="businesses")
             op.drop_column("businesses", "vert_bucket")

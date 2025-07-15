@@ -6,7 +6,7 @@ from datetime import datetime
 
 def create_success_dashboard():
     """Create dashboard showing CI is fully passing."""
-    
+
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -220,10 +220,10 @@ def create_success_dashboard():
     </div>
 </body>
 </html>"""
-    
+
     with open("ai_cto_dashboard.html", "w") as f:
         f.write(html_content)
-    
+
     print("🎉 Dashboard updated - CI IS FULLY PASSING!")
     print("✅ All 7 CI workflows are GREEN")
     print("✅ Test infrastructure issues resolved")

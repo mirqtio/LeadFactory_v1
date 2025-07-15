@@ -5,7 +5,6 @@ import hashlib
 import json
 from unittest.mock import Mock, patch
 
-
 from database.models import AuditAction, AuditLogLead, EnrichmentStatus, Lead
 from lead_explorer.audit import (
     AuditContext,
@@ -97,7 +96,7 @@ class TestCreateAuditLog:
         """Test creating basic audit log"""
         # Temporarily disable the test environment check for audit logging
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
+
         AuditContext.set_user_context(user_id="test_user", user_ip="192.168.1.1")
 
         create_audit_log(
@@ -122,7 +121,7 @@ class TestCreateAuditLog:
         """Test creating audit log with both old and new values"""
         # Temporarily disable the test environment check for audit logging
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
+
         old_values = {"email": "old@example.com"}
         new_values = {"email": "new@example.com"}
 
@@ -144,7 +143,7 @@ class TestCreateAuditLog:
         """Test creating audit log without user context"""
         # Temporarily disable the test environment check for audit logging
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
+
         AuditContext.clear_user_context()
 
         create_audit_log(
@@ -164,7 +163,7 @@ class TestCreateAuditLog:
         """Test that checksum is calculated correctly"""
         # Temporarily disable the test environment check for audit logging
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
+
         create_audit_log(
             session=db_session,
             lead_id=created_lead.id,
@@ -182,7 +181,7 @@ class TestCreateAuditLog:
         """Test that audit log creation handles exceptions gracefully"""
         # Temporarily disable the test environment check for audit logging
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
+
         # This should not raise an exception even if there are issues
         with patch("lead_explorer.audit.logger") as mock_logger:
             create_audit_log(session=None, lead_id=created_lead.id, action=AuditAction.CREATE)  # Invalid session
@@ -265,7 +264,7 @@ class TestGetAuditSummary:
         """Test audit summary for lead with audit logs"""
         # Temporarily disable the test environment check for audit logging
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
+
         # Create multiple audit logs
         create_audit_log(
             session=db_session,
@@ -304,7 +303,7 @@ class TestGetAuditSummary:
         """Test audit summary includes integrity verification"""
         # Temporarily disable the test environment check for audit logging
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
+
         # Create an audit log
         create_audit_log(
             session=db_session,
@@ -328,32 +327,27 @@ class TestAuditEventListeners:
         # Since event listeners are registered at module import time based on ENVIRONMENT,
         # and they're not registered in test environment, we need to manually test
         # the listener functions instead of relying on automatic triggers
-        
+
         # Import and manually call the listener function
-        from lead_explorer.audit import get_model_values, create_audit_log
-        
+        from lead_explorer.audit import create_audit_log, get_model_values
+
         # Temporarily disable the test environment check
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
+
         AuditContext.set_user_context(user_id="test_user")
 
         # Create a lead
         lead = Lead(email="test@example.com", is_manual=True)
         db_session.add(lead)
         db_session.commit()
-        
+
         # Check if audit log was already created by event listener
         existing_logs = db_session.query(AuditLogLead).filter_by(lead_id=lead.id).all()
-        
+
         if len(existing_logs) == 0:
             # Manually trigger what the listener would do if it wasn't already triggered
             new_values = get_model_values(lead)
-            create_audit_log(
-                session=db_session,
-                lead_id=lead.id,
-                action=AuditAction.CREATE,
-                new_values=new_values
-            )
+            create_audit_log(session=db_session, lead_id=lead.id, action=AuditAction.CREATE, new_values=new_values)
             db_session.commit()
 
         # Check that audit log was created
@@ -366,37 +360,37 @@ class TestAuditEventListeners:
         """Test that lead update triggers audit log"""
         # Temporarily disable the test environment check
         monkeypatch.setenv("ENVIRONMENT", "development")
-        
-        from lead_explorer.audit import get_model_values, create_audit_log
-        
+
+        from lead_explorer.audit import create_audit_log, get_model_values
+
         AuditContext.set_user_context(user_id="test_user")
-        
+
         # Get initial count of audit logs
         initial_logs = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).all()
         initial_update_count = len([log for log in initial_logs if log.action == AuditAction.UPDATE])
-        
+
         # Get old values before update
         old_values = get_model_values(created_lead)
 
         # Update the lead
         created_lead.company_name = "Updated Company"
         db_session.commit()
-        
+
         # Check if an update log was already created
         current_logs = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).all()
         current_update_count = len([log for log in current_logs if log.action == AuditAction.UPDATE])
-        
+
         if current_update_count == initial_update_count:
             # No automatic log was created, so create one manually
             new_values = get_model_values(created_lead)
-            
+
             if old_values != new_values:
                 create_audit_log(
                     session=db_session,
                     lead_id=created_lead.id,
                     action=AuditAction.UPDATE,
                     old_values=old_values,
-                    new_values=new_values
+                    new_values=new_values,
                 )
                 db_session.commit()
 

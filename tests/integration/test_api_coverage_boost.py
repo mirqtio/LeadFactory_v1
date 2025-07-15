@@ -102,17 +102,12 @@ class TestStrategicAPICoverage:
                     "description": "Test universe for integration testing",
                     "targeting_criteria": {
                         "verticals": ["restaurants"],
-                        "geographic_constraints": [
-                            {
-                                "level": "state",
-                                "values": ["CA", "NY"]
-                            }
-                        ],
+                        "geographic_constraints": [{"level": "state", "values": ["CA", "NY"]}],
                         "website_required": True,
                         "phone_required": True,
-                        "email_required": False
+                        "email_required": False,
                     },
-                    "estimated_size": 1000
+                    "estimated_size": 1000,
                 },
             )
             assert response.status_code == 201

@@ -432,8 +432,26 @@ def upgrade() -> None:
         sa.Column("business_id", sa.String(), nullable=False),
         sa.Column("session_id", sa.String(), nullable=False),
         sa.Column("campaign_id", sa.String(), nullable=True),
-        sa.Column("stage", sa.Enum("TARGETING", "ASSESSMENT", "SCORING", "PRIORITIZATION", "REPORTING", "PAYMENT", name="funnelstage"), nullable=False),
-        sa.Column("event_type", sa.Enum("PIPELINE_START", "PIPELINE_SUCCESS", "PIPELINE_FAILURE", "ASSESSMENT_START", "ASSESSMENT_SUCCESS", "ASSESSMENT_FAILURE", "REPORT_GENERATED", "PAYMENT_SUCCESS", name="eventtype"), nullable=False),
+        sa.Column(
+            "stage",
+            sa.Enum("TARGETING", "ASSESSMENT", "SCORING", "PRIORITIZATION", "REPORTING", "PAYMENT", name="funnelstage"),
+            nullable=False,
+        ),
+        sa.Column(
+            "event_type",
+            sa.Enum(
+                "PIPELINE_START",
+                "PIPELINE_SUCCESS",
+                "PIPELINE_FAILURE",
+                "ASSESSMENT_START",
+                "ASSESSMENT_SUCCESS",
+                "ASSESSMENT_FAILURE",
+                "REPORT_GENERATED",
+                "PAYMENT_SUCCESS",
+                name="eventtype",
+            ),
+            nullable=False,
+        ),
         sa.Column("timestamp", sa.TIMESTAMP(), nullable=True),
         sa.Column("event_metadata", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(
@@ -466,7 +484,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("ix_time_series_data_timestamp", "time_series_data", [sa.text("timestamp DESC")], unique=False)
-    op.create_index("ix_time_series_data_metric_name_timestamp", "time_series_data", ["metric_name", sa.text("timestamp DESC")], unique=False)
+    op.create_index(
+        "ix_time_series_data_metric_name_timestamp",
+        "time_series_data",
+        ["metric_name", sa.text("timestamp DESC")],
+        unique=False,
+    )
     # ### end Alembic commands ###
 
 

@@ -95,8 +95,8 @@ def test_client(db_session):
         finally:
             pass  # Don't close the session, let the fixture handle it
 
-    from database.session import get_db
     from api.dependencies import get_db as api_get_db
+    from database.session import get_db
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[api_get_db] = override_get_db

@@ -190,12 +190,12 @@ async def assess_website(
         url = request.get("url")
         if not url:
             raise ValueError("URL is required")
-        
+
         # Use email as business_id if present, otherwise generate one
         business_id = request.get("email", request.get("business_id"))
         if not business_id:
             business_id = f"biz_{uuid.uuid4().hex[:12]}"
-        
+
         # Create properly formatted request
         assessment_request = TriggerAssessmentRequest(
             business_id=business_id,
@@ -205,11 +205,11 @@ async def assess_website(
             priority=request.get("priority", "medium"),
             session_config=request.get("session_config"),
             business_data=request.get("business_data"),
-            callback_url=request.get("callback_url")
+            callback_url=request.get("callback_url"),
         )
-        
+
         return await trigger_assessment(assessment_request, background_tasks, coord)
-    
+
     except Exception as e:
         logger.error(f"Error in assess_website: {str(e)}")
         raise create_error_response("validation_error", str(e))

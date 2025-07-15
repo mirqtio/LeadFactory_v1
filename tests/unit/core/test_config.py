@@ -70,7 +70,7 @@ class TestEnvironmentConfiguration:
         """Test that provider flags respect their values when not using stubs"""
         # Mock CI environment to allow use_stubs=False
         monkeypatch.delenv("CI", raising=False)
-        
+
         # Use development environment to avoid test forcing stubs
         settings = Settings(
             environment="development",
@@ -92,7 +92,7 @@ class TestEnvironmentConfiguration:
         """Test that API keys are required when providers are enabled and not using stubs"""
         # Mock CI environment to allow use_stubs=False
         monkeypatch.delenv("CI", raising=False)
-        
+
         # GBP enabled without Google API key
         with pytest.raises(ValidationError) as exc_info:
             Settings(
@@ -196,7 +196,7 @@ class TestEnvironmentConfiguration:
         """Test get_api_key method returns real keys when not using stubs"""
         # Mock CI environment to allow use_stubs=False
         monkeypatch.delenv("CI", raising=False)
-        
+
         settings = Settings(
             environment="development",
             use_stubs=False,
@@ -215,7 +215,7 @@ class TestEnvironmentConfiguration:
         """Test that get_api_key raises error for missing keys"""
         # Mock CI environment to allow use_stubs=False
         monkeypatch.delenv("CI", raising=False)
-        
+
         settings = Settings(
             environment="development",
             use_stubs=False,
@@ -243,7 +243,7 @@ class TestEnvironmentConfiguration:
         """Test that API base URLs point to real services when not using stubs"""
         # Mock CI environment to allow use_stubs=False
         monkeypatch.delenv("CI", raising=False)
-        
+
         settings = Settings(
             environment="development",
             use_stubs=False,

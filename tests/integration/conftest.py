@@ -55,7 +55,7 @@ def db_session():
 def test_client():
     """Create a test client for API testing"""
     from main import app
-    
+
     return TestClient(app)
 
 

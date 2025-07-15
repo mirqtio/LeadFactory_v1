@@ -194,7 +194,7 @@ class GatewayMetrics:
     def get_summary(self) -> Dict[str, Any]:
         """Get a summary of current metrics (alias for get_metrics_summary for backward compatibility)"""
         base_summary = self.get_metrics_summary()
-        
+
         # Add additional metrics that tests expect
         summary = {
             **base_summary,
@@ -203,5 +203,5 @@ class GatewayMetrics:
             "average_latency": 0.0,  # Would be calculated from latency histogram
             "error_rate": 0.0,  # Would be calculated from error counts
         }
-        
+
         return summary

@@ -12,7 +12,7 @@ import requests
 # Skip these tests in CI/Docker environments where no app server is running
 pytestmark = pytest.mark.skipif(
     os.getenv("CI") == "true" or os.getenv("DOCKER_ENV") == "true",
-    reason="Remote health checks skipped in CI/Docker environment"
+    reason="Remote health checks skipped in CI/Docker environment",
 )
 
 
