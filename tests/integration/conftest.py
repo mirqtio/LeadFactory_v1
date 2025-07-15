@@ -3,6 +3,7 @@ Configuration for integration tests
 """
 import pytest
 from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from database.base import Base
@@ -25,6 +26,7 @@ try:
     import database.models  # noqa: F401
     import lead_explorer.models  # noqa: F401
     from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
+    from d6_reports.models import ReportGeneration, ReportTemplate, ReportType, TemplateFormat  # noqa: F401
 except ImportError:
     pass
 
@@ -46,3 +48,51 @@ def db_session():
 
     session.close()
     Session.remove()
+
+
+@pytest.fixture(scope="function")
+async def async_db_session():
+    """Create an async database session for testing"""
+    from sqlalchemy.pool import StaticPool
+
+    # Create async engine for SQLite
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
+    )
+
+    # Create all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    # Create async session factory
+    AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    # Create session
+    async with AsyncSessionLocal() as session:
+        yield session
+
+    # Cleanup
+    await engine.dispose()
+
+
+@pytest.fixture
+def test_report_template(db_session):
+    """Create a test report template"""
+    template = ReportTemplate(
+        id="test-template-001",
+        name="test_template",
+        display_name="Test Template",
+        description="Test template for unit tests",
+        template_type=ReportType.BUSINESS_AUDIT,
+        format=TemplateFormat.HTML,
+        version="1.0.0",
+        html_template="<html>{{content}}</html>",
+        css_styles="body { font-family: Arial; }",
+        is_active=True,
+        is_default=True,
+        supports_mobile=True,
+        supports_print=True,
+    )
+    db_session.add(template)
+    db_session.commit()
+    return template

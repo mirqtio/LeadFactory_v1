@@ -8,9 +8,10 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# Import models needed for lineage tests
-from d6_reports.models import ReportTemplate, ReportType, TemplateFormat, ReportGeneration  # noqa: F401
 from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
+
+# Import models needed for lineage tests
+from d6_reports.models import ReportGeneration, ReportTemplate, ReportType, TemplateFormat  # noqa: F401
 from database.base import Base
 
 

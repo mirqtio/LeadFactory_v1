@@ -24,19 +24,20 @@ def stub_server_session():
         os.environ.get("CI") == "true" or os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
     )
 
-    # Set appropriate stub base URL based on environment (only if not already set)
-    if "STUB_BASE_URL" not in os.environ:
-        if is_docker_or_ci:
-            # In Docker/CI, use container hostname or localhost based on CI setup
-            if os.environ.get("CI") == "true":
-                # In GitHub Actions CI, use localhost since stub server runs in same container
-                os.environ["STUB_BASE_URL"] = "http://localhost:5010"
-            else:
-                # In Docker Compose, use service name
-                os.environ["STUB_BASE_URL"] = "http://stub-server:5010"
-        else:
-            # Local environment, always use localhost
+    # Set appropriate stub base URL based on environment
+    # Always override for local environments to ensure tests work correctly
+    if is_docker_or_ci:
+        # In Docker/CI, use container hostname or localhost based on CI setup
+        if os.environ.get("CI") == "true":
+            # In GitHub Actions CI, use localhost since stub server runs in same container
             os.environ["STUB_BASE_URL"] = "http://localhost:5010"
+        else:
+            # In Docker Compose, use service name (keep existing value if already set)
+            if "STUB_BASE_URL" not in os.environ:
+                os.environ["STUB_BASE_URL"] = "http://stub-server:5010"
+    else:
+        # Local environment, always use localhost (override any existing value)
+        os.environ["STUB_BASE_URL"] = "http://localhost:5010"
 
     # Force USE_STUBS=true for all tests
     os.environ["USE_STUBS"] = "true"
@@ -45,7 +46,7 @@ def stub_server_session():
     # Clear settings cache to ensure new environment variables are picked up
     get_settings.cache_clear()
     settings = get_settings()
-    
+
     # Debug logging
     print(f"STUB_BASE_URL set to: {os.environ.get('STUB_BASE_URL')}")
     print(f"Settings stub_base_url: {settings.stub_base_url}")
@@ -68,6 +69,7 @@ def stub_server_session():
                 if attempt == max_attempts - 1:
                     # On last attempt, provide more detail
                     import traceback
+
                     print(f"Failed to connect to stub server at {settings.stub_base_url}")
                     print(f"Error: {e}")
                     print(f"Traceback: {traceback.format_exc()}")
