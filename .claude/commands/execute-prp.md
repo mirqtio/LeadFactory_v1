@@ -29,7 +29,8 @@ Implement a feature using the PRP file with mandatory completion validation.
    ### C. **Execute Implementation**
    - Implement all code following PRP specifications
    - Follow CLAUDE.md rules and INITIAL.md security baseline
-   - Run validation commands throughout implementation
+   - **MANDATORY**: Run `make quick-check` before every commit
+   - **MANDATORY**: Run `make pre-push` before any push to GitHub
    - Fix failures and re-run until all pass
 
    ### D. **PRP Completion Validation (MANDATORY)**

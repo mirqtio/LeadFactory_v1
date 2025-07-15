@@ -60,5 +60,29 @@ Never delete or overwrite existing code unless explicitly instructed to or if pa
 🛠️ Development Tools
 - There is a local CI/CD bootstrap you can use.
 
+🛡️ BULLETPROOF CI REQUIREMENTS (MANDATORY)
+🚨 BEFORE EVERY COMMIT: Claude Code MUST run validation commands:
+- For quick commits: `make quick-check` (30 seconds)  
+- For significant changes: `make pre-push` (5-10 minutes)
+- For complete CI simulation: `make ci-local` (full pipeline)
+
+🚨 NEVER PUSH CODE WITHOUT LOCAL VALIDATION
+- These commands catch issues locally instead of breaking CI
+- They mirror GitHub CI exactly - if local passes, CI will pass
+- Prevents the chronic CI failure cycle that wastes time
+
+🚨 VALIDATION FAILURE = STOP WORK
+- If `make quick-check` fails, fix issues before proceeding
+- If `make pre-push` fails, the push would break CI - fix first
+- Use this system to debug current CI issues faster
+
+Available validation commands:
+- `make quick-check` - Fast linting, formatting, basic tests
+- `make pre-push` - Complete pre-push validation (mirrors CI exactly)  
+- `make ci-local` - Full GitHub CI simulation
+- `make format` - Auto-fix code formatting
+- `make lint` - Check code quality
+
 🤖 Agent Workflow
 - Use Task Subagents when possible.
+- ALWAYS validate code before committing using bulletproof CI system.

@@ -119,9 +119,29 @@ Tracks task status:
 - **PRP not found**: Run generate command to create PRPs
 - **Execution stopped**: Check for failed tasks in status output
 
+## 🚨 MANDATORY: Bulletproof CI Validation
+
+**BEFORE EVERY COMMIT**, Claude Code MUST run validation:
+
+```bash
+# For quick commits (30 seconds)
+make quick-check
+
+# For significant changes (5-10 minutes)  
+make pre-push
+
+# For complete CI simulation (15+ minutes)
+make ci-local
+```
+
+See `commands/validate-before-commit.md` for complete details.
+
+**NO EXCEPTIONS** - This prevents the chronic CI failures we've been experiencing.
+
 ## Important Notes
 
 - Always follow CLAUDE.md rules during execution
+- **MANDATORY**: Run validation commands before every commit (see above)
 - Each task must have passing tests before marking complete
 - Use Docker for test verification to match CI environment
 - Commit after each successful task completion
