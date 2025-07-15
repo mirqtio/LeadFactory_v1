@@ -59,6 +59,10 @@ Never delete or overwrite existing code unless explicitly instructed to or if pa
 
 🛠️ Development Tools
 - There is a local CI/CD bootstrap you can use.
+- **BPCI v2 (Bulletproof CI)**: Run `make bpci` before pushing to catch issues locally
+  - Validates imports, models, linting, tests, Docker environment, and API endpoints
+  - 10 comprehensive validation phases that mirror GitHub CI
+  - Pre-push hook automatically runs BPCI v2 to prevent CI failures
 
 🛡️ BULLETPROOF CI REQUIREMENTS (MANDATORY)
 🚨 BEFORE EVERY COMMIT: Claude Code MUST run validation commands:
@@ -78,7 +82,8 @@ Never delete or overwrite existing code unless explicitly instructed to or if pa
 
 Available validation commands:
 - `make quick-check` - Fast linting, formatting, basic tests
-- `make pre-push` - Complete pre-push validation (mirrors CI exactly)  
+- `make bpci` - Bulletproof CI v2 (10-phase comprehensive validation)
+- `make pre-push` - Complete pre-push validation (uses BPCI v2)  
 - `make ci-local` - Full GitHub CI simulation
 - `make format` - Auto-fix code formatting
 - `make lint` - Check code quality

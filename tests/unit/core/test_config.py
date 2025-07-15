@@ -66,8 +66,11 @@ class TestEnvironmentConfiguration:
         assert settings.enable_sendgrid is False
         assert settings.enable_openai is False
 
-    def test_provider_flags_respect_values_without_stubs(self):
+    def test_provider_flags_respect_values_without_stubs(self, monkeypatch):
         """Test that provider flags respect their values when not using stubs"""
+        # Mock CI environment to allow use_stubs=False
+        monkeypatch.delenv("CI", raising=False)
+        
         # Use development environment to avoid test forcing stubs
         settings = Settings(
             environment="development",
@@ -85,8 +88,11 @@ class TestEnvironmentConfiguration:
         assert settings.enable_sendgrid is True
         assert settings.enable_openai is False
 
-    def test_api_key_validation_when_providers_enabled(self):
+    def test_api_key_validation_when_providers_enabled(self, monkeypatch):
         """Test that API keys are required when providers are enabled and not using stubs"""
+        # Mock CI environment to allow use_stubs=False
+        monkeypatch.delenv("CI", raising=False)
+        
         # GBP enabled without Google API key
         with pytest.raises(ValidationError) as exc_info:
             Settings(
@@ -186,8 +192,11 @@ class TestEnvironmentConfiguration:
         assert settings.get_api_key("sendgrid") == "stub-sendgrid-key"
         assert settings.get_api_key("openai") == "stub-openai-key"
 
-    def test_get_api_key_without_stubs(self):
+    def test_get_api_key_without_stubs(self, monkeypatch):
         """Test get_api_key method returns real keys when not using stubs"""
+        # Mock CI environment to allow use_stubs=False
+        monkeypatch.delenv("CI", raising=False)
+        
         settings = Settings(
             environment="development",
             use_stubs=False,
@@ -202,8 +211,11 @@ class TestEnvironmentConfiguration:
         assert settings.get_api_key("sendgrid") == "real-sendgrid-key"
         assert settings.get_api_key("openai") == "real-openai-key"
 
-    def test_get_api_key_missing_raises_error(self):
+    def test_get_api_key_missing_raises_error(self, monkeypatch):
         """Test that get_api_key raises error for missing keys"""
+        # Mock CI environment to allow use_stubs=False
+        monkeypatch.delenv("CI", raising=False)
+        
         settings = Settings(
             environment="development",
             use_stubs=False,
@@ -227,8 +239,11 @@ class TestEnvironmentConfiguration:
         assert urls["sendgrid"] == "http://localhost:5010"
         assert urls["openai"] == "http://localhost:5010"
 
-    def test_api_base_urls_without_stubs(self):
+    def test_api_base_urls_without_stubs(self, monkeypatch):
         """Test that API base URLs point to real services when not using stubs"""
+        # Mock CI environment to allow use_stubs=False
+        monkeypatch.delenv("CI", raising=False)
+        
         settings = Settings(
             environment="development",
             use_stubs=False,
@@ -248,6 +263,8 @@ class TestEnvironmentConfiguration:
         """Test environment field validation"""
         # Clear USE_STUBS to avoid production validation error
         monkeypatch.delenv("USE_STUBS", raising=False)
+        # Mock CI environment to allow use_stubs=False for production test
+        monkeypatch.delenv("CI", raising=False)
 
         # Valid environments
         for env in ["development", "test", "staging"]:

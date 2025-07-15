@@ -14,6 +14,8 @@ help:
 	@echo "  make clean        - Clean temporary files"
 	@echo "  make run-stubs    - Run stub server"
 	@echo "  make run          - Run development server"
+	@echo "  make bpci         - Run Bulletproof CI v2 (catches issues before GitHub CI)"
+	@echo "  make pre-push     - Pre-push validation using BPCI v2"
 	@echo ""
 	@echo "Production Testing:"
 	@echo "  make smoke        - Run smoke tests only"
@@ -111,20 +113,14 @@ ci-local:
 	make docker-test
 	@echo "✅ Complete CI pipeline passed locally!"
 
-# Pre-push validation - runs ALL CI checks locally
+# BPCI v2 - Bulletproof CI validation that catches issues BEFORE GitHub CI
+bpci:
+	@bash scripts/bulletproof_ci_v2.sh
+
+# Pre-push validation - runs ALL CI checks locally using BPCI v2
 pre-push: clean
-	@echo "🔍 Pre-push validation (mirrors GitHub CI exactly)..."
-	@echo "1/5: Environment Setup"
-	@python -c "from core.config import get_settings; print(f'Environment: {get_settings().environment}')"
-	@echo "2/5: Code Quality"
-	make format lint
-	@echo "3/5: Database Migrations"
-	@python -c "import alembic.config; print('Alembic config valid')" || echo "⚠️  Alembic check skipped"
-	@echo "4/5: Container Tests"
-	make docker-test
-	@echo "5/5: Production Smoke Test"
-	make smoke
-	@echo "✅ All pre-push validations passed! Safe to push."
+	@echo "🔍 Pre-push validation using BPCI v2..."
+	@make bpci
 
 # Quick validation - for frequent commits
 quick-check:

@@ -86,12 +86,7 @@ def test_report_template(db_session):
 @pytest.fixture
 def test_client(db_session):
     """Create a test client for API testing"""
-    from database import session as db_module
     from main import app
-
-    # Monkey-patch SessionLocal to use our test engine
-    original_session_local = db_module.SessionLocal
-    db_module.SessionLocal = lambda: db_session
 
     # Override the dependency to use our test session
     def override_get_db():
@@ -101,12 +96,13 @@ def test_client(db_session):
             pass  # Don't close the session, let the fixture handle it
 
     from database.session import get_db
+    from api.dependencies import get_db as api_get_db
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[api_get_db] = override_get_db
 
     with TestClient(app) as client:
         yield client
 
     # Clean up
     app.dependency_overrides.clear()
-    db_module.SessionLocal = original_session_local
