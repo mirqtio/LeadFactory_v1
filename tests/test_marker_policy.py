@@ -101,6 +101,26 @@ class TestMarkerPolicy:
             "deselected" in result.stdout or "collected" in result.stdout
         ), "No phase_future tests found - marker may not be working"
 
+    def test_keep_suite_exits_zero(self):
+        """
+        Verify KEEP test suite passes with exit code 0.
+        """
+        result = subprocess.run(["pytest", "-m", "not phase_future and not slow", "--quiet"], capture_output=True)
+        assert result.returncode == 0, f"KEEP suite failed with exit code {result.returncode}"
+
+    def test_runtime_under_five_minutes(self):
+        """
+        Verify KEEP test suite completes in under 5 minutes.
+        """
+        import time
+
+        start = time.time()
+
+        subprocess.run(["pytest", "-m", "not phase_future and not slow", "--quiet"], capture_output=True)
+
+        duration = time.time() - start
+        assert duration < 300, f"Test suite took {duration:.1f}s, exceeds 5 minute limit"
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
