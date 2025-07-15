@@ -78,6 +78,7 @@ class FunnelEvent(Base):
     id = Column(UUID(), primary_key=True, default=generate_uuid)
     business_id = Column(UUID(), ForeignKey("businesses.id"), nullable=False)
     session_id = Column(String, nullable=False, index=True)
+    campaign_id = Column(String, nullable=True, index=True)
     stage = Column(SQLEnum(FunnelStage), nullable=False)
     event_type = Column(SQLEnum(EventType), nullable=False)
     timestamp = Column(TIMESTAMP, default=datetime.utcnow)
