@@ -49,8 +49,8 @@ jobs:
     
     - name: Run ultra-minimal tests
       run: |
-        # Run only tests that don't require any external services or stub server
-        python -m pytest -xvs tests/test_minimal_no_stubs.py --timeout=30
+        # Run standalone minimal tests that don't require pytest infrastructure
+        python tests/run_minimal_tests.py
     
     - name: Summary
       if: always()

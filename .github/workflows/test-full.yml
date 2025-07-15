@@ -65,6 +65,7 @@ jobs:
     
     - name: Start test services
       run: |
+        # Start services using docker-compose (which creates its own network)
         docker compose -f docker-compose.test.yml up -d postgres stub-server
         
         # Wait for PostgreSQL to be ready
@@ -85,12 +86,13 @@ jobs:
     
     - name: Run ALL unit tests in Docker
       run: |
-        # Create network if it doesn't exist
-        docker network create test-network 2>/dev/null || true
+        # Get the actual network name created by docker-compose
+        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
+        echo "Using Docker network: $NETWORK_NAME"
         
         # Run tests with proper environment and network connection
         docker run --rm \
-          --network test-network \
+          --network $NETWORK_NAME \
           -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
           -e USE_STUBS=$USE_STUBS \
           -e STUB_BASE_URL="http://stub-server:5010" \
@@ -119,8 +121,12 @@ jobs:
     
     - name: Run ALL integration tests
       run: |
+        # Get the actual network name created by docker-compose
+        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
+        echo "Using Docker network: $NETWORK_NAME"
+        
         docker run --rm \
-          --network test-network \
+          --network $NETWORK_NAME \
           -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
           -e USE_STUBS=true \
           -e STUB_BASE_URL="http://stub-server:5010" \
@@ -143,8 +149,12 @@ jobs:
     
     - name: Run E2E tests
       run: |
+        # Get the actual network name created by docker-compose
+        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
+        echo "Using Docker network: $NETWORK_NAME"
+        
         docker run --rm \
-          --network test-network \
+          --network $NETWORK_NAME \
           -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
           -e USE_STUBS=true \
           -e STUB_BASE_URL="http://stub-server:5010" \
@@ -167,8 +177,12 @@ jobs:
     
     - name: Run performance tests
       run: |
+        # Get the actual network name created by docker-compose
+        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
+        echo "Using Docker network: $NETWORK_NAME"
+        
         docker run --rm \
-          --network test-network \
+          --network $NETWORK_NAME \
           -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
           -e USE_STUBS=true \
           -e STUB_BASE_URL="http://stub-server:5010" \
@@ -191,8 +205,12 @@ jobs:
     
     - name: Run security tests
       run: |
+        # Get the actual network name created by docker-compose
+        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
+        echo "Using Docker network: $NETWORK_NAME"
+        
         docker run --rm \
-          --network test-network \
+          --network $NETWORK_NAME \
           -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
           -e USE_STUBS=true \
           -e STUB_BASE_URL="http://stub-server:5010" \
