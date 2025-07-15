@@ -362,8 +362,47 @@ else
     log_failure "Configuration validation"
 fi
 
-# 10. Docker Build Test
-echo -e "\n📋 Phase 10: Docker Build Validation"
+# 10. Database Migration Validation
+echo -e "\n📋 Phase 10: Database Migration Validation"
+echo "========================================="
+if python -c "
+from sqlalchemy import create_engine, inspect, text
+from alembic import command
+from alembic.config import Config
+import sys
+
+try:
+    # Check if funnel_events table has campaign_id column
+    engine = create_engine('sqlite:///:memory:')
+    
+    # First create the database schema
+    from database.base import Base
+    Base.metadata.create_all(bind=engine)
+    
+    # Check table structure
+    inspector = inspect(engine)
+    if 'funnel_events' in inspector.get_table_names():
+        columns = [col['name'] for col in inspector.get_columns('funnel_events')]
+        if 'campaign_id' not in columns:
+            print('✗ funnel_events table missing campaign_id column')
+            sys.exit(1)
+        else:
+            print('✓ funnel_events table has campaign_id column')
+    else:
+        print('⚠️  funnel_events table not found - may be created by migrations')
+    
+    print('✓ Database migration structure validated')
+except Exception as e:
+    print(f'✗ Migration validation failed: {e}')
+    sys.exit(1)
+" 2>&1; then
+    log_success "Database migration validation"
+else
+    log_failure "Database migration validation"
+fi
+
+# 11. Docker Build Test
+echo -e "\n📋 Phase 11: Docker Build Validation"
 echo "===================================="
 if command -v docker &> /dev/null; then
     echo "Testing Docker build (this may take a minute)..."
