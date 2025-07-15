@@ -430,10 +430,11 @@ class TestTargetingIntegrationTask024:
         assert campaign_from_db.target_universe_id == universe_from_db.id
 
         # 6. Test transaction integrity
-        async with test_session.begin():
-            # Make multiple related changes
+        try:
+            # Make multiple related changes in a transaction
             universe_from_db.qualified_count = 4300
             campaign_from_db.total_targets = 4300
+            test_session.commit()
 
             # Verify both changes persisted
             refreshed_universe = test_session.query(TargetUniverse).filter_by(id=sample_target_universe.id).first()

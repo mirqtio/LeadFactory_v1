@@ -849,7 +849,7 @@ def test_retries_work_properly(test_db_session):
 
 
 @pytest.mark.e2e
-def test_no_data_corruption(test_db_session):
+async def test_no_data_corruption(test_db_session):
     """No data corruption - Verify failed operations don't leave database in inconsistent state"""
 
     # Create test data for consistency testing
@@ -947,161 +947,161 @@ def test_no_data_corruption(test_db_session):
             scenario_start_time = datetime.utcnow()
 
             try:
-            operations_completed = []
-            operations_failed = []
-            consistency_maintained = True
-            consistency_notes = []
+                operations_completed = []
+                operations_failed = []
+                consistency_maintained = True
+                consistency_notes = []
 
-            # Execute operations in scenario
-            for i, operation in enumerate(scenario["operations"]):
-                try:
-                    print(f"  🔄 Executing: {operation}")
+                # Execute operations in scenario
+                for i, operation in enumerate(scenario["operations"]):
+                    try:
+                        print(f"  🔄 Executing: {operation}")
 
-                    # Check if this operation should fail
-                    should_fail = "failure_point" in scenario and i == scenario["failure_point"]
+                        # Check if this operation should fail
+                        should_fail = "failure_point" in scenario and i == scenario["failure_point"]
 
-                    if operation == "update_performance_score":
-                        # Test concurrent assessment score updates
-                        assessment = AssessmentResult(
-                            id=f"consistency_assessment_{uuid4().hex[:8]}",
-                            business_id=business.id,
-                            assessment_type=AssessmentType.PAGESPEED,
-                            status=AssessmentStatus.COMPLETED,
-                            url=business.website,
-                            domain="consistency.example.com",
-                            performance_score=85,
-                            created_at=datetime.utcnow(),
-                        )
-                        test_db_session.add(assessment)
-
-                        if should_fail:
-                            raise Exception("Simulated concurrent update conflict")
-
-                    elif operation == "update_accessibility_score":
-                        # Update accessibility score atomically
-                        assessment.accessibility_score = 92
-
-                    elif operation == "update_seo_score":
-                        # Update SEO score atomically
-                        assessment.seo_score = 88
-
-                    elif operation == "create_email":
-                        # Create email record
-                        email = Email(
-                            id=f"consistency_email_{uuid4().hex[:8]}",
-                            business_id=business.id,
-                            subject="Consistency Test Email",
-                            html_body="<p>Test content</p>",
-                            text_body="Test content",
-                            status=EmailStatus.PENDING,
-                            created_at=datetime.utcnow(),
-                        )
-                        test_db_session.add(email)
-
-                        if should_fail:
-                            raise Exception("Simulated email creation failure")
-
-                    elif operation == "update_business_status":
-                        # Update business in same transaction
-                        business.updated_at = datetime.utcnow()
-
-                    elif operation == "log_email_event":
-                        # Log email event
-                        if should_fail:
-                            raise Exception("Simulated logging failure")
-
-                    elif operation == "delete_business":
-                        # Attempt to delete business (should fail due to FK constraints)
-                        test_db_session.delete(business)
-                        if should_fail:
-                            test_db_session.flush()  # Force constraint check
-
-                    elif operation == "create_email_for_deleted_business":
-                        # This should fail due to FK constraint
-                        invalid_email = Email(
-                            id=f"invalid_email_{uuid4().hex[:8]}",
-                            business_id="nonexistent_business_id",
-                            subject="Invalid Email",
-                            html_body="<p>Invalid</p>",
-                            text_body="Invalid",
-                            status=EmailStatus.PENDING,
-                            created_at=datetime.utcnow(),
-                        )
-                        test_db_session.add(invalid_email)
-                        test_db_session.flush()  # Force constraint check
-
-                    elif operation == "create_email_duplicate_id":
-                        # Attempt to create email with duplicate ID
-                        duplicate_email = Email(
-                            id=email.id,  # Duplicate ID!
-                            business_id=business.id,
-                            subject="Duplicate Email",
-                            html_body="<p>Duplicate</p>",
-                            text_body="Duplicate",
-                            status=EmailStatus.PENDING,
-                            created_at=datetime.utcnow(),
-                        )
-                        test_db_session.add(duplicate_email)
-                        test_db_session.flush()  # Force constraint check
-
-                    elif operation.startswith("process_business_"):
-                        # Simulate bulk processing
-                        business_num = operation.split("_")[-1]
-
-                        if "fails" in business_num:
-                            raise Exception(f"Simulated processing failure for {business_num}")
-                        else:
-                            # Create successful processing record
-                            processing_record = AssessmentResult(
-                                id=f"bulk_assessment_{business_num}_{uuid4().hex[:8]}",
+                        if operation == "update_performance_score":
+                            # Test concurrent assessment score updates
+                            assessment = AssessmentResult(
+                                id=f"consistency_assessment_{uuid4().hex[:8]}",
                                 business_id=business.id,
-                                assessment_type=AssessmentType.QUICK_SCAN,
+                                assessment_type=AssessmentType.PAGESPEED,
                                 status=AssessmentStatus.COMPLETED,
-                                url=f"https://business{business_num}.example.com",
-                                domain=f"business{business_num}.example.com",
-                                performance_score=80 + int(business_num),
+                                url=business.website,
+                                domain="consistency.example.com",
+                                performance_score=85,
                                 created_at=datetime.utcnow(),
                             )
-                            test_db_session.add(processing_record)
+                            test_db_session.add(assessment)
 
-                    # Operation completed successfully
-                    operations_completed.append(operation)
-                    print(f"    ✅ {operation} completed")
+                            if should_fail:
+                                raise Exception("Simulated concurrent update conflict")
 
-                except Exception as e:
-                    # Operation failed
-                    operations_failed.append((operation, str(e)))
-                    print(f"    ❌ {operation} failed: {e}")
+                        elif operation == "update_accessibility_score":
+                            # Update accessibility score atomically
+                            assessment.accessibility_score = 92
 
-                    # Check if we should rollback
-                    if scenario["rollback_on_failure"]:
-                        if scenario["type"] == "bulk_operation":
-                            # For bulk operations, only rollback the failed item
-                            test_db_session.rollback()
-                            print(f"    🔄 Rolled back failed operation: {operation}")
+                        elif operation == "update_seo_score":
+                            # Update SEO score atomically
+                            assessment.seo_score = 88
+
+                        elif operation == "create_email":
+                            # Create email record
+                            email = Email(
+                                id=f"consistency_email_{uuid4().hex[:8]}",
+                                business_id=business.id,
+                                subject="Consistency Test Email",
+                                html_body="<p>Test content</p>",
+                                text_body="Test content",
+                                status=EmailStatus.PENDING,
+                                created_at=datetime.utcnow(),
+                            )
+                            test_db_session.add(email)
+
+                            if should_fail:
+                                raise Exception("Simulated email creation failure")
+
+                        elif operation == "update_business_status":
+                            # Update business in same transaction
+                            business.updated_at = datetime.utcnow()
+
+                        elif operation == "log_email_event":
+                            # Log email event
+                            if should_fail:
+                                raise Exception("Simulated logging failure")
+
+                        elif operation == "delete_business":
+                            # Attempt to delete business (should fail due to FK constraints)
+                            test_db_session.delete(business)
+                            if should_fail:
+                                test_db_session.flush()  # Force constraint check
+
+                        elif operation == "create_email_for_deleted_business":
+                            # This should fail due to FK constraint
+                            invalid_email = Email(
+                                id=f"invalid_email_{uuid4().hex[:8]}",
+                                business_id="nonexistent_business_id",
+                                subject="Invalid Email",
+                                html_body="<p>Invalid</p>",
+                                text_body="Invalid",
+                                status=EmailStatus.PENDING,
+                                created_at=datetime.utcnow(),
+                            )
+                            test_db_session.add(invalid_email)
+                            test_db_session.flush()  # Force constraint check
+
+                        elif operation == "create_email_duplicate_id":
+                            # Attempt to create email with duplicate ID
+                            duplicate_email = Email(
+                                id=email.id,  # Duplicate ID!
+                                business_id=business.id,
+                                subject="Duplicate Email",
+                                html_body="<p>Duplicate</p>",
+                                text_body="Duplicate",
+                                status=EmailStatus.PENDING,
+                                created_at=datetime.utcnow(),
+                            )
+                            test_db_session.add(duplicate_email)
+                            test_db_session.flush()  # Force constraint check
+
+                        elif operation.startswith("process_business_"):
+                            # Simulate bulk processing
+                            business_num = operation.split("_")[-1]
+
+                            if "fails" in business_num:
+                                raise Exception(f"Simulated processing failure for {business_num}")
+                            else:
+                                # Create successful processing record
+                                processing_record = AssessmentResult(
+                                    id=f"bulk_assessment_{business_num}_{uuid4().hex[:8]}",
+                                    business_id=business.id,
+                                    assessment_type=AssessmentType.QUICK_SCAN,
+                                    status=AssessmentStatus.COMPLETED,
+                                    url=f"https://business{business_num}.example.com",
+                                    domain=f"business{business_num}.example.com",
+                                    performance_score=80 + int(business_num),
+                                    created_at=datetime.utcnow(),
+                                )
+                                test_db_session.add(processing_record)
+
+                        # Operation completed successfully
+                        operations_completed.append(operation)
+                        print(f"    ✅ {operation} completed")
+
+                    except Exception as e:
+                        # Operation failed
+                        operations_failed.append((operation, str(e)))
+                        print(f"    ❌ {operation} failed: {e}")
+
+                        # Check if we should rollback
+                        if scenario["rollback_on_failure"]:
+                            if scenario["type"] == "bulk_operation":
+                                # For bulk operations, only rollback the failed item
+                                test_db_session.rollback()
+                                print(f"    🔄 Rolled back failed operation: {operation}")
+                            else:
+                                # For other operations, rollback entire transaction
+                                raise e
                         else:
-                            # For other operations, rollback entire transaction
-                            raise e
-                    else:
-                        # Continue processing despite failure
-                        test_db_session.rollback()
-                        continue
+                            # Continue processing despite failure
+                            test_db_session.rollback()
+                            continue
 
-            # Commit successful operations
-            if scenario["rollback_on_failure"] and len(operations_failed) > 0:
-                # Rollback entire transaction if any operation failed
-                savepoint.rollback()
-                print("  🔄 Rolled back entire transaction due to failures")
-            else:
                 # Commit successful operations
-                savepoint.commit()
-                print("  ✅ Committed successful operations")
+                if scenario["rollback_on_failure"] and len(operations_failed) > 0:
+                    # Rollback entire transaction if any operation failed
+                    savepoint.rollback()
+                    print("  🔄 Rolled back entire transaction due to failures")
+                else:
+                    # Commit successful operations
+                    savepoint.commit()
+                    print("  ✅ Committed successful operations")
 
-        except Exception as e:
-            # Handle transaction-level failures
-            savepoint.rollback()
-            operations_failed.append(("transaction", str(e)))
-            print(f"  ❌ Transaction failed: {e}")
+            except Exception as e:
+                # Handle transaction-level failures
+                savepoint.rollback()
+                operations_failed.append(("transaction", str(e)))
+                print(f"  ❌ Transaction failed: {e}")
 
         scenario_end_time = datetime.utcnow()
 

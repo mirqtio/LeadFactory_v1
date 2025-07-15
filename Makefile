@@ -51,8 +51,11 @@ docker-build:
 	docker build -f Dockerfile.test -t leadfactory:test .
 	docker build -f Dockerfile.stub -t leadfactory:stub .
 
-# Run linting
+# Run linting (enhanced to catch syntax errors like GitHub CI)
 lint:
+	@echo "🔍 Critical syntax error check (mirrors GitHub CI exactly)..."
+	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+	@echo "🔍 Full linting check..."
 	flake8 .
 
 # Format code
