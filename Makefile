@@ -14,8 +14,8 @@ help:
 	@echo "  make clean        - Clean temporary files"
 	@echo "  make run-stubs    - Run stub server"
 	@echo "  make run          - Run development server"
-	@echo "  make bpci         - Run Bulletproof CI v2 (catches issues before GitHub CI)"
-	@echo "  make pre-push     - Pre-push validation using BPCI v2"
+	@echo "  make bpci         - Run Bulletproof CI (catches issues before GitHub CI)"
+	@echo "  make pre-push     - Pre-push validation using BPCI"
 	@echo ""
 	@echo "Production Testing:"
 	@echo "  make smoke        - Run smoke tests only"
@@ -113,13 +113,13 @@ ci-local:
 	make docker-test
 	@echo "✅ Complete CI pipeline passed locally!"
 
-# BPCI v2 - Bulletproof CI validation that catches issues BEFORE GitHub CI
+# BPCI - Bulletproof CI validation that catches issues BEFORE GitHub CI
 bpci:
-	@bash scripts/bulletproof_ci_v2.sh
+	@bash scripts/bpci.sh
 
-# Pre-push validation - runs ALL CI checks locally using BPCI v2
+# Pre-push validation - runs ALL CI checks locally using BPCI
 pre-push: clean
-	@echo "🔍 Pre-push validation using BPCI v2..."
+	@echo "🔍 Pre-push validation using BPCI..."
 	@make bpci
 
 # Quick validation - for frequent commits
