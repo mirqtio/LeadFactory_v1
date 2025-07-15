@@ -147,11 +147,11 @@ class TestStrategicAPICoverage:
             assessment_data = response.json()
 
             # Check status
-            response = client.get(f"/api/v1/assessments/{assessment_data['id']}/status")
+            response = client.get(f"/api/v1/assessments/{assessment_data['session_id']}/status")
             assert response.status_code == 200
 
             # Get results
-            response = client.get(f"/api/v1/assessments/{assessment_data['id']}/results")
+            response = client.get(f"/api/v1/assessments/{assessment_data['session_id']}/results")
             assert response.status_code == 200
 
     def test_d6_reports_generation_flow(self, client, db_session):

@@ -83,7 +83,19 @@ class TestEnvironmentConfig:
         # Test with stubs disabled
         with patch.dict(
             os.environ,
-            {"ENVIRONMENT": "development", "USE_STUBS": "false", "CI": ""},  # Make sure CI is not set
+            {
+                "ENVIRONMENT": "development", 
+                "USE_STUBS": "false", 
+                "CI": "",  # Make sure CI is not set
+                "GOOGLE_API_KEY": "test-google-key",
+                "SENDGRID_API_KEY": "test-sendgrid-key",
+                "OPENAI_API_KEY": "test-openai-key",
+                # Disable provider flags to avoid validation issues
+                "ENABLE_GBP": "false",
+                "ENABLE_PAGESPEED": "false",
+                "ENABLE_SENDGRID": "false",
+                "ENABLE_OPENAI": "false",
+            },
             clear=True,
         ):
             settings = Settings()

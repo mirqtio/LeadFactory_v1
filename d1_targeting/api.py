@@ -131,7 +131,6 @@ async def create_target_universe(request: CreateTargetUniverseSchema, db: Sessio
         description=request.description,
         verticals=[v.value for v in request.targeting_criteria.verticals],
         geography_config=geography_config,
-        estimated_size=request.estimated_size,
     )
 
     metrics.increment_counter("targeting_universes_created")

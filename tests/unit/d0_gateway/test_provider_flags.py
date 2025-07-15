@@ -150,22 +150,26 @@ class TestProviderFeatureFlags:
     def test_selective_provider_enabling(self):
         """Test enabling only specific providers"""
         from pydantic import SecretStr
+        import os
+        from unittest import mock
 
-        settings = Settings(
-            environment="development",
-            use_stubs=False,
-            enable_gbp=True,
-            enable_pagespeed=False,
-            enable_sendgrid=True,
-            enable_openai=False,
-            google_api_key=SecretStr("test-key"),
-            sendgrid_api_key=SecretStr("test-key"),
-        )
+        # Mock CI environment variable to allow use_stubs=False
+        with mock.patch.dict(os.environ, {"CI": ""}, clear=False):
+            settings = Settings(
+                environment="development",
+                use_stubs=False,
+                enable_gbp=True,
+                enable_pagespeed=False,
+                enable_sendgrid=True,
+                enable_openai=False,
+                google_api_key=SecretStr("test-key"),
+                sendgrid_api_key=SecretStr("test-key"),
+            )
 
-        assert settings.enable_gbp is True
-        assert settings.enable_pagespeed is False
-        assert settings.enable_sendgrid is True
-        assert settings.enable_openai is False
+            assert settings.enable_gbp is True
+            assert settings.enable_pagespeed is False
+            assert settings.enable_sendgrid is True
+            assert settings.enable_openai is False
 
     @pytest.mark.parametrize(
         "provider,flag_name,client_class,error_msg",

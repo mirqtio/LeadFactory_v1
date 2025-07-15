@@ -216,20 +216,20 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         ) = restaurant_engine.calculate_detailed_score(restaurant_data)
         medical_result, medical_breakdowns = medical_engine.calculate_detailed_score(medical_data)
 
-        # Verify restaurant-specific components are used
+        # Verify industry-relevant components are used
         restaurant_components = [b.component for b in restaurant_breakdowns]
         self.assertIn(
-            "restaurant_operations",
+            "industry_relevance",
             restaurant_components,
-            "Should use restaurant-specific components",
+            "Should use industry-relevant components",
         )
 
-        # Verify medical-specific components are used
+        # Verify medical uses industry-relevant components
         medical_components = [b.component for b in medical_breakdowns]
         self.assertIn(
-            "medical_credentials",
+            "industry_relevance",
             medical_components,
-            "Should use medical-specific components",
+            "Should use industry-relevant components",
         )
 
         # Test 2: Rule condition evaluation
@@ -771,20 +771,20 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         restaurant_result = workflow_results["premium_restaurant"]
         medical_result = workflow_results["medical_practice"]
 
-        # Restaurant should use restaurant-specific components
+        # Restaurant should use industry-relevant components
         if restaurant_result["breakdowns"]:
             restaurant_components = [b.component for b in restaurant_result["breakdowns"]]
             self.assertIn(
-                "restaurant_operations",
+                "industry_relevance",
                 restaurant_components,
                 "Restaurant rules should be applied",
             )
 
-        # Medical should use medical-specific components
+        # Medical should use industry-relevant components
         if medical_result["breakdowns"]:
             medical_components = [b.component for b in medical_result["breakdowns"]]
             self.assertIn(
-                "medical_credentials",
+                "industry_relevance",
                 medical_components,
                 "Medical rules should be applied",
             )

@@ -41,6 +41,7 @@ class TestBaseAPIClient:
         assert api_client.base_url in [
             "https://api.example.com",
             "http://localhost:5010",
+            "http://stub-server:5010",  # CI/Docker environment
         ]
         assert api_client.rate_limiter is not None
         assert api_client.circuit_breaker is not None
