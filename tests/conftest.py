@@ -19,25 +19,22 @@ def stub_server_session():
     Start stub server once per test session if USE_STUBS is enabled.
     This ensures the stub server is available for all tests.
     """
-    # Detect if we're running in Docker or CI vs local environment
-    is_docker_or_ci = (
-        os.environ.get("CI") == "true" or os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
-    )
+    # Detect environment type with proper precedence
+    is_docker_container = os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
+    is_ci = os.environ.get("CI") == "true"
+    has_external_stub = os.environ.get("STUB_BASE_URL") == "http://stub-server:5010"
 
-    # Set appropriate stub base URL based on environment
-    # Always override for local environments to ensure tests work correctly
-    if is_docker_or_ci:
-        # In Docker/CI, use container hostname or localhost based on CI setup
-        if os.environ.get("CI") == "true":
-            # In GitHub Actions CI, use localhost since stub server runs in same container
-            os.environ["STUB_BASE_URL"] = "http://localhost:5010"
-        else:
-            # In Docker Compose, use service name (keep existing value if already set)
-            if "STUB_BASE_URL" not in os.environ:
-                os.environ["STUB_BASE_URL"] = "http://stub-server:5010"
+    # Environment detection logic:
+    # 1. If STUB_BASE_URL points to stub-server, we're in docker-compose (external stub)
+    # 2. Otherwise, use localhost (single container or local development)
+
+    if has_external_stub and is_docker_container:
+        # Running in Docker Compose with external stub server - keep existing URL
+        print(f"Using external stub server: {os.environ.get('STUB_BASE_URL')}")
     else:
-        # Local environment, always use localhost (override any existing value)
+        # Single container Docker, local development, or other CI - use localhost
         os.environ["STUB_BASE_URL"] = "http://localhost:5010"
+        print("Using localhost stub server for single container or local environment")
 
     # Force USE_STUBS=true for all tests
     os.environ["USE_STUBS"] = "true"
@@ -48,6 +45,7 @@ def stub_server_session():
     settings = get_settings()
 
     # Debug logging
+    print(f"Environment detection - Docker: {is_docker_container}, CI: {is_ci}")
     print(f"STUB_BASE_URL set to: {os.environ.get('STUB_BASE_URL')}")
     print(f"Settings stub_base_url: {settings.stub_base_url}")
 
@@ -55,14 +53,17 @@ def stub_server_session():
         yield
         return
 
-    # For Docker/CI environments, assume stub server is managed externally
-    if is_docker_or_ci:
-        # Wait for external stub server to be ready
+    # Determine if we should wait for external stub or start our own
+    use_external_stub = has_external_stub and is_docker_container
+
+    if use_external_stub:
+        # Wait for external stub server to be ready (Docker Compose scenario)
         max_attempts = 30
         for attempt in range(max_attempts):
             try:
                 response = requests.get(f"{settings.stub_base_url}/health", timeout=2)
                 if response.status_code == 200:
+                    print(f"✅ Connected to external stub server at {settings.stub_base_url}")
                     yield
                     return
             except Exception as e:
@@ -70,23 +71,28 @@ def stub_server_session():
                     # On last attempt, provide more detail
                     import traceback
 
-                    print(f"Failed to connect to stub server at {settings.stub_base_url}")
+                    print(f"❌ Failed to connect to external stub server at {settings.stub_base_url}")
                     print(f"Error: {e}")
                     print(f"Traceback: {traceback.format_exc()}")
+                elif attempt % 5 == 0:  # Log every 5th attempt
+                    print(f"Attempt {attempt + 1}/{max_attempts}: Waiting for external stub server...")
             time.sleep(0.5)
 
         pytest.fail(f"External stub server not available at {settings.stub_base_url} after {max_attempts} attempts")
 
-    # For local environment, check if stub server is already running locally
+    # For local/single container environment, check if stub server is already running
+    print(f"Checking if stub server is already running at {settings.stub_base_url}...")
     try:
         response = requests.get(f"{settings.stub_base_url}/health", timeout=1)
         if response.status_code == 200:
+            print(f"✅ Stub server already running at {settings.stub_base_url}")
             yield
             return  # Server already running locally
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"No existing stub server found: {e}")
 
     # Start stub server in background thread for local testing
+    print(f"Starting internal stub server at {settings.stub_base_url}...")
     from stubs.server import app as stub_app
 
     def run_server():
@@ -101,12 +107,13 @@ def stub_server_session():
         try:
             response = requests.get(f"{settings.stub_base_url}/health", timeout=1)
             if response.status_code == 200:
+                print(f"✅ Internal stub server started successfully at {settings.stub_base_url}")
                 break
         except Exception:
             pass
         time.sleep(0.1)
     else:
-        pytest.fail(f"Local stub server failed to start at {settings.stub_base_url}")
+        pytest.fail(f"Internal stub server failed to start at {settings.stub_base_url}")
 
     yield
 

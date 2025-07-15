@@ -23,21 +23,22 @@ class TestEnvironmentConfiguration:
     def test_default_settings(self, monkeypatch):
         """Test default settings initialization"""
         import os
-        
+
         # Check if we're in Docker environment to set correct expectations
         is_docker_container = os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
         expected_stub_url = "http://stub-server:5010" if is_docker_container else "http://localhost:5010"
-        
+
         # Clear environment variables that might be set by conftest
         monkeypatch.delenv("ENVIRONMENT", raising=False)
         monkeypatch.delenv("USE_STUBS", raising=False)
-        
+
         # Only clear STUB_BASE_URL if not in Docker (let Docker environment use service name)
         if not is_docker_container:
             monkeypatch.delenv("STUB_BASE_URL", raising=False)
 
         # Clear settings cache to ensure new settings are loaded
         from core.config import get_settings
+
         get_settings.cache_clear()
 
         settings = Settings()
