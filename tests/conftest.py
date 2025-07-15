@@ -59,11 +59,16 @@ def stub_server_session():
                 if response.status_code == 200:
                     yield
                     return
-            except Exception:
-                pass
+            except Exception as e:
+                if attempt == max_attempts - 1:
+                    # On last attempt, provide more detail
+                    import traceback
+                    print(f"Failed to connect to stub server at {settings.stub_base_url}")
+                    print(f"Error: {e}")
+                    print(f"Traceback: {traceback.format_exc()}")
             time.sleep(0.5)
 
-        pytest.fail(f"External stub server not available at {settings.stub_base_url}")
+        pytest.fail(f"External stub server not available at {settings.stub_base_url} after {max_attempts} attempts")
 
     # For local environment, check if stub server is already running locally
     try:

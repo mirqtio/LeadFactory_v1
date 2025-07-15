@@ -35,8 +35,12 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Create required directories and set permissions
-RUN mkdir -p tmp logs && \
-    chmod +x scripts/run_migrations.py scripts/wait_for_stub.py || true
+RUN mkdir -p /app/tmp /app/logs /app/coverage /app/test-results && \
+    chmod -R 777 /app/coverage /app/test-results && \
+    chmod +x scripts/run_migrations.py scripts/wait_for_stub.py 2>/dev/null || true
+
+# Verify critical test dependencies are installed
+RUN python -c "import pytest; import coverage; print('✅ Test dependencies verified')"
 
 # Run tests as default command
 CMD ["pytest", "-m", "not slow and not phase_future", "--tb=short", "--cov=.", "--cov-report=term-missing", "--cov-config=.coveragerc"]
