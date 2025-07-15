@@ -3,10 +3,8 @@ Test Lead Explorer audit system
 """
 import hashlib
 import json
-import os
 from unittest.mock import Mock, patch
 
-import pytest
 
 from database.models import AuditAction, AuditLogLead, EnrichmentStatus, Lead
 from lead_explorer.audit import (

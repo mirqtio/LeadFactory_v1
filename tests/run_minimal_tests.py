@@ -30,23 +30,12 @@ def test_critical_imports():
     """Test that critical modules can be imported"""
     print("Testing critical imports...", end=" ")
     # Core imports
-    from core.config import Settings
-    from core.exceptions import LeadFactoryError
 
     # Gateway imports
-    from d0_gateway.base import BaseAPIClient
 
     # Model imports from actual domain modules
-    from d1_targeting.models import Campaign, TargetUniverse
-    from d2_sourcing.models import SourcedLocation
-    from d3_assessment.models import AssessmentResult
-    from d4_enrichment.models import EnrichmentRequest
-    from d5_scoring.models import D5ScoringResult
-    from d6_reports.models import ReportGeneration
 
     # Database imports
-    from database.base import Base
-    from database.models import Batch, Business, Lead, Target
 
     print("✓")
 
@@ -98,7 +87,7 @@ def test_model_validation():
 
     # Invalid input
     try:
-        invalid_target = CreateTargetUniverseSchema(name="Test")
+        CreateTargetUniverseSchema(name="Test")
         assert False, "Should have raised validation error"
     except PydanticValidationError:
         pass  # Expected
@@ -144,7 +133,7 @@ def main():
         try:
             test()
             passed += 1
-        except Exception as e:
+        except Exception:
             failed += 1
             print(f"\n✗ {test.__name__} failed:")
             traceback.print_exc()

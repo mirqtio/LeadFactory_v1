@@ -2,10 +2,9 @@
 Lineage tracking implementation
 """
 
-import inspect
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, Optional, Union
+from typing import Any, Awaitable, Dict, Optional, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session

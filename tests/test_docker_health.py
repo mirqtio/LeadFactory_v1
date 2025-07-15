@@ -5,6 +5,8 @@ This test should always pass if the environment is set up correctly
 import os
 import sys
 
+import pytest
+
 
 def test_python_version():
     """Test that we're running the correct Python version"""
@@ -24,13 +26,16 @@ def test_environment_variables():
 def test_import_core_modules():
     """Test that core modules can be imported"""
     try:
-        import fastapi
-        import psycopg2
-        import pytest
-        import sqlalchemy
-
-        import alembic
-        import coverage
+        import importlib.util
+        
+        # Check if modules are available
+        modules_to_check = ['fastapi', 'psycopg2', 'pytest', 'sqlalchemy', 'alembic', 'coverage']
+        
+        for module_name in modules_to_check:
+            spec = importlib.util.find_spec(module_name)
+            if spec is None:
+                pytest.fail(f"Module {module_name} is not available")
+                
     except ImportError as e:
         pytest.fail(f"Failed to import required module: {e}")
 

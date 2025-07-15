@@ -20,8 +20,6 @@ from typing import Any, Dict, Optional
 from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, ForeignKey, Index, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB as PostgreSQL_JSONB
-from sqlalchemy.orm import relationship
 
 from database.base import UUID, Base
 

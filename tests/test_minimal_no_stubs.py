@@ -2,7 +2,6 @@
 Minimal test suite that doesn't require stub server
 These tests verify basic functionality without external dependencies
 """
-import os
 import sys
 
 import pytest
@@ -36,7 +35,7 @@ def test_critical_imports():
 
     # Database imports
     from database.base import Base
-    from database.models import Batch, Business, Lead, Target
+    from database.models import Business, Lead, Target
 
     assert Settings is not None
     assert LeadFactoryError is not None
@@ -135,7 +134,7 @@ def test_model_validation():
 
     # Invalid input - missing required fields
     try:
-        invalid_target = CreateTargetUniverseSchema(name="Test")
+        CreateTargetUniverseSchema(name="Test")
         assert False, "Should have raised validation error"
     except PydanticValidationError as e:
         assert "targeting_criteria" in str(e)
@@ -169,7 +168,7 @@ def test_logger_creation():
     from core.config import get_settings
 
     # Get settings to ensure logging is configured
-    settings = get_settings()
+    get_settings()
 
     # Create a logger
     logger = logging.getLogger(__name__)

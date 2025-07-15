@@ -5,8 +5,6 @@ Network debugging script for Docker container networking issues
 import os
 import socket
 import subprocess
-import sys
-import time
 from urllib.parse import urlparse
 
 import requests

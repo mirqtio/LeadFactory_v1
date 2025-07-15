@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from api.dependencies import get_current_user_optional, get_db
@@ -14,7 +14,7 @@ from d6_reports.lineage.compressor import decompress_lineage_data
 from d6_reports.lineage.models import ReportLineage
 from d6_reports.lineage.tracker import LineageTracker
 
-from .schemas import LineageLogsResponse, LineageResponse, PanelStatsResponse, TemplateDistribution
+from .schemas import LineageResponse, PanelStatsResponse
 
 router = APIRouter(prefix="/api/lineage", tags=["lineage"])
 

@@ -980,7 +980,7 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
                 "personalization_score": result.quality_metrics.get("personalization_score", 0.8),
             }
             
-        except Exception as e:
+        except Exception:
             # Return fallback content for tests
             business_name = business_data.get("name", "your business")
             return {

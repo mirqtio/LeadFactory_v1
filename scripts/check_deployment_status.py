@@ -4,7 +4,6 @@ Check deployment configuration and status for LeadFactory CI/CD pipeline.
 """
 import os
 import subprocess
-import sys
 
 
 def check_local_env():
@@ -83,7 +82,7 @@ def check_github_status():
         print(f"Current branch: {branch}")
 
         print("\nTo check CI status:")
-        print(f"1. Visit: https://github.com/mirqtio/LeadFactory_v1/actions")
+        print("1. Visit: https://github.com/mirqtio/LeadFactory_v1/actions")
         print(f"2. Look for commit: {latest_commit[:8]}")
         print("3. Check if 'Deploy to VPS (Optional)' job is skipped or passing")
 
@@ -106,7 +105,7 @@ def main():
     workflow_ok = check_workflow_config()
 
     # Check GitHub status
-    github_ok = check_github_status()
+    check_github_status()
 
     # Summary
     print("\n" + "=" * 40)

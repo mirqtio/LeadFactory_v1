@@ -6,7 +6,6 @@ Useful for troubleshooting CI issues
 import os
 import subprocess
 import sys
-import threading
 import time
 
 import requests
@@ -35,7 +34,7 @@ def start_stub_server():
         # Check if process is still running
         if process.poll() is not None:
             stdout, stderr = process.communicate()
-            print(f"Stub server failed to start!")
+            print("Stub server failed to start!")
             print(f"STDOUT: {stdout}")
             print(f"STDERR: {stderr}")
             return None
@@ -82,7 +81,7 @@ def check_port_availability():
         try:
             output = subprocess.check_output(["lsof", "-i", ":5010"], text=True)
             print(f"Process using port 5010:\n{output}")
-        except:
+        except Exception:
             pass
         return False
     else:

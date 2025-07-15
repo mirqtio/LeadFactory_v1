@@ -7,12 +7,11 @@ This script runs the EXACT same Docker environment and tests as GitHub CI.
 Any failure here WILL fail in GitHub CI, and any pass here WILL pass in GitHub CI.
 """
 
-import os
 import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Tuple, List
+from typing import List
 
 
 class Colors:
@@ -85,10 +84,10 @@ def check_docker():
     """Check if Docker is running"""
     print_step("Checking Docker status...")
     try:
-        result = run_command(["docker", "info"], capture_output=True)
+        run_command(["docker", "info"], capture_output=True)
         print_success("Docker is running")
         return True
-    except:
+    except Exception:
         print_error("Docker is not running or not installed")
         print_info("Please start Docker Desktop or install Docker")
         return False
@@ -173,7 +172,7 @@ def start_services():
             if result.returncode == 0:
                 postgres_ready = True
                 break
-        except:
+        except Exception:
             pass
         
         if i % 5 == 0:
@@ -208,7 +207,7 @@ def start_services():
             if result.returncode == 0:
                 stub_ready = True
                 break
-        except:
+        except Exception:
             pass
         
         if i % 2 == 0:
