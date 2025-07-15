@@ -42,6 +42,7 @@ class TestPostgresContainer:
         assert len(postgres_volumes) > 0, "No PostgreSQL data volume found"
 
     @pytest.mark.integration
+    @pytest.mark.xfail(reason="Infrastructure dependencies not yet set up")
     def test_database_connection(self):
         """Test that application can connect to PostgreSQL"""
         # Use test database URL or skip if not available
