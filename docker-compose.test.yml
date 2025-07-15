@@ -75,4 +75,4 @@ services:
       - ./test-results:/app/test-results
       - ./.coveragerc:/app/.coveragerc:ro
     working_dir: /app
-    command: /app/scripts/run_docker_tests.sh
+    command: scripts/run_docker_tests.sh
