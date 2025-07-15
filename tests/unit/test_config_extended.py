@@ -23,9 +23,9 @@ class TestExtendedConfig:
             },
         ):
             settings = Settings()
-            assert settings.stripe_secret_key == "sk_test_123"
+            assert settings.stripe_secret_key.get_secret_value() == "sk_test_123"
             assert settings.stripe_publishable_key == "pk_test_456"
-            assert settings.stripe_webhook_secret == "whsec_789"
+            assert settings.stripe_webhook_secret.get_secret_value() == "whsec_789"
 
     def test_api_key_configurations(self):
         """Test various API key configurations."""
@@ -34,9 +34,9 @@ class TestExtendedConfig:
             {"OPENAI_API_KEY": "sk-openai123", "SENDGRID_API_KEY": "SG.sendgrid456", "SEMRUSH_API_KEY": "semrush789"},
         ):
             settings = Settings()
-            assert settings.openai_api_key == "sk-openai123"
-            assert settings.sendgrid_api_key == "SG.sendgrid456"
-            assert settings.semrush_api_key == "semrush789"
+            assert settings.openai_api_key.get_secret_value() == "sk-openai123"
+            assert settings.sendgrid_api_key.get_secret_value() == "SG.sendgrid456"
+            assert settings.semrush_api_key.get_secret_value() == "semrush789"
 
     def test_cost_budget_configuration(self):
         """Test cost budget configuration."""
@@ -51,9 +51,16 @@ class TestExtendedConfig:
 
     def test_database_configuration(self):
         """Test database URL configuration."""
-        with mock.patch.dict(os.environ, {"DATABASE_URL": "postgresql://user:pass@host:5432/db"}):
+        with mock.patch.dict(os.environ, {"DATABASE_URL": "postgresql://user:pass@host:5432/db", "TESTING": "false"}):
             settings = Settings()
             assert settings.database_url == "postgresql://user:pass@host:5432/db"
+            
+    def test_database_configuration_testing_mode(self):
+        """Test database URL configuration in testing mode."""
+        with mock.patch.dict(os.environ, {"DATABASE_URL": "postgresql://user:pass@host:5432/db", "TESTING": "true"}):
+            settings = Settings()
+            # In testing mode, database_url is forced to sqlite
+            assert settings.database_url == "sqlite:///tmp/test.db"
 
     def test_redis_configuration(self):
         """Test Redis URL configuration."""

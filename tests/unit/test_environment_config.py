@@ -43,7 +43,7 @@ class TestEnvironmentConfig:
 
         # Verify the error message
         errors = exc_info.value.errors()
-        assert any("USE_STUBS cannot be true in production environment" in str(error) for error in errors)
+        assert any("Production environment cannot run with USE_STUBS=true" in str(error) for error in errors)
 
     def test_test_environment_forces_stubs(self):
         """

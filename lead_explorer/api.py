@@ -19,7 +19,7 @@ from core.exceptions import LeadFactoryError
 from core.exceptions import ValidationError as CoreValidationError
 from core.logging import get_logger
 from core.metrics import metrics
-from database.session import SessionLocal
+from database.session import get_db
 
 from .audit import AuditContext
 from .enrichment_coordinator import get_enrichment_coordinator
@@ -48,14 +48,7 @@ limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
 
 
-# Dependency for database session
-def get_db() -> Session:
-    """Get database session"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Using global get_db dependency from database.session
 
 
 def get_user_context(request: Request) -> Dict[str, Optional[str]]:

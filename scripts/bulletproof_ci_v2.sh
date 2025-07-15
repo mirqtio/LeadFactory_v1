@@ -49,11 +49,16 @@ import sys
 failed = []
 modules = [
     'core.config',
+    'core.utils',
     'database.session',
     'd9_delivery.webhook_handler',
     'lead_explorer.repository',
     'api.lineage.routes',
-    'd10_analytics.models'
+    'd10_analytics.models',
+    'd0_gateway.metrics',
+    'd1_targeting.geo_validator',
+    'd8_personalization.personalizer',
+    'd11_orchestration.pipeline'
 ]
 for module in modules:
     try:
@@ -70,12 +75,67 @@ else
     log_failure "Import validation - some modules failed to import"
 fi
 
+# 2.5. Missing Class/Method Validation
+echo -e "\n📋 Phase 2.5: Missing Class/Method Validation"
+echo "============================================="
+echo "Testing critical classes and methods..."
+if python -c "
+import sys
+failed = []
+
+# Test critical classes and methods
+test_cases = [
+    ('d8_personalization.personalizer', 'Personalizer'),
+    ('d11_orchestration.pipeline', 'Pipeline'),
+    ('d11_orchestration.pipeline', 'PipelineStage'),
+    ('d0_gateway.metrics', 'GatewayMetrics'),
+    ('d1_targeting.geo_validator', 'GeoValidator'),
+    ('core.utils', 'slugify'),
+    ('core.utils', 'truncate'),
+    ('core.utils', 'validate_email'),
+    ('core.utils', 'retry_with_backoff'),
+]
+
+for module_name, class_or_func in test_cases:
+    try:
+        module = __import__(module_name, fromlist=[class_or_func])
+        obj = getattr(module, class_or_func)
+        print(f'✓ {module_name}.{class_or_func}')
+    except Exception as e:
+        print(f'✗ {module_name}.{class_or_func}: {str(e)[:50]}...')
+        failed.append(f'{module_name}.{class_or_func}')
+
+# Test specific methods on classes
+method_tests = [
+    ('d0_gateway.metrics', 'GatewayMetrics', 'record_request'),
+    ('d1_targeting.geo_validator', 'GeoValidator', 'validate_location'),
+]
+
+for module_name, class_name, method_name in method_tests:
+    try:
+        module = __import__(module_name, fromlist=[class_name])
+        cls = getattr(module, class_name)
+        instance = cls()
+        method = getattr(instance, method_name)
+        print(f'✓ {module_name}.{class_name}.{method_name}')
+    except Exception as e:
+        print(f'✗ {module_name}.{class_name}.{method_name}: {str(e)[:50]}...')
+        failed.append(f'{module_name}.{class_name}.{method_name}')
+
+if failed:
+    sys.exit(1)
+" 2>&1; then
+    log_success "All critical classes and methods found"
+else
+    log_failure "Missing class/method validation - some critical components missing"
+fi
+
 # 3. Database Model Validation
 echo -e "\n📋 Phase 3: Database Model Validation"
 echo "====================================="
 if python -c "
 from database.base import Base
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 import sys
 
 # Import all models to ensure they're registered
@@ -94,6 +154,27 @@ engine = create_engine('sqlite:///:memory:')
 try:
     Base.metadata.create_all(bind=engine)
     print('✓ All database tables created successfully')
+    
+    # Check for critical tables that were missing in migrations
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+    
+    required_tables = [
+        'funnel_events',
+        'time_series_data', 
+        'metrics_aggregations',
+        'businesses',
+        'leads',
+        'report_lineage'
+    ]
+    
+    missing_tables = [table for table in required_tables if table not in tables]
+    if missing_tables:
+        print(f'✗ Missing required tables: {missing_tables}')
+        sys.exit(1)
+    else:
+        print('✓ All required tables are present')
+        
 except Exception as e:
     print(f'✗ Table creation failed: {e}')
     sys.exit(1)
@@ -233,6 +314,52 @@ if failed:
     log_success "API endpoint validation"
 else
     log_failure "API endpoint validation"
+fi
+
+# 9.5. Configuration Validation
+echo -e "\n📋 Phase 9.5: Configuration Validation"
+echo "======================================"
+if python -c "
+from core.config import get_settings
+from pydantic import ValidationError
+import sys
+
+try:
+    # Test basic settings creation
+    settings = get_settings()
+    print('✓ Settings created successfully')
+    
+    # Test SecretStr handling
+    if hasattr(settings, 'google_api_key') and settings.google_api_key:
+        secret_value = settings.google_api_key.get_secret_value()
+        print('✓ SecretStr handling works')
+    
+    # Test stub configuration
+    if settings.use_stubs:
+        api_key = settings.get_api_key('google')
+        if api_key.startswith('stub-'):
+            print('✓ Stub API key configuration works')
+        else:
+            print('✗ Stub API key configuration failed')
+            sys.exit(1)
+    
+    # Test environment validation
+    if settings.environment == 'production' and settings.use_stubs:
+        print('✗ Production environment should not allow stubs')
+        sys.exit(1)
+    else:
+        print('✓ Environment validation works')
+        
+except ValidationError as e:
+    print(f'✗ Configuration validation error: {e}')
+    sys.exit(1)
+except Exception as e:
+    print(f'✗ Configuration error: {e}')
+    sys.exit(1)
+" 2>&1; then
+    log_success "Configuration validation"
+else
+    log_failure "Configuration validation"
 fi
 
 # 10. Docker Build Test

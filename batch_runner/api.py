@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from core.exceptions import LeadFactoryError
 from core.logging import get_logger
 from core.metrics import metrics
-from database.session import SessionLocal
+from database.session import get_db
 
 from .cost_calculator import get_cost_calculator
 from .models import BatchReport, BatchReportLead, BatchStatus, LeadProcessingStatus
@@ -40,14 +40,7 @@ logger = get_logger("batch_runner_api", domain="batch_runner")
 router = APIRouter()
 
 
-# Dependency for database session
-def get_db() -> Session:
-    """Get database session"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Using global get_db dependency from database.session
 
 
 def get_user_context(request) -> Dict[str, Optional[str]]:
@@ -115,7 +108,7 @@ async def preview_batch_cost(request: CreateBatchSchema, db: Session = Depends(g
             logger.warning(f"Lead {lead_id} not found for batch preview")
 
     if not valid_leads:
-        raise HTTPException(status_code=400, detail="No valid leads found")
+        raise HTTPException(status_code=422, detail="No valid leads found")
 
     if len(valid_leads) != len(request.lead_ids):
         logger.warning(f"Only {len(valid_leads)} of {len(request.lead_ids)} leads are valid")
@@ -175,7 +168,7 @@ async def start_batch_processing_endpoint(
             valid_leads.append(lead_id)
 
     if not valid_leads:
-        raise HTTPException(status_code=400, detail="No valid leads found")
+        raise HTTPException(status_code=422, detail="No valid leads found")
 
     # Create batch record
     batch = BatchReport(

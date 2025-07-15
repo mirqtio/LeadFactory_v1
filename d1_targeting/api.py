@@ -621,6 +621,68 @@ async def list_geographic_boundaries(
     return boundaries
 
 
+# Validation endpoint
+@router.post("/validate", response_model=Dict[str, Any])
+@handle_api_errors
+async def validate_targeting_criteria(request: Dict[str, Any], db: Session = Depends(get_db)):
+    """
+    Validate targeting criteria for locations and industries.
+    """
+    logger.info("Validating targeting criteria")
+    
+    # Basic validation logic
+    locations = request.get("locations", [])
+    industries = request.get("industries", [])
+    
+    # Mock validation - in real implementation, would validate against known data
+    valid_locations = []
+    invalid_locations = []
+    
+    for location in locations:
+        if location and len(location) > 2:  # Basic validation
+            valid_locations.append(location)
+        else:
+            invalid_locations.append(location)
+    
+    valid_industries = []
+    invalid_industries = []
+    
+    for industry in industries:
+        if industry and len(industry) > 2:  # Basic validation
+            valid_industries.append(industry)
+        else:
+            invalid_industries.append(industry)
+    
+    return {
+        "valid": len(invalid_locations) == 0 and len(invalid_industries) == 0,
+        "valid_locations": valid_locations,
+        "invalid_locations": invalid_locations,
+        "valid_industries": valid_industries,
+        "invalid_industries": invalid_industries,
+        "message": "Validation completed"
+    }
+
+
+# Universe endpoint alias for backward compatibility
+@router.post("/universe", response_model=TargetUniverseResponseSchema, status_code=201)
+@handle_api_errors
+async def create_target_universe_alias(request: CreateTargetUniverseSchema, db: Session = Depends(get_db)):
+    """
+    Create a new target universe (alias endpoint for backward compatibility).
+    """
+    return await create_target_universe(request, db)
+
+
+# Quota endpoint alias for backward compatibility
+@router.get("/quota", response_model=QuotaAllocationResponseSchema)
+@handle_api_errors
+async def get_quota_allocation_alias(target_date: Optional[date] = Query(None), db: Session = Depends(get_db)):
+    """
+    Get current quota allocation and usage (alias endpoint for backward compatibility).
+    """
+    return await get_quota_allocation(target_date, db)
+
+
 # Health check endpoint
 @router.get("/health", response_model=Dict[str, Any])
 @handle_api_errors

@@ -22,7 +22,8 @@ def stub_server_session():
     # Detect environment type with proper precedence
     is_docker_container = os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
     is_ci = os.environ.get("CI") == "true"
-    has_external_stub = os.environ.get("STUB_BASE_URL") == "http://stub-server:5010"
+    current_stub_url = os.environ.get("STUB_BASE_URL", "")
+    has_external_stub = current_stub_url == "http://stub-server:5010"
 
     # Environment detection logic:
     # 1. If STUB_BASE_URL points to stub-server, we're in docker-compose (external stub)
@@ -30,11 +31,11 @@ def stub_server_session():
 
     if has_external_stub and is_docker_container:
         # Running in Docker Compose with external stub server - keep existing URL
-        print(f"Using external stub server: {os.environ.get('STUB_BASE_URL')}")
+        print(f"Using external stub server: {current_stub_url}")
     else:
         # Single container Docker, local development, or other CI - use localhost
         os.environ["STUB_BASE_URL"] = "http://localhost:5010"
-        print("Using localhost stub server for single container or local environment")
+        print(f"Using localhost stub server for single container or local environment (was: {current_stub_url})")
 
     # Force USE_STUBS=true for all tests
     os.environ["USE_STUBS"] = "true"
@@ -83,7 +84,7 @@ def stub_server_session():
     # For local/single container environment, check if stub server is already running
     print(f"Checking if stub server is already running at {settings.stub_base_url}...")
     try:
-        response = requests.get(f"{settings.stub_base_url}/health", timeout=1)
+        response = requests.get(f"{settings.stub_base_url}/health", timeout=2)
         if response.status_code == 200:
             print(f"✅ Stub server already running at {settings.stub_base_url}")
             yield
@@ -96,24 +97,36 @@ def stub_server_session():
     from stubs.server import app as stub_app
 
     def run_server():
-        uvicorn.run(stub_app, host="127.0.0.1", port=5010, log_level="error")
+        try:
+            uvicorn.run(stub_app, host="127.0.0.1", port=5010, log_level="error")
+        except Exception as e:
+            print(f"Error starting stub server: {e}")
 
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
 
     # Wait for local server to be ready
-    max_attempts = 50
+    max_attempts = 100  # Increased attempts for slower systems
     for attempt in range(max_attempts):
         try:
-            response = requests.get(f"{settings.stub_base_url}/health", timeout=1)
+            response = requests.get(f"{settings.stub_base_url}/health", timeout=2)
             if response.status_code == 200:
                 print(f"✅ Internal stub server started successfully at {settings.stub_base_url}")
                 break
-        except Exception:
-            pass
-        time.sleep(0.1)
+        except Exception as e:
+            if attempt % 10 == 0:  # Log every 10th attempt
+                print(f"Attempt {attempt + 1}/{max_attempts}: Waiting for stub server... {e}")
+        time.sleep(0.2)  # Slightly longer wait between attempts
     else:
-        pytest.fail(f"Internal stub server failed to start at {settings.stub_base_url}")
+        # Try one more time with detailed error info
+        try:
+            response = requests.get(f"{settings.stub_base_url}/health", timeout=5)
+            if response.status_code == 200:
+                print(f"✅ Stub server started on retry at {settings.stub_base_url}")
+            else:
+                pytest.fail(f"Internal stub server returned status {response.status_code} at {settings.stub_base_url}")
+        except Exception as e:
+            pytest.fail(f"Internal stub server failed to start at {settings.stub_base_url}. Last error: {e}")
 
     yield
 

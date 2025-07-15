@@ -14,7 +14,7 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -168,6 +168,51 @@ async def trigger_assessment(
     except Exception as e:
         logger.error(f"Error triggering assessment: {str(e)}")
         raise create_error_response("internal_error", "Failed to trigger assessment", status_code=500)
+
+
+@router.post(
+    "/assess",
+    response_model=TriggerAssessmentResponse,
+    summary="Trigger Website Assessment (Legacy)",
+    description="Start a comprehensive website assessment (legacy endpoint for backward compatibility)",
+)
+async def assess_website(
+    request: Dict[str, Any],
+    background_tasks: BackgroundTasks,
+    coord: AssessmentCoordinator = Depends(get_coordinator),
+) -> TriggerAssessmentResponse:
+    """
+    Legacy endpoint for triggering website assessments
+    Accepts flexible request format for backward compatibility
+    """
+    try:
+        # Extract URL and convert email to business_id if needed
+        url = request.get("url")
+        if not url:
+            raise ValueError("URL is required")
+        
+        # Use email as business_id if present, otherwise generate one
+        business_id = request.get("email", request.get("business_id"))
+        if not business_id:
+            business_id = f"biz_{uuid.uuid4().hex[:12]}"
+        
+        # Create properly formatted request
+        assessment_request = TriggerAssessmentRequest(
+            business_id=business_id,
+            url=url,
+            assessment_types=request.get("assessment_types"),
+            industry=request.get("industry", "default"),
+            priority=request.get("priority", "medium"),
+            session_config=request.get("session_config"),
+            business_data=request.get("business_data"),
+            callback_url=request.get("callback_url")
+        )
+        
+        return await trigger_assessment(assessment_request, background_tasks, coord)
+    
+    except Exception as e:
+        logger.error(f"Error in assess_website: {str(e)}")
+        raise create_error_response("validation_error", str(e))
 
 
 @router.get(

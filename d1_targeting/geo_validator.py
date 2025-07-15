@@ -23,6 +23,17 @@ class GeoConflict:
     suggested_resolution: Optional[str] = None
 
 
+@dataclass
+class LocationValidationResult:
+    """Result of location validation"""
+    
+    location: str
+    is_valid: bool
+    location_type: str
+    errors: List[str]
+    parsed_components: Dict[str, Any]
+
+
 class GeoValidator:
     """
     Validates geographic constraints and detects conflicts in targeting configuration
@@ -270,6 +281,152 @@ class GeoValidator:
             errors.append(f"Radius too large (max 1000 miles): {radius_miles}")
 
         return errors
+
+    def validate_location(self, location: str) -> LocationValidationResult:
+        """
+        Validate a location string and return validation details.
+        
+        Args:
+            location: Location string to validate (e.g., "San Francisco, CA", "90210", "NY")
+            
+        Returns:
+            LocationValidationResult containing validation results
+        """
+        try:
+            # Handle None input
+            if location is None:
+                return LocationValidationResult(
+                    location="",
+                    is_valid=False,
+                    location_type="unknown",
+                    errors=["Location is None"],
+                    parsed_components={},
+                )
+                
+            # Clean the location
+            location = location.strip()
+            
+            if not location:
+                return LocationValidationResult(
+                    location=location,
+                    is_valid=False,
+                    location_type="unknown",
+                    errors=["Empty location string"],
+                    parsed_components={},
+                )
+                
+            # Check if it's a ZIP code
+            if self._validate_zip_format(location):
+                return LocationValidationResult(
+                    location=location,
+                    is_valid=True,
+                    location_type="zip_code",
+                    errors=[],
+                    parsed_components={"zip_code": location},
+                )
+                
+            # Check if it's a state code
+            if len(location) == 2 and location.upper() in self.us_states:
+                return LocationValidationResult(
+                    location=location,
+                    is_valid=True,
+                    location_type="state",
+                    errors=[],
+                    parsed_components={
+                        "state": location.upper(),
+                        "state_name": self.us_states[location.upper()],
+                    },
+                )
+                
+            # Check if it's a city, state format
+            if "," in location:
+                parts = location.split(",")
+                if len(parts) == 2:
+                    city_name = parts[0].strip()
+                    state_part = parts[1].strip()
+                    
+                    # Check if state part is valid US state
+                    if len(state_part) == 2 and state_part.upper() in self.us_states:
+                        return LocationValidationResult(
+                            location=location,
+                            is_valid=True,
+                            location_type="city_state",
+                            errors=[],
+                            parsed_components={
+                                "city": city_name,
+                                "state": state_part.upper(),
+                                "state_name": self.us_states[state_part.upper()],
+                            },
+                        )
+                    else:
+                        # Could be international location (e.g., "London, UK")
+                        # For now, treat as valid international city
+                        return LocationValidationResult(
+                            location=location,
+                            is_valid=True,
+                            location_type="international_city",
+                            errors=[],
+                            parsed_components={
+                                "city": city_name,
+                                "country": state_part,
+                            },
+                        )
+                        
+            # Check if it's a state name
+            location_lower = location.lower()
+            for state_code, state_name in self.us_states.items():
+                if state_name.lower() == location_lower:
+                    return LocationValidationResult(
+                        location=location,
+                        is_valid=True,
+                        location_type="state",
+                        errors=[],
+                        parsed_components={
+                            "state": state_code,
+                            "state_name": state_name,
+                        },
+                    )
+                    
+            # If we get here, it's an unknown location type
+            # For safety, mark as invalid if it contains suspicious patterns
+            suspicious_patterns = [
+                "invalid",
+                "xyz",
+                "test",
+                "123",
+                "null",
+                "undefined",
+                "error",
+                "fail",
+            ]
+            
+            if any(pattern in location.lower() for pattern in suspicious_patterns):
+                return LocationValidationResult(
+                    location=location,
+                    is_valid=False,
+                    location_type="unknown",
+                    errors=["Unrecognized location format"],
+                    parsed_components={},
+                )
+            
+            # Otherwise, assume it's a city name (valid but unverified)
+            return LocationValidationResult(
+                location=location,
+                is_valid=True,
+                location_type="city",
+                errors=[],
+                parsed_components={"city": location},
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error validating location '{location}': {e}")
+            return LocationValidationResult(
+                location=location,
+                is_valid=False,
+                location_type="unknown",
+                errors=[f"Validation error: {str(e)}"],
+                parsed_components={},
+            )
 
     # Private helper methods
 

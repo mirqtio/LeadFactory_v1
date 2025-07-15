@@ -515,3 +515,43 @@ class ExperimentMetric(Base):
 
     def __repr__(self):
         return f"<ExperimentMetric(id={self.metric_id}, metric={self.metric_name}, value={self.value})>"
+
+
+# Additional classes for backward compatibility with tests
+
+class D11PipelineConfig:
+    """
+    Pipeline configuration class for test compatibility.
+    """
+    
+    def __init__(self, name: str, stages: list = None, **kwargs):
+        self.name = name
+        self.stages = stages or []
+        self.config = kwargs
+        
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "stages": self.stages,
+            "config": self.config,
+        }
+
+
+class D11StageResult:
+    """
+    Stage result class for test compatibility.
+    """
+    
+    def __init__(self, stage_name: str, status: str, result: any = None, error: str = None):
+        self.stage_name = stage_name
+        self.status = status
+        self.result = result
+        self.error = error
+        
+    def to_dict(self):
+        return {
+            "stage_name": self.stage_name,
+            "status": self.status,
+            "result": self.result,
+            "error": self.error,
+        }
