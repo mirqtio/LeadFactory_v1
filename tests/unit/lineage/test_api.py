@@ -16,6 +16,36 @@ class TestLineageAPI:
     """Test suite for lineage API endpoints"""
 
     @pytest.fixture
+    def app(self):
+        """Create FastAPI test app"""
+        from fastapi import FastAPI
+        from api.lineage.routes import router
+        
+        app = FastAPI()
+        app.include_router(router)
+        return app
+
+    @pytest.fixture
+    def test_client(self, app, db_session):
+        """Create test client with database override"""
+        from fastapi.testclient import TestClient
+        # Import get_db from where the routes import it
+        from api.dependencies import get_db
+        
+        def override_get_db():
+            try:
+                yield db_session
+            finally:
+                pass  # Don't close the session here as it's managed by the fixture
+        
+        app.dependency_overrides[get_db] = override_get_db
+        
+        with TestClient(app) as client:
+            yield client
+        
+        app.dependency_overrides.clear()
+
+    @pytest.fixture
     def sample_lineage(self, db_session, test_report_template):
         """Create sample lineage data for tests"""
         # Create report
@@ -63,14 +93,14 @@ class TestLineageAPI:
         assert response.status_code == 200
         data = response.json()
 
-        assert data["id"] == lineage.id
-        assert data["report_id"] == report.id
+        assert data["lineage_id"] == lineage.id
+        assert data["report_generation_id"] == report.id
         assert data["lead_id"] == "lead-123"
         assert data["pipeline_run_id"] == "run-456"
         assert data["template_version_id"] == "v1.0.0"
         assert "created_at" in data
-        assert "pipeline_logs_size" in data
-        assert "raw_inputs_size" in data
+        assert "pipeline_duration_seconds" in data
+        assert "raw_inputs_size_bytes" in data
 
     def test_get_lineage_not_found(self, test_client: TestClient):
         """Test retrieving non-existent lineage"""
@@ -121,8 +151,8 @@ class TestLineageAPI:
         start_date = (datetime.utcnow() - timedelta(days=1)).isoformat()
         response = test_client.get("/api/lineage/search", params={"start_date": start_date})
         assert response.status_code == 200
-
-        # Note: Current API doesn't support date filters, this test should be removed or API should be updated
+        results = response.json()
+        assert len(results) == 1  # Should find our sample lineage created today
 
     def test_view_lineage_logs(self, test_client: TestClient, sample_lineage):
         """Test viewing lineage logs"""
@@ -134,9 +164,10 @@ class TestLineageAPI:
         data = response.json()
 
         assert data["lineage_id"] == lineage.id
-        assert data["report_id"] == report.id
-        assert "logs" in data
-        assert "log_size" in data
+        assert "pipeline_logs" in data
+        assert "raw_inputs" in data
+        assert "pipeline_start_time" in data
+        assert "pipeline_end_time" in data
 
     def test_view_lineage_logs_not_found(self, test_client: TestClient):
         """Test viewing logs for non-existent lineage"""
@@ -215,7 +246,7 @@ class TestLineageAPI:
         audits = db_session.query(ReportLineageAudit).filter(ReportLineageAudit.lineage_id == lineage.id).all()
 
         assert len(audits) == 3
-        assert audits[2].action == "download"
+        assert audits[2].action == "download_raw_inputs"
 
     def test_response_time_performance(self, test_client: TestClient, sample_lineage):
         """Test that JSON viewer loads in < 500ms"""

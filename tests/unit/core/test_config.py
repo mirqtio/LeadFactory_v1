@@ -322,14 +322,15 @@ class TestEnvironmentConfiguration:
         # Test with Docker environment URL
         monkeypatch.setenv("STUB_BASE_URL", "http://stub-server:5010")
         monkeypatch.setenv("USE_STUBS", "true")
-        
+
         # Clear cache to pick up new env vars
         from core.config import get_settings
+
         get_settings.cache_clear()
-        
+
         settings = Settings(_env_file=None)
         assert settings.stub_base_url == "http://stub-server:5010"
-        
+
         # Test with localhost URL
         monkeypatch.setenv("STUB_BASE_URL", "http://localhost:5010")
         settings2 = Settings(_env_file=None)

@@ -484,7 +484,7 @@ class TestPrerequisiteValidator:
 
     def test_check_dependencies_installed_exception(self, validator):
         """Test dependencies check with exception."""
-        with patch.object(validator, '_run_command', side_effect=Exception("pip error")):
+        with patch.object(validator, "_run_command", side_effect=Exception("pip error")):
             check = validator.check_dependencies_installed()
 
             assert check.name == "Python Dependencies"
@@ -518,7 +518,7 @@ class TestPrerequisiteValidator:
 
     def test_check_pytest_collection_exception(self, validator):
         """Test pytest collection check with exception."""
-        with patch.object(validator, '_run_command', side_effect=Exception("pytest error")):
+        with patch.object(validator, "_run_command", side_effect=Exception("pytest error")):
             check = validator.check_pytest_collection()
 
             assert check.name == "Pytest Collection"
@@ -624,7 +624,7 @@ class TestPrerequisiteValidator:
 
     def test_check_docker_build_exception(self, validator):
         """Test Docker build check with exception."""
-        with patch.object(validator, '_run_command', side_effect=Exception("build error")):
+        with patch.object(validator, "_run_command", side_effect=Exception("build error")):
             with patch("core.prerequisites.Path.exists", return_value=True):
                 check = validator.check_docker_build()
 

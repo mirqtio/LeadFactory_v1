@@ -20,11 +20,10 @@ from typing import Any, Dict, Optional
 from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Float, ForeignKey, Index, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.postgresql import JSONB as PostgreSQL_JSONB
 from sqlalchemy.orm import relationship
 
-Base = declarative_base()
+from database.base import Base, UUID
 
 
 def generate_uuid() -> str:
@@ -76,21 +75,21 @@ class MetricType(enum.Enum):
 class FunnelEvent(Base):
     __tablename__ = "funnel_events"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
+    business_id = Column(UUID(), ForeignKey("businesses.id"), nullable=False)
     session_id = Column(String, nullable=False, index=True)
     stage = Column(SQLEnum(FunnelStage), nullable=False)
     event_type = Column(SQLEnum(EventType), nullable=False)
     timestamp = Column(TIMESTAMP, default=datetime.utcnow)
-    event_metadata = Column(JSONB)
+    event_metadata = Column(JSON)
 
-    business = relationship("Business")
+    # Note: Business relationship defined in database.models to avoid circular imports
 
 
 class MetricsAggregation(Base):
     __tablename__ = "metrics_aggregations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=generate_uuid)
     metric_name = Column(String, nullable=False, index=True)
     aggregation_period = Column(String, nullable=False)  # e.g., 'daily', 'weekly'
     start_date = Column(Date, nullable=False)
@@ -106,12 +105,12 @@ class TimeSeriesData(Base):
     metric_name = Column(String(255), nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
     value = Column(Float, nullable=False)
-    tags = Column(JSONB, nullable=True)
+    tags = Column(JSON, nullable=True)
 
     __table_args__ = (
         Index("ix_time_series_data_timestamp", timestamp.desc()),
         Index("ix_time_series_data_metric_name_timestamp", metric_name, timestamp.desc()),
-        Index("ix_time_series_data_tags", tags, postgresql_using="gin"),
+        # Note: GIN index for tags is created separately for PostgreSQL only
     )
 
 

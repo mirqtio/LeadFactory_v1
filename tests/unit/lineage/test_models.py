@@ -207,10 +207,10 @@ class TestLineageModels:
         # Manual cascade deletion for SQLite compatibility
         # Delete audit records first
         db_session.query(ReportLineageAudit).filter_by(lineage_id=lineage_id).delete()
-        
+
         # Delete lineage record
         db_session.query(ReportLineage).filter_by(report_generation_id=report.id).delete()
-        
+
         # Delete report
         db_session.delete(report)
         db_session.commit()

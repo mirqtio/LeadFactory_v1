@@ -24,12 +24,13 @@ def test_environment_variables():
 def test_import_core_modules():
     """Test that core modules can be imported"""
     try:
-        import pytest
-        import coverage
-        import psycopg2
         import fastapi
+        import psycopg2
+        import pytest
         import sqlalchemy
+
         import alembic
+        import coverage
     except ImportError as e:
         pytest.fail(f"Failed to import required module: {e}")
 
@@ -44,4 +45,5 @@ def test_simple_assertion():
 if __name__ == "__main__":
     # Run tests if executed directly
     import pytest
+
     pytest.main([__file__, "-v"])

@@ -24,15 +24,9 @@ pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
 # Import the modules we need for integration testing
 try:
-    from d6_reports import (
-        FindingPrioritizer,
-        GenerationOptions,
-        GenerationResult,  # noqa: F401
-        PDFConverter,  # noqa: F401
-        PDFOptions,
-        ReportGenerator,
-        TemplateEngine,
-    )
+    from d6_reports import GenerationResult  # noqa: F401
+    from d6_reports import PDFConverter  # noqa: F401
+    from d6_reports import FindingPrioritizer, GenerationOptions, PDFOptions, ReportGenerator, TemplateEngine
 except ImportError:
     # Fallback for test environments
     import os

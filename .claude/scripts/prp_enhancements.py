@@ -76,7 +76,7 @@ OUTCOME_CRITERIA = {
         "deploy; data survives container restart."
     ),
     "P1-010": (
-        'Stubbed unit tests pass; live smoke test fetches all six metrics; metrics appear in PDF '
+        "Stubbed unit tests pass; live smoke test fetches all six metrics; metrics appear in PDF "
         'section "SEO Snapshot".'
     ),
     "P1-020": (

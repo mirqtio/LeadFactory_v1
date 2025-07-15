@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+from sqlalchemy import text
 
 from d6_reports.lineage_integration import LineageCapture, create_report_with_lineage
 from d6_reports.models import ReportGeneration, ReportStatus
@@ -61,7 +62,7 @@ class TestLineageIntegration:
 
         # Verify lineage was captured
         lineage = await async_db_session.execute(
-            "SELECT * FROM report_lineage WHERE report_generation_id = :id", {"id": report.id}
+            text("SELECT * FROM report_lineage WHERE report_generation_id = :id"), {"id": report.id}
         )
         lineage_record = lineage.first()
 

@@ -14,7 +14,7 @@ from d6_reports.lineage.compressor import decompress_lineage_data
 from d6_reports.lineage.models import ReportLineage
 from d6_reports.lineage.tracker import LineageTracker
 
-from .schemas import LineageLogsResponse, LineageResponse, PanelStatsResponse
+from .schemas import LineageLogsResponse, LineageResponse, PanelStatsResponse, TemplateDistribution
 
 router = APIRouter(prefix="/api/lineage", tags=["lineage"])
 
@@ -23,6 +23,7 @@ router = APIRouter(prefix="/api/lineage", tags=["lineage"])
 def search_lineage(
     lead_id: Optional[str] = Query(None, description="Filter by lead ID"),
     pipeline_run_id: Optional[str] = Query(None, description="Filter by pipeline run ID"),
+    template_version_id: Optional[str] = Query(None, description="Filter by template version ID"),
     start_date: Optional[str] = Query(None, description="Filter by start date (ISO format)"),
     end_date: Optional[str] = Query(None, description="Filter by end date (ISO format)"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum results"),
@@ -50,6 +51,7 @@ def search_lineage(
     results = tracker.search_lineage(
         lead_id=lead_id,
         pipeline_run_id=pipeline_run_id,
+        template_version_id=template_version_id,
         start_date=start_dt,
         end_date=end_dt,
         limit=limit,
@@ -62,11 +64,11 @@ def search_lineage(
             lead_id=lineage.lead_id,
             pipeline_run_id=lineage.pipeline_run_id,
             template_version_id=lineage.template_version_id,
-            pipeline_duration_seconds=lineage.pipeline_duration_seconds,
+            pipeline_duration_seconds=lineage.pipeline_duration_seconds or 0,
             raw_inputs_size_bytes=lineage.raw_inputs_size_bytes or 0,
             compression_ratio=float(lineage.compression_ratio or 0),
             created_at=lineage.created_at,
-            access_count=lineage.access_count,
+            access_count=lineage.access_count or 0,
             last_accessed_at=lineage.last_accessed_at,
         )
         for lineage in results
@@ -105,16 +107,16 @@ def get_lineage_by_report(
         lead_id=lineage.lead_id,
         pipeline_run_id=lineage.pipeline_run_id,
         template_version_id=lineage.template_version_id,
-        pipeline_duration_seconds=lineage.pipeline_duration_seconds,
+        pipeline_duration_seconds=lineage.pipeline_duration_seconds or 0,
         raw_inputs_size_bytes=lineage.raw_inputs_size_bytes or 0,
         compression_ratio=float(lineage.compression_ratio or 0),
         created_at=lineage.created_at,
-        access_count=lineage.access_count,
+        access_count=lineage.access_count or 0,
         last_accessed_at=lineage.last_accessed_at,
     )
 
 
-@router.get("/{lineage_id}/logs", response_model=LineageLogsResponse)
+@router.get("/{lineage_id}/logs")
 def view_lineage_logs(
     lineage_id: str,
     request: Request,
@@ -160,14 +162,20 @@ def view_lineage_logs(
     elif pipeline_logs is None:
         pipeline_logs = decompressed_data.get("pipeline_logs", {})
 
-    return LineageLogsResponse(
-        lineage_id=lineage_id,
-        pipeline_logs=pipeline_logs,
-        raw_inputs=decompressed_data.get("raw_inputs", decompressed_data.get("raw_inputs_sample", {})),
-        pipeline_start_time=lineage.pipeline_start_time,
-        pipeline_end_time=lineage.pipeline_end_time,
-        truncated=truncated,
-    )
+    # Create response with both new fields and compatibility fields
+    response_data = {
+        "lineage_id": lineage_id,
+        "report_id": lineage.report_generation_id,
+        "pipeline_logs": pipeline_logs,
+        "logs": pipeline_logs,  # Compatibility
+        "raw_inputs": decompressed_data.get("raw_inputs", decompressed_data.get("raw_inputs_sample", {})),
+        "pipeline_start_time": lineage.pipeline_start_time,
+        "pipeline_end_time": lineage.pipeline_end_time,
+        "truncated": truncated,
+        "log_size": len(str(pipeline_logs)) if pipeline_logs else 0,
+    }
+    
+    return response_data
 
 
 @router.get("/{lineage_id}/download")
@@ -191,7 +199,7 @@ def download_raw_inputs(
     tracker = LineageTracker(db)
     tracker.record_access(
         lineage_id=lineage_id,
-        action="download",
+        action="download_raw_inputs",
         user_id=current_user,
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("User-Agent"),
@@ -212,10 +220,7 @@ def download_raw_inputs(
         )
     else:
         # No data available
-        return JSONResponse(
-            status_code=204,
-            content={"detail": "No raw inputs available for this lineage"},
-        )
+        raise HTTPException(status_code=404, detail="No raw inputs available for this lineage")
 
 
 @router.get("/panel/stats", response_model=PanelStatsResponse)
@@ -240,10 +245,15 @@ def get_panel_stats(
     template_stats = (
         db.query(ReportLineage.template_version_id, func.count(ReportLineage.id).label("count"))
         .group_by(ReportLineage.template_version_id)
+        .order_by(func.count(ReportLineage.id).desc())
         .all()
     )
 
-    template_distribution = {stats[0]: stats[1] for stats in template_stats}
+    template_distribution = [
+        {"version": stats[0], "count": stats[1]} 
+        for stats in template_stats 
+        if stats[0] is not None
+    ]
 
     # Total storage in MB
     total_bytes = db.query(func.sum(ReportLineage.raw_inputs_size_bytes)).scalar() or 0
@@ -255,3 +265,24 @@ def get_panel_stats(
         template_distribution=template_distribution,
         total_storage_mb=total_storage_mb,
     )
+
+
+@router.delete("/{lineage_id}")
+def delete_lineage(
+    lineage_id: str,
+    db: Session = Depends(get_db),
+    current_user: Optional[str] = Depends(get_current_user_optional),
+):
+    """
+    Delete a lineage record
+    """
+    # Get lineage record
+    lineage = db.query(ReportLineage).filter(ReportLineage.id == lineage_id).first()
+    if not lineage:
+        raise HTTPException(status_code=404, detail="Lineage not found")
+    
+    # Delete the lineage
+    db.delete(lineage)
+    db.commit()
+    
+    return {"message": f"Lineage {lineage_id} deleted successfully"}

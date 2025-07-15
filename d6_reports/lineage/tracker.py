@@ -227,6 +227,7 @@ class LineageTracker:
         self,
         lead_id: Optional[str] = None,
         pipeline_run_id: Optional[str] = None,
+        template_version_id: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         limit: int = 100,
@@ -237,6 +238,7 @@ class LineageTracker:
         Args:
             lead_id: Filter by lead ID
             pipeline_run_id: Filter by pipeline run ID
+            template_version_id: Filter by template version ID
             start_date: Filter by creation date start
             end_date: Filter by creation date end
             limit: Maximum number of results
@@ -253,6 +255,9 @@ class LineageTracker:
 
         if pipeline_run_id:
             query = query.where(ReportLineage.pipeline_run_id == pipeline_run_id)
+
+        if template_version_id:
+            query = query.where(ReportLineage.template_version_id == template_version_id)
 
         if start_date:
             query = query.where(ReportLineage.created_at >= start_date)

@@ -154,7 +154,7 @@ def create_correct_dashboard():
 </body>
 </html>"""
 
-    with open('ai_cto_dashboard.html', 'w') as f:
+    with open("ai_cto_dashboard.html", "w") as f:
         f.write(html_content)
 
     print("✅ Dashboard corrected to show actual failing CI status")

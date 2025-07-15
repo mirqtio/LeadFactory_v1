@@ -35,9 +35,9 @@ class SmartAnalyzer:
             result = subprocess.run(["ruff", "check", ".", "--statistics"], capture_output=True, text=True, timeout=30)
 
             if result.stdout:
-                lines = result.stdout.strip().split('\n')
+                lines = result.stdout.strip().split("\n")
                 for line in lines:
-                    if line.strip() and not line.startswith('Found'):
+                    if line.strip() and not line.startswith("Found"):
                         parts = line.strip().split()
                         if len(parts) >= 3:
                             count = int(parts[0])

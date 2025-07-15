@@ -239,7 +239,7 @@ def update_final_status():
 </body>
 </html>"""
 
-    with open('ai_cto_dashboard.html', 'w') as f:
+    with open("ai_cto_dashboard.html", "w") as f:
         f.write(html_content)
 
     print("\n🎊 Dashboard updated with completion status!")

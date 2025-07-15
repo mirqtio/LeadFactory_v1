@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from core.exceptions import ValidationError
 from d9_delivery.models import BounceTracking, BounceType, DeliveryEvent, DeliveryStatus, EmailDelivery, EventType
@@ -30,43 +32,55 @@ from d9_delivery.webhook_handler import (
     process_sendgrid_webhook,
 )
 from database.models import Base
-from database.session import SessionLocal, engine
 
 
 class TestWebhookHandler:
     """Test webhook handler functionality"""
 
-    @pytest.fixture(scope="class", autouse=True)
-    def setup_database(self):
-        """Set up test database tables"""
-        Base.metadata.create_all(bind=engine)
-        yield
-        Base.metadata.drop_all(bind=engine)
+    @pytest.fixture(scope="function")
+    def db_engine(self):
+        """Create test database engine"""
+        engine = create_engine("sqlite:///:memory:", echo=False)
+        Base.metadata.create_all(engine)
+        yield engine
+        Base.metadata.drop_all(engine)
+
+    @pytest.fixture(scope="function")
+    def db_session(self, db_engine):
+        """Create a database session for testing"""
+        Session = sessionmaker(bind=db_engine)
+        session = Session()
+        yield session
+        session.close()
 
     @pytest.fixture
-    def webhook_handler(self):
+    def webhook_handler(self, db_session):
         """WebhookHandler instance for testing"""
-        return WebhookHandler()
+        # Patch SessionLocal to use our test session
+        with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+            mock_session.return_value.__enter__.return_value = db_session
+            handler = WebhookHandler()
+            handler._session = db_session  # Also store session directly for tests
+            yield handler
 
     @pytest.fixture
-    def sample_email_delivery(self):
+    def sample_email_delivery(self, db_session):
         """Create sample email delivery record"""
         import uuid
 
         unique_id = str(uuid.uuid4())
-        with SessionLocal() as session:
-            delivery = EmailDelivery(
-                delivery_id=f"test_delivery_{unique_id}",
-                to_email="test@example.com",
-                from_email="noreply@leadfactory.com",
-                subject="Test Email",
-                status=DeliveryStatus.SENT.value,
-                sendgrid_message_id=f"sg_msg_{unique_id}",
-            )
-            session.add(delivery)
-            session.commit()
-            # Store both IDs for use in tests
-            return {"db_id": delivery.id, "message_id": delivery.sendgrid_message_id}
+        delivery = EmailDelivery(
+            delivery_id=f"test_delivery_{unique_id}",
+            to_email="test@example.com",
+            from_email="noreply@leadfactory.com",
+            subject="Test Email",
+            status=DeliveryStatus.SENT.value,
+            sendgrid_message_id=f"sg_msg_{unique_id}",
+        )
+        db_session.add(delivery)
+        db_session.commit()
+        # Store both IDs for use in tests
+        return {"db_id": delivery.id, "message_id": delivery.sendgrid_message_id}
 
     def test_verify_signature_valid(self, webhook_handler):
         """Test webhook signature verification with valid signature"""
@@ -229,26 +243,25 @@ class TestWebhookHandler:
         assert success is True
 
         # Verify delivery status was updated
-        with SessionLocal() as session:
-            delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
-                .first()
-            )
-            assert delivery is not None
-            assert delivery.status == DeliveryStatus.DELIVERED.value
-            assert delivery.delivered_at is not None
+        delivery = (
+            webhook_handler._session.query(EmailDelivery)
+            .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
+            .first()
+        )
+        assert delivery is not None
+        assert delivery.status == DeliveryStatus.DELIVERED.value
+        assert delivery.delivered_at is not None
 
-            # Verify event was recorded
-            event_record = (
-                session.query(DeliveryEvent)
-                .filter(
-                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
-                    DeliveryEvent.event_type == EventType.DELIVERED.value,
-                )
-                .first()
+        # Verify event was recorded
+        event_record = (
+            webhook_handler._session.query(DeliveryEvent)
+            .filter(
+                DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
+                DeliveryEvent.event_type == EventType.DELIVERED.value,
             )
-            assert event_record is not None
+            .first()
+        )
+        assert event_record is not None
 
         print("✓ Delivered event processing works")
 
@@ -277,31 +290,30 @@ class TestWebhookHandler:
             )
 
         # Verify delivery status was updated
-        with SessionLocal() as session:
-            delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
-                .first()
-            )
-            assert delivery is not None
-            assert delivery.status == DeliveryStatus.BOUNCED.value
+        delivery = (
+            webhook_handler._session.query(EmailDelivery)
+            .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
+            .first()
+        )
+        assert delivery is not None
+        assert delivery.status == DeliveryStatus.BOUNCED.value
 
-            # Verify bounce tracking was created
-            bounce = session.query(BounceTracking).filter(BounceTracking.email == "test@example.com").first()
-            assert bounce is not None
-            assert bounce.bounce_type == BounceType.HARD.value
-            assert bounce.bounce_reason == "Invalid email address"
+        # Verify bounce tracking was created
+        bounce = webhook_handler._session.query(BounceTracking).filter(BounceTracking.email == "test@example.com").first()
+        assert bounce is not None
+        assert bounce.bounce_type == BounceType.HARD.value
+        assert bounce.bounce_reason == "Invalid email address"
 
-            # Verify bounce event was recorded
-            event_record = (
-                session.query(DeliveryEvent)
-                .filter(
-                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
-                    DeliveryEvent.event_type == EventType.BOUNCED.value,
-                )
-                .first()
+        # Verify bounce event was recorded
+        event_record = (
+            webhook_handler._session.query(DeliveryEvent)
+            .filter(
+                DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
+                DeliveryEvent.event_type == EventType.BOUNCED.value,
             )
-            assert event_record is not None
+            .first()
+        )
+        assert event_record is not None
 
         print("✓ Bounce event processing works")
 
@@ -329,26 +341,25 @@ class TestWebhookHandler:
             )
 
         # Verify delivery status was updated
-        with SessionLocal() as session:
-            delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
-                .first()
-            )
-            assert delivery is not None
-            assert delivery.status == DeliveryStatus.SPAM.value
+        delivery = (
+            webhook_handler._session.query(EmailDelivery)
+            .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
+            .first()
+        )
+        assert delivery is not None
+        assert delivery.status == DeliveryStatus.SPAM.value
 
-            # Verify spam event was recorded
-            event_record = (
-                session.query(DeliveryEvent)
-                .filter(
-                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
-                    DeliveryEvent.event_type == EventType.SPAM.value,
-                )
-                .first()
+        # Verify spam event was recorded
+        event_record = (
+            webhook_handler._session.query(DeliveryEvent)
+            .filter(
+                DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
+                DeliveryEvent.event_type == EventType.SPAM.value,
             )
-            assert event_record is not None
-            assert event_record.event_data["asm_group_id"] == 12345
+            .first()
+        )
+        assert event_record is not None
+        assert event_record.event_data["asm_group_id"] == 12345
 
         print("✓ Spam report event processing works")
 
@@ -370,19 +381,18 @@ class TestWebhookHandler:
         assert success is True
 
         # Verify click event was recorded
-        with SessionLocal() as session:
-            event_record = (
-                session.query(DeliveryEvent)
-                .filter(
-                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
-                    DeliveryEvent.event_type == EventType.CLICKED.value,
-                )
-                .first()
+        event_record = (
+            webhook_handler._session.query(DeliveryEvent)
+            .filter(
+                DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
+                DeliveryEvent.event_type == EventType.CLICKED.value,
             )
-            assert event_record is not None
-            assert event_record.event_data["url"] == "https://example.com/link"
-            assert event_record.event_data["user_agent"] == "Mozilla/5.0"
-            assert event_record.event_data["ip"] == "192.168.1.1"
+            .first()
+        )
+        assert event_record is not None
+        assert event_record.event_data["url"] == "https://example.com/link"
+        assert event_record.event_data["user_agent"] == "Mozilla/5.0"
+        assert event_record.event_data["ip"] == "192.168.1.1"
 
         print("✓ Click event processing works")
 
@@ -403,18 +413,17 @@ class TestWebhookHandler:
         assert success is True
 
         # Verify open event was recorded
-        with SessionLocal() as session:
-            event_record = (
-                session.query(DeliveryEvent)
-                .filter(
-                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
-                    DeliveryEvent.event_type == EventType.OPENED.value,
-                )
-                .first()
+        event_record = (
+            webhook_handler._session.query(DeliveryEvent)
+            .filter(
+                DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
+                DeliveryEvent.event_type == EventType.OPENED.value,
             )
-            assert event_record is not None
-            assert event_record.event_data["user_agent"] == "Mozilla/5.0"
-            assert event_record.event_data["ip"] == "192.168.1.1"
+            .first()
+        )
+        assert event_record is not None
+        assert event_record.event_data["user_agent"] == "Mozilla/5.0"
+        assert event_record.event_data["ip"] == "192.168.1.1"
 
         print("✓ Open event processing works")
 
@@ -441,16 +450,15 @@ class TestWebhookHandler:
             )
 
         # Verify unsubscribe event was recorded
-        with SessionLocal() as session:
-            event_record = (
-                session.query(DeliveryEvent)
-                .filter(
-                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
-                    DeliveryEvent.event_type == EventType.UNSUBSCRIBED.value,
-                )
-                .first()
+        event_record = (
+            webhook_handler._session.query(DeliveryEvent)
+            .filter(
+                DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
+                DeliveryEvent.event_type == EventType.UNSUBSCRIBED.value,
             )
-            assert event_record is not None
+            .first()
+        )
+        assert event_record is not None
 
         print("✓ Unsubscribe event processing works")
 
@@ -470,26 +478,25 @@ class TestWebhookHandler:
         assert success is True
 
         # Verify delivery status was updated
-        with SessionLocal() as session:
-            delivery = (
-                session.query(EmailDelivery)
-                .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
-                .first()
-            )
-            assert delivery is not None
-            assert delivery.status == DeliveryStatus.DROPPED.value
+        delivery = (
+            webhook_handler._session.query(EmailDelivery)
+            .filter(EmailDelivery.sendgrid_message_id == sample_email_delivery["message_id"])
+            .first()
+        )
+        assert delivery is not None
+        assert delivery.status == DeliveryStatus.DROPPED.value
 
-            # Verify dropped event was recorded
-            event_record = (
-                session.query(DeliveryEvent)
-                .filter(
-                    DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
-                    DeliveryEvent.event_type == EventType.DROPPED.value,
-                )
-                .first()
+        # Verify dropped event was recorded
+        event_record = (
+            webhook_handler._session.query(DeliveryEvent)
+            .filter(
+                DeliveryEvent.sendgrid_message_id == sample_email_delivery["message_id"],
+                DeliveryEvent.event_type == EventType.DROPPED.value,
             )
-            assert event_record is not None
-            assert event_record.processing_error == "Bounced Address"
+            .first()
+        )
+        assert event_record is not None
+        assert event_record.processing_error == "Bounced Address"
 
         print("✓ Dropped event processing works")
 
@@ -533,24 +540,23 @@ class TestWebhookHandler:
 
         print("✓ Batch event processing works")
 
-    def test_process_events_with_duplicates(self, webhook_handler):
+    def test_process_events_with_duplicates(self, webhook_handler, db_session):
         """Test processing events with duplicate event IDs"""
 
         # Create a delivery record for this test
         import uuid
 
         unique_id = str(uuid.uuid4())
-        with SessionLocal() as session:
-            delivery = EmailDelivery(
-                delivery_id=f"test_delivery_{unique_id}",
-                to_email="duplicate@example.com",
-                from_email="noreply@leadfactory.com",
-                subject="Test Email",
-                status=DeliveryStatus.SENT.value,
-                sendgrid_message_id="msg_duplicate",
-            )
-            session.add(delivery)
-            session.commit()
+        delivery = EmailDelivery(
+            delivery_id=f"test_delivery_{unique_id}",
+            to_email="duplicate@example.com",
+            from_email="noreply@leadfactory.com",
+            subject="Test Email",
+            status=DeliveryStatus.SENT.value,
+            sendgrid_message_id="msg_duplicate",
+        )
+        db_session.add(delivery)
+        db_session.commit()
 
         # Create first event
         event1 = WebhookEvent(
@@ -581,35 +587,34 @@ class TestWebhookHandler:
 
         print("✓ Duplicate event handling works")
 
-    def test_get_webhook_stats(self, webhook_handler):
+    def test_get_webhook_stats(self, webhook_handler, db_session):
         """Test webhook statistics"""
 
         # Create some test events
-        with SessionLocal() as session:
-            # Create delivery events
-            for i in range(3):
-                event = DeliveryEvent(
-                    email_delivery_id=i + 1,  # Need valid delivery IDs
-                    event_type=EventType.DELIVERED.value,
-                    sendgrid_message_id=f"msg_{i}",
-                    event_timestamp=datetime.now(timezone.utc),
-                )
-                session.add(event)
-
-            # Create bounce tracking
-            import uuid
-
-            bounce_event_id = f"bounce_event_{str(uuid.uuid4())}"
-            bounce = BounceTracking(
-                email_delivery_id=1,  # Need a valid delivery ID
-                email="bounce@example.com",
-                bounce_type=BounceType.HARD.value,
-                bounce_reason="Test bounce",
-                sendgrid_event_id=bounce_event_id,
-                bounced_at=datetime.now(timezone.utc),
+        # Create delivery events
+        for i in range(3):
+            event = DeliveryEvent(
+                email_delivery_id=i + 1,  # Need valid delivery IDs
+                event_type=EventType.DELIVERED.value,
+                sendgrid_message_id=f"msg_{i}",
+                event_timestamp=datetime.now(timezone.utc),
             )
-            session.add(bounce)
-            session.commit()
+            db_session.add(event)
+
+        # Create bounce tracking
+        import uuid
+
+        bounce_event_id = f"bounce_event_{str(uuid.uuid4())}"
+        bounce = BounceTracking(
+            email_delivery_id=1,  # Need a valid delivery ID
+            email="bounce@example.com",
+            bounce_type=BounceType.HARD.value,
+            bounce_reason="Test bounce",
+            sendgrid_event_id=bounce_event_id,
+            bounced_at=datetime.now(timezone.utc),
+        )
+        db_session.add(bounce)
+        db_session.commit()
 
         stats = webhook_handler.get_webhook_stats(hours=24)
 
@@ -629,14 +634,23 @@ class TestWebhookHandler:
 class TestUtilityFunctions:
     """Test utility functions"""
 
-    @pytest.fixture(scope="class", autouse=True)
-    def setup_database(self):
-        """Set up test database tables"""
-        Base.metadata.create_all(bind=engine)
-        yield
-        Base.metadata.drop_all(bind=engine)
+    @pytest.fixture(scope="function")
+    def db_engine(self):
+        """Create test database engine"""
+        engine = create_engine("sqlite:///:memory:", echo=False)
+        Base.metadata.create_all(engine)
+        yield engine
+        Base.metadata.drop_all(engine)
 
-    def test_process_sendgrid_webhook_with_signature(self):
+    @pytest.fixture(scope="function")
+    def db_session(self, db_engine):
+        """Create a database session for testing"""
+        Session = sessionmaker(bind=db_engine)
+        session = Session()
+        yield session
+        session.close()
+
+    def test_process_sendgrid_webhook_with_signature(self, db_session):
         """Test process_sendgrid_webhook utility function with signature"""
 
         payload = json.dumps(
@@ -654,7 +668,9 @@ class TestUtilityFunctions:
         signature = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
         with patch.dict("os.environ", {"SENDGRID_WEBHOOK_SECRET": secret}):
-            results = process_sendgrid_webhook(payload, f"sha256={signature}")
+            with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+                mock_session.return_value.__enter__.return_value = db_session
+                results = process_sendgrid_webhook(payload, f"sha256={signature}")
 
         assert results["total_events"] == 1
         assert results["processed"] == 1
@@ -662,7 +678,7 @@ class TestUtilityFunctions:
 
         print("✓ process_sendgrid_webhook with signature works")
 
-    def test_process_sendgrid_webhook_invalid_signature(self):
+    def test_process_sendgrid_webhook_invalid_signature(self, db_session):
         """Test process_sendgrid_webhook with invalid signature"""
 
         payload = json.dumps(
@@ -677,13 +693,15 @@ class TestUtilityFunctions:
         )
 
         with patch.dict("os.environ", {"SENDGRID_WEBHOOK_SECRET": "test_secret"}):
-            with pytest.raises(ValidationError) as exc_info:
-                process_sendgrid_webhook(payload, "invalid_signature")
+            with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+                mock_session.return_value.__enter__.return_value = db_session
+                with pytest.raises(ValidationError) as exc_info:
+                    process_sendgrid_webhook(payload, "invalid_signature")
 
         assert "Invalid webhook signature" in str(exc_info.value)
         print("✓ Invalid signature rejection in utility works")
 
-    def test_process_sendgrid_webhook_no_signature(self):
+    def test_process_sendgrid_webhook_no_signature(self, db_session):
         """Test process_sendgrid_webhook without signature"""
 
         payload = json.dumps(
@@ -697,7 +715,9 @@ class TestUtilityFunctions:
             ]
         )
 
-        results = process_sendgrid_webhook(payload)
+        with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+            mock_session.return_value.__enter__.return_value = db_session
+            results = process_sendgrid_webhook(payload)
 
         assert results["total_events"] == 1
         assert results["processed"] == 1
@@ -730,28 +750,36 @@ class TestUtilityFunctions:
 class TestIntegration:
     """Test integration scenarios"""
 
-    @pytest.fixture(scope="class", autouse=True)
-    def setup_database(self):
-        """Set up test database tables"""
-        Base.metadata.create_all(bind=engine)
-        yield
-        Base.metadata.drop_all(bind=engine)
+    @pytest.fixture(scope="function")
+    def db_engine(self):
+        """Create test database engine"""
+        engine = create_engine("sqlite:///:memory:", echo=False)
+        Base.metadata.create_all(engine)
+        yield engine
+        Base.metadata.drop_all(engine)
 
-    def test_full_webhook_processing_flow(self):
+    @pytest.fixture(scope="function")
+    def db_session(self, db_engine):
+        """Create a database session for testing"""
+        Session = sessionmaker(bind=db_engine)
+        session = Session()
+        yield session
+        session.close()
+
+    def test_full_webhook_processing_flow(self, db_session):
         """Test complete webhook processing flow"""
 
         # Create email delivery record
-        with SessionLocal() as session:
-            delivery = EmailDelivery(
-                delivery_id="integration_test",
-                to_email="integration@example.com",
-                from_email="noreply@leadfactory.com",
-                subject="Integration Test",
-                status=DeliveryStatus.SENT.value,
-                sendgrid_message_id="integration_msg",
-            )
-            session.add(delivery)
-            session.commit()
+        delivery = EmailDelivery(
+            delivery_id="integration_test",
+            to_email="integration@example.com",
+            from_email="noreply@leadfactory.com",
+            subject="Integration Test",
+            status=DeliveryStatus.SENT.value,
+            sendgrid_message_id="integration_msg",
+        )
+        db_session.add(delivery)
+        db_session.commit()
 
         # Create webhook payload
         payload = json.dumps(
@@ -775,7 +803,9 @@ class TestIntegration:
         )
 
         # Process webhook
-        results = process_sendgrid_webhook(payload)
+        with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+            mock_session.return_value.__enter__.return_value = db_session
+            results = process_sendgrid_webhook(payload)
 
         # Verify processing results
         assert results["total_events"] == 2
@@ -785,39 +815,37 @@ class TestIntegration:
         assert results["events_by_type"]["click"] == 1
 
         # Verify database updates
-        with SessionLocal() as session:
-            # Check delivery status updated
-            delivery = (
-                session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == "integration_msg").first()
-            )
-            assert delivery.status == DeliveryStatus.DELIVERED.value
-            assert delivery.delivered_at is not None
+        # Check delivery status updated
+        delivery = (
+            db_session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == "integration_msg").first()
+        )
+        assert delivery.status == DeliveryStatus.DELIVERED.value
+        assert delivery.delivered_at is not None
 
-            # Check events recorded
-            events = session.query(DeliveryEvent).filter(DeliveryEvent.sendgrid_message_id == "integration_msg").all()
-            assert len(events) == 2
+        # Check events recorded
+        events = db_session.query(DeliveryEvent).filter(DeliveryEvent.sendgrid_message_id == "integration_msg").all()
+        assert len(events) == 2
 
-            event_types = [e.event_type for e in events]
-            assert EventType.DELIVERED.value in event_types
-            assert EventType.CLICKED.value in event_types
+        event_types = [e.event_type for e in events]
+        assert EventType.DELIVERED.value in event_types
+        assert EventType.CLICKED.value in event_types
 
         print("✓ Full webhook processing flow works")
 
-    def test_bounce_with_suppression_flow(self):
+    def test_bounce_with_suppression_flow(self, db_session):
         """Test bounce event with automatic suppression"""
 
         # Create email delivery record
-        with SessionLocal() as session:
-            delivery = EmailDelivery(
-                delivery_id="bounce_test",
-                to_email="bounce_test@example.com",
-                from_email="noreply@leadfactory.com",
-                subject="Bounce Test",
-                status=DeliveryStatus.SENT.value,
-                sendgrid_message_id="bounce_msg",
-            )
-            session.add(delivery)
-            session.commit()
+        delivery = EmailDelivery(
+            delivery_id="bounce_test",
+            to_email="bounce_test@example.com",
+            from_email="noreply@leadfactory.com",
+            subject="Bounce Test",
+            status=DeliveryStatus.SENT.value,
+            sendgrid_message_id="bounce_msg",
+        )
+        db_session.add(delivery)
+        db_session.commit()
 
         # Create bounce webhook payload
         payload = json.dumps(
@@ -835,25 +863,26 @@ class TestIntegration:
         )
 
         # Process webhook
-        results = process_sendgrid_webhook(payload)
+        with patch('d9_delivery.webhook_handler.SessionLocal') as mock_session:
+            mock_session.return_value.__enter__.return_value = db_session
+            results = process_sendgrid_webhook(payload)
 
         assert results["processed"] == 1
         assert results["events_by_type"]["bounce"] == 1
 
         # Verify bounce tracking and suppression
-        with SessionLocal() as session:
-            # Check delivery status updated to bounced
-            delivery = session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == "bounce_msg").first()
-            assert delivery.status == DeliveryStatus.BOUNCED.value
+        # Check delivery status updated to bounced
+        delivery = db_session.query(EmailDelivery).filter(EmailDelivery.sendgrid_message_id == "bounce_msg").first()
+        assert delivery.status == DeliveryStatus.BOUNCED.value
 
-            # Check bounce tracking created
-            bounce = session.query(BounceTracking).filter(BounceTracking.email == "bounce_test@example.com").first()
-            assert bounce is not None
-            assert bounce.bounce_type == BounceType.HARD.value
-            assert bounce.bounce_reason == "550 Invalid recipient"
+        # Check bounce tracking created
+        bounce = db_session.query(BounceTracking).filter(BounceTracking.email == "bounce_test@example.com").first()
+        assert bounce is not None
+        assert bounce.bounce_type == BounceType.HARD.value
+        assert bounce.bounce_reason == "550 Invalid recipient"
 
-            # Check suppression list (would be added by compliance manager)
-            # Note: This tests the integration between webhook handler and compliance manager
+        # Check suppression list (would be added by compliance manager)
+        # Note: This tests the integration between webhook handler and compliance manager
 
         print("✓ Bounce with suppression flow works")
 

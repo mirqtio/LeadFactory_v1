@@ -72,7 +72,7 @@ def create_audit_log(
     # Skip audit logging in test environment
     if os.getenv("ENVIRONMENT") == "test":
         return
-        
+
     try:
         user_context = AuditContext.get_user_context()
 

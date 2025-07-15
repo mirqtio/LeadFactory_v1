@@ -29,23 +29,34 @@ def client(db_session):
     # Override database dependency for all modules that have their own get_db
     app.dependency_overrides[get_db] = override_get_db
 
-    # Import and override all module-specific get_db functions
-    from batch_runner.api import get_db as batch_get_db
-    from lead_explorer.api import get_db as lead_get_db
-    from d1_targeting.api import get_db as targeting_get_db
-    from d3_assessment.api import get_db as assessment_get_db
-    from d7_storefront.api import get_db as storefront_get_db
-    from d10_analytics.api import get_db as analytics_get_db
-    from d11_orchestration.api import get_db as orchestration_get_db
-    
-    # Override all get_db functions to use the test session
-    app.dependency_overrides[batch_get_db] = override_get_db
-    app.dependency_overrides[lead_get_db] = override_get_db
-    app.dependency_overrides[targeting_get_db] = override_get_db
-    app.dependency_overrides[assessment_get_db] = override_get_db
-    app.dependency_overrides[storefront_get_db] = override_get_db
-    app.dependency_overrides[analytics_get_db] = override_get_db
-    app.dependency_overrides[orchestration_get_db] = override_get_db
+    # Import and override only the module-specific get_db functions that exist
+    try:
+        from batch_runner.api import get_db as batch_get_db
+
+        app.dependency_overrides[batch_get_db] = override_get_db
+    except ImportError:
+        pass
+
+    try:
+        from d1_targeting.api import get_db as targeting_get_db
+
+        app.dependency_overrides[targeting_get_db] = override_get_db
+    except ImportError:
+        pass
+
+    try:
+        from d11_orchestration.api import get_db as orchestration_get_db
+
+        app.dependency_overrides[orchestration_get_db] = override_get_db
+    except ImportError:
+        pass
+
+    try:
+        from lead_explorer.api import get_db as lead_get_db
+
+        app.dependency_overrides[lead_get_db] = override_get_db
+    except ImportError:
+        pass
 
     with TestClient(app) as c:
         yield c
