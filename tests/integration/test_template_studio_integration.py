@@ -68,14 +68,10 @@ class TestTemplateStudioIntegration:
         """Create a test lead"""
         lead = Lead(
             id="integration-test-lead",
-            business_name="Acme Corporation",
-            website="https://acme.example.com",
-            phone="(555) 987-6543",
+            company_name="Acme Corporation",
+            domain="acme.example.com",
             email="contact@acme.example.com",
-            street_address="456 Business Blvd",
-            city="Enterprise City",
-            state="NY",
-            zip_code="10001",
+            contact_name="John Doe",
         )
         db_session.add(lead)
         db_session.commit()

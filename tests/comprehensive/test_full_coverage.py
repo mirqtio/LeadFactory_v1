@@ -61,8 +61,8 @@ class TestD0GatewayComprehensive:
 
         for provider_name, provider_class in providers:
             # Test factory creation
-            with patch.object(factory, "_get_api_key", return_value="test-key"):
-                provider = factory.create_provider(provider_name)
+            with patch.object(factory, "_get_provider_config", return_value={"api_key": "test-key"}):
+                provider = factory.create_client(provider_name)
                 assert provider is not None
 
                 # Test provider methods
@@ -94,7 +94,7 @@ class TestD0GatewayComprehensive:
         ]
 
         for error, expected_status in error_scenarios:
-            with patch.object(facade._factory, "create_provider") as mock_create:
+            with patch.object(facade._factory, "create_client") as mock_create:
                 mock_provider = MagicMock()
                 mock_provider.execute.side_effect = error
                 mock_create.return_value = mock_provider
