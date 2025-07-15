@@ -46,3 +46,50 @@ def db_session():
 
     session.close()
     Session.remove()
+
+
+@pytest.fixture(scope="function")
+async def async_db_session():
+    """Create an async database session for testing"""
+    from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+    from sqlalchemy.pool import StaticPool
+
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:", 
+        echo=False, 
+        poolclass=StaticPool, 
+        connect_args={"check_same_thread": False}
+    )
+    
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with AsyncSession(engine) as session:
+        yield session
+
+    await engine.dispose()
+
+
+@pytest.fixture
+def test_report_template(db_session):
+    """Create a test report template"""
+    from d6_reports.models import ReportTemplate, ReportType, TemplateFormat
+    
+    template = ReportTemplate(
+        id="test-template-001",
+        name="test_template",
+        display_name="Test Template",
+        description="Test template for integration tests",
+        template_type=ReportType.BUSINESS_AUDIT,
+        format=TemplateFormat.HTML,
+        version="1.0.0",
+        html_template="<html>{{content}}</html>",
+        css_styles="body { font-family: Arial; }",
+        is_active=True,
+        is_default=True,
+        supports_mobile=True,
+        supports_print=True,
+    )
+    db_session.add(template)
+    db_session.commit()
+    return template
