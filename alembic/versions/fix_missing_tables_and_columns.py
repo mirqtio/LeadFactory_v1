@@ -100,7 +100,7 @@ def upgrade() -> None:
         sa.Column("feature_overrides", sa.JSON(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
         sa.Column("updated_at", sa.DateTime(), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
-        sa.ForeignKeyConstraint(["experiment_id"], [f"experiments.{experiment_id_col}"], name="fk_experiment_variants_experiment"),
+        sa.ForeignKeyConstraint(["experiment_id"], ["experiments.id"], name="fk_experiment_variants_experiment"),
         sa.PrimaryKeyConstraint("variant_id"),
         sa.UniqueConstraint("experiment_id", "variant_key", name="uq_experiment_variant_key"),
         sa.CheckConstraint("weight >= 0", name="check_weight_positive"),

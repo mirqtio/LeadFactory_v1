@@ -2,6 +2,7 @@
 Configuration for integration tests
 """
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -48,6 +49,14 @@ def db_session():
 
     session.close()
     Session.remove()
+
+
+@pytest.fixture
+def test_client():
+    """Create a test client for API testing"""
+    from main import app
+    
+    return TestClient(app)
 
 
 @pytest.fixture(scope="function")

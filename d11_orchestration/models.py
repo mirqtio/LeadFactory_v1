@@ -288,7 +288,7 @@ class ExperimentVariant(Base):
 
     # Primary identification
     variant_id = Column(String(36), primary_key=True, default=generate_uuid)
-    experiment_id = Column(String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True)
+    experiment_id = Column(String(36), ForeignKey("experiments.id"), nullable=False, index=True)
     variant_key = Column(String(100), nullable=False)  # e.g., "control", "treatment_a"
 
     # Variant configuration
@@ -335,7 +335,7 @@ class VariantAssignment(Base):
 
     # Primary identification
     assignment_id = Column(String(36), primary_key=True, default=generate_uuid)
-    experiment_id = Column(String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True)
+    experiment_id = Column(String(36), ForeignKey("experiments.id"), nullable=False, index=True)
     variant_id = Column(
         String(36),
         ForeignKey("experiment_variants.variant_id"),
@@ -463,7 +463,7 @@ class ExperimentMetric(Base):
 
     # Primary identification
     metric_id = Column(String(36), primary_key=True, default=generate_uuid)
-    experiment_id = Column(String(36), ForeignKey("experiments.experiment_id"), nullable=False, index=True)
+    experiment_id = Column(String(36), ForeignKey("experiments.id"), nullable=False, index=True)
     variant_id = Column(
         String(36),
         ForeignKey("experiment_variants.variant_id"),
