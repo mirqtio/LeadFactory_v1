@@ -55,23 +55,25 @@ async def async_db_session():
     """Create an async database session for testing"""
     from sqlalchemy.pool import StaticPool
 
-    # Create async engine for SQLite
     engine = create_async_engine(
-        "sqlite+aiosqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
+        "sqlite+aiosqlite:///:memory:", 
+        echo=False, 
+        poolclass=StaticPool,
+        connect_args={"check_same_thread": False}
     )
-
-    # Create all tables
+    
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-    # Create async session factory
-    AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-    # Create session
+    
+    AsyncSessionLocal = async_sessionmaker(
+        engine, 
+        class_=AsyncSession, 
+        expire_on_commit=False
+    )
+    
     async with AsyncSessionLocal() as session:
         yield session
-
-    # Cleanup
+    
     await engine.dispose()
 
 
@@ -82,7 +84,7 @@ def test_report_template(db_session):
         id="test-template-001",
         name="test_template",
         display_name="Test Template",
-        description="Test template for unit tests",
+        description="Test template for integration tests",
         template_type=ReportType.BUSINESS_AUDIT,
         format=TemplateFormat.HTML,
         version="1.0.0",

@@ -943,10 +943,10 @@ def test_no_data_corruption(test_db_session):
         print(f"\n🧪 Testing data consistency: {scenario['name']}")
 
         # Create savepoint for scenario testing
-        savepoint = test_db_session.begin_nested()
-        scenario_start_time = datetime.utcnow()
+        async with test_db_session.begin_nested() as savepoint:
+            scenario_start_time = datetime.utcnow()
 
-        try:
+            try:
             operations_completed = []
             operations_failed = []
             consistency_maintained = True
