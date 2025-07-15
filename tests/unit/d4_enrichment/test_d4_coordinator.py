@@ -628,7 +628,7 @@ class TestTask043AcceptanceCriteria:
         # Also allow better than expected performance (ratio < 5)
         assert ratio1 <= 30, f"Performance degradation detected: {ratio1}x for 10x size increase"
         assert ratio2 <= 30, f"Performance degradation detected: {ratio2}x for 10x size increase"
-        
+
         # Ensure it's still O(n) - ratio should be at least 1x
         assert ratio1 >= 1, f"Performance ratio too low: {ratio1}x (should be at least 1x)"
         assert ratio2 >= 1, f"Performance ratio too low: {ratio2}x (should be at least 1x)"

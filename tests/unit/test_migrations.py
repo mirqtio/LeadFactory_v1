@@ -182,9 +182,8 @@ class TestMigrations:
                 "enrichment_requests",
                 "enrichment_results",
                 "enrichment_audit_logs",
-                "campaigns",
-                "campaign_targets",
-                "campaign_batches",
+                # Note: campaigns, campaign_batches, and campaign_targets are in d1_targeting
+                "campaign_targets",  # Removed campaigns and campaign_batches since they exist in d1_targeting
                 "email_templates",
                 "email_content",
                 "email_deliveries",
@@ -202,9 +201,9 @@ class TestMigrations:
                 "geographic_boundaries",
                 "sourced_locations",
                 "yelp_metadata",
-                "experiment_variants",
+                # Note: experiment_variants is in d11_orchestration
                 "experiment_metrics",
-                "fct_api_cost",
+                # Note: fct_api_cost exists as APICost in database.models
                 "agg_daily_cost",
                 "pipeline_tasks",
             }
