@@ -56,24 +56,17 @@ async def async_db_session():
     from sqlalchemy.pool import StaticPool
 
     engine = create_async_engine(
-        "sqlite+aiosqlite:///:memory:", 
-        echo=False, 
-        poolclass=StaticPool,
-        connect_args={"check_same_thread": False}
+        "sqlite+aiosqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
     )
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
-    AsyncSessionLocal = async_sessionmaker(
-        engine, 
-        class_=AsyncSession, 
-        expire_on_commit=False
-    )
-    
+
+    AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
     async with AsyncSessionLocal() as session:
         yield session
-    
+
     await engine.dispose()
 
 

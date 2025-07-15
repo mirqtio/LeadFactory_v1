@@ -184,7 +184,13 @@ def clean_test_environment(test_settings, test_db_session):
 def _cleanup_test_data(session):
     """Clean up all test data from database"""
     # Import the actual models that exist
-    from d11_orchestration.models import Experiment, ExperimentMetric, ExperimentVariant, PipelineRun, VariantAssignment  # noqa: F401
+    from d11_orchestration.models import (  # noqa: F401
+        Experiment,
+        ExperimentMetric,
+        ExperimentVariant,
+        PipelineRun,
+        VariantAssignment,
+    )
     from database.models import (  # noqa: F401
         Batch,
         Business,
