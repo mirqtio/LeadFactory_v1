@@ -1,8 +1,10 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main ]
 
@@ -12,7 +14,7 @@ env:
 
 jobs:
   test:
-    name: Run Tests in Docker
+    name: Run Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     
@@ -165,7 +167,7 @@ jobs:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     timeout-minutes: 20
     
     permissions:
@@ -180,6 +182,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
     
     - name: Log in to Container Registry
+      if: github.event_name != 'pull_request'
       uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY }}
@@ -194,6 +197,8 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
     
@@ -201,68 +206,10 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        push: true
+        file: ./Dockerfile
+        push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
         platforms: linux/amd64
-
-  deploy:
-    name: Deploy to VPS (Optional)
-    runs-on: ubuntu-latest
-    needs: build
-    # Only deploy on main branch pushes
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    timeout-minutes: 10
-    continue-on-error: true  # Make the entire job optional
-    
-    steps:
-    - name: Check deployment prerequisites
-      id: check_deploy
-      run: |
-        if [ -z "${{ secrets.VPS_HOST }}" ] || [ -z "${{ secrets.VPS_USERNAME }}" ] || [ -z "${{ secrets.VPS_SSH_KEY }}" ]; then
-          echo "::warning::VPS deployment secrets not configured. Skipping deployment."
-          echo "deploy=false" >> $GITHUB_OUTPUT
-        else
-          echo "deploy=true" >> $GITHUB_OUTPUT
-        fi
-    
-    - name: Deploy to VPS
-      if: steps.check_deploy.outputs.deploy == 'true'
-      uses: appleboy/ssh-action@v1.0.3
-      continue-on-error: true  # Don't fail the entire workflow if deployment fails
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        timeout: 30s
-        script: |
-          set -e
-          cd /opt/leadfactory
-          
-          # Check if docker-compose.yml exists
-          if [ ! -f docker-compose.yml ]; then
-            echo "::warning::docker-compose.yml not found in /opt/leadfactory"
-            echo "Deployment path may need to be configured on the VPS"
-            exit 0  # Exit gracefully
-          fi
-          
-          # Pull latest images
-          docker-compose pull || echo "Some images failed to pull, continuing..."
-          
-          # Deploy with health check
-          docker-compose up -d --remove-orphans
-          
-          # Wait for services to be ready
-          sleep 10
-          
-          # Check if main service is running
-          if ! docker-compose ps | grep -q "Up"; then
-            echo "::warning::Services may not have started properly"
-            docker-compose logs --tail=50
-            # Don't exit with error, just warn
-          fi
-          
-          # Clean up old images
-          docker system prune -f
