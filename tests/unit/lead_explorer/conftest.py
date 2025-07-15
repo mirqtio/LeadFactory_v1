@@ -1,6 +1,7 @@
 """
 Shared test configuration for Lead Explorer tests
 """
+import uuid
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -33,11 +34,13 @@ def db_session():
 
 @pytest.fixture
 def sample_lead_data():
-    """Sample lead data for testing"""
+    """Sample lead data for testing with unique domain"""
+    # Generate unique domain to avoid constraint violations
+    unique_id = str(uuid.uuid4())[:8]
     return {
-        "email": "test@example.com",
-        "domain": "example.com",
-        "company_name": "Example Corp",
+        "email": f"test-{unique_id}@example-{unique_id}.com",
+        "domain": f"example-{unique_id}.com",
+        "company_name": f"Example Corp {unique_id}",
         "contact_name": "John Doe",
         "is_manual": True,
         "source": "manual_entry",

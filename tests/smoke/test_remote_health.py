@@ -9,6 +9,12 @@ import time
 import pytest
 import requests
 
+# Skip these tests in CI/Docker environments where no app server is running
+pytestmark = pytest.mark.skipif(
+    os.getenv("CI") == "true" or os.getenv("DOCKER_ENV") == "true",
+    reason="Remote health checks skipped in CI/Docker environment"
+)
+
 
 def get_base_url():
     """Get the base URL from environment or use default"""

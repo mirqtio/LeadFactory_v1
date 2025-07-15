@@ -91,3 +91,10 @@ def test_report_template(db_session):
     db_session.add(template)
     db_session.commit()
     return template
+
+
+# Import cleanup fixture to ensure it's available
+try:
+    from tests.fixtures.cleanup import cleanup_database  # noqa: F401
+except ImportError:
+    pass

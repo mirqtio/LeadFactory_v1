@@ -30,13 +30,15 @@ class TestLeadModel:
 
     def test_lead_creation_with_domain_only(self, db_session):
         """Test creating a lead with only domain"""
-        lead = Lead(domain="example.com", is_manual=False, source="csv_upload")
+        # Use unique domain for each test
+        unique_id = str(uuid.uuid4())[:8]
+        lead = Lead(domain=f"example-{unique_id}.com", is_manual=False, source="csv_upload")
 
         db_session.add(lead)
         db_session.commit()
 
         assert lead.id is not None
-        assert lead.domain == "example.com"
+        assert lead.domain == f"example-{unique_id}.com"
         assert lead.email is None
         assert lead.is_manual is False
         assert lead.source == "csv_upload"

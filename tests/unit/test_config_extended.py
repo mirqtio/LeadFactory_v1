@@ -76,6 +76,7 @@ class TestExtendedConfig:
             assert settings.environment == "development"
 
         # Production environment - need to clear CI env var to allow USE_STUBS=false
+        # Also need to provide API keys when USE_STUBS=false
         with mock.patch.dict(
             os.environ,
             {
@@ -83,6 +84,9 @@ class TestExtendedConfig:
                 "USE_STUBS": "false",
                 "SECRET_KEY": "production-secret-key-123-very-secure-key",
                 "CI": "",  # Clear CI environment variable
+                "GOOGLE_API_KEY": "test-google-key",
+                "SENDGRID_API_KEY": "test-sendgrid-key",
+                "OPENAI_API_KEY": "test-openai-key",
             },
             clear=True,
         ):

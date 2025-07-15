@@ -1,7 +1,7 @@
 """
 Unit tests for Template Studio API (P0-024)
 """
-
+import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -308,7 +308,7 @@ index abc123..def456 100644
         test_client.app.dependency_overrides[get_db] = override_get_db
 
         # Create a lead with XSS attempt
-        xss_lead = Lead(id="xss-test", company_name="<script>alert('XSS')</script>", domain="example.com")
+        xss_lead = Lead(id="xss-test", company_name="<script>alert('XSS')</script>", domain=f"example-{uuid.uuid4().hex[:8]}.com")
         db_session.add(xss_lead)
         db_session.commit()
 
