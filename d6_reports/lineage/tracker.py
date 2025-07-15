@@ -2,10 +2,12 @@
 Lineage tracking implementation
 """
 
+import inspect
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from core.config import settings
@@ -31,24 +33,40 @@ class LineageTracker:
     Tracks and manages report generation lineage
     """
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Union[Session, AsyncSession]):
         self.session = session
 
     def capture_lineage(
         self,
         report_generation_id: str,
         lineage_data: LineageData,
-    ) -> Optional[ReportLineage]:
+    ) -> Union[Optional[ReportLineage], "Awaitable[Optional[ReportLineage]]"]:
         """
         Capture lineage information for a report generation
+
+        Automatically detects sync vs async session and routes accordingly.
 
         Args:
             report_generation_id: ID of the report generation
             lineage_data: Lineage data to capture
 
         Returns:
-            Created ReportLineage instance or None if capture fails
+            Created ReportLineage instance or coroutine for async sessions
         """
+        # Detect if this is an async session
+        if isinstance(self.session, AsyncSession):
+            # Return coroutine for async session
+            return self._capture_lineage_async(report_generation_id, lineage_data)
+        else:
+            # Handle sync session immediately
+            return self._capture_lineage_sync(report_generation_id, lineage_data)
+
+    def _capture_lineage_sync(
+        self,
+        report_generation_id: str,
+        lineage_data: LineageData,
+    ) -> Optional[ReportLineage]:
+        """Synchronous implementation of lineage capture"""
         if not getattr(settings, "ENABLE_REPORT_LINEAGE", True):
             return None
 
@@ -90,6 +108,55 @@ class LineageTracker:
             # Log error but don't fail report generation
             print(f"Failed to capture lineage: {e}")
             self.session.rollback()
+            return None
+
+    async def _capture_lineage_async(
+        self,
+        report_generation_id: str,
+        lineage_data: LineageData,
+    ) -> Optional[ReportLineage]:
+        """Asynchronous implementation of lineage capture"""
+        if not getattr(settings, "ENABLE_REPORT_LINEAGE", True):
+            return None
+
+        try:
+            # Prepare data for compression
+            data_to_compress = {
+                "lead_id": lineage_data.lead_id,
+                "pipeline_run_id": lineage_data.pipeline_run_id,
+                "template_version_id": lineage_data.template_version_id,
+                "pipeline_start_time": lineage_data.pipeline_start_time.isoformat(),
+                "pipeline_end_time": lineage_data.pipeline_end_time.isoformat(),
+                "pipeline_logs": lineage_data.pipeline_logs,
+                "raw_inputs": lineage_data.raw_inputs,
+            }
+
+            # Compress the data
+            compressed_data, compression_ratio = compress_lineage_data(data_to_compress)
+
+            # Create lineage record
+            lineage = ReportLineage(
+                report_generation_id=report_generation_id,
+                lead_id=lineage_data.lead_id,
+                pipeline_run_id=lineage_data.pipeline_run_id,
+                template_version_id=lineage_data.template_version_id,
+                pipeline_start_time=lineage_data.pipeline_start_time,
+                pipeline_end_time=lineage_data.pipeline_end_time,
+                pipeline_logs=lineage_data.pipeline_logs.get("summary", {}),
+                raw_inputs_compressed=compressed_data,
+                raw_inputs_size_bytes=len(compressed_data),
+                compression_ratio=compression_ratio,
+            )
+
+            self.session.add(lineage)
+            await self.session.commit()
+
+            return lineage
+
+        except Exception as e:
+            # Log error but don't fail report generation
+            print(f"Failed to capture lineage: {e}")
+            await self.session.rollback()
             return None
 
     def record_access(

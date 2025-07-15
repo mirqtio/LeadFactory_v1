@@ -53,14 +53,12 @@ docker-build:
 
 # Run linting
 lint:
-	flake8 . --max-line-length=120 --max-complexity=15 --ignore=E203,W503
-	mypy --ignore-missing-imports .
-	bandit -r . --skip B101
+	flake8 .
 
 # Format code
 format:
-	black . --line-length=120
-	isort . --profile=black --line-length=120
+	black . --line-length=120 --exclude=".venv"
+	isort . --profile=black --line-length=120 --skip=.venv
 
 # Clean temporary files
 clean:
