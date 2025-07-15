@@ -243,7 +243,7 @@ class TestExperimentModels:
 
         # Create variants
         control_variant = ExperimentVariant(
-            experiment_id=experiment.experiment_id,
+            experiment_id=experiment.id,
             variant_key="control",
             name="control",
             description="Control variant",
@@ -252,7 +252,7 @@ class TestExperimentModels:
         )
 
         urgency_variant = ExperimentVariant(
-            experiment_id=experiment.experiment_id,
+            experiment_id=experiment.id,
             variant_key="urgency",
             name="urgency",
             description="Urgency variant",
@@ -260,7 +260,7 @@ class TestExperimentModels:
         )
 
         question_variant = ExperimentVariant(
-            experiment_id=experiment.experiment_id,
+            experiment_id=experiment.id,
             variant_key="question",
             name="question",
             description="Question variant",
