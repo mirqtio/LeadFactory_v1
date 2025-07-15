@@ -123,9 +123,9 @@ fi
 echo -e "\n📋 Phase 5: Test Infrastructure Validation"
 echo "========================================="
 # Check if pytest can collect tests without errors
-if pytest --collect-only -q 2>&1 | grep -E "ERROR|ERRORS|error" > /dev/null; then
+if pytest --collect-only -q 2>&1 | grep -E "ERROR|ERRORS|FAILED|ImportError|SyntaxError" > /dev/null; then
     log_failure "Test collection errors - some tests have import/syntax issues"
-    pytest --collect-only 2>&1 | grep -E "ERROR|error" | head -10
+    pytest --collect-only 2>&1 | grep -E "ERROR|ERRORS|FAILED|ImportError|SyntaxError" | head -10
 else
     TOTAL_TESTS=$(pytest --collect-only -q 2>&1 | grep -E "\.py::" | wc -l)
     log_success "Test collection - $TOTAL_TESTS tests found"
