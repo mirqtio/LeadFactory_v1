@@ -115,7 +115,7 @@ class TestStrategicAPICoverage:
                     "estimated_size": 1000
                 },
             )
-            assert response.status_code == 200
+            assert response.status_code == 201
 
             # Check quota
             response = client.get("/api/v1/targeting/quota")
