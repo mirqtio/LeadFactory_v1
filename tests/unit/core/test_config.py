@@ -22,29 +22,21 @@ class TestEnvironmentConfiguration:
 
     def test_default_settings(self, monkeypatch):
         """Test default settings initialization"""
-        import os
-
-        # Check if we're in Docker environment to set correct expectations
-        is_docker_container = os.path.exists("/.dockerenv") or os.environ.get("DOCKER_ENV") == "true"
-        expected_stub_url = "http://stub-server:5010" if is_docker_container else "http://localhost:5010"
-
         # Clear environment variables that might be set by conftest
         monkeypatch.delenv("ENVIRONMENT", raising=False)
         monkeypatch.delenv("USE_STUBS", raising=False)
-
-        # Only clear STUB_BASE_URL if not in Docker (let Docker environment use service name)
-        if not is_docker_container:
-            monkeypatch.delenv("STUB_BASE_URL", raising=False)
+        monkeypatch.delenv("STUB_BASE_URL", raising=False)
 
         # Clear settings cache to ensure new settings are loaded
         from core.config import get_settings
 
         get_settings.cache_clear()
 
-        settings = Settings()
+        # Create Settings without loading from .env file to test true defaults
+        settings = Settings(_env_file=None)
         assert settings.environment == "development"
         assert settings.use_stubs is True
-        assert settings.stub_base_url == expected_stub_url
+        assert settings.stub_base_url == "http://localhost:5010"  # This is the default in Settings class
         # Provider flags should be False when use_stubs is True
         assert settings.enable_gbp is False
         assert settings.enable_pagespeed is False
@@ -324,6 +316,24 @@ class TestEnvironmentConfiguration:
         settings1 = get_settings()
         settings2 = get_settings()
         assert settings1 is settings2  # Same instance
+
+    def test_environment_specific_stub_url(self, monkeypatch):
+        """Test that STUB_BASE_URL from environment takes precedence"""
+        # Test with Docker environment URL
+        monkeypatch.setenv("STUB_BASE_URL", "http://stub-server:5010")
+        monkeypatch.setenv("USE_STUBS", "true")
+        
+        # Clear cache to pick up new env vars
+        from core.config import get_settings
+        get_settings.cache_clear()
+        
+        settings = Settings(_env_file=None)
+        assert settings.stub_base_url == "http://stub-server:5010"
+        
+        # Test with localhost URL
+        monkeypatch.setenv("STUB_BASE_URL", "http://localhost:5010")
+        settings2 = Settings(_env_file=None)
+        assert settings2.stub_base_url == "http://localhost:5010"
 
     def test_wave_b_feature_flags_default_false(self, monkeypatch, tmp_path):
         """Test that Wave B feature flags default to False"""
