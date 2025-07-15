@@ -98,9 +98,21 @@ class TestStrategicAPICoverage:
             response = client.post(
                 "/api/v1/targeting/universe",
                 json={
-                    "geo_filters": {"states": ["CA", "NY"]},
-                    "vertical_filters": {"industries": ["restaurant"]},
-                    "size": 1000,
+                    "name": "test_universe",
+                    "description": "Test universe for integration testing",
+                    "targeting_criteria": {
+                        "verticals": ["restaurants"],
+                        "geographic_constraints": [
+                            {
+                                "level": "state",
+                                "values": ["CA", "NY"]
+                            }
+                        ],
+                        "website_required": True,
+                        "phone_required": True,
+                        "email_required": False
+                    },
+                    "estimated_size": 1000
                 },
             )
             assert response.status_code == 200
