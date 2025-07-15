@@ -24,17 +24,17 @@ WITH funnel_stages AS (
         fe.session_id,
         fe.business_id,
         fe.campaign_id,
-        fe.funnel_stage,
-        MIN(fe.occurred_at) as stage_entry_time,
+        fe.stage,
+        MIN(fe.timestamp) as stage_entry_time,
         COUNT(*) as stage_events,
-        SUM(CASE WHEN fe.success = true THEN 1 ELSE 0 END) as successful_events,
-        SUM(fe.cost_cents) as stage_cost_cents,
-        AVG(fe.duration_ms) as avg_duration_ms,
-        DATE(MIN(fe.occurred_at)) as cohort_date
+        SUM(CASE WHEN fe.event_type IN ('PIPELINE_SUCCESS', 'ASSESSMENT_SUCCESS', 'PAYMENT_SUCCESS') THEN 1 ELSE 0 END) as successful_events,
+        0 as stage_cost_cents, -- placeholder since cost_cents doesn't exist
+        0 as avg_duration_ms, -- placeholder since duration_ms doesn't exist
+        DATE(MIN(fe.timestamp)) as cohort_date
     FROM funnel_events fe
     WHERE fe.session_id IS NOT NULL
-        AND fe.funnel_stage IS NOT NULL
-    GROUP BY fe.session_id, fe.business_id, fe.campaign_id, fe.funnel_stage
+        AND fe.stage IS NOT NULL
+    GROUP BY fe.session_id, fe.business_id, fe.campaign_id, fe.stage
 ),
 stage_sequences AS (
     -- Create stage sequences for each session
@@ -48,7 +48,7 @@ stage_sequences AS (
             PARTITION BY fs.session_id 
             ORDER BY fs.stage_entry_time
         ) as next_stage_time,
-        LEAD(fs.funnel_stage) OVER (
+        LEAD(fs.stage) OVER (
             PARTITION BY fs.session_id 
             ORDER BY fs.stage_entry_time
         ) as next_stage
@@ -59,7 +59,7 @@ funnel_conversions AS (
     SELECT 
         ss.cohort_date,
         ss.campaign_id,
-        ss.funnel_stage as from_stage,
+        ss.stage as from_stage,
         ss.next_stage as to_stage,
         COUNT(*) as sessions_started,
         COUNT(ss.next_stage) as sessions_converted,
@@ -80,8 +80,8 @@ funnel_conversions AS (
         SUM(ss.stage_cost_cents) as total_cost_cents,
         AVG(ss.avg_duration_ms) as avg_stage_duration_ms
     FROM stage_sequences ss
-    WHERE ss.funnel_stage IS NOT NULL
-    GROUP BY ss.cohort_date, ss.campaign_id, ss.funnel_stage, ss.next_stage
+    WHERE ss.stage IS NOT NULL
+    GROUP BY ss.cohort_date, ss.campaign_id, ss.stage, ss.next_stage
 ),
 overall_funnel AS (
     -- Calculate overall funnel metrics
@@ -89,20 +89,20 @@ overall_funnel AS (
         fc.cohort_date,
         fc.campaign_id,
         COUNT(DISTINCT 
-            CASE WHEN fc.from_stage = 'targeting' THEN fc.sessions_started ELSE NULL END
+            CASE WHEN fc.from_stage = 'TARGETING' THEN fc.sessions_started ELSE NULL END
         ) as funnel_entries,
         COUNT(DISTINCT 
-            CASE WHEN fc.to_stage = 'conversion' THEN fc.sessions_converted ELSE NULL END
+            CASE WHEN fc.to_stage = 'PAYMENT' THEN fc.sessions_converted ELSE NULL END
         ) as funnel_conversions,
         ROUND(
             CASE 
                 WHEN COUNT(DISTINCT 
-                    CASE WHEN fc.from_stage = 'targeting' THEN fc.sessions_started ELSE NULL END
+                    CASE WHEN fc.from_stage = 'TARGETING' THEN fc.sessions_started ELSE NULL END
                 ) > 0 THEN 
                     (COUNT(DISTINCT 
-                        CASE WHEN fc.to_stage = 'conversion' THEN fc.sessions_converted ELSE NULL END
+                        CASE WHEN fc.to_stage = 'PAYMENT' THEN fc.sessions_converted ELSE NULL END
                     )::decimal / COUNT(DISTINCT 
-                        CASE WHEN fc.from_stage = 'targeting' THEN fc.sessions_started ELSE NULL END
+                        CASE WHEN fc.from_stage = 'TARGETING' THEN fc.sessions_started ELSE NULL END
                     )::decimal) * 100
                 ELSE 0 
             END, 2
@@ -190,10 +190,10 @@ WITH user_cohorts AS (
         fe.session_id,
         fe.business_id,
         fe.campaign_id,
-        DATE(MIN(fe.occurred_at)) as cohort_date,
-        MIN(fe.occurred_at) as first_activity_time,
+        DATE(MIN(fe.timestamp)) as cohort_date,
+        MIN(fe.timestamp) as first_activity_time,
         COUNT(*) as total_events,
-        COUNT(DISTINCT DATE(fe.occurred_at)) as active_days
+        COUNT(DISTINCT DATE(fe.timestamp)) as active_days
     FROM funnel_events fe
     WHERE fe.session_id IS NOT NULL
     GROUP BY fe.session_id, fe.business_id, fe.campaign_id
@@ -205,12 +205,12 @@ user_activities AS (
         uc.business_id,
         uc.campaign_id,
         uc.cohort_date,
-        DATE(fe.occurred_at) as activity_date,
+        DATE(fe.timestamp) as activity_date,
         COUNT(*) as daily_events,
-        MAX(CASE WHEN fe.event_type = 'conversion' THEN 1 ELSE 0 END) as converted
+        MAX(CASE WHEN fe.event_type = 'PAYMENT_SUCCESS' THEN 1 ELSE 0 END) as converted
     FROM user_cohorts uc
     JOIN funnel_events fe ON uc.session_id = fe.session_id
-    GROUP BY uc.session_id, uc.business_id, uc.campaign_id, uc.cohort_date, DATE(fe.occurred_at)
+    GROUP BY uc.session_id, uc.business_id, uc.campaign_id, uc.cohort_date, DATE(fe.timestamp)
 ),
 cohort_periods AS (
     -- Calculate retention periods
@@ -247,15 +247,6 @@ cohort_retention_summary AS (
         ) as converted_users,
         SUM(cp.daily_events) as total_events,
         
-        -- Calculate retention rate relative to Day 0
-        ROUND(
-            (COUNT(DISTINCT cp.session_id)::decimal / 
-             COUNT(DISTINCT 
-                CASE WHEN cp.retention_period = 'Day 0' THEN cp.session_id ELSE NULL END
-             ) OVER (PARTITION BY cp.cohort_date, cp.campaign_id)::decimal
-            ) * 100, 2
-        ) as retention_rate_pct,
-        
         -- Calculate conversion rate for the period
         ROUND(
             CASE 
@@ -269,6 +260,28 @@ cohort_retention_summary AS (
     FROM cohort_periods cp
     GROUP BY cp.cohort_date, cp.campaign_id, cp.retention_period
 ),
+cohort_day0_sizes AS (
+    -- Get Day 0 cohort sizes separately
+    SELECT 
+        cohort_date,
+        campaign_id,
+        COUNT(DISTINCT session_id) as day0_users
+    FROM cohort_periods
+    WHERE retention_period = 'Day 0'
+    GROUP BY cohort_date, campaign_id
+),
+cohort_retention_with_rates AS (
+    -- Join to calculate retention rates
+    SELECT 
+        crs.*,
+        -- Calculate retention rate relative to Day 0
+        ROUND(
+            (crs.active_users::decimal / NULLIF(cd0.day0_users, 0)::decimal) * 100, 2
+        ) as retention_rate_pct
+    FROM cohort_retention_summary crs
+    LEFT JOIN cohort_day0_sizes cd0 ON crs.cohort_date = cd0.cohort_date 
+        AND crs.campaign_id = cd0.campaign_id
+),
 cohort_sizes AS (
     -- Get initial cohort sizes
     SELECT 
@@ -281,48 +294,48 @@ cohort_sizes AS (
 -- Final cohort retention view
 SELECT 
     -- Time dimensions
-    crs.cohort_date,
-    EXTRACT(YEAR FROM crs.cohort_date) as cohort_year,
-    EXTRACT(MONTH FROM crs.cohort_date) as cohort_month,
-    EXTRACT(WEEK FROM crs.cohort_date) as cohort_week,
+    crwr.cohort_date,
+    EXTRACT(YEAR FROM crwr.cohort_date) as cohort_year,
+    EXTRACT(MONTH FROM crwr.cohort_date) as cohort_month,
+    EXTRACT(WEEK FROM crwr.cohort_date) as cohort_week,
     
     -- Campaign dimension
-    crs.campaign_id,
+    crwr.campaign_id,
     
     -- Retention period
-    crs.retention_period,
+    crwr.retention_period,
     CASE 
-        WHEN crs.retention_period = 'Day 0' THEN 0
-        WHEN crs.retention_period = 'Week 1' THEN 1
-        WHEN crs.retention_period = 'Week 2' THEN 2
-        WHEN crs.retention_period = 'Week 3' THEN 3
-        WHEN crs.retention_period = 'Week 4' THEN 4
-        WHEN crs.retention_period = 'Month 2' THEN 8
-        WHEN crs.retention_period = 'Month 3' THEN 12
-        WHEN crs.retention_period = 'Month 3+' THEN 16
+        WHEN crwr.retention_period = 'Day 0' THEN 0
+        WHEN crwr.retention_period = 'Week 1' THEN 1
+        WHEN crwr.retention_period = 'Week 2' THEN 2
+        WHEN crwr.retention_period = 'Week 3' THEN 3
+        WHEN crwr.retention_period = 'Week 4' THEN 4
+        WHEN crwr.retention_period = 'Month 2' THEN 8
+        WHEN crwr.retention_period = 'Month 3' THEN 12
+        WHEN crwr.retention_period = 'Month 3+' THEN 16
         ELSE 99
     END as period_order,
     
     -- Cohort metrics
     cs.cohort_size,
-    crs.active_users,
-    crs.converted_users,
-    crs.total_events,
+    crwr.active_users,
+    crwr.converted_users,
+    crwr.total_events,
     
     -- Retention metrics
-    crs.retention_rate_pct,
-    crs.period_conversion_rate_pct,
+    crwr.retention_rate_pct,
+    crwr.period_conversion_rate_pct,
     
     -- Derived metrics
-    ROUND(crs.total_events::decimal / NULLIF(crs.active_users, 0)::decimal, 2) as events_per_user,
-    ROUND(crs.active_users::decimal / NULLIF(cs.cohort_size, 0)::decimal, 4) as retention_ratio,
+    ROUND(crwr.total_events::decimal / NULLIF(crwr.active_users, 0)::decimal, 2) as events_per_user,
+    ROUND(crwr.active_users::decimal / NULLIF(cs.cohort_size, 0)::decimal, 4) as retention_ratio,
     
     -- Metadata
     NOW() as last_updated
-FROM cohort_retention_summary crs
-JOIN cohort_sizes cs ON crs.cohort_date = cs.cohort_date 
-    AND crs.campaign_id = cs.campaign_id
-ORDER BY crs.cohort_date DESC, crs.campaign_id, period_order;
+FROM cohort_retention_with_rates crwr
+JOIN cohort_sizes cs ON crwr.cohort_date = cs.cohort_date 
+    AND crwr.campaign_id = cs.campaign_id
+ORDER BY crwr.cohort_date DESC, crwr.campaign_id, period_order;
 
 -- Create indexes for performance optimization
 CREATE UNIQUE INDEX idx_cohort_retention_mv_pk 

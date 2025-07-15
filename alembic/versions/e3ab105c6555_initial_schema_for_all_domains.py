@@ -431,6 +431,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("business_id", sa.String(), nullable=False),
         sa.Column("session_id", sa.String(), nullable=False),
+        sa.Column("campaign_id", sa.String(), nullable=True),
         sa.Column("stage", sa.Enum("TARGETING", "ASSESSMENT", "SCORING", "PRIORITIZATION", "REPORTING", "PAYMENT", name="funnelstage"), nullable=False),
         sa.Column("event_type", sa.Enum("PIPELINE_START", "PIPELINE_SUCCESS", "PIPELINE_FAILURE", "ASSESSMENT_START", "ASSESSMENT_SUCCESS", "ASSESSMENT_FAILURE", "REPORT_GENERATED", "PAYMENT_SUCCESS", name="eventtype"), nullable=False),
         sa.Column("timestamp", sa.TIMESTAMP(), nullable=True),
@@ -442,6 +443,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("idx_funnel_events_session_id", "funnel_events", ["session_id"], unique=False)
+    op.create_index("idx_funnel_events_campaign_id", "funnel_events", ["campaign_id"], unique=False)
     op.create_table(
         "metrics_aggregations",
         sa.Column("id", sa.String(), nullable=False),
@@ -475,6 +477,7 @@ def downgrade() -> None:
     op.drop_table("time_series_data")
     op.drop_index("idx_metrics_aggregations_metric_name", table_name="metrics_aggregations")
     op.drop_table("metrics_aggregations")
+    op.drop_index("idx_funnel_events_campaign_id", table_name="funnel_events")
     op.drop_index("idx_funnel_events_session_id", table_name="funnel_events")
     op.drop_table("funnel_events")
     op.drop_table("email_clicks")
