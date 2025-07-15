@@ -53,12 +53,28 @@ jobs:
     
     - name: Run tests in Docker
       run: |
+        echo "Starting test execution..."
         # Run tests using the command defined in docker-compose.test.yml
-        docker compose -f docker-compose.test.yml run --rm test || {
-          echo "Test execution failed. Container logs:"
-          docker compose -f docker-compose.test.yml logs --tail=100 test
+        docker compose -f docker-compose.test.yml run --rm \
+          -e CI=true \
+          -e DOCKER_ENV=true \
+          test || {
+          echo "Test execution failed. Gathering diagnostic information..."
+          echo ""
+          echo "=== Test Container Logs (last 200 lines) ==="
+          docker compose -f docker-compose.test.yml logs --tail=200 test
+          echo ""
+          echo "=== PostgreSQL Container Logs ==="
           docker compose -f docker-compose.test.yml logs --tail=50 postgres
+          echo ""
+          echo "=== Stub Server Container Logs ==="
           docker compose -f docker-compose.test.yml logs --tail=50 stub-server
+          echo ""
+          echo "=== Container Status ==="
+          docker compose -f docker-compose.test.yml ps
+          echo ""
+          echo "=== Docker Images ==="
+          docker images | grep leadfactory
           exit 1
         }
     

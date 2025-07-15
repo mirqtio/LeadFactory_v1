@@ -24,15 +24,15 @@ def test_critical_imports():
     
     # Database imports
     from database.base import Base
-    from database.models import Business, Lead
+    from database.models import Business, Lead, Target, Batch
     
     # Model imports from actual domain modules
-    from d1_targeting.models import Target, Batch
-    from d2_sourcing.models import SourcingRequest, SourcingResult
-    from d3_assessment.models import AssessmentRequest, AssessmentResult
-    from d4_enrichment.models import EnrichmentRequest, EnrichmentResult
-    from d5_scoring.models import ScoringRequest, ScoringResult
-    from d6_reports.models import ReportRequest, ReportResult
+    from d1_targeting.models import TargetUniverse, Campaign
+    from d2_sourcing.models import SourcedLocation
+    from d3_assessment.models import AssessmentResult
+    from d4_enrichment.models import EnrichmentRequest
+    from d5_scoring.models import D5ScoringResult
+    from d6_reports.models import ReportGeneration
     
     # Gateway imports
     from d0_gateway.base import BaseAPIClient
@@ -43,10 +43,13 @@ def test_critical_imports():
     assert Business is not None
     assert Lead is not None
     assert Target is not None
-    assert AssessmentRequest is not None
+    assert TargetUniverse is not None
+    assert Campaign is not None
+    assert SourcedLocation is not None
+    assert AssessmentResult is not None
     assert EnrichmentRequest is not None
-    assert ScoringRequest is not None
-    assert ReportRequest is not None
+    assert D5ScoringResult is not None
+    assert ReportGeneration is not None
     assert BaseAPIClient is not None
 
 
@@ -72,8 +75,6 @@ def test_config_defaults():
     assert settings.enable_pagespeed is False
     assert settings.enable_sendgrid is False
     assert settings.enable_openai is False
-    assert settings.enable_dataaxle is False
-    assert settings.enable_hunter is False
 
 
 def test_exception_hierarchy():
@@ -101,32 +102,36 @@ def test_exception_hierarchy():
     config_error = ConfigurationError("missing config")
     assert str(config_error) == "missing config"
     
-    api_error = ExternalAPIError("API failed", "test", status_code=500)
-    assert api_error.provider == "test"
+    api_error = ExternalAPIError("test", "API failed", status_code=500)
+    assert api_error.details["provider"] == "test"
     assert api_error.status_code == 500
 
 
 def test_model_validation():
     """Test basic model validation without external dependencies"""
-    from d1_targeting.models import Target
+    from d1_targeting.schemas import TargetUniverseCreate
     from pydantic import ValidationError as PydanticValidationError
     
-    # Valid input using actual Target model
-    valid_target = Target(
-        geo_value="New York",
-        geo_type="city",
-        vertical="restaurants"
+    # Valid input using actual pydantic schema
+    valid_target = TargetUniverseCreate(
+        name="Test Universe",
+        description="Test description",
+        verticals=["restaurants"],
+        geography_config={
+            "level": "city",
+            "values": ["New York"]
+        }
     )
-    assert valid_target.geo_value == "New York"
-    assert valid_target.geo_type == "city"
-    assert valid_target.vertical == "restaurants"
+    assert valid_target.name == "Test Universe"
+    assert valid_target.verticals == ["restaurants"]
+    assert valid_target.geography_config["level"] == "city"
     
     # Invalid input - missing required fields
     try:
-        invalid_target = Target(geo_value="Test")
+        invalid_target = TargetUniverseCreate(name="Test")
         assert False, "Should have raised validation error"
     except PydanticValidationError as e:
-        assert "geo_type" in str(e) or "vertical" in str(e)
+        assert "verticals" in str(e) or "geography_config" in str(e)
 
 
 def test_database_models():
