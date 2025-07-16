@@ -11,7 +11,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "add_last_enriched_at"
-down_revision = "fix_missing_tables_and_columns"
+down_revision = "fix_missing_tables_001"
 branch_labels = None
 depends_on = None
 

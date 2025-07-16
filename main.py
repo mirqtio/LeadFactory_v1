@@ -15,6 +15,7 @@ from slowapi.errors import RateLimitExceeded
 import core.observability  # noqa: F401  (must be first import)
 
 # Import all routers at top level
+from account_management.api import router as account_router
 from api.health import router as health_router
 from api.lineage import router as lineage_router
 from batch_runner.api import router as batch_runner_router
@@ -153,6 +154,9 @@ app.state.limiter = limiter
 
 # Register health router (no prefix needed as it defines its own paths)
 app.include_router(health_router, tags=["health"])
+
+# Register account management router (P2-000)
+app.include_router(account_router, tags=["accounts"])
 
 # Register domain routers
 app.include_router(gateway_router, tags=["gateway"])

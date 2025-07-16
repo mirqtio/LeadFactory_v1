@@ -101,6 +101,11 @@ try:
 except ImportError:
     pass
 
+try:
+    from account_management.models import *  # noqa: E402, F403
+except ImportError:
+    pass
+
 # governance models are in database.governance_models, imported above
 
 target_metadata = Base.metadata
