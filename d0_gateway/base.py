@@ -14,6 +14,8 @@ from core.logging import get_logger
 
 from .cache import ResponseCache
 from .circuit_breaker import CircuitBreaker
+from .guardrail_middleware import GuardrailBlocked, GuardrailContext
+from .guardrails import GuardrailAction, GuardrailViolation, guardrail_manager
 from .metrics import GatewayMetrics
 from .rate_limiter import RateLimiter
 
@@ -104,6 +106,28 @@ class BaseAPIClient(ABC):
 
         # Check rate limits
         await self._check_rate_limit(operation)
+
+        # Check cost guardrails
+        operation_name = endpoint.split("/")[0] if "/" in endpoint else endpoint
+        estimated_cost = self.calculate_cost(operation_name, **kwargs)
+        lead_id = kwargs.get("lead_id")
+        campaign_id = kwargs.get("campaign_id")
+
+        guardrail_result = guardrail_manager.enforce_limits(
+            provider=self.provider,
+            operation=operation_name,
+            estimated_cost=estimated_cost,
+            campaign_id=campaign_id,
+            **kwargs,
+        )
+
+        if isinstance(guardrail_result, GuardrailViolation):
+            if GuardrailAction.BLOCK in guardrail_result.action_taken:
+                raise GuardrailBlocked(
+                    f"Operation blocked by guardrail '{guardrail_result.limit_name}': "
+                    f"${guardrail_result.current_spend:.2f} / ${guardrail_result.limit_amount:.2f} "
+                    f"({guardrail_result.percentage_used:.1%})"
+                )
 
         # Check circuit breaker
         if not self.circuit_breaker.can_execute():

@@ -63,6 +63,8 @@ except ImportError:
 from sqlalchemy import text
 
 from core.config import get_settings
+from d0_gateway.guardrail_alerts import GuardrailViolation, send_cost_alert
+from d0_gateway.guardrails import AlertSeverity, guardrail_manager
 from database.session import SessionLocal
 
 
