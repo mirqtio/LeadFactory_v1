@@ -12,6 +12,9 @@ from main import app
 
 client = TestClient(app)
 
+# Mark entire module as unit test and critical - health checks are essential
+pytestmark = [pytest.mark.unit, pytest.mark.critical]
+
 
 class TestHealthEndpoint:
     """Test suite for health check endpoint"""

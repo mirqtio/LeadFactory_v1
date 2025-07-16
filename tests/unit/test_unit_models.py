@@ -27,6 +27,9 @@ from database.models import (
     Target,
 )
 
+# Mark entire module as unit test and critical - database models are fundamental
+pytestmark = [pytest.mark.unit, pytest.mark.critical]
+
 
 @pytest.fixture
 def test_session():

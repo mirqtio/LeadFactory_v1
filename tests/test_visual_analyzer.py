@@ -10,6 +10,9 @@ from d3_assessment.assessors.base import AssessmentResult
 from d3_assessment.assessors.visual_analyzer import VisualAnalyzer
 from d3_assessment.models import AssessmentType
 
+# Mark entire module as unit test
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def visual_analyzer():

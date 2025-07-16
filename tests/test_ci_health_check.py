@@ -11,6 +11,11 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
+import pytest
+
+# Mark entire module as smoke test - runs in CI to check test health
+pytestmark = pytest.mark.smoke
+
 
 def run_pytest_json():
     """Run pytest with JSON output to capture all test results."""

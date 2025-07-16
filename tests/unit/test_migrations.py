@@ -24,6 +24,9 @@ from alembic.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from database.base import Base
 
+# Mark entire module as unit test and critical - database migrations must work
+pytestmark = [pytest.mark.unit, pytest.mark.critical]
+
 
 class TestMigrations:
     """Test database migrations are current and working"""

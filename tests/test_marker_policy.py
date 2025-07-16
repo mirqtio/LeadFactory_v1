@@ -14,6 +14,9 @@ import subprocess
 
 import pytest
 
+# Mark entire module as unit test - tests test infrastructure policies
+pytestmark = pytest.mark.unit
+
 
 class TestMarkerPolicy:
     """Test that all failing tests are properly marked"""

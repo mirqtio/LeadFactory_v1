@@ -3,8 +3,12 @@ Test Humanloop integration and prompt loading
 """
 import pytest
 
-# Mark entire module as slow for CI optimization and xfail for Phase 0.5
-pytestmark = [pytest.mark.slow, pytest.mark.xfail(reason="Humanloop integration is a Phase 0.5 feature")]
+# Mark entire module as integration test, slow for CI optimization and xfail for Phase 0.5
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.slow,
+    pytest.mark.xfail(reason="Humanloop integration is a Phase 0.5 feature"),
+]
 from pathlib import Path  # noqa: E402
 
 from d0_gateway.providers.humanloop import HumanloopClient  # noqa: E402

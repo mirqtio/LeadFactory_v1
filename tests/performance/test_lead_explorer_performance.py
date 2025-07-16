@@ -11,6 +11,9 @@ from fastapi.testclient import TestClient
 from lead_explorer.repository import LeadRepository
 from main import app
 
+# Mark entire module as performance test
+pytestmark = pytest.mark.performance
+
 
 class TestLeadExplorerPerformance:
     """Performance tests for Lead Explorer endpoints"""

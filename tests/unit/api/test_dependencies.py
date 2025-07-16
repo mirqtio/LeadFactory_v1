@@ -8,6 +8,9 @@ import pytest
 
 from api.dependencies import close_redis, get_async_db, get_current_user_optional, get_db, get_redis
 
+# Mark entire module as unit test and critical - API dependencies are fundamental
+pytestmark = [pytest.mark.unit, pytest.mark.critical]
+
 
 class TestDatabaseDependencies:
     """Test database dependency functions"""

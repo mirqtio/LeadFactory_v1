@@ -16,6 +16,9 @@ from main import app
 
 client = TestClient(app)
 
+# Mark entire module as performance test
+pytestmark = pytest.mark.performance
+
 
 class TestHealthEndpointPerformance:
     """Performance validation tests for health endpoint"""

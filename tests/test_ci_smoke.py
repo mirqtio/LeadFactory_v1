@@ -4,6 +4,11 @@ Simple smoke test to verify CI environment
 import os
 import sys
 
+import pytest
+
+# Mark entire module as smoke test - critical CI environment verification
+pytestmark = pytest.mark.smoke
+
 
 def test_python_version():
     """Test Python version is 3.11"""

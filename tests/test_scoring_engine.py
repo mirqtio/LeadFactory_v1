@@ -7,8 +7,8 @@ import pytest
 from d5_scoring.constants import DEFAULT_SCORING_RULES_PATH
 from d5_scoring.scoring_engine import ScoringEngine
 
-# Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# Mark entire module as unit test and xfail for Phase 0.5
+pytestmark = [pytest.mark.unit, pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)]
 
 
 class TestScoringEngine:

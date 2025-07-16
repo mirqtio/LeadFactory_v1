@@ -23,6 +23,9 @@ from main import app
 
 client = TestClient(app)
 
+# Mark entire module as smoke test and critical - health checks are essential
+pytestmark = [pytest.mark.smoke, pytest.mark.critical]
+
 
 class TestHealthEndpoint:
     """Test health endpoint functionality"""

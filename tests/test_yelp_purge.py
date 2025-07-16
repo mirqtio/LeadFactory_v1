@@ -15,6 +15,9 @@ import subprocess
 
 import pytest
 
+# Mark entire module as integration test - verifies codebase integrity
+pytestmark = pytest.mark.integration
+
 
 class TestYelpPurge:
     """Verify all Yelp remnants have been removed"""

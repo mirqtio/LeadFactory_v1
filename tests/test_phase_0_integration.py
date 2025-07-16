@@ -9,8 +9,8 @@ import tempfile
 import pytest
 import yaml
 
-# Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# Mark entire module as integration test and xfail for Phase 0.5
+pytestmark = [pytest.mark.integration, pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)]
 
 
 # Test without pytest dependency for now

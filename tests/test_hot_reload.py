@@ -15,8 +15,8 @@ from d5_scoring.hot_reload import (
     stop_watching,
 )
 
-# Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# Mark entire module as unit test and xfail for Phase 0.5
+pytestmark = [pytest.mark.unit, pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)]
 
 
 class TestScoringRulesFileHandler:

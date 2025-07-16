@@ -8,6 +8,9 @@ from pydantic import SecretStr, ValidationError
 
 from core.config import Settings, get_settings
 
+# Mark entire module as unit test and critical - config is fundamental
+pytestmark = [pytest.mark.unit, pytest.mark.critical]
+
 
 @pytest.fixture(autouse=True)
 def clear_settings_cache():

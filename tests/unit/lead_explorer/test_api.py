@@ -11,6 +11,9 @@ from fastapi.testclient import TestClient
 from database.models import EnrichmentStatus
 from lead_explorer.api import router
 
+# Mark entire module as unit test and critical - lead explorer CRUD is core functionality
+pytestmark = [pytest.mark.unit, pytest.mark.critical]
+
 
 @pytest.fixture
 def app():

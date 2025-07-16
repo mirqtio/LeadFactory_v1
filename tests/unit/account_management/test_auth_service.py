@@ -17,6 +17,9 @@ from account_management.models import (
     UserStatus,
 )
 
+# Mark entire module as unit test and critical - authentication is essential
+pytestmark = [pytest.mark.unit, pytest.mark.critical]
+
 
 class TestAuthService:
     """Test authentication service methods"""

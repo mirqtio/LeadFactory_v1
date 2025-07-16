@@ -20,6 +20,9 @@ from d0_gateway.guardrails import (
     RateLimitConfig,
 )
 
+# Mark entire module as unit test and critical - cost guardrails are essential for production
+pytestmark = [pytest.mark.unit, pytest.mark.critical]
+
 
 class TestCostLimit:
     """Test CostLimit model"""

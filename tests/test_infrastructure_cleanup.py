@@ -18,6 +18,9 @@ import time
 
 import pytest
 
+# Mark entire module as integration test - tests the test infrastructure
+pytestmark = pytest.mark.integration
+
 
 class TestInfrastructureCleanup:
     """Verify test infrastructure is properly configured"""

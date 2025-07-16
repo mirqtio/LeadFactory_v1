@@ -6,6 +6,9 @@ import sys
 
 import pytest
 
+# Mark entire module as smoke test - critical environment validation
+pytestmark = pytest.mark.smoke
+
 
 def test_python_version():
     """Ensure we're running Python 3.11"""

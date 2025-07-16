@@ -6,8 +6,8 @@ import sys
 
 import pytest
 
-# Mark all tests in this module as no_stubs and minimal
-pytestmark = [pytest.mark.no_stubs, pytest.mark.minimal]
+# Mark all tests in this module as unit test, no_stubs and minimal
+pytestmark = [pytest.mark.unit, pytest.mark.no_stubs, pytest.mark.minimal]
 
 
 def test_python_version():

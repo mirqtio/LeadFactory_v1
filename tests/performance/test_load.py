@@ -34,8 +34,8 @@ from database.models import (
     Target,
 )
 
-# Mark entire module as slow for performance tests
-pytestmark = pytest.mark.slow
+# Mark entire module as performance test and slow - processes thousands of records
+pytestmark = [pytest.mark.performance, pytest.mark.slow]
 
 
 class PerformanceMonitor:
