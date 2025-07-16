@@ -17,7 +17,10 @@ from database.session import SessionLocal
 from flows.bucket_enrichment_flow import bucket_enrichment_flow, trigger_bucket_enrichment
 
 # Mark entire module for Phase 0.5 feature implementation
-pytestmark = [pytest.mark.integration, pytest.mark.xfail(reason="Phase 0.5 feature - not yet implemented", strict=False)]
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.xfail(reason="Phase 0.5 feature - not yet implemented", strict=False),
+]
 
 
 class TestBucketEnrichmentFlowIntegration:
