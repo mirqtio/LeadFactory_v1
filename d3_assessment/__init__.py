@@ -6,6 +6,7 @@ analysis,
 technology stack detection, and AI-powered insights generation.
 """
 
+from .assessors.visual_analyzer import VisualAnalyzer
 from .models import (
     AIInsight,
     AssessmentCost,
@@ -31,4 +32,6 @@ __all__ = [
     "TechCategory",
     "InsightCategory",
     "CostType",
+    # Analyzers
+    "VisualAnalyzer",
 ]
