@@ -170,7 +170,7 @@ class DatabaseSeeder:
                 user_ratings_total=100 + i * 20,
                 categories=["Technology", "Software"],
                 vertical="Technology",
-                business_status="OPERATIONAL"
+                business_status="OPERATIONAL",
             )
             self.session.add(business)
             businesses.append(business)
@@ -180,7 +180,7 @@ class DatabaseSeeder:
 
     def seed_leads(self, count: int = 10, business_ids: Optional[list] = None) -> list:
         """Seed database with sample leads."""
-        from database.models import Lead, EnrichmentStatus
+        from database.models import EnrichmentStatus, Lead
 
         leads = []
         for i in range(count):
@@ -192,7 +192,7 @@ class DatabaseSeeder:
                 contact_name=f"Test Lead {i}",
                 enrichment_status=EnrichmentStatus.PENDING,
                 is_manual=False,
-                source="test_fixture"
+                source="test_fixture",
             )
             self.session.add(lead)
             leads.append(lead)
@@ -202,12 +202,12 @@ class DatabaseSeeder:
 
     def seed_targets(self, count: int = 3) -> list:
         """Seed database with sample targets."""
-        from database.models import Target, GeoType
+        from database.models import GeoType, Target
 
         targets = []
         geos = ["94105", "10001", "60601"]  # SF, NYC, Chicago
         verticals = ["restaurants", "retail", "services"]
-        
+
         for i in range(count):
             target = Target(
                 geo_type=GeoType.ZIP,
@@ -215,7 +215,7 @@ class DatabaseSeeder:
                 vertical=verticals[i % len(verticals)],
                 estimated_businesses=100 + i * 50,
                 priority_score=0.5 + (i * 0.1),
-                is_active=True
+                is_active=True,
             )
             self.session.add(target)
             targets.append(target)

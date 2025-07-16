@@ -37,10 +37,12 @@ from .database import (
     db_transaction,
     db_with_rollback,
     migration_helper,
+    mock_production_db,
+    seeded_db,
+    test_db,
 )
-from .database import mock_production_db
-from .database import mock_production_db as mock_db_sessions  # Alias for compatibility
-from .database import seeded_db, test_db
+# Create alias for compatibility
+mock_db_sessions = mock_production_db
 
 # Import external service fixtures
 from .external_services import (
