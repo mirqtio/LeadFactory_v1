@@ -274,7 +274,10 @@ class TestHighImpactCodePaths:
         lead = Lead(email="coverage@test.com", domain="test.com")
         db_session.add(lead)
 
-        business = Business(name="Coverage Test Co", vertical="technology")
+        # Create business with only required fields to avoid parameter issues
+        business = Business(name="Coverage Test Co")
+        if hasattr(business, "vertical"):
+            business.vertical = "technology"
         db_session.add(business)
 
         try:

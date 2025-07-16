@@ -83,6 +83,12 @@ test-parallel:
 	@echo ""
 	pytest --tb=short --cov=. --cov-report=term-missing
 
+# Run slow tests only
+test-slow:
+	mkdir -p tmp
+	@echo "🐌 Running slow tests only..."
+	pytest -m slow -v --tb=short
+
 # Run tests in Docker
 docker-test:
 	docker build -f Dockerfile.test -t leadfactory-test .

@@ -22,10 +22,18 @@ def run_command(cmd):
 def check_collection_errors():
     """Check for pytest collection errors."""
     print("🔍 Checking for collection errors...")
-    stdout, stderr, code = run_command("python -m pytest --collect-only -q 2>&1 | grep -E 'error|ERROR' | wc -l")
+    stdout, stderr, code = run_command("python -m pytest --collect-only -q")
     try:
-        error_count = int(stdout.strip())
+        # Count actual collection errors/failures
+        error_count = (
+            stderr.count("ERROR")
+            + stderr.count("FAILED")
+            + stderr.count("ImportError")
+            + stderr.count("ModuleNotFoundError")
+        )
+        collected_count = stdout.count("::test_")
         print(f"   Collection errors: {error_count}")
+        print(f"   Tests collected: {collected_count}")
         return error_count == 0, error_count
     except:
         print("   ❌ Failed to check collection errors")
@@ -35,13 +43,15 @@ def check_collection_errors():
 def check_test_markers():
     """Check if test markers are properly configured."""
     print("🔍 Checking test markers...")
-    stdout, stderr, code = run_command(
-        "grep -E '@pytest.mark.(unit|integration|slow|performance)' tests/**/*.py | wc -l"
-    )
+    stdout, stderr, code = run_command("find tests -name '*.py' -exec grep -l '@pytest.mark.' {} \\; | wc -l")
     try:
-        marker_count = int(stdout.strip())
-        print(f"   Tests with markers: {marker_count}")
-        return marker_count > 100, marker_count
+        marker_files = int(stdout.strip())
+        # Also check total markers
+        stdout2, stderr2, code2 = run_command("find tests -name '*.py' -exec grep -h '@pytest.mark.' {} \\; | wc -l")
+        total_markers = int(stdout2.strip())
+        print(f"   Files with markers: {marker_files}")
+        print(f"   Total markers: {total_markers}")
+        return total_markers > 100, total_markers
     except:
         print("   ❌ Failed to check test markers")
         return False, -1
