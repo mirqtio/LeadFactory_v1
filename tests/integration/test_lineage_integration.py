@@ -107,7 +107,7 @@ class TestLineageIntegration:
 
         # Verify error was captured in lineage
         lineage = await async_db_session.execute(
-            f"SELECT * FROM report_lineage WHERE report_generation_id = '{report.id}'"
+            text("SELECT * FROM report_lineage WHERE report_generation_id = :id"), {"id": report.id}
         )
         lineage_record = lineage.first()
 
@@ -193,12 +193,12 @@ class TestLineageIntegration:
 
         # Verify all reports have lineage
         result = await async_db_session.execute(
-            """
+            text("""
             SELECT COUNT(*) as total,
                    COUNT(l.id) as with_lineage
             FROM d6_report_generations r
             LEFT JOIN report_lineage l ON r.id = l.report_generation_id
-            """
+            """)
         )
         counts = result.first()
 

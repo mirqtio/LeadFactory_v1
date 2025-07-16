@@ -15,7 +15,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from decimal import Decimal
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session
@@ -52,6 +52,7 @@ class DailyMetricsAggregator:
 
     def __init__(self):
         self.logger = logging.getLogger(f"{__name__}.DailyMetricsAggregator")
+        self.metrics_buffer = []  # Buffer for test compatibility
 
     async def build_funnel_metrics(self, session: Session, target_date: date) -> List[MetricSnapshot]:
         """Build daily funnel metrics for all stages"""
@@ -1060,3 +1061,38 @@ class SegmentBreakdownAnalyzer:
 
         self.logger.info(f"Created {len(metrics)} stage breakdown metrics")
         return metrics
+        
+    def add_metric(self, metric):
+        """Add metric to buffer for test compatibility"""
+        self.metrics_buffer.append(metric)
+        self.logger.info(f"Added metric: {metric.type.value} = {metric.value}")
+        
+    def get_aggregated_results(self) -> Dict[str, Any]:
+        """Get aggregated results for test compatibility"""
+        if not self.metrics_buffer:
+            return {}
+            
+        # Simple aggregation for testing
+        results = {}
+        for metric in self.metrics_buffer:
+            metric_type = metric.type.value
+            if metric_type not in results:
+                results[metric_type] = []
+            results[metric_type].append(metric.value)
+            
+        # Calculate basic stats
+        aggregated = {}
+        for metric_type, values in results.items():
+            aggregated[metric_type] = {
+                "count": len(values),
+                "total": sum(values),
+                "average": sum(values) / len(values) if values else 0,
+                "min": min(values) if values else 0,
+                "max": max(values) if values else 0,
+            }
+            
+        return aggregated
+
+
+# Aliases for backward compatibility with tests
+MetricAggregator = DailyMetricsAggregator

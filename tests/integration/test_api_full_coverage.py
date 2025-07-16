@@ -274,7 +274,7 @@ class TestHighImpactCodePaths:
         lead = Lead(email="coverage@test.com", domain="test.com")
         db_session.add(lead)
 
-        business = Business(name="Coverage Test Co", industry="technology")
+        business = Business(name="Coverage Test Co", vertical="technology")
         db_session.add(business)
 
         try:

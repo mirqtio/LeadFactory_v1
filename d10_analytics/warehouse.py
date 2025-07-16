@@ -596,3 +596,7 @@ def get_warehouse_health_check() -> Dict[str, Any]:
         "summary": summary,
         "checked_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# Aliases for backward compatibility with tests
+DataWarehouse = MetricsWarehouse
