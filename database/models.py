@@ -174,6 +174,7 @@ class Business(Base):
     raw_data = Column(JSON)
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    last_enriched_at = Column(TIMESTAMP, nullable=True)  # Track when last enriched
 
     # Relationships
     assessments = relationship(
