@@ -160,10 +160,10 @@ class TestAlertManager:
         """Test default alert configurations are loaded"""
         with patch("d0_gateway.guardrail_alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock(
-                slack_webhook_url=None, 
+                slack_webhook_url=None,
                 alert_email_addresses=None,
                 guardrail_alert_email=None,
-                guardrail_alert_slack_webhook=None
+                guardrail_alert_slack_webhook=None,
             )
 
             manager = AlertManager()
@@ -215,12 +215,12 @@ class TestAlertManager:
         """Test alert rate limiting"""
         with patch("d0_gateway.guardrail_alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock(
-                slack_webhook_url=None, 
+                slack_webhook_url=None,
                 alert_email_addresses=None,
                 guardrail_alert_email=None,
-                guardrail_alert_slack_webhook=None
+                guardrail_alert_slack_webhook=None,
             )
-            
+
             manager = AlertManager()
 
             config = AlertConfig(channel=AlertChannel.EMAIL, max_alerts_per_hour=2, cooldown_minutes=5)
