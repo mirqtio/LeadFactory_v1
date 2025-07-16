@@ -1,0 +1,85 @@
+name: Fast CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  fast-test:
+    name: Fast Test Suite (<5 min target)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5  # Hard 5-minute timeout
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build test image (cached)
+      run: |
+        docker build -f Dockerfile.test -t leadfactory-test . --cache-from=leadfactory-test
+    
+    - name: Start essential services only
+      run: |
+        # Start only postgres and stub-server, skip other services for speed
+        docker compose -f docker-compose.test.yml up -d postgres stub-server
+        
+        # Quick health checks with shorter timeouts
+        echo "Quick PostgreSQL check..."
+        timeout 30 bash -c 'until docker compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do sleep 1; done' || {
+          echo "PostgreSQL failed to start quickly"
+          exit 1
+        }
+        
+        echo "Quick stub server check..."
+        timeout 30 bash -c 'until docker compose -f docker-compose.test.yml exec -T stub-server curl -f http://localhost:5010/health 2>/dev/null; do sleep 1; done' || {
+          echo "Stub server failed to start quickly"
+          exit 1
+        }
+        echo "✅ Fast service startup complete"
+    
+    - name: Run fast test suite
+      run: |
+        echo "🚀 Starting fast test suite - target <5 minutes"
+        
+        # Run only critical and smoke tests for fast feedback
+        # Use serial execution to avoid race conditions
+        # Focus on core functionality only
+        timeout 240 docker compose -f docker-compose.test.yml run --rm test \
+          python -m pytest \
+          -v \
+          --tb=short \
+          -m "critical or smoke" \
+          --maxfail=3 \
+          --disable-warnings \
+          tests/unit/core/ \
+          tests/smoke/ \
+          -x || {
+          
+          echo "::error::Fast test suite failed or exceeded 4-minute limit"
+          
+          # Quick diagnostic info
+          echo "=== Quick Service Status ==="
+          docker compose -f docker-compose.test.yml ps
+          
+          echo "=== Recent Container Logs ==="
+          docker compose -f docker-compose.test.yml logs test --tail=50
+          
+          exit 1
+        }
+        
+        echo "✅ Fast test suite completed successfully"
+    
+    - name: Performance verification
+      run: |
+        echo "✅ Fast CI Pipeline completed within 5-minute target"
+        echo "This workflow focuses on critical path validation for rapid feedback"
+        echo "Full test coverage is handled by the comprehensive CI Pipeline"
