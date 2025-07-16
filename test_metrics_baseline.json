@@ -1,15 +1,14 @@
 {
-  "timestamp": "2025-07-16T15:19:45.653781",
+  "timestamp": "2025-07-16T16:28:04.748269",
   "collection": {
-    "total_tests": 2829,
-    "collection_time": 5.49,
+    "total_tests": 2875,
+    "collection_time": 7.53,
     "errors": 0,
     "xfail_markers": 66,
     "skip_markers": 23
   },
   "execution": {
-    "unit_tests_passed": 1126,
-    "unit_test_time": 26.14,
+    "unit_test_time": 2.58,
     "unit_test_status": "completed"
   },
   "categories": {
@@ -42,7 +41,7 @@
     "performance": 3,
     "security": 1,
     "smoke": 9,
-    "tests": 17,
-    "unit": 22
+    "tests": 22,
+    "unit": 23
   }
 }

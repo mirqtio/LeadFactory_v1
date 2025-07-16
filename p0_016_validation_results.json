@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-07-16T16:39:49.278811",
+  "success_rate": 66.66666666666666,
+  "results": {
+    "collection_errors": {
+      "passed": false,
+      "details": 124
+    },
+    "test_markers": {
+      "passed": false,
+      "details": 25
+    },
+    "parallelization": {
+      "passed": true,
+      "details": {
+        "installed": true,
+        "configured": true
+      }
+    },
+    "flaky_detection": {
+      "passed": true,
+      "details": {
+        "script": true,
+        "docs": true,
+        "report": true
+      }
+    },
+    "documentation": {
+      "passed": true,
+      "details": {
+        "FLAKY_TEST_ANALYSIS_REPORT.md": true,
+        "docs/test_performance_profiling.md": true,
+        "docs/ci_job_optimization_proposal.md": true,
+        "scripts/FLAKY_TEST_DETECTION.md": true
+      }
+    },
+    "makefile": {
+      "passed": true,
+      "details": [
+        "test-unit",
+        "test-integration",
+        "test-parallel",
+        "quick-check",
+        "bpci"
+      ]
+    }
+  }
+}

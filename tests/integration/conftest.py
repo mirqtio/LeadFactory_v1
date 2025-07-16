@@ -1,82 +1,18 @@
 """
 Configuration for integration tests
+
+Uses centralized fixtures from tests.fixtures package.
 """
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
 
-from database.base import Base
+from d6_reports.models import ReportGeneration, ReportTemplate, ReportType, TemplateFormat
 
-# Import all models to ensure they're registered
-try:
-    import batch_runner.models  # noqa: F401
-    import d1_targeting.models  # noqa: F401
-    import d2_sourcing.models  # noqa: F401
-    import d3_assessment.models  # noqa: F401
-    import d4_enrichment.models  # noqa: F401
-    import d5_scoring.models  # noqa: F401
-    import d6_reports.models  # noqa: F401
-    import d7_storefront.models  # noqa: F401
-    import d8_personalization.models  # noqa: F401
-    import d9_delivery.models  # noqa: F401
-    import d10_analytics.models  # noqa: F401
-    import d11_orchestration.models  # noqa: F401
-    import database.governance_models  # noqa: F401
-    import database.models  # noqa: F401
-    import lead_explorer.models  # noqa: F401
-    from d6_reports.lineage.models import ReportLineage, ReportLineageAudit  # noqa: F401
-    from d6_reports.models import ReportGeneration, ReportTemplate, ReportType, TemplateFormat  # noqa: F401
-except ImportError:
-    pass
+# Import centralized fixtures
+from tests.fixtures import async_test_db, test_client, test_db  # noqa: F401
 
-
-@pytest.fixture(scope="function")
-def db_session():
-    """Create a database session for testing"""
-    from sqlalchemy.pool import StaticPool
-
-    engine = create_engine(
-        "sqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
-    )
-    Base.metadata.create_all(engine)
-
-    Session = scoped_session(sessionmaker(bind=engine))
-    session = Session()
-
-    yield session
-
-    session.close()
-    Session.remove()
-
-
-@pytest.fixture
-def test_client():
-    """Create a test client for API testing"""
-    from main import app
-
-    return TestClient(app)
-
-
-@pytest.fixture(scope="function")
-async def async_db_session():
-    """Create an async database session for testing"""
-    from sqlalchemy.pool import StaticPool
-
-    engine = create_async_engine(
-        "sqlite+aiosqlite:///:memory:", echo=False, poolclass=StaticPool, connect_args={"check_same_thread": False}
-    )
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-    async with AsyncSessionLocal() as session:
-        yield session
-
-    await engine.dispose()
+# Re-export commonly used fixtures for backward compatibility
+db_session = test_db  # Alias for backward compatibility
+async_db_session = async_test_db  # Alias for backward compatibility
 
 
 @pytest.fixture

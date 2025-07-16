@@ -15,6 +15,9 @@ import uvicorn
 
 from core.config import get_settings
 
+# Import all centralized fixtures
+from tests.fixtures import *  # noqa: F401,F403
+
 # Import parallel safety plugin
 from tests.parallel_safety import isolated_db, isolated_temp_dir
 
