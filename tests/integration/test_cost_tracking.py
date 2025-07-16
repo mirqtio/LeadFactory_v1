@@ -2,9 +2,12 @@
 Integration tests for gateway cost tracking across different APIs
 P1-050: Gateway Cost Ledger implementation
 """
+import asyncio
+
+import pytest
+
 # Mark entire module as xfail for Phase 0.5
 pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature - integration tests need database session fix", strict=False)
-import asyncio
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch

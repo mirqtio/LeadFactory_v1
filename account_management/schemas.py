@@ -13,13 +13,13 @@ from account_management.models import AuthProvider, PermissionAction, ResourceTy
 # Base schemas
 class OrganizationBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    slug: str = Field(..., min_length=1, max_length=100, regex="^[a-z0-9-]+$")
+    slug: str = Field(..., min_length=1, max_length=100, pattern="^[a-z0-9-]+$")
     billing_email: Optional[EmailStr] = None
 
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: Optional[str] = Field(None, min_length=3, max_length=100, regex="^[a-zA-Z0-9_-]+$")
+    username: Optional[str] = Field(None, min_length=3, max_length=100, pattern="^[a-zA-Z0-9_-]+$")
     full_name: Optional[str] = Field(None, max_length=255)
     phone: Optional[str] = Field(None, max_length=20)
     timezone: str = Field("UTC", max_length=50)
@@ -28,7 +28,7 @@ class UserBase(BaseModel):
 
 class TeamBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    slug: str = Field(..., min_length=1, max_length=100, regex="^[a-z0-9-]+$")
+    slug: str = Field(..., min_length=1, max_length=100, pattern="^[a-z0-9-]+$")
     description: Optional[str] = None
 
 
@@ -62,7 +62,7 @@ class UserLogin(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=100, regex="^[a-zA-Z0-9_-]+$")
+    username: Optional[str] = Field(None, min_length=3, max_length=100, pattern="^[a-zA-Z0-9_-]+$")
     full_name: Optional[str] = Field(None, max_length=255)
     avatar_url: Optional[str] = Field(None, max_length=500)
     phone: Optional[str] = Field(None, max_length=20)

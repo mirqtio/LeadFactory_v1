@@ -529,6 +529,47 @@ pytest -m "not slow and not phase_future" --tb=short
 
 **Rollback**: Lower coverage requirement to 70% if 80% proves infeasible within timeline
 
+### P0-016 Test Suite Stabilization and Performance Optimization
+**Dependencies**: P0-015 (must have coverage baseline before systematic stabilization)  
+**Goal**: Achieve 100% stable test suite with zero flaky tests, optimized performance, and systematic test management to prevent future regressions  
+**Integration Points**:
+- All test files in `tests/` directory
+- Test infrastructure: `conftest.py`, `pytest.ini`, CI workflows
+- Test categorization and marking system
+- Performance monitoring and timeout management
+- Pre-push validation hooks
+
+**Tests to Pass**:
+- All non-xfail tests pass consistently across 10 consecutive runs
+- Test suite completes in <5 minutes (current: times out at 2 minutes)
+- No test collection warnings or import errors
+- Full Test Suite workflow passes in CI without failures
+- `make pre-push` completes without timeout
+
+**Example**: see examples/REFERENCE_MAP.md → P0-016  
+**Reference**: pytest documentation on test organization, CI best practices
+
+**Business Logic**: A stable test suite is foundational to all development work. Flaky tests erode confidence, slow development velocity, and mask real issues. Performance problems in validation hooks block commits and reduce developer productivity. This must be solved systematically rather than with tactical fixes.
+
+**Acceptance Criteria**:
+- [ ] Zero flaky tests - all tests pass consistently
+- [ ] Test suite performance optimized to <5 minutes total runtime
+- [ ] Pre-push validation completes without timeout
+- [ ] Test categorization system implemented (unit, integration, slow, flaky)
+- [ ] Systematic test exclusion/inclusion policies documented
+- [ ] Performance monitoring with regression detection
+- [ ] Root cause analysis and fixes for all historical test failures
+- [ ] Test parallel execution optimized for CI environment
+- [ ] Mock and stub systems properly configured
+- [ ] Database test isolation guaranteed
+- [ ] Memory usage optimization for large test suites
+- [ ] Deterministic test execution order
+- [ ] Comprehensive error reporting and debugging tools
+- [ ] Test maintenance procedures and monitoring
+- [ ] Documentation for test debugging and maintenance
+
+**Rollback**: Revert to previous test configuration with documented flaky test list
+
 ### P0-020 Design System Token Extraction
 **Dependencies**: P0-014 (requires stable CI for UI task validation)  
 **Goal**: Extract machine-readable design tokens from HTML style guide for UI component validation  

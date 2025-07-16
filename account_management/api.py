@@ -39,7 +39,7 @@ from account_management.schemas import (
     UserUpdate,
 )
 from core.logging import get_logger
-from database.base import get_db
+from database.session import get_db
 
 logger = get_logger(__name__)
 

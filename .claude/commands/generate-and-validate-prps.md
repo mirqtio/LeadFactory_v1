@@ -1,6 +1,6 @@
 # Generate and Validate PRPs
 
-Review INITIAL.md and identify all PRPs that are not marked as complete in .claude/prp_progress.json. For each incomplete task, generate high-quality PRPs using an automated validation loop that regenerates based on feedback until validation passes.
+Review INITIAL.md and identify all PRPs that need generation based on the PRP tracking system in .claude/prp_tracking/prp_status.yaml. For each task that needs a PRP (status: new or failed_validation), generate high-quality PRPs using an automated validation loop that regenerates based on feedback until validation passes.
 
 ## Usage
 Arguments: $ARGUMENTS (optional task IDs like "P0-021 P0-022", defaults to all pending)
@@ -8,19 +8,29 @@ Arguments: $ARGUMENTS (optional task IDs like "P0-021 P0-022", defaults to all p
 ## Process Overview
 
 1. **Read INITIAL.md** to extract all task definitions (including new Wave C tasks)
-2. **Check .claude/prp_progress.json** to identify which tasks need PRPs (not marked as "completed")
+2. **Check .claude/prp_tracking/prp_status.yaml** to identify which tasks need PRPs:
+   - Status "new": Never had a PRP generated
+   - Status "failed_validation": Previous PRP failed validation and needs regeneration
+   - Status "validated": Skip - PRP already validated
+   - Status "in_progress": Skip - PRP implementation in progress  
+   - Status "complete": Skip - PRP fully implemented
 3. **Check .claude/PRPs/** to see which PRPs already exist
-4. **Create entries in prp_progress.json** for any new tasks found (like P3-001 through P3-007)
+4. **Update prp_status.yaml** for any new tasks found in INITIAL.md but not in tracking:
+   - Add with status "new"
+   - Include them in PRP generation queue
 5. **Load previous validation feedback** from PRP_VALIDATION_REPORT.md if it exists
 6. **Filter by arguments** if provided (e.g., only process P0-021 if specified)
 7. **Run validation loops** for each task (NOT just spawn subagents)
-8. **Generate Super PRP** after all individual PRPs pass validation
+8. **Update prp_status.yaml** after each PRP validation:
+   - Success: Update status from "new" → "validated"
+   - Failure: Update status to "failed_validation" with failure reason
+9. **Generate Super PRP** after all individual PRPs pass validation
 
 ### Handling New Tasks
-For tasks found in INITIAL.md but not in prp_progress.json:
-- Add them with status "pending"
+For tasks found in INITIAL.md but not in prp_status.yaml:
+- Add them with status "new" and empty metadata
 - Include them in PRP generation queue
-- Example: Wave C tasks (P3-001 through P3-007) added to fix critical issues
+- Example: P0-016 just added for test suite stabilization
 
 ## Research Task for Context Gathering
 
@@ -50,7 +60,7 @@ Task: Research context for {task_id} - {title}
 ## Previous Validation Feedback Integration
 
 ### For Tasks with Failed Validation
-If a task has status "failed_validation" in prp_progress.json:
+If a task has status "failed_validation" in prp_status.yaml:
 1. **Load validation report** from PRP_VALIDATION_REPORT.md
 2. **Extract specific gaps** for this task ID
 3. **Pass ALL gaps as initial feedback** to the regeneration prompt
@@ -356,7 +366,8 @@ After all tasks complete, report:
 
 ## File Locations
 - Task definitions: `INITIAL.md`
-- Progress tracking: `.claude/prp_progress.json`
+- Progress tracking: `.claude/prp_tracking/prp_status.yaml`
 - Prompt templates: `.claude/prompts/`
 - Individual PRPs: `.claude/PRPs/PRP-{task_id}-{title-slug}.md`
 - Super PRP: `.claude/PRPs/SUPER_PRP_VALIDATED.md`
+- Previous validation report: `PRP_VALIDATION_REPORT.md`

@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-07-16T15:19:45.653781",
+  "collection": {
+    "total_tests": 2829,
+    "collection_time": 5.49,
+    "errors": 0,
+    "xfail_markers": 66,
+    "skip_markers": 23
+  },
+  "execution": {
+    "unit_tests_passed": 1126,
+    "unit_test_time": 26.14,
+    "unit_test_status": "completed"
+  },
+  "categories": {
+    "account_management": 3,
+    "api": 5,
+    "assessors": 2,
+    "batch_runner": 2,
+    "comprehensive": 2,
+    "core": 2,
+    "d0_gateway": 18,
+    "d10_analytics": 5,
+    "d11_orchestration": 7,
+    "d1_targeting": 9,
+    "d2_sourcing": 2,
+    "d3_assessment": 16,
+    "d4_enrichment": 9,
+    "d5_scoring": 6,
+    "d6_reports": 6,
+    "d7_storefront": 5,
+    "d8_personalization": 3,
+    "d9_delivery": 6,
+    "design": 4,
+    "e2e": 6,
+    "flows": 2,
+    "generators": 1,
+    "integration": 32,
+    "lead_explorer": 6,
+    "lineage": 6,
+    "middleware": 2,
+    "performance": 3,
+    "security": 1,
+    "smoke": 9,
+    "tests": 17,
+    "unit": 22
+  }
+}
