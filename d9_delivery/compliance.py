@@ -358,7 +358,9 @@ Contact: support@leadfactory.com
 
         return email_data
 
-    def check_compliance(self, content: str, recipient: str, region: str = "US", channel: str = "email") -> "ComplianceResult":
+    def check_compliance(
+        self, content: str, recipient: str, region: str = "US", channel: str = "email"
+    ) -> "ComplianceResult":
         """
         Check compliance for content and recipient
 
@@ -377,9 +379,7 @@ Contact: support@leadfactory.com
                 is_suppressed = self.check_suppression(recipient)
                 if is_suppressed:
                     return ComplianceResult(
-                        passed=False,
-                        message="Recipient is suppressed",
-                        details={"suppression_reason": "user_request"}
+                        passed=False, message="Recipient is suppressed", details={"suppression_reason": "user_request"}
                     )
             except Exception:
                 # Skip suppression check if database not available
@@ -392,13 +392,13 @@ Contact: support@leadfactory.com
             if channel == "email":
                 # Look for actionable unsubscribe mechanisms, not just the word "unsubscribe"
                 has_actionable_unsubscribe = (
-                    "click here to unsubscribe" in content.lower() or
-                    "click to unsubscribe" in content.lower() or
-                    "unsubscribe here" in content.lower() or
-                    "to unsubscribe" in content.lower() or
-                    ("unsubscribe" in content.lower() and "link" not in content.lower())
+                    "click here to unsubscribe" in content.lower()
+                    or "click to unsubscribe" in content.lower()
+                    or "unsubscribe here" in content.lower()
+                    or "to unsubscribe" in content.lower()
+                    or ("unsubscribe" in content.lower() and "link" not in content.lower())
                 )
-                
+
                 if region == "EU":
                     # GDPR requires unsubscribe mechanism
                     if not has_actionable_unsubscribe:
@@ -415,20 +415,16 @@ Contact: support@leadfactory.com
                 return ComplianceResult(
                     passed=False,
                     message=f"Compliance violations: {', '.join(compliance_checks)}",
-                    details={"violations": compliance_checks}
+                    details={"violations": compliance_checks},
                 )
 
             return ComplianceResult(
-                passed=True,
-                message="Content is compliant",
-                details={"region": region, "channel": channel}
+                passed=True, message="Content is compliant", details={"region": region, "channel": channel}
             )
 
         except Exception as e:
             return ComplianceResult(
-                passed=False,
-                message=f"Error checking compliance: {str(e)}",
-                details={"error": str(e)}
+                passed=False, message=f"Error checking compliance: {str(e)}", details={"error": str(e)}
             )
 
     def record_suppression(
@@ -618,6 +614,7 @@ ComplianceChecker = ComplianceManager
 @dataclass
 class ComplianceResult:
     """Result of compliance checking - alias for compatibility"""
+
     passed: bool = True
     message: str = "Compliance check passed"
     details: Dict[str, Any] = None

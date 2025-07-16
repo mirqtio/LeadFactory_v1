@@ -162,17 +162,17 @@ class DashboardMetric:
 @dataclass
 class D10Metric:
     """Backward compatibility metric class for tests"""
-    
+
     type: MetricType  # Maps to metric_type in MetricSnapshot
     value: float
     timestamp: datetime
     dimensions: Optional[Dict[str, Any]] = None
-    
-    @property 
+
+    @property
     def metric_type(self) -> MetricType:
         """Alias for type property"""
         return self.type
-        
+
     def to_metric_snapshot(self, metric_name: str = "test_metric") -> MetricSnapshot:
         """Convert to MetricSnapshot for compatibility"""
         return MetricSnapshot(
@@ -180,5 +180,5 @@ class D10Metric:
             metric_type=self.type,
             value=self.value,
             timestamp=self.timestamp,
-            tags=self.dimensions
+            tags=self.dimensions,
         )

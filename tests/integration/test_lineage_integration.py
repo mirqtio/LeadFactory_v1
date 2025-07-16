@@ -193,12 +193,14 @@ class TestLineageIntegration:
 
         # Verify all reports have lineage
         result = await async_db_session.execute(
-            text("""
+            text(
+                """
             SELECT COUNT(*) as total,
                    COUNT(l.id) as with_lineage
             FROM d6_report_generations r
             LEFT JOIN report_lineage l ON r.id = l.report_generation_id
-            """)
+            """
+            )
         )
         counts = result.first()
 

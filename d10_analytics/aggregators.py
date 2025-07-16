@@ -1061,17 +1061,17 @@ class SegmentBreakdownAnalyzer:
 
         self.logger.info(f"Created {len(metrics)} stage breakdown metrics")
         return metrics
-        
+
     def add_metric(self, metric):
         """Add metric to buffer for test compatibility"""
         self.metrics_buffer.append(metric)
         self.logger.info(f"Added metric: {metric.type.value} = {metric.value}")
-        
+
     def get_aggregated_results(self) -> Dict[str, Any]:
         """Get aggregated results for test compatibility"""
         if not self.metrics_buffer:
             return {}
-            
+
         # Simple aggregation for testing
         results = {}
         for metric in self.metrics_buffer:
@@ -1079,7 +1079,7 @@ class SegmentBreakdownAnalyzer:
             if metric_type not in results:
                 results[metric_type] = []
             results[metric_type].append(metric.value)
-            
+
         # Calculate basic stats
         aggregated = {}
         for metric_type, values in results.items():
@@ -1090,7 +1090,7 @@ class SegmentBreakdownAnalyzer:
                 "min": min(values) if values else 0,
                 "max": max(values) if values else 0,
             }
-            
+
         return aggregated
 
 

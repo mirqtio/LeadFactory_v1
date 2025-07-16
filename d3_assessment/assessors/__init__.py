@@ -9,6 +9,7 @@ from d3_assessment.assessors.gbp_profile_assessor import GBPProfileAssessor
 
 # Import all assessors
 from d3_assessment.assessors.lighthouse import LighthouseAssessor
+from d3_assessment.assessors.llm_heuristic_assessor import LLMHeuristicAssessor
 from d3_assessment.assessors.pagespeed_assessor import PageSpeedAssessor
 from d3_assessment.assessors.screenshot_assessor import ScreenshotAssessor
 from d3_assessment.assessors.semrush_assessor import SEMrushAssessor
@@ -25,6 +26,7 @@ ASSESSOR_REGISTRY: Dict[str, Type[BaseAssessor]] = {
     "vision": VisionAssessor,
     "lighthouse": LighthouseAssessor,
     "visual_analyzer": VisualAnalyzer,
+    "llm_heuristic": LLMHeuristicAssessor,
 }
 
 # Export all assessors
@@ -38,5 +40,6 @@ __all__ = [
     "VisionAssessor",
     "LighthouseAssessor",
     "VisualAnalyzer",
+    "LLMHeuristicAssessor",
     "ASSESSOR_REGISTRY",
 ]
