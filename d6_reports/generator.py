@@ -184,6 +184,19 @@ class DataLoader:
                     "effort": "low",
                 },
             ],
+            "semrush_data": {
+                "domain": f"business{business_id}.com",
+                "organic_keywords": 1250,
+                "organic_traffic": 45000,
+                "organic_cost": 12500.50,
+                "adwords_keywords": 125,
+                "adwords_traffic": 5000,
+                "adwords_cost": 2500.75,
+                "domain_authority": 45,
+                "site_health": 85,
+                "backlink_toxicity": 5,
+                "site_issues": 12,
+            },
         }
 
     @staticmethod

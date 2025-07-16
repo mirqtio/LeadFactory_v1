@@ -193,6 +193,15 @@ class TemplateEngine:
                 return text
             return text[:length].rsplit(" ", 1)[0] + "..."
 
+        def format_number(value: Union[int, float]) -> str:
+            """Format number with thousands separator"""
+            if value is None:
+                return "0"
+            try:
+                return f"{int(value):,}"
+            except (ValueError, TypeError):
+                return "0"
+
         def format_date(date_obj: Union[str, datetime], format_str: str = "%B %d, %Y") -> str:
             """Format date object or string"""
             if not date_obj:
@@ -217,6 +226,7 @@ class TemplateEngine:
         self.env.filters["priority_class"] = priority_class
         self.env.filters["impact_level"] = impact_level
         self.env.filters["truncate_text"] = truncate_text
+        self.env.filters["format_number"] = format_number
         self.env.filters["format_date"] = format_date
 
     def _load_default_templates(self) -> None:
@@ -392,6 +402,52 @@ class TemplateEngine:
             </div>
         </div>
         {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if assessment.semrush_data is defined %}
+    <div class="section">
+        <h2 class="section-title">SEO Snapshot</h2>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-value">{{ assessment.semrush_data.organic_keywords | format_number }}</div>
+                <div class="metric-label">Organic Keywords</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ assessment.semrush_data.organic_traffic | format_number }}</div>
+                <div class="metric-label">Monthly Organic Traffic</div>
+            </div>
+            {% if assessment.semrush_data.domain_authority is defined %}
+            <div class="metric-card">
+                <div class="metric-value">{{ assessment.semrush_data.domain_authority | format_score }}</div>
+                <div class="metric-label">Domain Authority</div>
+            </div>
+            {% endif %}
+            {% if assessment.semrush_data.site_health is defined %}
+            <div class="metric-card">
+                <div class="metric-value">{{ assessment.semrush_data.site_health | format_score('%') }}</div>
+                <div class="metric-label">Site Health</div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if assessment.semrush_data.organic_keywords > 0 %}
+        <div style="margin-top: 20px;">
+            <h3 style="font-size: 1.2em; margin-bottom: 10px;">SEO Performance Indicators</h3>
+            <ul style="line-height: 1.8;">
+                <li><strong>Organic Value:</strong> ${{ assessment.semrush_data.organic_cost | format_number }}</li>
+                {% if assessment.semrush_data.adwords_keywords is defined %}
+                <li><strong>Paid Keywords:</strong> {{ assessment.semrush_data.adwords_keywords | format_number }}</li>
+                {% endif %}
+                {% if assessment.semrush_data.backlink_toxicity is defined %}
+                <li><strong>Backlink Toxicity:</strong> {{ assessment.semrush_data.backlink_toxicity }}%</li>
+                {% endif %}
+                {% if assessment.semrush_data.site_issues is defined %}
+                <li><strong>Site Issues:</strong> {{ assessment.semrush_data.site_issues }} found</li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 

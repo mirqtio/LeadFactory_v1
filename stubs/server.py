@@ -332,6 +332,52 @@ async def openai_completion(completion: OpenAICompletion, authorization: str = H
     }
 
 
+# SEMrush endpoints
+@app.get("/")
+async def semrush_domain_overview(
+    key: Optional[str] = None,
+    type: Optional[str] = None,
+    domain: Optional[str] = None,
+    database: Optional[str] = None,
+    display_limit: Optional[int] = None,
+    export_columns: Optional[str] = None,
+):
+    """Mock SEMrush domain overview API"""
+    if not USE_STUBS:
+        raise HTTPException(status_code=503, detail="Stub server disabled")
+
+    # Validate required parameters
+    if not key or not domain:
+        raise HTTPException(status_code=400, detail="Missing required parameters")
+
+    # Simulate API key validation
+    if key == "invalid-key":
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    # Generate realistic SEMrush data
+    is_popular = random.random() > 0.3  # 70% of domains are "popular"
+
+    if is_popular:
+        organic_keywords = random.randint(500, 5000)
+        organic_traffic = random.randint(10000, 100000)
+        organic_cost = round(random.uniform(5000, 50000), 2)
+        adwords_keywords = random.randint(50, 500)
+        adwords_traffic = random.randint(1000, 10000)
+        adwords_cost = round(random.uniform(1000, 10000), 2)
+    else:
+        organic_keywords = random.randint(10, 500)
+        organic_traffic = random.randint(100, 10000)
+        organic_cost = round(random.uniform(100, 5000), 2)
+        adwords_keywords = random.randint(0, 50)
+        adwords_traffic = random.randint(0, 1000)
+        adwords_cost = round(random.uniform(0, 1000), 2)
+
+    # Return CSV format response as SEMrush does
+    csv_response = f"Or;Ot;Oc;Ad;At;Ac\n{organic_keywords};{organic_traffic};{organic_cost};{adwords_keywords};{adwords_traffic};{adwords_cost}"
+
+    return Response(content=csv_response, media_type="text/plain")
+
+
 # Health check
 @app.get("/health")
 async def health_check():

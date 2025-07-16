@@ -228,15 +228,15 @@ class SEMrushClient(BaseAPIClient):
             if response.status_code >= 400:
                 error_msg = f"HTTP {response.status_code}: {response.text}"
                 if response.status_code == 401:
-                    raise AuthenticationError(f"Invalid SEMrush API key: {error_msg}")
+                    raise AuthenticationError("semrush", error_msg)
                 elif response.status_code == 429:
                     raise RateLimitExceededError(
                         provider="semrush",
+                        limit_type="daily",
                         retry_after=3600,
-                        daily_limit=self._daily_quota,
                     )
                 else:
-                    raise APIProviderError(f"SEMrush API error: {error_msg}")
+                    raise APIProviderError("semrush", error_msg)
 
             # Return text for CSV parsing
             return response.text
