@@ -502,3 +502,114 @@ class AuditLogLead(Base):
         Index("ix_audit_leads_action_timestamp", "action", "timestamp"),
         Index("ix_audit_leads_user_timestamp", "user_id", "timestamp"),
     )
+
+
+# P1-060: Cost Guardrails Models
+class GuardrailLimit(Base):
+    """Configuration for cost guardrails and limits"""
+
+    __tablename__ = "guardrail_limits"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False, unique=True)
+    scope = Column(String(50), nullable=False)  # global, provider, campaign, operation, provider_operation
+    period = Column(String(50), nullable=False)  # hourly, daily, weekly, monthly, total
+    limit_usd = Column(Numeric(10, 4), nullable=False)
+
+    # Scope-specific filters
+    provider = Column(String(50), nullable=True, index=True)
+    campaign_id = Column(Integer, nullable=True, index=True)
+    operation = Column(String(100), nullable=True)
+
+    # Thresholds and actions
+    warning_threshold = Column(Float, nullable=False, default=0.8)
+    critical_threshold = Column(Float, nullable=False, default=0.95)
+    actions = Column(JSON, nullable=False)  # List of actions: log, alert, throttle, block, circuit_break
+
+    # Circuit breaker settings
+    circuit_breaker_enabled = Column(Boolean, nullable=False, default=False)
+    circuit_breaker_failure_threshold = Column(Integer, nullable=False, default=5)
+    circuit_breaker_recovery_timeout = Column(Integer, nullable=False, default=300)
+
+    # Metadata
+    enabled = Column(Boolean, nullable=False, default=True)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    violations = relationship("GuardrailViolation", back_populates="limit")
+
+
+class GuardrailViolation(Base):
+    """Records of guardrail violations"""
+
+    __tablename__ = "guardrail_violations"
+
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(TIMESTAMP, nullable=False, server_default=func.now(), index=True)
+    limit_id = Column(Integer, ForeignKey("guardrail_limits.id"), nullable=False)
+    limit_name = Column(String(100), nullable=False)
+    scope = Column(String(50), nullable=False)
+    severity = Column(String(50), nullable=False, index=True)  # info, warning, critical, emergency
+    current_spend = Column(Numeric(10, 4), nullable=False)
+    limit_amount = Column(Numeric(10, 4), nullable=False)
+    percentage_used = Column(Float, nullable=False)
+
+    # Context
+    provider = Column(String(50), nullable=True, index=True)
+    campaign_id = Column(Integer, nullable=True)
+    operation = Column(String(100), nullable=True)
+    action_taken = Column(JSON, nullable=False)  # List of actions taken
+    meta_data = Column(JSON, nullable=True)
+
+    # Relationships
+    limit = relationship("GuardrailLimit", back_populates="violations")
+
+    __table_args__ = (Index("ix_guardrail_violations_timestamp_severity", "timestamp", "severity"),)
+
+
+class RateLimit(Base):
+    """Rate limit configuration for providers"""
+
+    __tablename__ = "rate_limits"
+
+    id = Column(Integer, primary_key=True)
+    provider = Column(String(50), nullable=False)
+    operation = Column(String(100), nullable=True)
+
+    # Token bucket settings
+    requests_per_minute = Column(Integer, nullable=False)
+    burst_size = Column(Integer, nullable=False)
+
+    # Cost-based rate limiting
+    cost_per_minute = Column(Numeric(10, 4), nullable=True)
+    cost_burst_size = Column(Numeric(10, 4), nullable=True)
+
+    # Metadata
+    enabled = Column(Boolean, nullable=False, default=True)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (Index("ix_rate_limits_provider_operation", "provider", "operation", unique=True),)
+
+
+class AlertHistory(Base):
+    """History of alerts sent for guardrail violations"""
+
+    __tablename__ = "alert_history"
+
+    id = Column(Integer, primary_key=True)
+    violation_id = Column(Integer, ForeignKey("guardrail_violations.id"), nullable=False)
+    alert_channel = Column(String(50), nullable=False)  # email, slack, webhook, etc.
+    recipient = Column(String(255), nullable=False)
+    severity = Column(String(50), nullable=False)
+    message = Column(Text, nullable=False)
+    sent_at = Column(TIMESTAMP, nullable=False, server_default=func.now(), index=True)
+    success = Column(Boolean, nullable=False, default=True)
+    error_message = Column(Text, nullable=True)
+    meta_data = Column(JSON, nullable=True)
+
+    # Relationships
+    violation = relationship("GuardrailViolation")
+
+    __table_args__ = (Index("ix_alert_history_sent_at_channel", "sent_at", "alert_channel"),)

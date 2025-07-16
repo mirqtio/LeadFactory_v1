@@ -171,39 +171,52 @@ class GuardrailManager:
         self._load_default_limits()
 
     def _load_default_limits(self):
-        """Load default guardrail configurations"""
+        """Load default guardrail configurations from settings"""
+        from core.config import get_settings
+
+        settings = get_settings()
+
         # Global daily limit
         self.add_limit(
             CostLimit(
                 name="global_daily",
                 scope=LimitScope.GLOBAL,
                 period=LimitPeriod.DAILY,
-                limit_usd=Decimal("1000.00"),
-                warning_threshold=0.8,
-                critical_threshold=0.95,
+                limit_usd=Decimal(str(settings.guardrail_global_daily_limit)),
+                warning_threshold=settings.guardrail_warning_threshold,
+                critical_threshold=settings.guardrail_critical_threshold,
                 actions=[GuardrailAction.LOG, GuardrailAction.ALERT],
+                circuit_breaker_enabled=settings.guardrail_enable_circuit_breaker,
             )
         )
 
-        # Provider-specific limits
-        provider_limits = {
-            "openai": Decimal("500.00"),
-            "dataaxle": Decimal("300.00"),
-            "hunter": Decimal("100.00"),
-            "semrush": Decimal("200.00"),
-        }
+        # Global monthly limit
+        self.add_limit(
+            CostLimit(
+                name="global_monthly",
+                scope=LimitScope.GLOBAL,
+                period=LimitPeriod.MONTHLY,
+                limit_usd=Decimal(str(settings.guardrail_global_monthly_limit)),
+                warning_threshold=settings.guardrail_warning_threshold,
+                critical_threshold=settings.guardrail_critical_threshold,
+                actions=[GuardrailAction.LOG, GuardrailAction.ALERT, GuardrailAction.BLOCK],
+                circuit_breaker_enabled=settings.guardrail_enable_circuit_breaker,
+            )
+        )
 
-        for provider, limit in provider_limits.items():
+        # Provider-specific limits from settings
+        for provider, limit in settings.guardrail_provider_daily_limits.items():
             self.add_limit(
                 CostLimit(
                     name=f"{provider}_daily",
                     scope=LimitScope.PROVIDER,
                     period=LimitPeriod.DAILY,
                     provider=provider,
-                    limit_usd=limit,
-                    warning_threshold=0.8,
-                    critical_threshold=0.95,
+                    limit_usd=Decimal(str(limit)),
+                    warning_threshold=settings.guardrail_warning_threshold,
+                    critical_threshold=settings.guardrail_critical_threshold,
                     actions=[GuardrailAction.LOG, GuardrailAction.ALERT, GuardrailAction.THROTTLE],
+                    circuit_breaker_enabled=settings.guardrail_enable_circuit_breaker,
                 )
             )
 

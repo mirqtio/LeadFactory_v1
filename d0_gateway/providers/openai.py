@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from ..base import BaseAPIClient
+from ..middleware.cost_enforcement import OperationPriority, enforce_cost_limits
 
 
 class OpenAIClient(BaseAPIClient):
@@ -101,6 +102,7 @@ class OpenAIClient(BaseAPIClient):
 
         return await self.make_request("POST", "/v1/chat/completions", json=payload)
 
+    @enforce_cost_limits(priority=OperationPriority.NORMAL, operation_param="analyze_performance")
     async def analyze_website_performance(
         self,
         pagespeed_data: Dict[str, Any],

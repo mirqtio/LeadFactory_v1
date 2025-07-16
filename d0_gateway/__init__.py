@@ -21,6 +21,15 @@ from .exceptions import (
     TimeoutError,
 )
 from .metrics import GatewayMetrics
+from .middleware.cost_enforcement import (
+    CostEnforcementMiddleware,
+    OperationPriority,
+    PreflightCostEstimator,
+    cost_enforcement,
+    critical_operation,
+    enforce_cost_limits,
+    non_critical_operation,
+)
 from .rate_limiter import RateLimiter
 from .types import (
     APICredentials,
@@ -79,4 +88,12 @@ __all__ = [
     "APIQuota",
     "RequestPriority",
     "PriorityRequest",
+    # Cost Enforcement
+    "CostEnforcementMiddleware",
+    "OperationPriority",
+    "PreflightCostEstimator",
+    "cost_enforcement",
+    "enforce_cost_limits",
+    "critical_operation",
+    "non_critical_operation",
 ]

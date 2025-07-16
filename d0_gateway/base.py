@@ -17,6 +17,7 @@ from .circuit_breaker import CircuitBreaker
 from .guardrail_middleware import GuardrailBlocked, GuardrailContext
 from .guardrails import GuardrailAction, GuardrailViolation, guardrail_manager
 from .metrics import GatewayMetrics
+from .middleware.cost_enforcement import CostEnforcementMiddleware, OperationPriority, cost_enforcement
 from .rate_limiter import RateLimiter
 
 
@@ -76,13 +77,16 @@ class BaseAPIClient(ABC):
         """Calculate cost for a specific operation"""
         pass
 
-    async def make_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
+    async def make_request(
+        self, method: str, endpoint: str, priority: Optional[OperationPriority] = None, **kwargs
+    ) -> Dict[str, Any]:
         """
         Make an authenticated API request with all gateway features
 
         Args:
             method: HTTP method (GET, POST, etc.)
             endpoint: API endpoint path
+            priority: Operation priority (defaults to NORMAL)
             **kwargs: Additional arguments passed to httpx
 
         Returns:
@@ -104,30 +108,37 @@ class BaseAPIClient(ABC):
 
         self.metrics.record_cache_miss(self.provider, endpoint)
 
-        # Check rate limits
-        await self._check_rate_limit(operation)
-
-        # Check cost guardrails
+        # Extract operation name
         operation_name = endpoint.split("/")[0] if "/" in endpoint else endpoint
-        estimated_cost = self.calculate_cost(operation_name, **kwargs)
         lead_id = kwargs.get("lead_id")
         campaign_id = kwargs.get("campaign_id")
 
-        guardrail_result = guardrail_manager.enforce_limits(
-            provider=self.provider,
-            operation=operation_name,
-            estimated_cost=estimated_cost,
-            campaign_id=campaign_id,
-            **kwargs,
-        )
+        # Use the new cost enforcement middleware (skip in stub mode to avoid database calls)
+        if not self.settings.use_stubs:
+            enforcement_result = await cost_enforcement.check_and_enforce(
+                provider=self.provider,
+                operation=operation_name,
+                campaign_id=campaign_id,
+                priority=priority or OperationPriority.NORMAL,
+                **kwargs,
+            )
 
-        if isinstance(guardrail_result, GuardrailViolation):
-            if GuardrailAction.BLOCK in guardrail_result.action_taken:
-                raise GuardrailBlocked(
-                    f"Operation blocked by guardrail '{guardrail_result.limit_name}': "
-                    f"${guardrail_result.current_spend:.2f} / ${guardrail_result.limit_amount:.2f} "
-                    f"({guardrail_result.percentage_used:.1%})"
-                )
+            if enforcement_result is not True:
+                # Handle enforcement failure
+                if enforcement_result.get("reason") == "rate_limit_exceeded":
+                    raise RateLimitError(
+                        provider=self.provider,
+                        retry_after=enforcement_result.get("retry_after", 60),
+                        daily_limit=0,
+                        daily_used=0,
+                    )
+                elif enforcement_result.get("reason") == "guardrail_violation":
+                    violation = enforcement_result.get("violation", {})
+                    raise GuardrailBlocked(
+                        f"Operation blocked by guardrail '{violation.get('limit_name', 'unknown')}': "
+                        f"${violation.get('current_spend', 0):.2f} / ${violation.get('limit_amount', 0):.2f} "
+                        f"({violation.get('percentage_used', 0):.1%})"
+                    )
 
         # Check circuit breaker
         if not self.circuit_breaker.can_execute():
@@ -282,3 +293,42 @@ class BaseAPIClient(ABC):
         except Exception as e:
             # Don't fail the request if cost tracking fails
             self.logger.error(f"Failed to record cost: {e}")
+
+    def set_operation_priority(self, operation: str, priority: OperationPriority) -> None:
+        """
+        Set the priority for a specific operation
+
+        Args:
+            operation: Operation name
+            priority: Priority level
+        """
+        cost_enforcement.set_operation_priority(self.provider, operation, priority)
+        self.logger.info(f"Set priority {priority.value} for {self.provider}:{operation}")
+
+    async def make_critical_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
+        """
+        Make a critical API request that should never be blocked
+
+        Args:
+            method: HTTP method
+            endpoint: API endpoint
+            **kwargs: Additional arguments
+
+        Returns:
+            API response
+        """
+        return await self.make_request(method, endpoint, priority=OperationPriority.CRITICAL, **kwargs)
+
+    async def make_low_priority_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
+        """
+        Make a low priority API request that can be aggressively limited
+
+        Args:
+            method: HTTP method
+            endpoint: API endpoint
+            **kwargs: Additional arguments
+
+        Returns:
+            API response
+        """
+        return await self.make_request(method, endpoint, priority=OperationPriority.LOW, **kwargs)

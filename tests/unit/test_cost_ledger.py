@@ -13,8 +13,7 @@ from d0_gateway.base import BaseAPIClient
 from database.base import Base
 from database.models import APICost, DailyCostAggregate
 
-# Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# P1-050: Gateway Cost Ledger tests - now implemented
 
 
 @pytest.fixture

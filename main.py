@@ -22,6 +22,7 @@ from core.config import settings
 from core.exceptions import LeadFactoryError
 from core.logging import get_logger
 from core.metrics import get_metrics_response, metrics
+from d0_gateway.api import router as gateway_router
 from d1_targeting.api import router as targeting_router
 from d3_assessment.api import router as assessment_router
 from d6_reports.api import router as reports_router
@@ -154,6 +155,7 @@ app.state.limiter = limiter
 app.include_router(health_router, tags=["health"])
 
 # Register domain routers
+app.include_router(gateway_router, tags=["gateway"])
 app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])
 # Note: d3_assessment already includes prefix in router definition
 app.include_router(assessment_router)

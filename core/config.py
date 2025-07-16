@@ -123,6 +123,26 @@ class Settings(BaseSettings):
     enable_cost_guardrails: bool = Field(default=False)  # Wave B
     daily_budget_cap: float = Field(default=100.0)  # USD
     per_lead_cap: float = Field(default=2.50)  # USD
+
+    # P1-060 - Cost Guardrail Settings
+    guardrail_global_daily_limit: float = Field(default=1000.0, description="Global daily spending limit in USD")
+    guardrail_global_monthly_limit: float = Field(default=30000.0, description="Global monthly spending limit in USD")
+    guardrail_provider_daily_limits: Dict[str, float] = Field(
+        default={
+            "openai": 500.0,
+            "dataaxle": 300.0,
+            "hunter": 100.0,
+            "semrush": 200.0,
+            "screenshotone": 50.0,
+            "humanloop": 100.0,
+        },
+        description="Daily spending limits per provider in USD",
+    )
+    guardrail_warning_threshold: float = Field(default=0.8, ge=0.0, le=1.0, description="Warning threshold (0-1)")
+    guardrail_critical_threshold: float = Field(default=0.95, ge=0.0, le=1.0, description="Critical threshold (0-1)")
+    guardrail_alert_email: Optional[str] = Field(default=None, description="Email for guardrail alerts")
+    guardrail_alert_slack_webhook: Optional[str] = Field(default=None, description="Slack webhook for guardrail alerts")
+    guardrail_enable_circuit_breaker: bool = Field(default=True, description="Enable circuit breaker on cost limits")
     enable_report_lineage: bool = Field(default=True)  # P0-023
     enable_template_studio: bool = Field(default=True)  # P0-024
     enable_scoring_playground: bool = Field(default=True)  # P0-025
