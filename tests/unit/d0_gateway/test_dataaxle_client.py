@@ -10,8 +10,7 @@ from core.exceptions import ValidationError
 from d0_gateway.exceptions import APIProviderError, AuthenticationError, RateLimitExceededError
 from d0_gateway.providers.dataaxle import DataAxleClient
 
-# Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# DataAxle provider is now implemented and ready for use
 
 
 @pytest.fixture

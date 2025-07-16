@@ -34,7 +34,7 @@ class DataAxleClient(BaseAPIClient):
             **kwargs: Additional configuration
         """
         # Store base_url before calling parent init
-        self.base_url = kwargs.get("base_url", "https://api.data-axle.com/v1")
+        self.base_url = kwargs.get("base_url", "https://api.data-axle.com/v2")
         self.timeout = kwargs.get("timeout", 30)
         self.max_retries = kwargs.get("max_retries", 3)
 

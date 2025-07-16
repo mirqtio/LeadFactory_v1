@@ -533,8 +533,23 @@ class GuardrailManager:
                 limit.name, limit.circuit_breaker_failure_threshold, limit.circuit_breaker_recovery_timeout
             )
 
-        # TODO: Send alerts via configured channels (email, Slack, webhooks)
-        # This will be implemented in the alert system module
+        # Send alerts via configured channels
+        import asyncio
+
+        from d0_gateway.guardrail_alerts import send_cost_alert
+
+        # Run the async alert sending in a background task
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If we're already in an async context, create a task
+                asyncio.create_task(send_cost_alert(violation))
+            else:
+                # If we're in a sync context, run it
+                asyncio.run(send_cost_alert(violation))
+        except RuntimeError:
+            # Fallback to sync logging if event loop issues
+            self.logger.warning("Could not send async alert, logged violation only")
 
     def _update_circuit_breaker(self, limit_name: str, failure_threshold: int, recovery_timeout: int):
         """Update circuit breaker state"""

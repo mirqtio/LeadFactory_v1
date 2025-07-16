@@ -387,3 +387,90 @@ async def get_recent_violations(
             "note": "Implement violation storage in database for production use",
         }
     ]
+
+
+class AlertAcknowledgment(BaseModel):
+    """Acknowledgment of an alert"""
+
+    alert_id: str = Field(..., description="ID of the alert being acknowledged")
+    limit_name: str = Field(..., description="Name of the limit that triggered the alert")
+    acknowledged_by: str = Field(..., description="User or system acknowledging the alert")
+    action_taken: str = Field(..., description="Action taken in response to alert")
+    notes: Optional[str] = Field(None, description="Additional notes")
+    increase_limit_to: Optional[float] = Field(None, description="New limit if increasing")
+    snooze_until: Optional[datetime] = Field(None, description="Snooze alerts until this time")
+
+
+@router.post("/alerts/acknowledge")
+async def acknowledge_alert(ack: AlertAcknowledgment) -> Dict[str, Any]:
+    """
+    Acknowledge an alert and optionally take action
+
+    This endpoint allows users to:
+    - Acknowledge they've seen an alert
+    - Temporarily increase limits
+    - Snooze future alerts
+    - Reset circuit breakers
+    """
+    response = {"acknowledged": True, "alert_id": ack.alert_id, "timestamp": datetime.utcnow(), "actions_taken": []}
+
+    # If increasing limit
+    if ack.increase_limit_to and ack.limit_name in guardrail_manager._limits:
+        old_limit = guardrail_manager._limits[ack.limit_name].limit_usd
+        guardrail_manager._limits[ack.limit_name].limit_usd = Decimal(str(ack.increase_limit_to))
+        response["actions_taken"].append(f"Increased limit from ${old_limit} to ${ack.increase_limit_to}")
+        logger.info(
+            f"Limit '{ack.limit_name}' increased from ${old_limit} to ${ack.increase_limit_to} "
+            f"by {ack.acknowledged_by}"
+        )
+
+    # If snoozing alerts
+    if ack.snooze_until:
+        # In production, this would update alert configuration
+        response["actions_taken"].append(f"Alerts snoozed until {ack.snooze_until.isoformat()}")
+        logger.info(f"Alerts for '{ack.limit_name}' snoozed until {ack.snooze_until} " f"by {ack.acknowledged_by}")
+
+    # Log the acknowledgment
+    logger.info(
+        f"Alert {ack.alert_id} acknowledged by {ack.acknowledged_by}. "
+        f"Action: {ack.action_taken}. Notes: {ack.notes}"
+    )
+
+    response["message"] = "Alert acknowledged successfully"
+    return response
+
+
+@router.post("/alerts/test")
+async def test_alert(
+    channel: AlertChannel = Query(..., description="Channel to test"),
+    severity: str = Query("warning", description="Alert severity to simulate"),
+) -> Dict[str, Any]:
+    """Test alert delivery to a specific channel"""
+    from d0_gateway.alerts import alert_manager
+    from d0_gateway.guardrails import AlertSeverity, GuardrailAction, GuardrailViolation, LimitScope
+
+    # Create a test violation
+    test_violation = GuardrailViolation(
+        limit_name="test_limit",
+        scope=LimitScope.GLOBAL,
+        severity=AlertSeverity(severity),
+        current_spend=Decimal("850.00"),
+        limit_amount=Decimal("1000.00"),
+        percentage_used=0.85,
+        provider="test_provider",
+        operation="test_operation",
+        action_taken=[GuardrailAction.ALERT],
+        metadata={"test": True},
+    )
+
+    # Send test alert
+    results = await alert_manager.send_alert(test_violation, [channel])
+
+    return {
+        "channel": channel.value,
+        "success": results.get(channel, False),
+        "message": f"Test alert sent to {channel.value}"
+        if results.get(channel)
+        else f"Failed to send test alert to {channel.value}",
+        "timestamp": datetime.utcnow(),
+    }

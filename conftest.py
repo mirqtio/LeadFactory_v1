@@ -23,7 +23,7 @@ def pytest_collection_modifyitems(config, items):
     phase05_patterns = [
         r"phase_?05",  # phase_05 or phase05
         r"test_enrichment_fanout",  # Phase 0.5 enrichment
-        r"test_dataaxle|test_hunter",  # Phase 0.5 providers
+        r"test_hunter",  # Phase 0.5 providers (DataAxle is now implemented)
         r"test_bucket_(loader|enrichment|flow)",  # Phase 0.5 bucket features
         r"test_cost_(ledger|guardrails)",  # Phase 0.5 cost tracking
         r"test_value_curves",  # Phase 0.5 analytics

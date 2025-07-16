@@ -55,7 +55,7 @@ class Settings(BaseSettings):
 
     # PRD v1.2 - Data Axle (trial)
     data_axle_api_key: Optional[SecretStr] = Field(default=None)
-    data_axle_base_url: str = Field(default="https://api.data-axle.com/v1")
+    data_axle_base_url: str = Field(default="https://api.data-axle.com/v2")
     data_axle_rate_limit_per_min: int = Field(default=200)
 
     # PRD v1.2 - Hunter.io

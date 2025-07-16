@@ -198,23 +198,23 @@ class AlertManager:
         self.add_config(AlertConfig(channel=AlertChannel.LOG, enabled=True, min_severity=AlertSeverity.INFO))
 
         # Add Slack if configured
-        if hasattr(settings, "slack_webhook_url") and settings.slack_webhook_url:
+        if settings.guardrail_alert_slack_webhook:
             self.add_config(
                 AlertConfig(
                     channel=AlertChannel.SLACK,
                     enabled=True,
-                    slack_webhook_url=settings.slack_webhook_url,
+                    slack_webhook_url=settings.guardrail_alert_slack_webhook,
                     min_severity=AlertSeverity.WARNING,
                 )
             )
 
         # Add email if configured
-        if hasattr(settings, "alert_email_addresses") and settings.alert_email_addresses:
+        if settings.guardrail_alert_email:
             self.add_config(
                 AlertConfig(
                     channel=AlertChannel.EMAIL,
                     enabled=True,
-                    email_addresses=settings.alert_email_addresses.split(","),
+                    email_addresses=[email.strip() for email in settings.guardrail_alert_email.split(",")],
                     min_severity=AlertSeverity.CRITICAL,
                 )
             )
@@ -363,11 +363,31 @@ class AlertManager:
         if not config.email_addresses:
             return
 
-        # In a real implementation, this would use an email service
-        # For now, just log that we would send an email
-        self.logger.info(f"Would send email alert to {', '.join(config.email_addresses)}: " f"{message.title}")
+        try:
+            from d0_gateway.providers.sendgrid import SendGridClient
 
-        # TODO: Implement actual email sending via SendGrid or similar
+            sendgrid = SendGridClient()
+            html_content = message.to_email_html()
+
+            # Send to each configured email address
+            for email in config.email_addresses:
+                result = await sendgrid.send_email(
+                    to_email=email,
+                    subject=f"[LeadFactory Alert] {message.title}",
+                    html_content=html_content,
+                    from_email=get_settings().from_email,
+                    from_name=get_settings().from_name,
+                    text_content=message.message,
+                    custom_args={"category": "cost-guardrail-alert", "severity": message.severity.value},
+                )
+
+                if result.get("success"):
+                    self.logger.info(f"Sent email alert to {email}: {message.title}")
+                else:
+                    self.logger.error(f"Failed to send email alert to {email}: {result.get('error')}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to send email alerts: {e}")
 
     async def _send_webhook_alert(self, config: AlertConfig, message: AlertMessage):
         """Send alert to webhook"""
