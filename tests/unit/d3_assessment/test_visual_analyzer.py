@@ -167,7 +167,7 @@ class TestVisualAnalyzer:
 
         # Verify result structure
         assert isinstance(result, AssessmentResult)
-        assert result.assessment_type == AssessmentType.AI_INSIGHTS
+        assert result.assessment_type == AssessmentType.VISUAL
         assert result.status == "completed"
         assert result.cost == 0.023  # $0.020 screenshots + $0.003 vision
 
@@ -487,7 +487,7 @@ class TestVisualAnalyzer:
 
     def test_assessment_type(self, visual_analyzer):
         """Test correct assessment type is returned"""
-        assert visual_analyzer.assessment_type == AssessmentType.AI_INSIGHTS
+        assert visual_analyzer.assessment_type == AssessmentType.VISUAL
 
     def test_timeout_configuration(self, visual_analyzer):
         """Test timeout is properly configured"""

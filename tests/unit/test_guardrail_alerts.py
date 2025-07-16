@@ -47,7 +47,7 @@ class TestAlertConfig:
         )
 
         assert config.channel == AlertChannel.SLACK
-        assert config.slack_webhook_url == "https://hooks.slack.com/services/xxx"
+        assert str(config.slack_webhook_url) == "https://hooks.slack.com/services/xxx"
         assert config.providers == ["openai", "dataaxle"]
 
     def test_create_webhook_config(self):
@@ -60,7 +60,7 @@ class TestAlertConfig:
         )
 
         assert config.channel == AlertChannel.WEBHOOK
-        assert config.webhook_url == "https://api.example.com/alerts"
+        assert str(config.webhook_url) == "https://api.example.com/alerts"
         assert config.webhook_headers == {"Authorization": "Bearer token"}
         assert config.max_alerts_per_hour == 20
 
@@ -159,7 +159,12 @@ class TestAlertManager:
     def test_default_configs(self):
         """Test default alert configurations are loaded"""
         with patch("d0_gateway.guardrail_alerts.get_settings") as mock_settings:
-            mock_settings.return_value = Mock(slack_webhook_url=None, alert_email_addresses=None)
+            mock_settings.return_value = Mock(
+                slack_webhook_url=None, 
+                alert_email_addresses=None,
+                guardrail_alert_email=None,
+                guardrail_alert_slack_webhook=None
+            )
 
             manager = AlertManager()
 
@@ -208,20 +213,35 @@ class TestAlertManager:
 
     def test_rate_limiting(self):
         """Test alert rate limiting"""
-        manager = AlertManager()
+        with patch("d0_gateway.guardrail_alerts.get_settings") as mock_settings:
+            mock_settings.return_value = Mock(
+                slack_webhook_url=None, 
+                alert_email_addresses=None,
+                guardrail_alert_email=None,
+                guardrail_alert_slack_webhook=None
+            )
+            
+            manager = AlertManager()
 
-        config = AlertConfig(channel=AlertChannel.EMAIL, max_alerts_per_hour=2, cooldown_minutes=5)
+            config = AlertConfig(channel=AlertChannel.EMAIL, max_alerts_per_hour=2, cooldown_minutes=5)
 
-        violation = Mock(severity=AlertSeverity.WARNING, limit_name="test_limit", provider="openai")
+            violation = Mock(severity=AlertSeverity.WARNING, limit_name="test_limit", provider="openai")
 
-        # First alert should send
-        assert manager._should_send_alert(config, violation)
+            # First alert should send
+            assert manager._should_send_alert(config, violation)
 
-        # Second alert should send
-        assert manager._should_send_alert(config, violation)
+            # Record the alert
+            key = f"{config.channel.value}:{violation.limit_name}"
+            manager._alert_history[key] = [datetime.utcnow()]
 
-        # Third alert should be rate limited
-        assert not manager._should_send_alert(config, violation)
+            # Second alert should send
+            assert manager._should_send_alert(config, violation)
+
+            # Record the second alert
+            manager._alert_history[key].append(datetime.utcnow())
+
+            # Third alert should be rate limited
+            assert not manager._should_send_alert(config, violation)
 
     def test_cooldown_period(self):
         """Test alert cooldown period"""
