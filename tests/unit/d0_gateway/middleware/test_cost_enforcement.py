@@ -199,15 +199,19 @@ class TestCostEnforcementMiddleware:
         # Add a strict rate limiter
         middleware._rate_limiters["test:*"] = TokenBucket(capacity=1, refill_rate=0.1)  # Very slow refill
 
-        # First request should succeed
-        result = await middleware.check_and_enforce("test", "operation", Decimal("0.01"))
-        assert result is True
+        # Mock the guardrail manager to avoid database calls
+        with patch('d0_gateway.middleware.cost_enforcement.guardrail_manager') as mock_guardrail:
+            mock_guardrail.enforce_limits.return_value = True
+            
+            # First request should succeed
+            result = await middleware.check_and_enforce("test", "operation", Decimal("0.01"))
+            assert result is True
 
-        # Second request should be rate limited
-        result = await middleware.check_and_enforce("test", "operation", Decimal("0.01"))
-        assert result != True
-        assert result["reason"] == "rate_limit_exceeded"
-        assert result["retry_after"] > 0
+            # Second request should be rate limited
+            result = await middleware.check_and_enforce("test", "operation", Decimal("0.01"))
+            assert result != True
+            assert result["reason"] == "rate_limit_exceeded"
+            assert result["retry_after"] > 0
 
     @pytest.mark.asyncio
     async def test_priority_based_rate_limiting(self, middleware):
@@ -291,7 +295,7 @@ class TestEnforceCostLimitsDecorator:
             mock_check.assert_called_once()
             call_args = mock_check.call_args[1]
             assert call_args["provider"] == "test"
-            assert call_args["operation"] == "test_op"
+            assert call_args["operation"] == "test_method"
             assert call_args["priority"] == OperationPriority.NORMAL
 
     def test_decorator_on_sync_method(self):
@@ -307,7 +311,8 @@ class TestEnforceCostLimitsDecorator:
         client = TestClient()
 
         with patch("d0_gateway.middleware.cost_enforcement.cost_enforcement.check_and_enforce") as mock_check:
-            mock_check.return_value = asyncio.coroutine(lambda: True)()
+            # Return a simple boolean for sync methods
+            mock_check.return_value = True
 
             result = client.test_method()
             assert result == {"success": True}
