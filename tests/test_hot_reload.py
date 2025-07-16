@@ -15,6 +15,9 @@ from d5_scoring.hot_reload import (
     stop_watching,
 )
 
+# Import synchronization utilities
+from tests.test_synchronization import TestEvent, wait_for_condition
+
 # Mark entire module as unit test and xfail for Phase 0.5
 pytestmark = [pytest.mark.unit, pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)]
 
@@ -50,8 +53,10 @@ class TestScoringRulesFileHandler:
         # Trigger modification
         handler.on_modified(event)
 
-        # Wait for debounce
-        time.sleep(0.2)
+        # Wait for debounce using proper timing
+        wait_for_condition(
+            lambda: mock_engine.reload_rules.called, timeout=0.5, interval=0.05, message="Reload not triggered"
+        )
 
         # Should have attempted reload
         mock_engine.reload_rules.assert_called_once()
@@ -67,8 +72,8 @@ class TestScoringRulesFileHandler:
         # Trigger modification
         handler.on_modified(event)
 
-        # Wait for potential debounce
-        time.sleep(0.2)
+        # Give enough time to ensure no reload happens
+        time.sleep(0.2)  # Keep this sleep as we're testing that nothing happens
 
         # Should not have attempted reload
         mock_engine.reload_rules.assert_not_called()
@@ -81,13 +86,23 @@ class TestScoringRulesFileHandler:
         event = Mock()
         event.src_path = "config/scoring_rules.yaml"
 
+        # Track modification times
+        modification_event = TestEvent()
+        original_reload = mock_engine.reload_rules
+
+        def track_reload():
+            modification_event.set()
+            original_reload()
+
+        mock_engine.reload_rules = Mock(side_effect=track_reload)
+
         # Trigger multiple modifications rapidly
         for _ in range(5):
             handler.on_modified(event)
             time.sleep(0.05)  # Less than debounce time
 
         # Wait for debounce to complete
-        time.sleep(0.4)
+        assert modification_event.wait(timeout=0.6), "Reload not triggered after debounce"
 
         # Should only reload once despite multiple events
         assert mock_engine.reload_rules.call_count == 1
@@ -294,8 +309,10 @@ components:
             with open(temp_config, "a") as f:
                 f.write("\n# Modified\n")
 
-            # Wait for detection and debounce
-            time.sleep(1.0)
+            # Wait for file system event and debounce
+            wait_for_condition(
+                lambda: engine.reload_rules.called, timeout=2.0, interval=0.1, message="File modification not detected"
+            )
 
         # Should have triggered reload
         engine.reload_rules.assert_called()

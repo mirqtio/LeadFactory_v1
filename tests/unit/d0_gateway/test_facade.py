@@ -971,7 +971,7 @@ class TestThreadSafety:
         def create_factory():
             factory = GatewayClientFactory()
             results.append(factory)
-            time.sleep(0.01)  # Simulate some work
+            # No need for sleep - let threads race naturally
 
         # Create multiple threads
         threads = []

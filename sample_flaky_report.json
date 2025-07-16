@@ -1,0 +1,32 @@
+{
+  "summary": {
+    "total_tests_analyzed": 0,
+    "flaky_tests_found": 0,
+    "flakiness_rate": 0,
+    "iterations_run": 2,
+    "timestamp": "2025-07-16T16:22:41.001406"
+  },
+  "flaky_tests": [],
+  "iteration_results": [
+    {
+      "iteration": 1,
+      "success": false,
+      "duration": 0.14832115173339844,
+      "test_results": {},
+      "output": ""
+    },
+    {
+      "iteration": 2,
+      "success": false,
+      "duration": 0.14924097061157227,
+      "test_results": {},
+      "output": ""
+    }
+  ],
+  "patterns": {
+    "port_conflicts": 0,
+    "async_warnings": 0,
+    "timing_issues": 0,
+    "pattern_distribution": {}
+  }
+}

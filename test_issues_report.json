@@ -1,0 +1,2930 @@
+{
+  "summary": {
+    "total_issues": 586,
+    "files_analyzed": 157
+  },
+  "issues": {
+    "hardcoded_ports": [
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 102,
+        "port": "5432",
+        "context": "port=5432"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 123,
+        "port": "6379",
+        "context": "port=6379"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 139,
+        "port": "5010",
+        "context": ":5010/"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 156,
+        "port": "8000",
+        "context": ":8000/"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 170,
+        "port": "9090",
+        "context": ":9090/"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 181,
+        "port": "3000",
+        "context": ":3000/"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 203,
+        "port": "8025",
+        "context": ":8025/"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 139,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 156,
+        "port": "8000",
+        "context": "localhost:8000"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 170,
+        "port": "9090",
+        "context": "localhost:9090"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 181,
+        "port": "3000",
+        "context": "localhost:3000"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 203,
+        "port": "8025",
+        "context": "localhost:8025"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 21,
+        "port": "8000",
+        "context": ":8000\""
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 21,
+        "port": "8000",
+        "context": "localhost:8000"
+      },
+      {
+        "file": "tests/unit/test_config_phase05.py",
+        "line": 91,
+        "port": "5000",
+        "context": ":5000\""
+      },
+      {
+        "file": "tests/unit/test_config_phase05.py",
+        "line": 94,
+        "port": "5000",
+        "context": ":5000\""
+      },
+      {
+        "file": "tests/unit/test_config_phase05.py",
+        "line": 95,
+        "port": "5000",
+        "context": ":5000\""
+      },
+      {
+        "file": "tests/unit/test_health_endpoint.py",
+        "line": 90,
+        "port": "6379",
+        "context": ":6379/"
+      },
+      {
+        "file": "tests/unit/test_health_endpoint.py",
+        "line": 105,
+        "port": "6379",
+        "context": ":6379/"
+      },
+      {
+        "file": "tests/unit/test_health_endpoint.py",
+        "line": 209,
+        "port": "6379",
+        "context": ":6379/"
+      },
+      {
+        "file": "tests/unit/test_health_endpoint.py",
+        "line": 224,
+        "port": "6379",
+        "context": ":6379/"
+      },
+      {
+        "file": "tests/unit/test_health_endpoint.py",
+        "line": 295,
+        "port": "6379",
+        "context": ":6379/"
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 110,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 115,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 116,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 117,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 118,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 119,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 110,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 115,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 116,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 117,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 118,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 119,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/test_core.py",
+        "line": 66,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_core.py",
+        "line": 69,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_core.py",
+        "line": 70,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_core.py",
+        "line": 71,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/test_config_extended.py",
+        "line": 54,
+        "port": "5432",
+        "context": ":5432/"
+      },
+      {
+        "file": "tests/unit/test_config_extended.py",
+        "line": 56,
+        "port": "5432",
+        "context": ":5432/"
+      },
+      {
+        "file": "tests/unit/test_config_extended.py",
+        "line": 60,
+        "port": "5432",
+        "context": ":5432/"
+      },
+      {
+        "file": "tests/unit/test_config_extended.py",
+        "line": 67,
+        "port": "6380",
+        "context": ":6380/"
+      },
+      {
+        "file": "tests/unit/test_config_extended.py",
+        "line": 69,
+        "port": "6380",
+        "context": ":6380/"
+      },
+      {
+        "file": "tests/unit/test_utils_extended.py",
+        "line": 105,
+        "port": "8080",
+        "context": ":8080\""
+      },
+      {
+        "file": "tests/unit/test_utils_extended.py",
+        "line": 105,
+        "port": "8080",
+        "context": "localhost:8080"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 42,
+        "port": "5011",
+        "context": ":5011\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 237,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 240,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 241,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 242,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 243,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 343,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 352,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 355,
+        "port": "5011",
+        "context": ":5011\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 357,
+        "port": "5011",
+        "context": ":5011\""
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 42,
+        "port": "5011",
+        "context": "localhost:5011"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 237,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 240,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 241,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 242,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 243,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 355,
+        "port": "5011",
+        "context": "localhost:5011"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "line": 357,
+        "port": "5011",
+        "context": "localhost:5011"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_semrush_client.py",
+        "line": 462,
+        "port": "8000",
+        "context": ":8000\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_semrush_client.py",
+        "line": 476,
+        "port": "8000",
+        "context": ":8000\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_semrush_client.py",
+        "line": 462,
+        "port": "8000",
+        "context": "localhost:8000"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_semrush_client.py",
+        "line": 476,
+        "port": "8000",
+        "context": "localhost:8000"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base_client.py",
+        "line": 43,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base_client.py",
+        "line": 44,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base_client.py",
+        "line": 55,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base_client.py",
+        "line": 60,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base_client.py",
+        "line": 43,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 23,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 37,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 44,
+        "port": "5010",
+        "context": ":5010/"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 74,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 100,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 125,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 23,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 37,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 44,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 74,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 100,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_provider_flags.py",
+        "line": 125,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_openai_client.py",
+        "line": 507,
+        "port": "8000",
+        "context": ":8000\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_openai_client.py",
+        "line": 507,
+        "port": "8000",
+        "context": "localhost:8000"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "line": 30,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "line": 30,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "line": 277,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "line": 277,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "line": 30,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "line": 277,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_pagespeed_client.py",
+        "line": 457,
+        "port": "8000",
+        "context": ":8000\""
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_pagespeed_client.py",
+        "line": 457,
+        "port": "8000",
+        "context": "localhost:8000"
+      },
+      {
+        "file": "tests/unit/api/test_dependencies.py",
+        "line": 100,
+        "port": "6379",
+        "context": ":6379/"
+      },
+      {
+        "file": "tests/unit/api/test_dependencies.py",
+        "line": 111,
+        "port": "6379",
+        "context": ":6379/"
+      },
+      {
+        "file": "tests/unit/api/test_dependencies.py",
+        "line": 100,
+        "port": "6379",
+        "context": "localhost:6379"
+      },
+      {
+        "file": "tests/unit/api/test_dependencies.py",
+        "line": 111,
+        "port": "6379",
+        "context": "localhost:6379"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 49,
+        "port": "5432",
+        "context": ":5432/"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 69,
+        "port": "5432",
+        "context": ":5432/"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 119,
+        "port": "5432",
+        "context": ":5432/"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 49,
+        "port": "5432",
+        "context": "localhost:5432"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 69,
+        "port": "5432",
+        "context": "localhost:5432"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 119,
+        "port": "5432",
+        "context": "localhost:5432"
+      },
+      {
+        "file": "tests/integration/test_health_integration.py",
+        "line": 42,
+        "port": "6379",
+        "context": ":6379/"
+      },
+      {
+        "file": "tests/integration/test_health_integration.py",
+        "line": 172,
+        "port": "5432",
+        "context": ":5432/"
+      },
+      {
+        "file": "tests/integration/test_health_integration.py",
+        "line": 42,
+        "port": "6379",
+        "context": "localhost:6379"
+      },
+      {
+        "file": "tests/integration/test_dataaxle_integration.py",
+        "line": 22,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/integration/test_dataaxle_integration.py",
+        "line": 22,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/integration/test_lighthouse_integration.py",
+        "line": 39,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/integration/test_lighthouse_integration.py",
+        "line": 39,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/integration/d3_assessment/test_lighthouse_integration.py",
+        "line": 119,
+        "port": "5010",
+        "context": ":5010\""
+      },
+      {
+        "file": "tests/integration/d3_assessment/test_lighthouse_integration.py",
+        "line": 119,
+        "port": "5010",
+        "context": "localhost:5010"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 83,
+        "port": "6379",
+        "context": ":6379/"
+      }
+    ],
+    "time_sleep": [
+      {
+        "file": "tests/test_hot_reload.py",
+        "line": 54,
+        "code": "time.sleep(0.2)"
+      },
+      {
+        "file": "tests/test_hot_reload.py",
+        "line": 71,
+        "code": "time.sleep(0.2)"
+      },
+      {
+        "file": "tests/test_hot_reload.py",
+        "line": 87,
+        "code": "time.sleep(0.05)"
+      },
+      {
+        "file": "tests/test_hot_reload.py",
+        "line": 90,
+        "code": "time.sleep(0.4)"
+      },
+      {
+        "file": "tests/test_hot_reload.py",
+        "line": 298,
+        "code": "time.sleep(1.0)"
+      },
+      {
+        "file": "tests/test_synchronization.py",
+        "line": 112,
+        "code": "time.sleep(interval)"
+      },
+      {
+        "file": "tests/test_synchronization.py",
+        "line": 238,
+        "code": "time.sleep(delay)"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 45,
+        "code": "time.sleep(10)"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 153,
+        "code": "time.sleep(5)"
+      },
+      {
+        "file": "tests/unit/test_unit_metrics.py",
+        "line": 133,
+        "code": "time.sleep(0.1)"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_circuit_breaker.py",
+        "line": 34,
+        "code": "time.sleep(1.1)"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_circuit_breaker.py",
+        "line": 129,
+        "code": "time.sleep(1)"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_circuit_breaker.py",
+        "line": 133,
+        "code": "time.sleep(1.1)"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_circuit_breaker.py",
+        "line": 170,
+        "code": "time.sleep(1.1)"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_circuit_breaker.py",
+        "line": 203,
+        "code": "time.sleep(1.1)"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_circuit_breaker.py",
+        "line": 209,
+        "code": "time.sleep(1.1)"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_facade.py",
+        "line": 974,
+        "code": "time.sleep(0.01)"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+        "line": 129,
+        "code": "time.sleep(0.1)"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+        "line": 133,
+        "code": "time.sleep(0.05)"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+        "line": 374,
+        "code": "time.sleep(0.01)"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+        "line": 377,
+        "code": "time.sleep(0.01)"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+        "line": 380,
+        "code": "time.sleep(0.01)"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 135,
+        "code": "time.sleep(1)"
+      },
+      {
+        "file": "tests/integration/test_health_integration.py",
+        "line": 158,
+        "code": "time.sleep(0.1)"
+      },
+      {
+        "file": "tests/integration/test_health_integration.py",
+        "line": 206,
+        "code": "time.sleep(0.01)"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 125,
+        "code": "time.sleep(1.1)"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 65,
+        "code": "time.sleep(0.1)"
+      },
+      {
+        "file": "tests/performance/test_load.py",
+        "line": 87,
+        "code": "time.sleep(0.1)"
+      },
+      {
+        "file": "tests/performance/test_load.py",
+        "line": 138,
+        "code": "time.sleep(0.001)"
+      },
+      {
+        "file": "tests/performance/test_load.py",
+        "line": 161,
+        "code": "time.sleep(0.002)"
+      },
+      {
+        "file": "tests/performance/test_load.py",
+        "line": 196,
+        "code": "time.sleep(0.0005)"
+      },
+      {
+        "file": "tests/performance/test_load.py",
+        "line": 208,
+        "code": "time.sleep(0.003)"
+      },
+      {
+        "file": "tests/performance/test_load.py",
+        "line": 242,
+        "code": "time.sleep(0.001)"
+      },
+      {
+        "file": "tests/e2e/test_error_handling.py",
+        "line": 499,
+        "code": "time.sleep(0.01)"
+      },
+      {
+        "file": "tests/e2e/test_error_handling.py",
+        "line": 681,
+        "code": "time.sleep(min(delay, 0.1)"
+      }
+    ],
+    "missing_cleanup": [
+      {
+        "file": "tests/test_infrastructure_cleanup.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/test_formula_evaluator.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/test_sheet_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/test_ci_health_check.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/test_migrations.py",
+        "issue": "connection created without cleanup",
+        "pattern": "connect\\("
+      },
+      {
+        "file": "tests/unit/test_impact_coefficients.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/d10_analytics/test_d10_api.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/design/test_token_extraction.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/design/test_token_validation.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/design/test_validation_module.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/design/test_validation_module.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/core/test_config.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d6_reports/test_pdf_converter.py",
+        "issue": "task created without cleanup",
+        "pattern": "asyncio\\.create_task"
+      },
+      {
+        "file": "tests/unit/d6_reports/test_pdf_converter.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/d6_reports/test_prioritizer.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d9_delivery/test_sendgrid.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_pipeline.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d1_targeting/test_task_023.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d2_sourcing/test_task_027.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_hunter_enricher.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_gbp_enricher.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_email_enrichment.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_d4_coordinator.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_matchers.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_lighthouse_runner.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_dataaxle_enricher.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_api.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base_client.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_providers.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_circuit_breaker.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_hunter_client.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_factory.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_d0_gateway_metrics.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_facade.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_d0_metrics.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_dataaxle_client.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_openai_client.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_pagespeed_client.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/lineage/test_performance.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/api/test_scoring_playground.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_api.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_techstack.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_techstack.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_visual_rubric.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_semrush_adapter.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_models.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_coordinator.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_visual_analyzer.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_formatter.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_gbp_adapter.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_pagespeed.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_llm_insights.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_lighthouse_assessor.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/batch_runner/test_batch_runner_integration.py",
+        "issue": "connection created without cleanup",
+        "pattern": "connect\\("
+      },
+      {
+        "file": "tests/unit/d8_personalization/test_templates.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/unit/d8_personalization/test_templates.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/unit/d8_personalization/test_subject_lines.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_personalization_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_phase_05_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_stub_server.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_payment_flow.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_gateway_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_metrics_endpoint.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "issue": "connection created without cleanup",
+        "pattern": "connect\\("
+      },
+      {
+        "file": "tests/integration/test_bucket_enrichment_flow.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_guardrails_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_guardrails_integration.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/integration/test_scoring_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_lighthouse_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_lighthouse_integration.py",
+        "issue": "file created without cleanup",
+        "pattern": "open\\([^)]+\\)"
+      },
+      {
+        "file": "tests/integration/test_enrichment_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_targeting_integration_simple.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/test_analytics_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/account_management/test_auth_endpoints.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/integration/d3_assessment/test_lighthouse_integration.py",
+        "issue": "Setup without teardown"
+      },
+      {
+        "file": "tests/d0_gateway/test_alerts.py",
+        "issue": "Setup without teardown"
+      }
+    ],
+    "async_issues": [
+      {
+        "file": "tests/test_humanloop_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/test_humanloop_integration.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/test_synchronization.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 42,
+        "issue": "Async test 'test_assessment_type' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 46,
+        "issue": "Async test 'test_calculate_cost' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 50,
+        "issue": "Async test 'test_timeout' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 55,
+        "issue": "Async test 'test_is_available_with_keys' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 64,
+        "issue": "Async test 'test_is_available_with_stubs' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 73,
+        "issue": "Async test 'test_stub_data' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 118,
+        "issue": "Async test 'test_successful_analysis' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 194,
+        "issue": "Async test 'test_screenshot_failure' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_visual_analyzer.py",
+        "line": 209,
+        "issue": "Async test 'test_vision_failure' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "line": 17,
+        "issue": "Async test 'test_yaml_config_loading' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "line": 43,
+        "issue": "Async test 'test_formula_evaluation' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "line": 60,
+        "issue": "Async test 'test_humanloop_prompt_loading' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "line": 92,
+        "issue": "Async test 'test_hot_reload_mechanism' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "line": 139,
+        "issue": "Async test 'test_scoring_engine_integration' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "line": 172,
+        "issue": "Async test 'test_prometheus_metrics' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/test_phase_0_integration.py",
+        "line": 197,
+        "issue": "Async test 'test_end_to_end_flow' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/smoke/test_smoke_semrush.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/smoke/test_smoke_semrush.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/smoke/test_smoke_screenshotone.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/smoke/test_smoke_screenshotone.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/smoke/test_smoke_data_axle.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/smoke/test_smoke_data_axle.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/smoke/test_smoke_hunter.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/smoke/test_smoke_hunter.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/smoke/test_full_pipeline_flow.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/smoke/test_full_pipeline_flow.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/smoke/test_full_pipeline_flow.py",
+        "line": 279,
+        "issue": "Async test 'test_real_pipeline_integration' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/smoke/test_smoke_gbp.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/smoke/test_smoke_gbp.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/smoke/test_smoke_openai_vision.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_health_endpoint.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_enrichment_phase05.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_cost_ledger.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_guardrail_alerts.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_guardrail_middleware.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_guardrail_middleware.py",
+        "line": 127,
+        "issue": "Async test 'test_method' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/test_guardrail_middleware.py",
+        "line": 157,
+        "issue": "Async test 'test_method' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/test_guardrail_middleware.py",
+        "line": 190,
+        "issue": "Async test 'test_method' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/test_guardrail_middleware.py",
+        "line": 238,
+        "issue": "Async test 'test_method' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/test_phase_05_simple.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_phase_05_simple.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/test_unit_metrics.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_targeted_coverage.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/test_targeted_coverage.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d10_analytics/test_warehouse.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d7_storefront/test_checkout.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d6_reports/test_generator.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d6_reports/test_pdf_converter.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d6_reports/test_seo_snapshot.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d6_reports/test_generator_simple.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d9_delivery/test_delivery_manager.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d9_delivery/test_delivery_manager.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d9_delivery/test_sendgrid.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_bucket_flow.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_pipeline.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d1_targeting/test_task_023.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d1_targeting/test_task_023.py",
+        "line": 247,
+        "issue": "Async test 'test_func_with_error' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_hunter_enricher.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_d4_enrichment_models.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_d4_enrichment_models.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_gbp_enricher.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_gbp_enricher.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_email_enrichment.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_d4_coordinator.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_d4_coordinator.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_matchers.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_matchers.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_lighthouse_runner.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_dataaxle_enricher.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+        "line": 23,
+        "issue": "Async test 'test_start_enrichment' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+        "line": 170,
+        "issue": "Async test 'test_enrich_lead_async_success' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+        "line": 202,
+        "issue": "Async test 'test_enrich_lead_async_failure' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+        "line": 296,
+        "issue": "Async test 'test_trigger_batch_enrichment' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+        "line": 371,
+        "issue": "Async test 'test_quick_add_enrichment' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+        "line": 390,
+        "issue": "Async test 'test_quick_add_enrichment_minimal' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_api.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/lead_explorer/test_api.py",
+        "line": 386,
+        "issue": "Async test 'test_quick_add_lead_success' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_semrush_client.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base_client.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_providers.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_hunter_client.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_facade.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_facade.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_facade.py",
+        "line": 879,
+        "issue": "Async test 'test_error_handling' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_d0_gateway_cache.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_rate_limiter.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_dataaxle_client.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_base.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_openai_client.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_pagespeed_client.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_pagespeed_client.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d0_gateway/middleware/test_cost_enforcement.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d0_gateway/middleware/test_cost_enforcement.py",
+        "line": 277,
+        "issue": "Async test 'test_method' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d0_gateway/middleware/test_cost_enforcement.py",
+        "line": 324,
+        "issue": "Async test 'test_method' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/api/test_governance.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/api/test_dependencies.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_api.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_api.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_lighthouse.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_techstack.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_techstack.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_cache.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_assessment_cache.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_semrush_adapter.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_coordinator.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_d3_coordinator.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_visual_analyzer.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_gbp_adapter.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_pagespeed.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_pagespeed.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_llm_insights.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_llm_insights.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_lighthouse_assessor.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_lighthouse_assessor.py",
+        "line": 51,
+        "issue": "Async test 'test_feature_disabled' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_lighthouse_assessor.py",
+        "line": 68,
+        "issue": "Async test 'test_stub_data' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_lighthouse_assessor.py",
+        "line": 151,
+        "issue": "Async test 'test_timeout_handling' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_lighthouse_assessor.py",
+        "line": 176,
+        "issue": "Async test 'test_playwright_not_installed' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+        "line": 172,
+        "issue": "Async test 'test_assess_success' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+        "line": 215,
+        "issue": "Async test 'test_assess_feature_disabled' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+        "line": 226,
+        "issue": "Async test 'test_assess_no_content' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+        "line": 246,
+        "issue": "Async test 'test_assess_llm_error' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+        "line": 267,
+        "issue": "Async test 'test_assess_invalid_json_response' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+        "line": 414,
+        "issue": "Async test 'test_end_to_end_with_stubs' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/unit/batch_runner/test_batch_runner_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/flows/test_bucket_enrichment_flow.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/unit/flows/test_full_pipeline_flow.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_reports_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_reports_integration.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/integration/test_personalization_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_personalization_integration.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/integration/test_personalization_integration.py",
+        "line": 454,
+        "issue": "Async test 'test_output_variety' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_personalization_integration.py",
+        "line": 610,
+        "issue": "Async test 'test_mock' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_phase_05_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout_simple.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout_simple.py",
+        "line": 35,
+        "issue": "Async test 'test_source_ordering' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout_simple.py",
+        "line": 55,
+        "issue": "Async test 'test_result_merging' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout_simple.py",
+        "line": 73,
+        "issue": "Async test 'test_fanout_with_mocked_enrichers' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_gateway_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_cost_tracking.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_bucket_enrichment_flow.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_guardrails_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_health_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_assessment_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_assessment_integration.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/integration/test_dataaxle_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_full_pipeline_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_lighthouse_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_enrichment_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_enrichment_integration.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/integration/test_prd_v1_2_pipeline.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_prd_v1_2_pipeline.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/integration/test_prd_v1_2_pipeline.py",
+        "line": 24,
+        "issue": "Async test 'test_yelp_sourcing_with_limit' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_llm_heuristic_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "line": 59,
+        "issue": "Async test 'test_dataaxle_first_with_email' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "line": 101,
+        "issue": "Async test 'test_hunter_fallback_no_email_from_dataaxle' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "line": 143,
+        "issue": "Async test 'test_merge_emails_and_phones' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "line": 193,
+        "issue": "Async test 'test_cost_tracking_for_each_api_call' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "line": 229,
+        "issue": "Async test 'test_source_ordering_phase05' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "line": 247,
+        "issue": "Async test 'test_error_handling_dataaxle_failure' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_analytics_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_orchestration_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/test_orchestration_integration.py",
+        "issue": "asyncio.run() called in async function"
+      },
+      {
+        "file": "tests/integration/test_orchestration_integration.py",
+        "line": 470,
+        "issue": "Async test 'test_pipeline_start' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/test_orchestration_integration.py",
+        "line": 511,
+        "issue": "Async test 'test_pipeline_complete' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/d3_assessment/test_lighthouse_integration.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/integration/d3_assessment/test_lighthouse_integration.py",
+        "line": 24,
+        "issue": "Async test 'test_lighthouse_assessment_with_stubs' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/d3_assessment/test_lighthouse_integration.py",
+        "line": 71,
+        "issue": "Async test 'test_lighthouse_assessment_disabled' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/d3_assessment/test_lighthouse_integration.py",
+        "line": 110,
+        "issue": "Async test 'test_lighthouse_with_other_assessments' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/integration/d3_assessment/test_lighthouse_integration.py",
+        "line": 152,
+        "issue": "Async test 'test_lighthouse_caching' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_max_coverage.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 235,
+        "issue": "Async test 'test_sourcing_coordinator_full_pipeline' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 279,
+        "issue": "Async test 'test_assessment_coordinator_all_checks' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 337,
+        "issue": "Async test 'test_enrichment_coordinator_all_sources' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 502,
+        "issue": "Async test 'test_report_generator_all_templates' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 590,
+        "issue": "Async test 'test_checkout_flow_comprehensive' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 650,
+        "issue": "Async test 'test_content_generator_all_types' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 717,
+        "issue": "Async test 'test_delivery_manager_all_channels' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 833,
+        "issue": "Async test 'test_warehouse_operations' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 879,
+        "issue": "Async test 'test_pipeline_full_execution' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 1099,
+        "issue": "Async test 'test_governance_api_all_endpoints' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/comprehensive/test_full_coverage.py",
+        "line": 1147,
+        "issue": "Async test 'test_lineage_tracking' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/d0_gateway/test_alerts.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/e2e/test_sourcing_to_scoring.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/e2e/test_sourcing_to_scoring.py",
+        "line": 42,
+        "issue": "Async test 'test_yelp_to_assessment_flow' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/e2e/test_sourcing_to_scoring.py",
+        "line": 225,
+        "issue": "Async test 'test_data_consistency_verified' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/e2e/test_sourcing_to_scoring.py",
+        "line": 320,
+        "issue": "Async test 'test_performance_benchmarked' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/e2e/test_sourcing_to_scoring.py",
+        "line": 438,
+        "issue": "Async test 'test_complete_sourcing_to_scoring_integration' missing @pytest.mark.asyncio"
+      },
+      {
+        "file": "tests/e2e/test_error_handling.py",
+        "issue": "Mixed sync and async tests"
+      },
+      {
+        "file": "tests/e2e/test_error_handling.py",
+        "line": 852,
+        "issue": "Async test 'test_no_data_corruption' missing @pytest.mark.asyncio"
+      }
+    ],
+    "external_dependencies": [
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 170,
+        "type": "HTTP request",
+        "code": "httpx.get"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 181,
+        "type": "HTTP request",
+        "code": "httpx.get"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 203,
+        "type": "HTTP request",
+        "code": "httpx.get"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 100,
+        "type": "PostgreSQL connection",
+        "code": "psycopg2.connect"
+      },
+      {
+        "file": "tests/smoke/test_smoke_semrush.py",
+        "line": 14,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/smoke/test_smoke_data_axle.py",
+        "line": 15,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/smoke/test_smoke_data_axle.py",
+        "line": 110,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/smoke/test_smoke_hunter.py",
+        "line": 15,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 31,
+        "type": "HTTP request",
+        "code": "requests.get"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 38,
+        "type": "HTTP request",
+        "code": "requests.get"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 51,
+        "type": "HTTP request",
+        "code": "requests.get"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 61,
+        "type": "HTTP request",
+        "code": "requests.get"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 14,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 14,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 21,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/smoke/test_smoke_openai_vision.py",
+        "line": 16,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/unit/test_parallel_safety.py",
+        "line": 52,
+        "type": "Environment variable",
+        "code": "os.environ["
+      },
+      {
+        "file": "tests/unit/d10_analytics/test_views.py",
+        "line": 25,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/unit/d10_analytics/test_views.py",
+        "line": 452,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_prerequisites_integration.py",
+        "line": 74,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_prerequisites_integration.py",
+        "line": 490,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_prerequisites_integration.py",
+        "line": 507,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 20,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 34,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 49,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 69,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 116,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 119,
+        "type": "Environment variable",
+        "code": "os.getenv("
+      }
+    ],
+    "race_conditions": [],
+    "resource_conflicts": [],
+    "xfail_tests": [
+      {
+        "file": "tests/test_marker_policy.py",
+        "line": 24,
+        "reason": "Test causes recursive execution and timeout - needs refactoring"
+      },
+      {
+        "file": "tests/test_marker_policy.py",
+        "line": 109,
+        "reason": "Test causes recursive execution and timeout - needs refactoring"
+      },
+      {
+        "file": "tests/test_marker_policy.py",
+        "line": 120,
+        "reason": "Test causes recursive execution and timeout - needs refactoring"
+      },
+      {
+        "file": "tests/smoke/test_smoke_screenshotone.py",
+        "line": 22,
+        "reason": "External service test needs proper stubs"
+      },
+      {
+        "file": "tests/smoke/test_smoke_screenshotone.py",
+        "line": 115,
+        "reason": "External service test needs proper stubs"
+      },
+      {
+        "file": "tests/smoke/test_smoke_gbp.py",
+        "line": 21,
+        "reason": "External service test needs proper stubs"
+      },
+      {
+        "file": "tests/smoke/test_smoke_gbp.py",
+        "line": 40,
+        "reason": "Stub server missing /findplacefromtext/json endpoint"
+      },
+      {
+        "file": "tests/smoke/test_smoke_gbp.py",
+        "line": 81,
+        "reason": "External service test needs proper stubs"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 27,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 34,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 45,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_remote_health.py",
+        "line": 57,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 33,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 39,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 48,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 58,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 67,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 77,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 87,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 98,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 106,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 119,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/smoke/test_health.py",
+        "line": 129,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_d11_models.py",
+        "line": 128,
+        "reason": "Wave B feature: Experiment model uses 'id' not 'experiment_id' throughout test"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_d11_models.py",
+        "line": 267,
+        "reason": "Wave B feature: Status management test uses experiment_id attribute that doesn't exist"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_d11_models.py",
+        "line": 390,
+        "reason": "Wave B feature: Model constraints test uses experiment_id that doesn't exist"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_d11_models.py",
+        "line": 464,
+        "reason": "Wave B feature: Model relationships test uses experiment_id that doesn't exist"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_api.py",
+        "line": 238,
+        "reason": "Wave B feature: Experiment creation API not fully implemented - returns 500 error"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_api.py",
+        "line": 317,
+        "reason": "Wave B feature: Experiment API endpoints not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_api.py",
+        "line": 349,
+        "reason": "Wave B feature: Experiment API list endpoint not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_api.py",
+        "line": 374,
+        "reason": "Wave B feature: Experiment API list endpoint with filters not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 72,
+        "reason": "Wave B feature: ExperimentManager.create_experiment not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 117,
+        "reason": "Wave B feature: ExperimentManager.assign_variant not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 163,
+        "reason": "Wave B feature: ExperimentManager deterministic assignment not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 198,
+        "reason": "Wave B feature: ExperimentManager lifecycle methods not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 232,
+        "reason": "Wave B feature: ExperimentManager holdout assignment not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 420,
+        "reason": "Wave B feature: VariantAssigner.assign_variant not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 449,
+        "reason": "Wave B feature: VariantAssigner control group methods not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 586,
+        "reason": "Wave B feature: VariantAssigner.simulate_assignment_distribution not fully implemented"
+      },
+      {
+        "file": "tests/unit/d11_orchestration/test_experiments.py",
+        "line": 606,
+        "reason": "Wave B feature: VariantAssigner.get_deterministic_assignment_info not fully implemented"
+      },
+      {
+        "file": "tests/integration/test_lineage_integration.py",
+        "line": 72,
+        "reason": "Infrastructure dependencies not yet set up"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout_simple.py",
+        "line": 31,
+        "reason": "Phase 0.5 feature"
+      },
+      {
+        "file": "tests/integration/test_metrics_endpoint.py",
+        "line": 71,
+        "reason": "Infrastructure dependencies not yet set up"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 45,
+        "reason": "Infrastructure dependencies not yet set up"
+      },
+      {
+        "file": "tests/integration/test_full_pipeline_integration.py",
+        "line": 20,
+        "reason": "Infrastructure dependencies not yet set up"
+      },
+      {
+        "file": "tests/integration/test_api_full_coverage.py",
+        "line": 37,
+        "reason": "Infrastructure dependencies not yet set up"
+      },
+      {
+        "file": "tests/integration/test_api_full_coverage.py",
+        "line": 164,
+        "reason": "Infrastructure dependencies not yet set up"
+      },
+      {
+        "file": "tests/integration/test_enrichment_fanout.py",
+        "line": 18,
+        "reason": "Phase 0.5 feature"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 26,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 59,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 82,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 102,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 145,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 175,
+        "reason": "Health endpoint not yet implemented (P0-007)"
+      }
+    ],
+    "skip_tests": [
+      {
+        "file": "tests/test_marker_policy.py",
+        "line": 53,
+        "reason": "JSON report not generated - pytest-json-report may not be installed"
+      },
+      {
+        "file": "tests/test_marker_policy.py",
+        "line": 93,
+        "reason": "AST-based marker validation not implemented yet"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 53,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 63,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 74,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 96,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 119,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 135,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 149,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 166,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 177,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 190,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 209,
+        "reason": "docker-compose not available"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 59,
+        "reason": "Docker compose validation requires environment variables"
+      },
+      {
+        "file": "tests/test_docker_compose.py",
+        "line": 69,
+        "reason": "Docker compose validation requires environment variables"
+      },
+      {
+        "file": "tests/smoke/test_full_pipeline_flow.py",
+        "line": 278,
+        "reason": "Requires real services - run manually"
+      },
+      {
+        "file": "tests/unit/test_vertical_stats.py",
+        "line": 16,
+        "reason": "vertical_stats.parquet not yet generated - run scripts/build_vertical_stats.py"
+      },
+      {
+        "file": "tests/unit/test_prerequisites.py",
+        "line": 805,
+        "reason": "CLI tests need refactoring - module structure doesn't support current test approach"
+      },
+      {
+        "file": "tests/unit/test_health_endpoint.py",
+        "line": 121,
+        "reason": "Time mocking conflicts with Sentry integration"
+      },
+      {
+        "file": "tests/unit/test_environment_config.py",
+        "line": 185,
+        "reason": "Stub server not running - may be in unit test mode"
+      },
+      {
+        "file": "tests/unit/test_core.py",
+        "line": 80,
+        "reason": "Cannot test production URLs when use_stubs is forced to True"
+      },
+      {
+        "file": "tests/unit/test_core.py",
+        "line": 102,
+        "reason": "Cannot test missing API keys when use_stubs is forced to True"
+      },
+      {
+        "file": "tests/unit/test_migrations.py",
+        "line": 51,
+        "reason": "alembic.ini not found"
+      },
+      {
+        "file": "tests/unit/test_migrations.py",
+        "line": 252,
+        "reason": "Need at least 2 migrations to test rollback"
+      },
+      {
+        "file": "tests/unit/d10_analytics/test_views.py",
+        "line": 25,
+        "reason": "Materialized views require PostgreSQL"
+      },
+      {
+        "file": "tests/unit/d10_analytics/test_views.py",
+        "line": 401,
+        "reason": "Materialized views require PostgreSQL"
+      },
+      {
+        "file": "tests/unit/d10_analytics/test_views.py",
+        "line": 452,
+        "reason": "Materialized views require PostgreSQL"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 21,
+        "reason": "Not in Docker environment"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 35,
+        "reason": "Not in Docker environment"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 52,
+        "reason": "SQLite database configured, skipping PostgreSQL test"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 72,
+        "reason": "SQLite database configured, skipping PostgreSQL test"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 91,
+        "reason": "Alembic not initialized in this database"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 117,
+        "reason": "Cannot test container restart in CI"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "line": 122,
+        "reason": "SQLite database configured, skipping PostgreSQL test"
+      },
+      {
+        "file": "tests/integration/test_bucket_enrichment_flow.py",
+        "line": 348,
+        "reason": "Bucket loader not available"
+      },
+      {
+        "file": "tests/integration/test_health_integration.py",
+        "line": 42,
+        "reason": "Redis not configured"
+      },
+      {
+        "file": "tests/integration/test_api_coverage_boost.py",
+        "line": 69,
+        "reason": "Batch runner API requires complex mocking setup - skipping for CI stability"
+      },
+      {
+        "file": "tests/integration/test_lighthouse_integration.py",
+        "line": 533,
+        "reason": "Skipping real-world integration test"
+      },
+      {
+        "file": "tests/integration/test_prd_v1_2_pipeline.py",
+        "line": 23,
+        "reason": "Yelp has been removed from the codebase"
+      },
+      {
+        "file": "tests/integration/test_prd_v1_2_pipeline.py",
+        "line": 170,
+        "reason": "Missing required API keys"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 164,
+        "reason": "Benchmark not configured in test environment"
+      },
+      {
+        "file": "tests/performance/test_health_performance.py",
+        "line": 200,
+        "reason": "Timeout implementation needs async refactoring"
+      }
+    ],
+    "no_timeout": [
+      {
+        "file": "tests/test_yelp_purge.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/test_infrastructure_cleanup.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/test_marker_policy.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/test_synchronization.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/test_marker_enforcement.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/test_ci_health_check.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/test_cost_ledger.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/core/test_production_validation.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/d4_enrichment/test_d4_coordinator.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_semrush_client.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_d0_gateway_metrics.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_facade.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_openai_client.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_google_places_provider.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/d0_gateway/test_pagespeed_client.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/api/test_scoring_playground.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/api/test_template_studio.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/unit/d3_assessment/test_lighthouse.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/integration/test_phase_05_integration.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/integration/test_cost_tracking.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/integration/test_postgres_container.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/integration/test_targeting_integration.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/integration/test_health_integration.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/integration/test_targeting_integration_simple.py",
+        "issue": "Test with blocking operations but no timeout"
+      },
+      {
+        "file": "tests/e2e/test_email_flow.py",
+        "issue": "Test with blocking operations but no timeout"
+      }
+    ]
+  },
+  "priorities": [
+    {
+      "priority": "HIGH",
+      "type": "hardcoded_ports",
+      "count": 114,
+      "reason": "Directly causes test flakiness"
+    },
+    {
+      "priority": "HIGH",
+      "type": "missing_cleanup",
+      "count": 85,
+      "reason": "Directly causes test flakiness"
+    },
+    {
+      "priority": "MEDIUM",
+      "type": "time_sleep",
+      "count": 35,
+      "reason": "Can cause intermittent failures"
+    },
+    {
+      "priority": "MEDIUM",
+      "type": "async_issues",
+      "count": 203,
+      "reason": "Can cause intermittent failures"
+    },
+    {
+      "priority": "MEDIUM",
+      "type": "external_dependencies",
+      "count": 28,
+      "reason": "Can cause intermittent failures"
+    },
+    {
+      "priority": "LOW",
+      "type": "xfail_tests",
+      "count": 54,
+      "reason": "Should be reviewed and fixed"
+    },
+    {
+      "priority": "LOW",
+      "type": "skip_tests",
+      "count": 42,
+      "reason": "Should be reviewed and fixed"
+    },
+    {
+      "priority": "LOW",
+      "type": "no_timeout",
+      "count": 25,
+      "reason": "Should be reviewed and fixed"
+    }
+  ]
+}

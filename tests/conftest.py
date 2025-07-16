@@ -2,7 +2,10 @@
 Root conftest.py for all tests
 Provides common fixtures and configuration
 """
+import atexit
 import os
+import signal
+import sys
 import threading
 import time
 
@@ -14,6 +17,10 @@ from core.config import get_settings
 
 # Import parallel safety plugin
 from tests.parallel_safety import isolated_db, isolated_temp_dir
+
+# Import port manager and synchronization utilities
+from tests.test_port_manager import PortManager, get_dynamic_port, release_port
+from tests.test_synchronization import TestEvent, wait_for_condition
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -36,9 +43,9 @@ def stub_server_session():
         # Running in Docker Compose with external stub server - keep existing URL
         print(f"Using external stub server: {current_stub_url}")
     else:
-        # Single container Docker, local development, or other CI - use localhost
-        os.environ["STUB_BASE_URL"] = "http://localhost:5011"
-        print(f"Using localhost stub server for single container or local environment (was: {current_stub_url})")
+        # Single container Docker, local development, or other CI - use localhost with dynamic port
+        # We'll set this after allocating a port dynamically
+        print(f"Will use localhost stub server with dynamic port (was: {current_stub_url})")
 
     # Force USE_STUBS=true for all tests
     os.environ["USE_STUBS"] = "true"
@@ -95,43 +102,87 @@ def stub_server_session():
     except Exception as e:
         print(f"No existing stub server found: {e}")
 
+    # Get a dynamic port for the stub server
+    stub_port = get_dynamic_port(5011)  # Try 5011 first, but use any free port
+    stub_url = f"http://localhost:{stub_port}"
+    os.environ["STUB_BASE_URL"] = stub_url
+
+    # Clear cache and update settings
+    get_settings.cache_clear()
+    settings = get_settings()
+
     # Start stub server in background thread for local testing
-    print(f"Starting internal stub server at {settings.stub_base_url}...")
+    print(f"Starting internal stub server at {stub_url}...")
     from stubs.server import app as stub_app
 
+    # Event to signal server is ready
+    server_ready = TestEvent()
+    server_thread = None
+    server = None
+
     def run_server():
+        nonlocal server
         try:
-            uvicorn.run(stub_app, host="127.0.0.1", port=5011, log_level="error")
+            config = uvicorn.Config(app=stub_app, host="127.0.0.1", port=stub_port, log_level="error", loop="asyncio")
+            server = uvicorn.Server(config)
+
+            # Signal that server is starting
+            server_ready.set()
+
+            # Run the server
+            server.run()
         except Exception as e:
             print(f"Error starting stub server: {e}")
+            server_ready.set()  # Signal even on error so tests don't hang
 
-    server_thread = threading.Thread(target=run_server, daemon=True)
+    server_thread = threading.Thread(target=run_server, daemon=False)
     server_thread.start()
 
-    # Wait for local server to be ready
-    max_attempts = 100  # Increased attempts for slower systems
-    for attempt in range(max_attempts):
+    # Wait for server thread to start
+    server_ready.wait(timeout=5.0)
+
+    # Wait for local server to be ready using proper synchronization
+    try:
+        wait_for_condition(
+            lambda: _check_server_health(stub_url),
+            timeout=30.0,
+            interval=0.5,
+            message=f"Stub server not ready at {stub_url}",
+        )
+        print(f"✅ Internal stub server started successfully at {stub_url}")
+    except TimeoutError as e:
+        # Try to get more diagnostic info
         try:
-            response = requests.get(f"{settings.stub_base_url}/health", timeout=2)
-            if response.status_code == 200:
-                print(f"✅ Internal stub server started successfully at {settings.stub_base_url}")
-                break
-        except Exception as e:
-            if attempt % 10 == 0:  # Log every 10th attempt
-                print(f"Attempt {attempt + 1}/{max_attempts}: Waiting for stub server... {e}")
-        time.sleep(0.2)  # Slightly longer wait between attempts
-    else:
-        # Try one more time with detailed error info
-        try:
-            response = requests.get(f"{settings.stub_base_url}/health", timeout=5)
-            if response.status_code == 200:
-                print(f"✅ Stub server started on retry at {settings.stub_base_url}")
-            else:
-                pytest.fail(f"Internal stub server returned status {response.status_code} at {settings.stub_base_url}")
-        except Exception as e:
-            pytest.fail(f"Internal stub server failed to start at {settings.stub_base_url}. Last error: {e}")
+            response = requests.get(f"{stub_url}/health", timeout=5)
+            pytest.fail(f"Stub server returned status {response.status_code} at {stub_url}")
+        except Exception as ex:
+            pytest.fail(f"Internal stub server failed to start at {stub_url}. Error: {ex}")
+
+    # Store cleanup info
+    cleanup_info = {"port": stub_port, "server": server, "thread": server_thread, "url": stub_url}
 
     yield
+
+    # Cleanup
+    print(f"Stopping stub server at {stub_url}...")
+    if server:
+        server.should_exit = True
+
+    # Give server time to shut down gracefully
+    server_thread.join(timeout=5.0)
+
+    # Release the port
+    release_port(stub_port)
+    print(f"Released port {stub_port}")
+
+
+def _check_server_health(url: str) -> bool:
+    """Check if server is healthy."""
+    try:
+        response = requests.get(f"{url}/health", timeout=2)
+        return response.status_code == 200
+    except Exception:
+        return False
 
 
 @pytest.fixture(autouse=True)

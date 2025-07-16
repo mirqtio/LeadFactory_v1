@@ -37,6 +37,11 @@ from core.config import get_settings  # noqa: E402
 from database.base import Base  # noqa: E402
 from stubs.server import app as stub_app  # noqa: E402
 
+# Import test utilities
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from test_port_manager import get_dynamic_port, release_port  # noqa: E402
+from test_synchronization import TestEvent, wait_for_condition  # noqa: E402
+
 # Import fixtures from fixtures.py to make them available
 from tests.e2e.fixtures import *  # noqa: E402, F403
 
@@ -139,31 +144,61 @@ def test_db_override(test_db_session):
 
 @pytest.fixture(scope="session")
 def stub_server():
-    """Start stub server for external API mocking"""
+    """Start stub server for external API mocking with dynamic port allocation"""
+
+    # Get dynamic port for E2E stub server
+    stub_port = get_dynamic_port(5010)  # Try 5010 first
+    stub_url = f"http://127.0.0.1:{stub_port}"
+
+    # Event for server readiness
+    server_ready = TestEvent()
+    server = None
 
     # Start stub server in background thread
     def run_server():
-        uvicorn.run(stub_app, host="127.0.0.1", port=5010, log_level="error")
+        nonlocal server
+        try:
+            config = uvicorn.Config(app=stub_app, host="127.0.0.1", port=stub_port, log_level="error", loop="asyncio")
+            server = uvicorn.Server(config)
+            server_ready.set()
+            server.run()
+        except Exception as e:
+            print(f"Error starting E2E stub server: {e}")
+            server_ready.set()  # Set even on error
 
-    server_thread = threading.Thread(target=run_server, daemon=True)
+    server_thread = threading.Thread(target=run_server, daemon=False)
     server_thread.start()
 
+    # Wait for server thread to start
+    server_ready.wait(timeout=5.0)
+
     # Wait for server to be ready
-    max_attempts = 30
-    for attempt in range(max_attempts):
+    def check_health():
         try:
-            response = requests.get("http://127.0.0.1:5010/health", timeout=1)
-            if response.status_code == 200:
-                break
+            response = requests.get(f"{stub_url}/health", timeout=1)
+            return response.status_code == 200
         except requests.exceptions.RequestException:
-            pass
-        time.sleep(0.1)
-    else:
-        pytest.fail("Stub server failed to start within timeout")
+            return False
 
-    yield "http://127.0.0.1:5010"
+    try:
+        wait_for_condition(check_health, timeout=30.0, interval=0.5, message=f"E2E stub server not ready at {stub_url}")
+        print(f"✅ E2E stub server started at {stub_url}")
+    except TimeoutError:
+        pytest.fail(f"Stub server failed to start within timeout at {stub_url}")
 
-    # Server cleanup happens automatically when thread ends
+    yield stub_url
+
+    # Cleanup
+    print(f"Stopping E2E stub server at {stub_url}...")
+    if server:
+        server.should_exit = True
+
+    # Give server time to shut down
+    server_thread.join(timeout=5.0)
+
+    # Release the port
+    release_port(stub_port)
+    print(f"Released E2E stub server port {stub_port}")
 
 
 @pytest.fixture(scope="function")
