@@ -51,11 +51,24 @@ def run_migrations(database_url: str) -> bool:
         alembic_cfg = Config("alembic.ini")
         alembic_cfg.set_main_option("sqlalchemy.url", database_url)
 
-        # Check current revision
+        # Check for multiple heads BEFORE attempting migrations
         from alembic.runtime.migration import MigrationContext
         from alembic.script import ScriptDirectory
 
         script = ScriptDirectory.from_config(alembic_cfg)
+
+        # Check if we have multiple heads
+        try:
+            heads = script.get_heads()
+            if len(heads) > 1:
+                print(f"❌ CRITICAL: Multiple migration heads detected: {heads}")
+                print("🔧 This indicates unmerged migration branches that must be resolved before deployment.")
+                print("🔧 Run 'alembic heads' to see all heads, then use 'alembic merge' to resolve.")
+                print("🔧 This is exactly the type of issue BPCI is designed to catch!")
+                return False
+        except Exception as heads_error:
+            print(f"⚠️  Could not check for multiple heads: {heads_error}")
+            # Continue with migration attempt - this check is a safety net
 
         with create_engine(database_url).connect() as conn:
             context = MigrationContext.configure(conn)
@@ -77,6 +90,16 @@ def run_migrations(database_url: str) -> bool:
 
     except Exception as e:
         error_msg = str(e)
+
+        # Check for multiple heads error - this is a critical validation failure
+        if "multiple head revisions" in error_msg.lower() or "multiple heads" in error_msg.lower():
+            print(f"❌ CRITICAL: Multiple migration heads detected: {error_msg}")
+            print("🔧 This indicates unmerged migration branches that must be resolved before deployment.")
+            print("🔧 Run 'alembic heads' to see all heads, then use 'alembic merge' to resolve.")
+            print("🔧 This is exactly the type of issue BPCI is designed to catch!")
+            return False
+
+        # Handle other common migration errors with recovery
         if "already exists" in error_msg or "DuplicateObject" in error_msg or "InFailedSqlTransaction" in error_msg:
             print(f"⚠️  Migration warning (transaction/object conflicts): {error_msg}")
             # Reset the connection and try to stamp the database
