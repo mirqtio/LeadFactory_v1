@@ -178,6 +178,22 @@ class DatabaseSeeder:
         self.session.commit()
         return businesses
 
+    def seed_companies(self, count: int = 5) -> list:
+        """Seed database with sample companies."""
+        from d2_sourcing.models import Company
+
+        companies = []
+        for i in range(count):
+            company = Company(
+                name=f"Test Company {i}",
+                domain=f"testcompany{i}.com",
+            )
+            self.session.add(company)
+            companies.append(company)
+
+        self.session.commit()
+        return companies
+
     def seed_leads(self, count: int = 10, business_ids: Optional[list] = None) -> list:
         """Seed database with sample leads."""
         from database.models import EnrichmentStatus, Lead
@@ -223,6 +239,39 @@ class DatabaseSeeder:
         self.session.commit()
         return targets
 
+    def seed_campaigns(self, count: int = 3) -> list:
+        """Seed database with sample campaigns."""
+        from d1_targeting.models import Campaign, TargetUniverse
+        from d1_targeting.types import CampaignStatus
+
+        # First create a target universe
+        target_universe = TargetUniverse(
+            name="Test Universe",
+            description="Test target universe for campaigns",
+            verticals=["restaurants", "retail"],
+            geography_config={"level": "city", "values": ["San Francisco"]},
+            estimated_size=1000,
+            is_active=True,
+        )
+        self.session.add(target_universe)
+        self.session.commit()
+
+        campaigns = []
+        for i in range(count):
+            campaign = Campaign(
+                name=f"Test Campaign {i}",
+                description=f"Test campaign {i} description",
+                target_universe_id=target_universe.id,
+                status=CampaignStatus.RUNNING.value,
+                campaign_type="lead_generation",
+                total_cost=100.0 + (i * 50),
+            )
+            self.session.add(campaign)
+            campaigns.append(campaign)
+
+        self.session.commit()
+        return campaigns
+
 
 @pytest.fixture
 def db_seeder(test_db: Session) -> DatabaseSeeder:
@@ -244,10 +293,19 @@ def seeded_db(test_db: Session, db_seeder: DatabaseSeeder) -> dict:
         dict: Dictionary containing seeded entities
     """
     businesses = db_seeder.seed_businesses(5)
+    companies = db_seeder.seed_companies(5)
     leads = db_seeder.seed_leads(10, [b.id for b in businesses])
     targets = db_seeder.seed_targets(3)
+    campaigns = db_seeder.seed_campaigns(3)
 
-    return {"businesses": businesses, "leads": leads, "targets": targets, "session": test_db}
+    return {
+        "businesses": businesses,
+        "companies": companies,
+        "leads": leads,
+        "targets": targets,
+        "campaigns": campaigns,
+        "session": test_db,
+    }
 
 
 # Migration helpers

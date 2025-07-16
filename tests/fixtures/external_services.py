@@ -52,6 +52,8 @@ def mock_llm_responses():
                 return self.responses.get("personalization", self.responses["default"])
             elif "error" in prompt.lower() and self.responses.get("error") is None:
                 raise Exception("Mock LLM error")
+            elif "test" in prompt.lower():
+                return self.responses.get("test", self.responses["default"])
 
             return self.responses.get("default")
 

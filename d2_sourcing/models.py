@@ -12,6 +12,27 @@ from database.base import Base
 # YelpMetadata class removed per P0-009 - Yelp provider no longer supported
 
 
+class Company(Base):
+    """
+    Company model for d2_sourcing domain.
+
+    Basic company information used for testing centralized fixtures.
+    """
+
+    __tablename__ = "d2_companies"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(255), nullable=False)
+    domain = Column(String(255), nullable=True)
+
+    # Timestamps
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Company(id={self.id}, name='{self.name}', domain='{self.domain}')>"
+
+
 class SourcedLocation(Base):
     """Track different data sources for the same business location"""
 
