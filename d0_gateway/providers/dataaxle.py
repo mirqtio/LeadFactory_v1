@@ -67,8 +67,8 @@ class DataAxleClient(BaseAPIClient):
     def calculate_cost(self, operation: str, **kwargs) -> Decimal:
         """Calculate cost for Data Axle operations"""
         if operation == "match_business":
-            # $0.05 per successful match
-            return Decimal("0.05")
+            # $0.10 per successful match
+            return Decimal("0.10")
         return Decimal("0.00")
 
     def _get_headers(self) -> Dict[str, str]:
@@ -153,7 +153,7 @@ class DataAxleClient(BaseAPIClient):
             # Emit cost for successful match (Phase 0.5 requirement)
             self.emit_cost(
                 lead_id=business_data.get("lead_id"),
-                cost_usd=0.05,  # $0.05 per successful match
+                cost_usd=0.10,  # $0.10 per successful match
                 operation="match_business",
                 metadata={
                     "match_confidence": response.get("match_confidence", 0),

@@ -35,7 +35,7 @@ class VisualAnalyzer(BaseAssessor):
 
     @property
     def assessment_type(self) -> AssessmentType:
-        return AssessmentType.AI_INSIGHTS
+        return AssessmentType.VISUAL
 
     def _get_screenshot_client(self) -> ScreenshotOneClient:
         """Get or create ScreenshotOne client"""
@@ -52,18 +52,18 @@ class VisualAnalyzer(BaseAssessor):
     def _get_stub_data(self, url: str) -> Dict[str, Any]:
         """Return deterministic stub data when USE_STUBS=true"""
         # Generate deterministic scores based on URL hash
-        url_hash = hash(url) % 100
-        base_score = 50 + (url_hash % 40)  # 50-90 range
+        url_hash = hash(url) % 9
+        base_score = 5 + (url_hash % 4)  # 5-8 range
 
         visual_scores = {
-            "visual_design_quality": min(100, base_score + 5),
-            "brand_consistency": min(100, base_score - 5),
-            "navigation_clarity": min(100, base_score + 10),
-            "content_organization": min(100, base_score),
-            "call_to_action_prominence": min(100, base_score - 10),
-            "mobile_responsiveness": min(100, base_score + 15),
-            "loading_performance": min(100, base_score - 8),
-            "trust_signals": min(100, base_score + 3),
+            "visual_design_quality": min(9, base_score + 1),
+            "brand_consistency": max(1, base_score - 1),
+            "navigation_clarity": min(9, base_score + 2),
+            "content_organization": base_score,
+            "call_to_action_prominence": max(1, base_score - 2),
+            "mobile_responsiveness": min(9, base_score + 1),
+            "loading_performance": max(1, base_score - 1),
+            "trust_signals": base_score,
             "overall_user_experience": base_score,
         }
 
@@ -228,18 +228,18 @@ class VisualAnalyzer(BaseAssessor):
             except json.JSONDecodeError:
                 visual_data = self._extract_json_from_text(content)
 
-            # Extract and validate scores (0-100 scale)
+            # Extract and validate scores (1-9 scale)
             scores = visual_data.get("scores", {})
             visual_scores = {
-                "visual_design_quality": self._clamp_score(scores.get("visual_design_quality", 50)),
-                "brand_consistency": self._clamp_score(scores.get("brand_consistency", 50)),
-                "navigation_clarity": self._clamp_score(scores.get("navigation_clarity", 50)),
-                "content_organization": self._clamp_score(scores.get("content_organization", 50)),
-                "call_to_action_prominence": self._clamp_score(scores.get("call_to_action_prominence", 50)),
-                "mobile_responsiveness": self._clamp_score(scores.get("mobile_responsiveness", 50)),
-                "loading_performance": self._clamp_score(scores.get("loading_performance", 50)),
-                "trust_signals": self._clamp_score(scores.get("trust_signals", 50)),
-                "overall_user_experience": self._clamp_score(scores.get("overall_user_experience", 50)),
+                "visual_design_quality": self._clamp_score(scores.get("visual_design_quality", 5)),
+                "brand_consistency": self._clamp_score(scores.get("brand_consistency", 5)),
+                "navigation_clarity": self._clamp_score(scores.get("navigation_clarity", 5)),
+                "content_organization": self._clamp_score(scores.get("content_organization", 5)),
+                "call_to_action_prominence": self._clamp_score(scores.get("call_to_action_prominence", 5)),
+                "mobile_responsiveness": self._clamp_score(scores.get("mobile_responsiveness", 5)),
+                "loading_performance": self._clamp_score(scores.get("loading_performance", 5)),
+                "trust_signals": self._clamp_score(scores.get("trust_signals", 5)),
+                "overall_user_experience": self._clamp_score(scores.get("overall_user_experience", 5)),
             }
 
             # Extract warnings and quick wins
@@ -305,15 +305,15 @@ class VisualAnalyzer(BaseAssessor):
                 status="failed",
                 data={
                     "visual_scores_json": {
-                        "visual_design_quality": 0,
-                        "brand_consistency": 0,
-                        "navigation_clarity": 0,
-                        "content_organization": 0,
-                        "call_to_action_prominence": 0,
-                        "mobile_responsiveness": 0,
-                        "loading_performance": 0,
-                        "trust_signals": 0,
-                        "overall_user_experience": 0,
+                        "visual_design_quality": 1,
+                        "brand_consistency": 1,
+                        "navigation_clarity": 1,
+                        "content_organization": 1,
+                        "call_to_action_prominence": 1,
+                        "mobile_responsiveness": 1,
+                        "loading_performance": 1,
+                        "trust_signals": 1,
+                        "overall_user_experience": 1,
                     },
                     "visual_warnings": [],
                     "visual_quickwins": [],
@@ -322,12 +322,12 @@ class VisualAnalyzer(BaseAssessor):
             )
 
     def _clamp_score(self, score: Any) -> int:
-        """Ensure score is between 0-100"""
+        """Ensure score is between 1-9"""
         try:
             score_num = float(score)
-            return max(0, min(100, int(score_num)))
+            return max(1, min(9, int(score_num)))
         except (ValueError, TypeError):
-            return 50  # Default middle score
+            return 5  # Default middle score
 
     def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
         """Try to extract JSON from text response"""
@@ -343,15 +343,15 @@ class VisualAnalyzer(BaseAssessor):
         # Return default structure if extraction fails
         return {
             "scores": {
-                "visual_design_quality": 50,
-                "brand_consistency": 50,
-                "navigation_clarity": 50,
-                "content_organization": 50,
-                "call_to_action_prominence": 50,
-                "mobile_responsiveness": 50,
-                "loading_performance": 50,
-                "trust_signals": 50,
-                "overall_user_experience": 50,
+                "visual_design_quality": 5,
+                "brand_consistency": 5,
+                "navigation_clarity": 5,
+                "content_organization": 5,
+                "call_to_action_prominence": 5,
+                "mobile_responsiveness": 5,
+                "loading_performance": 5,
+                "trust_signals": 5,
+                "overall_user_experience": 5,
             },
             "warnings": ["Failed to parse visual analysis response"],
             "quick_wins": [],

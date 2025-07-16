@@ -1,5 +1,5 @@
 """
-Lighthouse assessor using headless Chrome via Playwright
+Lighthouse assessor using actual Lighthouse CLI
 PRD v1.2 - Website performance analysis
 
 Timeout: 30s per audit
@@ -24,7 +24,7 @@ logger = get_logger(__name__, domain="d3")
 
 
 class LighthouseAssessor(BaseAssessor):
-    """Assess website performance using Lighthouse via headless Chrome"""
+    """Assess website performance using actual Lighthouse CLI"""
 
     def __init__(self):
         super().__init__()
@@ -103,75 +103,120 @@ class LighthouseAssessor(BaseAssessor):
         }
 
     async def _run_lighthouse_audit(self, url: str) -> Dict[str, Any]:
-        """Run Lighthouse audit using headless Chrome"""
+        """Run Lighthouse audit using actual Lighthouse CLI"""
+        import subprocess
+        import tempfile
+
+        # Create temporary file for Lighthouse output
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as tmp_file:
+            tmp_path = tmp_file.name
+
         try:
-            from playwright.async_api import async_playwright
-        except ImportError:
-            logger.error("Playwright not installed. Run: pip install playwright && playwright install chromium")
-            raise ImportError("Playwright is required for Lighthouse assessor")
+            # Run Lighthouse CLI with JSON output
+            cmd = [
+                "lighthouse",
+                url,
+                "--output=json",
+                "--output-path=" + tmp_path,
+                "--chrome-flags=--headless",
+                "--quiet",
+                "--max-wait-for-load=15000",
+                "--timeout=30000",
+                "--no-enable-error-reporting",
+            ]
 
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page()
+            logger.info(f"Running Lighthouse CLI: {' '.join(cmd)}")
 
+            # Execute Lighthouse CLI
+            process = await asyncio.create_subprocess_exec(
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            )
+
+            stdout, stderr = await process.communicate()
+
+            if process.returncode != 0:
+                logger.error(f"Lighthouse CLI failed with return code {process.returncode}")
+                logger.error(f"STDERR: {stderr.decode()}")
+                raise RuntimeError(f"Lighthouse CLI failed: {stderr.decode()}")
+
+            # Read and parse the JSON output
+            with open(tmp_path, "r") as f:
+                lighthouse_json = json.load(f)
+
+            # Extract key data from Lighthouse JSON
+            categories = lighthouse_json.get("categories", {})
+            audits = lighthouse_json.get("audits", {})
+
+            # Get scores (0-100)
+            scores = {
+                "performance": int(categories.get("performance", {}).get("score", 0) * 100),
+                "accessibility": int(categories.get("accessibility", {}).get("score", 0) * 100),
+                "best-practices": int(categories.get("best-practices", {}).get("score", 0) * 100),
+                "seo": int(categories.get("seo", {}).get("score", 0) * 100),
+                "pwa": int(categories.get("pwa", {}).get("score", 0) * 100),
+            }
+
+            # Extract Core Web Vitals
+            core_web_vitals = {
+                "lcp": audits.get("largest-contentful-paint", {}).get("numericValue", 0),
+                "fid": audits.get("max-potential-fid", {}).get("numericValue", 0),
+                "cls": audits.get("cumulative-layout-shift", {}).get("numericValue", 0),
+            }
+
+            # Extract other metrics
+            metrics = {
+                "first_contentful_paint": audits.get("first-contentful-paint", {}).get("numericValue", 0),
+                "speed_index": audits.get("speed-index", {}).get("numericValue", 0),
+                "time_to_interactive": audits.get("interactive", {}).get("numericValue", 0),
+                "total_blocking_time": audits.get("total-blocking-time", {}).get("numericValue", 0),
+            }
+
+            # Extract opportunities
+            opportunities = []
+            for audit_key, audit_data in audits.items():
+                if audit_data.get("details", {}).get("type") == "opportunity":
+                    opportunities.append(
+                        {
+                            "id": audit_key,
+                            "title": audit_data.get("title", ""),
+                            "description": audit_data.get("description", ""),
+                            "savings_ms": audit_data.get("numericValue", 0),
+                        }
+                    )
+
+            # Extract diagnostics
+            diagnostics = []
+            for audit_key, audit_data in audits.items():
+                if audit_data.get("scoreDisplayMode") == "binary" and audit_data.get("score", 1) < 1:
+                    diagnostics.append(
+                        {
+                            "id": audit_key,
+                            "title": audit_data.get("title", ""),
+                            "description": audit_data.get("description", ""),
+                            "score": audit_data.get("score", 0),
+                        }
+                    )
+
+            result = {
+                "scores": scores,
+                "core_web_vitals": core_web_vitals,
+                "metrics": metrics,
+                "opportunities": opportunities,
+                "diagnostics": diagnostics,
+                "fetch_time": datetime.utcnow().isoformat(),
+                "lighthouse_version": lighthouse_json.get("lighthouseVersion", "unknown"),
+                "user_agent": lighthouse_json.get("userAgent", "unknown"),
+                "full_lighthouse_json": lighthouse_json,  # Include full JSON for debugging
+            }
+
+            return result
+
+        finally:
+            # Clean up temporary file
             try:
-                # Navigate to the URL
-                await page.goto(url, wait_until="networkidle")
-
-                # Inject and run Lighthouse
-                # In a real implementation, you would run actual Lighthouse here
-                # For now, we'll simulate it with performance metrics from the page
-
-                # Get performance metrics
-                metrics = await page.evaluate(
-                    """() => {
-                    const perf = window.performance;
-                    const timing = perf.timing;
-                    const paint = perf.getEntriesByType('paint');
-                    
-                    return {
-                        navigationStart: timing.navigationStart,
-                        firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
-                        domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart,
-                        loadComplete: timing.loadEventEnd - timing.navigationStart
-                    };
-                }"""
-                )
-
-                # Simulate Lighthouse scores based on metrics
-                # In production, you would use actual Lighthouse CLI or library
-                performance_score = min(100, max(0, 100 - (metrics["loadComplete"] / 100)))
-
-                result = {
-                    "scores": {
-                        "performance": int(performance_score),
-                        "accessibility": 85,  # Would need actual audit
-                        "best-practices": 90,  # Would need actual audit
-                        "seo": 88,  # Would need actual audit
-                        "pwa": 70,  # Would need actual audit
-                    },
-                    "core_web_vitals": {
-                        "lcp": metrics["loadComplete"],
-                        "fid": 50,  # Would need actual measurement
-                        "cls": 0.05,  # Would need actual measurement
-                    },
-                    "metrics": {
-                        "first_contentful_paint": metrics["firstContentfulPaint"],
-                        "speed_index": metrics["domContentLoaded"],
-                        "time_to_interactive": metrics["loadComplete"],
-                        "total_blocking_time": 150,  # Would need actual measurement
-                    },
-                    "opportunities": [],
-                    "diagnostics": [],
-                    "fetch_time": datetime.utcnow().isoformat(),
-                    "lighthouse_version": "11.0.0",  # Simulated version
-                    "user_agent": await page.evaluate("() => navigator.userAgent"),
-                }
-
-                return result
-
-            finally:
-                await browser.close()
+                os.unlink(tmp_path)
+            except:
+                pass
 
     async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
         """
@@ -266,11 +311,17 @@ class LighthouseAssessor(BaseAssessor):
         if settings.use_stubs:
             return True
 
-        # Check if Playwright is installed
+        # Check if Lighthouse CLI is installed
         try:
-            import playwright
+            import subprocess
 
-            return True
-        except ImportError:
-            logger.warning("Playwright not installed for Lighthouse assessor")
+            result = subprocess.run(["lighthouse", "--version"], capture_output=True, text=True)
+            if result.returncode == 0:
+                logger.info(f"Lighthouse CLI available: {result.stdout.strip()}")
+                return True
+            else:
+                logger.warning("Lighthouse CLI not found")
+                return False
+        except Exception as e:
+            logger.warning(f"Failed to check Lighthouse CLI: {e}")
             return False

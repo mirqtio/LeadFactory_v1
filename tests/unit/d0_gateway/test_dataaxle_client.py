@@ -302,7 +302,7 @@ class TestDataAxleClient:
         # Verify cost emission
         dataaxle_client.emit_cost.assert_called_once_with(
             lead_id="lead_456",
-            cost_usd=0.05,
+            cost_usd=0.10,
             operation="match_business",
             metadata={"match_confidence": 0.9, "has_email": True, "has_phone": False},
         )

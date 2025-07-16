@@ -60,7 +60,7 @@ class TestCostTrackingIntegration:
         cost_ledger_instance.record_cost(
             provider="dataaxle",
             operation="match_business",
-            cost_usd=Decimal("0.05"),
+            cost_usd=Decimal("0.10"),
             lead_id=lead_id,
             campaign_id=campaign_id,
             metadata={"match_confidence": 0.95},
@@ -91,13 +91,13 @@ class TestCostTrackingIntegration:
         assert len(all_costs) == 3
 
         total_cost = sum(c.cost_usd for c in all_costs)
-        assert total_cost == Decimal("0.062")
+        assert total_cost == Decimal("0.112")
 
         # Verify campaign costs
         campaign_costs = cost_ledger_instance.get_campaign_costs(campaign_id)
-        assert campaign_costs["total_cost"] == 0.062
+        assert campaign_costs["total_cost"] == 0.112
         assert len(campaign_costs["providers"]) == 3
-        assert campaign_costs["providers"]["dataaxle"]["total_cost"] == 0.05
+        assert campaign_costs["providers"]["dataaxle"]["total_cost"] == 0.10
 
     @pytest.mark.asyncio
     async def test_provider_rate_limit_cost_tracking(self, test_db):
@@ -135,7 +135,7 @@ class TestCostTrackingIntegration:
                 # Verify costs recorded
                 costs = test_db.query(APICost).all()
                 assert len(costs) == 5
-                assert all(c.cost_usd == Decimal("0.05") for c in costs)
+                assert all(c.cost_usd == Decimal("0.10") for c in costs)
 
     def test_daily_cost_aggregation(self, test_db, cost_ledger_instance):
         """Test daily cost aggregation functionality"""
@@ -148,7 +148,7 @@ class TestCostTrackingIntegration:
             cost_ledger_instance.record_cost(
                 provider="dataaxle",
                 operation="match_business",
-                cost_usd=Decimal("0.05"),
+                cost_usd=Decimal("0.10"),
                 campaign_id=1,
             )
             # Manually update timestamp to yesterday
@@ -172,7 +172,7 @@ class TestCostTrackingIntegration:
         assert len(aggregates) == 1
         assert aggregates[0].date == yesterday
         assert aggregates[0].provider == "dataaxle"
-        assert aggregates[0].total_cost_usd == Decimal("0.50")
+        assert aggregates[0].total_cost_usd == Decimal("1.00")
         assert aggregates[0].request_count == 10
 
     def test_cost_trends_analysis(self, test_db, cost_ledger_instance):
@@ -184,13 +184,13 @@ class TestCostTrackingIntegration:
 
         for day_offset, daily_total in enumerate(daily_costs):
             cost_date = base_date + timedelta(days=day_offset)
-            num_requests = int(daily_total / 0.05)  # Each request costs $0.05
+            num_requests = int(daily_total / 0.10)  # Each request costs $0.10
 
             for _ in range(num_requests):
                 cost_ledger_instance.record_cost(
                     provider="dataaxle",
                     operation="match_business",
-                    cost_usd=Decimal("0.05"),
+                    cost_usd=Decimal("0.10"),
                 )
                 # Update timestamp
                 cost = test_db.query(APICost).order_by(APICost.id.desc()).first()
@@ -258,7 +258,7 @@ class TestCostTrackingIntegration:
             cost_ledger_instance.record_cost(
                 provider="dataaxle",
                 operation="match_business",
-                cost_usd=Decimal("0.05"),
+                cost_usd=Decimal("0.10"),
             )
             # Update timestamp to old date
             cost = test_db.query(APICost).order_by(APICost.id.desc()).first()
@@ -299,7 +299,7 @@ class TestCostTrackingIntegration:
         """Test comparing costs across different providers"""
         # Simulate costs for different providers with varying rates
         providers_config = {
-            "dataaxle": {"cost": 0.05, "count": 100},
+            "dataaxle": {"cost": 0.10, "count": 100},
             "hunter": {"cost": 0.01, "count": 200},
             "openai": {"cost": 0.002, "count": 500},
             "semrush": {"cost": 0.10, "count": 50},
@@ -321,14 +321,14 @@ class TestCostTrackingIntegration:
             provider_summaries[provider] = summary
 
         # Verify costs match expected
-        assert provider_summaries["dataaxle"]["total_cost"] == 5.0  # 100 * 0.05
+        assert provider_summaries["dataaxle"]["total_cost"] == 10.0  # 100 * 0.10
         assert provider_summaries["hunter"]["total_cost"] == 2.0  # 200 * 0.01
         assert provider_summaries["openai"]["total_cost"] == 1.0  # 500 * 0.002
         assert provider_summaries["semrush"]["total_cost"] == 5.0  # 50 * 0.10
 
         # Find most expensive provider by total cost
         most_expensive = max(provider_summaries.items(), key=lambda x: x[1]["total_cost"])
-        assert most_expensive[0] in ["dataaxle", "semrush"]  # Both cost $5.00
+        assert most_expensive[0] == "dataaxle"  # $10.00 vs $5.00
 
         # Find most used provider
         most_used = max(provider_summaries.items(), key=lambda x: x[1]["total_requests"])

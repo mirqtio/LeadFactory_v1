@@ -14,11 +14,11 @@ def db():
     # Use in-memory SQLite for unit tests
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
-    
+
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = SessionLocal()
-    
+
     yield session
-    
+
     session.close()
     Base.metadata.drop_all(engine)

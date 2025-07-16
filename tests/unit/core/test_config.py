@@ -36,7 +36,7 @@ class TestEnvironmentConfiguration:
         settings = Settings(_env_file=None)
         assert settings.environment == "development"
         assert settings.use_stubs is True
-        assert settings.stub_base_url == "http://localhost:5010"  # This is the default in Settings class
+        assert settings.stub_base_url == "http://localhost:5011"  # This is the default in Settings class
         # Provider flags should be False when use_stubs is True
         assert settings.enable_gbp is False
         assert settings.enable_pagespeed is False
@@ -349,9 +349,9 @@ class TestEnvironmentConfiguration:
         assert settings.stub_base_url == "http://stub-server:5010"
 
         # Test with localhost URL
-        monkeypatch.setenv("STUB_BASE_URL", "http://localhost:5010")
+        monkeypatch.setenv("STUB_BASE_URL", "http://localhost:5011")
         settings2 = Settings(_env_file=None)
-        assert settings2.stub_base_url == "http://localhost:5010"
+        assert settings2.stub_base_url == "http://localhost:5011"
 
     def test_wave_b_feature_flags_default_false(self, monkeypatch, tmp_path):
         """Test that Wave B feature flags default to False"""
@@ -369,9 +369,9 @@ class TestEnvironmentConfiguration:
 
         settings = Settings()
         assert settings.enable_semrush is False
-        assert settings.enable_lighthouse is False
+        assert settings.enable_lighthouse is True
         assert settings.enable_visual_analysis is False
         assert settings.enable_llm_audit is False
-        assert settings.enable_cost_tracking is False
+        assert settings.enable_cost_tracking is True
         assert settings.use_dataaxle is False
         assert settings.enable_cost_guardrails is False

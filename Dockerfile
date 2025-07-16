@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     curl \
     git \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -21,6 +23,7 @@ RUN pip install --upgrade pip setuptools wheel
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN playwright install --with-deps
+RUN npm install -g lighthouse
 
 # Copy application code
 COPY --chown=leadfactory:leadfactory . .

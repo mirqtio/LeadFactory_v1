@@ -2,12 +2,12 @@
 Test Visual Analyzer - Comprehensive Unit Tests
 
 Tests for the visual analyzer that combines screenshot capture and AI vision analysis
-with 9 visual rubric dimensions scored 0-100.
+with 9 visual rubric dimensions scored 1-9.
 
 Coverage includes:
 - Screenshot capture functionality (desktop and mobile)
 - Vision API analysis with GPT-4o
-- 9 rubric dimensions scoring (0-100)
+- 9 rubric dimensions scoring (1-9)
 - Stub mode behavior for deterministic testing
 - Error handling and edge cases
 - Cost calculation ($0.023 total)
@@ -78,15 +78,15 @@ class TestVisualAnalyzer:
                         "content": json.dumps(
                             {
                                 "scores": {
-                                    "visual_design_quality": 85,
-                                    "brand_consistency": 78,
-                                    "navigation_clarity": 92,
-                                    "content_organization": 88,
-                                    "call_to_action_prominence": 65,
-                                    "mobile_responsiveness": 95,
-                                    "loading_performance": 72,
-                                    "trust_signals": 80,
-                                    "overall_user_experience": 82,
+                                    "visual_design_quality": 8,
+                                    "brand_consistency": 7,
+                                    "navigation_clarity": 9,
+                                    "content_organization": 8,
+                                    "call_to_action_prominence": 6,
+                                    "mobile_responsiveness": 9,
+                                    "loading_performance": 7,
+                                    "trust_signals": 8,
+                                    "overall_user_experience": 8,
                                 },
                                 "warnings": [
                                     "Low contrast text in footer section",
@@ -210,7 +210,7 @@ class TestVisualAnalyzer:
 
         # Verify metrics
         assert result.metrics["model_used"] == "gpt-4o-mini"
-        assert result.metrics["average_visual_score"] == pytest.approx(81.89, rel=0.1)
+        assert result.metrics["average_visual_score"] == pytest.approx(7.78, rel=0.1)
         assert result.metrics["warnings_count"] == 5
         assert result.metrics["quickwins_count"] == 5
         assert result.metrics["screenshots_captured"] == 2
@@ -263,17 +263,17 @@ class TestVisualAnalyzer:
         assert result.data["screenshot_thumb_url"] == f"https://stub-screenshots.com/{url_hash}/thumb.png"
         assert result.data["mobile_screenshot_url"] == f"https://stub-screenshots.com/{url_hash}/mobile.png"
 
-        # Verify scores are deterministic (50-90 range)
+        # Verify scores are deterministic (5-9 range)
         scores = result.data["visual_scores_json"]
-        base_score = 50 + (url_hash % 40)
-        assert scores["visual_design_quality"] == min(100, base_score + 5)
-        assert scores["brand_consistency"] == min(100, base_score - 5)
-        assert scores["navigation_clarity"] == min(100, base_score + 10)
+        base_score = 5 + (url_hash % 4)
+        assert scores["visual_design_quality"] == min(9, base_score + 1)
+        assert scores["brand_consistency"] == max(1, base_score - 1)
+        assert scores["navigation_clarity"] == min(9, base_score + 2)
         assert scores["content_organization"] == base_score
-        assert scores["call_to_action_prominence"] == min(100, base_score - 10)
-        assert scores["mobile_responsiveness"] == min(100, base_score + 15)
-        assert scores["loading_performance"] == min(100, base_score - 8)
-        assert scores["trust_signals"] == min(100, base_score + 3)
+        assert scores["call_to_action_prominence"] == max(1, base_score - 2)
+        assert scores["mobile_responsiveness"] == min(9, base_score + 3)
+        assert scores["loading_performance"] == max(1, base_score - 1)
+        assert scores["trust_signals"] == min(9, base_score + 1)
         assert scores["overall_user_experience"] == base_score
 
         # Verify stub warnings and quick wins
@@ -337,10 +337,10 @@ class TestVisualAnalyzer:
         assert result.status == "failed"
         assert "Visual analysis error" in result.error_message
 
-        # Should have default zero scores
+        # Should have default minimum scores
         scores = result.data["visual_scores_json"]
         for dimension in scores:
-            assert scores[dimension] == 0
+            assert scores[dimension] == 1
 
         assert result.data["visual_warnings"] == []
         assert result.data["visual_quickwins"] == []
@@ -385,11 +385,11 @@ class TestVisualAnalyzer:
         # Should extract JSON and use defaults for missing scores
         assert result.status == "completed"
         scores = result.data["visual_scores_json"]
-        assert scores["visual_design_quality"] == 75
-        assert scores["brand_consistency"] == 80
-        # Missing scores should default to 50
-        assert scores["navigation_clarity"] == 50
-        assert scores["mobile_responsiveness"] == 50
+        assert scores["visual_design_quality"] == 7
+        assert scores["brand_consistency"] == 8
+        # Missing scores should default to 5
+        assert scores["navigation_clarity"] == 5
+        assert scores["mobile_responsiveness"] == 5
 
     @pytest.mark.asyncio
     @patch("d3_assessment.assessors.visual_analyzer.create_client")
@@ -526,9 +526,9 @@ class TestVisualAnalyzer:
         # Should use defaults
         assert result.status == "completed"
         scores = result.data["visual_scores_json"]
-        # All scores should be default 50
+        # All scores should be default 5
         for dimension in scores:
-            assert scores[dimension] == 50
+            assert scores[dimension] == 5
 
     @pytest.mark.asyncio
     @patch("d3_assessment.assessors.visual_analyzer.create_client")
@@ -558,15 +558,15 @@ class TestVisualAnalyzer:
                         "content": json.dumps(
                             {
                                 "scores": {
-                                    "visual_design_quality": 100,
-                                    "brand_consistency": 98,
-                                    "navigation_clarity": 100,
-                                    "content_organization": 95,
-                                    "call_to_action_prominence": 100,
-                                    "mobile_responsiveness": 97,
-                                    "loading_performance": 99,
-                                    "trust_signals": 100,
-                                    "overall_user_experience": 99,
+                                    "visual_design_quality": 9,
+                                    "brand_consistency": 9,
+                                    "navigation_clarity": 9,
+                                    "content_organization": 9,
+                                    "call_to_action_prominence": 9,
+                                    "mobile_responsiveness": 9,
+                                    "loading_performance": 9,
+                                    "trust_signals": 9,
+                                    "overall_user_experience": 9,
                                 },
                                 "warnings": [],  # No warnings for perfect site
                                 "quick_wins": ["Consider A/B testing minor variations"],
@@ -592,14 +592,14 @@ class TestVisualAnalyzer:
 
         # Verify high scores
         scores = result.data["visual_scores_json"]
-        assert scores["visual_design_quality"] == 100
-        assert scores["navigation_clarity"] == 100
-        assert scores["call_to_action_prominence"] == 100
-        assert scores["trust_signals"] == 100
+        assert scores["visual_design_quality"] == 9
+        assert scores["navigation_clarity"] == 9
+        assert scores["call_to_action_prominence"] == 9
+        assert scores["trust_signals"] == 9
 
         # Average should be very high
         analysis = result.data["visual_analysis"]
-        assert analysis["average_score"] > 98
+        assert analysis["average_score"] >= 9
         assert analysis["highest_score_area"] in [
             "visual_design_quality",
             "navigation_clarity",

@@ -6,12 +6,24 @@ Implement a feature using the PRP file with mandatory completion validation.
 
 ## Execution Process
 
-1. **Parse Arguments**
-   - If arguments provided: process only specified PRP IDs (e.g., "P0-021 P0-022")
-   - If no arguments: identify all incomplete PRPs from .claude/prp_progress.json
-   - Validate all specified PRPs exist as files
+1. **Parse Arguments & Check PRP Status**
+   - If arguments provided: process only specified PRP IDs (e.g., "P2-010 P2-020")
+   - If no arguments: get next validated PRP from tracking system
+   - **MANDATORY**: Check PRP status using tracking system:
+     ```bash
+     python .claude/prp_tracking/cli_commands.py status P2-010
+     ```
+   - **CRITICAL**: PRP must be in 'validated' state to start execution
+   - **CRITICAL**: No other PRPs can be 'in_progress' (only one at a time)
 
-2. **For Each PRP (Sequential Execution):**
+2. **Start PRP Execution**
+   - **MANDATORY**: Transition PRP to 'in_progress' state:
+     ```bash
+     python .claude/prp_tracking/cli_commands.py start P2-010
+     ```
+   - If transition fails, STOP execution and report the issue
+
+3. **For Each PRP (Sequential Execution):**
 
    ### A. **Load PRP**
    - Read the specified PRP file from .claude/PRPs/
@@ -71,9 +83,14 @@ Implement a feature using the PRP file with mandatory completion validation.
    - DO NOT proceed to next PRP until current one scores 100%
 
    ### F. **Complete Current PRP**
-   - Update .claude/prp_progress.json marking PRP as completed
-   - Commit changes with message: "Complete {task_id}: {title} - Validated 100%"
-   - Verify CI remains green after push
+   - **MANDATORY**: Commit all changes first
+   - **MANDATORY**: Verify GitHub CI passes for the commit
+   - **MANDATORY**: Complete PRP using tracking system:
+     ```bash
+     python .claude/prp_tracking/cli_commands.py complete P2-010
+     ```
+   - This automatically validates BPCI pass + GitHub CI success
+   - Update legacy .claude/prp_progress.json for backwards compatibility
 
 3. **Final Report**
    - List all PRPs processed and their final status

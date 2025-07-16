@@ -87,7 +87,7 @@ class TestVisualAnalyzer:
         # Check visual scores (9 dimensions)
         scores = result.data["visual_scores_json"]
         assert len(scores) == 9
-        assert all(0 <= score <= 100 for score in scores.values())
+        assert all(1 <= score <= 9 for score in scores.values())
 
         # Check required dimensions
         expected_dimensions = [
@@ -135,15 +135,15 @@ class TestVisualAnalyzer:
         # Mock vision response
         vision_response = {
             "scores": {
-                "visual_design_quality": 85,
-                "brand_consistency": 78,
-                "navigation_clarity": 90,
-                "content_organization": 82,
-                "call_to_action_prominence": 65,
-                "mobile_responsiveness": 88,
-                "loading_performance": 75,
-                "trust_signals": 70,
-                "overall_user_experience": 80,
+                "visual_design_quality": 8,
+                "brand_consistency": 7,
+                "navigation_clarity": 9,
+                "content_organization": 8,
+                "call_to_action_prominence": 6,
+                "mobile_responsiveness": 9,
+                "loading_performance": 7,
+                "trust_signals": 7,
+                "overall_user_experience": 8,
             },
             "warnings": ["Low contrast text in header", "CTA buttons need more prominence"],
             "quick_wins": ["Increase button size", "Add more whitespace", "Optimize images"],
@@ -225,26 +225,26 @@ class TestVisualAnalyzer:
         assert result.status == "failed"
         assert "Vision API error" in result.error_message
         # Should still have default scores
-        assert all(score == 0 for score in result.data["visual_scores_json"].values())
+        assert all(score == 1 for score in result.data["visual_scores_json"].values())
 
     def test_clamp_score(self, visual_analyzer):
-        """Test score clamping to 0-100 range"""
-        assert visual_analyzer._clamp_score(50) == 50
-        assert visual_analyzer._clamp_score(150) == 100
-        assert visual_analyzer._clamp_score(-10) == 0
-        assert visual_analyzer._clamp_score("75") == 75
-        assert visual_analyzer._clamp_score("invalid") == 50  # Default
-        assert visual_analyzer._clamp_score(None) == 50  # Default
+        """Test score clamping to 1-9 range"""
+        assert visual_analyzer._clamp_score(5) == 5
+        assert visual_analyzer._clamp_score(15) == 9
+        assert visual_analyzer._clamp_score(-10) == 1
+        assert visual_analyzer._clamp_score("7") == 7
+        assert visual_analyzer._clamp_score("invalid") == 5  # Default
+        assert visual_analyzer._clamp_score(None) == 5  # Default
 
     def test_extract_json_from_text(self, visual_analyzer):
         """Test JSON extraction from text"""
         # Valid JSON
-        text = 'Some text {"scores": {"visual_design_quality": 80}} more text'
+        text = 'Some text {"scores": {"visual_design_quality": 8}} more text'
         result = visual_analyzer._extract_json_from_text(text)
-        assert result["scores"]["visual_design_quality"] == 80
+        assert result["scores"]["visual_design_quality"] == 8
 
         # Invalid JSON - should return default
         text = "No JSON here"
         result = visual_analyzer._extract_json_from_text(text)
         assert len(result["scores"]) == 9
-        assert all(score == 50 for score in result["scores"].values())
+        assert all(score == 5 for score in result["scores"].values())

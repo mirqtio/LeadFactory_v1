@@ -10,7 +10,7 @@ You are an expert web design analyst evaluating website screenshots. Analyze the
 Website URL: {url}
 Business Name: {business_name}
 
-Analyze the visual design and provide scores from 0-100 for each dimension:
+Analyze the visual design and provide scores from 1-9 for each dimension:
 
 1. **Visual Design Quality** - Overall aesthetic appeal, modern design principles, visual hierarchy
 2. **Brand Consistency** - Cohesive use of colors, fonts, imagery that reinforces brand identity
@@ -27,15 +27,15 @@ Return your analysis as a JSON object with this exact structure:
 ```json
 {
   "scores": {
-    "visual_design_quality": 85,
-    "brand_consistency": 78,
-    "navigation_clarity": 90,
-    "content_organization": 82,
-    "call_to_action_prominence": 65,
-    "mobile_responsiveness": 88,
-    "loading_performance": 75,
-    "trust_signals": 70,
-    "overall_user_experience": 80
+    "visual_design_quality": 7,
+    "brand_consistency": 6,
+    "navigation_clarity": 8,
+    "content_organization": 7,
+    "call_to_action_prominence": 5,
+    "mobile_responsiveness": 8,
+    "loading_performance": 6,
+    "trust_signals": 6,
+    "overall_user_experience": 7
   },
   "warnings": [
     "Primary CTA button lacks sufficient contrast with background",
@@ -68,9 +68,10 @@ Return your analysis as a JSON object with this exact structure:
 ```
 
 Be specific and actionable in your warnings and quick wins. Focus on issues that significantly impact user experience and conversion rates. Scores should reflect professional web design standards where:
-- 90-100: Exceptional, industry-leading design
-- 80-89: Very good, professional quality
-- 70-79: Good, meets standards with room for improvement
-- 60-69: Average, notable issues present
-- 50-59: Below average, significant improvements needed
-- 0-49: Poor, major redesign recommended
+- 9: Exceptional, industry-leading design
+- 8: Very good, professional quality
+- 7: Good, meets standards with room for improvement
+- 6: Average, notable issues present
+- 5: Below average, significant improvements needed
+- 3-4: Poor, major redesign recommended
+- 1-2: Critical issues, unusable design

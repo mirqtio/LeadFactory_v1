@@ -25,6 +25,7 @@ from core.logging import get_logger
 from core.metrics import get_metrics_response, metrics
 from d0_gateway.api import router as gateway_router
 from d1_targeting.api import router as targeting_router
+from d1_targeting.collaboration_api import router as collaboration_router  # P2-010
 from d3_assessment.api import router as assessment_router
 from d6_reports.api import router as reports_router
 from d7_storefront.api import router as storefront_router
@@ -161,6 +162,8 @@ app.include_router(account_router, tags=["accounts"])
 # Register domain routers
 app.include_router(gateway_router, tags=["gateway"])
 app.include_router(targeting_router, prefix="/api/v1/targeting", tags=["targeting"])
+# P2-010: Collaborative Buckets
+app.include_router(collaboration_router, tags=["collaborative-buckets"])
 # Note: d3_assessment already includes prefix in router definition
 app.include_router(assessment_router)
 # Register d6_reports router

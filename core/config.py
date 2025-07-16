@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     # External APIs
     use_stubs: bool = Field(default=True, description="Use stub server for all external APIs")
-    stub_base_url: str = Field(default="http://localhost:5010")
+    stub_base_url: str = Field(default="http://localhost:5011")
 
     # Provider feature flags - Wave A (auto-disabled when USE_STUBS=true)
     enable_gbp: bool = Field(default=True, description="Enable Google Business Profile API")
@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     # PRD v1.2 - Data Axle (trial)
     data_axle_api_key: Optional[SecretStr] = Field(default=None)
     data_axle_base_url: str = Field(default="https://api.data-axle.com/v2")
-    data_axle_rate_limit_per_min: int = Field(default=200)
+    data_axle_rate_limit_per_min: int = Field(default=50)  # 3000/hour = 50/min
 
     # PRD v1.2 - Hunter.io
     hunter_api_key: Optional[SecretStr] = Field(default=None)
@@ -115,10 +115,10 @@ class Settings(BaseSettings):
     # Wave A/B feature flags for P0-005
     enable_emails: bool = Field(default=True)  # Wave A core feature
     enable_semrush: bool = Field(default=False)  # Wave B
-    enable_lighthouse: bool = Field(default=False)  # Wave B
+    enable_lighthouse: bool = Field(default=True)  # Wave B
     enable_visual_analysis: bool = Field(default=False)  # Wave B
     enable_llm_audit: bool = Field(default=False)  # Wave B
-    enable_cost_tracking: bool = Field(default=False)  # Wave B
+    enable_cost_tracking: bool = Field(default=True)  # Wave B - Now enabled by default
     use_dataaxle: bool = Field(default=False)  # Wave B
     enable_cost_guardrails: bool = Field(default=False)  # Wave B
     daily_budget_cap: float = Field(default=100.0)  # USD

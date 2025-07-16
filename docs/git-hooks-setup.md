@@ -17,7 +17,7 @@ We use a two-stage validation system:
   - Code formatting (Black, isort)
   - Linting (Flake8)
   - Core unit tests
-- **Bypass**: `git commit --no-verify` (not recommended)
+- **Bypass**: NEVER use `git commit --no-verify` - validation is MANDATORY
 
 ### Pre-push Hook
 - **Location**: `.git/hooks/pre-push`
@@ -28,7 +28,7 @@ We use a two-stage validation system:
   - Docker build
   - Integration tests
   - Everything that runs in CI
-- **Bypass**: `git push --no-verify` (strongly discouraged)
+- **Bypass**: NEVER use `git push --no-verify` - validation is MANDATORY
 
 ## Pre-commit Framework
 
@@ -74,9 +74,12 @@ chmod +x .git/hooks/pre-push
 - Ensure executable: `chmod +x .git/hooks/pre-*`
 
 ### Hook failing
+- STOP ALL OTHER WORK - validation failures are P0 critical issues  
 - Run the make command manually to see detailed output
-- Fix issues one by one
-- Use `--no-verify` only as last resort
+- Fix issues one by one - debug and fix the root cause
+- NEVER use `--no-verify` - fix the validation problem instead
+- Create high-priority todo: "CRITICAL: Fix validation failure - [specific error]"
+- Only resume other work after validation passes completely
 
 ### Pre-commit framework issues
 - Update: `pre-commit autoupdate`

@@ -10,6 +10,25 @@ from database.models import Batch, Target
 from .api import router as api_router
 from .batch_scheduler import BatchScheduler
 from .bucket_loader import BucketFeatureLoader
+
+# P2-010: Collaborative Buckets
+from .collaboration_api import router as collaboration_router
+from .collaboration_models import (
+    ActiveCollaboration,
+    BucketActivity,
+    BucketActivityType,
+    BucketComment,
+    BucketNotification,
+    BucketPermission,
+    BucketPermissionGrant,
+    BucketShareLink,
+    BucketTagDefinition,
+    BucketVersion,
+    CollaborativeBucket,
+    LeadAnnotation,
+    NotificationType,
+)
+from .collaboration_service import BucketCollaborationService, WebSocketManager
 from .geo_validator import GeoConflict, GeoValidator
 from .models import Campaign, GeographicBoundary, TargetUniverse
 from .quota_tracker import QuotaTracker
@@ -39,4 +58,21 @@ __all__ = [
     "CampaignStatus",
     "BatchSchedule",
     "TargetMetrics",
+    # P2-010: Collaborative Buckets
+    "collaboration_router",
+    "CollaborativeBucket",
+    "BucketPermissionGrant",
+    "BucketActivity",
+    "BucketComment",
+    "BucketVersion",
+    "BucketNotification",
+    "LeadAnnotation",
+    "BucketTagDefinition",
+    "BucketShareLink",
+    "ActiveCollaboration",
+    "BucketPermission",
+    "BucketActivityType",
+    "NotificationType",
+    "BucketCollaborationService",
+    "WebSocketManager",
 ]

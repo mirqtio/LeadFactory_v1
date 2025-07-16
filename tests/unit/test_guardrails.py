@@ -108,7 +108,7 @@ class TestGuardrailManager:
         estimate = manager.estimate_cost("dataaxle", "match_business")
         assert estimate.provider == "dataaxle"
         assert estimate.operation == "match_business"
-        assert estimate.estimated_cost == Decimal("0.05")
+        assert estimate.estimated_cost == Decimal("0.10")
         assert estimate.confidence == 1.0
         assert estimate.based_on == "fixed"
 

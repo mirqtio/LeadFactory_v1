@@ -4,9 +4,9 @@ P2-000: Comprehensive user, organization, team, and RBAC management
 """
 
 from account_management.models import (
-    APIKey,
     AccountAuditLog,
     AccountUser,
+    APIKey,
     AuthProvider,
     EmailVerificationToken,
     Organization,

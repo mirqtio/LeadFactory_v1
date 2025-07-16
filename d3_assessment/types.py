@@ -28,6 +28,7 @@ class AssessmentType(Enum):
     AI_INSIGHTS = "ai_insights"
     BUSINESS_INFO = "business_info"  # For GBP assessor
     LIGHTHOUSE = "lighthouse"  # For Lighthouse assessor
+    VISUAL = "visual"  # For visual analyzer
     FULL_AUDIT = "full_audit"
     QUICK_SCAN = "quick_scan"
     CUSTOM = "custom"

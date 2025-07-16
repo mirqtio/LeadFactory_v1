@@ -7,13 +7,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field, SecretStr, validator
 
-from account_management.models import (
-    AuthProvider,
-    PermissionAction,
-    ResourceType,
-    TeamRole,
-    UserStatus,
-)
+from account_management.models import AuthProvider, PermissionAction, ResourceType, TeamRole, UserStatus
 
 
 # Base schemas
@@ -49,15 +43,15 @@ class UserRegister(UserBase):
     password: SecretStr = Field(..., min_length=8, max_length=128)
     organization_name: Optional[str] = Field(None, min_length=1, max_length=255)
 
-    @validator('password')
+    @validator("password")
     def validate_password(cls, v):
         password = v.get_secret_value()
         if not any(char.isdigit() for char in password):
-            raise ValueError('Password must contain at least one digit')
+            raise ValueError("Password must contain at least one digit")
         if not any(char.isupper() for char in password):
-            raise ValueError('Password must contain at least one uppercase letter')
+            raise ValueError("Password must contain at least one uppercase letter")
         if not any(char.islower() for char in password):
-            raise ValueError('Password must contain at least one lowercase letter')
+            raise ValueError("Password must contain at least one lowercase letter")
         return v
 
 
@@ -80,15 +74,15 @@ class PasswordChange(BaseModel):
     current_password: SecretStr
     new_password: SecretStr = Field(..., min_length=8, max_length=128)
 
-    @validator('new_password')
+    @validator("new_password")
     def validate_password(cls, v):
         password = v.get_secret_value()
         if not any(char.isdigit() for char in password):
-            raise ValueError('Password must contain at least one digit')
+            raise ValueError("Password must contain at least one digit")
         if not any(char.isupper() for char in password):
-            raise ValueError('Password must contain at least one uppercase letter')
+            raise ValueError("Password must contain at least one uppercase letter")
         if not any(char.islower() for char in password):
-            raise ValueError('Password must contain at least one lowercase letter')
+            raise ValueError("Password must contain at least one lowercase letter")
         return v
 
 
@@ -161,7 +155,7 @@ class UserResponse(UserBase):
 
 class UserProfileResponse(UserResponse):
     organization: Optional[OrganizationResponse]
-    teams: List['TeamResponse'] = []
+    teams: List["TeamResponse"] = []
 
 
 class TeamResponse(TeamBase):
@@ -177,7 +171,7 @@ class TeamResponse(TeamBase):
 
 
 class TeamDetailResponse(TeamResponse):
-    members: List['TeamMemberResponse'] = []
+    members: List["TeamMemberResponse"] = []
 
 
 class TeamMemberResponse(BaseModel):
@@ -196,7 +190,7 @@ class RoleResponse(BaseModel):
     name: str
     description: Optional[str]
     is_system: bool
-    permissions: List['PermissionResponse'] = []
+    permissions: List["PermissionResponse"] = []
     created_at: datetime
     updated_at: datetime
 

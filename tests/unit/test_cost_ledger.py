@@ -38,7 +38,7 @@ class TestAPICostModel:
             operation="match_business",
             lead_id=1,
             campaign_id=1,
-            cost_usd=Decimal("0.05"),
+            cost_usd=Decimal("0.10"),
             request_id="req_123",
             meta_data={"match_confidence": 0.95},
         )
@@ -51,7 +51,7 @@ class TestAPICostModel:
         assert saved_cost.operation == "match_business"
         assert saved_cost.lead_id == 1
         assert saved_cost.campaign_id == 1
-        assert saved_cost.cost_usd == Decimal("0.05")
+        assert saved_cost.cost_usd == Decimal("0.10")
         assert saved_cost.meta_data["match_confidence"] == 0.95
         assert saved_cost.timestamp is not None
 
@@ -62,7 +62,7 @@ class TestAPICostModel:
             provider="dataaxle",
             operation="match_business",
             lead_id=1,
-            cost_usd=Decimal("0.05"),
+            cost_usd=Decimal("0.10"),
         )
         test_db.add(cost1)
 
@@ -79,7 +79,7 @@ class TestAPICostModel:
         # Verify total costs
         all_costs = test_db.query(APICost).filter_by(lead_id=1).all()
         total = sum(c.cost_usd for c in all_costs)
-        assert total == Decimal("0.06")
+        assert total == Decimal("0.11")
 
 
 class TestDailyCostAggregate:
@@ -231,8 +231,8 @@ class TestCostAggregation:
         """Test aggregating costs by provider"""
         # Create costs for different providers
         costs = [
-            APICost(provider="dataaxle", operation="match", cost_usd=Decimal("0.05")),
-            APICost(provider="dataaxle", operation="match", cost_usd=Decimal("0.05")),
+            APICost(provider="dataaxle", operation="match", cost_usd=Decimal("0.10")),
+            APICost(provider="dataaxle", operation="match", cost_usd=Decimal("0.10")),
             APICost(provider="hunter", operation="find", cost_usd=Decimal("0.01")),
             APICost(provider="openai", operation="analyze", cost_usd=Decimal("0.02")),
         ]
@@ -255,7 +255,7 @@ class TestCostAggregation:
         # Convert to dict for easy assertion
         cost_by_provider = {r.provider: r.total_cost for r in results}
 
-        assert cost_by_provider["dataaxle"] == Decimal("0.10")
+        assert cost_by_provider["dataaxle"] == Decimal("0.20")
         assert cost_by_provider["hunter"] == Decimal("0.01")
         assert cost_by_provider["openai"] == Decimal("0.02")
 
@@ -267,9 +267,9 @@ class TestCostAggregation:
                 provider="dataaxle",
                 operation="match",
                 campaign_id=1,
-                cost_usd=Decimal("0.05"),
+                cost_usd=Decimal("0.10"),
             )
-            for _ in range(20)  # 20 matches = $1.00
+            for _ in range(20)  # 20 matches = $2.00
         ]
         test_db.add_all(costs)
         test_db.commit()
@@ -279,7 +279,7 @@ class TestCostAggregation:
 
         total_cost = test_db.query(func.sum(APICost.cost_usd)).filter(APICost.campaign_id == 1).scalar()
 
-        assert total_cost == Decimal("1.00")
+        assert total_cost == Decimal("2.00")
 
     def test_daily_cost_tracking(self, test_db):
         """Test tracking costs by day"""
@@ -291,19 +291,19 @@ class TestCostAggregation:
             APICost(
                 provider="dataaxle",
                 operation="match",
-                cost_usd=Decimal("0.05"),
+                cost_usd=Decimal("0.10"),
                 timestamp=today,
             ),
             APICost(
                 provider="dataaxle",
                 operation="match",
-                cost_usd=Decimal("0.05"),
+                cost_usd=Decimal("0.10"),
                 timestamp=today,
             ),
             APICost(
                 provider="dataaxle",
                 operation="match",
-                cost_usd=Decimal("0.05"),
+                cost_usd=Decimal("0.10"),
                 timestamp=yesterday,
             ),
         ]
@@ -324,7 +324,7 @@ class TestCostAggregation:
                 today_total += cost.cost_usd
 
         # Should have 2 costs for today
-        assert today_total == Decimal("0.10")
+        assert today_total == Decimal("0.20")
 
 
 class TestBaseClientCostIntegration:

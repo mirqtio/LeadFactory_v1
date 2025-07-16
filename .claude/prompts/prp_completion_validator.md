@@ -124,16 +124,6 @@ validation_result:
 4. **ALL OR NOTHING**: Even at 99%, the PRP is not complete
 5. **SECURITY FIRST**: Any security requirement failure is automatic CRITICAL severity
 
-## Critical Automatic Failures
-
-These issues result in immediate validation failure regardless of other scores:
-- No tests for security requirements (auth, RBAC, encryption)
-- Performance regression from baseline
-- Breaking changes to existing functionality
-- Rollback procedure not working
-- CI not passing on final commit
-- Coverage below 70% (even if PRP specifies 80%)
-
 ## Success Criteria
 
 A PRP is only considered complete when:

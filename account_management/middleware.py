@@ -9,14 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from account_management.auth_service import AuthService
-from account_management.models import (
-    APIKey,
-    AccountAuditLog,
-    AccountUser,
-    PermissionAction,
-    ResourceType,
-    UserStatus,
-)
+from account_management.models import AccountAuditLog, AccountUser, APIKey, PermissionAction, ResourceType, UserStatus
 from core.logging import get_logger
 from database.base import get_db
 
@@ -30,129 +23,107 @@ class AuthMiddleware:
     """Authentication middleware for request processing"""
 
     @staticmethod
-    async def get_current_user_from_token(
-        token: str,
-        db: Session
-    ) -> Optional[AccountUser]:
+    async def get_current_user_from_token(token: str, db: Session) -> Optional[AccountUser]:
         """Extract current user from JWT token"""
         try:
             payload = AuthService.decode_token(token)
-            
+
             if payload.get("type") != "access":
                 return None
-            
+
             user_id = payload.get("sub")
             if not user_id:
                 return None
-            
-            user = db.query(AccountUser).filter(
-                AccountUser.id == user_id,
-                AccountUser.status == UserStatus.ACTIVE
-            ).first()
-            
+
+            user = (
+                db.query(AccountUser).filter(AccountUser.id == user_id, AccountUser.status == UserStatus.ACTIVE).first()
+            )
+
             return user
-            
+
         except Exception as e:
             logger.debug(f"Token validation failed: {str(e)}")
             return None
 
     @staticmethod
-    async def get_current_user_from_api_key(
-        api_key: str,
-        db: Session
-    ) -> Optional[AccountUser]:
+    async def get_current_user_from_api_key(api_key: str, db: Session) -> Optional[AccountUser]:
         """Extract current user from API key"""
         key = AuthService.validate_api_key(db, api_key)
-        
+
         if not key:
             return None
-        
-        user = db.query(AccountUser).filter(
-            AccountUser.id == key.user_id,
-            AccountUser.status == UserStatus.ACTIVE
-        ).first()
-        
+
+        user = (
+            db.query(AccountUser).filter(AccountUser.id == key.user_id, AccountUser.status == UserStatus.ACTIVE).first()
+        )
+
         return user
 
     @staticmethod
-    async def authenticate_request(
-        request: Request,
-        db: Session
-    ) -> Optional[AccountUser]:
+    async def authenticate_request(request: Request, db: Session) -> Optional[AccountUser]:
         """
         Authenticate request using either JWT token or API key
-        
+
         Checks in order:
         1. Authorization header with Bearer token
         2. Authorization header with API key
         3. X-API-Key header
-        
+
         Returns:
             AccountUser if authenticated, None otherwise
         """
         auth_header = request.headers.get("Authorization")
-        
+
         # Check Bearer token
         if auth_header and auth_header.startswith("Bearer "):
             token = auth_header.split(" ")[1]
             user = await AuthMiddleware.get_current_user_from_token(token, db)
             if user:
                 return user
-        
+
         # Check API key in Authorization header
         if auth_header and auth_header.startswith("ApiKey "):
             api_key = auth_header.split(" ")[1]
             user = await AuthMiddleware.get_current_user_from_api_key(api_key, db)
             if user:
                 return user
-        
+
         # Check X-API-Key header
         api_key_header = request.headers.get("X-API-Key")
         if api_key_header:
             user = await AuthMiddleware.get_current_user_from_api_key(api_key_header, db)
             if user:
                 return user
-        
+
         return None
 
 
 class PermissionChecker:
     """Check user permissions for resources"""
 
-    def __init__(
-        self,
-        resource: ResourceType,
-        action: PermissionAction
-    ):
+    def __init__(self, resource: ResourceType, action: PermissionAction):
         self.resource = resource
         self.action = action
 
-    async def __call__(
-        self,
-        request: Request,
-        db: Session = next(get_db())
-    ) -> AccountUser:
+    async def __call__(self, request: Request, db: Session = next(get_db())) -> AccountUser:
         """
         Check if user has required permission
-        
+
         Returns:
             AccountUser if authorized
-            
+
         Raises:
             HTTPException if not authorized
         """
         # Authenticate user
         user = await AuthMiddleware.authenticate_request(request, db)
-        
+
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication required"
-            )
-        
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+
         # Check permission
         has_permission = await self.check_user_permission(user, db)
-        
+
         if not has_permission:
             # Log unauthorized access attempt
             audit_log = AccountAuditLog(
@@ -164,43 +135,39 @@ class PermissionChecker:
                 user_agent=request.headers.get("User-Agent"),
                 details={
                     "required_permission": f"{self.resource.value}:{self.action.value}",
-                    "user_roles": [r.name for r in user.roles] if hasattr(user, 'roles') else []
-                }
+                    "user_roles": [r.name for r in user.roles] if hasattr(user, "roles") else [],
+                },
             )
             db.add(audit_log)
             db.commit()
-            
+
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permission denied: {self.resource.value}:{self.action.value}"
+                detail=f"Permission denied: {self.resource.value}:{self.action.value}",
             )
-        
+
         return user
 
-    async def check_user_permission(
-        self,
-        user: AccountUser,
-        db: Session
-    ) -> bool:
+    async def check_user_permission(self, user: AccountUser, db: Session) -> bool:
         """
         Check if user has specific permission
-        
+
         Args:
             user: User to check
             db: Database session
-            
+
         Returns:
             bool: True if user has permission
         """
         # TODO: Implement actual permission checking logic
         # For now, return True for all authenticated users
         # In production, this should check user roles and permissions
-        
+
         # Example implementation:
         # 1. Get user's roles (global, organization, team)
         # 2. Get permissions for those roles
         # 3. Check if required permission exists
-        
+
         return True
 
 
@@ -210,35 +177,25 @@ class OrganizationMemberChecker:
     def __init__(self, allow_no_org: bool = False):
         self.allow_no_org = allow_no_org
 
-    async def __call__(
-        self,
-        request: Request,
-        db: Session = next(get_db())
-    ) -> AccountUser:
+    async def __call__(self, request: Request, db: Session = next(get_db())) -> AccountUser:
         """
         Check if user is member of an organization
-        
+
         Returns:
             AccountUser if authorized
-            
+
         Raises:
             HTTPException if not authorized
         """
         # Authenticate user
         user = await AuthMiddleware.authenticate_request(request, db)
-        
+
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication required"
-            )
-        
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+
         if not user.organization_id and not self.allow_no_org:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User must be member of an organization"
-            )
-        
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User must be member of an organization")
+
         return user
 
 
@@ -253,11 +210,11 @@ class AuditLogger:
         resource_type: str,
         resource_id: Optional[str] = None,
         details: Optional[dict] = None,
-        db: Session = next(get_db())
+        db: Session = next(get_db()),
     ):
         """
         Log an API action to audit log
-        
+
         Args:
             request: FastAPI request
             user: User performing action
@@ -275,51 +232,36 @@ class AuditLogger:
             resource_id=resource_id,
             ip_address=request.client.host,
             user_agent=request.headers.get("User-Agent"),
-            details=details
+            details=details,
         )
-        
+
         db.add(audit_log)
         db.commit()
 
 
 # Dependency injection helpers
-async def get_optional_user(
-    request: Request,
-    db: Session = next(get_db())
-) -> Optional[AccountUser]:
+async def get_optional_user(request: Request, db: Session = next(get_db())) -> Optional[AccountUser]:
     """Get current user if authenticated, None otherwise"""
     return await AuthMiddleware.authenticate_request(request, db)
 
 
-async def require_user(
-    request: Request,
-    db: Session = next(get_db())
-) -> AccountUser:
+async def require_user(request: Request, db: Session = next(get_db())) -> AccountUser:
     """Require authenticated user"""
     user = await AuthMiddleware.authenticate_request(request, db)
-    
+
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+
     return user
 
 
-async def require_organization_member(
-    request: Request,
-    db: Session = next(get_db())
-) -> AccountUser:
+async def require_organization_member(request: Request, db: Session = next(get_db())) -> AccountUser:
     """Require user to be member of organization"""
     user = await require_user(request, db)
-    
+
     if not user.organization_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User must be member of an organization"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User must be member of an organization")
+
     return user
 
 

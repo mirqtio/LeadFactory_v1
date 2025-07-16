@@ -20,11 +20,27 @@ Each PRP now automatically includes:
 # Ensure CI is currently GREEN
 git pull origin main
 make bpci  # Must pass before starting work
+
+# Check PRP tracking system status
+python .claude/prp_tracking/cli_commands.py status
+python .claude/prp_tracking/cli_commands.py next
 ```
 
 ## Execution Process
 
-1. **Load PRP**
+1. **PRP Status Validation**
+   - **MANDATORY**: Check PRP status using tracking system:
+     ```bash
+     python .claude/prp_tracking/cli_commands.py status P2-010
+     ```
+   - **CRITICAL**: PRP must be in 'validated' state to start execution
+   - **CRITICAL**: No other PRPs can be 'in_progress' (only one at a time)
+   - **MANDATORY**: Start PRP execution:
+     ```bash
+     python .claude/prp_tracking/cli_commands.py start P2-010
+     ```
+
+2. **Load PRP**
    - Read the specified PRP file (includes CLAUDE.md and CURRENT_STATE.md)
    - Understand all context and requirements
    - Pay special attention to the DO NOT IMPLEMENT section
@@ -32,7 +48,7 @@ make bpci  # Must pass before starting work
    - Ensure you have all needed context to implement the PRP fully
    - Do more web searches and codebase exploration as needed
 
-2. **Check Dependencies**
+3. **Check Dependencies**
    - Verify all dependent tasks are completed (check .claude/prp_progress.json)
    - If dependencies not met, report and stop
 
@@ -105,9 +121,14 @@ make bpci  # Must pass before starting work
    - DO NOT proceed to next PRP until current one scores 100%
 
 8. **Complete Current PRP**
-   - Update .claude/prp_progress.json with "completed" status
-   - Commit changes with message: "Complete {task_id}: {title} - Validated 100%"
-   - Verify CI remains green
+   - **MANDATORY**: Commit all changes first
+   - **MANDATORY**: Verify GitHub CI passes for the commit
+   - **MANDATORY**: Complete PRP using tracking system:
+     ```bash
+     python .claude/prp_tracking/cli_commands.py complete P2-010
+     ```
+   - This automatically validates BPCI pass + GitHub CI success
+   - Update legacy .claude/prp_progress.json for backwards compatibility
 
 9. **Continue Recursively**
    - After achieving 100% validation score, automatically continue to next PRP

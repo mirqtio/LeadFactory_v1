@@ -26,6 +26,7 @@ class LimitScope(str, Enum):
     CAMPAIGN = "campaign"
     OPERATION = "operation"
     PROVIDER_OPERATION = "provider_operation"
+    PER_LEAD = "per_lead"
 
 
 class LimitPeriod(str, Enum):
@@ -69,6 +70,7 @@ class CostLimit(BaseModel):
     provider: Optional[str] = Field(None, description="Provider name for provider-scoped limits")
     campaign_id: Optional[int] = Field(None, description="Campaign ID for campaign-scoped limits")
     operation: Optional[str] = Field(None, description="Operation name for operation-scoped limits")
+    lead_id: Optional[int] = Field(None, description="Lead ID for per-lead limits")
 
     # Thresholds and actions
     warning_threshold: float = Field(0.8, ge=0, le=1, description="Warning threshold (0-1)")
@@ -143,6 +145,7 @@ class GuardrailViolation(BaseModel):
     provider: Optional[str] = None
     campaign_id: Optional[int] = None
     operation: Optional[str] = None
+    lead_id: Optional[int] = None
     action_taken: List[GuardrailAction]
     metadata: Dict = Field(default_factory=dict)
 
@@ -220,6 +223,20 @@ class GuardrailManager:
                 )
             )
 
+        # Per-lead spending limit
+        self.add_limit(
+            CostLimit(
+                name="per_lead_total",
+                scope=LimitScope.PER_LEAD,
+                period=LimitPeriod.TOTAL,
+                limit_usd=Decimal("2.50"),
+                warning_threshold=0.8,
+                critical_threshold=0.95,
+                actions=[GuardrailAction.LOG, GuardrailAction.ALERT, GuardrailAction.BLOCK],
+                circuit_breaker_enabled=False,
+            )
+        )
+
     def add_limit(self, limit: CostLimit):
         """Add or update a cost limit"""
         self._limits[limit.name] = limit
@@ -251,7 +268,7 @@ class GuardrailManager:
         """
         # Fixed costs per operation (can be made dynamic later)
         cost_map = {
-            ("dataaxle", "match_business"): Decimal("0.05"),
+            ("dataaxle", "match_business"): Decimal("0.10"),
             ("hunter", "find_email"): Decimal("0.01"),
             ("openai", "analyze"): Decimal("0.001"),  # Base cost, actual varies by tokens
             ("semrush", "domain_overview"): Decimal("0.10"),
@@ -275,7 +292,13 @@ class GuardrailManager:
         )
 
     def check_limits(
-        self, provider: str, operation: str, estimated_cost: Decimal, campaign_id: Optional[int] = None, **kwargs
+        self,
+        provider: str,
+        operation: str,
+        estimated_cost: Decimal,
+        campaign_id: Optional[int] = None,
+        lead_id: Optional[int] = None,
+        **kwargs,
     ) -> List[GuardrailStatus]:
         """
         Check all applicable limits for an operation
@@ -285,6 +308,7 @@ class GuardrailManager:
             operation: Operation to perform
             estimated_cost: Estimated cost of the operation
             campaign_id: Campaign ID if applicable
+            lead_id: Lead ID if applicable
 
         Returns:
             List of guardrail statuses
@@ -296,11 +320,11 @@ class GuardrailManager:
                 continue
 
             # Check if limit applies to this operation
-            if not self._limit_applies(limit, provider, operation, campaign_id):
+            if not self._limit_applies(limit, provider, operation, campaign_id, lead_id):
                 continue
 
             # Get current spend for this limit
-            current_spend = self._get_current_spend(limit, provider, operation, campaign_id)
+            current_spend = self._get_current_spend(limit, provider, operation, campaign_id, lead_id)
 
             # Calculate status
             projected_spend = current_spend + estimated_cost
@@ -340,7 +364,13 @@ class GuardrailManager:
         return statuses
 
     def enforce_limits(
-        self, provider: str, operation: str, estimated_cost: Decimal, campaign_id: Optional[int] = None, **kwargs
+        self,
+        provider: str,
+        operation: str,
+        estimated_cost: Decimal,
+        campaign_id: Optional[int] = None,
+        lead_id: Optional[int] = None,
+        **kwargs,
     ) -> Union[bool, GuardrailViolation]:
         """
         Enforce cost limits, blocking if necessary
@@ -350,11 +380,12 @@ class GuardrailManager:
             operation: Operation to perform
             estimated_cost: Estimated cost
             campaign_id: Campaign ID if applicable
+            lead_id: Lead ID if applicable
 
         Returns:
             True if operation allowed, GuardrailViolation if blocked
         """
-        statuses = self.check_limits(provider, operation, estimated_cost, campaign_id, **kwargs)
+        statuses = self.check_limits(provider, operation, estimated_cost, campaign_id, lead_id, **kwargs)
 
         for status in statuses:
             limit = self._limits[status.limit_name]
@@ -371,6 +402,7 @@ class GuardrailManager:
                     provider=provider,
                     campaign_id=campaign_id,
                     operation=operation,
+                    lead_id=lead_id,
                     action_taken=[GuardrailAction.BLOCK],
                     metadata={"circuit_breaker_open": status.circuit_breaker_open},
                 )
@@ -390,6 +422,7 @@ class GuardrailManager:
                     provider=provider,
                     campaign_id=campaign_id,
                     operation=operation,
+                    lead_id=lead_id,
                     action_taken=limit.actions,
                     metadata={},
                 )
@@ -398,7 +431,9 @@ class GuardrailManager:
 
         return True
 
-    def _limit_applies(self, limit: CostLimit, provider: str, operation: str, campaign_id: Optional[int]) -> bool:
+    def _limit_applies(
+        self, limit: CostLimit, provider: str, operation: str, campaign_id: Optional[int], lead_id: Optional[int] = None
+    ) -> bool:
         """Check if a limit applies to the given operation"""
         if limit.scope == LimitScope.GLOBAL:
             return True
@@ -410,22 +445,30 @@ class GuardrailManager:
             return limit.operation == operation
         elif limit.scope == LimitScope.PROVIDER_OPERATION:
             return limit.provider == provider and limit.operation == operation
+        elif limit.scope == LimitScope.PER_LEAD:
+            return lead_id is not None  # Apply per-lead limits to any operation with a lead_id
         return False
 
     def _get_current_spend(
-        self, limit: CostLimit, provider: str, operation: str, campaign_id: Optional[int]
+        self, limit: CostLimit, provider: str, operation: str, campaign_id: Optional[int], lead_id: Optional[int] = None
     ) -> Decimal:
         """Get current spend for a limit period"""
         period_start, period_end = self._get_period_bounds(limit.period)
 
         with get_db_sync() as db:
-            # Use aggregated data for daily periods when possible
-            if limit.period == LimitPeriod.DAILY and period_start.date() <= datetime.utcnow().date():
+            # Use aggregated data for daily periods when possible (but not for per-lead limits)
+            if (
+                limit.period == LimitPeriod.DAILY
+                and period_start.date() <= datetime.utcnow().date()
+                and limit.scope != LimitScope.PER_LEAD
+            ):
                 return self._get_daily_spend_from_aggregate(
                     db, limit, provider, operation, campaign_id, period_start.date()
                 )
             else:
-                return self._get_spend_from_raw(db, limit, provider, operation, campaign_id, period_start, period_end)
+                return self._get_spend_from_raw(
+                    db, limit, provider, operation, campaign_id, lead_id, period_start, period_end
+                )
 
     def _get_daily_spend_from_aggregate(
         self,
@@ -458,6 +501,7 @@ class GuardrailManager:
         provider: str,
         operation: str,
         campaign_id: Optional[int],
+        lead_id: Optional[int],
         start: datetime,
         end: datetime,
     ) -> Decimal:
@@ -472,6 +516,8 @@ class GuardrailManager:
             query = query.filter(APICost.operation == operation)
         elif limit.scope == LimitScope.PROVIDER_OPERATION:
             query = query.filter(and_(APICost.provider == provider, APICost.operation == operation))
+        elif limit.scope == LimitScope.PER_LEAD:
+            query = query.filter(APICost.lead_id == lead_id)
 
         result = query.scalar()
         return result or Decimal("0.00")

@@ -2,18 +2,18 @@
 Test Visual Rubric - Comprehensive Unit Tests
 
 Tests for the visual rubric scoring system with 9 dimensions.
-Each dimension is scored 0-100 based on specific criteria.
+Each dimension is scored 1-9 based on specific criteria.
 
 Visual Rubric Dimensions:
-1. Visual Design Quality (0-100)
-2. Brand Consistency (0-100)
-3. Navigation Clarity (0-100)
-4. Content Organization (0-100)
-5. Call-to-Action Prominence (0-100)
-6. Mobile Responsiveness (0-100)
-7. Loading Performance (0-100)
-8. Trust Signals (0-100)
-9. Overall User Experience (0-100)
+1. Visual Design Quality (1-9)
+2. Brand Consistency (1-9)
+3. Navigation Clarity (1-9)
+4. Content Organization (1-9)
+5. Call-to-Action Prominence (1-9)
+6. Mobile Responsiveness (1-9)
+7. Loading Performance (1-9)
+8. Trust Signals (1-9)
+9. Overall User Experience (1-9)
 
 Test Coverage:
 - Score validation and bounds checking
@@ -51,7 +51,7 @@ class TestVisualRubric:
         ]
 
         # Create a sample scores dict
-        scores = {dim: 50 for dim in expected_dimensions}
+        scores = {dim: 5 for dim in expected_dimensions}
 
         # Verify all dimensions are present
         assert len(scores) == 9
@@ -62,17 +62,15 @@ class TestVisualRubric:
         """Test score interpretation and categorization"""
         test_cases = [
             # (score, expected_category, expected_severity)
-            (0, "critical", "severe"),
-            (10, "critical", "severe"),
-            (20, "poor", "high"),
-            (30, "poor", "high"),
-            (40, "below_average", "medium"),
-            (50, "average", "medium"),
-            (60, "average", "low"),
-            (70, "good", "low"),
-            (80, "good", "none"),
-            (90, "excellent", "none"),
-            (100, "perfect", "none"),
+            (1, "critical", "severe"),
+            (2, "poor", "high"),
+            (3, "poor", "high"),
+            (4, "below_average", "medium"),
+            (5, "average", "medium"),
+            (6, "average", "low"),
+            (7, "good", "low"),
+            (8, "good", "none"),
+            (9, "excellent", "none"),
         ]
 
         for score, expected_category, expected_severity in test_cases:
@@ -84,20 +82,20 @@ class TestVisualRubric:
     def test_average_score_calculation(self):
         """Test calculation of average visual score"""
         test_scores = {
-            "visual_design_quality": 80,
-            "brand_consistency": 75,
-            "navigation_clarity": 90,
-            "content_organization": 85,
-            "call_to_action_prominence": 60,
-            "mobile_responsiveness": 95,
-            "loading_performance": 70,
-            "trust_signals": 80,
-            "overall_user_experience": 82,
+            "visual_design_quality": 8,
+            "brand_consistency": 7,
+            "navigation_clarity": 9,
+            "content_organization": 8,
+            "call_to_action_prominence": 6,
+            "mobile_responsiveness": 9,
+            "loading_performance": 7,
+            "trust_signals": 8,
+            "overall_user_experience": 8,
         }
 
         # Calculate average
         avg_score = sum(test_scores.values()) / len(test_scores)
-        expected_avg = 79.67  # (717 / 9)
+        expected_avg = 7.78  # (70 / 9)
 
         assert avg_score == pytest.approx(expected_avg, rel=0.01)
 
@@ -125,21 +123,21 @@ class TestVisualRubric:
         """Test warning generation based on low dimension scores"""
         test_cases = [
             # (dimension, score, expected_warning_contains)
-            ("visual_design_quality", 30, "design quality"),
-            ("brand_consistency", 25, "brand consistency"),
-            ("navigation_clarity", 20, "navigation"),
-            ("content_organization", 35, "content organization"),
-            ("call_to_action_prominence", 15, "call-to-action"),
-            ("mobile_responsiveness", 40, "mobile"),
-            ("loading_performance", 30, "loading performance"),
-            ("trust_signals", 25, "trust signals"),
-            ("overall_user_experience", 35, "user experience"),
+            ("visual_design_quality", 3, "design quality"),
+            ("brand_consistency", 2, "brand consistency"),
+            ("navigation_clarity", 2, "navigation"),
+            ("content_organization", 3, "content organization"),
+            ("call_to_action_prominence", 1, "call-to-action"),
+            ("mobile_responsiveness", 4, "mobile"),
+            ("loading_performance", 3, "loading performance"),
+            ("trust_signals", 2, "trust signals"),
+            ("overall_user_experience", 3, "user experience"),
         ]
 
         for dimension, score, expected_text in test_cases:
             warning = self._generate_warning(dimension, score)
             assert expected_text.lower() in warning.lower()
-            assert score < 50  # Warnings generated for below-average scores
+            assert score < 5  # Warnings generated for below-average scores
 
     def test_quick_win_prioritization(self):
         """Test prioritization of quick wins based on impact and effort"""
@@ -149,28 +147,28 @@ class TestVisualRubric:
                 "impact": "high",
                 "effort": "low",
                 "dimension": "call_to_action_prominence",
-                "potential_score_improvement": 20,
+                "potential_score_improvement": 2,
             },
             {
                 "title": "Optimize image loading",
                 "impact": "medium",
                 "effort": "medium",
                 "dimension": "loading_performance",
-                "potential_score_improvement": 15,
+                "potential_score_improvement": 1,
             },
             {
                 "title": "Add trust badges",
                 "impact": "medium",
                 "effort": "low",
                 "dimension": "trust_signals",
-                "potential_score_improvement": 10,
+                "potential_score_improvement": 1,
             },
             {
                 "title": "Redesign navigation menu",
                 "impact": "high",
                 "effort": "high",
                 "dimension": "navigation_clarity",
-                "potential_score_improvement": 25,
+                "potential_score_improvement": 2,
             },
         ]
 
@@ -201,63 +199,63 @@ class TestVisualRubric:
     def test_score_boundary_conditions(self, visual_analyzer):
         """Test score clamping at boundaries"""
         # Test lower boundary
-        assert visual_analyzer._clamp_score(-10) == 0
-        assert visual_analyzer._clamp_score(0) == 0
-        assert visual_analyzer._clamp_score(0.4) == 0
-        assert visual_analyzer._clamp_score(0.5) == 0
+        assert visual_analyzer._clamp_score(-10) == 1
+        assert visual_analyzer._clamp_score(0) == 1
+        assert visual_analyzer._clamp_score(0.4) == 1
+        assert visual_analyzer._clamp_score(0.5) == 1
 
         # Test upper boundary
-        assert visual_analyzer._clamp_score(100) == 100
-        assert visual_analyzer._clamp_score(100.4) == 100
-        assert visual_analyzer._clamp_score(100.6) == 100
-        assert visual_analyzer._clamp_score(110) == 100
-        assert visual_analyzer._clamp_score(1000) == 100
+        assert visual_analyzer._clamp_score(100) == 9
+        assert visual_analyzer._clamp_score(100.4) == 9
+        assert visual_analyzer._clamp_score(100.6) == 9
+        assert visual_analyzer._clamp_score(110) == 9
+        assert visual_analyzer._clamp_score(1000) == 9
 
         # Test normal range
-        assert visual_analyzer._clamp_score(50) == 50
-        assert visual_analyzer._clamp_score(50.4) == 50
-        assert visual_analyzer._clamp_score(50.5) == 50
-        assert visual_analyzer._clamp_score(50.9) == 50
-        assert visual_analyzer._clamp_score(75.7) == 75
+        assert visual_analyzer._clamp_score(5) == 5
+        assert visual_analyzer._clamp_score(5.4) == 5
+        assert visual_analyzer._clamp_score(5.5) == 5
+        assert visual_analyzer._clamp_score(5.9) == 5
+        assert visual_analyzer._clamp_score(7.7) == 7
 
     def test_dimension_interdependencies(self):
         """Test relationships between different visual dimensions"""
         # Example: Poor loading performance should impact overall UX
         scores_with_poor_loading = {
-            "visual_design_quality": 90,
-            "brand_consistency": 85,
-            "navigation_clarity": 88,
-            "content_organization": 87,
-            "call_to_action_prominence": 80,
-            "mobile_responsiveness": 92,
-            "loading_performance": 30,  # Poor
-            "trust_signals": 85,
-            "overall_user_experience": 65,  # Should be lower due to loading
+            "visual_design_quality": 9,
+            "brand_consistency": 8,
+            "navigation_clarity": 9,
+            "content_organization": 8,
+            "call_to_action_prominence": 8,
+            "mobile_responsiveness": 9,
+            "loading_performance": 3,  # Poor
+            "trust_signals": 8,
+            "overall_user_experience": 6,  # Should be lower due to loading
         }
 
-        # Overall UX should not exceed 70 when loading is below 40
-        assert scores_with_poor_loading["overall_user_experience"] < 70
+        # Overall UX should not exceed 7 when loading is below 4
+        assert scores_with_poor_loading["overall_user_experience"] < 7
 
         # Example: Poor mobile responsiveness impacts overall UX significantly
         scores_with_poor_mobile = {
-            "visual_design_quality": 85,
-            "brand_consistency": 80,
-            "navigation_clarity": 82,
-            "content_organization": 84,
-            "call_to_action_prominence": 78,
-            "mobile_responsiveness": 25,  # Poor
-            "loading_performance": 80,
-            "trust_signals": 82,
-            "overall_user_experience": 60,  # Should be impacted
+            "visual_design_quality": 8,
+            "brand_consistency": 8,
+            "navigation_clarity": 8,
+            "content_organization": 8,
+            "call_to_action_prominence": 7,
+            "mobile_responsiveness": 2,  # Poor
+            "loading_performance": 8,
+            "trust_signals": 8,
+            "overall_user_experience": 6,  # Should be impacted
         }
 
         # With mobile traffic > 50%, poor mobile score heavily impacts overall
-        assert scores_with_poor_mobile["overall_user_experience"] < 65
+        assert scores_with_poor_mobile["overall_user_experience"] < 7
 
     def test_perfect_score_handling(self):
         """Test handling of perfect scores (100)"""
         perfect_scores = {
-            dim: 100
+            dim: 9
             for dim in [
                 "visual_design_quality",
                 "brand_consistency",
@@ -271,31 +269,31 @@ class TestVisualRubric:
             ]
         }
 
-        # Average should be 100
+        # Average should be 9
         avg = sum(perfect_scores.values()) / len(perfect_scores)
-        assert avg == 100.0
+        assert avg == 9.0
 
         # No warnings should be generated
         warnings = []
         for dim, score in perfect_scores.items():
-            if score < 50:
+            if score < 5:
                 warnings.append(f"Issue with {dim}")
         assert len(warnings) == 0
 
     def test_critical_dimension_thresholds(self):
         """Test critical thresholds for key dimensions"""
         critical_thresholds = {
-            "navigation_clarity": 30,  # Below this, site is hard to use
-            "mobile_responsiveness": 40,  # Below this, mobile UX is broken
-            "loading_performance": 30,  # Below this, users abandon
-            "content_organization": 25,  # Below this, information is lost
+            "navigation_clarity": 3,  # Below this, site is hard to use
+            "mobile_responsiveness": 4,  # Below this, mobile UX is broken
+            "loading_performance": 3,  # Below this, users abandon
+            "content_organization": 2,  # Below this, information is lost
         }
 
         for dimension, threshold in critical_thresholds.items():
             # Scores below threshold should generate severe warnings
-            test_score = threshold - 10
+            test_score = threshold - 1
             severity = self._get_severity(test_score)
-            # Scores below 20 are severe, 20-39 are high
+            # Scores below 2 are severe, 2-3 are high
             assert severity in [
                 "severe",
                 "high",
@@ -304,28 +302,28 @@ class TestVisualRubric:
     # Helper methods for testing (these simulate internal logic)
     def _categorize_score(self, score: int) -> str:
         """Categorize score into performance bands"""
-        if score >= 90:
-            return "excellent" if score < 100 else "perfect"
-        elif score >= 70:
+        if score >= 9:
+            return "excellent"
+        elif score >= 7:
             return "good"
-        elif score >= 50:
+        elif score >= 5:
             return "average"
-        elif score >= 40:
+        elif score >= 4:
             return "below_average"
-        elif score >= 20:
+        elif score >= 2:
             return "poor"
         else:
             return "critical"
 
     def _get_severity(self, score: int) -> str:
         """Get severity level based on score"""
-        if score < 20:
+        if score < 2:
             return "severe"
-        elif score < 40:
+        elif score < 4:
             return "high"
-        elif score < 60:
+        elif score < 6:
             return "medium"
-        elif score < 80:
+        elif score < 8:
             return "low"
         else:
             return "none"
@@ -352,32 +350,32 @@ class TestVisualRubric:
     def test_rubric_consistency_with_analyzer(self, visual_analyzer):
         """Test that rubric logic is consistent with visual analyzer implementation"""
         # Test score clamping matches
-        test_values = [-10, 0, 50, 100, 150, "75", None]
+        test_values = [-10, 0, 5, 9, 15, "7", None]
         for value in test_values:
             clamped = visual_analyzer._clamp_score(value)
-            assert 0 <= clamped <= 100
+            assert 1 <= clamped <= 9
 
     def test_insight_generation_thresholds(self):
         """Test thresholds for generating different types of insights"""
-        # High-performing dimensions (80+) -> Strengths
-        # Mid-range dimensions (50-79) -> Opportunities
-        # Low-performing dimensions (<50) -> Weaknesses
+        # High-performing dimensions (8+) -> Strengths
+        # Mid-range dimensions (5-7) -> Opportunities
+        # Low-performing dimensions (<5) -> Weaknesses
 
         scores = {
-            "visual_design_quality": 85,  # Strength
-            "brand_consistency": 45,  # Weakness
-            "navigation_clarity": 65,  # Opportunity
-            "content_organization": 90,  # Strength
-            "call_to_action_prominence": 35,  # Weakness
-            "mobile_responsiveness": 75,  # Opportunity
-            "loading_performance": 40,  # Weakness
-            "trust_signals": 82,  # Strength
-            "overall_user_experience": 70,  # Opportunity
+            "visual_design_quality": 8,  # Strength
+            "brand_consistency": 4,  # Weakness
+            "navigation_clarity": 6,  # Opportunity
+            "content_organization": 9,  # Strength
+            "call_to_action_prominence": 3,  # Weakness
+            "mobile_responsiveness": 7,  # Opportunity
+            "loading_performance": 4,  # Weakness
+            "trust_signals": 8,  # Strength
+            "overall_user_experience": 7,  # Opportunity
         }
 
-        strengths = [dim for dim, score in scores.items() if score >= 80]
-        opportunities = [dim for dim, score in scores.items() if 50 <= score < 80]
-        weaknesses = [dim for dim, score in scores.items() if score < 50]
+        strengths = [dim for dim, score in scores.items() if score >= 8]
+        opportunities = [dim for dim, score in scores.items() if 5 <= score < 8]
+        weaknesses = [dim for dim, score in scores.items() if score < 5]
 
         assert len(strengths) == 3
         assert len(opportunities) == 3

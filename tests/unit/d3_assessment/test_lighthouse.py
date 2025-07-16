@@ -339,12 +339,12 @@ class TestLighthouseAssessor:
             mock_get_settings.return_value = mock_settings
             assert assessor.is_available() is True
 
-        # Test with feature enabled, no stubs, no playwright
+        # Test with feature enabled, no stubs, no lighthouse CLI
         mock_settings.use_stubs = False
 
         with patch("d3_assessment.assessors.lighthouse.get_settings") as mock_get_settings:
             mock_get_settings.return_value = mock_settings
-            with patch.dict("sys.modules", {"playwright": None}):
+            with patch("subprocess.run", side_effect=FileNotFoundError()):
                 assert assessor.is_available() is False
 
     def test_calculate_cost(self, assessor):
@@ -353,66 +353,90 @@ class TestLighthouseAssessor:
         assert assessor.calculate_cost() == 0.0
 
     @pytest.mark.asyncio
-    async def test_playwright_import_error(self, assessor, mock_settings):
-        """Test handling when Playwright is not installed"""
+    async def test_lighthouse_cli_not_available(self, assessor, mock_settings):
+        """Test handling when Lighthouse CLI is not available"""
         mock_settings.use_stubs = False
 
         with patch("d3_assessment.assessors.lighthouse.get_settings") as mock_get_settings:
             mock_get_settings.return_value = mock_settings
 
-            # Mock the import statement inside _run_lighthouse_audit
-            import_mock = MagicMock(side_effect=ImportError("No module named 'playwright'"))
-            with patch("builtins.__import__", side_effect=import_mock):
-                with pytest.raises(ImportError) as exc_info:
+            # Mock subprocess to simulate lighthouse CLI not found
+            with patch(
+                "asyncio.create_subprocess_exec", side_effect=FileNotFoundError("lighthouse: command not found")
+            ):
+                with pytest.raises(FileNotFoundError) as exc_info:
                     await assessor._run_lighthouse_audit("https://example.com")
 
-                assert "Playwright is required" in str(exc_info.value)
+                assert "lighthouse: command not found" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_lighthouse_metrics_extraction(self, assessor, mock_settings):
-        """Test extraction of metrics from page performance data"""
+    async def test_lighthouse_cli_metrics_extraction(self, assessor, mock_settings):
+        """Test extraction of metrics from Lighthouse CLI output"""
         with patch("d3_assessment.assessors.lighthouse.get_settings") as mock_get_settings:
             mock_get_settings.return_value = mock_settings
 
-            # Mock Playwright page
-            mock_page = AsyncMock()
-            mock_page.goto = AsyncMock()
-            mock_page.evaluate = AsyncMock(
-                return_value={
-                    "navigationStart": 0,
-                    "firstContentfulPaint": 1500,
-                    "domContentLoaded": 2000,
-                    "loadComplete": 3500,
-                }
-            )
+            # Mock Lighthouse CLI output
+            mock_lighthouse_output = {
+                "categories": {
+                    "performance": {"score": 0.75},
+                    "accessibility": {"score": 0.92},
+                    "best-practices": {"score": 0.88},
+                    "seo": {"score": 0.90},
+                    "pwa": {"score": 0.65},
+                },
+                "audits": {
+                    "first-contentful-paint": {"numericValue": 1500},
+                    "speed-index": {"numericValue": 2000},
+                    "interactive": {"numericValue": 3500},
+                    "total-blocking-time": {"numericValue": 150},
+                    "largest-contentful-paint": {"numericValue": 2500},
+                    "max-potential-fid": {"numericValue": 100},
+                    "cumulative-layout-shift": {"numericValue": 0.08},
+                },
+                "lighthouseVersion": "11.0.0",
+                "userAgent": "Mozilla/5.0 Chrome/120.0.0.0",
+            }
 
-            mock_browser = AsyncMock()
-            mock_browser.new_page = AsyncMock(return_value=mock_page)
-            mock_browser.close = AsyncMock()
+            # Mock the file operations and subprocess
+            import tempfile
 
-            mock_playwright = AsyncMock()
-            mock_playwright.chromium.launch = AsyncMock(return_value=mock_browser)
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp_file:
+                json.dump(mock_lighthouse_output, tmp_file)
+                tmp_file.flush()
 
-            # Mock the async_playwright context manager
-            mock_async_playwright_cm = AsyncMock()
-            mock_async_playwright_cm.__aenter__.return_value = mock_playwright
+                mock_process = AsyncMock()
+                mock_process.returncode = 0
+                mock_process.communicate.return_value = (b"", b"")
 
-            # Patch the import and function call
-            with patch.dict(
-                "sys.modules",
-                {"playwright.async_api": MagicMock(async_playwright=MagicMock(return_value=mock_async_playwright_cm))},
-            ):
-                result = await assessor._run_lighthouse_audit("https://example.com")
+                with patch("asyncio.create_subprocess_exec", return_value=mock_process):
+                    with patch("tempfile.NamedTemporaryFile") as mock_tmp:
+                        mock_tmp.return_value.__enter__.return_value.name = tmp_file.name
 
-                # Check metrics are calculated correctly
-                assert result["metrics"]["first_contentful_paint"] == 1500
-                assert result["metrics"]["speed_index"] == 2000
-                assert result["metrics"]["time_to_interactive"] == 3500
+                        result = await assessor._run_lighthouse_audit("https://example.com")
 
-                # Check performance score calculation
-                # Score = max(0, 100 - (loadComplete / 100))
-                # Score = max(0, 100 - (3500 / 100)) = 65
-                assert result["scores"]["performance"] == 65
+                        # Check metrics are extracted correctly
+                        assert result["metrics"]["first_contentful_paint"] == 1500
+                        assert result["metrics"]["speed_index"] == 2000
+                        assert result["metrics"]["time_to_interactive"] == 3500
+                        assert result["metrics"]["total_blocking_time"] == 150
+
+                        # Check Core Web Vitals
+                        assert result["core_web_vitals"]["lcp"] == 2500
+                        assert result["core_web_vitals"]["fid"] == 100
+                        assert result["core_web_vitals"]["cls"] == 0.08
+
+                        # Check scores (converted to 0-100 scale)
+                        assert result["scores"]["performance"] == 75
+                        assert result["scores"]["accessibility"] == 92
+                        assert result["scores"]["best-practices"] == 88
+                        assert result["scores"]["seo"] == 90
+                        assert result["scores"]["pwa"] == 65
+
+                # Clean up
+                try:
+                    os.unlink(tmp_file.name)
+                except FileNotFoundError:
+                    pass  # File was already cleaned up
 
     @pytest.mark.asyncio
     async def test_mobile_friendly_detection(self, assessor, mock_settings, mock_lighthouse_result):

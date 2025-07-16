@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
+from core.config import get_settings
 from core.logging import get_logger
 from d0_gateway.guardrail_alerts import send_cost_alert
 from d0_gateway.guardrails import AlertSeverity, GuardrailViolation
@@ -26,6 +27,7 @@ class CostLedger:
 
     def __init__(self):
         self.logger = logger
+        self.settings = get_settings()
 
     def record_cost(
         self,
@@ -36,7 +38,7 @@ class CostLedger:
         campaign_id: Optional[int] = None,
         request_id: Optional[str] = None,
         metadata: Optional[Dict] = None,
-    ) -> APICost:
+    ) -> Optional[APICost]:
         """
         Record a single API cost entry
 
@@ -52,6 +54,11 @@ class CostLedger:
         Returns:
             Created APICost record
         """
+        # Check if cost tracking is enabled
+        if not self.settings.enable_cost_tracking:
+            self.logger.debug("Cost tracking disabled, skipping cost recording")
+            return None
+
         with get_db_sync() as db:
             cost_record = APICost(
                 provider=provider,

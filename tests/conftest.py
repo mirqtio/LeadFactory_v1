@@ -34,7 +34,7 @@ def stub_server_session():
         print(f"Using external stub server: {current_stub_url}")
     else:
         # Single container Docker, local development, or other CI - use localhost
-        os.environ["STUB_BASE_URL"] = "http://localhost:5010"
+        os.environ["STUB_BASE_URL"] = "http://localhost:5011"
         print(f"Using localhost stub server for single container or local environment (was: {current_stub_url})")
 
     # Force USE_STUBS=true for all tests
@@ -98,7 +98,7 @@ def stub_server_session():
 
     def run_server():
         try:
-            uvicorn.run(stub_app, host="127.0.0.1", port=5010, log_level="error")
+            uvicorn.run(stub_app, host="127.0.0.1", port=5011, log_level="error")
         except Exception as e:
             print(f"Error starting stub server: {e}")
 

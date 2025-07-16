@@ -23,7 +23,7 @@ def setup_test_data(db_session):
     costs = [
         APICost(provider="openai", operation="chat", cost_usd=Decimal("5.00"), timestamp=datetime.utcnow()),
         APICost(provider="openai", operation="embedding", cost_usd=Decimal("2.00"), timestamp=datetime.utcnow()),
-        APICost(provider="dataaxle", operation="match_business", cost_usd=Decimal("0.05"), timestamp=datetime.utcnow()),
+        APICost(provider="dataaxle", operation="match_business", cost_usd=Decimal("0.10"), timestamp=datetime.utcnow()),
     ]
 
     for cost in costs:

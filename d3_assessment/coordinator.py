@@ -146,6 +146,8 @@ class AssessmentCoordinator:
                 AssessmentType.TECH_STACK,
                 AssessmentType.AI_INSIGHTS,
                 AssessmentType.BUSINESS_INFO,
+                AssessmentType.LIGHTHOUSE,
+                AssessmentType.VISUAL,
             ]
 
         # Create assessment session
@@ -514,6 +516,45 @@ class AssessmentCoordinator:
             else:
                 raise CoordinatorError("Lighthouse assessor not available")
 
+        elif assessment_type == AssessmentType.VISUAL:
+            # Use Visual Analyzer from registry
+            if "visual_analyzer" in self.assessors:
+                try:
+                    visual_result = await self.assessors["visual_analyzer"].assess(
+                        url=url, business_data=business_data or {"business_id": business_id}
+                    )
+
+                    # Convert BaseAssessor result to AssessmentResult
+                    return AssessmentResult(
+                        id=str(uuid.uuid4()),
+                        business_id=business_id,
+                        session_id=session_id,
+                        assessment_type=AssessmentType.VISUAL,
+                        status=AssessmentStatus.COMPLETED
+                        if visual_result.status == "completed"
+                        else AssessmentStatus.FAILED,
+                        url=url,
+                        domain=self._extract_domain(url),
+                        started_at=datetime.utcnow(),
+                        completed_at=datetime.utcnow(),
+                        # Store screenshot URLs
+                        screenshot_url=visual_result.data.get("screenshot_url"),
+                        screenshot_thumb_url=visual_result.data.get("screenshot_thumb_url"),
+                        # Store visual scores (1-9 scale)
+                        visual_scores_json=visual_result.data.get("visual_scores_json"),
+                        visual_warnings=visual_result.data.get("visual_warnings"),
+                        visual_quickwins=visual_result.data.get("visual_quickwins"),
+                        # Store analysis metadata
+                        assessment_metadata=visual_result.data,
+                        error_message=visual_result.error_message,
+                        total_cost_usd=Decimal(str(visual_result.cost)),
+                    )
+                except Exception as e:
+                    logger.error(f"Visual assessment failed: {e}")
+                    raise
+            else:
+                raise CoordinatorError("Visual analyzer not available")
+
         else:
             raise CoordinatorError(f"Unsupported assessment type: {assessment_type}")
 
@@ -562,6 +603,8 @@ class AssessmentCoordinator:
             AssessmentType.TECH_STACK: AssessmentPriority.MEDIUM,
             AssessmentType.AI_INSIGHTS: AssessmentPriority.MEDIUM,
             AssessmentType.BUSINESS_INFO: AssessmentPriority.HIGH,
+            AssessmentType.LIGHTHOUSE: AssessmentPriority.HIGH,
+            AssessmentType.VISUAL: AssessmentPriority.HIGH,
             AssessmentType.FULL_AUDIT: AssessmentPriority.HIGH,
         }
         return priority_map.get(assessment_type, AssessmentPriority.MEDIUM)
@@ -573,6 +616,8 @@ class AssessmentCoordinator:
             AssessmentType.TECH_STACK: 120,  # 2 minutes
             AssessmentType.AI_INSIGHTS: 300,  # 5 minutes
             AssessmentType.BUSINESS_INFO: 30,  # 30 seconds for GBP
+            AssessmentType.LIGHTHOUSE: 30,  # 30 seconds for Lighthouse
+            AssessmentType.VISUAL: 20,  # 20 seconds for visual analysis
             AssessmentType.FULL_AUDIT: 600,  # 10 minutes
         }
         return timeout_map.get(assessment_type, 300)
