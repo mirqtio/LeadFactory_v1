@@ -1,4 +1,4 @@
-yelp_category,business_vertical,urgency,ticket_size,maturity
+business_category,business_vertical,urgency,ticket_size,maturity
 dentists,dental,high,high,medium
 generaldentistry,dental,high,high,medium
 cosmeticdentists,dental,high,high,high

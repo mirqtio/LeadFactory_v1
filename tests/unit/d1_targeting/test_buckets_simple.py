@@ -53,7 +53,7 @@ class TestBucketsSimple:
 
         # Check required columns
         required_cols = [
-            "yelp_category",
+            "business_category",
             "business_vertical",
             "urgency",
             "ticket_size",
@@ -143,11 +143,11 @@ class TestBucketsSimple:
 
         # Check for duplicates
         assert not geo_df.duplicated(["zip_code"]).any(), "No duplicate zip codes allowed"
-        assert not vert_df.duplicated(["yelp_category"]).any(), "No duplicate categories allowed"
+        assert not vert_df.duplicated(["business_category"]).any(), "No duplicate categories allowed"
 
         print("✓ Data quality checks passed")
         print(f"  - {len(geo_df)} unique ZIP codes")
-        print(f"  - {len(vert_df)} unique Yelp categories")
+        print(f"  - {len(vert_df)} unique business categories")
 
     def test_bucket_format(self):
         """Test that bucket strings follow expected format"""

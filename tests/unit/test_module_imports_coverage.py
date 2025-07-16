@@ -42,7 +42,6 @@ def test_import_gateway_providers():
         import d0_gateway.providers.semrush
         import d0_gateway.providers.sendgrid
         import d0_gateway.providers.stripe
-        import d0_gateway.providers.yelp  # noqa: F401
     except ImportError:
         pass
     assert True

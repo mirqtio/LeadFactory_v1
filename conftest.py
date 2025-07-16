@@ -36,7 +36,9 @@ def pytest_collection_modifyitems(config, items):
     phase05_regex = re.compile("|".join(phase05_patterns), re.IGNORECASE)
 
     # Check if we're running in CI environment
-    in_ci = os.environ.get("CI", "false").lower() == "true" or os.environ.get("GITHUB_ACTIONS", "false").lower() == "true"
+    in_ci = (
+        os.environ.get("CI", "false").lower() == "true" or os.environ.get("GITHUB_ACTIONS", "false").lower() == "true"
+    )
 
     # Items to deselect
     deselected = []

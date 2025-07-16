@@ -80,7 +80,7 @@ class TestBuckets:
 
         # Check required columns
         required_cols = [
-            "yelp_category",
+            "business_category",
             "business_vertical",
             "urgency",
             "ticket_size",
@@ -186,4 +186,4 @@ class TestBuckets:
 
         # Check for duplicates
         assert not geo_df.duplicated(["zip_code"]).any(), "No duplicate zip codes"
-        assert not vert_df.duplicated(["yelp_category"]).any(), "No duplicate categories"
+        assert not vert_df.duplicated(["business_category"]).any(), "No duplicate categories"

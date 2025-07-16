@@ -23,7 +23,7 @@ async def run_all_smoke_tests():
 
     # Test 1: Yelp API - REMOVED
     # Yelp has been removed from the codebase
-    results["yelp"] = "⚠️  SKIP: Yelp removed from codebase"
+    # Yelp removed from codebase per P0-009
 
     # Test 2: Hunter.io API
     print("\n2. Testing Hunter.io API...")
@@ -148,15 +148,13 @@ def check_environment():
     """Check environment configuration"""
     print("\nEnvironment Configuration:")
     print("-" * 30)
-    print(f"Yelp API Key:        {'✓' if settings.yelp_api_key else '✗'}")
     print(f"Hunter API Key:      {'✓' if settings.hunter_api_key else '✗'}")
     print(f"SEMrush API Key:     {'✓' if settings.semrush_api_key else '✗'}")
     print(f"ScreenshotOne Key:   {'✓' if settings.screenshotone_key else '✗'}")
     print(f"OpenAI API Key:      {'✓' if settings.openai_api_key else '✗'}")
     print(f"Google API Key:      {'✓' if settings.google_api_key else '✗'}")
     print(f"Data Axle API Key:   {'✓' if settings.data_axle_api_key else '✗'} (optional)")
-    print(f"\nMax Daily Yelp Calls: {settings.max_daily_yelp_calls}")
-    print(f"Max Daily Emails:     {settings.max_daily_emails}")
+    print(f"\nMax Daily Emails:     {settings.max_daily_emails}")
 
 
 if __name__ == "__main__":

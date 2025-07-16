@@ -70,7 +70,7 @@ class BucketFeatureLoader:
             with open(vert_file, "r") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    category = row["yelp_category"]
+                    category = row["business_category"]
                     self.vertical_features[category] = {
                         "business_vertical": row["business_vertical"],
                         "urgency": row["urgency"],
