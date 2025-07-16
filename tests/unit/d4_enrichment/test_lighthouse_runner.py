@@ -12,12 +12,12 @@ Tests for Lighthouse runner in enrichment context:
 import asyncio
 import json
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Optional
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
-from dataclasses import dataclass
-from typing import Optional
 
 from core.config import Settings
 from d4_enrichment.models import EnrichmentSource
@@ -30,11 +30,13 @@ LIGHTHOUSE_SOURCE = EnrichmentSource.INTERNAL
 @dataclass
 class MockEnrichmentResult:
     """Mock enrichment result for testing"""
+
     source: EnrichmentSource
     confidence: float
     data: dict
     error: Optional[str] = None
     cached: bool = False
+
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
@@ -85,7 +87,9 @@ class MockLighthouseRunner:
         """Enrich business data with Lighthouse audit results"""
         url = business_data.get("website", "")
         if not url:
-            return MockEnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=0.0, data={}, error="No website URL provided")
+            return MockEnrichmentResult(
+                source=LIGHTHOUSE_SOURCE, confidence=0.0, data={}, error="No website URL provided"
+            )
 
         try:
             # Check cache
@@ -93,7 +97,9 @@ class MockLighthouseRunner:
             if cache_key in self.cache:
                 cached_data, cached_time = self.cache[cache_key]
                 if datetime.now() - cached_time < timedelta(days=self.cache_days):
-                    return MockEnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=0.95, data=cached_data, cached=True)
+                    return MockEnrichmentResult(
+                        source=LIGHTHOUSE_SOURCE, confidence=0.95, data=cached_data, cached=True
+                    )
 
             # Run audit
             audit_result = await self.run_audit(url)
