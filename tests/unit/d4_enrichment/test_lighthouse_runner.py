@@ -16,13 +16,25 @@ from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
+from dataclasses import dataclass
+from typing import Optional
 
 from core.config import Settings
-from d4_enrichment.models import EnrichmentResult, EnrichmentSource
+from d4_enrichment.models import EnrichmentSource
 
 # For testing purposes, we'll use INTERNAL as the source
 # In real implementation, LIGHTHOUSE would be added to EnrichmentSource enum
 LIGHTHOUSE_SOURCE = EnrichmentSource.INTERNAL
+
+
+@dataclass
+class MockEnrichmentResult:
+    """Mock enrichment result for testing"""
+    source: EnrichmentSource
+    confidence: float
+    data: dict
+    error: Optional[str] = None
+    cached: bool = False
 
 # Mark entire module as slow for CI optimization
 pytestmark = pytest.mark.slow
@@ -69,11 +81,11 @@ class MockLighthouseRunner:
             "url": url,
         }
 
-    async def enrich(self, business_data: dict) -> EnrichmentResult:
+    async def enrich(self, business_data: dict) -> MockEnrichmentResult:
         """Enrich business data with Lighthouse audit results"""
         url = business_data.get("website", "")
         if not url:
-            return EnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=0.0, data={}, error="No website URL provided")
+            return MockEnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=0.0, data={}, error="No website URL provided")
 
         try:
             # Check cache
@@ -81,7 +93,7 @@ class MockLighthouseRunner:
             if cache_key in self.cache:
                 cached_data, cached_time = self.cache[cache_key]
                 if datetime.now() - cached_time < timedelta(days=self.cache_days):
-                    return EnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=0.95, data=cached_data, cached=True)
+                    return MockEnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=0.95, data=cached_data, cached=True)
 
             # Run audit
             audit_result = await self.run_audit(url)
@@ -103,17 +115,17 @@ class MockLighthouseRunner:
             # Calculate confidence based on data quality
             confidence = self._calculate_confidence(audit_result)
 
-            return EnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=confidence, data=enrichment_data)
+            return MockEnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=confidence, data=enrichment_data)
 
         except asyncio.TimeoutError:
-            return EnrichmentResult(
+            return MockEnrichmentResult(
                 source=LIGHTHOUSE_SOURCE,
                 confidence=0.0,
                 data={},
                 error=f"Lighthouse audit timed out after {self.timeout}s",
             )
         except Exception as e:
-            return EnrichmentResult(
+            return MockEnrichmentResult(
                 source=LIGHTHOUSE_SOURCE, confidence=0.0, data={}, error=f"Lighthouse audit failed: {str(e)}"
             )
 
@@ -368,7 +380,7 @@ class TestLighthouseRunner:
             # In real implementation, runner would check feature flag
             # For this test, we simulate the behavior
             if not settings.enable_lighthouse:
-                result = EnrichmentResult(
+                result = MockEnrichmentResult(
                     source=LIGHTHOUSE_SOURCE, confidence=0.0, data={}, error="Lighthouse feature is disabled"
                 )
             else:

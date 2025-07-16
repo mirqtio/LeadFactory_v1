@@ -472,6 +472,48 @@ class AssessmentCoordinator:
             else:
                 raise CoordinatorError("GBP assessor not available")
 
+        elif assessment_type == AssessmentType.LIGHTHOUSE:
+            # Use Lighthouse assessor from registry
+            if "lighthouse" in self.assessors:
+                try:
+                    lighthouse_result = await self.assessors["lighthouse"].assess(
+                        url=url, business_data=business_data or {"business_id": business_id}
+                    )
+
+                    # Convert BaseAssessor result to AssessmentResult
+                    return AssessmentResult(
+                        id=str(uuid.uuid4()),
+                        business_id=business_id,
+                        session_id=session_id,
+                        assessment_type=AssessmentType.LIGHTHOUSE,
+                        status=AssessmentStatus.COMPLETED
+                        if lighthouse_result.status == "completed"
+                        else AssessmentStatus.FAILED,
+                        url=url,
+                        domain=self._extract_domain(url),
+                        started_at=datetime.utcnow(),
+                        completed_at=datetime.utcnow(),
+                        # Store Lighthouse data in assessment_metadata
+                        assessment_metadata=lighthouse_result.data,
+                        # Extract key scores
+                        performance_score=lighthouse_result.metrics.get("performance_score"),
+                        accessibility_score=lighthouse_result.metrics.get("accessibility_score"),
+                        best_practices_score=lighthouse_result.metrics.get("best_practices_score"),
+                        seo_score=lighthouse_result.metrics.get("seo_score"),
+                        pwa_score=lighthouse_result.metrics.get("pwa_score"),
+                        # Core Web Vitals
+                        largest_contentful_paint=lighthouse_result.metrics.get("lcp_ms"),
+                        first_input_delay=lighthouse_result.metrics.get("fid_ms"),
+                        cumulative_layout_shift=lighthouse_result.metrics.get("cls_score"),
+                        error_message=lighthouse_result.error_message,
+                        total_cost_usd=Decimal(str(lighthouse_result.cost)),
+                    )
+                except Exception as e:
+                    logger.error(f"Lighthouse assessment failed: {e}")
+                    raise
+            else:
+                raise CoordinatorError("Lighthouse assessor not available")
+
         else:
             raise CoordinatorError(f"Unsupported assessment type: {assessment_type}")
 

@@ -8,6 +8,7 @@ from d3_assessment.assessors.beautifulsoup_assessor import BeautifulSoupAssessor
 from d3_assessment.assessors.gbp_profile_assessor import GBPProfileAssessor
 
 # Import all assessors
+from d3_assessment.assessors.lighthouse import LighthouseAssessor
 from d3_assessment.assessors.pagespeed_assessor import PageSpeedAssessor
 from d3_assessment.assessors.screenshot_assessor import ScreenshotAssessor
 from d3_assessment.assessors.semrush_assessor import SEMrushAssessor
@@ -21,6 +22,7 @@ ASSESSOR_REGISTRY: Dict[str, Type[BaseAssessor]] = {
     "gbp_profile": GBPProfileAssessor,
     "screenshot": ScreenshotAssessor,
     "vision": VisionAssessor,
+    "lighthouse": LighthouseAssessor,
 }
 
 # Export all assessors
@@ -32,5 +34,6 @@ __all__ = [
     "GBPProfileAssessor",
     "ScreenshotAssessor",
     "VisionAssessor",
+    "LighthouseAssessor",
     "ASSESSOR_REGISTRY",
 ]

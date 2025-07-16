@@ -61,6 +61,7 @@ class TestSEMrushSmoke:
 
         # Cost should be $0.010 per call
         from decimal import Decimal
+
         cost = client.calculate_cost("domain_overview")
         assert cost == Decimal("0.010"), f"Expected cost $0.010, got ${cost}"
 

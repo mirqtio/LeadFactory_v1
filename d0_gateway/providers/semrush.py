@@ -123,7 +123,7 @@ class SEMrushClient(BaseAPIClient):
 
             # Add domain to the data
             data["domain"] = domain
-            
+
             # Log successful analysis
             logger.info(
                 f"Domain overview for {domain} - "
