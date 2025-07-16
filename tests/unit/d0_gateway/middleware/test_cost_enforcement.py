@@ -229,6 +229,7 @@ class TestCostEnforcementMiddleware:
         assert low_retry > high_retry
 
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_guardrail_integration(self, middleware):
         """Test integration with guardrail manager"""
         with patch("d0_gateway.middleware.cost_enforcement.guardrail_manager.enforce_limits") as mock_enforce:

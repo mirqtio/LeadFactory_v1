@@ -16,6 +16,7 @@ class TestCircuitBreakerStates:
         config = CircuitBreakerConfig(failure_threshold=3, recovery_timeout=1, success_threshold=2)
         return CircuitBreaker("test_provider", config)
 
+    @pytest.mark.slow
     def test_three_states_closed_open_half_open(self, circuit_breaker):
         """Test that circuit breaker implements three states: closed/open/half-open"""
         # Start in CLOSED state
@@ -111,6 +112,7 @@ class TestConfigurableThresholds:
         cb.record_success()
         assert cb.state == CircuitState.CLOSED
 
+    @pytest.mark.slow
     def test_configurable_recovery_timeout(self):
         """Test configurable recovery timeout"""
         config = CircuitBreakerConfig(failure_threshold=1, recovery_timeout=2)  # 2 seconds
@@ -153,6 +155,7 @@ class TestAutoRecoveryTesting:
         )
         return CircuitBreaker("test_provider", config)
 
+    @pytest.mark.slow
     def test_auto_recovery_mechanism(self, circuit_breaker):
         """Test automatic recovery mechanism"""
         # Open the circuit
@@ -188,6 +191,7 @@ class TestAutoRecoveryTesting:
         circuit_breaker.record_failure()
         assert circuit_breaker.state == CircuitState.OPEN
 
+    @pytest.mark.slow
     def test_repeated_recovery_attempts(self, circuit_breaker):
         """Test repeated recovery attempts"""
         # Open circuit

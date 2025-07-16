@@ -1,4 +1,4 @@
-.PHONY: help install test lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test rollback bpci pre-push quick-check
+.PHONY: help install test test-unit test-integration test-e2e test-parallel lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test rollback bpci pre-push quick-check test-critical test-fast test-data-pipeline test-business-logic test-delivery test-full
 
 # Default target
 help:
@@ -7,8 +7,20 @@ help:
 	@echo ""
 	@echo "Development:"
 	@echo "  make install      - Install dependencies"
-	@echo "  make test         - Run tests locally"
+	@echo "  make test         - Run tests locally (auto-parallel)"
+	@echo "  make test-unit    - Run unit tests (max parallelization)"
+	@echo "  make test-integration - Run integration tests (limited parallel)"
+	@echo "  make test-e2e     - Run e2e tests (serial execution)"
+	@echo "  make test-parallel - Run tests with parallelization report"
 	@echo "  make docker-test  - Run tests in Docker"
+	@echo ""
+	@echo "CI Job Test Targets:"
+	@echo "  make test-critical - Run critical/smoke tests (<1 min)"
+	@echo "  make test-fast    - Alias for test-critical"
+	@echo "  make test-data-pipeline - Test data pipeline domains"
+	@echo "  make test-business-logic - Test business logic domains"
+	@echo "  make test-delivery - Test delivery/orchestration domains"
+	@echo "  make test-full    - Run full test suite with coverage"
 	@echo "  make lint         - Run linting"
 	@echo "  make format       - Format code"
 	@echo "  make clean        - Clean temporary files"
@@ -16,6 +28,7 @@ help:
 	@echo "  make run          - Run development server"
 	@echo "  make bpci         - Run Bulletproof CI (catches issues before GitHub CI)"
 	@echo "  make pre-push     - Pre-push validation using BPCI"
+	@echo "  make quick-check  - Quick validation with parallel tests"
 	@echo ""
 	@echo "Production Testing:"
 	@echo "  make smoke        - Run smoke tests only"
@@ -37,10 +50,38 @@ install:
 	pip install -r requirements.txt -r requirements-dev.txt
 	pre-commit install
 
-# Run tests locally
+# Run tests locally (auto-parallel based on available resources)
 test:
 	mkdir -p tmp
 	pytest -xvs --tb=short --cov=. --cov-report=term-missing
+
+# Run unit tests with maximum parallelization
+test-unit:
+	mkdir -p tmp
+	@echo "🚀 Running unit tests with optimal parallelization..."
+	@python scripts/test_parallelization_config.py --type unit
+	pytest -m unit -n auto --dist worksteal --tb=short --cov=. --cov-report=term-missing
+
+# Run integration tests with limited parallelization
+test-integration:
+	mkdir -p tmp
+	@echo "🔧 Running integration tests with controlled parallelization..."
+	@python scripts/test_parallelization_config.py --type integration
+	pytest -m integration -n 2 --dist worksteal --tb=short --cov=. --cov-report=term-missing
+
+# Run e2e tests serially
+test-e2e:
+	mkdir -p tmp
+	@echo "🌐 Running e2e tests serially..."
+	pytest -m e2e -v --tb=short
+
+# Run all tests with parallel configuration report
+test-parallel:
+	mkdir -p tmp
+	@echo "📊 Test Parallelization Report:"
+	@python scripts/test_parallelization_config.py --type auto
+	@echo ""
+	pytest --tb=short --cov=. --cov-report=term-missing
 
 # Run tests in Docker
 docker-test:
@@ -122,12 +163,12 @@ pre-push: clean
 	@echo "🔍 Pre-push validation using BPCI..."
 	$(MAKE) bpci
 
-# Quick validation - for frequent commits
+# Quick validation - for frequent commits (with parallelization)
 quick-check:
 	@echo "⚡ Quick validation..."
 	make format
 	make lint
-	pytest tests/unit/core/ -x --tb=no
+	pytest tests/unit/core/ -x --tb=no -n auto
 	@echo "✅ Quick check passed!"
 
 # Production testing commands
@@ -183,3 +224,41 @@ prod-status:
 rollback:
 	@echo "Running rollback script..."
 	@bash scripts/rollback.sh || echo "Rollback script not found"
+
+# CI Job Test Targets - Optimized for parallel execution
+# ========================================================
+
+# Critical/smoke tests for fast feedback (<1 minute)
+test-critical:
+	@echo "🚀 Running critical/smoke tests for fast feedback..."
+	pytest -v -m 'critical or smoke' --tb=short -n 4
+
+# Alias for test-critical
+test-fast: test-critical
+
+# Data pipeline domain tests
+test-data-pipeline:
+	@echo "📊 Running data pipeline tests (d0-d4)..."
+	pytest -v tests/unit/d0_gateway tests/unit/d1_targeting tests/unit/d2_sourcing \
+		tests/unit/d3_assessment tests/unit/d4_enrichment \
+		-m 'not slow and not integration' --tb=short -n 4
+
+# Business logic domain tests
+test-business-logic:
+	@echo "💼 Running business logic tests (d5-d8)..."
+	pytest -v tests/unit/d5_scoring tests/unit/d6_reports \
+		tests/unit/d7_storefront tests/unit/d8_personalization \
+		-m 'not slow and not integration' --tb=short -n 4
+
+# Delivery and orchestration domain tests
+test-delivery:
+	@echo "📬 Running delivery/orchestration tests (d9-d11)..."
+	pytest -v tests/unit/d9_delivery tests/unit/d10_analytics tests/unit/d11_orchestration \
+		-m 'not slow and not integration' --tb=short -n 4
+
+# Full test suite with coverage
+test-full:
+	@echo "🧪 Running full test suite with coverage..."
+	pytest -v -m 'not slow and not phase_future' --tb=short \
+		--cov=. --cov-report=xml --cov-report=term --cov-report=html:coverage/html \
+		--junitxml=test-results/junit.xml -n auto

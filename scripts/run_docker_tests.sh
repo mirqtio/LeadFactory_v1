@@ -38,10 +38,18 @@ if ! python -m pytest --version; then
 fi
 
 echo ""
-echo "=== Starting Test Execution ==="
-# Run pytest with all options
+echo "=== Checking Available Resources ==="
+echo "CPU cores available: $(nproc)"
+echo "Memory available: $(free -h 2>/dev/null | grep Mem: | awk '{print $2}' || echo 'Unknown')"
+
+echo ""
+echo "=== Starting Test Execution with Parallelization ==="
+# Run pytest with parallelization
+# Use conservative settings in Docker to avoid resource exhaustion
 python -m pytest \
     -v \
+    -n 2 \
+    --dist worksteal \
     -m 'not slow and not phase_future' \
     --tb=short \
     --cov=. \

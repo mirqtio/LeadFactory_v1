@@ -956,6 +956,7 @@ class TestGlobalInstances:
 
 
 class TestThreadSafety:
+    @pytest.mark.slow
     def test_factory_thread_safety(self):
         """Test factory thread safety under concurrent access"""
         import threading

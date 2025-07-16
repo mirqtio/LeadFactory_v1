@@ -12,6 +12,9 @@ import uvicorn
 
 from core.config import get_settings
 
+# Import parallel safety plugin
+from tests.parallel_safety import isolated_db, isolated_temp_dir
+
 
 @pytest.fixture(scope="session", autouse=True)
 def stub_server_session():
