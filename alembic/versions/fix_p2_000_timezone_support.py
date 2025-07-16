@@ -19,6 +19,11 @@ depends_on = None
 def upgrade() -> None:
     """Add timezone support to all timestamp columns in account management tables"""
 
+    # Skip this migration for SQLite as it doesn't support ALTER COLUMN TYPE
+    bind = op.get_bind()
+    if bind.dialect.name != "postgresql":
+        return
+
     # Organizations table
     op.alter_column(
         "organizations",
@@ -236,6 +241,11 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Remove timezone support from timestamp columns (revert to plain TIMESTAMP)"""
+
+    # Skip this migration for SQLite as it doesn't support ALTER COLUMN TYPE
+    bind = op.get_bind()
+    if bind.dialect.name != "postgresql":
+        return
 
     # Organizations table
     op.alter_column(

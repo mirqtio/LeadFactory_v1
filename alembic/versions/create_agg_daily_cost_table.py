@@ -17,6 +17,26 @@ branch_labels = None
 depends_on = None
 
 
+def get_timestamp_default():
+    """Get database-appropriate timestamp default"""
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        return sa.text("now()")
+    else:
+        # For SQLite and other databases, use CURRENT_TIMESTAMP
+        return sa.text("CURRENT_TIMESTAMP")
+
+
+def get_timestamp_type():
+    """Get database-appropriate timestamp type"""
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        return sa.TIMESTAMP(timezone=True)
+    else:
+        # For SQLite and other databases, use TIMESTAMP
+        return sa.TIMESTAMP()
+
+
 def upgrade():
     # Create agg_daily_cost table
     op.create_table(
@@ -30,14 +50,14 @@ def upgrade():
         sa.Column("request_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column(
             "created_at",
-            sa.TIMESTAMP(timezone=True),
-            server_default=sa.text("now()"),
+            get_timestamp_type(),
+            server_default=get_timestamp_default(),
             nullable=True,
         ),
         sa.Column(
             "updated_at",
-            sa.TIMESTAMP(timezone=True),
-            server_default=sa.text("now()"),
+            get_timestamp_type(),
+            server_default=get_timestamp_default(),
             nullable=True,
         ),
         sa.PrimaryKeyConstraint("id"),

@@ -204,7 +204,6 @@ class TestMigrations:
                 # Note: experiment_variants is in d11_orchestration
                 "experiment_metrics",
                 # Note: fct_api_cost exists as APICost in database.models
-                "agg_daily_cost",
                 "pipeline_tasks",
             }
 

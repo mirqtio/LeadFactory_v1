@@ -10,6 +10,27 @@ from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
+
+def get_enum_type(enum_name: str, values: list):
+    """Get database-appropriate column type for enums"""
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        return postgresql.ENUM(*values, name=enum_name, create_type=False)
+    else:
+        # For SQLite and other databases, use VARCHAR
+        return sa.String(50)
+
+
+def get_timestamp_default():
+    """Get database-appropriate timestamp default"""
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        return sa.text("now()")
+    else:
+        # For SQLite and other databases, use CURRENT_TIMESTAMP
+        return sa.text("CURRENT_TIMESTAMP")
+
+
 # revision identifiers, used by Alembic.
 revision = "p2_010_collaborative_buckets"
 down_revision = "p2_000_account_management"
@@ -18,14 +39,16 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create enum types
-    op.execute("CREATE TYPE bucketpermission AS ENUM ('owner', 'admin', 'editor', 'viewer', 'commenter')")
-    op.execute(
-        "CREATE TYPE bucketactivitytype AS ENUM ('created', 'updated', 'shared', 'unshared', 'permission_changed', 'lead_added', 'lead_removed', 'lead_updated', 'comment_added', 'comment_updated', 'comment_deleted', 'enrichment_started', 'enrichment_completed', 'exported', 'archived', 'restored')"
-    )
-    op.execute(
-        "CREATE TYPE notificationtype AS ENUM ('bucket_shared', 'permission_granted', 'permission_revoked', 'comment_mention', 'lead_assigned', 'enrichment_complete', 'bucket_updated')"
-    )
+    # Create enum types (PostgreSQL only)
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute("CREATE TYPE bucketpermission AS ENUM ('owner', 'admin', 'editor', 'viewer', 'commenter')")
+        op.execute(
+            "CREATE TYPE bucketactivitytype AS ENUM ('created', 'updated', 'shared', 'unshared', 'permission_changed', 'lead_added', 'lead_removed', 'lead_updated', 'comment_added', 'comment_updated', 'comment_deleted', 'enrichment_started', 'enrichment_completed', 'exported', 'archived', 'restored')"
+        )
+        op.execute(
+            "CREATE TYPE notificationtype AS ENUM ('bucket_shared', 'permission_granted', 'permission_revoked', 'comment_mention', 'lead_assigned', 'enrichment_complete', 'bucket_updated')"
+        )
 
     # Create collaborative_buckets table
     op.create_table(
@@ -46,8 +69,8 @@ def upgrade() -> None:
         sa.Column("last_enriched_at", sa.DateTime(), nullable=True),
         sa.Column("total_enrichment_cost", sa.Integer(), nullable=True, default=0),
         sa.Column("version", sa.Integer(), nullable=True, default=1),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("organization_id", "bucket_type", "bucket_key", name="uq_org_bucket_type_key"),
     )
@@ -64,13 +87,11 @@ def upgrade() -> None:
         sa.Column("user_id", sa.String(), nullable=False),
         sa.Column(
             "permission",
-            postgresql.ENUM(
-                "owner", "admin", "editor", "viewer", "commenter", name="bucketpermission", create_type=False
-            ),
+            get_enum_type("bucketpermission", ["owner", "admin", "editor", "viewer", "commenter"]),
             nullable=False,
         ),
         sa.Column("granted_by", sa.String(), nullable=False),
-        sa.Column("granted_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("granted_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.Column("expires_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
@@ -87,25 +108,26 @@ def upgrade() -> None:
         sa.Column("user_id", sa.String(), nullable=False),
         sa.Column(
             "activity_type",
-            postgresql.ENUM(
-                "created",
-                "updated",
-                "shared",
-                "unshared",
-                "permission_changed",
-                "lead_added",
-                "lead_removed",
-                "lead_updated",
-                "comment_added",
-                "comment_updated",
-                "comment_deleted",
-                "enrichment_started",
-                "enrichment_completed",
-                "exported",
-                "archived",
-                "restored",
-                name="bucketactivitytype",
-                create_type=False,
+            get_enum_type(
+                "bucketactivitytype",
+                [
+                    "created",
+                    "updated",
+                    "shared",
+                    "unshared",
+                    "permission_changed",
+                    "lead_added",
+                    "lead_removed",
+                    "lead_updated",
+                    "comment_added",
+                    "comment_updated",
+                    "comment_deleted",
+                    "enrichment_started",
+                    "enrichment_completed",
+                    "exported",
+                    "archived",
+                    "restored",
+                ],
             ),
             nullable=False,
         ),
@@ -114,7 +136,7 @@ def upgrade() -> None:
         sa.Column("old_values", sa.JSON(), nullable=True),
         sa.Column("new_values", sa.JSON(), nullable=True),
         sa.Column("metadata", sa.JSON(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -138,8 +160,8 @@ def upgrade() -> None:
         sa.Column("mentioned_users", sa.JSON(), nullable=True),
         sa.Column("is_edited", sa.Boolean(), nullable=True, default=False),
         sa.Column("is_deleted", sa.Boolean(), nullable=True, default=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["parent_comment_id"], ["bucket_comments.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
@@ -159,7 +181,7 @@ def upgrade() -> None:
         sa.Column("bucket_snapshot", sa.JSON(), nullable=False),
         sa.Column("lead_ids_snapshot", sa.JSON(), nullable=True),
         sa.Column("changed_by", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("bucket_id", "version_number", name="uq_bucket_version"),
@@ -174,16 +196,17 @@ def upgrade() -> None:
         sa.Column("user_id", sa.String(), nullable=False),
         sa.Column(
             "notification_type",
-            postgresql.ENUM(
-                "bucket_shared",
-                "permission_granted",
-                "permission_revoked",
-                "comment_mention",
-                "lead_assigned",
-                "enrichment_complete",
-                "bucket_updated",
-                name="notificationtype",
-                create_type=False,
+            get_enum_type(
+                "notificationtype",
+                [
+                    "bucket_shared",
+                    "permission_granted",
+                    "permission_revoked",
+                    "comment_mention",
+                    "lead_assigned",
+                    "enrichment_complete",
+                    "bucket_updated",
+                ],
             ),
             nullable=False,
         ),
@@ -194,7 +217,7 @@ def upgrade() -> None:
         sa.Column("related_entity_id", sa.String(), nullable=True),
         sa.Column("is_read", sa.Boolean(), nullable=True, default=False),
         sa.Column("is_email_sent", sa.Boolean(), nullable=True, default=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.Column("read_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
@@ -214,8 +237,8 @@ def upgrade() -> None:
         sa.Column("annotation_type", sa.String(length=50), nullable=False),
         sa.Column("content", sa.Text(), nullable=True),
         sa.Column("metadata", sa.JSON(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("bucket_id", "lead_id", "user_id", "annotation_type", name="uq_lead_annotation"),
@@ -233,7 +256,7 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("color", sa.String(length=7), nullable=True),
         sa.Column("created_by", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
     )
@@ -243,7 +266,7 @@ def upgrade() -> None:
         "bucket_tags",
         sa.Column("bucket_id", sa.String(), nullable=True),
         sa.Column("tag_id", sa.String(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=True),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["tag_id"], ["bucket_tag_definitions.id"], ondelete="CASCADE"),
         sa.UniqueConstraint("bucket_id", "tag_id", name="uq_bucket_tag"),
@@ -257,16 +280,14 @@ def upgrade() -> None:
         sa.Column("share_token", sa.String(length=64), nullable=False),
         sa.Column(
             "permission",
-            postgresql.ENUM(
-                "owner", "admin", "editor", "viewer", "commenter", name="bucketpermission", create_type=False
-            ),
+            get_enum_type("bucketpermission", ["owner", "admin", "editor", "viewer", "commenter"]),
             nullable=False,
         ),
         sa.Column("max_uses", sa.Integer(), nullable=True),
         sa.Column("current_uses", sa.Integer(), nullable=True, default=0),
         sa.Column("expires_at", sa.DateTime(), nullable=True),
         sa.Column("created_by", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=True, default=True),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
@@ -284,10 +305,10 @@ def upgrade() -> None:
         sa.Column("user_id", sa.String(), nullable=False),
         sa.Column("session_id", sa.String(), nullable=False),
         sa.Column("connection_type", sa.String(length=20), nullable=False),
-        sa.Column("last_activity_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("last_activity_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.Column("current_view", sa.String(length=50), nullable=True),
         sa.Column("is_editing", sa.Boolean(), nullable=True, default=False),
-        sa.Column("connected_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("connected_at", sa.DateTime(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["bucket_id"], ["collaborative_buckets.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("bucket_id", "user_id", name="uq_bucket_user_active"),
@@ -312,7 +333,9 @@ def downgrade() -> None:
     op.drop_table("bucket_permission_grants")
     op.drop_table("collaborative_buckets")
 
-    # Drop enum types
-    op.execute("DROP TYPE IF EXISTS notificationtype")
-    op.execute("DROP TYPE IF EXISTS bucketactivitytype")
-    op.execute("DROP TYPE IF EXISTS bucketpermission")
+    # Drop enum types (PostgreSQL only)
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute("DROP TYPE IF EXISTS notificationtype")
+        op.execute("DROP TYPE IF EXISTS bucketactivitytype")
+        op.execute("DROP TYPE IF EXISTS bucketpermission")

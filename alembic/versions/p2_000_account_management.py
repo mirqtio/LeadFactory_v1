@@ -10,6 +10,27 @@ from sqlalchemy.dialects import postgresql
 
 from alembic import op
 
+
+def get_enum_type(enum_name: str, values: list):
+    """Get database-appropriate column type for enums"""
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        return postgresql.ENUM(*values, name=enum_name, create_type=False)
+    else:
+        # For SQLite and other databases, use VARCHAR
+        return sa.String(50)
+
+
+def get_timestamp_default():
+    """Get database-appropriate timestamp default"""
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        return sa.text("now()")
+    else:
+        # For SQLite and other databases, use CURRENT_TIMESTAMP
+        return sa.text("CURRENT_TIMESTAMP")
+
+
 # revision identifiers, used by Alembic.
 revision = "p2_000_account_management"
 down_revision = "add_last_enriched_at"
@@ -18,14 +39,16 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create ENUM types
-    op.execute("CREATE TYPE userstatus AS ENUM ('active', 'inactive', 'suspended', 'deleted')")
-    op.execute("CREATE TYPE teamrole AS ENUM ('owner', 'admin', 'member', 'viewer')")
-    op.execute("CREATE TYPE permissionaction AS ENUM ('create', 'read', 'update', 'delete', 'execute')")
-    op.execute(
-        "CREATE TYPE resourcetype AS ENUM ('lead', 'report', 'campaign', 'assessment', 'email', 'purchase', 'analytics', 'settings', 'user', 'team', 'organization', 'api_key', 'billing')"
-    )
-    op.execute("CREATE TYPE authprovider AS ENUM ('local', 'google', 'github', 'saml')")
+    # Create ENUM types (PostgreSQL only)
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute("CREATE TYPE userstatus AS ENUM ('active', 'inactive', 'suspended', 'deleted')")
+        op.execute("CREATE TYPE teamrole AS ENUM ('owner', 'admin', 'member', 'viewer')")
+        op.execute("CREATE TYPE permissionaction AS ENUM ('create', 'read', 'update', 'delete', 'execute')")
+        op.execute(
+            "CREATE TYPE resourcetype AS ENUM ('lead', 'report', 'campaign', 'assessment', 'email', 'purchase', 'analytics', 'settings', 'user', 'team', 'organization', 'api_key', 'billing')"
+        )
+        op.execute("CREATE TYPE authprovider AS ENUM ('local', 'google', 'github', 'saml')")
 
     # Create organizations table
     op.create_table(
@@ -41,8 +64,8 @@ def upgrade() -> None:
         sa.Column("max_api_keys", sa.Integer(), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("trial_ends_at", sa.Date(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("updated_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("slug"),
         sa.UniqueConstraint("stripe_customer_id"),
@@ -58,9 +81,7 @@ def upgrade() -> None:
         sa.Column("username", sa.String(length=100), nullable=True),
         sa.Column("password_hash", sa.String(length=255), nullable=True),
         sa.Column(
-            "auth_provider",
-            postgresql.ENUM("local", "google", "github", "saml", name="authprovider", create_type=False),
-            nullable=False,
+            "auth_provider", get_enum_type("authprovider", ["local", "google", "github", "saml"]), nullable=False
         ),
         sa.Column("auth_provider_id", sa.String(length=255), nullable=True),
         sa.Column("full_name", sa.String(length=255), nullable=True),
@@ -70,9 +91,7 @@ def upgrade() -> None:
         sa.Column("locale", sa.String(length=10), nullable=False),
         sa.Column("organization_id", sa.String(), nullable=True),
         sa.Column(
-            "status",
-            postgresql.ENUM("active", "inactive", "suspended", "deleted", name="userstatus", create_type=False),
-            nullable=False,
+            "status", get_enum_type("userstatus", ["active", "inactive", "suspended", "deleted"]), nullable=False
         ),
         sa.Column("email_verified", sa.Boolean(), nullable=False),
         sa.Column("email_verified_at", sa.TIMESTAMP(), nullable=True),
@@ -82,8 +101,8 @@ def upgrade() -> None:
         sa.Column("last_login_ip", sa.String(length=45), nullable=True),
         sa.Column("failed_login_attempts", sa.Integer(), nullable=False),
         sa.Column("locked_until", sa.TIMESTAMP(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("updated_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.Column("deleted_at", sa.TIMESTAMP(), nullable=True),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
@@ -105,8 +124,8 @@ def upgrade() -> None:
         sa.Column("organization_id", sa.String(), nullable=False),
         sa.Column("settings", sa.JSON(), nullable=False),
         sa.Column("is_default", sa.Boolean(), nullable=False),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("updated_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("organization_id", "slug", name="uq_team_org_slug"),
@@ -122,8 +141,8 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("is_system", sa.Boolean(), nullable=False),
         sa.Column("organization_id", sa.String(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("updated_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name", "organization_id", name="uq_role_name_org"),
@@ -137,30 +156,29 @@ def upgrade() -> None:
         sa.Column("id", sa.String(), nullable=False),
         sa.Column(
             "resource",
-            postgresql.ENUM(
-                "lead",
-                "report",
-                "campaign",
-                "assessment",
-                "email",
-                "purchase",
-                "analytics",
-                "settings",
-                "user",
-                "team",
-                "organization",
-                "api_key",
-                "billing",
-                name="resourcetype",
-                create_type=False,
+            get_enum_type(
+                "resourcetype",
+                [
+                    "lead",
+                    "report",
+                    "campaign",
+                    "assessment",
+                    "email",
+                    "purchase",
+                    "analytics",
+                    "settings",
+                    "user",
+                    "team",
+                    "organization",
+                    "api_key",
+                    "billing",
+                ],
             ),
             nullable=False,
         ),
         sa.Column(
             "action",
-            postgresql.ENUM(
-                "create", "read", "update", "delete", "execute", name="permissionaction", create_type=False
-            ),
+            get_enum_type("permissionaction", ["create", "read", "update", "delete", "execute"]),
             nullable=False,
         ),
         sa.Column("description", sa.Text(), nullable=True),
@@ -184,8 +202,8 @@ def upgrade() -> None:
         sa.Column("usage_count", sa.Integer(), nullable=False),
         sa.Column("expires_at", sa.TIMESTAMP(), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("updated_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.Column("revoked_at", sa.TIMESTAMP(), nullable=True),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["account_users.id"], ondelete="CASCADE"),
@@ -209,8 +227,8 @@ def upgrade() -> None:
         sa.Column("expires_at", sa.TIMESTAMP(), nullable=False),
         sa.Column("refresh_expires_at", sa.TIMESTAMP(), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
-        sa.Column("last_activity_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
+        sa.Column("last_activity_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.Column("revoked_at", sa.TIMESTAMP(), nullable=True),
         sa.ForeignKeyConstraint(["user_id"], ["account_users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
@@ -232,7 +250,7 @@ def upgrade() -> None:
         sa.Column("ip_address", sa.String(length=45), nullable=True),
         sa.Column("user_agent", sa.Text(), nullable=True),
         sa.Column("details", sa.JSON(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["account_users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
@@ -254,7 +272,7 @@ def upgrade() -> None:
         sa.Column("token_hash", sa.String(length=255), nullable=False),
         sa.Column("expires_at", sa.TIMESTAMP(), nullable=False),
         sa.Column("used_at", sa.TIMESTAMP(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["user_id"], ["account_users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("token_hash"),
@@ -270,7 +288,7 @@ def upgrade() -> None:
         sa.Column("token_hash", sa.String(length=255), nullable=False),
         sa.Column("expires_at", sa.TIMESTAMP(), nullable=False),
         sa.Column("used_at", sa.TIMESTAMP(), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=False),
         sa.ForeignKeyConstraint(["user_id"], ["account_users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("token_hash"),
@@ -283,12 +301,8 @@ def upgrade() -> None:
         "team_users",
         sa.Column("team_id", sa.String(), nullable=True),
         sa.Column("user_id", sa.String(), nullable=True),
-        sa.Column(
-            "role",
-            postgresql.ENUM("owner", "admin", "member", "viewer", name="teamrole", create_type=False),
-            nullable=False,
-        ),
-        sa.Column("joined_at", sa.TIMESTAMP(), server_default=sa.text("now()"), nullable=True),
+        sa.Column("role", get_enum_type("teamrole", ["owner", "admin", "member", "viewer"]), nullable=False),
+        sa.Column("joined_at", sa.TIMESTAMP(), server_default=get_timestamp_default(), nullable=True),
         sa.ForeignKeyConstraint(["team_id"], ["teams.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["account_users.id"], ondelete="CASCADE"),
         sa.UniqueConstraint("team_id", "user_id", name="uq_team_users"),
@@ -335,9 +349,11 @@ def downgrade() -> None:
     op.drop_table("account_users")
     op.drop_table("organizations")
 
-    # Drop ENUM types
-    op.execute("DROP TYPE IF EXISTS authprovider")
-    op.execute("DROP TYPE IF EXISTS resourcetype")
-    op.execute("DROP TYPE IF EXISTS permissionaction")
-    op.execute("DROP TYPE IF EXISTS teamrole")
-    op.execute("DROP TYPE IF EXISTS userstatus")
+    # Drop ENUM types (PostgreSQL only)
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute("DROP TYPE IF EXISTS authprovider")
+        op.execute("DROP TYPE IF EXISTS resourcetype")
+        op.execute("DROP TYPE IF EXISTS permissionaction")
+        op.execute("DROP TYPE IF EXISTS teamrole")
+        op.execute("DROP TYPE IF EXISTS userstatus")
