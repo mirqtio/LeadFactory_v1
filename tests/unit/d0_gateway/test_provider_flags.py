@@ -2,6 +2,7 @@
 Tests for provider feature flags
 Ensures providers respect ENABLE_* flags from configuration
 """
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -147,7 +148,10 @@ class TestProviderFeatureFlags:
         assert settings.enable_sendgrid is False
         assert settings.enable_openai is False
 
-    @pytest.mark.xfail(reason="Conflicts with autouse provider_stub fixture that forces use_stubs=True")
+    @pytest.mark.xfail(
+        condition=bool(os.getenv("CI")) or bool(os.getenv("DOCKER_ENV")), 
+        reason="Fails in CI/Docker environments due to forced stub configuration"
+    )
     def test_selective_provider_enabling(self):
         """Test enabling only specific providers"""
         import os

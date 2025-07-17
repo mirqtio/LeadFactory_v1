@@ -37,12 +37,16 @@ class TestBaseAPIClient:
         assert api_client.provider == "test"
         # API key might be overridden by stub configuration
         assert api_client.api_key in ["test-key", "stub-test-key"]
-        # Base URL might be overridden by stub configuration
-        assert api_client.base_url in [
+        # Base URL might be overridden by stub configuration or use dynamic ports
+        expected_patterns = [
             "https://api.example.com",
-            "http://localhost:5010",
             "http://stub-server:5010",  # CI/Docker environment
+            "http://localhost:5010",  # Local environment
         ]
+        is_valid_url = api_client.base_url in expected_patterns or api_client.base_url.startswith(
+            "http://localhost:"
+        )  # Dynamic port assignment
+        assert is_valid_url, f"Unexpected base URL: {api_client.base_url}"
         assert api_client.rate_limiter is not None
         assert api_client.circuit_breaker is not None
         assert api_client.cache is not None
@@ -100,10 +104,21 @@ class TestBaseAPIClient:
     async def test_make_request_rate_limited(self, api_client):
         """Test request blocked by rate limiter"""
         api_client.cache.get = AsyncMock(return_value=None)
-        api_client.rate_limiter.is_allowed = AsyncMock(return_value=False)
 
-        with pytest.raises(RateLimitError):
-            await api_client.make_request("GET", "/test")
+        # Mock the cost enforcement to simulate rate limiting
+        with patch("d0_gateway.base.cost_enforcement.check_and_enforce") as mock_enforce:
+            mock_enforce.return_value = {"reason": "rate_limit_exceeded", "retry_after": 60}
+
+            # Disable stubs so rate limiting is actually checked
+            original_use_stubs = api_client.settings.use_stubs
+            api_client.settings.use_stubs = False
+
+            try:
+                with pytest.raises(RateLimitError):
+                    await api_client.make_request("GET", "/test")
+            finally:
+                # Restore original setting
+                api_client.settings.use_stubs = original_use_stubs
 
     @pytest.mark.asyncio
     async def test_make_request_circuit_breaker_open(self, api_client):

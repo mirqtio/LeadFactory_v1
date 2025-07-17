@@ -461,7 +461,8 @@ class TestPageSpeedClientIntegration:
 
             # Should use stub configuration
             assert pagespeed_client.api_key == "stub-pagespeed-key"
-            assert "localhost" in pagespeed_client.base_url
+            # In Docker environment, stub-server is used instead of localhost
+            assert "localhost" in pagespeed_client.base_url or "stub-server" in pagespeed_client.base_url
 
 
 class TestPageSpeedClientDataExtraction:

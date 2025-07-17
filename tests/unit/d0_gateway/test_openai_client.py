@@ -511,7 +511,8 @@ class TestOpenAIClientIntegration:
 
             # Should use stub configuration
             assert openai_client.api_key == "stub-openai-key"
-            assert "localhost" in openai_client.base_url
+            # In Docker environment, stub-server is used instead of localhost
+            assert "localhost" in openai_client.base_url or "stub-server" in openai_client.base_url
 
 
 class TestOpenAIClientEdgeCases:
