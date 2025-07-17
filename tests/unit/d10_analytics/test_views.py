@@ -111,13 +111,13 @@ class TestMaterializedViews:
         WITH funnel_stages AS (
             SELECT 
                 session_id,
-                event_metadata->>'campaign_id' as campaign_id,
+                campaign_id,
                 stage,
                 MIN(timestamp) as stage_entry_time,
                 COUNT(*) as stage_events
             FROM funnel_events
             WHERE session_id IS NOT NULL
-            GROUP BY session_id, event_metadata->>'campaign_id', stage
+            GROUP BY session_id, campaign_id, stage
         )
         SELECT 
             campaign_id,
@@ -158,12 +158,12 @@ class TestMaterializedViews:
         WITH user_cohorts AS (
             SELECT 
                 session_id,
-                event_metadata->>'campaign_id' as campaign_id,
+                campaign_id,
                 DATE(MIN(timestamp)) as cohort_date,
                 COUNT(*) as total_events
             FROM funnel_events
             WHERE session_id IS NOT NULL
-            GROUP BY session_id, event_metadata->>'campaign_id'
+            GROUP BY session_id, campaign_id
         ),
         retention_analysis AS (
             SELECT 
@@ -209,15 +209,15 @@ class TestMaterializedViews:
         # Test query that would benefit from proper indexing
         performance_query = """
         SELECT 
-            event_metadata->>'campaign_id' as campaign_id,
+            campaign_id,
             DATE(timestamp) as event_date,
             stage,
             COUNT(*) as event_count,
             COUNT(DISTINCT session_id) as unique_sessions
         FROM funnel_events
         WHERE timestamp >= '2025-06-09'
-            AND event_metadata->>'campaign_id' = 'test_campaign'
-        GROUP BY event_metadata->>'campaign_id', DATE(timestamp), stage
+            AND campaign_id = 'test_campaign'
+        GROUP BY campaign_id, DATE(timestamp), stage
         ORDER BY event_date, stage
         """
 

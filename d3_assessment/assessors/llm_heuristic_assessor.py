@@ -73,7 +73,7 @@ class LLMHeuristicAssessor(BaseAssessor):
         """
         try:
             # Check if LLM audit is enabled
-            if not settings.get("ENABLE_LLM_AUDIT", False) and not settings.use_stubs:
+            if not getattr(settings, "enable_llm_audit", False) and not settings.use_stubs:
                 return AssessmentResult(
                     assessment_type=self.assessment_type,
                     status="skipped",
@@ -386,7 +386,7 @@ class LLMHeuristicAssessor(BaseAssessor):
     def is_available(self) -> bool:
         """Check if LLM heuristic assessor is available"""
         # Available if we have Humanloop configured or using stubs
-        return (bool(settings.humanloop_api_key) or settings.use_stubs) and settings.get("ENABLE_LLM_AUDIT", False)
+        return (bool(settings.humanloop_api_key) or settings.use_stubs) and getattr(settings, "enable_llm_audit", False)
 
     def get_timeout(self) -> int:
         """Get timeout in seconds for LLM assessment"""

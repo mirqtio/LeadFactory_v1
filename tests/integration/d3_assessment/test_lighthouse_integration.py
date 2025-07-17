@@ -161,8 +161,10 @@ class TestLighthouseIntegration:
         mock_core_settings.return_value = settings
         mock_lighthouse_settings.return_value = settings
 
-        # Create coordinator after settings are mocked
-        coordinator = AssessmentCoordinator()
+        # Mock the Lighthouse CLI availability check
+        with patch("d3_assessment.assessors.lighthouse.LighthouseAssessor.is_available", return_value=True):
+            # Create coordinator after settings are mocked
+            coordinator = AssessmentCoordinator()
 
         # Clear any existing cache for this URL
         import hashlib
