@@ -19,8 +19,14 @@ pytestmark = [pytest.mark.unit, pytest.mark.critical]
 class TestHealthEndpoint:
     """Test suite for health check endpoint"""
 
-    def test_health_endpoint_success(self):
+    @patch("api.health.check_database_health")
+    @patch("api.health.check_redis_health")
+    def test_health_endpoint_success(self, mock_redis_check, mock_db_check):
         """Test successful health check with all systems operational"""
+        # Mock successful health checks
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
+        mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.3}
+        
         response = client.get("/health")
 
         assert response.status_code == 200
@@ -73,8 +79,14 @@ class TestHealthEndpoint:
             assert data["checks"]["database"]["status"] == "timeout"
             assert "exceeds 50ms limit" in data["checks"]["database"]["error"]
 
-    def test_health_endpoint_performance_requirement(self):
+    @patch("api.health.check_database_health")
+    @patch("api.health.check_redis_health")
+    def test_health_endpoint_performance_requirement(self, mock_redis_check, mock_db_check):
         """Test that health endpoint responds within 100ms"""
+        # Mock fast health checks
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
+        mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.3}
+        
         start_time = time.time()
         response = client.get("/health")
         response_time = (time.time() - start_time) * 1000
@@ -88,9 +100,11 @@ class TestHealthEndpoint:
         assert data["response_time_ms"] < 100
 
     @patch("core.config.settings.redis_url", "redis://test-redis:6379/0")
+    @patch("api.health.check_database_health")
     @patch("api.health.check_redis_health")
-    def test_health_endpoint_with_redis_success(self, mock_redis_check):
+    def test_health_endpoint_with_redis_success(self, mock_redis_check, mock_db_check):
         """Test health check with Redis configured and working"""
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
 
         response = client.get("/health")
@@ -103,9 +117,11 @@ class TestHealthEndpoint:
         assert data["checks"]["redis"]["latency_ms"] == 1.5
 
     @patch("core.config.settings.redis_url", "redis://test-redis:6379/0")
+    @patch("api.health.check_database_health")
     @patch("api.health.check_redis_health")
-    def test_health_endpoint_with_redis_failure(self, mock_redis_check):
+    def test_health_endpoint_with_redis_failure(self, mock_redis_check, mock_db_check):
         """Test health check when Redis is down (non-critical)"""
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "error", "error": "Connection refused"}
 
         response = client.get("/health")
@@ -125,8 +141,13 @@ class TestHealthEndpoint:
         # Performance is validated in other tests (test_health_endpoint_performance_requirement)
         pass
 
-    def test_detailed_health_endpoint(self):
+    @patch("api.health.check_database_health")
+    @patch("api.health.check_redis_health")
+    def test_detailed_health_endpoint(self, mock_redis_check, mock_db_check):
         """Test detailed health check endpoint"""
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
+        mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
+        
         response = client.get("/health/detailed")
 
         assert response.status_code == 200
@@ -231,8 +252,14 @@ class TestHealthCheckFunctions:
 class TestHealthEndpointPerformance:
     """Performance tests for health endpoint"""
 
-    def test_single_request_performance(self):
+    @patch("api.health.check_database_health")
+    @patch("api.health.check_redis_health")
+    def test_single_request_performance(self, mock_redis_check, mock_db_check):
         """Test that a single health request completes quickly"""
+        # Mock fast health checks
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
+        mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
+        
         start_time = time.time()
         response = client.get("/health")
         elapsed_ms = (time.time() - start_time) * 1000
@@ -241,8 +268,14 @@ class TestHealthEndpointPerformance:
         # Allow more time in CI environments which can be slower
         assert elapsed_ms < 300, f"Request took {elapsed_ms:.2f}ms"
 
-    def test_multiple_requests_performance(self):
+    @patch("api.health.check_database_health")
+    @patch("api.health.check_redis_health")
+    def test_multiple_requests_performance(self, mock_redis_check, mock_db_check):
         """Test that multiple health requests maintain good performance"""
+        # Mock fast health checks
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
+        mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
+        
         times = []
 
         for _ in range(10):
@@ -263,9 +296,15 @@ class TestHealthEndpointPerformance:
         avg_time = sum(times) / len(times)
         assert avg_time < 150, f"Average time {avg_time:.2f}ms exceeds 150ms"
 
-    def test_health_endpoint_concurrent_requests(self):
+    @patch("api.health.check_database_health")
+    @patch("api.health.check_redis_health")
+    def test_health_endpoint_concurrent_requests(self, mock_redis_check, mock_db_check):
         """Test health endpoint under concurrent load"""
         import concurrent.futures
+        
+        # Mock fast health checks
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
+        mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
 
         def make_request():
             return client.get("/health")
@@ -305,13 +344,25 @@ class TestHealthEndpointEdgeCases:
             assert data["checks"]["database"]["status"] == "error"
             assert data["checks"]["redis"]["status"] == "error"
 
-    def test_health_endpoint_returns_json(self):
+    @patch("api.health.check_database_health")
+    @patch("api.health.check_redis_health")
+    def test_health_endpoint_returns_json(self, mock_redis_check, mock_db_check):
         """Test that health endpoint returns JSON content type"""
+        # Mock health checks
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
+        mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
+        
         response = client.get("/health")
         assert response.headers["content-type"] == "application/json"
 
-    def test_health_endpoint_method_is_get(self):
+    @patch("api.health.check_database_health")
+    @patch("api.health.check_redis_health")
+    def test_health_endpoint_method_is_get(self, mock_redis_check, mock_db_check):
         """Test that health endpoint only accepts GET requests"""
+        # Mock health checks
+        mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
+        mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
+        
         # GET should work
         response = client.get("/health")
         assert response.status_code == 200

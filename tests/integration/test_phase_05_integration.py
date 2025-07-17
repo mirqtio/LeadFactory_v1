@@ -141,8 +141,13 @@ class TestPhase05Integration:
         # Create client with test config
         client = HunterClient(api_key="test-key")
 
+        # Extract domain from website for Hunter
+        from urllib.parse import urlparse
+        domain = urlparse(test_business_data["website"]).netloc
+        hunter_data = {**test_business_data, "domain": domain}
+
         # Test email finding
-        result = await client.find_email(test_business_data)
+        result = await client.find_email(hunter_data)
 
         # Verify result
         assert result["found"] is True

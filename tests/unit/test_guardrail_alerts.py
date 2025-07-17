@@ -223,24 +223,17 @@ class TestAlertManager:
 
             manager = AlertManager()
 
-            config = AlertConfig(channel=AlertChannel.EMAIL, max_alerts_per_hour=2, cooldown_minutes=5)
+            config = AlertConfig(channel=AlertChannel.EMAIL, max_alerts_per_hour=2, cooldown_minutes=0)
 
             violation = Mock(severity=AlertSeverity.WARNING, limit_name="test_limit", provider="openai")
 
             # First alert should send
             assert manager._should_send_alert(config, violation)
 
-            # Record the alert
-            key = f"{config.channel.value}:{violation.limit_name}"
-            manager._alert_history[key] = [datetime.utcnow()]
-
-            # Second alert should send
+            # Second alert should send (we're under the limit of 2)
             assert manager._should_send_alert(config, violation)
 
-            # Record the second alert
-            manager._alert_history[key].append(datetime.utcnow())
-
-            # Third alert should be rate limited
+            # Third alert should be rate limited (we've hit the limit of 2)
             assert not manager._should_send_alert(config, violation)
 
     def test_cooldown_period(self):

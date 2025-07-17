@@ -75,10 +75,10 @@ class TestD0GatewayComprehensive:
         """Test comprehensive error handling in gateway"""
         from d0_gateway.exceptions import (
             AuthenticationError,
-            NetworkError,
-            ProviderError,
-            RateLimitError,
-            ValidationError,
+            TimeoutError,
+            APIProviderError,
+            RateLimitExceededError,
+            ServiceUnavailableError,
         )
         from d0_gateway.facade import GatewayFacade
 
@@ -86,11 +86,11 @@ class TestD0GatewayComprehensive:
 
         # Test each error type
         error_scenarios = [
-            (RateLimitError("Rate limit exceeded"), 429),
-            (AuthenticationError("Invalid API key"), 401),
-            (ValidationError("Invalid parameters"), 400),
-            (ProviderError("Provider unavailable"), 503),
-            (NetworkError("Connection timeout"), 504),
+            (RateLimitExceededError("dataaxle", "daily"), 429),
+            (AuthenticationError("dataaxle", "Invalid API key"), 401),
+            (APIProviderError("dataaxle", "Invalid parameters", 400), 400),
+            (ServiceUnavailableError("dataaxle", "Provider unavailable"), 503),
+            (TimeoutError("dataaxle", 30), 408),
         ]
 
         for error, expected_status in error_scenarios:

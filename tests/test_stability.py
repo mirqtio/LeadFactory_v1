@@ -248,11 +248,22 @@ class TestStabilityValidation:
             # Check for threads without join()
             if results["thread_starts"]:
                 with open(filepath, "r") as f:
-                    content = f.read()
+                    lines = f.readlines()
 
                 for lineno, has_daemon in results["thread_starts"]:
-                    # Look for corresponding join() call
-                    if not re.search(r"\.join\(\)", content):
+                    # Skip daemon threads - they don't need explicit join
+                    if has_daemon:
+                        continue
+                    
+                    # Look for corresponding join() call within the same function/method
+                    # This is a simple heuristic - check next 20 lines for a join call
+                    found_join = False
+                    for i in range(lineno, min(lineno + 20, len(lines))):
+                        if ".join(" in lines[i]:
+                            found_join = True
+                            break
+                    
+                    if not found_join:
                         issues.append(f"{filepath}:{lineno} - Thread started without join()")
 
         # Some daemon threads are acceptable in fixtures

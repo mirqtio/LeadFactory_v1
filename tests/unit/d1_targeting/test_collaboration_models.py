@@ -426,7 +426,7 @@ class TestBucketComment:
         # Verify relationship - query the parent again to ensure relationships are loaded
         saved_parent = db_session.query(BucketComment).filter_by(id=parent.id).first()
         assert saved_parent is not None
-        
+
         # Check that the reply exists by querying it directly
         replies = db_session.query(BucketComment).filter_by(parent_comment_id=parent.id).all()
         assert len(replies) == 1

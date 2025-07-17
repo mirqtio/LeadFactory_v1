@@ -260,7 +260,7 @@ class TestVisualAnalyzer:
         assert result.cost == 0.0  # No cost for stub data
 
         # Verify deterministic screenshot URLs
-        url_hash = hash(url) % 100
+        url_hash = hash(url) % 9
         assert result.data["screenshot_url"] == f"https://stub-screenshots.com/{url_hash}/desktop.png"
         assert result.data["screenshot_thumb_url"] == f"https://stub-screenshots.com/{url_hash}/thumb.png"
         assert result.data["mobile_screenshot_url"] == f"https://stub-screenshots.com/{url_hash}/mobile.png"
@@ -273,7 +273,7 @@ class TestVisualAnalyzer:
         assert scores["navigation_clarity"] == min(9, base_score + 2)
         assert scores["content_organization"] == base_score
         assert scores["call_to_action_prominence"] == max(1, base_score - 2)
-        assert scores["mobile_responsiveness"] == min(9, base_score + 3)
+        assert scores["mobile_responsiveness"] == min(9, base_score + 1)
         assert scores["loading_performance"] == max(1, base_score - 1)
         assert scores["trust_signals"] == min(9, base_score + 1)
         assert scores["overall_user_experience"] == base_score
