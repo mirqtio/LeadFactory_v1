@@ -101,6 +101,8 @@ jobs:
         pip install pytest pytest-timeout
         # Install minimal core dependencies needed for imports
         pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy
+        # Additional dependencies needed for core imports
+        pip install python-json-logger pyyaml fastapi requests
     
     - name: Run smoke tests (import validation)
       run: |
