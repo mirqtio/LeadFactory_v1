@@ -39,6 +39,10 @@ jobs:
         pip install python-json-logger prometheus-client beautifulsoup4 pandas numpy tenacity aiohttp geopy
         # Additional missing dependencies
         pip install click email-validator passlib[bcrypt] pyjwt python-multipart slowapi sentry-sdk[fastapi]
+        # YAML and other core dependencies
+        pip install pyyaml python-dateutil pytz cryptography
+        # Additional potential dependencies
+        pip install asyncpg GitPython PyGithub openpyxl websockets
     
     - name: Run ultra-fast unit tests (no infrastructure)
       run: |
