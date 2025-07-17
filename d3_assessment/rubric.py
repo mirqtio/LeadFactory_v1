@@ -87,6 +87,34 @@ def map_severity(category: str, raw_metric: dict) -> int:
     metric_name = raw_metric.get("name", "").lower().replace(" ", "_")
     metric_value = raw_metric.get("value")
 
+    # For trust category, we need to check both rating and review_count
+    if category == "trust":
+        severities = []
+
+        # Check rating severity
+        if metric_name == "rating" and metric_name in category_mappings:
+            mapping = category_mappings[metric_name]
+            if isinstance(mapping, list):
+                for min_val, max_val, severity in mapping:
+                    if min_val <= metric_value <= max_val:
+                        severities.append(severity)
+                        break
+
+        # Check review_count severity if present
+        if "review_count" in raw_metric:
+            review_count = raw_metric.get("review_count", 100)
+            if "review_count" in category_mappings:
+                mapping = category_mappings["review_count"]
+                if isinstance(mapping, list):
+                    for min_val, max_val, severity in mapping:
+                        if min_val <= review_count <= max_val:
+                            severities.append(severity)
+                            break
+
+        # Return the worst (highest) severity
+        if severities:
+            return max(severities)
+
     # Check if we have a specific mapping for this metric
     if metric_name in category_mappings:
         mapping = category_mappings[metric_name]
@@ -104,12 +132,6 @@ def map_severity(category: str, raw_metric: dict) -> int:
     # Special case handling for common patterns
     if category == "visual" and "cta_below_fold" in str(raw_metric):
         return 3
-
-    if category == "trust":
-        if "review_count" in raw_metric and raw_metric.get("review_count", 100) < 20:
-            return 3
-        if "rating" in raw_metric and raw_metric.get("rating", 5.0) < 4.0:
-            return 3
 
     # Default severity by category if no specific mapping found
     default_severities = {

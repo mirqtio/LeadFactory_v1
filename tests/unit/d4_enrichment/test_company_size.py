@@ -18,7 +18,6 @@ def test_multiplier_ranges():
     assert multiplier(1000) == 5.0, "500+ employees should return 5.0"
 
 
-@pytest.mark.xfail(reason="CSV ranges don't match test expectations")
 def test_multiplier_boundaries():
     """Test boundary conditions."""
     assert multiplier(0) == 0.4, "0 employees should return 0.4"

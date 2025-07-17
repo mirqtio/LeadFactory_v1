@@ -96,7 +96,6 @@ def test_create_trust_finding_low_rating(adapter):
     assert any(e.value == "3.5 stars" for e in finding.evidence)
 
 
-@pytest.mark.xfail(reason="Severity mapping differs from test expectations")
 def test_create_trust_finding_low_reviews(adapter):
     """Test finding for low review count (< 20)."""
     gbp_data = {
@@ -135,7 +134,6 @@ def test_create_trust_finding_good_profile(adapter):
     assert finding.conversion_impact == 0.005  # Small improvement possible
 
 
-@pytest.mark.xfail(reason="Severity mapping differs from test expectations")
 def test_severity_mapping_integration(adapter):
     """Test that severity mapping matches expected values."""
     # Test case from acceptance criteria
