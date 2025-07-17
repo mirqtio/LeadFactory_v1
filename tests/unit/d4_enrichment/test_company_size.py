@@ -8,7 +8,6 @@ from d4_enrichment.company_size import multiplier  # noqa: E402
 # pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
 
-
 def test_multiplier_ranges():
     """Test multiplier returns correct values for different employee counts."""
     # Test each range
