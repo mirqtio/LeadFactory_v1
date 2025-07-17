@@ -4,10 +4,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+# Skip entire module since sheet_to_yaml module is archived
+pytest.skip("sheet_to_yaml module archived", allow_module_level=True)
+
 from scripts.sheet_to_yaml import SheetToYamlConverter
 
 # Mark entire module as integration test and xfail for Phase 0.5
-pytestmark = [pytest.mark.integration, pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)]
+pytestmark = [pytest.mark.integration, pytest.mark.xfail(reason="Phase 0.5 feature and sheet_to_yaml module archived", strict=False)]
 
 
 class TestSheetToYamlConverter:

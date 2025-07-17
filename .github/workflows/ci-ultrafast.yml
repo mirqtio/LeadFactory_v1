@@ -35,6 +35,8 @@ jobs:
         pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy fastapi requests pytest-mock uvicorn
         # Additional dependencies for imports
         pip install redis faker stripe sendgrid twilio google-api-python-client openai psycopg2-binary alembic
+        # Missing critical dependency
+        pip install python-json-logger
     
     - name: Run ultra-fast unit tests (no infrastructure)
       run: |

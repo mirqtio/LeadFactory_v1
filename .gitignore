@@ -191,3 +191,4 @@ scoring_results_*.json
 *_summary.json
 validation_report.json
 coverage.json
+temp_context_engineering/
