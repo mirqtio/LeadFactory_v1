@@ -30,8 +30,7 @@ from d3_assessment.coordinator import (
 from d3_assessment.models import AssessmentResult  # noqa: E402
 from d3_assessment.types import AssessmentStatus, AssessmentType  # noqa: E402
 
-# Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# Tests are now passing - Phase 0.5 features implemented
 
 
 class TestTask034AcceptanceCriteria:

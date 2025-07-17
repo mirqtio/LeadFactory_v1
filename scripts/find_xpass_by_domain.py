@@ -20,14 +20,15 @@ def run_tests_for_domain(domain_path):
         "--tb=no",
         "--no-header",
         "-x",  # Stop on first failure
-        "-m", "not slow and not integration",  # Skip slow tests
+        "-m",
+        "not slow and not integration",  # Skip slow tests
         "--timeout=60",
     ]
-    
+
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         output = result.stdout + result.stderr
-        
+
         # Extract xpassed test info
         xpassed_tests = []
         for line in output.split("\n"):
@@ -36,11 +37,11 @@ def run_tests_for_domain(domain_path):
                 match = re.search(r"(\S+::\S+)\s+XPASS", line)
                 if match:
                     xpassed_tests.append(match.group(1))
-        
+
         # Also check summary
         match = re.search(r"(\d+) xpassed", output)
         xpass_count = int(match.group(1)) if match else 0
-        
+
         return xpassed_tests, xpass_count
     except subprocess.TimeoutExpired:
         return [], 0
@@ -53,7 +54,7 @@ def main():
     """Main function."""
     total_xpassed = 0
     all_xpassed_tests = []
-    
+
     # Test directories to check
     test_dirs = [
         Path("tests/unit"),
@@ -61,19 +62,19 @@ def main():
         Path("tests/integration"),
         Path("tests/performance"),
     ]
-    
+
     print("Searching for xpassed tests by domain...")
     print("=" * 80)
-    
+
     for test_dir in test_dirs:
         if not test_dir.exists():
             continue
-            
+
         print(f"\n{test_dir}:")
-        
+
         # Run tests for each subdirectory
         subdirs = [d for d in test_dir.iterdir() if d.is_dir() and not d.name.startswith("__")]
-        
+
         if not subdirs:
             # Run tests for the directory itself
             xpassed_tests, count = run_tests_for_domain(test_dir)
@@ -88,7 +89,7 @@ def main():
                     print(f"  {subdir.name}: {count} xpassed tests")
                     all_xpassed_tests.extend(xpassed_tests)
                     total_xpassed += count
-    
+
     # Also check files in root test directories
     for test_dir in test_dirs:
         if test_dir.exists():
@@ -100,10 +101,10 @@ def main():
                         print(f"  {test_file.name}: {count} xpassed tests")
                         all_xpassed_tests.extend(xpassed_tests)
                         total_xpassed += count
-    
+
     print("\n" + "=" * 80)
     print(f"Total xpassed tests found: {total_xpassed}")
-    
+
     if all_xpassed_tests:
         print("\nXpassed tests by file:")
         by_file = {}
@@ -112,7 +113,7 @@ def main():
             if file_path not in by_file:
                 by_file[file_path] = []
             by_file[file_path].append(test)
-        
+
         for file_path, tests in sorted(by_file.items()):
             print(f"\n{file_path} ({len(tests)} tests):")
             for test in tests:
