@@ -52,9 +52,9 @@ class TestMaterializedViews:
                 event_type=EventType.PIPELINE_START,
                 session_id=session_id,
                 business_id=f"business_{i}",
+                campaign_id="test_campaign",
                 timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
                 event_metadata={
-                    "campaign_id": "test_campaign",
                     "event_name": "targeting_entry",
                     "duration_ms": 1000,
                     "cost_cents": 100,
@@ -71,9 +71,9 @@ class TestMaterializedViews:
                     event_type=EventType.ASSESSMENT_START,
                     session_id=session_id,
                     business_id=f"business_{i}",
+                    campaign_id="test_campaign",
                     timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
                     event_metadata={
-                        "campaign_id": "test_campaign",
                         "event_name": "assessment_entry",
                         "duration_ms": 2000,
                         "cost_cents": 150,
@@ -90,8 +90,9 @@ class TestMaterializedViews:
                         event_type=EventType.PAYMENT_SUCCESS,
                         session_id=session_id,
                         business_id=f"business_{i}",
+                        campaign_id="test_campaign",
                         timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
-                        event_metadata={"campaign_id": "test_campaign", "event_name": "conversion"},
+                        event_metadata={"event_name": "conversion"},
                     )
                     events.append(event)
                     db_session.add(event)
