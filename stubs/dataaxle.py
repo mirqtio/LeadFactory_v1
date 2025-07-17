@@ -41,17 +41,17 @@ async def match_business(request: BusinessMatchRequest, authorization: str = Hea
     # Handle special test cases
     if request.business_name == "TRIGGER_ERROR":
         raise HTTPException(status_code=500, detail="Internal server error")
-    
+
     if request.business_name == "Nonexistent Business XYZ":
         return BusinessMatchResponse(match_found=False, match_confidence=0.0, business_data={})
-    
+
     # Simulate rate limiting (1 in 50 requests) - disabled for specific test businesses
     if request.business_name not in ["Test Restaurant LLC", "Minimal Business"] and random.random() < 0.02:
         raise HTTPException(status_code=429, detail="Rate limit exceeded", headers={"Retry-After": "60"})
 
     # List of test businesses that should always return data
     test_businesses = ["Test Restaurant LLC", "Minimal Business"] + [f"Test Business {i}" for i in range(10)]
-    
+
     # Simulate no match found (20% of requests) - disabled for test businesses
     if request.business_name not in test_businesses and random.random() < 0.2:
         return BusinessMatchResponse(match_found=False, match_confidence=0.0, business_data={})
@@ -153,7 +153,7 @@ async def account_status(authorization: str = Header(None)):
 
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Unauthorized")
-    
+
     # Special case for invalid-key test
     if authorization == "Bearer invalid-key":
         raise HTTPException(status_code=401, detail="Invalid API key")
@@ -169,10 +169,10 @@ async def account_status(authorization: str = Header(None)):
 @router.get("/company/enrich")
 async def enrich_company(domain: str, fields: str = "", authorization: str = Header(None)):
     """Stub endpoint for company enrichment by domain"""
-    
+
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Unauthorized")
-    
+
     # Special test case for testcompany.com
     if domain == "testcompany.com":
         return {
@@ -184,7 +184,7 @@ async def enrich_company(domain: str, fields: str = "", authorization: str = Hea
             "website": f"https://{domain}",
             "business_type": "Corporation",
         }
-    
+
     # Default enrichment response
     return {
         "domain": domain,

@@ -123,8 +123,8 @@ class TestDataAxleIntegration:
     @pytest.mark.asyncio
     async def test_error_handling(self, dataaxle_client, test_business_data, stub_server_url):
         """Test error handling for various scenarios"""
-        from d0_gateway.exceptions import APIProviderError
         from core.exceptions import ValidationError
+        from d0_gateway.exceptions import APIProviderError
 
         # Test missing business name
         invalid_data = test_business_data.copy()
