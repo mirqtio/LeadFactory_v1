@@ -200,9 +200,9 @@ class TestCostEnforcementMiddleware:
         middleware._rate_limiters["test:*"] = TokenBucket(capacity=1, refill_rate=0.1)  # Very slow refill
 
         # Mock the guardrail manager to avoid database calls
-        with patch('d0_gateway.middleware.cost_enforcement.guardrail_manager') as mock_guardrail:
+        with patch("d0_gateway.middleware.cost_enforcement.guardrail_manager") as mock_guardrail:
             mock_guardrail.enforce_limits.return_value = True
-            
+
             # First request should succeed
             result = await middleware.check_and_enforce("test", "operation", Decimal("0.01"))
             assert result is True
@@ -237,7 +237,7 @@ class TestCostEnforcementMiddleware:
     async def test_guardrail_integration(self, middleware):
         """Test integration with guardrail manager"""
         with patch("d0_gateway.middleware.cost_enforcement.guardrail_manager.enforce_limits") as mock_enforce:
-            # Mock a guardrail violation
+            # Mock a guardrail violation with BLOCK action to ensure dictionary response
             mock_violation = GuardrailViolation(
                 limit_name="test_limit",
                 scope=LimitScope.PROVIDER,
@@ -247,7 +247,7 @@ class TestCostEnforcementMiddleware:
                 percentage_used=0.9,
                 provider="test",
                 operation="operation",
-                action_taken=[GuardrailAction.THROTTLE],
+                action_taken=[GuardrailAction.THROTTLE, GuardrailAction.BLOCK],
             )
             mock_enforce.return_value = mock_violation
 

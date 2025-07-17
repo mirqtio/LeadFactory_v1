@@ -1,0 +1,47 @@
+{
+  "summary": {
+    "total_tests": 9,
+    "successful_tests": 9,
+    "failed_tests": 0,
+    "average_duration": 5.417497396469116
+  },
+  "fastest_tests": [
+    {
+      "path": "tests/unit/d5_scoring/test_omega.py",
+      "duration": 4.876213073730469,
+      "success": true,
+      "category": "fast_candidate"
+    },
+    {
+      "path": "tests/unit/d5_scoring/test_impact_calculator.py",
+      "duration": 4.9720587730407715,
+      "success": true,
+      "category": "fast_candidate"
+    },
+    {
+      "path": "tests/unit/d8_personalization/test_templates.py",
+      "duration": 5.13533091545105,
+      "success": true,
+      "category": "fast_candidate"
+    },
+    {
+      "path": "tests/unit/d5_scoring/test_tiers.py",
+      "duration": 5.209191083908081,
+      "success": true,
+      "category": "fast_candidate"
+    },
+    {
+      "path": "tests/unit/design/test_token_usage.py",
+      "duration": 5.2854368686676025,
+      "success": true,
+      "category": "fast_candidate"
+    }
+  ],
+  "recommendations": {
+    "ultra_fast_ci_tests": [
+      "tests/unit/d5_scoring/test_omega.py",
+      "tests/unit/d5_scoring/test_impact_calculator.py"
+    ],
+    "total_estimated_time": 25.478230714797974
+  }
+}

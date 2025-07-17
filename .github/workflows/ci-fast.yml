@@ -23,42 +23,55 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    - name: Build test image (optimized)
-      run: |
-        # Use build cache and parallel builds for speed
-        docker build -f Dockerfile.test -t leadfactory-test . --cache-from=leadfactory-test --build-arg BUILDKIT_INLINE_CACHE=1
+    - name: Set up Python 3.11 (no Docker for speed)
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+        cache: 'pip'
     
-    - name: Start minimal services
+    - name: Install dependencies (cached)
       run: |
-        # Start only postgres, skip stub-server for speed
-        docker compose -f docker-compose.test.yml up -d postgres
-        
-        # Quick PostgreSQL check with aggressive timeout
-        echo "Quick PostgreSQL check..."
-        timeout 20 bash -c 'until docker compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do sleep 0.5; done' || {
-          echo "PostgreSQL failed to start quickly"
-          exit 1
-        }
-        echo "✅ Minimal service startup complete"
+        # Install only essential dependencies for speed
+        pip install --upgrade pip
+        pip install pytest pytest-xdist pytest-timeout
+        pip install -r requirements.txt --no-deps  # Skip dependency checks for speed
     
-    - name: Run ultra-fast test suite
+    - name: Run ultra-fast test suite (no infrastructure)
+      env:
+        USE_STUBS: "false"
+        ENVIRONMENT: "test"
+        SKIP_INFRASTRUCTURE: "true"
+        # Disable all external providers for speed
+        ENABLE_GBP: "false"
+        ENABLE_PAGESPEED: "false"
+        ENABLE_SENDGRID: "false"
+        ENABLE_OPENAI: "false"
+        ENABLE_DATAAXLE: "false"
+        ENABLE_HUNTER: "false"
+        ENABLE_SEMRUSH: "false"
+        ENABLE_SCREENSHOTONE: "false"
+        DATABASE_URL: "sqlite:///:memory:"
       run: |
-        echo "🚀 Starting ultra-fast test suite - strict <4 minutes"
+        echo "🚀 Starting ultra-fast test suite - target <3 minutes"
         
-        # Run only core unit tests for maximum speed
-        # Skip smoke tests that might require external services
-        # Use parallel execution for speed but limit workers
-        timeout 180 docker compose -f docker-compose.test.yml run --rm test \
-          python -m pytest \
+        # Run ultra-fast subset without any infrastructure setup
+        timeout 150 python -m pytest \
           --tb=no \
           -q \
-          -n 2 \
+          -x \
           --maxfail=1 \
           --disable-warnings \
-          tests/unit/core/ \
-          -x || {
-          
-          echo "::error::Ultra-fast test suite failed or exceeded 3-minute limit"
+          -p no:warnings \
+          --timeout=15 \
+          --timeout-method=signal \
+          -n 2 \
+          tests/unit/d5_scoring/test_omega.py \
+          tests/unit/d5_scoring/test_impact_calculator.py \
+          tests/unit/d8_personalization/test_templates.py \
+          tests/unit/design/test_token_extraction.py \
+          tests/unit/design/test_validation_module.py \
+          || {
+          echo "::error::Ultra-fast test suite failed or exceeded 2.5-minute limit"
           exit 1
         }
         

@@ -1,0 +1,2996 @@
+{
+  "recommendations": {
+    "tests/test_yelp_purge.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read"
+      ]
+    },
+    "tests/test_setup.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: docker",
+        "Performs I/O: read"
+      ]
+    },
+    "tests/test_infrastructure_cleanup.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/test_hot_reload.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: yaml"
+      ]
+    },
+    "tests/test_scoring_engine.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: yaml"
+      ]
+    },
+    "tests/test_formula_evaluator.py": {
+      "markers": [
+        "infrastructure_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration"
+      ]
+    },
+    "tests/test_marker_policy.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/test_humanloop_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: screenshot",
+        "Contains async operations"
+      ]
+    },
+    "tests/test_sheet_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json"
+      ]
+    },
+    "tests/test_ci_smoke.py": {
+      "markers": [
+        "infrastructure_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database"
+      ]
+    },
+    "tests/test_synchronization.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: read",
+        "Contains async operations"
+      ]
+    },
+    "tests/test_docker_health.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: docker",
+        "Performs I/O: file"
+      ]
+    },
+    "tests/test_visual_analyzer.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/test_marker_enforcement.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Contains async operations"
+      ]
+    },
+    "tests/test_ci_health_check.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/test_phase_0_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: yaml",
+        "Contains async operations"
+      ]
+    },
+    "tests/test_stability.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: docker",
+        "Performs I/O: read",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/test_stability_verification.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "api_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: stub_server",
+        "Performs I/O: read",
+        "Contains async operations",
+        "Makes external API calls"
+      ]
+    },
+    "tests/test_docker_compose.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "api_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Makes external API calls",
+        "Performs database operations"
+      ]
+    },
+    "tests/test_minimal_no_stubs.py": {
+      "markers": [
+        "infrastructure_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database"
+      ]
+    },
+    "tests/test_port_manager.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: read"
+      ]
+    },
+    "tests/test_scoring_rules_schema.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: yaml"
+      ]
+    },
+    "tests/smoke/test_smoke_semrush.py": {
+      "markers": [
+        "async_heavy"
+      ],
+      "reasons": [
+        "Contains async operations"
+      ]
+    },
+    "tests/smoke/test_smoke_screenshotone.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: screenshot",
+        "Contains async operations"
+      ]
+    },
+    "tests/smoke/test_smoke_data_axle.py": {
+      "markers": [
+        "async_heavy"
+      ],
+      "reasons": [
+        "Contains async operations"
+      ]
+    },
+    "tests/smoke/test_smoke_hunter.py": {
+      "markers": [
+        "async_heavy"
+      ],
+      "reasons": [
+        "Contains async operations"
+      ]
+    },
+    "tests/smoke/test_full_pipeline_flow.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/smoke/test_smoke_gbp.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/smoke/test_remote_health.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "api_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: docker",
+        "Performs I/O: json",
+        "Makes external API calls"
+      ]
+    },
+    "tests/smoke/test_health.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json"
+      ]
+    },
+    "tests/smoke/test_smoke_openai_vision.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/test_config_phase05.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_centralized_fixtures_simple.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_vertical_stats.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: read"
+      ]
+    },
+    "tests/unit/test_prerequisites.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: docker",
+        "Performs I/O: read"
+      ]
+    },
+    "tests/unit/test_health_endpoint.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_enrichment_phase05.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/test_value_curves.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: csv"
+      ]
+    },
+    "tests/unit/test_guardrails.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_cost_ledger.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "api_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Makes external API calls",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_guardrail_alerts.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "api_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: webhook",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Makes external API calls"
+      ]
+    },
+    "tests/unit/test_environment_config.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "api_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Makes external API calls"
+      ]
+    },
+    "tests/unit/test_core.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json"
+      ]
+    },
+    "tests/unit/test_guardrail_middleware.py": {
+      "markers": [
+        "async_heavy"
+      ],
+      "reasons": [
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/test_phase_05_simple.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_unit_metrics.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_migrations.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file"
+      ]
+    },
+    "tests/unit/test_coverage_boost.py": {
+      "markers": [
+        "fast"
+      ],
+      "reasons": [
+        "No heavy operations detected"
+      ]
+    },
+    "tests/unit/test_module_imports_coverage.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: screenshot"
+      ]
+    },
+    "tests/unit/test_unit_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_targeted_coverage.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: pdf",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/test_impact_coefficients.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: yaml"
+      ]
+    },
+    "tests/unit/test_centralized_fixtures.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/test_config_extended.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: redis",
+        "Performs I/O: json"
+      ]
+    },
+    "tests/unit/test_parallel_safety.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: redis",
+        "Performs I/O: read"
+      ]
+    },
+    "tests/unit/test_utils_extended.py": {
+      "markers": [
+        "fast"
+      ],
+      "reasons": [
+        "No heavy operations detected"
+      ]
+    },
+    "tests/unit/d10_analytics/test_d10_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d10_analytics/test_views.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d10_analytics/test_warehouse.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d10_analytics/test_d10_api.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d10_analytics/test_analytics_views.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: csv",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/design/test_token_extraction.py": {
+      "markers": [
+        "ultrafast",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Profiled as ultra-fast test",
+        "Performs I/O: json"
+      ]
+    },
+    "tests/unit/design/test_token_usage.py": {
+      "markers": [
+        "ultrafast",
+        "infrastructure_heavy"
+      ],
+      "reasons": [
+        "Profiled as ultra-fast test",
+        "Uses infrastructure: integration"
+      ]
+    },
+    "tests/unit/design/test_token_validation.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json"
+      ]
+    },
+    "tests/unit/design/test_validation_module.py": {
+      "markers": [
+        "ultrafast",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Profiled as ultra-fast test",
+        "Performs I/O: json"
+      ]
+    },
+    "tests/unit/d7_storefront/test_models_simple.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d7_storefront/test_d7_api.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d7_storefront/test_webhooks.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: webhook",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d7_storefront/test_d7_storefront_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: download",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d7_storefront/test_checkout.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/account_management/test_models.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/account_management/test_auth_service.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/core/test_production_validation.py": {
+      "markers": [
+        "fast"
+      ],
+      "reasons": [
+        "No heavy operations detected"
+      ]
+    },
+    "tests/unit/core/test_config.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: docker",
+        "Performs I/O: file"
+      ]
+    },
+    "tests/unit/d5_scoring/test_engine.py": {
+      "markers": [
+        "ultrafast",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Profiled as ultra-fast test",
+        "Performs I/O: yaml",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d5_scoring/test_vertical_scoring.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d5_scoring/test_tiers.py": {
+      "markers": [
+        "ultrafast",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Profiled as ultra-fast test",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d5_scoring/test_omega.py": {
+      "markers": [
+        "ultrafast",
+        "fast"
+      ],
+      "reasons": [
+        "Profiled as ultra-fast test",
+        "No heavy operations detected"
+      ]
+    },
+    "tests/unit/d5_scoring/test_impact_calculator.py": {
+      "markers": [
+        "ultrafast",
+        "fast"
+      ],
+      "reasons": [
+        "Profiled as ultra-fast test",
+        "No heavy operations detected"
+      ]
+    },
+    "tests/unit/d5_scoring/test_d5_scoring_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d6_reports/test_generator.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d6_reports/test_d6_reports_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: download",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d6_reports/test_pdf_converter.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d6_reports/test_prioritizer.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d6_reports/test_seo_snapshot.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d6_reports/test_generator_simple.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d9_delivery/test_email_builder.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d9_delivery/test_delivery_manager.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: image",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d9_delivery/test_d9_delivery_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d9_delivery/test_webhook_handler.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d9_delivery/test_compliance.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d9_delivery/test_sendgrid.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: image",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d11_orchestration/test_bucket_enrichment.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d11_orchestration/test_d11_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d11_orchestration/test_bucket_flow.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: csv",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d11_orchestration/test_api.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d11_orchestration/test_experiments.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file"
+      ]
+    },
+    "tests/unit/d11_orchestration/test_cost_guardrails.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d11_orchestration/test_pipeline.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d1_targeting/test_buckets_simple.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: csv",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d1_targeting/test_task_022.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d1_targeting/test_task_023.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d1_targeting/test_d1_models.py": {
+      "markers": [
+        "infrastructure_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database"
+      ]
+    },
+    "tests/unit/d1_targeting/test_collaboration_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d1_targeting/test_task_021.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d1_targeting/test_task_023_simple.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d1_targeting/test_buckets.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: csv",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d1_targeting/test_bucket_loader.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: csv"
+      ]
+    },
+    "tests/unit/d2_sourcing/test_d2_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d2_sourcing/test_task_027.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_hunter_enricher.py": {
+      "markers": [
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_d4_enrichment_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_gbp_enricher.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_company_size.py": {
+      "markers": [
+        "fast"
+      ],
+      "reasons": [
+        "No heavy operations detected"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_email_enrichment.py": {
+      "markers": [
+        "async_heavy"
+      ],
+      "reasons": [
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_d4_coordinator.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "api_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: read",
+        "Contains async operations",
+        "Makes external API calls",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_matchers.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_lighthouse_runner.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d4_enrichment/test_dataaxle_enricher.py": {
+      "markers": [
+        "async_heavy"
+      ],
+      "reasons": [
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/lead_explorer/test_repository.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lead_explorer/test_enrichment_coordinator.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: read",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lead_explorer/test_audit.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lead_explorer/test_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: upload",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lead_explorer/test_schemas.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lead_explorer/test_api.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_semrush_client.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "api_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Makes external API calls"
+      ]
+    },
+    "tests/unit/d0_gateway/test_base_client.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: docker",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_providers.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_circuit_breaker.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_hunter_client.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_factory.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read"
+      ]
+    },
+    "tests/unit/d0_gateway/test_d0_gateway_metrics.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_facade.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_d0_metrics.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_provider_flags.py": {
+      "markers": [
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_d0_gateway_cache.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_rate_limiter.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: redis",
+        "Performs I/O: upload",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_dataaxle_client.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_base.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_openai_client.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "api_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Makes external API calls"
+      ]
+    },
+    "tests/unit/d0_gateway/test_google_places_provider.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "api_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations",
+        "Makes external API calls",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d0_gateway/test_pagespeed_client.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "api_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Makes external API calls"
+      ]
+    },
+    "tests/unit/d0_gateway/middleware/test_cost_enforcement_simple.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file"
+      ]
+    },
+    "tests/unit/d0_gateway/middleware/test_cost_enforcement.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lineage/test_compressor.py": {
+      "markers": [
+        "fast"
+      ],
+      "reasons": [
+        "No heavy operations detected"
+      ]
+    },
+    "tests/unit/lineage/test_performance.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lineage/test_api_v2.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lineage/test_tracker.py": {
+      "markers": [
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lineage/test_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/lineage/test_api.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/api/test_governance.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/api/test_scoring_playground.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: yaml",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/api/test_dependencies.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: redis",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/api/test_lineage_api.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/api/test_template_studio.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_d3_assessment_metrics.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_d3_api.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_lighthouse.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_techstack.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: read",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_visual_rubric.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: image"
+      ]
+    },
+    "tests/unit/d3_assessment/test_d3_assessment_cache.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_semrush_adapter.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_d3_assessment_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_rubric.py": {
+      "markers": [
+        "fast"
+      ],
+      "reasons": [
+        "No heavy operations detected"
+      ]
+    },
+    "tests/unit/d3_assessment/test_d3_coordinator.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_visual_analyzer.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_formatter.py": {
+      "markers": [
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_gbp_adapter.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_pagespeed.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/test_llm_insights.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d3_assessment/assessors/test_lighthouse_assessor.py": {
+      "markers": [
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/batch_runner/test_batch_runner_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/batch_runner/test_batch_runner_core.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: json"
+      ]
+    },
+    "tests/unit/flows/test_bucket_enrichment_flow.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/flows/test_full_pipeline_flow.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations"
+      ]
+    },
+    "tests/unit/d8_personalization/test_templates.py": {
+      "markers": [
+        "ultrafast",
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Profiled as ultra-fast test",
+        "Uses infrastructure: integration",
+        "Performs I/O: read"
+      ]
+    },
+    "tests/unit/d8_personalization/test_d8_personalization_models.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/unit/d8_personalization/test_subject_lines.py": {
+      "markers": [
+        "io_heavy"
+      ],
+      "reasons": [
+        "Performs I/O: yaml"
+      ]
+    },
+    "tests/security/test_compliance.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_reports_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_prerequisites_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json"
+      ]
+    },
+    "tests/integration/test_personalization_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_phase_05_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "api_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Makes external API calls",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_stub_server.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: webhook",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_lineage_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: pdf",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_payment_flow.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_enrichment_fanout_simple.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations"
+      ]
+    },
+    "tests/integration/test_gateway_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations"
+      ]
+    },
+    "tests/integration/test_cost_tracking.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "api_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Makes external API calls",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_metrics_endpoint.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_postgres_container.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: yaml",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_template_studio_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_targeting_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_bucket_enrichment_flow.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_guardrails_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_scoring_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_health_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_assessment_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_api_coverage_boost.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json"
+      ]
+    },
+    "tests/integration/test_dataaxle_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_full_pipeline_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations"
+      ]
+    },
+    "tests/integration/test_lighthouse_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_enrichment_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_targeting_integration_simple.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_prd_v1_2_pipeline.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/integration/test_llm_heuristic_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/integration/test_api_full_coverage.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_enrichment_fanout.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations"
+      ]
+    },
+    "tests/integration/test_analytics_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/integration/test_orchestration_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: read",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/test_delivery_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/account_management/test_auth_endpoints.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/integration/d3_assessment/test_lighthouse_integration.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/comprehensive/test_max_coverage.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/comprehensive/test_full_coverage.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/d0_gateway/test_alerts.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Contains async operations"
+      ]
+    },
+    "tests/generators/test_data.py": {
+      "markers": [
+        "infrastructure_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration"
+      ]
+    },
+    "tests/performance/test_lead_explorer_performance.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: json",
+        "Performs database operations"
+      ]
+    },
+    "tests/performance/test_health_performance.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: redis",
+        "Performs I/O: json",
+        "Contains async operations"
+      ]
+    },
+    "tests/performance/test_load.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: read",
+        "Performs database operations"
+      ]
+    },
+    "tests/e2e/test_sourcing_to_scoring.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/e2e/test_full_pipeline.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: download",
+        "Performs database operations"
+      ]
+    },
+    "tests/e2e/test_purchase_flow.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: download",
+        "Performs database operations"
+      ]
+    },
+    "tests/e2e/test_error_handling.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "async_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: docker",
+        "Performs I/O: file",
+        "Contains async operations",
+        "Performs database operations"
+      ]
+    },
+    "tests/e2e/test_email_flow.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "api_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: integration",
+        "Performs I/O: json",
+        "Makes external API calls",
+        "Performs database operations"
+      ]
+    },
+    "tests/e2e/test_framework.py": {
+      "markers": [
+        "infrastructure_heavy",
+        "io_heavy",
+        "database_heavy"
+      ],
+      "reasons": [
+        "Uses infrastructure: database",
+        "Performs I/O: file",
+        "Performs database operations"
+      ]
+    }
+  },
+  "groups": {
+    "ultra_fast_ci": [
+      "tests/unit/design/test_token_extraction.py",
+      "tests/unit/design/test_token_usage.py",
+      "tests/unit/design/test_validation_module.py",
+      "tests/unit/d5_scoring/test_engine.py",
+      "tests/unit/d5_scoring/test_tiers.py",
+      "tests/unit/d5_scoring/test_omega.py",
+      "tests/unit/d5_scoring/test_impact_calculator.py",
+      "tests/unit/d8_personalization/test_templates.py"
+    ],
+    "fast_ci": [
+      "tests/unit/test_coverage_boost.py",
+      "tests/unit/test_utils_extended.py",
+      "tests/unit/core/test_production_validation.py",
+      "tests/unit/d4_enrichment/test_company_size.py",
+      "tests/unit/lineage/test_compressor.py",
+      "tests/unit/d3_assessment/test_rubric.py"
+    ],
+    "standard_ci": [
+      "tests/test_scoring_engine.py",
+      "tests/test_synchronization.py",
+      "tests/test_visual_analyzer.py",
+      "tests/test_ci_health_check.py",
+      "tests/test_port_manager.py",
+      "tests/test_scoring_rules_schema.py",
+      "tests/smoke/test_smoke_semrush.py",
+      "tests/smoke/test_smoke_screenshotone.py",
+      "tests/smoke/test_smoke_data_axle.py",
+      "tests/smoke/test_smoke_hunter.py",
+      "tests/smoke/test_smoke_openai_vision.py",
+      "tests/unit/test_vertical_stats.py",
+      "tests/unit/test_value_curves.py",
+      "tests/unit/test_guardrail_middleware.py",
+      "tests/unit/test_targeted_coverage.py",
+      "tests/unit/test_impact_coefficients.py",
+      "tests/unit/design/test_token_validation.py",
+      "tests/unit/d6_reports/test_generator.py",
+      "tests/unit/d6_reports/test_seo_snapshot.py",
+      "tests/unit/d11_orchestration/test_experiments.py",
+      "tests/unit/d1_targeting/test_bucket_loader.py",
+      "tests/unit/d4_enrichment/test_email_enrichment.py",
+      "tests/unit/d4_enrichment/test_dataaxle_enricher.py",
+      "tests/unit/d0_gateway/test_providers.py",
+      "tests/unit/d0_gateway/test_hunter_client.py",
+      "tests/unit/d0_gateway/test_dataaxle_client.py",
+      "tests/unit/d0_gateway/test_base.py",
+      "tests/unit/d3_assessment/test_visual_rubric.py",
+      "tests/unit/d3_assessment/assessors/test_lighthouse_assessor.py",
+      "tests/unit/batch_runner/test_batch_runner_core.py",
+      "tests/unit/d8_personalization/test_subject_lines.py"
+    ],
+    "comprehensive_ci": [
+      "tests/test_yelp_purge.py",
+      "tests/test_setup.py",
+      "tests/test_infrastructure_cleanup.py",
+      "tests/test_hot_reload.py",
+      "tests/test_formula_evaluator.py",
+      "tests/test_marker_policy.py",
+      "tests/test_humanloop_integration.py",
+      "tests/test_sheet_integration.py",
+      "tests/test_ci_smoke.py",
+      "tests/test_docker_health.py",
+      "tests/test_marker_enforcement.py",
+      "tests/test_phase_0_integration.py",
+      "tests/test_stability.py",
+      "tests/test_stability_verification.py",
+      "tests/test_docker_compose.py",
+      "tests/test_minimal_no_stubs.py",
+      "tests/smoke/test_full_pipeline_flow.py",
+      "tests/smoke/test_smoke_gbp.py",
+      "tests/smoke/test_remote_health.py",
+      "tests/smoke/test_health.py",
+      "tests/unit/test_config_phase05.py",
+      "tests/unit/test_centralized_fixtures_simple.py",
+      "tests/unit/test_prerequisites.py",
+      "tests/unit/test_health_endpoint.py",
+      "tests/unit/test_enrichment_phase05.py",
+      "tests/unit/test_guardrails.py",
+      "tests/unit/test_cost_ledger.py",
+      "tests/unit/test_guardrail_alerts.py",
+      "tests/unit/test_environment_config.py",
+      "tests/unit/test_core.py",
+      "tests/unit/test_phase_05_simple.py",
+      "tests/unit/test_unit_metrics.py",
+      "tests/unit/test_migrations.py",
+      "tests/unit/test_module_imports_coverage.py",
+      "tests/unit/test_unit_models.py",
+      "tests/unit/test_centralized_fixtures.py",
+      "tests/unit/test_config_extended.py",
+      "tests/unit/test_parallel_safety.py",
+      "tests/unit/d10_analytics/test_d10_models.py",
+      "tests/unit/d10_analytics/test_views.py",
+      "tests/unit/d10_analytics/test_warehouse.py",
+      "tests/unit/d10_analytics/test_d10_api.py",
+      "tests/unit/d10_analytics/test_analytics_views.py",
+      "tests/unit/d7_storefront/test_models_simple.py",
+      "tests/unit/d7_storefront/test_d7_api.py",
+      "tests/unit/d7_storefront/test_webhooks.py",
+      "tests/unit/d7_storefront/test_d7_storefront_models.py",
+      "tests/unit/d7_storefront/test_checkout.py",
+      "tests/unit/account_management/test_models.py",
+      "tests/unit/account_management/test_auth_service.py",
+      "tests/unit/core/test_config.py",
+      "tests/unit/d5_scoring/test_vertical_scoring.py",
+      "tests/unit/d5_scoring/test_d5_scoring_models.py",
+      "tests/unit/d6_reports/test_d6_reports_models.py",
+      "tests/unit/d6_reports/test_pdf_converter.py",
+      "tests/unit/d6_reports/test_prioritizer.py",
+      "tests/unit/d6_reports/test_generator_simple.py",
+      "tests/unit/d9_delivery/test_email_builder.py",
+      "tests/unit/d9_delivery/test_delivery_manager.py",
+      "tests/unit/d9_delivery/test_d9_delivery_models.py",
+      "tests/unit/d9_delivery/test_webhook_handler.py",
+      "tests/unit/d9_delivery/test_compliance.py",
+      "tests/unit/d9_delivery/test_sendgrid.py",
+      "tests/unit/d11_orchestration/test_bucket_enrichment.py",
+      "tests/unit/d11_orchestration/test_d11_models.py",
+      "tests/unit/d11_orchestration/test_bucket_flow.py",
+      "tests/unit/d11_orchestration/test_api.py",
+      "tests/unit/d11_orchestration/test_cost_guardrails.py",
+      "tests/unit/d11_orchestration/test_pipeline.py",
+      "tests/unit/d1_targeting/test_buckets_simple.py",
+      "tests/unit/d1_targeting/test_task_022.py",
+      "tests/unit/d1_targeting/test_task_023.py",
+      "tests/unit/d1_targeting/test_d1_models.py",
+      "tests/unit/d1_targeting/test_collaboration_models.py",
+      "tests/unit/d1_targeting/test_task_021.py",
+      "tests/unit/d1_targeting/test_task_023_simple.py",
+      "tests/unit/d1_targeting/test_buckets.py",
+      "tests/unit/d2_sourcing/test_d2_models.py",
+      "tests/unit/d2_sourcing/test_task_027.py",
+      "tests/unit/d4_enrichment/test_hunter_enricher.py",
+      "tests/unit/d4_enrichment/test_d4_enrichment_models.py",
+      "tests/unit/d4_enrichment/test_gbp_enricher.py",
+      "tests/unit/d4_enrichment/test_d4_coordinator.py",
+      "tests/unit/d4_enrichment/test_matchers.py",
+      "tests/unit/d4_enrichment/test_lighthouse_runner.py",
+      "tests/unit/lead_explorer/test_repository.py",
+      "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+      "tests/unit/lead_explorer/test_audit.py",
+      "tests/unit/lead_explorer/test_models.py",
+      "tests/unit/lead_explorer/test_schemas.py",
+      "tests/unit/lead_explorer/test_api.py",
+      "tests/unit/d0_gateway/test_semrush_client.py",
+      "tests/unit/d0_gateway/test_base_client.py",
+      "tests/unit/d0_gateway/test_circuit_breaker.py",
+      "tests/unit/d0_gateway/test_factory.py",
+      "tests/unit/d0_gateway/test_d0_gateway_metrics.py",
+      "tests/unit/d0_gateway/test_facade.py",
+      "tests/unit/d0_gateway/test_d0_metrics.py",
+      "tests/unit/d0_gateway/test_provider_flags.py",
+      "tests/unit/d0_gateway/test_d0_gateway_cache.py",
+      "tests/unit/d0_gateway/test_rate_limiter.py",
+      "tests/unit/d0_gateway/test_openai_client.py",
+      "tests/unit/d0_gateway/test_google_places_provider.py",
+      "tests/unit/d0_gateway/test_pagespeed_client.py",
+      "tests/unit/d0_gateway/middleware/test_cost_enforcement_simple.py",
+      "tests/unit/d0_gateway/middleware/test_cost_enforcement.py",
+      "tests/unit/lineage/test_performance.py",
+      "tests/unit/lineage/test_api_v2.py",
+      "tests/unit/lineage/test_tracker.py",
+      "tests/unit/lineage/test_models.py",
+      "tests/unit/lineage/test_api.py",
+      "tests/unit/api/test_governance.py",
+      "tests/unit/api/test_scoring_playground.py",
+      "tests/unit/api/test_dependencies.py",
+      "tests/unit/api/test_lineage_api.py",
+      "tests/unit/api/test_template_studio.py",
+      "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+      "tests/unit/d3_assessment/test_d3_api.py",
+      "tests/unit/d3_assessment/test_lighthouse.py",
+      "tests/unit/d3_assessment/test_techstack.py",
+      "tests/unit/d3_assessment/test_d3_assessment_cache.py",
+      "tests/unit/d3_assessment/test_semrush_adapter.py",
+      "tests/unit/d3_assessment/test_d3_assessment_models.py",
+      "tests/unit/d3_assessment/test_d3_coordinator.py",
+      "tests/unit/d3_assessment/test_visual_analyzer.py",
+      "tests/unit/d3_assessment/test_formatter.py",
+      "tests/unit/d3_assessment/test_gbp_adapter.py",
+      "tests/unit/d3_assessment/test_pagespeed.py",
+      "tests/unit/d3_assessment/test_llm_insights.py",
+      "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+      "tests/unit/batch_runner/test_batch_runner_integration.py",
+      "tests/unit/flows/test_bucket_enrichment_flow.py",
+      "tests/unit/flows/test_full_pipeline_flow.py",
+      "tests/unit/d8_personalization/test_d8_personalization_models.py",
+      "tests/security/test_compliance.py",
+      "tests/integration/test_reports_integration.py",
+      "tests/integration/test_prerequisites_integration.py",
+      "tests/integration/test_personalization_integration.py",
+      "tests/integration/test_phase_05_integration.py",
+      "tests/integration/test_stub_server.py",
+      "tests/integration/test_lineage_integration.py",
+      "tests/integration/test_payment_flow.py",
+      "tests/integration/test_enrichment_fanout_simple.py",
+      "tests/integration/test_gateway_integration.py",
+      "tests/integration/test_cost_tracking.py",
+      "tests/integration/test_metrics_endpoint.py",
+      "tests/integration/test_postgres_container.py",
+      "tests/integration/test_template_studio_integration.py",
+      "tests/integration/test_targeting_integration.py",
+      "tests/integration/test_bucket_enrichment_flow.py",
+      "tests/integration/test_guardrails_integration.py",
+      "tests/integration/test_scoring_integration.py",
+      "tests/integration/test_health_integration.py",
+      "tests/integration/test_assessment_integration.py",
+      "tests/integration/test_api_coverage_boost.py",
+      "tests/integration/test_dataaxle_integration.py",
+      "tests/integration/test_full_pipeline_integration.py",
+      "tests/integration/test_lighthouse_integration.py",
+      "tests/integration/test_enrichment_integration.py",
+      "tests/integration/test_targeting_integration_simple.py",
+      "tests/integration/test_prd_v1_2_pipeline.py",
+      "tests/integration/test_llm_heuristic_integration.py",
+      "tests/integration/test_api_full_coverage.py",
+      "tests/integration/test_enrichment_fanout.py",
+      "tests/integration/test_analytics_integration.py",
+      "tests/integration/test_orchestration_integration.py",
+      "tests/integration/test_delivery_integration.py",
+      "tests/integration/account_management/test_auth_endpoints.py",
+      "tests/integration/d3_assessment/test_lighthouse_integration.py",
+      "tests/comprehensive/test_max_coverage.py",
+      "tests/comprehensive/test_full_coverage.py",
+      "tests/d0_gateway/test_alerts.py",
+      "tests/generators/test_data.py",
+      "tests/performance/test_lead_explorer_performance.py",
+      "tests/performance/test_health_performance.py",
+      "tests/performance/test_load.py",
+      "tests/e2e/test_sourcing_to_scoring.py",
+      "tests/e2e/test_full_pipeline.py",
+      "tests/e2e/test_purchase_flow.py",
+      "tests/e2e/test_error_handling.py",
+      "tests/e2e/test_email_flow.py",
+      "tests/e2e/test_framework.py"
+    ],
+    "excluded_from_fast": [
+      "tests/test_yelp_purge.py",
+      "tests/test_setup.py",
+      "tests/test_infrastructure_cleanup.py",
+      "tests/test_hot_reload.py",
+      "tests/test_formula_evaluator.py",
+      "tests/test_marker_policy.py",
+      "tests/test_humanloop_integration.py",
+      "tests/test_sheet_integration.py",
+      "tests/test_ci_smoke.py",
+      "tests/test_docker_health.py",
+      "tests/test_marker_enforcement.py",
+      "tests/test_phase_0_integration.py",
+      "tests/test_stability.py",
+      "tests/test_stability_verification.py",
+      "tests/test_docker_compose.py",
+      "tests/test_minimal_no_stubs.py",
+      "tests/smoke/test_full_pipeline_flow.py",
+      "tests/smoke/test_smoke_gbp.py",
+      "tests/smoke/test_remote_health.py",
+      "tests/smoke/test_health.py",
+      "tests/unit/test_config_phase05.py",
+      "tests/unit/test_centralized_fixtures_simple.py",
+      "tests/unit/test_prerequisites.py",
+      "tests/unit/test_health_endpoint.py",
+      "tests/unit/test_enrichment_phase05.py",
+      "tests/unit/test_guardrails.py",
+      "tests/unit/test_cost_ledger.py",
+      "tests/unit/test_guardrail_alerts.py",
+      "tests/unit/test_environment_config.py",
+      "tests/unit/test_core.py",
+      "tests/unit/test_phase_05_simple.py",
+      "tests/unit/test_unit_metrics.py",
+      "tests/unit/test_migrations.py",
+      "tests/unit/test_module_imports_coverage.py",
+      "tests/unit/test_unit_models.py",
+      "tests/unit/test_centralized_fixtures.py",
+      "tests/unit/test_config_extended.py",
+      "tests/unit/test_parallel_safety.py",
+      "tests/unit/d10_analytics/test_d10_models.py",
+      "tests/unit/d10_analytics/test_views.py",
+      "tests/unit/d10_analytics/test_warehouse.py",
+      "tests/unit/d10_analytics/test_d10_api.py",
+      "tests/unit/d10_analytics/test_analytics_views.py",
+      "tests/unit/d7_storefront/test_models_simple.py",
+      "tests/unit/d7_storefront/test_d7_api.py",
+      "tests/unit/d7_storefront/test_webhooks.py",
+      "tests/unit/d7_storefront/test_d7_storefront_models.py",
+      "tests/unit/d7_storefront/test_checkout.py",
+      "tests/unit/account_management/test_models.py",
+      "tests/unit/account_management/test_auth_service.py",
+      "tests/unit/core/test_config.py",
+      "tests/unit/d5_scoring/test_vertical_scoring.py",
+      "tests/unit/d5_scoring/test_d5_scoring_models.py",
+      "tests/unit/d6_reports/test_d6_reports_models.py",
+      "tests/unit/d6_reports/test_pdf_converter.py",
+      "tests/unit/d6_reports/test_prioritizer.py",
+      "tests/unit/d6_reports/test_generator_simple.py",
+      "tests/unit/d9_delivery/test_email_builder.py",
+      "tests/unit/d9_delivery/test_delivery_manager.py",
+      "tests/unit/d9_delivery/test_d9_delivery_models.py",
+      "tests/unit/d9_delivery/test_webhook_handler.py",
+      "tests/unit/d9_delivery/test_compliance.py",
+      "tests/unit/d9_delivery/test_sendgrid.py",
+      "tests/unit/d11_orchestration/test_bucket_enrichment.py",
+      "tests/unit/d11_orchestration/test_d11_models.py",
+      "tests/unit/d11_orchestration/test_bucket_flow.py",
+      "tests/unit/d11_orchestration/test_api.py",
+      "tests/unit/d11_orchestration/test_cost_guardrails.py",
+      "tests/unit/d11_orchestration/test_pipeline.py",
+      "tests/unit/d1_targeting/test_buckets_simple.py",
+      "tests/unit/d1_targeting/test_task_022.py",
+      "tests/unit/d1_targeting/test_task_023.py",
+      "tests/unit/d1_targeting/test_d1_models.py",
+      "tests/unit/d1_targeting/test_collaboration_models.py",
+      "tests/unit/d1_targeting/test_task_021.py",
+      "tests/unit/d1_targeting/test_task_023_simple.py",
+      "tests/unit/d1_targeting/test_buckets.py",
+      "tests/unit/d2_sourcing/test_d2_models.py",
+      "tests/unit/d2_sourcing/test_task_027.py",
+      "tests/unit/d4_enrichment/test_hunter_enricher.py",
+      "tests/unit/d4_enrichment/test_d4_enrichment_models.py",
+      "tests/unit/d4_enrichment/test_gbp_enricher.py",
+      "tests/unit/d4_enrichment/test_d4_coordinator.py",
+      "tests/unit/d4_enrichment/test_matchers.py",
+      "tests/unit/d4_enrichment/test_lighthouse_runner.py",
+      "tests/unit/lead_explorer/test_repository.py",
+      "tests/unit/lead_explorer/test_enrichment_coordinator.py",
+      "tests/unit/lead_explorer/test_audit.py",
+      "tests/unit/lead_explorer/test_models.py",
+      "tests/unit/lead_explorer/test_schemas.py",
+      "tests/unit/lead_explorer/test_api.py",
+      "tests/unit/d0_gateway/test_semrush_client.py",
+      "tests/unit/d0_gateway/test_base_client.py",
+      "tests/unit/d0_gateway/test_circuit_breaker.py",
+      "tests/unit/d0_gateway/test_factory.py",
+      "tests/unit/d0_gateway/test_d0_gateway_metrics.py",
+      "tests/unit/d0_gateway/test_facade.py",
+      "tests/unit/d0_gateway/test_d0_metrics.py",
+      "tests/unit/d0_gateway/test_provider_flags.py",
+      "tests/unit/d0_gateway/test_d0_gateway_cache.py",
+      "tests/unit/d0_gateway/test_rate_limiter.py",
+      "tests/unit/d0_gateway/test_openai_client.py",
+      "tests/unit/d0_gateway/test_google_places_provider.py",
+      "tests/unit/d0_gateway/test_pagespeed_client.py",
+      "tests/unit/d0_gateway/middleware/test_cost_enforcement_simple.py",
+      "tests/unit/d0_gateway/middleware/test_cost_enforcement.py",
+      "tests/unit/lineage/test_performance.py",
+      "tests/unit/lineage/test_api_v2.py",
+      "tests/unit/lineage/test_tracker.py",
+      "tests/unit/lineage/test_models.py",
+      "tests/unit/lineage/test_api.py",
+      "tests/unit/api/test_governance.py",
+      "tests/unit/api/test_scoring_playground.py",
+      "tests/unit/api/test_dependencies.py",
+      "tests/unit/api/test_lineage_api.py",
+      "tests/unit/api/test_template_studio.py",
+      "tests/unit/d3_assessment/test_d3_assessment_metrics.py",
+      "tests/unit/d3_assessment/test_d3_api.py",
+      "tests/unit/d3_assessment/test_lighthouse.py",
+      "tests/unit/d3_assessment/test_techstack.py",
+      "tests/unit/d3_assessment/test_d3_assessment_cache.py",
+      "tests/unit/d3_assessment/test_semrush_adapter.py",
+      "tests/unit/d3_assessment/test_d3_assessment_models.py",
+      "tests/unit/d3_assessment/test_d3_coordinator.py",
+      "tests/unit/d3_assessment/test_visual_analyzer.py",
+      "tests/unit/d3_assessment/test_formatter.py",
+      "tests/unit/d3_assessment/test_gbp_adapter.py",
+      "tests/unit/d3_assessment/test_pagespeed.py",
+      "tests/unit/d3_assessment/test_llm_insights.py",
+      "tests/unit/d3_assessment/assessors/test_llm_heuristic_assessor.py",
+      "tests/unit/batch_runner/test_batch_runner_integration.py",
+      "tests/unit/flows/test_bucket_enrichment_flow.py",
+      "tests/unit/flows/test_full_pipeline_flow.py",
+      "tests/unit/d8_personalization/test_d8_personalization_models.py",
+      "tests/security/test_compliance.py",
+      "tests/integration/test_reports_integration.py",
+      "tests/integration/test_prerequisites_integration.py",
+      "tests/integration/test_personalization_integration.py",
+      "tests/integration/test_phase_05_integration.py",
+      "tests/integration/test_stub_server.py",
+      "tests/integration/test_lineage_integration.py",
+      "tests/integration/test_payment_flow.py",
+      "tests/integration/test_enrichment_fanout_simple.py",
+      "tests/integration/test_gateway_integration.py",
+      "tests/integration/test_cost_tracking.py",
+      "tests/integration/test_metrics_endpoint.py",
+      "tests/integration/test_postgres_container.py",
+      "tests/integration/test_template_studio_integration.py",
+      "tests/integration/test_targeting_integration.py",
+      "tests/integration/test_bucket_enrichment_flow.py",
+      "tests/integration/test_guardrails_integration.py",
+      "tests/integration/test_scoring_integration.py",
+      "tests/integration/test_health_integration.py",
+      "tests/integration/test_assessment_integration.py",
+      "tests/integration/test_api_coverage_boost.py",
+      "tests/integration/test_dataaxle_integration.py",
+      "tests/integration/test_full_pipeline_integration.py",
+      "tests/integration/test_lighthouse_integration.py",
+      "tests/integration/test_enrichment_integration.py",
+      "tests/integration/test_targeting_integration_simple.py",
+      "tests/integration/test_prd_v1_2_pipeline.py",
+      "tests/integration/test_llm_heuristic_integration.py",
+      "tests/integration/test_api_full_coverage.py",
+      "tests/integration/test_enrichment_fanout.py",
+      "tests/integration/test_analytics_integration.py",
+      "tests/integration/test_orchestration_integration.py",
+      "tests/integration/test_delivery_integration.py",
+      "tests/integration/account_management/test_auth_endpoints.py",
+      "tests/integration/d3_assessment/test_lighthouse_integration.py",
+      "tests/comprehensive/test_max_coverage.py",
+      "tests/comprehensive/test_full_coverage.py",
+      "tests/d0_gateway/test_alerts.py",
+      "tests/generators/test_data.py",
+      "tests/performance/test_lead_explorer_performance.py",
+      "tests/performance/test_health_performance.py",
+      "tests/performance/test_load.py",
+      "tests/e2e/test_sourcing_to_scoring.py",
+      "tests/e2e/test_full_pipeline.py",
+      "tests/e2e/test_purchase_flow.py",
+      "tests/e2e/test_error_handling.py",
+      "tests/e2e/test_email_flow.py",
+      "tests/e2e/test_framework.py"
+    ]
+  },
+  "pytest_config": "\n# Performance-based test markers for CI optimization\nmarkers =\n    # Performance markers\n    ultrafast: Ultra-fast tests (<30s total) for immediate feedback\n    fast: Fast tests (<5min total) for quick validation  \n    slow: Slow tests (>5min) requiring patient CI\n    \n    # Resource markers\n    infrastructure_heavy: Tests requiring infrastructure (DB, services)\n    io_heavy: Tests performing significant I/O operations\n    api_heavy: Tests making external API calls\n    database_heavy: Tests requiring database operations\n    async_heavy: Tests with significant async operations\n    \n    # CI optimization markers\n    ultra_fast_ci: Include in ultra-fast CI pipeline (<2min)\n    fast_ci: Include in fast CI pipeline (<5min)  \n    standard_ci: Include in standard CI pipeline (<15min)\n    comprehensive_ci: Include in comprehensive CI pipeline (<30min)\n    excluded_from_fast: Exclude from fast CI pipelines\n"
+}

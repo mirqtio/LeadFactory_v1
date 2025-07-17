@@ -149,8 +149,8 @@ class TestProviderFeatureFlags:
         assert settings.enable_openai is False
 
     @pytest.mark.xfail(
-        condition=bool(os.getenv("CI")) or bool(os.getenv("DOCKER_ENV")), 
-        reason="Fails in CI/Docker environments due to forced stub configuration"
+        condition=bool(os.getenv("CI")) or bool(os.getenv("DOCKER_ENV")),
+        reason="Fails in CI/Docker environments due to forced stub configuration",
     )
     def test_selective_provider_enabling(self):
         """Test enabling only specific providers"""

@@ -19,7 +19,7 @@ from typing import List, Set, Tuple
 import pytest
 
 
-class TestCodeAnalyzer(ast.NodeVisitor):
+class StabilityCodeAnalyzer(ast.NodeVisitor):
     """AST visitor to analyze test code for stability issues."""
 
     def __init__(self, filepath: str):
@@ -185,7 +185,7 @@ class TestStabilityValidation:
             if filepath.name in ["test_stability.py", "test_port_manager.py"]:
                 continue
 
-            analyzer = TestCodeAnalyzer(str(filepath))
+            analyzer = StabilityCodeAnalyzer(str(filepath))
             results = analyzer.analyze()
 
             if results["hardcoded_ports"]:
@@ -206,7 +206,7 @@ class TestStabilityValidation:
             if filepath.name in ["test_stability.py", "test_synchronization.py"]:
                 continue
 
-            analyzer = TestCodeAnalyzer(str(filepath))
+            analyzer = StabilityCodeAnalyzer(str(filepath))
             results = analyzer.analyze()
 
             if results["sleep_calls"]:
@@ -236,7 +236,7 @@ class TestStabilityValidation:
         issues = []
 
         for filepath in test_files:
-            analyzer = TestCodeAnalyzer(str(filepath))
+            analyzer = StabilityCodeAnalyzer(str(filepath))
             results = analyzer.analyze()
 
             # Check general threading issues
@@ -264,7 +264,7 @@ class TestStabilityValidation:
         issues = []
 
         for filepath in test_files:
-            analyzer = TestCodeAnalyzer(str(filepath))
+            analyzer = StabilityCodeAnalyzer(str(filepath))
             results = analyzer.analyze()
 
             issues.extend([f"{filepath}:{lineno} - {msg}" for lineno, msg in results["async_issues"]])

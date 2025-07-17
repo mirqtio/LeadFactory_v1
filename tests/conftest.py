@@ -23,7 +23,7 @@ from tests.parallel_safety import isolated_db, isolated_temp_dir
 
 # Import port manager and synchronization utilities
 from tests.test_port_manager import PortManager, get_dynamic_port, release_port
-from tests.test_synchronization import TestEvent, wait_for_condition
+from tests.test_synchronization import SyncEvent, wait_for_condition
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -119,7 +119,7 @@ def stub_server_session():
     from stubs.server import app as stub_app
 
     # Event to signal server is ready
-    server_ready = TestEvent()
+    server_ready = SyncEvent()
     server_thread = None
     server = None
 

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from core.exceptions import ExternalAPIError
+from core.exceptions import ExternalAPIError, RateLimitError
 from d0_gateway.base import BaseAPIClient
 from d0_gateway.exceptions import APIProviderError, CircuitBreakerOpenError, RateLimitExceededError
 from d0_gateway.types import RateLimitType
@@ -53,6 +53,9 @@ class TestBaseAPIClient:
     @pytest.mark.asyncio
     async def test_rate_limit_interface_works(self, mock_client):
         """Test that rate limit interface works"""
+        # Mock settings to enable stubs (to skip cost enforcement)
+        mock_client.settings.use_stubs = True
+        
         # Mock rate limiter to allow request
         mock_client.rate_limiter.is_allowed = AsyncMock(return_value=True)
         mock_client.circuit_breaker.can_execute = Mock(return_value=True)
@@ -68,16 +71,28 @@ class TestBaseAPIClient:
         response = await mock_client.make_request("GET", "/test")
 
         assert response == {"test": "data"}
-        mock_client.rate_limiter.is_allowed.assert_called_once()
+        # Rate limiter is no longer called directly, it's handled by cost enforcement
+        # Just verify the request succeeded
+        mock_client.client.request.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_rate_limit_blocks_request(self, mock_client):
         """Test that rate limiting blocks requests when exceeded"""
-        # Mock rate limiter to reject request
-        mock_client.rate_limiter.is_allowed = AsyncMock(return_value=False)
+        # Mock settings to disable stubs
+        mock_client.settings.use_stubs = False
+        
+        # Mock cost enforcement to return rate limit error
+        with patch("d0_gateway.base.cost_enforcement") as mock_cost_enforcement:
+            mock_cost_enforcement.check_and_enforce = AsyncMock(
+                return_value={
+                    "allowed": False,
+                    "reason": "rate_limit_exceeded",
+                    "retry_after": 60
+                }
+            )
 
-        with pytest.raises(Exception):  # Will raise RateLimitError which inherits from Exception
-            await mock_client.make_request("GET", "/test")
+            with pytest.raises(RateLimitError):
+                await mock_client.make_request("GET", "/test")
 
     def test_cost_calculation_implemented(self, mock_client):
         """Test that cost calculation is implemented"""

@@ -13,7 +13,7 @@ from typing import Any, Callable, Optional
 from unittest.mock import Mock
 
 
-class TestEvent:
+class SyncEvent:
     """Thread-safe event for test synchronization."""
 
     def __init__(self):
@@ -48,7 +48,7 @@ class TestEvent:
         return self._event.is_set()
 
 
-class AsyncTestEvent:
+class AsyncSyncEvent:
     """Async-compatible event for test synchronization."""
 
     def __init__(self):

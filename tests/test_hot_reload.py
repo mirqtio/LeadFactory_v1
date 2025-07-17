@@ -16,7 +16,7 @@ from d5_scoring.hot_reload import (
 )
 
 # Import synchronization utilities
-from tests.test_synchronization import TestEvent, wait_for_condition
+from tests.test_synchronization import SyncEvent, wait_for_condition
 
 # Mark entire module as unit test and xfail for Phase 0.5
 pytestmark = [pytest.mark.unit, pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)]
@@ -87,7 +87,7 @@ class TestScoringRulesFileHandler:
         event.src_path = "config/scoring_rules.yaml"
 
         # Track modification times
-        modification_event = TestEvent()
+        modification_event = SyncEvent()
         original_reload = mock_engine.reload_rules
 
         def track_reload():

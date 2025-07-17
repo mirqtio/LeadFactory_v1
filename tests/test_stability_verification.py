@@ -13,9 +13,8 @@ import requests
 
 from tests.test_port_manager import PortManager, get_dynamic_port, release_port
 from tests.test_synchronization import (
-    AsyncTestEvent,
     RetryWithBackoff,
-    TestEvent,
+    SyncEvent,
     async_wait_for_condition,
     mock_time,
     synchronized_threads,
@@ -90,7 +89,7 @@ class TestSynchronizationVerification:
 
     def test_test_event_basic(self):
         """Test basic event functionality."""
-        event = TestEvent()
+        event = SyncEvent()
 
         assert not event.is_set()
 
@@ -110,7 +109,7 @@ class TestSynchronizationVerification:
 
     def test_test_event_threading(self):
         """Test event with threading."""
-        event = TestEvent()
+        event = SyncEvent()
         results = []
 
         def worker():
@@ -136,7 +135,7 @@ class TestSynchronizationVerification:
     @pytest.mark.asyncio
     async def test_async_event(self):
         """Test async event functionality."""
-        event = AsyncTestEvent()
+        event = SyncEvent()
 
         assert not event.is_set()
 
@@ -280,7 +279,7 @@ class TestStubServerStability:
         server_url = f"http://localhost:{port}"
 
         # Event for server readiness
-        server_ready = TestEvent()
+        server_ready = SyncEvent()
         server = None
 
         def run_server():

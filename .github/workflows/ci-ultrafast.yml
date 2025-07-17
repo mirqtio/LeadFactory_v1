@@ -1,0 +1,111 @@
+name: Ultra-Fast CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  ultra-fast-test:
+    name: Ultra-Fast Test Suite (<3 min target)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3  # Aggressive 3-minute timeout
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+    
+    - name: Install dependencies (cached)
+      run: |
+        # Install only essential dependencies for speed
+        pip install --upgrade pip
+        pip install pytest pytest-xdist pytest-timeout
+        pip install -e . --no-deps  # Skip dependency resolution for speed
+    
+    - name: Run ultra-fast unit tests (no infrastructure)
+      run: |
+        echo "🚀 Starting ultra-fast test suite - target <3 minutes"
+        
+        # Run only the fastest unit tests with minimal setup
+        timeout 150 python -m pytest \
+          --confcutdir=. \
+          --override-ini="confcutdir=." \
+          --tb=no \
+          -q \
+          -x \
+          --maxfail=1 \
+          --disable-warnings \
+          -p no:warnings \
+          --timeout=30 \
+          --timeout-method=signal \
+          -n 2 \
+          tests/unit/design/ \
+          tests/unit/d5_scoring/test_engine.py \
+          tests/unit/d8_personalization/test_templates.py \
+          tests/unit/d8_personalization/test_subject_lines.py \
+          || {
+          echo "::error::Ultra-fast test suite failed or exceeded 2.5-minute limit"
+          exit 1
+        }
+        
+        echo "✅ Ultra-fast test suite completed successfully"
+    
+    - name: Performance verification
+      run: |
+        echo "✅ Ultra-Fast CI Pipeline completed within 3-minute target"
+        echo "This workflow runs only the fastest unit tests for immediate feedback"
+        echo "Full test coverage is handled by the comprehensive CI Pipeline"
+
+  fast-smoke-test:
+    name: Fast Smoke Tests (<2 min target)  
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+    
+    - name: Install dependencies (minimal)
+      run: |
+        pip install --upgrade pip
+        pip install pytest pytest-timeout
+        pip install -e . --no-deps
+    
+    - name: Run smoke tests (import validation)
+      run: |
+        echo "🔥 Running import smoke tests"
+        
+        # Test that core modules can be imported
+        timeout 60 python -c "
+        import sys
+        try:
+            import core.config
+            import core.utils
+            import d5_scoring.engine
+            print('✅ Core imports successful')
+        except Exception as e:
+            print(f'❌ Import failed: {e}')
+            sys.exit(1)
+        " || {
+          echo "::error::Import smoke tests failed"
+          exit 1
+        }
+        
+        echo "✅ Fast smoke tests completed successfully"
