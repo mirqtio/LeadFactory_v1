@@ -38,8 +38,8 @@ jobs:
         pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy fastapi requests jinja2 pytest-mock uvicorn
         # Additional dependencies for imports
         pip install redis faker stripe sendgrid twilio google-api-python-client openai psycopg2-binary alembic
-        # Missing critical dependency
-        pip install python-json-logger
+        # Missing critical dependencies
+        pip install python-json-logger prometheus-client beautifulsoup4 pandas numpy tenacity aiohttp
     
     - name: Run ultra-fast test suite (no infrastructure)
       env:
