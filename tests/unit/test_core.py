@@ -42,7 +42,6 @@ class TestConfig:
         assert settings.max_daily_emails == 100000
         assert settings.report_price_cents == 19900
 
-    @pytest.mark.xfail(reason="Environment variable test is flaky in parallel execution")
     def test_environment_override(self, monkeypatch):
         """Test environment variable override"""
         # Clear any cached settings

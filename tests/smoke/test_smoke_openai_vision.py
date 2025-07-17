@@ -11,11 +11,8 @@ import pytest
 from core.config import settings
 from d0_gateway.providers.openai import OpenAIClient
 
-# Skip if no API key and mark as xfail for Phase 0.5
-pytestmark = [
-    pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set"),
-    pytest.mark.xfail(reason="OpenAI Vision is a Phase 0.5 feature"),
-]
+# Skip if no API key
+pytestmark = pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="OPENAI_API_KEY not set")
 
 
 class TestOpenAIVisionSmoke:

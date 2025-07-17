@@ -1,0 +1,157 @@
+Total xfail tests: 114
+================================================================================
+
+tests/integration/test_api_full_coverage.py (4 tests):
+  - TestComprehensiveAPICoverage::test_main_app_endpoints
+  - TestComprehensiveAPICoverage::test_analytics_api
+  - test_main_app_endpoints
+  - test_analytics_api
+
+tests/integration/test_metrics_endpoint.py (2 tests):
+  - TestMetricsEndpoint::test_health_endpoint_tracked
+  - test_health_endpoint_tracked
+
+tests/integration/test_postgres_container.py (6 tests):
+  - TestPostgresContainer::test_postgres_container_running
+  - TestPostgresContainer::test_postgres_named_volume
+  - TestPostgresContainer::test_database_connection
+  - test_postgres_container_running
+  - test_postgres_named_volume
+  - test_database_connection
+
+tests/performance/test_health_performance.py (2 tests):
+  - TestHealthEndpointPerformance::test_redis_check_timeout
+  - test_redis_check_timeout
+
+tests/smoke/test_health.py (8 tests):
+  - TestHealthEndpoint::test_health_returns_200
+  - TestHealthEndpoint::test_health_response_time_under_100ms
+  - TestHealthEndpointIntegration::test_health_with_real_connections
+  - TestHealthEndpointIntegration::test_health_endpoint_performance
+  - test_health_returns_200
+  - test_health_response_time_under_100ms
+  - test_health_with_real_connections
+  - test_health_endpoint_performance
+
+tests/smoke/test_remote_health.py (8 tests):
+  - TestRemoteHealth::test_health_returns_200
+  - TestRemoteHealth::test_health_returns_json
+  - TestRemoteHealth::test_health_response_time
+  - TestRemoteHealth::test_health_includes_required_fields
+  - test_health_returns_200
+  - test_health_returns_json
+  - test_health_response_time
+  - test_health_includes_required_fields
+
+tests/test_marker_policy.py (6 tests):
+  - TestMarkerPolicy::test_no_unmarked_failures
+  - TestMarkerPolicy::test_keep_suite_exits_zero
+  - TestMarkerPolicy::test_runtime_under_five_minutes
+  - test_no_unmarked_failures
+  - test_keep_suite_exits_zero
+  - test_runtime_under_five_minutes
+
+tests/test_stability.py (2 tests):
+  - TestStabilityValidation::test_no_hardcoded_ports
+  - test_no_hardcoded_ports
+
+tests/unit/d0_gateway/test_provider_flags.py (2 tests):
+  - TestProviderFeatureFlags::test_selective_provider_enabling
+  - test_selective_provider_enabling
+
+tests/unit/d11_orchestration/test_api.py (28 tests):
+  - TestExperimentAPI::test_create_experiment
+  - TestExperimentAPI::test_get_experiment
+  - TestExperimentAPI::test_get_experiment_not_found
+  - TestExperimentAPI::test_update_experiment
+  - TestExperimentAPI::test_list_experiments
+  - TestExperimentAPI::test_list_experiments_with_filter
+  - TestExperimentAPI::test_delete_experiment
+  - TestExperimentAPI::test_delete_running_experiment_fails
+  - TestExperimentVariantAPI::test_create_experiment_variant
+  - TestExperimentVariantAPI::test_create_duplicate_variant_key_fails
+  - TestExperimentVariantAPI::test_get_experiment_variants
+  - TestVariantAssignmentAPI::test_assign_variant
+  - TestVariantAssignmentAPI::test_assign_variant_to_inactive_experiment_fails
+  - TestVariantAssignmentAPI::test_assign_variant_returns_existing_assignment
+  - test_create_experiment
+  - test_get_experiment
+  - test_get_experiment_not_found
+  - test_update_experiment
+  - test_list_experiments
+  - test_list_experiments_with_filter
+  - test_delete_experiment
+  - test_delete_running_experiment_fails
+  - test_create_experiment_variant
+  - test_create_duplicate_variant_key_fails
+  - test_get_experiment_variants
+  - test_assign_variant
+  - test_assign_variant_to_inactive_experiment_fails
+  - test_assign_variant_returns_existing_assignment
+
+tests/unit/d11_orchestration/test_d11_models.py (10 tests):
+  - TestOrchestrationModels::test_experiment_models
+  - TestOrchestrationModels::test_assignment_tracking
+  - TestOrchestrationModels::test_status_management
+  - TestOrchestrationModels::test_model_constraints_and_validations
+  - TestOrchestrationModels::test_model_relationships
+  - test_experiment_models
+  - test_assignment_tracking
+  - test_status_management
+  - test_model_constraints_and_validations
+  - test_model_relationships
+
+tests/unit/d11_orchestration/test_experiments.py (18 tests):
+  - TestExperimentManager::test_create_experiment
+  - TestExperimentManager::test_assign_variant
+  - TestExperimentManager::test_deterministic_assignment
+  - TestExperimentManager::test_experiment_lifecycle
+  - TestExperimentManager::test_holdout_assignment
+  - TestVariantAssigner::test_variant_assignment
+  - TestVariantAssigner::test_control_group_handling
+  - TestVariantAssigner::test_simulate_assignment_distribution
+  - TestVariantAssigner::test_assignment_info
+  - test_create_experiment
+  - test_assign_variant
+  - test_deterministic_assignment
+  - test_experiment_lifecycle
+  - test_holdout_assignment
+  - test_variant_assignment
+  - test_control_group_handling
+  - test_simulate_assignment_distribution
+  - test_assignment_info
+
+tests/unit/d3_assessment/test_semrush_adapter.py (2 tests):
+  - test_commercial_intent_estimation
+  - test_visits_per_mil_calculation
+
+tests/unit/d4_enrichment/test_d4_coordinator.py (2 tests):
+  - TestTask043AcceptanceCriteria::test_merge_performance
+  - test_merge_performance
+
+tests/unit/d4_enrichment/test_dataaxle_enricher.py (2 tests):
+  - TestDataAxleEnricher::test_enricher_initialization_default_client
+  - test_enricher_initialization_default_client
+
+tests/unit/d4_enrichment/test_hunter_enricher.py (2 tests):
+  - TestHunterEnricher::test_enricher_initialization_default_client
+  - test_enricher_initialization_default_client
+
+tests/unit/test_config_extended.py (2 tests):
+  - TestExtendedConfig::test_environment_settings
+  - test_environment_settings
+
+tests/unit/test_core_utils.py (2 tests):
+  - TestMaskSensitiveData::test_mask_sensitive_data_custom_visible
+  - test_mask_sensitive_data_custom_visible
+
+tests/unit/test_environment_config.py (2 tests):
+  - TestEnvironmentConfig::test_development_allows_stub_choice
+  - test_development_allows_stub_choice
+
+tests/unit/test_parallel_safety.py (4 tests):
+  - TestParallelSafety::test_database_isolation
+  - TestParallelSafety::test_redis_isolation
+  - test_database_isolation
+  - test_redis_isolation
+

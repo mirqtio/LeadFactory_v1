@@ -13,7 +13,6 @@ import pytest
 class TestParallelSafety:
     """Test parallel safety mechanisms."""
 
-    @pytest.mark.xfail(reason="Database isolation not properly configured for parallel tests")
     def test_database_isolation(self, isolated_db):
         """Test that database isolation is working."""
         # Get worker-specific database info

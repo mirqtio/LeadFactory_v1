@@ -75,4 +75,3 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
             if test_items:
                 report = generate_marker_report(test_items)
                 terminalreporter.write("\n" + report + "\n")
-

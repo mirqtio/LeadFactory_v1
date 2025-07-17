@@ -36,7 +36,6 @@ class TestHealthEndpoint:
         response = client.get("/health")
         assert response.status_code == 200
 
-    @pytest.mark.xfail(reason="Health endpoint not yet implemented (P0-007)")
     def test_health_returns_json_status(self):
         """Test that health endpoint returns proper JSON structure"""
         response = client.get("/health")
@@ -45,7 +44,6 @@ class TestHealthEndpoint:
         assert "status" in data
         assert data["status"] in ["healthy", "unhealthy", "ok"]
 
-    @pytest.mark.xfail(reason="Health endpoint not yet implemented (P0-007)")
     def test_health_includes_version_info(self):
         """Test that health endpoint includes version information"""
         response = client.get("/health")
@@ -55,7 +53,6 @@ class TestHealthEndpoint:
         assert "version" in data
         assert data["version"] == settings.app_version
 
-    @pytest.mark.xfail(reason="Health endpoint not yet implemented (P0-007)")
     def test_health_includes_environment(self):
         """Test that health endpoint includes environment"""
         response = client.get("/health")
@@ -74,7 +71,6 @@ class TestHealthEndpoint:
         assert response.status_code == 200
         assert elapsed < 100, f"Response took {elapsed:.2f}ms, expected < 100ms"
 
-    @pytest.mark.xfail(reason="Health endpoint not yet implemented (P0-007)")
     def test_health_checks_database_connectivity(self):
         """Test that health endpoint checks database connectivity"""
         response = client.get("/health")
@@ -84,7 +80,6 @@ class TestHealthEndpoint:
         assert "database" in data["checks"]
         assert data["checks"]["database"]["status"] in ["connected", "disconnected", "error", "timeout"]
 
-    @pytest.mark.xfail(reason="Health endpoint not yet implemented (P0-007)")
     def test_health_checks_redis_connectivity(self):
         """Test that health endpoint checks Redis connectivity if configured"""
         response = client.get("/health")
@@ -95,7 +90,6 @@ class TestHealthEndpoint:
         if "checks" in data and "redis" in data["checks"]:
             assert data["checks"]["redis"]["status"] in ["connected", "disconnected", "error", "timeout"]
 
-    @pytest.mark.xfail(reason="Health endpoint not yet implemented (P0-007)")
     def test_health_handles_database_failure_gracefully(self):
         """Test that health endpoint handles database failures gracefully"""
         # For now, just ensure it doesn't crash
@@ -103,7 +97,6 @@ class TestHealthEndpoint:
             response = client.get("/health")
             assert response.status_code in [200, 503]
 
-    @pytest.mark.xfail(reason="Health endpoint not yet implemented (P0-007)")
     def test_health_handles_redis_failure_gracefully(self):
         """Test that health endpoint handles Redis failures gracefully"""
         # For now, just ensure it doesn't crash

@@ -68,7 +68,6 @@ class TestExtendedConfig:
             settings = Settings()
             assert settings.redis_url == "redis://redis.example.com:6380/1"
 
-    @pytest.mark.xfail(reason="Production environment configuration conflicts with test setup")
     def test_environment_settings(self):
         """Test environment-specific settings."""
         # Development environment
