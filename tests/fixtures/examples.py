@@ -24,7 +24,7 @@ class TestDatabaseFixtures:
         from d2_sourcing.models import Company
 
         # Create test data
-        company = Company(name="Test Corp", domain="testcorp.com", industry="Technology")
+        company = Company(name="Test Corp", domain="testcorp.com")
         test_db.add(company)
         test_db.commit()
 
