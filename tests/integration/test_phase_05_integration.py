@@ -91,19 +91,15 @@ class TestPhase05Integration:
         }
 
     @pytest.mark.asyncio
-    @patch("httpx.AsyncClient.get")
-    @patch("httpx.AsyncClient.post")
-    async def test_dataaxle_integration(self, mock_post, mock_get, test_business_data, mock_api_responses):
+    async def test_dataaxle_integration(self, test_business_data, mock_api_responses):
         """Test Data Axle business matching integration"""
-        # Mock API response
-        mock_post.return_value.json.return_value = mock_api_responses["dataaxle"]
-        mock_post.return_value.status_code = 200
-
         # Create client with test config
-        client = DataAxleClient(api_key="test-key", base_url="https://api.test.com")
-
-        # Test business matching
-        result = await client.match_business(test_business_data)
+        client = DataAxleClient(api_key="test-key")
+        
+        # Mock the make_request method to return expected response
+        with patch.object(client, "make_request", return_value=mock_api_responses["dataaxle"]):
+            # Test business matching
+            result = await client.match_business(test_business_data)
 
         # Verify result
         assert result["matched"] is True

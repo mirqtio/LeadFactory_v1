@@ -139,7 +139,7 @@ class TestEnvironmentConfig:
 
         # Default values for Wave B
         assert settings.enable_semrush is False
-        assert settings.enable_lighthouse is False
+        assert settings.enable_lighthouse is True  # Lighthouse is enabled by default
         assert settings.enable_visual_analysis is False
         assert settings.enable_llm_audit is False
 

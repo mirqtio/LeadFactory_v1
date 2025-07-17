@@ -424,9 +424,10 @@ class TestBucketComment:
         db_session.commit()
 
         # Verify relationship
-        saved_parent = db_session.query(BucketComment).filter_by(id=parent.id).first()
-        assert len(saved_parent.replies) == 1
-        assert saved_parent.replies[0].content == "Reply to original"
+        db_session.refresh(parent)  # Refresh to load relationships
+        assert parent.replies is not None
+        assert len(parent.replies) == 1
+        assert parent.replies[0].content == "Reply to original"
 
     def test_soft_delete_comment(self, db_session):
         """Test soft deleting a comment"""

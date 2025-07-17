@@ -55,7 +55,7 @@ class TestBaseAPIClient:
         """Test that rate limit interface works"""
         # Mock settings to enable stubs (to skip cost enforcement)
         mock_client.settings.use_stubs = True
-        
+
         # Mock rate limiter to allow request
         mock_client.rate_limiter.is_allowed = AsyncMock(return_value=True)
         mock_client.circuit_breaker.can_execute = Mock(return_value=True)
@@ -80,15 +80,11 @@ class TestBaseAPIClient:
         """Test that rate limiting blocks requests when exceeded"""
         # Mock settings to disable stubs
         mock_client.settings.use_stubs = False
-        
+
         # Mock cost enforcement to return rate limit error
         with patch("d0_gateway.base.cost_enforcement") as mock_cost_enforcement:
             mock_cost_enforcement.check_and_enforce = AsyncMock(
-                return_value={
-                    "allowed": False,
-                    "reason": "rate_limit_exceeded",
-                    "retry_after": 60
-                }
+                return_value={"allowed": False, "reason": "rate_limit_exceeded", "retry_after": 60}
             )
 
             with pytest.raises(RateLimitError):

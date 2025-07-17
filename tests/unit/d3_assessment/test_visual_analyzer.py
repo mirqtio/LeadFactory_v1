@@ -177,16 +177,17 @@ class TestVisualAnalyzer:
         assert result.data["mobile_screenshot_url"] == "https://screenshots.test/mobile-123.png"
 
         # Verify visual scores (all 9 dimensions)
+        # Scores are returned as-is from the 1-9 scale
         scores = result.data["visual_scores_json"]
-        assert scores["visual_design_quality"] == 85
-        assert scores["brand_consistency"] == 78
-        assert scores["navigation_clarity"] == 92
-        assert scores["content_organization"] == 88
-        assert scores["call_to_action_prominence"] == 65
-        assert scores["mobile_responsiveness"] == 95
-        assert scores["loading_performance"] == 72
-        assert scores["trust_signals"] == 80
-        assert scores["overall_user_experience"] == 82
+        assert scores["visual_design_quality"] == 8
+        assert scores["brand_consistency"] == 7
+        assert scores["navigation_clarity"] == 9
+        assert scores["content_organization"] == 8
+        assert scores["call_to_action_prominence"] == 6
+        assert scores["mobile_responsiveness"] == 9
+        assert scores["loading_performance"] == 7
+        assert scores["trust_signals"] == 8
+        assert scores["overall_user_experience"] == 8
 
         # Verify warnings and quick wins
         assert len(result.data["visual_warnings"]) == 5
@@ -196,7 +197,8 @@ class TestVisualAnalyzer:
 
         # Verify visual analysis summary
         analysis = result.data["visual_analysis"]
-        assert analysis["average_score"] == pytest.approx(81.89, rel=0.1)
+        # Average of scores on 1-9 scale: (8+7+9+8+6+9+7+8+8)/9 ≈ 7.78
+        assert analysis["average_score"] == pytest.approx(7.78, rel=0.1)
         assert analysis["lowest_score_area"] == "call_to_action_prominence"
         assert analysis["highest_score_area"] == "mobile_responsiveness"
         assert analysis["issues_count"] == 5

@@ -185,7 +185,13 @@ class TestPipelineComponents:
 
         with patch("flows.full_pipeline_flow.ReportGenerator") as mock_generator:
             mock_instance = AsyncMock()
-            mock_instance.generate_report = AsyncMock(return_value="/tmp/report_123.pdf")
+            # Create a mock result that matches what generate_report expects
+            mock_result = Mock()
+            mock_result.success = True
+            mock_result.pdf_result = Mock()
+            mock_result.pdf_result.success = True
+            mock_result.pdf_result.file_size = 1024
+            mock_instance.generate_report = AsyncMock(return_value=mock_result)
             mock_generator.return_value = mock_instance
 
             result = await generate_report.fn(business_data)

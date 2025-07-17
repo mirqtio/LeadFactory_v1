@@ -67,7 +67,7 @@ class TestD0GatewayComprehensive:
 
                 # Test provider methods
                 if hasattr(provider, "health_check"):
-                    with patch.object(provider, "_make_request", return_value={"status": "ok"}):
+                    with patch.object(provider, "make_request", return_value={"status": "ok"}):
                         result = provider.health_check()
                         assert result is not None
 
