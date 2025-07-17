@@ -46,6 +46,8 @@ jobs:
         pip install pyyaml python-dateutil pytz cryptography
         # Additional potential dependencies
         pip install asyncpg GitPython PyGithub openpyxl websockets
+        # Fix jsonschema import error
+        pip install jsonschema
     
     - name: Run ultra-fast test suite (no infrastructure)
       env:
