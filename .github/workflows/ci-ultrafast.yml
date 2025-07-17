@@ -32,7 +32,7 @@ jobs:
         pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout pytest-cov
         # Install minimal core dependencies needed for tests
-        pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy fastapi requests pytest-mock uvicorn
+        pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy fastapi requests jinja2 pytest-mock uvicorn
         # Additional dependencies for imports
         pip install redis faker stripe sendgrid twilio google-api-python-client openai psycopg2-binary alembic
         # Critical dependencies to fix import errors
