@@ -34,7 +34,8 @@ jobs:
         # Install only essential dependencies for speed
         pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout
-        pip install -r requirements.txt --no-deps  # Skip dependency checks for speed
+        # Install minimal subset of requirements for tests
+        pip install pydantic python-dotenv httpx sqlalchemy fastapi requests jinja2
     
     - name: Run ultra-fast test suite (no infrastructure)
       env:

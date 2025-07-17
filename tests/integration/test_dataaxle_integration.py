@@ -22,9 +22,10 @@ class TestDataAxleIntegration:
         monkeypatch.setenv("STUB_BASE_URL", stub_server_url)
         monkeypatch.setenv("DATA_AXLE_API_KEY", "test-key")
         monkeypatch.setenv("DATA_AXLE_RATE_LIMIT_PER_MIN", "200")
-        
+
         # Clear settings cache to pick up new environment variables
         from core.config import get_settings
+
         get_settings.cache_clear()
 
         # Import after settings override

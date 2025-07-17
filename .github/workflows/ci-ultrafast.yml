@@ -31,7 +31,8 @@ jobs:
         # Install only essential dependencies for speed
         pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout
-        pip install -e . --no-deps  # Skip dependency resolution for speed
+        # Install minimal core dependencies needed for tests
+        pip install pydantic python-dotenv httpx sqlalchemy fastapi
     
     - name: Run ultra-fast unit tests (no infrastructure)
       run: |
@@ -86,7 +87,8 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install pytest pytest-timeout
-        pip install -e . --no-deps
+        # Install minimal core dependencies needed for imports
+        pip install pydantic python-dotenv httpx sqlalchemy
     
     - name: Run smoke tests (import validation)
       run: |
