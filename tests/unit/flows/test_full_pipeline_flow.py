@@ -200,7 +200,7 @@ class TestPipelineComponents:
             mock_instance.generate_report.assert_called_once()
 
             # Verify result
-            assert result["report_path"] == "/tmp/report_123.pdf"
+            assert result["report_path"] == "memory://pdf/test_123.pdf"  # Virtual path from generate_report
             assert result["report_status"] == "completed"
             assert "report_generated_at" in result
 

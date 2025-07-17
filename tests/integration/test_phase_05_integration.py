@@ -65,9 +65,9 @@ class TestPhase05Integration:
                         },
                         "phone": "4155550123",
                         "website": "https://testrestaurant.com",
-                        "employee_count": 25,      # Use correct field names
+                        "employee_count": 25,  # Use correct field names
                         "annual_revenue": 2500000,  # Use correct field names
-                        "sic_codes": ["5812"],      # Should be an array
+                        "sic_codes": ["5812"],  # Should be an array
                         "naics_codes": ["722511"],  # Should be an array
                     }
                 ],
@@ -101,12 +101,13 @@ class TestPhase05Integration:
         dataaxle_response = {
             "match_found": True,
             "match_confidence": 0.95,
-            "business_data": mock_api_responses["dataaxle"]["businesses"][0]
+            "business_data": mock_api_responses["dataaxle"]["businesses"][0],
         }
-        
+
         # Mock both make_request and emit_cost to avoid database access
-        with patch.object(client, "make_request", return_value=dataaxle_response), \
-             patch.object(client, "emit_cost") as mock_emit_cost:
+        with patch.object(client, "make_request", return_value=dataaxle_response), patch.object(
+            client, "emit_cost"
+        ) as mock_emit_cost:
             # Test business matching
             result = await client.match_business(test_business_data)
 
@@ -116,7 +117,7 @@ class TestPhase05Integration:
         assert result["employee_count"] == 25
         assert result["annual_revenue"] == 2500000
         assert result["website"] == "https://testrestaurant.com"
-        
+
         # Verify cost was emitted
         mock_emit_cost.assert_called_once_with(
             lead_id=test_business_data.get("lead_id"),
@@ -126,7 +127,7 @@ class TestPhase05Integration:
                 "match_confidence": 0.95,
                 "has_email": False,  # No emails in our mock data
                 "has_phone": False,  # No phones in our mock data
-            }
+            },
         )
 
     @pytest.mark.asyncio

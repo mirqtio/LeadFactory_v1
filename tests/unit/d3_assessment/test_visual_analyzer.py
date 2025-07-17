@@ -200,7 +200,7 @@ class TestVisualAnalyzer:
         # Average of scores on 1-9 scale: (8+7+9+8+6+9+7+8+8)/9 ≈ 7.78
         assert analysis["average_score"] == pytest.approx(7.78, rel=0.1)
         assert analysis["lowest_score_area"] == "call_to_action_prominence"
-        assert analysis["highest_score_area"] == "mobile_responsiveness"
+        assert analysis["highest_score_area"] in ["navigation_clarity", "mobile_responsiveness"]  # Both have score 9
         assert analysis["issues_count"] == 5
         assert analysis["opportunities_count"] == 5
 
