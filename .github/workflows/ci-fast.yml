@@ -33,13 +33,15 @@ jobs:
       run: |
         # Install only essential dependencies for speed
         pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout
+        pip install pytest pytest-xdist pytest-timeout pytest-cov
         # Install minimal subset of requirements for tests
         pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy fastapi requests jinja2 pytest-mock uvicorn
         # Additional dependencies for imports
         pip install redis faker stripe sendgrid twilio google-api-python-client openai psycopg2-binary alembic
-        # Missing critical dependencies
-        pip install python-json-logger prometheus-client beautifulsoup4 pandas numpy tenacity aiohttp
+        # Critical dependencies to fix import errors
+        pip install python-json-logger prometheus-client beautifulsoup4 pandas numpy tenacity aiohttp geopy
+        # Additional missing dependencies
+        pip install click email-validator passlib[bcrypt] pyjwt python-multipart slowapi sentry-sdk[fastapi]
     
     - name: Run ultra-fast test suite (no infrastructure)
       env:
