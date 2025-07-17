@@ -26,9 +26,13 @@ help:
 	@echo "  make clean        - Clean temporary files"
 	@echo "  make run-stubs    - Run stub server"
 	@echo "  make run          - Run development server"
-	@echo "  make bpci         - Run Bulletproof CI (catches issues before GitHub CI)"
-	@echo "  make pre-push     - Pre-push validation using BPCI"
-	@echo "  make quick-check  - Quick validation with parallel tests"
+	@echo ""
+	@echo "CI Validation (Choose based on time available):"
+	@echo "  make bpci-ultrafast - Ultra-fast check (<3 min) - smoke tests only"
+	@echo "  make bpci-fast    - Fast validation (<5 min) - unit tests, no Docker"
+	@echo "  make bpci         - Full CI validation (~20 min) - complete mirror"
+	@echo "  make quick-check  - Pre-commit validation (30 sec) - lint & format"
+	@echo "  make pre-push     - Full BPCI validation before git push"
 	@echo ""
 	@echo "Production Testing:"
 	@echo "  make smoke        - Run smoke tests only"
@@ -163,6 +167,14 @@ ci-local:
 # BPCI - Bulletproof CI validation that catches issues BEFORE GitHub CI
 bpci:
 	bash scripts/bpci.sh
+
+# BPCI-Fast - Quick validation (<5 minutes) mirroring Fast CI Pipeline
+bpci-fast:
+	bash scripts/bpci-fast.sh
+
+# BPCI-UltraFast - Instant validation (<3 minutes) for immediate feedback
+bpci-ultrafast:
+	bash scripts/bpci-ultrafast.sh
 
 # Pre-push validation - runs ALL CI checks locally using BPCI
 pre-push: clean
