@@ -15,14 +15,17 @@ class TestDataAxleIntegration:
     """Integration tests for DataAxle provider"""
 
     @pytest.fixture
-    async def dataaxle_client(self, settings_override):
+    async def dataaxle_client(self, monkeypatch, stub_server_url):
         """Create DataAxle client for testing"""
-        settings_override(
-            use_stubs=True,
-            stub_base_url="http://localhost:5010",
-            data_axle_api_key="test-key",
-            data_axle_rate_limit_per_min=200,
-        )
+        # Override settings with monkeypatch
+        monkeypatch.setenv("USE_STUBS", "true")
+        monkeypatch.setenv("STUB_BASE_URL", stub_server_url)
+        monkeypatch.setenv("DATA_AXLE_API_KEY", "test-key")
+        monkeypatch.setenv("DATA_AXLE_RATE_LIMIT_PER_MIN", "200")
+        
+        # Clear settings cache to pick up new environment variables
+        from core.config import get_settings
+        get_settings.cache_clear()
 
         # Import after settings override
         from d0_gateway.providers.dataaxle import DataAxleClient

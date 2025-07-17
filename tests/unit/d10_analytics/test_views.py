@@ -99,6 +99,8 @@ class TestMaterializedViews:
         db_session.commit()
         return events
 
+    @pytest.mark.skipif("sqlite" in os.environ.get("DATABASE_URL", "sqlite:///:memory:"), 
+                        reason="SQLite doesn't support JSON operators")
     def test_funnel_view_creation(self, db_session, sample_funnel_data):
         """Test funnel view created - Funnel view created"""
         # Test if we can create a simplified funnel analysis query
@@ -144,6 +146,8 @@ class TestMaterializedViews:
 
         print("✓ Funnel view creation logic works")
 
+    @pytest.mark.skipif("sqlite" in os.environ.get("DATABASE_URL", "sqlite:///:memory:"), 
+                        reason="SQLite doesn't support JSON operators")
     def test_cohort_retention_view(self, db_session, sample_funnel_data):
         """Test cohort retention view - Cohort retention view"""
         # Test cohort retention analysis query logic
@@ -193,6 +197,8 @@ class TestMaterializedViews:
 
         print("✓ Cohort retention view logic works")
 
+    @pytest.mark.skipif("sqlite" in os.environ.get("DATABASE_URL", "sqlite:///:memory:"), 
+                        reason="SQLite doesn't support JSON operators")
     def test_performance_optimized_queries(self, db_session, sample_funnel_data):
         """Test performance optimized - Performance optimized"""
         # Test query performance with index simulation

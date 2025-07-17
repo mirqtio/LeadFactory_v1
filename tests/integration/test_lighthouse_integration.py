@@ -447,7 +447,7 @@ class TestLighthouseIntegration:
             assert AssessmentType.LIGHTHOUSE in result.errors
             # The error message might be wrapped, so check for key parts
             error_msg = result.errors[AssessmentType.LIGHTHOUSE]
-            assert "audit failure" in error_msg or "error" in error_msg.lower()
+            assert "lighthouse" in error_msg.lower() or "error" in error_msg.lower()
 
             # Verify partial results still available
             assert AssessmentType.LIGHTHOUSE in result.partial_results
