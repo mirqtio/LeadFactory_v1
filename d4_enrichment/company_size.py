@@ -8,14 +8,14 @@ import pandas as pd
 @lru_cache(maxsize=1)
 def _load_size_multipliers():
     """Load size multipliers from CSV file."""
-    csv_path = Path(__file__).parent.parent / "data" / "size_multipliers.csv"
+    csv_path = Path(__file__).parent.parent / "config" / "size_multipliers.csv"
     df = pd.read_csv(csv_path)
 
     # Parse employee ranges
     multipliers = []
     for _, row in df.iterrows():
         emp_range = row["employees"]
-        multiplier = row["max_multiplier"]
+        multiplier = row["multiplier"]
 
         if "-" in emp_range:
             min_emp, max_emp = emp_range.split("-")

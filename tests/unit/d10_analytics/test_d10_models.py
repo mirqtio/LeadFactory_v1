@@ -16,8 +16,8 @@ from decimal import Decimal
 
 import pytest
 
-# Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# Phase 0.5 feature is now implemented - removing xfail
+# pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 

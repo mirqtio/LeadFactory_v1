@@ -36,24 +36,37 @@ class TestRateLimiter:
         """Test that requests within rate limit are allowed"""
         limiter = RateLimiter()
 
-        # Mock rate limit config
-        with patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager:
-            mock_manager._rate_limits = {
+        # Set up rate limit on the actual guardrail_manager
+        from d0_gateway.guardrails import guardrail_manager
+
+        original_limits = guardrail_manager._rate_limits.copy()
+        try:
+            guardrail_manager._rate_limits = {
                 "openai:*": RateLimitConfig(provider="openai", requests_per_minute=60, burst_size=10, enabled=True)
             }
+
+            # Initialize bucket with some tokens
+            limiter._buckets["openai:*"]["tokens"] = 5
+            limiter._buckets["openai:*"]["last_refill"] = time.time()
 
             # First request should be allowed
             allowed, retry_after = limiter.check_rate_limit("openai")
             assert allowed is True
             assert retry_after is None
+        finally:
+            # Restore original limits
+            guardrail_manager._rate_limits = original_limits
 
     def test_rate_limit_blocks_over_limit(self):
         """Test that requests over rate limit are blocked"""
         limiter = RateLimiter()
 
-        # Mock rate limit config
-        with patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager:
-            mock_manager._rate_limits = {
+        # Set up rate limit on the actual guardrail_manager
+        from d0_gateway.guardrails import guardrail_manager
+
+        original_limits = guardrail_manager._rate_limits.copy()
+        try:
+            guardrail_manager._rate_limits = {
                 "openai:*": RateLimitConfig(
                     provider="openai", requests_per_minute=60, burst_size=1, enabled=True  # Very small burst
                 )
@@ -67,6 +80,9 @@ class TestRateLimiter:
             allowed, retry_after = limiter.check_rate_limit("openai")
             assert allowed is False
             assert retry_after > 0
+        finally:
+            # Restore original limits
+            guardrail_manager._rate_limits = original_limits
 
     def test_cost_rate_limit(self):
         """Test cost-based rate limiting"""
@@ -306,6 +322,8 @@ class TestUtilityFunctions:
 
     def test_check_budget_available(self):
         """Test check_budget_available function"""
+        from datetime import datetime, timedelta
+
         with patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager:
             # Mock check_limits to return status
             status = GuardrailStatus(
@@ -315,8 +333,8 @@ class TestUtilityFunctions:
                 percentage_used=0.5,
                 status="info",
                 remaining_budget=Decimal("50.00"),
-                period_start=Mock(),
-                period_end=Mock(),
+                period_start=datetime.utcnow(),
+                period_end=datetime.utcnow() + timedelta(days=1),
                 is_blocked=False,
                 circuit_breaker_open=False,
             )

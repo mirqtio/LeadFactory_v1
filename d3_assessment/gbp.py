@@ -107,11 +107,10 @@ class GBPAdapter:
                 category=FindingCategory.TRUST,
                 evidence=[
                     Evidence(
-                        description="Google Business Profile status",
+                        type="Google Business Profile status",
                         value="Not found",
                     )
                 ],
-                impact_score=0.7,
                 effort_estimate="easy",
                 conversion_impact=0.035,  # 3.5% impact
             )
@@ -153,23 +152,22 @@ class GBPAdapter:
                 category=FindingCategory.TRUST,
                 evidence=[
                     Evidence(
-                        description="Current rating",
+                        type="Current rating",
                         value=f"{rating:.1f} stars",
                     ),
                     Evidence(
-                        description="Review count",
+                        type="Review count",
                         value=str(review_count),
                     ),
                     Evidence(
-                        description="Target rating",
+                        type="Target rating",
                         value="4.0+ stars",
                     ),
                     Evidence(
-                        description="Target reviews",
+                        type="Target reviews",
                         value="20+ reviews",
                     ),
                 ],
-                impact_score=0.6,
                 effort_estimate="moderate",
                 conversion_impact=0.03,  # 3% impact
             )
@@ -183,15 +181,14 @@ class GBPAdapter:
             category=FindingCategory.TRUST,
             evidence=[
                 Evidence(
-                    description="Current rating",
+                    type="Current rating",
                     value=f"{rating:.1f} stars",
                 ),
                 Evidence(
-                    description="Review count",
+                    type="Review count",
                     value=str(review_count),
                 ),
             ],
-            impact_score=0.1,
             effort_estimate="easy",
             conversion_impact=0.005,  # 0.5% further improvement possible
         )

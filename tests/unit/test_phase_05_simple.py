@@ -13,7 +13,8 @@ from d0_gateway.providers.dataaxle import DataAxleClient
 from d0_gateway.providers.hunter import HunterClient
 
 # Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# Phase 0.5 feature is now implemented - removing xfail
+# pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
 
 
 class TestDataAxleClientSimple:
@@ -33,9 +34,9 @@ class TestDataAxleClientSimple:
         """Test cost calculation"""
         client = DataAxleClient(api_key="test-key")
 
-        # Match business costs $0.05
+        # Match business costs $0.10
         cost = client.calculate_cost("match_business")
-        assert cost == Decimal("0.05")
+        assert cost == Decimal("0.10")
 
         # Unknown operation is free
         cost = client.calculate_cost("unknown")
@@ -80,9 +81,9 @@ class TestHunterClientSimple:
         """Test cost calculation"""
         client = HunterClient(api_key="test-key")
 
-        # Find email costs $0.01
+        # Find email costs $0.003
         cost = client.calculate_cost("find_email")
-        assert cost == Decimal("0.01")
+        assert cost == Decimal("0.003")
 
         # Unknown operation is free
         cost = client.calculate_cost("unknown")

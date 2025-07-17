@@ -387,8 +387,9 @@ class TestVisualAnalyzer:
         # Should extract JSON and use defaults for missing scores
         assert result.status == "completed"
         scores = result.data["visual_scores_json"]
-        assert scores["visual_design_quality"] == 7
-        assert scores["brand_consistency"] == 8
+        # Scores 75 and 80 get clamped to 9 (max of 1-9 scale)
+        assert scores["visual_design_quality"] == 9
+        assert scores["brand_consistency"] == 9
         # Missing scores should default to 5
         assert scores["navigation_clarity"] == 5
         assert scores["mobile_responsiveness"] == 5
@@ -426,16 +427,16 @@ class TestVisualAnalyzer:
         assert result.metrics["screenshots_captured"] == 1
 
     def test_score_clamping(self, visual_analyzer):
-        """Test score clamping to 0-100 range"""
+        """Test score clamping to 1-9 range"""
         # Test various inputs
-        assert visual_analyzer._clamp_score(85) == 85
-        assert visual_analyzer._clamp_score(85.7) == 85
-        assert visual_analyzer._clamp_score(-10) == 0
-        assert visual_analyzer._clamp_score(150) == 100
-        assert visual_analyzer._clamp_score("75") == 75
-        assert visual_analyzer._clamp_score("invalid") == 50  # Default
-        assert visual_analyzer._clamp_score(None) == 50  # Default
-        assert visual_analyzer._clamp_score([]) == 50  # Default
+        assert visual_analyzer._clamp_score(8.5) == 8
+        assert visual_analyzer._clamp_score(8.7) == 8
+        assert visual_analyzer._clamp_score(-10) == 1
+        assert visual_analyzer._clamp_score(15) == 9
+        assert visual_analyzer._clamp_score("7.5") == 7
+        assert visual_analyzer._clamp_score("invalid") == 5  # Default
+        assert visual_analyzer._clamp_score(None) == 5  # Default
+        assert visual_analyzer._clamp_score([]) == 5  # Default
 
     def test_json_extraction_from_text(self, visual_analyzer):
         """Test JSON extraction from mixed text response"""

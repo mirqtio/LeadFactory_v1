@@ -63,7 +63,7 @@ class VisualAnalyzer(BaseAssessor):
             "call_to_action_prominence": max(1, base_score - 2),
             "mobile_responsiveness": min(9, base_score + 1),
             "loading_performance": max(1, base_score - 1),
-            "trust_signals": base_score,
+            "trust_signals": min(9, base_score + 1),
             "overall_user_experience": base_score,
         }
 
