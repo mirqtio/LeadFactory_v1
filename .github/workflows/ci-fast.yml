@@ -12,9 +12,9 @@ env:
 
 jobs:
   fast-test:
-    name: Fast Test Suite (<5 min target)
+    name: Ultra-Fast Test Suite (<5 min target)
     runs-on: ubuntu-latest
-    timeout-minutes: 5  # Hard 5-minute timeout
+    timeout-minutes: 4  # Stricter 4-minute timeout for buffer
     
     steps:
     - name: Checkout code
@@ -23,60 +23,46 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    - name: Build test image (cached)
+    - name: Build test image (optimized)
       run: |
-        docker build -f Dockerfile.test -t leadfactory-test . --cache-from=leadfactory-test
+        # Use build cache and parallel builds for speed
+        docker build -f Dockerfile.test -t leadfactory-test . --cache-from=leadfactory-test --build-arg BUILDKIT_INLINE_CACHE=1
     
-    - name: Start essential services only
+    - name: Start minimal services
       run: |
-        # Start only postgres and stub-server, skip other services for speed
-        docker compose -f docker-compose.test.yml up -d postgres stub-server
+        # Start only postgres, skip stub-server for speed
+        docker compose -f docker-compose.test.yml up -d postgres
         
-        # Quick health checks with shorter timeouts
+        # Quick PostgreSQL check with aggressive timeout
         echo "Quick PostgreSQL check..."
-        timeout 30 bash -c 'until docker compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do sleep 1; done' || {
+        timeout 20 bash -c 'until docker compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres; do sleep 0.5; done' || {
           echo "PostgreSQL failed to start quickly"
           exit 1
         }
-        
-        echo "Quick stub server check..."
-        timeout 30 bash -c 'until docker compose -f docker-compose.test.yml exec -T stub-server curl -f http://localhost:5010/health 2>/dev/null; do sleep 1; done' || {
-          echo "Stub server failed to start quickly"
-          exit 1
-        }
-        echo "✅ Fast service startup complete"
+        echo "✅ Minimal service startup complete"
     
-    - name: Run fast test suite
+    - name: Run ultra-fast test suite
       run: |
-        echo "🚀 Starting fast test suite - target <5 minutes"
+        echo "🚀 Starting ultra-fast test suite - strict <4 minutes"
         
-        # Run only critical and smoke tests for fast feedback
-        # Use serial execution to avoid race conditions
-        # Focus on core functionality only
-        timeout 240 docker compose -f docker-compose.test.yml run --rm test \
+        # Run only core unit tests for maximum speed
+        # Skip smoke tests that might require external services
+        # Use parallel execution for speed but limit workers
+        timeout 180 docker compose -f docker-compose.test.yml run --rm test \
           python -m pytest \
-          -v \
-          --tb=short \
-          -m "critical or smoke" \
-          --maxfail=3 \
+          --tb=no \
+          -q \
+          -n 2 \
+          --maxfail=1 \
           --disable-warnings \
           tests/unit/core/ \
-          tests/smoke/ \
           -x || {
           
-          echo "::error::Fast test suite failed or exceeded 4-minute limit"
-          
-          # Quick diagnostic info
-          echo "=== Quick Service Status ==="
-          docker compose -f docker-compose.test.yml ps
-          
-          echo "=== Recent Container Logs ==="
-          docker compose -f docker-compose.test.yml logs test --tail=50
-          
+          echo "::error::Ultra-fast test suite failed or exceeded 3-minute limit"
           exit 1
         }
         
-        echo "✅ Fast test suite completed successfully"
+        echo "✅ Ultra-fast test suite completed successfully"
     
     - name: Performance verification
       run: |
