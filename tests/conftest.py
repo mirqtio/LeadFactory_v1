@@ -24,6 +24,12 @@ from tests.fixtures import *  # noqa: F401,F403
 # Import parallel safety plugin
 from tests.parallel_safety import isolated_db, isolated_temp_dir
 
+# Register the auto-marker plugin
+# Note: pytest_flaky_markers is loaded separately if needed
+from tests.pytest_auto_markers import pytest_addoption as auto_marker_addoption
+from tests.pytest_auto_markers import pytest_collection_modifyitems as auto_marker_collection_modifyitems
+from tests.pytest_auto_markers import pytest_terminal_summary as auto_marker_terminal_summary
+
 # Import port manager and synchronization utilities
 from tests.test_port_manager import PortManager, get_dynamic_port, release_port
 from tests.test_synchronization import SyncEvent, wait_for_condition
@@ -234,3 +240,19 @@ def test_settings():
     assert settings.environment == "test"
     assert settings.use_stubs is True
     return settings
+
+
+# Hook implementations for auto-marker plugin
+def pytest_collection_modifyitems(config, items):
+    """Apply auto markers to test items."""
+    auto_marker_collection_modifyitems(config, items)
+
+
+def pytest_addoption(parser):
+    """Add custom command line options."""
+    auto_marker_addoption(parser)
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    """Add marker report to terminal summary if requested."""
+    auto_marker_terminal_summary(terminalreporter, exitstatus, config)
