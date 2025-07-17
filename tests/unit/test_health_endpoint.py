@@ -26,7 +26,7 @@ class TestHealthEndpoint:
         # Mock successful health checks
         mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.3}
-        
+
         response = client.get("/health")
 
         assert response.status_code == 200
@@ -86,7 +86,7 @@ class TestHealthEndpoint:
         # Mock fast health checks
         mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.3}
-        
+
         start_time = time.time()
         response = client.get("/health")
         response_time = (time.time() - start_time) * 1000
@@ -147,7 +147,7 @@ class TestHealthEndpoint:
         """Test detailed health check endpoint"""
         mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
-        
+
         response = client.get("/health/detailed")
 
         assert response.status_code == 200
@@ -259,7 +259,7 @@ class TestHealthEndpointPerformance:
         # Mock fast health checks
         mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
-        
+
         start_time = time.time()
         response = client.get("/health")
         elapsed_ms = (time.time() - start_time) * 1000
@@ -275,7 +275,7 @@ class TestHealthEndpointPerformance:
         # Mock fast health checks
         mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
-        
+
         times = []
 
         for _ in range(10):
@@ -301,7 +301,7 @@ class TestHealthEndpointPerformance:
     def test_health_endpoint_concurrent_requests(self, mock_redis_check, mock_db_check):
         """Test health endpoint under concurrent load"""
         import concurrent.futures
-        
+
         # Mock fast health checks
         mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
@@ -351,7 +351,7 @@ class TestHealthEndpointEdgeCases:
         # Mock health checks
         mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
-        
+
         response = client.get("/health")
         assert response.headers["content-type"] == "application/json"
 
@@ -362,7 +362,7 @@ class TestHealthEndpointEdgeCases:
         # Mock health checks
         mock_db_check.return_value = {"status": "connected", "latency_ms": 5.2}
         mock_redis_check.return_value = {"status": "connected", "latency_ms": 1.5}
-        
+
         # GET should work
         response = client.get("/health")
         assert response.status_code == 200

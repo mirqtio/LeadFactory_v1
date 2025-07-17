@@ -74,11 +74,11 @@ class TestD0GatewayComprehensive:
     def test_gateway_error_handling(self):
         """Test comprehensive error handling in gateway"""
         from d0_gateway.exceptions import (
-            AuthenticationError,
-            TimeoutError,
             APIProviderError,
+            AuthenticationError,
             RateLimitExceededError,
             ServiceUnavailableError,
+            TimeoutError,
         )
         from d0_gateway.facade import GatewayFacade
 

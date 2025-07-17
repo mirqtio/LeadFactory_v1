@@ -254,7 +254,7 @@ class TestStabilityValidation:
                     # Skip daemon threads - they don't need explicit join
                     if has_daemon:
                         continue
-                    
+
                     # Look for corresponding join() call within the same function/method
                     # This is a simple heuristic - check next 20 lines for a join call
                     found_join = False
@@ -262,7 +262,7 @@ class TestStabilityValidation:
                         if ".join(" in lines[i]:
                             found_join = True
                             break
-                    
+
                     if not found_join:
                         issues.append(f"{filepath}:{lineno} - Thread started without join()")
 
