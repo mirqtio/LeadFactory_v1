@@ -35,7 +35,7 @@ jobs:
         pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout
         # Install minimal subset of requirements for tests
-        pip install pydantic python-dotenv httpx sqlalchemy fastapi requests jinja2
+        pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy fastapi requests jinja2 pytest-mock
     
     - name: Run ultra-fast test suite (no infrastructure)
       env:
