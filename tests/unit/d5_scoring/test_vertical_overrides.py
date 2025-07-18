@@ -422,7 +422,7 @@ class TestVerticalScoringEngine:
             mock_base_parser.component_rules = {"base_comp": Mock()}
             mock_base_parser.tier_rules = {}
             mock_base_parser.quality_control = None
-            
+
             mock_vertical_parser = Mock()
             mock_vertical_parser.load_rules.return_value = True
             mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
@@ -470,7 +470,7 @@ class TestVerticalScoringEngine:
             mock_base_parser.component_rules = {}
             mock_base_parser.tier_rules = {}
             mock_base_parser.quality_control = None
-            
+
             mock_vertical_parser = Mock()
             mock_vertical_parser.load_rules.return_value = True
             mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
