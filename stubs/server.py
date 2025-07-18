@@ -304,8 +304,9 @@ async def sendgrid_send(mail: SendGridMail, authorization: str = Header(None)):
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
 
-    # Simulate some emails bouncing
-    if random.random() < 0.02:  # 2% bounce rate
+    # Simulate some emails bouncing, but only in production mode
+    # In test mode, always return success to avoid flaky tests
+    if not IS_TEST_MODE and random.random() < 0.02:  # 2% bounce rate
         return JSONResponse(status_code=400, content={"errors": [{"message": "Invalid email address"}]})
 
     return Response(

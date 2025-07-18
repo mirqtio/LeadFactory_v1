@@ -1,7 +1,7 @@
 """Add d2_companies table
 
 Revision ID: a41430908e80
-Revises: 163712db254c
+Revises: add_last_enriched_at
 Create Date: 2025-07-16 18:39:51.649936
 
 """
@@ -11,7 +11,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "a41430908e80"
-down_revision = "163712db254c"
+down_revision = "add_last_enriched_at"
 branch_labels = None
 depends_on = None
 
