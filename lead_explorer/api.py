@@ -634,7 +634,7 @@ async def assign_badge_to_lead(
 ):
     """
     Assign a badge to a lead with audit logging.
-    
+
     Requires appropriate permissions based on user role and badge type.
     """
     logger.info(f"Assigning badge {badge_data.badge_id} to lead: {lead_id} by user: {current_user.email}")
@@ -692,6 +692,76 @@ async def get_lead_badges(
     lead_badges = badge_repo.get_lead_badges(lead_id=lead_id, include_inactive=include_inactive)
 
     return LeadBadgeListResponseSchema(lead_badges=lead_badges, total_count=len(lead_badges))
+
+
+# P0-021: Badge Permission Endpoints
+@router.get("/badges/permissions", response_model=dict)
+@handle_api_errors
+async def get_badge_permissions(
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
+    """
+    Get badge management permissions for the current user.
+
+    Returns the user's role, allowed actions, and badge type restrictions.
+    """
+    logger.info(f"Getting badge permissions for user: {current_user.email}")
+
+    permissions = get_user_badge_permissions(current_user, db)
+
+    return {"user_id": current_user.id, "user_email": current_user.email, "badge_permissions": permissions}
+
+
+@router.delete("/leads/{lead_id}/badges/{badge_id}", response_model=dict)
+@limiter.limit("10/second")
+@handle_api_errors
+async def remove_badge_from_lead(
+    lead_id: str,
+    badge_id: str,
+    removal_reason: str = Query(None, description="Reason for badge removal"),
+    request: Request = None,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
+    """
+    Remove a badge from a lead with audit logging.
+
+    Requires appropriate permissions based on user role and badge type.
+    """
+    logger.info(f"Removing badge {badge_id} from lead: {lead_id} by user: {current_user.email}")
+
+    # Check permissions - removing badges requires same permissions as assigning
+    BadgePermissionMiddleware.check_assign_badge_permission(current_user, badge_id, lead_id, db)
+
+    from .repository import BadgeRepository
+
+    user_context = get_user_context(request)
+    badge_repo = BadgeRepository(db)
+
+    # Verify lead exists
+    lead_repo = LeadRepository(db)
+    lead = lead_repo.get_lead_by_id(lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    # Remove the badge
+    lead_badge = badge_repo.remove_badge_from_lead(
+        lead_id=lead_id,
+        badge_id=badge_id,
+        removed_by=user_context["user_id"],
+        removal_reason=removal_reason,
+    )
+
+    if not lead_badge:
+        raise HTTPException(status_code=404, detail="Badge assignment not found")
+
+    metrics.increment_counter("lead_explorer_badges_removed")
+    logger.info(f"Successfully removed badge {badge_id} from lead: {lead_id} by user: {current_user.email}")
+
+    return {"message": "Badge removed successfully", "lead_badge_id": lead_badge.id}
 
 
 # Include the router in main app with:
