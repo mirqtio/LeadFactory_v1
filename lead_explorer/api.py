@@ -26,29 +26,28 @@ from database.session import get_db
 from .audit import AuditContext
 from .enrichment_coordinator import get_enrichment_coordinator
 from .repository import AuditRepository, LeadRepository
-from .schemas import (
+from .schemas import (  # Badge schemas
+    AssignBadgeSchema,
     AuditTrailResponseSchema,
+    BadgeAuditTrailResponseSchema,
+    BadgeFilterSchema,
+    BadgeListResponseSchema,
+    BadgeResponseSchema,
+    CreateBadgeSchema,
     CreateLeadSchema,
     EnrichmentStatusEnum,
     HealthCheckResponseSchema,
+    LeadBadgeListResponseSchema,
+    LeadBadgeResponseSchema,
     LeadFilterSchema,
     LeadListResponseSchema,
     LeadResponseSchema,
     PaginationSchema,
     QuickAddLeadSchema,
     QuickAddResponseSchema,
-    UpdateLeadSchema,
-    # Badge schemas
-    BadgeFilterSchema,
-    BadgeListResponseSchema,
-    BadgeResponseSchema,
-    CreateBadgeSchema,
-    UpdateBadgeSchema,
-    AssignBadgeSchema,
     RemoveBadgeSchema,
-    LeadBadgeResponseSchema,
-    LeadBadgeListResponseSchema,
-    BadgeAuditTrailResponseSchema,
+    UpdateBadgeSchema,
+    UpdateLeadSchema,
 )
 
 # Initialize logger
@@ -185,10 +184,16 @@ async def list_leads(
     - is_manual: Whether lead was manually added
     - enrichment_status: Current enrichment status
     - search: Search in email, domain, company, contact name
+    - badge_ids: Filter by specific badge IDs
+    - badge_types: Filter by badge types
+    - has_badges: Filter leads with/without badges
+    - exclude_badge_ids: Exclude leads with specific badges
     """
     logger.info(
         f"Listing leads with filters: is_manual={filters.is_manual}, "
-        f"enrichment_status={filters.enrichment_status}, search={filters.search}"
+        f"enrichment_status={filters.enrichment_status}, search={filters.search}, "
+        f"badge_ids={filters.badge_ids}, badge_types={filters.badge_types}, "
+        f"has_badges={filters.has_badges}, exclude_badge_ids={filters.exclude_badge_ids}"
     )
 
     lead_repo = LeadRepository(db)
@@ -200,6 +205,11 @@ async def list_leads(
 
         enrichment_status = EnrichmentStatus(filters.enrichment_status.value)
 
+    # Convert badge type enums to strings
+    badge_types = None
+    if filters.badge_types:
+        badge_types = [bt.value for bt in filters.badge_types]
+
     leads, total_count = lead_repo.list_leads(
         skip=pagination.skip,
         limit=pagination.limit,
@@ -208,6 +218,11 @@ async def list_leads(
         search=filters.search,
         sort_by=pagination.sort_by,
         sort_order=pagination.sort_order,
+        # P0-021: Badge-based filtering
+        badge_ids=filters.badge_ids,
+        badge_types=badge_types,
+        has_badges=filters.has_badges,
+        exclude_badge_ids=filters.exclude_badge_ids,
     )
 
     # Calculate pagination info
@@ -512,6 +527,158 @@ async def lead_explorer_health_check(db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         raise HTTPException(status_code=503, detail="Service unhealthy")
+
+
+# P0-021: Badge Management API Endpoints
+@router.post("/badges", response_model=BadgeResponseSchema, status_code=201)
+@limiter.limit("10/second")
+@handle_api_errors
+async def create_badge(
+    badge_data: CreateBadgeSchema,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
+    """
+    Create a new badge for categorizing leads.
+
+    Only users with proper permissions can create badges.
+    System badges can only be created by system administrators.
+    """
+    logger.info(f"Creating new badge: {badge_data.name}")
+
+    # Import badge repository here to avoid circular imports
+    from .repository import BadgeRepository
+
+    user_context = get_user_context(request)
+    badge_repo = BadgeRepository(db)
+
+    # Create the badge
+    badge = badge_repo.create_badge(
+        name=badge_data.name,
+        description=badge_data.description,
+        badge_type=badge_data.badge_type.value,
+        color=badge_data.color,
+        icon=badge_data.icon,
+        is_system=badge_data.is_system,
+        is_active=badge_data.is_active,
+        created_by=user_context["user_id"],
+    )
+
+    metrics.increment_counter("lead_explorer_badges_created")
+    logger.info(f"Successfully created badge: {badge.id}")
+
+    return badge
+
+
+@router.get("/badges", response_model=BadgeListResponseSchema)
+@handle_api_errors
+async def list_badges(
+    filters: BadgeFilterSchema = Depends(),
+    pagination: PaginationSchema = Depends(),
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
+    """
+    List all available badges with filtering and pagination.
+
+    Supports filtering by badge type, system status, and active status.
+    """
+    logger.info(f"Listing badges with filters: {filters}")
+
+    from .repository import BadgeRepository
+
+    badge_repo = BadgeRepository(db)
+
+    badges, total_count = badge_repo.list_badges(
+        skip=pagination.skip,
+        limit=pagination.limit,
+        badge_type=filters.badge_type.value if filters.badge_type else None,
+        is_system=filters.is_system,
+        is_active=filters.is_active,
+        search=filters.search,
+        sort_by=pagination.sort_by,
+        sort_order=pagination.sort_order,
+    )
+
+    # Calculate pagination info
+    page_info = {
+        "current_page": (pagination.skip // pagination.limit) + 1,
+        "total_pages": (total_count + pagination.limit - 1) // pagination.limit,
+        "page_size": pagination.limit,
+        "has_next": pagination.skip + pagination.limit < total_count,
+        "has_previous": pagination.skip > 0,
+    }
+
+    return BadgeListResponseSchema(badges=badges, total_count=total_count, page_info=page_info)
+
+
+@router.post("/leads/{lead_id}/badges", response_model=LeadBadgeResponseSchema, status_code=201)
+@limiter.limit("10/second")
+@handle_api_errors
+async def assign_badge_to_lead(
+    lead_id: str,
+    badge_data: AssignBadgeSchema,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
+    """Assign a badge to a lead with audit logging."""
+    logger.info(f"Assigning badge {badge_data.badge_id} to lead: {lead_id}")
+
+    from .repository import BadgeRepository
+
+    user_context = get_user_context(request)
+    badge_repo = BadgeRepository(db)
+
+    # Verify lead exists
+    lead_repo = LeadRepository(db)
+    lead = lead_repo.get_lead_by_id(lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    # Assign the badge
+    lead_badge = badge_repo.assign_badge_to_lead(
+        lead_id=lead_id,
+        badge_id=badge_data.badge_id,
+        assigned_by=user_context["user_id"],
+        notes=badge_data.notes,
+        expires_at=badge_data.expires_at,
+    )
+
+    metrics.increment_counter("lead_explorer_badges_assigned")
+    logger.info(f"Successfully assigned badge {badge_data.badge_id} to lead: {lead_id}")
+
+    return lead_badge
+
+
+@router.get("/leads/{lead_id}/badges", response_model=LeadBadgeListResponseSchema)
+@handle_api_errors
+async def get_lead_badges(
+    lead_id: str,
+    include_inactive: bool = Query(False, description="Include inactive badge assignments"),
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
+    """Get all badges assigned to a lead."""
+    logger.info(f"Getting badges for lead: {lead_id}")
+
+    from .repository import BadgeRepository
+
+    # Verify lead exists
+    lead_repo = LeadRepository(db)
+    lead = lead_repo.get_lead_by_id(lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    badge_repo = BadgeRepository(db)
+    lead_badges = badge_repo.get_lead_badges(lead_id=lead_id, include_inactive=include_inactive)
+
+    return LeadBadgeListResponseSchema(lead_badges=lead_badges, total_count=len(lead_badges))
 
 
 # Include the router in main app with:
