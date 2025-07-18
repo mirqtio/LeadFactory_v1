@@ -340,7 +340,7 @@ class TestFlakyMarkerVerification:
         """Test that demonstrates handling of flaky test scenarios."""
         # This test demonstrates proper handling of potentially flaky scenarios
         # Instead of actually being flaky, we test the resilience patterns
-        
+
         # Test that we can handle transient failures gracefully
         max_retries = 3
         for attempt in range(max_retries):
