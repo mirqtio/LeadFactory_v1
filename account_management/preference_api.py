@@ -26,10 +26,10 @@ from account_management.preference_schemas import (
     NotificationPreferenceResponse,
     PreferencesListResponse,
     RecentActivityResponse,
+    SavedSearchesListResponse,
     SavedSearchRequest,
     SavedSearchResponse,
     SavedSearchUpdate,
-    SavedSearchesListResponse,
     UserPreferenceRequest,
     UserPreferenceResponse,
 )
@@ -51,22 +51,17 @@ async def list_user_preferences(
     db: Session = Depends(get_db),
 ):
     """List user preferences with optional category filter"""
-    
+
     query = db.query(UserPreference).filter(UserPreference.user_id == current_user.id)
-    
+
     if category:
         query = query.filter(UserPreference.category == category)
-    
+
     preferences = query.order_by(UserPreference.category, UserPreference.key).all()
-    
+
     # Get available categories for this user
-    categories = (
-        db.query(UserPreference.category)
-        .filter(UserPreference.user_id == current_user.id)
-        .distinct()
-        .all()
-    )
-    
+    categories = db.query(UserPreference.category).filter(UserPreference.user_id == current_user.id).distinct().all()
+
     return PreferencesListResponse(
         preferences=[UserPreferenceResponse.model_validate(p) for p in preferences],
         total=len(preferences),
@@ -81,7 +76,7 @@ async def create_user_preference(
     db: Session = Depends(get_db),
 ):
     """Create or update a user preference"""
-    
+
     # Check if preference already exists
     existing = (
         db.query(UserPreference)
@@ -94,7 +89,7 @@ async def create_user_preference(
         )
         .first()
     )
-    
+
     if existing:
         # Update existing preference
         existing.value = preference_data.value
@@ -102,12 +97,12 @@ async def create_user_preference(
         existing.organization_id = preference_data.organization_id
         existing.team_id = preference_data.team_id
         existing.updated_at = datetime.utcnow()
-        
+
         db.commit()
         db.refresh(existing)
-        
+
         return UserPreferenceResponse.model_validate(existing)
-    
+
     # Create new preference
     preference = UserPreference(
         user_id=current_user.id,
@@ -118,13 +113,13 @@ async def create_user_preference(
         organization_id=preference_data.organization_id,
         team_id=preference_data.team_id,
     )
-    
+
     db.add(preference)
     db.commit()
     db.refresh(preference)
-    
+
     logger.info(f"Created preference {preference_data.category}.{preference_data.key} for user {current_user.id}")
-    
+
     return UserPreferenceResponse.model_validate(preference)
 
 
@@ -135,16 +130,16 @@ async def get_user_preference(
     db: Session = Depends(get_db),
 ):
     """Get specific user preference"""
-    
+
     preference = (
         db.query(UserPreference)
         .filter(and_(UserPreference.id == preference_id, UserPreference.user_id == current_user.id))
         .first()
     )
-    
+
     if not preference:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Preference not found")
-    
+
     return UserPreferenceResponse.model_validate(preference)
 
 
@@ -155,21 +150,21 @@ async def delete_user_preference(
     db: Session = Depends(get_db),
 ):
     """Delete user preference"""
-    
+
     preference = (
         db.query(UserPreference)
         .filter(and_(UserPreference.id == preference_id, UserPreference.user_id == current_user.id))
         .first()
     )
-    
+
     if not preference:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Preference not found")
-    
+
     db.delete(preference)
     db.commit()
-    
+
     logger.info(f"Deleted preference {preference_id} for user {current_user.id}")
-    
+
     return {"message": "Preference deleted successfully"}
 
 
@@ -182,17 +177,18 @@ async def list_saved_searches(
     db: Session = Depends(get_db),
 ):
     """List user's saved searches with optional filtering"""
-    
+
     query = db.query(SavedSearch).filter(
-        SavedSearch.user_id == current_user.id if not include_public 
+        SavedSearch.user_id == current_user.id
+        if not include_public
         else SavedSearch.user_id == current_user.id or SavedSearch.is_public == True
     )
-    
+
     if search_type:
         query = query.filter(SavedSearch.search_type == search_type)
-    
+
     searches = query.order_by(SavedSearch.last_used_at.desc().nullslast(), SavedSearch.usage_count.desc()).all()
-    
+
     # Get search counts by type
     type_counts = (
         db.query(SavedSearch.search_type, func.count(SavedSearch.id))
@@ -200,9 +196,9 @@ async def list_saved_searches(
         .group_by(SavedSearch.search_type)
         .all()
     )
-    
+
     by_type = {search_type: count for search_type, count in type_counts}
-    
+
     return SavedSearchesListResponse(
         searches=[SavedSearchResponse.model_validate(s) for s in searches],
         total=len(searches),
@@ -217,7 +213,7 @@ async def create_saved_search(
     db: Session = Depends(get_db),
 ):
     """Create a new saved search"""
-    
+
     # Check for name uniqueness for this user
     existing = (
         db.query(SavedSearch)
@@ -230,13 +226,13 @@ async def create_saved_search(
         )
         .first()
     )
-    
+
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Search with name '{search_data.name}' already exists for this search type",
         )
-    
+
     # If setting as default, unset other defaults for this search type
     if search_data.is_default:
         db.query(SavedSearch).filter(
@@ -246,7 +242,7 @@ async def create_saved_search(
                 SavedSearch.is_default == True,
             )
         ).update({"is_default": False})
-    
+
     search = SavedSearch(
         user_id=current_user.id,
         name=search_data.name,
@@ -260,13 +256,13 @@ async def create_saved_search(
         organization_id=search_data.organization_id,
         team_id=search_data.team_id,
     )
-    
+
     db.add(search)
     db.commit()
     db.refresh(search)
-    
+
     logger.info(f"Created saved search '{search_data.name}' for user {current_user.id}")
-    
+
     return SavedSearchResponse.model_validate(search)
 
 
@@ -277,7 +273,7 @@ async def get_saved_search(
     db: Session = Depends(get_db),
 ):
     """Get specific saved search and increment usage count"""
-    
+
     search = (
         db.query(SavedSearch)
         .filter(
@@ -288,15 +284,15 @@ async def get_saved_search(
         )
         .first()
     )
-    
+
     if not search:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Saved search not found")
-    
+
     # Increment usage count and update last used timestamp
     search.usage_count += 1
     search.last_used_at = datetime.utcnow()
     db.commit()
-    
+
     return SavedSearchResponse.model_validate(search)
 
 
@@ -308,16 +304,14 @@ async def update_saved_search(
     db: Session = Depends(get_db),
 ):
     """Update saved search"""
-    
+
     search = (
-        db.query(SavedSearch)
-        .filter(and_(SavedSearch.id == search_id, SavedSearch.user_id == current_user.id))
-        .first()
+        db.query(SavedSearch).filter(and_(SavedSearch.id == search_id, SavedSearch.user_id == current_user.id)).first()
     )
-    
+
     if not search:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Saved search not found")
-    
+
     # Check name uniqueness if changing name
     if search_data.name and search_data.name != search.name:
         existing = (
@@ -332,13 +326,13 @@ async def update_saved_search(
             )
             .first()
         )
-        
+
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Search with name '{search_data.name}' already exists for this search type",
             )
-    
+
     # If setting as default, unset other defaults
     if search_data.is_default:
         db.query(SavedSearch).filter(
@@ -349,18 +343,18 @@ async def update_saved_search(
                 SavedSearch.id != search_id,
             )
         ).update({"is_default": False})
-    
+
     # Update fields
     update_data = search_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(search, field, value)
-    
+
     search.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(search)
-    
+
     logger.info(f"Updated saved search {search_id} for user {current_user.id}")
-    
+
     return SavedSearchResponse.model_validate(search)
 
 
@@ -371,21 +365,19 @@ async def delete_saved_search(
     db: Session = Depends(get_db),
 ):
     """Delete saved search"""
-    
+
     search = (
-        db.query(SavedSearch)
-        .filter(and_(SavedSearch.id == search_id, SavedSearch.user_id == current_user.id))
-        .first()
+        db.query(SavedSearch).filter(and_(SavedSearch.id == search_id, SavedSearch.user_id == current_user.id)).first()
     )
-    
+
     if not search:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Saved search not found")
-    
+
     db.delete(search)
     db.commit()
-    
+
     logger.info(f"Deleted saved search {search_id} for user {current_user.id}")
-    
+
     return {"message": "Saved search deleted successfully"}
 
 
@@ -396,14 +388,14 @@ async def list_dashboard_layouts(
     db: Session = Depends(get_db),
 ):
     """List user's dashboard layouts"""
-    
+
     layouts = (
         db.query(UserDashboardLayout)
         .filter(UserDashboardLayout.user_id == current_user.id)
         .order_by(UserDashboardLayout.is_default.desc(), UserDashboardLayout.name)
         .all()
     )
-    
+
     return [DashboardLayoutResponse.model_validate(layout) for layout in layouts]
 
 
@@ -414,7 +406,7 @@ async def create_dashboard_layout(
     db: Session = Depends(get_db),
 ):
     """Create dashboard layout"""
-    
+
     # If setting as default, unset other defaults
     if layout_data.is_default:
         db.query(UserDashboardLayout).filter(
@@ -423,7 +415,7 @@ async def create_dashboard_layout(
                 UserDashboardLayout.is_default == True,
             )
         ).update({"is_default": False})
-    
+
     layout = UserDashboardLayout(
         user_id=current_user.id,
         name=layout_data.name,
@@ -432,13 +424,13 @@ async def create_dashboard_layout(
         is_default=layout_data.is_default,
         organization_id=layout_data.organization_id,
     )
-    
+
     db.add(layout)
     db.commit()
     db.refresh(layout)
-    
+
     logger.info(f"Created dashboard layout '{layout_data.name}' for user {current_user.id}")
-    
+
     return DashboardLayoutResponse.model_validate(layout)
 
 
@@ -449,14 +441,14 @@ async def list_notification_preferences(
     db: Session = Depends(get_db),
 ):
     """List user's notification preferences"""
-    
+
     preferences = (
         db.query(UserNotificationPreference)
         .filter(UserNotificationPreference.user_id == current_user.id)
         .order_by(UserNotificationPreference.event_type)
         .all()
     )
-    
+
     return [NotificationPreferenceResponse.model_validate(pref) for pref in preferences]
 
 
@@ -468,7 +460,7 @@ async def update_notification_preference(
     db: Session = Depends(get_db),
 ):
     """Update notification preference for specific event type"""
-    
+
     # Find existing preference or create new one
     preference = (
         db.query(UserNotificationPreference)
@@ -480,7 +472,7 @@ async def update_notification_preference(
         )
         .first()
     )
-    
+
     if preference:
         # Update existing
         preference.email_enabled = preference_data.email_enabled
@@ -507,12 +499,12 @@ async def update_notification_preference(
             config=preference_data.config,
         )
         db.add(preference)
-    
+
     db.commit()
     db.refresh(preference)
-    
+
     logger.info(f"Updated notification preference for {event_type} for user {current_user.id}")
-    
+
     return NotificationPreferenceResponse.model_validate(preference)
 
 
@@ -525,18 +517,14 @@ async def get_recent_activity(
     db: Session = Depends(get_db),
 ):
     """Get user's recent activity"""
-    
+
     query = db.query(UserRecentActivity).filter(UserRecentActivity.user_id == current_user.id)
-    
+
     if activity_type:
         query = query.filter(UserRecentActivity.activity_type == activity_type)
-    
-    activities = (
-        query.order_by(UserRecentActivity.last_accessed_at.desc())
-        .limit(limit)
-        .all()
-    )
-    
+
+    activities = query.order_by(UserRecentActivity.last_accessed_at.desc()).limit(limit).all()
+
     return [RecentActivityResponse.model_validate(activity) for activity in activities]
 
 
@@ -550,7 +538,7 @@ async def track_user_activity(
     db: Session = Depends(get_db),
 ):
     """Track user activity for recommendations"""
-    
+
     # Find existing activity or create new one
     activity = (
         db.query(UserRecentActivity)
@@ -564,7 +552,7 @@ async def track_user_activity(
         )
         .first()
     )
-    
+
     if activity:
         # Update existing
         activity.access_count += 1
@@ -581,7 +569,7 @@ async def track_user_activity(
             activity_metadata=metadata,
         )
         db.add(activity)
-    
+
     db.commit()
-    
+
     return {"message": "Activity tracked successfully"}

@@ -1,6 +1,6 @@
 metadata:
   version: '1.0'
-  last_updated: '2025-07-18T16:47:10.731363Z'
+  last_updated: '2025-07-18T19:03:16.918178Z'
   tracking_started: '2025-07-16T14:00:00Z'
 prp_tracking:
   P0-001:
@@ -192,13 +192,13 @@ prp_tracking:
       validated with CI
   P2-020:
     title: Personalization MVP
-    status: validated
+    status: in_progress
     validated_at: '2025-07-16T08:00:00Z'
-    started_at: null
+    started_at: '2025-07-18T19:03:16.917609Z'
     completed_at: null
     github_commit: null
     ci_run_url: null
-    notes: Ready for execution
+    notes: Started by user at 2025-07-18 15:03:16
   P2-030:
     title: Recommendation Engine
     status: validated
@@ -310,13 +310,13 @@ prp_tracking:
       optimized
   P0-020:
     title: Design System Token Extraction
-    status: in_progress
+    status: validated
     validated_at: '2025-07-16T16:00:00Z'
-    started_at: '2025-07-18T16:47:10.730980Z'
+    started_at: null
     completed_at: null
     github_commit: null
     ci_run_url: null
-    notes: Started by user at 2025-07-18 12:47:10
+    notes: Reset to validated status for PM hierarchy launch
   P0-021:
     title: Lead Explorer
     status: validated

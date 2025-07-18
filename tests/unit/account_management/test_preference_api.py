@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from account_management.models import AccountUser
-from account_management.preference_models import PreferenceCategory, SearchType, UserPreference, SavedSearch
+from account_management.preference_models import PreferenceCategory, SavedSearch, SearchType, UserPreference
 from main import app
 
 
@@ -32,7 +32,7 @@ class TestUserPreferencesAPI:
         mock_query = Mock()
         mock_db.query.return_value = mock_query
         mock_query.filter.return_value.first.return_value = None  # No existing preference
-        
+
         # Mock preference creation
         mock_preference = Mock(spec=UserPreference)
         mock_preference.id = "pref-123"
@@ -42,15 +42,15 @@ class TestUserPreferencesAPI:
         mock_preference.value = {"mode": "dark"}
         mock_preference.created_at = datetime.utcnow()
         mock_preference.updated_at = datetime.utcnow()
-        
+
         mock_db.add.return_value = None
         mock_db.commit.return_value = None
         mock_db.refresh.return_value = None
-        
+
         # Mock authentication
         mocker.patch("account_management.preference_api.get_current_user_dependency", return_value=self.mock_user)
         mocker.patch("account_management.preference_api.get_db", return_value=mock_db)
-        
+
         # Make request
         response = self.client.post(
             "/api/v1/preferences/",
@@ -58,11 +58,11 @@ class TestUserPreferencesAPI:
                 "category": "dashboard",
                 "key": "theme",
                 "value": {"mode": "dark"},
-                "description": "User theme preference"
+                "description": "User theme preference",
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
-        
+
         # Assertions
         assert response.status_code == 201
         mock_db.add.assert_called_once()
@@ -75,7 +75,7 @@ class TestUserPreferencesAPI:
         mock_query = Mock()
         mock_db.query.return_value = mock_query
         mock_query.filter.return_value.first.return_value = None  # No existing search
-        
+
         # Mock search creation
         mock_search = Mock(spec=SavedSearch)
         mock_search.id = "search-123"
@@ -85,15 +85,15 @@ class TestUserPreferencesAPI:
         mock_search.query_params = {"company_size": "small"}
         mock_search.created_at = datetime.utcnow()
         mock_search.updated_at = datetime.utcnow()
-        
+
         mock_db.add.return_value = None
         mock_db.commit.return_value = None
         mock_db.refresh.return_value = None
-        
+
         # Mock authentication
         mocker.patch("account_management.preference_api.get_current_user_dependency", return_value=self.mock_user)
         mocker.patch("account_management.preference_api.get_db", return_value=mock_db)
-        
+
         # Make request
         response = self.client.post(
             "/api/v1/preferences/searches",
@@ -101,11 +101,11 @@ class TestUserPreferencesAPI:
                 "name": "Test Search",
                 "search_type": "lead_search",
                 "query_params": {"company_size": "small"},
-                "description": "Search for small companies"
+                "description": "Search for small companies",
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
-        
+
         # Assertions
         assert response.status_code == 201
         mock_db.add.assert_called_once()
@@ -119,20 +119,17 @@ class TestUserPreferencesAPI:
         mock_db.query.return_value = mock_query
         mock_query.filter.return_value = mock_query
         mock_query.order_by.return_value.all.return_value = []
-        
+
         # Mock distinct categories query
         mock_query.distinct.return_value.all.return_value = [(PreferenceCategory.DASHBOARD,)]
-        
+
         # Mock authentication
         mocker.patch("account_management.preference_api.get_current_user_dependency", return_value=self.mock_user)
         mocker.patch("account_management.preference_api.get_db", return_value=mock_db)
-        
+
         # Make request
-        response = self.client.get(
-            "/api/v1/preferences/",
-            headers={"Authorization": "Bearer test-token"}
-        )
-        
+        response = self.client.get("/api/v1/preferences/", headers={"Authorization": "Bearer test-token"})
+
         # Assertions
         assert response.status_code == 200
         data = response.json()
@@ -147,25 +144,21 @@ class TestUserPreferencesAPI:
         mock_query = Mock()
         mock_db.query.return_value = mock_query
         mock_query.filter.return_value.first.return_value = None  # No existing activity
-        
+
         mock_db.add.return_value = None
         mock_db.commit.return_value = None
-        
+
         # Mock authentication
         mocker.patch("account_management.preference_api.get_current_user_dependency", return_value=self.mock_user)
         mocker.patch("account_management.preference_api.get_db", return_value=mock_db)
-        
+
         # Make request
         response = self.client.post(
             "/api/v1/preferences/track-activity",
-            params={
-                "activity_type": "view",
-                "resource_type": "lead",
-                "resource_id": "lead-123"
-            },
-            headers={"Authorization": "Bearer test-token"}
+            params={"activity_type": "view", "resource_type": "lead", "resource_id": "lead-123"},
+            headers={"Authorization": "Bearer test-token"},
         )
-        
+
         # Assertions
         assert response.status_code == 200
         data = response.json()
@@ -182,18 +175,14 @@ class TestUserPreferencesAPI:
         # Mock authentication
         mocker.patch("account_management.preference_api.get_current_user_dependency", return_value=self.mock_user)
         mocker.patch("account_management.preference_api.get_db", return_value=Mock())
-        
+
         # Make request with invalid category
         response = self.client.post(
             "/api/v1/preferences/",
-            json={
-                "category": "invalid_category",
-                "key": "test",
-                "value": {"test": "value"}
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"category": "invalid_category", "key": "test", "value": {"test": "value"}},
+            headers={"Authorization": "Bearer test-token"},
         )
-        
+
         # Should return validation error
         assert response.status_code == 422
 
@@ -202,25 +191,21 @@ class TestUserPreferencesAPI:
         # Mock authentication
         mocker.patch("account_management.preference_api.get_current_user_dependency", return_value=self.mock_user)
         mocker.patch("account_management.preference_api.get_db", return_value=Mock())
-        
+
         # Make request with invalid search type
         response = self.client.post(
             "/api/v1/preferences/searches",
-            json={
-                "name": "Test Search",
-                "search_type": "invalid_type",
-                "query_params": {"test": "value"}
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"name": "Test Search", "search_type": "invalid_type", "query_params": {"test": "value"}},
+            headers={"Authorization": "Bearer test-token"},
         )
-        
+
         # Should return validation error
         assert response.status_code == 422
 
 
 class TestPreferenceModels:
     """Test preference model validations"""
-    
+
     def test_preference_category_enum(self):
         """Test preference category enum values"""
         categories = [
@@ -233,7 +218,7 @@ class TestPreferenceModels:
             PreferenceCategory.EXPORT,
             PreferenceCategory.WORKFLOW,
         ]
-        
+
         assert len(categories) == 8
         assert all(isinstance(cat, PreferenceCategory) for cat in categories)
 
@@ -246,6 +231,6 @@ class TestPreferenceModels:
             SearchType.CAMPAIGN_SEARCH,
             SearchType.ASSESSMENT_SEARCH,
         ]
-        
+
         assert len(search_types) == 5
         assert all(isinstance(st, SearchType) for st in search_types)

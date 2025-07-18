@@ -12,7 +12,7 @@ from account_management.preference_models import PreferenceCategory, SearchType
 
 class UserPreferenceRequest(BaseModel):
     """Request schema for creating/updating user preferences"""
-    
+
     category: PreferenceCategory = Field(..., description="Preference category")
     key: str = Field(..., min_length=1, max_length=255, description="Preference key")
     value: Dict[str, Any] = Field(..., description="Preference value as JSON")
@@ -23,7 +23,7 @@ class UserPreferenceRequest(BaseModel):
 
 class UserPreferenceResponse(BaseModel):
     """Response schema for user preferences"""
-    
+
     id: str
     user_id: str
     category: PreferenceCategory
@@ -42,7 +42,7 @@ class UserPreferenceResponse(BaseModel):
 
 class SavedSearchRequest(BaseModel):
     """Request schema for creating/updating saved searches"""
-    
+
     name: str = Field(..., min_length=1, max_length=255, description="Search name")
     description: Optional[str] = Field(None, description="Search description")
     search_type: SearchType = Field(..., description="Type of search")
@@ -57,7 +57,7 @@ class SavedSearchRequest(BaseModel):
 
 class SavedSearchUpdate(BaseModel):
     """Schema for updating saved searches"""
-    
+
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
     query_params: Optional[Dict[str, Any]] = None
@@ -69,7 +69,7 @@ class SavedSearchUpdate(BaseModel):
 
 class SavedSearchResponse(BaseModel):
     """Response schema for saved searches"""
-    
+
     id: str
     user_id: str
     name: str
@@ -93,7 +93,7 @@ class SavedSearchResponse(BaseModel):
 
 class DashboardLayoutRequest(BaseModel):
     """Request schema for dashboard layouts"""
-    
+
     name: str = Field(..., min_length=1, max_length=255, description="Layout name")
     layout_config: Dict[str, Any] = Field(..., description="Layout configuration")
     widget_config: Dict[str, Any] = Field(..., description="Widget configuration")
@@ -103,7 +103,7 @@ class DashboardLayoutRequest(BaseModel):
 
 class DashboardLayoutResponse(BaseModel):
     """Response schema for dashboard layouts"""
-    
+
     id: str
     user_id: str
     name: str
@@ -120,7 +120,7 @@ class DashboardLayoutResponse(BaseModel):
 
 class NotificationPreferenceRequest(BaseModel):
     """Request schema for notification preferences"""
-    
+
     event_type: str = Field(..., min_length=1, max_length=100, description="Event type")
     email_enabled: bool = Field(True, description="Email notifications enabled")
     in_app_enabled: bool = Field(True, description="In-app notifications enabled")
@@ -131,27 +131,28 @@ class NotificationPreferenceRequest(BaseModel):
     quiet_hours_end: Optional[str] = Field(None, description="Quiet hours end (HH:MM)")
     config: Optional[Dict[str, Any]] = Field(None, description="Additional configuration")
 
-    @field_validator('frequency')
+    @field_validator("frequency")
     @classmethod
     def validate_frequency(cls, v):
-        valid_frequencies = ['immediate', 'daily', 'weekly', 'never']
+        valid_frequencies = ["immediate", "daily", "weekly", "never"]
         if v not in valid_frequencies:
-            raise ValueError(f'Frequency must be one of: {valid_frequencies}')
+            raise ValueError(f"Frequency must be one of: {valid_frequencies}")
         return v
 
-    @field_validator('quiet_hours_start', 'quiet_hours_end')
+    @field_validator("quiet_hours_start", "quiet_hours_end")
     @classmethod
     def validate_time_format(cls, v):
         if v is not None:
             import re
-            if not re.match(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$', v):
-                raise ValueError('Time must be in HH:MM format')
+
+            if not re.match(r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$", v):
+                raise ValueError("Time must be in HH:MM format")
         return v
 
 
 class NotificationPreferenceResponse(BaseModel):
     """Response schema for notification preferences"""
-    
+
     id: str
     user_id: str
     event_type: str
@@ -172,7 +173,7 @@ class NotificationPreferenceResponse(BaseModel):
 
 class RecentActivityResponse(BaseModel):
     """Response schema for recent activities"""
-    
+
     id: str
     user_id: str
     activity_type: str
@@ -190,7 +191,7 @@ class RecentActivityResponse(BaseModel):
 
 class PreferencesListResponse(BaseModel):
     """Response schema for listing user preferences"""
-    
+
     preferences: List[UserPreferenceResponse]
     total: int
     categories: List[PreferenceCategory]
@@ -198,7 +199,7 @@ class PreferencesListResponse(BaseModel):
 
 class SavedSearchesListResponse(BaseModel):
     """Response schema for listing saved searches"""
-    
+
     searches: List[SavedSearchResponse]
     total: int
     by_type: Dict[SearchType, int]

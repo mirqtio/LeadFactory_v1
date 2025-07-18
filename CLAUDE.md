@@ -335,3 +335,6 @@ Available validation commands:
 - Follow multi-agent coordination protocols and Redis state management.
 - Use SuperClaude framework integration for enhanced AI capabilities.
 - Maintain agent role boundaries and escalation procedures.
+
+# Tmux Communication Notes
+- **IMPORTANT**: When sending a prompt to another tmux window the Enter key must be sent as a second command.
