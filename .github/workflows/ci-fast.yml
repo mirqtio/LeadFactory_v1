@@ -14,7 +14,7 @@ jobs:
   fast-test:
     name: Ultra-Fast Test Suite (<5 min target)
     runs-on: ubuntu-latest
-    timeout-minutes: 4  # Stricter 4-minute timeout for buffer
+    timeout-minutes: 6  # Extended for Docker build overhead + test execution
     
     steps:
     - name: Checkout code
@@ -46,7 +46,7 @@ jobs:
         
         # Run ultra-fast subset without any infrastructure setup
         # All pytest execution happens inside Docker containers
-        timeout 150 docker run --rm \
+        timeout 240 docker run --rm \
           -e USE_STUBS=false \
           -e ENVIRONMENT=test \
           -e SKIP_INFRASTRUCTURE=true \
@@ -84,7 +84,7 @@ jobs:
             tests/unit/design/test_token_extraction.py \
             tests/unit/design/test_validation_module.py \
           || {
-          echo "::error::Ultra-fast test suite failed or exceeded 2.5-minute limit"
+          echo "::error::Ultra-fast test suite failed or exceeded 4-minute limit"
           exit 1
         }
         
