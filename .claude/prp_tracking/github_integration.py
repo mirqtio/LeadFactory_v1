@@ -74,7 +74,7 @@ class GitHubIntegration:
             check_runs = data.get("check_runs", [])
 
             # Check if all required workflows passed
-            required_workflows = ["CI Pipeline", "Linting and Code Quality", "Deploy to VPS", "Full Test Suite"]
+            required_workflows = ["Ultra-Fast Test Suite (<3 min target)", "lint", "deploy", "test-minimal"]
 
             workflow_results = {}
             for check in check_runs:
