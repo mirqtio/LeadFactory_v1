@@ -191,14 +191,14 @@ prp_tracking:
       from Integer to String(100) type, created migration with proper dependency chain,
       validated with CI
   P2-020:
-    title: Personalization MVP
+    title: Unit Economics PDF Section
     status: in_progress
     validated_at: '2025-07-16T08:00:00Z'
     started_at: '2025-07-18T19:03:16.917609Z'
     completed_at: null
     github_commit: null
     ci_run_url: null
-    notes: Started by user at 2025-07-18 15:03:16
+    notes: PM-1 assigned Unit Economics PDF Section - corrected title
   P2-030:
     title: Recommendation Engine
     status: validated
@@ -310,22 +310,22 @@ prp_tracking:
       optimized
   P0-020:
     title: Design System Token Extraction
-    status: validated
+    status: in_progress
     validated_at: '2025-07-16T16:00:00Z'
-    started_at: null
+    started_at: '2025-07-18T19:39:00.000000Z'
     completed_at: null
     github_commit: null
     ci_run_url: null
-    notes: Reset to validated status for PM hierarchy launch
+    notes: PM-2 assigned Design System Token Extraction
   P0-021:
     title: Lead Explorer
-    status: validated
+    status: in_progress
     validated_at: '2025-07-16T16:00:00Z'
-    started_at: null
+    started_at: '2025-07-18T19:39:30.000000Z'
     completed_at: null
     github_commit: null
     ci_run_url: null
-    notes: PRP exists, marking as validated
+    notes: PM-3 assigned Lead Explorer Console
   P0-022:
     title: Batch Report Runner
     status: validated

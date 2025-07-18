@@ -121,14 +121,13 @@ class PRPCLICommands:
             print(f"❌ Cannot start PRP {prp_id}: {message}")
             return
 
-        # Check for other in-progress PRPs
+        # Multi-agent orchestration: Allow multiple PRPs in progress
         in_progress = self.prp_manager.get_in_progress_prps()
         if in_progress:
-            print(f"❌ Cannot start PRP {prp_id}. Other PRPs are in progress:")
+            print(f"ℹ️  Other PRPs currently in progress ({len(in_progress)} active):")
             for ip_prp in in_progress:
                 print(f"   - {ip_prp.prp_id}: {ip_prp.title}")
-            print("Complete current PRPs before starting new ones.")
-            return
+            print(f"✅ Multi-agent orchestration: Starting {prp_id} concurrently")
 
         # Transition to in_progress
         success, transition_message = self.prp_manager.transition_prp(
