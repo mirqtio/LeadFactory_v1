@@ -16,6 +16,7 @@ import core.observability  # noqa: F401  (must be first import)
 
 # Import all routers at top level
 from account_management.api import router as account_router
+from account_management.preference_api import router as preferences_router
 from api.analytics import router as analytics_router
 from api.health import router as health_router
 from api.lineage import router as lineage_router
@@ -158,6 +159,9 @@ app.include_router(health_router, tags=["health"])
 
 # Register account management router (P2-000)
 app.include_router(account_router, tags=["accounts"])
+
+# Register user preferences router (P2-020)
+app.include_router(preferences_router, tags=["user-preferences"])
 
 # Register domain routers
 app.include_router(gateway_router, tags=["gateway"])
