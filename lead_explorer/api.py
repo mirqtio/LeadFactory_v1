@@ -25,6 +25,7 @@ from database.session import get_db
 
 from .audit import AuditContext
 from .enrichment_coordinator import get_enrichment_coordinator
+from .permissions import BadgePermissionMiddleware, check_badge_permission, get_user_badge_permissions
 from .repository import AuditRepository, LeadRepository
 from .schemas import (  # Badge schemas
     AssignBadgeSchema,
@@ -544,9 +545,14 @@ async def create_badge(
     Create a new badge for categorizing leads.
 
     Only users with proper permissions can create badges.
-    System badges can only be created by system administrators.
+    System badges can only be created by CPO or admin users.
+    Badge types are restricted based on user roles.
     """
-    logger.info(f"Creating new badge: {badge_data.name}")
+    logger.info(f"Creating new badge: {badge_data.name} by user: {current_user.email}")
+
+    # Check permissions using middleware
+    badge_dict = badge_data.dict()
+    BadgePermissionMiddleware.check_create_badge_permission(current_user, badge_dict, db)
 
     # Import badge repository here to avoid circular imports
     from .repository import BadgeRepository
@@ -567,7 +573,7 @@ async def create_badge(
     )
 
     metrics.increment_counter("lead_explorer_badges_created")
-    logger.info(f"Successfully created badge: {badge.id}")
+    logger.info(f"Successfully created badge: {badge.id} by user: {current_user.email}")
 
     return badge
 
@@ -626,8 +632,15 @@ async def assign_badge_to_lead(
     current_user: AccountUser = Depends(get_current_user_dependency),
     organization_id: str = Depends(require_organization_access),
 ):
-    """Assign a badge to a lead with audit logging."""
-    logger.info(f"Assigning badge {badge_data.badge_id} to lead: {lead_id}")
+    """
+    Assign a badge to a lead with audit logging.
+    
+    Requires appropriate permissions based on user role and badge type.
+    """
+    logger.info(f"Assigning badge {badge_data.badge_id} to lead: {lead_id} by user: {current_user.email}")
+
+    # Check permissions using middleware
+    BadgePermissionMiddleware.check_assign_badge_permission(current_user, badge_data.badge_id, lead_id, db)
 
     from .repository import BadgeRepository
 
@@ -650,7 +663,7 @@ async def assign_badge_to_lead(
     )
 
     metrics.increment_counter("lead_explorer_badges_assigned")
-    logger.info(f"Successfully assigned badge {badge_data.badge_id} to lead: {lead_id}")
+    logger.info(f"Successfully assigned badge {badge_data.badge_id} to lead: {lead_id} by user: {current_user.email}")
 
     return lead_badge
 
