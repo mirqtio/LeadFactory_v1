@@ -40,7 +40,7 @@ class TestDatabaseHealth:
             assert result["status"] == "connected"
             assert result["latency_ms"] == 5.0
             mock_db.execute.assert_called_once()
-            
+
     def test_check_database_health_with_text_query(self):
         """Test database health check uses correct SQL query."""
         mock_db = Mock()
@@ -101,9 +101,9 @@ class TestRedisHealth:
         mock_client.ping.return_value = True
         mock_client.close.return_value = None
 
-        with patch("redis.asyncio.from_url", return_value=mock_client) as mock_from_url, \
-             patch("time.time", side_effect=[0.0, 0.002]):  # 2ms latency
-
+        with patch("redis.asyncio.from_url", return_value=mock_client) as mock_from_url, patch(
+            "time.time", side_effect=[0.0, 0.002]
+        ):  # 2ms latency
             result = await check_redis_health("redis://localhost:6379/0")
 
             assert result["status"] == "connected"
@@ -128,9 +128,9 @@ class TestRedisHealth:
     @pytest.mark.asyncio
     async def test_check_redis_health_connection_error(self):
         """Test Redis health check with connection error."""
-        with patch("redis.asyncio.from_url", side_effect=redis.ConnectionError("Connection refused")), \
-             patch("api.health.logger") as mock_logger:
-
+        with patch("redis.asyncio.from_url", side_effect=redis.ConnectionError("Connection refused")), patch(
+            "api.health.logger"
+        ) as mock_logger:
             result = await check_redis_health("redis://localhost:6379/0")
 
             assert result["status"] == "error"
@@ -144,9 +144,9 @@ class TestRedisHealth:
         mock_client.ping.return_value = True
         mock_client.close.return_value = None
 
-        with patch("redis.asyncio.from_url", return_value=mock_client), \
-             patch("time.time", side_effect=[0.0, 0.025]):  # 25ms latency
-
+        with patch("redis.asyncio.from_url", return_value=mock_client), patch(
+            "time.time", side_effect=[0.0, 0.025]
+        ):  # 25ms latency
             result = await check_redis_health("redis://localhost:6379/0")
 
             assert result["status"] == "connected"
@@ -159,9 +159,7 @@ class TestRedisHealth:
         mock_client.ping.return_value = True
         mock_client.close.side_effect = Exception("Close failed")
 
-        with patch("redis.asyncio.from_url", return_value=mock_client), \
-             patch("time.time", side_effect=[0.0, 0.001]):
-
+        with patch("redis.asyncio.from_url", return_value=mock_client), patch("time.time", side_effect=[0.0, 0.001]):
             # Should not raise exception even if close fails
             result = await check_redis_health("redis://localhost:6379/0")
 
@@ -185,14 +183,14 @@ class TestHealthCheckEndpoint:
         mock_settings.environment = "test"
         mock_settings.redis_url = None
 
-        with patch("api.health.settings", mock_settings), \
-             patch("time.time", side_effect=[0.0, 0.001, 0.01]):  # Start, DB check, End
-
+        with patch("api.health.settings", mock_settings), patch(
+            "time.time", side_effect=[0.0, 0.001, 0.01]
+        ):  # Start, DB check, End
             response = await health_check(mock_db)
 
             assert isinstance(response, JSONResponse)
             assert response.status_code == 200
-            
+
             content = json.loads(response.body)
             assert content["status"] == "ok"
             assert content["version"] == "1.0.0"
@@ -233,9 +231,9 @@ class TestHealthCheckEndpoint:
         mock_settings.redis_url = None
 
         # Simulate database check taking 60ms (exceeds 50ms limit)
-        with patch("api.health.settings", mock_settings), \
-             patch("time.time", side_effect=[0.0, 0.0, 0.06, 0.07]):  # Start, DB start, DB end, End
-
+        with patch("api.health.settings", mock_settings), patch(
+            "time.time", side_effect=[0.0, 0.0, 0.06, 0.07]
+        ):  # Start, DB start, DB end, End
             response = await health_check(mock_db)
 
             assert response.status_code == 503
@@ -261,10 +259,9 @@ class TestHealthCheckEndpoint:
         mock_client.ping.return_value = True
         mock_client.close.return_value = None
 
-        with patch("api.health.settings", mock_settings), \
-             patch("redis.asyncio.from_url", return_value=mock_client), \
-             patch("time.time", side_effect=[0.0, 0.001, 0.002, 0.01]):
-
+        with patch("api.health.settings", mock_settings), patch(
+            "redis.asyncio.from_url", return_value=mock_client
+        ), patch("time.time", side_effect=[0.0, 0.001, 0.002, 0.01]):
             response = await health_check(mock_db)
 
             assert response.status_code == 200
@@ -286,11 +283,9 @@ class TestHealthCheckEndpoint:
         mock_settings.environment = "test"
         mock_settings.redis_url = "redis://redis-server:6379/0"
 
-        with patch("api.health.settings", mock_settings), \
-             patch("redis.asyncio.from_url", side_effect=redis.ConnectionError("Redis down")), \
-             patch("api.health.logger") as mock_logger, \
-             patch("time.time", side_effect=[0.0, 0.001, 0.01]):
-
+        with patch("api.health.settings", mock_settings), patch(
+            "redis.asyncio.from_url", side_effect=redis.ConnectionError("Redis down")
+        ), patch("api.health.logger") as mock_logger, patch("time.time", side_effect=[0.0, 0.001, 0.01]):
             response = await health_check(mock_db)
 
             # Redis failure should not make health check fail (it's non-critical)
@@ -317,10 +312,9 @@ class TestHealthCheckEndpoint:
             await asyncio.sleep(0.1)  # Simulate slow Redis
             return {"status": "connected"}
 
-        with patch("api.health.settings", mock_settings), \
-             patch("api.health.check_redis_health", slow_redis_check), \
-             patch("time.time", side_effect=[0.0, 0.001, 0.01]):
-
+        with patch("api.health.settings", mock_settings), patch(
+            "api.health.check_redis_health", slow_redis_check
+        ), patch("time.time", side_effect=[0.0, 0.001, 0.01]):
             response = await health_check(mock_db)
 
             assert response.status_code == 200
@@ -341,10 +335,9 @@ class TestHealthCheckEndpoint:
         mock_settings.environment = "test"
         mock_settings.redis_url = None
 
-        with patch("api.health.settings", mock_settings), \
-             patch("api.health.logger") as mock_logger, \
-             patch("time.time", side_effect=[0.0, 0.001, 0.15]):  # 150ms total time
-
+        with patch("api.health.settings", mock_settings), patch("api.health.logger") as mock_logger, patch(
+            "time.time", side_effect=[0.0, 0.001, 0.15]
+        ):  # 150ms total time
             response = await health_check(mock_db)
 
             assert response.status_code == 200
@@ -367,9 +360,7 @@ class TestHealthCheckEndpoint:
         mock_settings.environment = "test"
         mock_settings.redis_url = "redis://localhost:6379/0"  # Default URL
 
-        with patch("api.health.settings", mock_settings), \
-             patch("time.time", side_effect=[0.0, 0.001, 0.01]):
-
+        with patch("api.health.settings", mock_settings), patch("time.time", side_effect=[0.0, 0.001, 0.01]):
             response = await health_check(mock_db)
 
             assert response.status_code == 200
@@ -389,8 +380,7 @@ class TestHealthCheckEndpoint:
         mock_settings.environment = "test"
         mock_settings.redis_url = None
 
-        with patch("api.health.settings", mock_settings), \
-             patch("api.health.datetime") as mock_datetime:
+        with patch("api.health.settings", mock_settings), patch("api.health.datetime") as mock_datetime:
             mock_datetime.utcnow.return_value.isoformat.return_value = "2023-12-01T12:00:00.000000"
 
             response = await health_check(mock_db)
@@ -426,18 +416,16 @@ class TestDetailedHealthCheck:
         mock_settings.max_businesses_per_batch = 50
         mock_settings.request_timeout = 30
 
-        with patch("api.health.settings", mock_settings), \
-             patch("time.time", side_effect=[0.0, 0.001, 0.01]):
-
+        with patch("api.health.settings", mock_settings), patch("time.time", side_effect=[0.0, 0.001, 0.01]):
             response = await detailed_health_check(mock_db)
 
             assert response.status_code == 200
             content = json.loads(response.body)
-            
+
             # Basic health check data
             assert content["status"] == "ok"
             assert content["version"] == "1.0.0"
-            
+
             # System information
             assert content["system"]["use_stubs"] is True
             assert content["system"]["features"]["emails"] is True
@@ -472,7 +460,7 @@ class TestDetailedHealthCheck:
 
             assert response.status_code == 503
             content = json.loads(response.body)
-            
+
             # Should still include system information even when unhealthy
             assert content["status"] == "unhealthy"
             assert content["system"]["use_stubs"] is False
@@ -492,7 +480,7 @@ class TestDetailedHealthCheck:
         mock_settings.environment = "production"
         mock_settings.redis_url = None
         mock_settings.use_stubs = False
-        
+
         # Set all feature flags to different values
         mock_settings.enable_emails = True
         mock_settings.enable_enrichment = False
@@ -501,21 +489,19 @@ class TestDetailedHealthCheck:
         mock_settings.enable_template_studio = True
         mock_settings.enable_scoring_playground = True
         mock_settings.enable_governance = False
-        
+
         # Set limits
         mock_settings.max_daily_emails = 2000
         mock_settings.max_businesses_per_batch = 100
         mock_settings.request_timeout = 45
 
-        with patch("api.health.settings", mock_settings), \
-             patch("time.time", side_effect=[0.0, 0.001, 0.01]):
-
+        with patch("api.health.settings", mock_settings), patch("time.time", side_effect=[0.0, 0.001, 0.01]):
             response = await detailed_health_check(mock_db)
 
             content = json.loads(response.body)
             features = content["system"]["features"]
             limits = content["system"]["limits"]
-            
+
             # Verify all feature flags are included
             assert features["emails"] is True
             assert features["enrichment"] is False
@@ -524,7 +510,7 @@ class TestDetailedHealthCheck:
             assert features["template_studio"] is True
             assert features["scoring_playground"] is True
             assert features["governance"] is False
-            
+
             # Verify all limits are included
             assert limits["max_daily_emails"] == 2000
             assert limits["max_businesses_per_batch"] == 100
@@ -563,14 +549,15 @@ class TestHealthEndpointsIntegration:
         mock_client.ping.return_value = True
         mock_client.close.return_value = None
 
-        with patch("api.health.settings", mock_settings), \
-             patch("redis.asyncio.from_url", return_value=mock_client), \
-             patch("time.time", side_effect=[0.0, 0.001, 0.003, 0.02]):  # Realistic timings
-
+        with patch("api.health.settings", mock_settings), patch(
+            "redis.asyncio.from_url", return_value=mock_client
+        ), patch(
+            "time.time", side_effect=[0.0, 0.001, 0.003, 0.02]
+        ):  # Realistic timings
             # Test basic health check
             basic_response = await health_check(mock_db)
             assert basic_response.status_code == 200
-            
+
             basic_content = json.loads(basic_response.body)
             assert basic_content["status"] == "ok"
             assert basic_content["environment"] == "production"
@@ -581,13 +568,13 @@ class TestHealthEndpointsIntegration:
             # Test detailed health check
             detailed_response = await detailed_health_check(mock_db)
             assert detailed_response.status_code == 200
-            
+
             detailed_content = json.loads(detailed_response.body)
-            
+
             # Should include all basic health data
             assert detailed_content["status"] == "ok"
             assert detailed_content["checks"]["database"]["status"] == "connected"
-            
+
             # Should include additional system data
             assert detailed_content["system"]["use_stubs"] is False
             assert detailed_content["system"]["features"]["emails"] is True
@@ -609,14 +596,12 @@ class TestHealthEndpointsIntegration:
         mock_db.execute.return_value = mock_result
         mock_result.fetchone.return_value = (1,)
 
-        with patch("api.health.settings", mock_settings), \
-             patch("time.time", side_effect=[0.0, 0.001, 0.005]):
-
+        with patch("api.health.settings", mock_settings), patch("time.time", side_effect=[0.0, 0.001, 0.005]):
             response = await health_check(mock_db)
 
             assert response.status_code == 200
             content = json.loads(response.body)
-            
+
             # Should not check Redis with empty URL
             assert "redis" not in content["checks"]
             assert content["checks"]["database"]["status"] == "connected"

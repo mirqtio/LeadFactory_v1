@@ -645,8 +645,8 @@ def print_results(result: PrerequisiteResult) -> None:
     print("=" * 80)
 
 
-if __name__ == "__main__":
-    """Command line interface for prerequisites validation."""
+def main():
+    """Main function for command line interface."""
     import argparse
 
     parser = argparse.ArgumentParser(description="Validate LeadFactory prerequisites")
@@ -704,3 +704,8 @@ if __name__ == "__main__":
 
     # Exit with appropriate code
     sys.exit(0 if result.passed else 1)
+
+
+if __name__ == "__main__":
+    """Command line interface for prerequisites validation."""
+    main()

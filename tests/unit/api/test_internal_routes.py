@@ -16,12 +16,7 @@ import pytest
 from fastapi import HTTPException
 from prometheus_client import REGISTRY
 
-from api.internal_routes import (
-    _get_git_sha,
-    get_internal_auth,
-    reload_scoring_rules,
-    scoring_health_check,
-)
+from api.internal_routes import _get_git_sha, get_internal_auth, reload_scoring_rules, scoring_health_check
 
 
 class TestInternalAuth:
@@ -38,7 +33,7 @@ class TestInternalAuth:
         with patch("api.internal_routes.verify_internal_token", return_value=False):
             with pytest.raises(HTTPException) as exc_info:
                 get_internal_auth("invalid-token")
-            
+
             assert exc_info.value.status_code == 403
             assert exc_info.value.detail == "Invalid internal token"
 
@@ -47,7 +42,7 @@ class TestInternalAuth:
         with patch("api.internal_routes.verify_internal_token", return_value=False):
             with pytest.raises(HTTPException) as exc_info:
                 get_internal_auth("")
-            
+
             assert exc_info.value.status_code == 403
 
 
@@ -67,12 +62,13 @@ class TestReloadScoringRules:
         mock_new_schema = Mock()
         mock_new_schema.version = "1.1.0"
 
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("api.internal_routes.ConfigurableScoringEngine", spec=True), \
-             patch("api.internal_routes.validate_rules", return_value=mock_new_schema), \
-             patch("api.internal_routes.logger") as mock_logger, \
-             patch("time.time", side_effect=[0.0, 0.5, 1.0]):
-
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "api.internal_routes.ConfigurableScoringEngine", spec=True
+        ), patch("api.internal_routes.validate_rules", return_value=mock_new_schema), patch(
+            "api.internal_routes.logger"
+        ) as mock_logger, patch(
+            "time.time", side_effect=[0.0, 0.5, 1.0]
+        ):
             # Set up isinstance check
             mock_engine.__class__.__name__ = "ConfigurableScoringEngine"
             with patch("isinstance", return_value=True):
@@ -92,13 +88,13 @@ class TestReloadScoringRules:
     async def test_reload_scoring_rules_unsupported_engine(self):
         """Test reload with unsupported engine type."""
         mock_engine = Mock()
-        
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("isinstance", return_value=False):
 
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "isinstance", return_value=False
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await reload_scoring_rules(auth=True)
-            
+
             assert exc_info.value.status_code == 501
             assert "does not support hot reload" in exc_info.value.detail
 
@@ -109,15 +105,16 @@ class TestReloadScoringRules:
         mock_engine.rules_parser.schema.version = "1.0.0"
         mock_engine.rules_parser.rules_file = "/path/to/rules.yaml"
 
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("isinstance", return_value=True), \
-             patch("api.internal_routes.validate_rules", side_effect=ValueError("Invalid YAML")), \
-             patch("api.internal_routes.logger") as mock_logger, \
-             patch("api.internal_routes._get_git_sha", return_value="abc12345"):
-
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "isinstance", return_value=True
+        ), patch("api.internal_routes.validate_rules", side_effect=ValueError("Invalid YAML")), patch(
+            "api.internal_routes.logger"
+        ) as mock_logger, patch(
+            "api.internal_routes._get_git_sha", return_value="abc12345"
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await reload_scoring_rules(auth=True)
-            
+
             assert exc_info.value.status_code == 400
             assert "Configuration validation failed" in exc_info.value.detail
             assert "Invalid YAML" in exc_info.value.detail
@@ -134,15 +131,16 @@ class TestReloadScoringRules:
         mock_new_schema = Mock()
         mock_new_schema.version = "1.1.0"
 
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("isinstance", return_value=True), \
-             patch("api.internal_routes.validate_rules", return_value=mock_new_schema), \
-             patch("api.internal_routes.logger") as mock_logger, \
-             patch("api.internal_routes._get_git_sha", return_value="abc12345"):
-
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "isinstance", return_value=True
+        ), patch("api.internal_routes.validate_rules", return_value=mock_new_schema), patch(
+            "api.internal_routes.logger"
+        ) as mock_logger, patch(
+            "api.internal_routes._get_git_sha", return_value="abc12345"
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await reload_scoring_rules(auth=True)
-            
+
             assert exc_info.value.status_code == 500
             assert "Failed to reload scoring rules" in exc_info.value.detail
             assert "Engine reload failed" in exc_info.value.detail
@@ -158,12 +156,13 @@ class TestReloadScoringRules:
         mock_new_schema = Mock()
         mock_new_schema.version = "1.0.0"
 
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("isinstance", return_value=True), \
-             patch("api.internal_routes.validate_rules", return_value=mock_new_schema), \
-             patch("api.internal_routes.logger") as mock_logger, \
-             patch("time.time", side_effect=[0.0, 0.5]):
-
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "isinstance", return_value=True
+        ), patch("api.internal_routes.validate_rules", return_value=mock_new_schema), patch(
+            "api.internal_routes.logger"
+        ) as mock_logger, patch(
+            "time.time", side_effect=[0.0, 0.5]
+        ):
             result = await reload_scoring_rules(auth=True)
 
             assert result["status"] == "success"
@@ -183,18 +182,18 @@ class TestReloadScoringRules:
         # Get initial metric values
         initial_success_count = None
         initial_failure_count = None
-        
+
         try:
             success_metric = REGISTRY._names_to_collectors["internal_reload_requests_total"]
             initial_success_count = success_metric._value._value.get(("reload_rules", "success"), 0)
         except (KeyError, AttributeError):
             initial_success_count = 0
 
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("isinstance", return_value=True), \
-             patch("api.internal_routes.validate_rules", return_value=mock_new_schema), \
-             patch("time.time", side_effect=[0.0, 0.5]):
-
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "isinstance", return_value=True
+        ), patch("api.internal_routes.validate_rules", return_value=mock_new_schema), patch(
+            "time.time", side_effect=[0.0, 0.5]
+        ):
             result = await reload_scoring_rules(auth=True)
 
             assert result["status"] == "success"
@@ -213,11 +212,11 @@ class TestReloadScoringRules:
         # Mock time to simulate specific reload duration
         mock_times = [100.0, 100.25, 100.75]  # 0.75 second total, 0.5 second reload
 
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("isinstance", return_value=True), \
-             patch("api.internal_routes.validate_rules", return_value=mock_new_schema), \
-             patch("time.time", side_effect=mock_times):
-
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "isinstance", return_value=True
+        ), patch("api.internal_routes.validate_rules", return_value=mock_new_schema), patch(
+            "time.time", side_effect=mock_times
+        ):
             result = await reload_scoring_rules(auth=True)
 
             assert result["details"]["reload_time_seconds"] == 0.75
@@ -305,9 +304,9 @@ class TestScoringHealthCheck:
     @pytest.mark.asyncio
     async def test_scoring_health_check_engine_error(self):
         """Test health check when getting engine fails."""
-        with patch("api.internal_routes.get_scoring_engine", side_effect=Exception("Engine unavailable")), \
-             patch("api.internal_routes.logger") as mock_logger:
-
+        with patch("api.internal_routes.get_scoring_engine", side_effect=Exception("Engine unavailable")), patch(
+            "api.internal_routes.logger"
+        ) as mock_logger:
             result = await scoring_health_check(auth=True)
 
             assert result["status"] == "unhealthy"
@@ -346,12 +345,7 @@ class TestUtilityFunctions:
             result = _get_git_sha()
 
             assert result == "abc12345"  # First 8 characters
-            mock_run.assert_called_once_with(
-                ["git", "rev-parse", "HEAD"], 
-                capture_output=True, 
-                text=True, 
-                check=True
-            )
+            mock_run.assert_called_once_with(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True)
 
     def test_get_git_sha_failure(self):
         """Test git SHA retrieval failure."""
@@ -363,7 +357,7 @@ class TestUtilityFunctions:
     def test_get_git_sha_subprocess_error(self):
         """Test git SHA retrieval with subprocess error."""
         import subprocess
-        
+
         with patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, "git")):
             result = _get_git_sha()
 
@@ -400,11 +394,11 @@ class TestInternalRoutesIntegration:
         mock_new_schema = Mock()
         mock_new_schema.version = "2.0.0"
 
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("isinstance", return_value=True), \
-             patch("api.internal_routes.validate_rules", return_value=mock_new_schema), \
-             patch("time.time", side_effect=[0.0, 0.5, 1.0]):
-
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "isinstance", return_value=True
+        ), patch("api.internal_routes.validate_rules", return_value=mock_new_schema), patch(
+            "time.time", side_effect=[0.0, 0.5, 1.0]
+        ):
             # First, reload the rules
             reload_result = await reload_scoring_rules(auth=True)
             assert reload_result["status"] == "success"
@@ -423,20 +417,20 @@ class TestInternalRoutesIntegration:
     async def test_error_handling_consistency(self):
         """Test that error handling is consistent across endpoints."""
         # Test reload error handling
-        with patch("api.internal_routes.get_scoring_engine", side_effect=Exception("Service unavailable")), \
-             patch("api.internal_routes.logger"):
-
+        with patch("api.internal_routes.get_scoring_engine", side_effect=Exception("Service unavailable")), patch(
+            "api.internal_routes.logger"
+        ):
             with pytest.raises(HTTPException) as reload_exc:
                 await reload_scoring_rules(auth=True)
-            
+
             assert reload_exc.value.status_code == 500
 
         # Test health check error handling
-        with patch("api.internal_routes.get_scoring_engine", side_effect=Exception("Service unavailable")), \
-             patch("api.internal_routes.logger"):
-
+        with patch("api.internal_routes.get_scoring_engine", side_effect=Exception("Service unavailable")), patch(
+            "api.internal_routes.logger"
+        ):
             health_result = await scoring_health_check(auth=True)
-            
+
             assert health_result["status"] == "unhealthy"
             assert health_result["error"] == "Service unavailable"
 
@@ -445,12 +439,12 @@ class TestInternalRoutesIntegration:
         """Test that authentication is required for all internal endpoints."""
         # This test would normally be done at the router level in FastAPI
         # Here we test the dependency function behavior
-        
+
         with patch("api.internal_routes.verify_internal_token", return_value=False):
             # Test auth dependency raises exception for invalid token
             with pytest.raises(HTTPException) as exc_info:
                 get_internal_auth("invalid-token")
-            
+
             assert exc_info.value.status_code == 403
 
         with patch("api.internal_routes.verify_internal_token", return_value=True):
@@ -464,25 +458,26 @@ class TestInternalRoutesIntegration:
         mock_engine = Mock()
         mock_engine.rules_parser.schema.version = "1.0.0"
         mock_engine.rules_parser.rules_file = "/path/to/rules.yaml"
-        
+
         mock_new_schema = Mock()
         mock_new_schema.version = "1.1.0"
 
-        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), \
-             patch("isinstance", return_value=True), \
-             patch("api.internal_routes.validate_rules", return_value=mock_new_schema), \
-             patch("api.internal_routes.logger") as mock_logger, \
-             patch("time.time", side_effect=[0.0, 0.5]):
-
+        with patch("api.internal_routes.get_scoring_engine", return_value=mock_engine), patch(
+            "isinstance", return_value=True
+        ), patch("api.internal_routes.validate_rules", return_value=mock_new_schema), patch(
+            "api.internal_routes.logger"
+        ) as mock_logger, patch(
+            "time.time", side_effect=[0.0, 0.5]
+        ):
             await reload_scoring_rules(auth=True)
 
             # Verify structured logging occurred
             mock_logger.info.assert_called_once()
             log_call = mock_logger.info.call_args
-            
+
             # Check log message
             assert "reloaded successfully" in log_call[0][0]
-            
+
             # Check structured extra data
             extra_data = log_call[1]["extra"]
             assert extra_data["event"] == "rules_reload"

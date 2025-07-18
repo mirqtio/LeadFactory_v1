@@ -3,14 +3,15 @@ Unit tests for d5_scoring constants module.
 Coverage target: 100% for scoring configuration constants.
 """
 import pytest
+
 from d5_scoring.constants import (
-    WEIGHT_SUM_WARNING_THRESHOLD,
-    WEIGHT_SUM_ERROR_THRESHOLD,
     DEFAULT_SCORING_RULES_PATH,
-    VALID_TIER_LABELS,
-    FORMULA_EVALUATION_TIMEOUT,
     FORMULA_CACHE_SIZE,
     FORMULA_CACHE_TTL_SECONDS,
+    FORMULA_EVALUATION_TIMEOUT,
+    VALID_TIER_LABELS,
+    WEIGHT_SUM_ERROR_THRESHOLD,
+    WEIGHT_SUM_WARNING_THRESHOLD,
 )
 
 
@@ -73,7 +74,7 @@ class TestScoringConstants:
         assert isinstance(FORMULA_EVALUATION_TIMEOUT, float)
         assert isinstance(FORMULA_CACHE_SIZE, int)
         assert isinstance(FORMULA_CACHE_TTL_SECONDS, int)
-        
+
         # List should be immutable in practice (constants shouldn't change)
         assert isinstance(VALID_TIER_LABELS, list)
 
@@ -92,13 +93,13 @@ class TestScoringConstants:
         """Test weight thresholds align with business validation logic."""
         # Warning threshold is 0.5% tolerance
         assert WEIGHT_SUM_WARNING_THRESHOLD == 0.005
-        
-        # Error threshold is 5% tolerance  
+
+        # Error threshold is 5% tolerance
         assert WEIGHT_SUM_ERROR_THRESHOLD == 0.05
-        
+
         # Business rule: warning < error
         assert WEIGHT_SUM_WARNING_THRESHOLD < WEIGHT_SUM_ERROR_THRESHOLD
-        
+
         # Business rule: both should be small percentages
         assert WEIGHT_SUM_WARNING_THRESHOLD < 0.1
         assert WEIGHT_SUM_ERROR_THRESHOLD < 0.1
