@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report_title }}</title>
+    <style>
+        /* Executive PDF Report Styling */
+        @page {
+            size: A4;
+            margin: 0.5in;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2E8B57;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2E8B57;
+            font-size: 28px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .header .date-range {
+            background: #f8f9fa;
+            padding: 8px 16px;
+            border-radius: 6px;
+            display: inline-block;
+            font-size: 12px;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+        
+        .summary-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .summary-section h2 {
+            margin-top: 0;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .insights-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .insights-section h3 {
+            color: #28a745;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        
+        .insights-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .insights-list li {
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+        
+        .recommendations-section {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .recommendations-section h3 {
+            color: #856404;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        
+        .recommendations-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .recommendations-list li {
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #ffeaa7;
+            font-size: 14px;
+        }
+        
+        .charts-section {
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            margin-bottom: 40px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+        
+        .chart-container h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        
+        .data-table th {
+            background: #343a40;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .data-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .currency {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .percentage {
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .positive {
+            color: #28a745;
+        }
+        
+        .negative {
+            color: #dc3545;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .section-title {
+            color: #495057;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <h1>{{ report_title }}</h1>
+        <div class="subtitle">Generated on {{ generation_date }}</div>
+        <div class="date-range">
+            Analysis Period: {{ date_range.start_date }} to {{ date_range.end_date }}
+        </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="summary-section">
+        <h2>📊 Executive Summary</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">
+                    {% if summary.overall_roi_percentage is not none %}
+                        {{ "%.1f"|format(summary.overall_roi_percentage) }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <div class="metric-label">Return on Investment</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">
+                    {% if summary.avg_cac_cents is not none %}
+                        ${{ "%.2f"|format(summary.avg_cac_cents / 100) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <div class="metric-label">Customer Acquisition Cost</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">
+                    {% if summary.avg_ltv_cents is not none %}
+                        ${{ "%.2f"|format(summary.avg_ltv_cents / 100) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <div class="metric-label">Lifetime Value</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">
+                    {% if summary.avg_cpl_cents is not none %}
+                        ${{ "%.2f"|format(summary.avg_cpl_cents / 100) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <div class="metric-label">Cost Per Lead</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ "%.1f"|format(summary.conversion_rate_pct) }}%</div>
+                <div class="metric-label">Conversion Rate</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">
+                    ${{ "%.2f"|format(summary.total_profit_cents / 100) }}
+                </div>
+                <div class="metric-label">Total Profit</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insights -->
+    {% if key_insights %}
+    <div class="insights-section">
+        <h3>💡 Key Insights</h3>
+        <ul class="insights-list">
+            {% for insight in key_insights %}
+            <li>{{ insight }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Recommendations -->
+    {% if recommendations %}
+    <div class="recommendations-section">
+        <h3>🎯 Strategic Recommendations</h3>
+        <ul class="recommendations-list">
+            {% for recommendation in recommendations %}
+            <li>{{ recommendation }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Charts Section -->
+    {% if charts and charts|length > 0 %}
+    <div class="page-break"></div>
+    <h2 class="section-title">📈 Performance Visualizations</h2>
+    <div class="charts-section">
+        {% if charts.revenue_cost_trend %}
+        <div class="chart-container">
+            <h4>Revenue vs Cost Trend Analysis</h4>
+            <img src="{{ charts.revenue_cost_trend }}" alt="Revenue vs Cost Trend">
+        </div>
+        {% endif %}
+
+        {% if charts.profit_trend %}
+        <div class="chart-container">
+            <h4>Daily Profit Performance</h4>
+            <img src="{{ charts.profit_trend }}" alt="Profit Trend">
+        </div>
+        {% endif %}
+
+        {% if charts.leads_conversions %}
+        <div class="chart-container">
+            <h4>Lead Generation and Conversion Volume</h4>
+            <img src="{{ charts.leads_conversions }}" alt="Leads vs Conversions">
+        </div>
+        {% endif %}
+
+        {% if charts.metrics_gauges %}
+        <div class="chart-container">
+            <h4>Key Performance Indicators Dashboard</h4>
+            <img src="{{ charts.metrics_gauges }}" alt="Metrics Gauges">
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Detailed Data Analysis -->
+    {% if include_detailed_analysis and daily_data %}
+    <div class="page-break"></div>
+    <h2 class="section-title">📋 Detailed Daily Analysis</h2>
+    
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Leads</th>
+                <th>Conversions</th>
+                <th>Cost ($)</th>
+                <th>Revenue ($)</th>
+                <th>Profit ($)</th>
+                <th>CPL ($)</th>
+                <th>CAC ($)</th>
+                <th>ROI (%)</th>
+                <th>Conv. Rate (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for day in daily_data %}
+            <tr>
+                <td>{{ day.date }}</td>
+                <td>{{ day.total_leads }}</td>
+                <td>{{ day.total_conversions }}</td>
+                <td class="currency">${{ "%.2f"|format(day.total_cost_cents / 100) }}</td>
+                <td class="currency">${{ "%.2f"|format(day.total_revenue_cents / 100) }}</td>
+                <td class="currency {{ 'positive' if day.profit_cents >= 0 else 'negative' }}">
+                    ${{ "%.2f"|format(day.profit_cents / 100) }}
+                </td>
+                <td class="currency">
+                    {% if day.cpl_cents is not none %}
+                        ${{ "%.2f"|format(day.cpl_cents / 100) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td class="currency">
+                    {% if day.cac_cents is not none %}
+                        ${{ "%.2f"|format(day.cac_cents / 100) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td class="percentage {{ 'positive' if day.roi_percentage and day.roi_percentage >= 0 else 'negative' }}">
+                    {% if day.roi_percentage is not none %}
+                        {{ "%.1f"|format(day.roi_percentage) }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td class="percentage">{{ "%.1f"|format(day.lead_to_conversion_rate_pct) }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>
+            Report ID: {{ request_id }} | 
+            Generated by LeadFactory Analytics Platform | 
+            Confidential Business Information
+        </p>
+        <p>
+            📧 For questions about this report, contact the analytics team
+        </p>
+    </div>
+</body>
+</html>

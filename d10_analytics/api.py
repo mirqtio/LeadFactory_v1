@@ -23,6 +23,10 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 
+from account_management.models import AccountUser
+from core.auth import get_current_user_dependency, require_organization_access
+
+from .pdf_service import UnitEconomicsPDFService
 from .schemas import (
     CohortAnalysisRequest,
     CohortAnalysisResponse,
@@ -79,6 +83,9 @@ router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
 # Global warehouse instance
 warehouse = MetricsWarehouse()
 
+# Global PDF service instance
+pdf_service = UnitEconomicsPDFService()
+
 # In-memory storage for exports (would use file storage/S3 in production)
 export_cache: Dict[str, Dict[str, Any]] = {}
 
@@ -109,7 +116,12 @@ def create_error_response(
     summary="Get Analytics Metrics",
     description="Retrieve analytics metrics with date range and segment filtering",
 )
-async def get_metrics(request: MetricsRequest, warehouse: MetricsWarehouse = Depends(get_warehouse)) -> MetricsResponse:
+async def get_metrics(
+    request: MetricsRequest,
+    warehouse: MetricsWarehouse = Depends(get_warehouse),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+) -> MetricsResponse:
     """
     Get analytics metrics data
 
@@ -216,7 +228,10 @@ async def get_metrics(request: MetricsRequest, warehouse: MetricsWarehouse = Dep
     description="Retrieve funnel analysis metrics with conversion paths and drop-off analysis",
 )
 async def get_funnel_metrics(
-    request: FunnelMetricsRequest, warehouse: MetricsWarehouse = Depends(get_warehouse)
+    request: FunnelMetricsRequest,
+    warehouse: MetricsWarehouse = Depends(get_warehouse),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ) -> FunnelMetricsResponse:
     """
     Get funnel analysis metrics
@@ -324,7 +339,10 @@ async def get_funnel_metrics(
     description="Retrieve cohort retention analysis with specified retention periods",
 )
 async def get_cohort_analysis(
-    request: CohortAnalysisRequest, warehouse: MetricsWarehouse = Depends(get_warehouse)
+    request: CohortAnalysisRequest,
+    warehouse: MetricsWarehouse = Depends(get_warehouse),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ) -> CohortAnalysisResponse:
     """
     Get cohort retention analysis
@@ -415,6 +433,8 @@ async def export_analytics_data(
     request: ExportRequest,
     background_tasks: BackgroundTasks,
     warehouse: MetricsWarehouse = Depends(get_warehouse),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ) -> ExportResponse:
     """
     Export analytics data to file
@@ -512,7 +532,11 @@ async def export_analytics_data(
     summary="Get Export Status",
     description="Check the status of an export or download the file",
 )
-async def get_export_status(export_id: str):
+async def get_export_status(
+    export_id: str,
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
     """Get export status or download file"""
     try:
         if export_id not in export_cache:
@@ -551,6 +575,278 @@ async def get_export_status(export_id: str):
     except Exception as e:
         logger.error(f"Error getting export status: {str(e)}")
         raise create_error_response("internal_error", "Failed to get export status", status_code=500)
+
+
+@router.get(
+    "/unit_econ",
+    summary="Get Unit Economics",
+    description="Retrieve unit economics metrics (CPL, CAC, ROI, LTV) with 24-hour cache",
+)
+async def get_unit_economics(
+    date: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    format: Optional[str] = "json",
+    warehouse: MetricsWarehouse = Depends(get_warehouse),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
+    """
+    Get unit economics metrics for P2-010
+
+    Acceptance Criteria:
+    - /analytics/unit_econ?date=… returns CPL, CAC, ROI
+    - Response cached 24 h
+    - JSON and CSV export
+    """
+    import json as json_module
+    from datetime import date as date_class
+    from datetime import datetime, timedelta
+
+    # Parse date parameters
+    try:
+        if date:
+            target_date = datetime.strptime(date, "%Y-%m-%d").date()
+            start_date = target_date
+            end_date = target_date
+        elif start_date and end_date:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        else:
+            # Default to last 30 days
+            end_date = date_class.today()
+            start_date = end_date - timedelta(days=30)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid date format: {str(e)}")
+
+    # Validate date range
+    if start_date > end_date:
+        raise HTTPException(status_code=400, detail="start_date must be before end_date")
+
+    try:
+        request_id = str(uuid.uuid4())
+        logger.info(f"Processing unit economics request {request_id} for {start_date} to {end_date}")
+
+        # Check cache first (24-hour cache)
+        cache_key = f"unit_econ_{start_date}_{end_date}"
+        cached_result = export_cache.get(cache_key)
+
+        if cached_result and "expires_at" in cached_result:
+            if datetime.utcnow() < cached_result["expires_at"]:
+                logger.info(f"Returning cached unit economics for {cache_key}")
+                if format.lower() == "csv":
+                    return StreamingResponse(
+                        iter([cached_result["csv_content"]]),
+                        media_type="text/csv",
+                        headers={
+                            "Content-Disposition": f"attachment; filename=unit_economics_{start_date}_{end_date}.csv"
+                        },
+                    )
+                return JSONResponse(cached_result["data"])
+
+        # Get unit economics data from materialized view
+        # In production, this would query the actual unit_economics_day view
+        unit_econ_data = await _get_unit_economics_from_view(start_date, end_date)
+
+        # Calculate summary metrics
+        total_cost = sum(record.get("total_cost_cents", 0) for record in unit_econ_data)
+        total_revenue = sum(record.get("total_revenue_cents", 0) for record in unit_econ_data)
+        total_leads = sum(record.get("total_leads", 0) for record in unit_econ_data)
+        total_conversions = sum(record.get("total_conversions", 0) for record in unit_econ_data)
+
+        # Calculate aggregate metrics with proper zero handling
+        avg_cpl = round(total_cost / total_leads, 2) if total_leads > 0 else None
+        avg_cac = round(total_cost / total_conversions, 2) if total_conversions > 0 else None
+
+        # ROI calculation: handle zero cost case (should be None, not negative)
+        if total_cost > 0:
+            overall_roi = round(((total_revenue - total_cost) / total_cost) * 100, 2)
+        elif total_revenue > 0 and total_cost == 0:
+            overall_roi = None  # Infinite ROI should be None for safety
+        else:
+            overall_roi = None
+
+        avg_ltv = round(total_revenue / total_conversions, 2) if total_conversions > 0 else None
+        total_profit = total_revenue - total_cost
+
+        response_data = {
+            "request_id": request_id,
+            "date_range": {"start_date": start_date.isoformat(), "end_date": end_date.isoformat()},
+            "summary": {
+                "total_cost_cents": total_cost,
+                "total_revenue_cents": total_revenue,
+                "total_profit_cents": total_profit,
+                "total_leads": total_leads,
+                "total_conversions": total_conversions,
+                "avg_cpl_cents": avg_cpl,
+                "avg_cac_cents": avg_cac,
+                "overall_roi_percentage": overall_roi,
+                "avg_ltv_cents": avg_ltv,
+                "conversion_rate_pct": round((total_conversions / total_leads) * 100, 2) if total_leads > 0 else 0,
+            },
+            "daily_data": unit_econ_data,
+            "generated_at": datetime.utcnow().isoformat(),
+        }
+
+        # Generate CSV content for cache
+        csv_content = _generate_unit_econ_csv(unit_econ_data, response_data["summary"])
+
+        # Cache the result for 24 hours
+        export_cache[cache_key] = {
+            "data": response_data,
+            "csv_content": csv_content,
+            "expires_at": datetime.utcnow() + timedelta(hours=24),
+            "cached_at": datetime.utcnow(),
+        }
+
+        if format.lower() == "csv":
+            return StreamingResponse(
+                iter([csv_content]),
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename=unit_economics_{start_date}_{end_date}.csv"},
+            )
+
+        return JSONResponse(response_data)
+
+    except Exception as e:
+        logger.error(f"Error getting unit economics: {str(e)}")
+        raise create_error_response("internal_error", "Failed to retrieve unit economics", status_code=500)
+
+
+@router.get(
+    "/unit_econ/pdf",
+    summary="Get Unit Economics PDF Report",
+    description="Generate executive-grade PDF report for unit economics with charts and analysis",
+)
+async def get_unit_economics_pdf(
+    date: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    include_charts: bool = True,
+    include_detailed_analysis: bool = True,
+    warehouse: MetricsWarehouse = Depends(get_warehouse),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
+    """
+    Generate comprehensive unit economics PDF report for P2-020
+
+    Acceptance Criteria:
+    - PDF export from unit economics endpoint
+    - Executive-grade charts and formatting
+    - Multi-page reports with comprehensive metrics
+    - Professional branding and layout
+    """
+    import json as json_module
+    from datetime import date as date_class
+    from datetime import datetime, timedelta
+
+    # Parse date parameters (same logic as JSON endpoint)
+    try:
+        if date:
+            target_date = datetime.strptime(date, "%Y-%m-%d").date()
+            start_date = target_date
+            end_date = target_date
+        elif start_date and end_date:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        else:
+            # Default to last 30 days
+            end_date = date_class.today()
+            start_date = end_date - timedelta(days=30)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid date format: {str(e)}")
+
+    # Validate date range
+    if start_date > end_date:
+        raise HTTPException(status_code=400, detail="start_date must be before end_date")
+
+    try:
+        request_id = str(uuid.uuid4())
+        logger.info(f"Generating unit economics PDF report {request_id} for {start_date} to {end_date}")
+
+        # Check cache first (24-hour cache)
+        cache_key = f"unit_econ_pdf_{start_date}_{end_date}_{include_charts}_{include_detailed_analysis}"
+        cached_result = export_cache.get(cache_key)
+
+        if cached_result and "expires_at" in cached_result:
+            if datetime.utcnow() < cached_result["expires_at"]:
+                logger.info(f"Returning cached PDF for {cache_key}")
+                return StreamingResponse(
+                    iter([cached_result["pdf_content"]]),
+                    media_type="application/pdf",
+                    headers={
+                        "Content-Disposition": f"attachment; filename=unit_economics_report_{start_date}_{end_date}.pdf"
+                    },
+                )
+
+        # Get unit economics data from materialized view
+        unit_econ_data = await _get_unit_economics_from_view(start_date, end_date)
+
+        # Calculate summary metrics (same logic as JSON endpoint)
+        total_cost = sum(record.get("total_cost_cents", 0) for record in unit_econ_data)
+        total_revenue = sum(record.get("total_revenue_cents", 0) for record in unit_econ_data)
+        total_leads = sum(record.get("total_leads", 0) for record in unit_econ_data)
+        total_conversions = sum(record.get("total_conversions", 0) for record in unit_econ_data)
+
+        # Calculate aggregate metrics with proper zero handling
+        avg_cpl = round(total_cost / total_leads, 2) if total_leads > 0 else None
+        avg_cac = round(total_cost / total_conversions, 2) if total_conversions > 0 else None
+
+        # ROI calculation
+        if total_cost > 0:
+            overall_roi = round(((total_revenue - total_cost) / total_cost) * 100, 2)
+        elif total_revenue > 0 and total_cost == 0:
+            overall_roi = None  # Infinite ROI should be None for safety
+        else:
+            overall_roi = None
+
+        avg_ltv = round(total_revenue / total_conversions, 2) if total_conversions > 0 else None
+        total_profit = total_revenue - total_cost
+
+        summary = {
+            "total_cost_cents": total_cost,
+            "total_revenue_cents": total_revenue,
+            "total_profit_cents": total_profit,
+            "total_leads": total_leads,
+            "total_conversions": total_conversions,
+            "avg_cpl_cents": avg_cpl,
+            "avg_cac_cents": avg_cac,
+            "overall_roi_percentage": overall_roi,
+            "avg_ltv_cents": avg_ltv,
+            "conversion_rate_pct": round((total_conversions / total_leads) * 100, 2) if total_leads > 0 else 0,
+        }
+
+        date_range = {"start_date": start_date.isoformat(), "end_date": end_date.isoformat()}
+
+        # Generate PDF using PDF service
+        pdf_content = await pdf_service.generate_unit_economics_pdf(
+            unit_econ_data=unit_econ_data,
+            summary=summary,
+            date_range=date_range,
+            request_id=request_id,
+            include_charts=include_charts,
+            include_detailed_analysis=include_detailed_analysis,
+        )
+
+        # Cache the PDF for 24 hours
+        export_cache[cache_key] = {
+            "pdf_content": pdf_content,
+            "expires_at": datetime.utcnow() + timedelta(hours=24),
+            "cached_at": datetime.utcnow(),
+        }
+
+        logger.info(f"Successfully generated PDF report {request_id}")
+
+        return StreamingResponse(
+            iter([pdf_content]),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=unit_economics_report_{start_date}_{end_date}.pdf"},
+        )
+
+    except Exception as e:
+        logger.error(f"Error generating unit economics PDF: {str(e)}")
+        raise create_error_response("internal_error", "Failed to generate unit economics PDF", status_code=500)
 
 
 @router.get(
@@ -622,6 +918,79 @@ def _generate_export_content(data: Any, file_format: str) -> str:
         return _generate_csv_content(data)  # Fallback to CSV for now
     else:
         raise ValueError(f"Unsupported file format: {file_format}")
+
+
+async def _get_unit_economics_from_view(start_date: date, end_date: date) -> list:
+    """Get unit economics data from materialized view (mock implementation)"""
+    # In production, this would query the unit_economics_day materialized view
+    # For now, return mock data that matches the view schema
+
+    import random
+    from datetime import timedelta
+
+    mock_data = []
+    current_date = start_date
+
+    while current_date <= end_date:
+        # Generate realistic mock data
+        leads = random.randint(10, 100)
+        conversions = random.randint(1, leads // 10)
+        cost = random.randint(500, 5000)  # $5-50 in cents
+        revenue = conversions * 39900  # $399 per conversion
+
+        mock_data.append(
+            {
+                "date": current_date.isoformat(),
+                "total_cost_cents": cost,
+                "total_revenue_cents": revenue,
+                "total_leads": leads,
+                "total_conversions": conversions,
+                "cpl_cents": round(cost / leads, 2) if leads > 0 else None,
+                "cac_cents": round(cost / conversions, 2) if conversions > 0 else None,
+                "roi_percentage": round(((revenue - cost) / cost) * 100, 2) if cost > 0 else None,
+                "ltv_cents": round(revenue / conversions, 2) if conversions > 0 else None,
+                "profit_cents": revenue - cost,
+                "lead_to_conversion_rate_pct": round((conversions / leads) * 100, 2) if leads > 0 else 0,
+            }
+        )
+
+        current_date += timedelta(days=1)
+
+    return mock_data
+
+
+def _generate_unit_econ_csv(daily_data: list, summary: dict) -> str:
+    """Generate CSV content for unit economics data"""
+    output = StringIO()
+
+    # Write summary first
+    writer = csv.writer(output)
+    writer.writerow(["# Unit Economics Summary"])
+    writer.writerow(["Total Cost (cents)", summary.get("total_cost_cents", 0)])
+    writer.writerow(["Total Revenue (cents)", summary.get("total_revenue_cents", 0)])
+    writer.writerow(["Total Profit (cents)", summary.get("total_profit_cents", 0)])
+    writer.writerow(["Total Leads", summary.get("total_leads", 0)])
+    writer.writerow(["Total Conversions", summary.get("total_conversions", 0)])
+    writer.writerow(
+        ["Average CPL (cents)", summary.get("avg_cpl_cents") if summary.get("avg_cpl_cents") is not None else "N/A"]
+    )
+    writer.writerow(
+        ["Average CAC (cents)", summary.get("avg_cac_cents") if summary.get("avg_cac_cents") is not None else "N/A"]
+    )
+    writer.writerow(["Overall ROI (%)", summary.get("overall_roi_percentage", "N/A")])
+    writer.writerow(["Average LTV (cents)", summary.get("avg_ltv_cents", "N/A")])
+    writer.writerow(["Conversion Rate (%)", summary.get("conversion_rate_pct", 0)])
+    writer.writerow([])  # Empty row
+
+    # Write daily data
+    writer.writerow(["# Daily Data"])
+    if daily_data:
+        fieldnames = daily_data[0].keys()
+        dict_writer = csv.DictWriter(output, fieldnames=fieldnames)
+        dict_writer.writeheader()
+        dict_writer.writerows(daily_data)
+
+    return output.getvalue()
 
 
 def _generate_csv_content(data: Any) -> str:

@@ -15,6 +15,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from account_management.models import AccountUser
+from core.auth import get_current_user_dependency, require_organization_access
 from core.exceptions import LeadFactoryError
 from core.exceptions import ValidationError as CoreValidationError
 from core.logging import get_logger
@@ -118,7 +120,13 @@ def handle_api_errors(func):
 @router.post("/leads", response_model=LeadResponseSchema, status_code=201)
 @limiter.limit("10/second")
 @handle_api_errors
-async def create_lead(lead_data: CreateLeadSchema, request: Request, db: Session = Depends(get_db)):
+async def create_lead(
+    lead_data: CreateLeadSchema,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
     """
     Create a new lead with audit logging.
 
@@ -153,7 +161,11 @@ async def create_lead(lead_data: CreateLeadSchema, request: Request, db: Session
 @router.get("/leads", response_model=LeadListResponseSchema)
 @handle_api_errors
 async def list_leads(
-    filters: LeadFilterSchema = Depends(), pagination: PaginationSchema = Depends(), db: Session = Depends(get_db)
+    filters: LeadFilterSchema = Depends(),
+    pagination: PaginationSchema = Depends(),
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ):
     """
     List leads with filtering and pagination.
@@ -243,7 +255,12 @@ async def search_leads(
 
 @router.get("/leads/{lead_id}", response_model=LeadResponseSchema)
 @handle_api_errors
-async def get_lead(lead_id: str, db: Session = Depends(get_db)):
+async def get_lead(
+    lead_id: str,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
     """
     Get a specific lead by ID.
     """
@@ -261,7 +278,14 @@ async def get_lead(lead_id: str, db: Session = Depends(get_db)):
 @router.put("/leads/{lead_id}", response_model=LeadResponseSchema)
 @limiter.limit("10/second")
 @handle_api_errors
-async def update_lead(lead_id: str, lead_data: UpdateLeadSchema, request: Request, db: Session = Depends(get_db)):
+async def update_lead(
+    lead_id: str,
+    lead_data: UpdateLeadSchema,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
     """
     Update a lead with audit logging.
     """
@@ -286,7 +310,13 @@ async def update_lead(lead_id: str, lead_data: UpdateLeadSchema, request: Reques
 @router.delete("/leads/{lead_id}", response_model=LeadResponseSchema)
 @limiter.limit("10/second")
 @handle_api_errors
-async def delete_lead(lead_id: str, request: Request, db: Session = Depends(get_db)):
+async def delete_lead(
+    lead_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
+):
     """
     Soft delete a lead with audit logging.
     """

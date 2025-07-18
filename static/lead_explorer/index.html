@@ -6,93 +6,265 @@
     <title>Lead Explorer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/design_system/design_system.css" rel="stylesheet">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f8f9fa;
-            padding: 20px;
+            font-family: var(--font-family);
+            background-color: var(--light-bg);
+            padding: var(--spacing-lg);
         }
         .lead-explorer-container {
             max-width: 1200px;
             margin: 0 auto;
         }
         .search-panel {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .results-panel {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: var(--spacing-lg);
         }
         .lead-card {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            transition: var(--animation-standard);
+            background: var(--primary-white);
+            cursor: pointer;
         }
         .lead-card:hover {
-            border-color: #0066ff;
+            border-color: var(--synthesis-blue);
             box-shadow: 0 4px 8px rgba(0,102,255,0.1);
         }
+        .lead-card.selected {
+            border-color: var(--synthesis-blue);
+            background-color: rgba(0,102,255,0.05);
+        }
         .lead-score {
-            background: #0066ff;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
+            background: var(--synthesis-blue);
+            color: var(--primary-white);
+            padding: 4px var(--spacing-xs);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-caption);
+            font-weight: var(--font-weight-medium);
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
         }
         .lead-score.high {
-            background: #10b981;
+            background: var(--status-success);
         }
         .lead-score.medium {
-            background: #f59e0b;
+            background: var(--status-warning);
         }
         .lead-score.low {
-            background: #6b7280;
+            background: var(--neutral-gray);
+        }
+        .score-bar {
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .score-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .score-fill.high {
+            background: var(--status-success);
+        }
+        .score-fill.medium {
+            background: var(--status-warning);
+        }
+        .score-fill.low {
+            background: var(--neutral-gray);
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--primary-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        .autocomplete-item {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .autocomplete-item:hover {
+            background-color: var(--light-bg);
+        }
+        .autocomplete-item.selected {
+            background-color: var(--synthesis-blue);
+            color: var(--primary-white);
+        }
+        .search-container {
+            position: relative;
+        }
+        .advanced-filters {
+            display: none;
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+        }
+        .advanced-filters.show {
+            display: block;
+        }
+        .saved-searches {
+            margin-top: var(--spacing-sm);
+        }
+        .saved-search-item {
+            display: inline-block;
+            background: var(--light-bg);
+            padding: 4px var(--spacing-xs);
+            margin: 2px;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-caption);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .saved-search-item:hover {
+            background: var(--synthesis-blue);
+            color: var(--primary-white);
+        }
+        .lead-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+        }
+        .bulk-actions {
+            display: none;
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-sm);
+            background: var(--light-bg);
+            border-radius: var(--radius-md);
+        }
+        .bulk-actions.show {
+            display: block;
+        }
+        .contact-info {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-xs);
+        }
+        .contact-info-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: var(--font-size-caption);
+            color: var(--text-secondary);
+        }
+        .company-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-xs);
+        }
+        .company-detail {
+            background: var(--light-bg);
+            padding: 2px var(--spacing-xs);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-caption);
+        }
+        .lead-status {
+            display: inline-block;
+            padding: 2px var(--spacing-xs);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-caption);
+            font-weight: var(--font-weight-medium);
+        }
+        .lead-status.new {
+            background: var(--status-info);
+            color: var(--primary-white);
+        }
+        .lead-status.contacted {
+            background: var(--status-warning);
+            color: var(--primary-white);
+        }
+        .lead-status.qualified {
+            background: var(--status-success);
+            color: var(--primary-white);
+        }
+        .lead-status.unqualified {
+            background: var(--neutral-gray);
+            color: var(--primary-white);
+        }
+        .sort-dropdown {
+            min-width: 150px;
+        }
+        .loading-spinner {
+            display: none;
+            margin: var(--spacing-md) auto;
+            text-align: center;
+        }
+        .loading-spinner.show {
+            display: block;
+        }
+        .no-results {
+            text-align: center;
+            padding: var(--spacing-lg);
+            color: var(--text-secondary);
+        }
+        @media (max-width: 768px) {
+            .lead-actions {
+                flex-wrap: wrap;
+            }
+            .company-details {
+                flex-direction: column;
+            }
+            .contact-info {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="lead-explorer-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-search"></i> Lead Explorer</h2>
+            <h2 class="lf-h2"><i class="bi bi-search"></i> Lead Explorer</h2>
             <div class="btn-group">
-                <button class="btn btn-outline-primary">
+                <button class="lf-button lf-button-secondary">
                     <i class="bi bi-funnel"></i> Filters
                 </button>
-                <button class="btn btn-outline-primary">
+                <button class="lf-button lf-button-secondary">
                     <i class="bi bi-download"></i> Export
                 </button>
             </div>
         </div>
 
         <!-- Search Panel -->
-        <div class="search-panel">
+        <div class="lf-card search-panel">
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label">Search Query</label>
-                    <input type="text" class="form-control" placeholder="Enter company name, domain, or keywords">
+                    <label class="lf-body-small">Search Query</label>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="lf-input" placeholder="Enter company name, domain, or keywords" autocomplete="off">
+                        <div id="autocompleteDropdown" class="autocomplete-dropdown">
+                            <!-- Autocomplete suggestions will be populated here -->
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Industry</label>
-                    <select class="form-select">
+                    <label class="lf-body-small">Industry</label>
+                    <select id="industrySelect" class="lf-select">
                         <option value="">All Industries</option>
                         <option value="technology">Technology</option>
                         <option value="healthcare">Healthcare</option>
                         <option value="finance">Finance</option>
                         <option value="retail">Retail</option>
+                        <option value="manufacturing">Manufacturing</option>
+                        <option value="education">Education</option>
+                        <option value="consulting">Consulting</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Score Range</label>
-                    <select class="form-select">
+                    <label class="lf-body-small">Score Range</label>
+                    <select id="scoreSelect" class="lf-select">
                         <option value="">All Scores</option>
                         <option value="high">High (80-100)</option>
                         <option value="medium">Medium (50-79)</option>
@@ -100,76 +272,373 @@
                     </select>
                 </div>
                 <div class="col-12">
-                    <button class="btn btn-primary">
+                    <button id="searchBtn" class="lf-button lf-button-primary">
                         <i class="bi bi-search"></i> Search Leads
                     </button>
-                    <button class="btn btn-outline-secondary ms-2">
+                    <button id="resetBtn" class="lf-button lf-button-secondary ms-2">
                         <i class="bi bi-arrow-clockwise"></i> Reset
+                    </button>
+                    <button id="advancedBtn" class="lf-button lf-button-outline ms-2">
+                        <i class="bi bi-sliders"></i> Advanced
+                    </button>
+                    <button id="saveSearchBtn" class="lf-button lf-button-outline ms-2">
+                        <i class="bi bi-bookmark"></i> Save Search
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Advanced Filters -->
+            <div id="advancedFilters" class="advanced-filters">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="lf-body-small">Company Size</label>
+                        <select id="companySizeSelect" class="lf-select">
+                            <option value="">All Sizes</option>
+                            <option value="startup">Startup (1-10)</option>
+                            <option value="small">Small (11-50)</option>
+                            <option value="medium">Medium (51-200)</option>
+                            <option value="large">Large (201-1000)</option>
+                            <option value="enterprise">Enterprise (1000+)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="lf-body-small">Location</label>
+                        <input type="text" id="locationInput" class="lf-input" placeholder="City, State, Country">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="lf-body-small">Revenue Range</label>
+                        <select id="revenueSelect" class="lf-select">
+                            <option value="">All Revenue</option>
+                            <option value="under1m">Under $1M</option>
+                            <option value="1m-10m">$1M - $10M</option>
+                            <option value="10m-100m">$10M - $100M</option>
+                            <option value="100m-1b">$100M - $1B</option>
+                            <option value="over1b">Over $1B</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="lf-body-small">Lead Source</label>
+                        <select id="leadSourceSelect" class="lf-select">
+                            <option value="">All Sources</option>
+                            <option value="website">Website</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="referral">Referral</option>
+                            <option value="coldoutreach">Cold Outreach</option>
+                            <option value="conference">Conference</option>
+                            <option value="partner">Partner</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Saved Searches -->
+            <div class="saved-searches">
+                <div class="lf-body-small mb-2">Saved Searches:</div>
+                <div id="savedSearchesList">
+                    <span class="saved-search-item" data-search="tech-startups">Tech Startups</span>
+                    <span class="saved-search-item" data-search="healthcare-medium">Healthcare Medium</span>
+                    <span class="saved-search-item" data-search="high-score-leads">High Score Leads</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div id="bulkActions" class="bulk-actions">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="lf-body-small">Selected: <span id="selectedCount">0</span> leads</span>
+                </div>
+                <div class="btn-group">
+                    <button class="lf-button lf-button-primary" id="bulkUpdateStatus">
+                        <i class="bi bi-check-circle"></i> Update Status
+                    </button>
+                    <button class="lf-button lf-button-secondary" id="bulkAddTags">
+                        <i class="bi bi-tag"></i> Add Tags
+                    </button>
+                    <button class="lf-button lf-button-secondary" id="bulkExport">
+                        <i class="bi bi-download"></i> Export Selected
+                    </button>
+                    <button class="lf-button lf-button-outline" id="bulkClear">
+                        <i class="bi bi-x"></i> Clear Selection
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- Results Panel -->
-        <div class="results-panel">
+        <div class="lf-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Search Results</h5>
-                <small class="text-muted">Found 1,247 leads</small>
+                <div class="d-flex align-items-center gap-3">
+                    <h5 class="lf-h4">Search Results</h5>
+                    <small class="lf-caption">Found <span id="resultCount">1,247</span> leads</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="lf-body-small">Sort by:</label>
+                    <select id="sortSelect" class="lf-select sort-dropdown">
+                        <option value="score-desc">Score (High to Low)</option>
+                        <option value="score-asc">Score (Low to High)</option>
+                        <option value="name-asc">Name (A to Z)</option>
+                        <option value="name-desc">Name (Z to A)</option>
+                        <option value="updated-desc">Recently Updated</option>
+                        <option value="updated-asc">Oldest Updated</option>
+                    </select>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="selectAllToggle">
+                        <label class="form-check-label lf-body-small" for="selectAllToggle">
+                            Select All
+                        </label>
+                    </div>
+                </div>
             </div>
 
-            <!-- Sample Lead Cards -->
-            <div class="lead-card">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h6 class="mb-1">TechCorp Solutions</h6>
-                        <p class="text-muted mb-1">www.techcorp.com</p>
-                        <p class="mb-0">Technology company specializing in enterprise software solutions</p>
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="mt-2 lf-body-small">Searching leads...</div>
+            </div>
+
+            <!-- Results Container -->
+            <div id="resultsContainer">
+                <!-- Enhanced Lead Cards -->
+                <div class="lead-card" data-lead-id="1">
+                    <div class="row">
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input lead-checkbox" type="checkbox" data-lead-id="1">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="lf-h4 mb-1">TechCorp Solutions</h6>
+                                            <p class="lf-body-small lf-text-neutral mb-1">www.techcorp.com</p>
+                                        </div>
+                                        <span class="lead-status qualified">Qualified</span>
+                                    </div>
+                                    <p class="lf-body mb-2">Technology company specializing in enterprise software solutions for mid-market businesses</p>
+                                    
+                                    <div class="company-details">
+                                        <span class="company-detail"><i class="bi bi-people"></i> 150 employees</span>
+                                        <span class="company-detail"><i class="bi bi-geo-alt"></i> San Francisco, CA</span>
+                                        <span class="company-detail"><i class="bi bi-currency-dollar"></i> $10M - $50M</span>
+                                        <span class="company-detail"><i class="bi bi-tag"></i> SaaS, B2B</span>
+                                    </div>
+                                    
+                                    <div class="contact-info">
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-person"></i>
+                                            <span>John Smith, CTO</span>
+                                        </div>
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-envelope"></i>
+                                            <span>john.smith@techcorp.com</span>
+                                        </div>
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-telephone"></i>
+                                            <span>+1 (555) 123-4567</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-end mb-2">
+                                        <div class="d-flex align-items-center justify-content-end gap-2 mb-1">
+                                            <span class="lead-score high">87</span>
+                                            <small class="lf-caption">Lead Score</small>
+                                        </div>
+                                        <div class="score-bar">
+                                            <div class="score-fill high" style="width: 87%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end mb-2">
+                                        <small class="lf-caption">Last updated: 2 hours ago</small><br>
+                                        <small class="lf-caption">Source: LinkedIn</small>
+                                    </div>
+                                    <div class="lead-actions">
+                                        <button class="lf-button lf-button-primary lf-button-sm" title="Add Note">
+                                            <i class="bi bi-journal-text"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-secondary lf-button-sm" title="Add Tags">
+                                            <i class="bi bi-tag"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-outline lf-button-sm" title="Adjust Score">
+                                            <i class="bi bi-arrow-up-circle"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-outline lf-button-sm" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-4 text-end">
-                        <span class="lead-score high">87</span>
-                        <div class="mt-2">
-                            <small class="text-muted">Last updated: 2 hours ago</small>
+                </div>
+
+                <div class="lead-card" data-lead-id="2">
+                    <div class="row">
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input lead-checkbox" type="checkbox" data-lead-id="2">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="lf-h4 mb-1">HealthTech Innovations</h6>
+                                            <p class="lf-body-small lf-text-neutral mb-1">www.healthtech.com</p>
+                                        </div>
+                                        <span class="lead-status contacted">Contacted</span>
+                                    </div>
+                                    <p class="lf-body mb-2">Healthcare technology solutions for medical practices and hospital systems</p>
+                                    
+                                    <div class="company-details">
+                                        <span class="company-detail"><i class="bi bi-people"></i> 75 employees</span>
+                                        <span class="company-detail"><i class="bi bi-geo-alt"></i> Boston, MA</span>
+                                        <span class="company-detail"><i class="bi bi-currency-dollar"></i> $5M - $25M</span>
+                                        <span class="company-detail"><i class="bi bi-tag"></i> HealthTech, EHR</span>
+                                    </div>
+                                    
+                                    <div class="contact-info">
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-person"></i>
+                                            <span>Sarah Johnson, VP Sales</span>
+                                        </div>
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-envelope"></i>
+                                            <span>sarah.johnson@healthtech.com</span>
+                                        </div>
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-telephone"></i>
+                                            <span>+1 (555) 987-6543</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-end mb-2">
+                                        <div class="d-flex align-items-center justify-content-end gap-2 mb-1">
+                                            <span class="lead-score medium">64</span>
+                                            <small class="lf-caption">Lead Score</small>
+                                        </div>
+                                        <div class="score-bar">
+                                            <div class="score-fill medium" style="width: 64%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end mb-2">
+                                        <small class="lf-caption">Last updated: 5 hours ago</small><br>
+                                        <small class="lf-caption">Source: Website</small>
+                                    </div>
+                                    <div class="lead-actions">
+                                        <button class="lf-button lf-button-primary lf-button-sm" title="Add Note">
+                                            <i class="bi bi-journal-text"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-secondary lf-button-sm" title="Add Tags">
+                                            <i class="bi bi-tag"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-outline lf-button-sm" title="Adjust Score">
+                                            <i class="bi bi-arrow-up-circle"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-outline lf-button-sm" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lead-card" data-lead-id="3">
+                    <div class="row">
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input lead-checkbox" type="checkbox" data-lead-id="3">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="lf-h4 mb-1">Financial Services Group</h6>
+                                            <p class="lf-body-small lf-text-neutral mb-1">www.finservices.com</p>
+                                        </div>
+                                        <span class="lead-status new">New</span>
+                                    </div>
+                                    <p class="lf-body mb-2">Comprehensive financial planning and investment services for high-net-worth individuals</p>
+                                    
+                                    <div class="company-details">
+                                        <span class="company-detail"><i class="bi bi-people"></i> 200 employees</span>
+                                        <span class="company-detail"><i class="bi bi-geo-alt"></i> New York, NY</span>
+                                        <span class="company-detail"><i class="bi bi-currency-dollar"></i> $25M - $100M</span>
+                                        <span class="company-detail"><i class="bi bi-tag"></i> FinTech, Wealth Management</span>
+                                    </div>
+                                    
+                                    <div class="contact-info">
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-person"></i>
+                                            <span>Michael Chen, Director</span>
+                                        </div>
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-envelope"></i>
+                                            <span>michael.chen@finservices.com</span>
+                                        </div>
+                                        <div class="contact-info-item">
+                                            <i class="bi bi-telephone"></i>
+                                            <span>+1 (555) 456-7890</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-end mb-2">
+                                        <div class="d-flex align-items-center justify-content-end gap-2 mb-1">
+                                            <span class="lead-score low">42</span>
+                                            <small class="lf-caption">Lead Score</small>
+                                        </div>
+                                        <div class="score-bar">
+                                            <div class="score-fill low" style="width: 42%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end mb-2">
+                                        <small class="lf-caption">Last updated: 1 day ago</small><br>
+                                        <small class="lf-caption">Source: Referral</small>
+                                    </div>
+                                    <div class="lead-actions">
+                                        <button class="lf-button lf-button-primary lf-button-sm" title="Add Note">
+                                            <i class="bi bi-journal-text"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-secondary lf-button-sm" title="Add Tags">
+                                            <i class="bi bi-tag"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-outline lf-button-sm" title="Adjust Score">
+                                            <i class="bi bi-arrow-up-circle"></i>
+                                        </button>
+                                        <button class="lf-button lf-button-outline lf-button-sm" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="lead-card">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h6 class="mb-1">HealthTech Innovations</h6>
-                        <p class="text-muted mb-1">www.healthtech.com</p>
-                        <p class="mb-0">Healthcare technology solutions for medical practices</p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <span class="lead-score medium">64</span>
-                        <div class="mt-2">
-                            <small class="text-muted">Last updated: 5 hours ago</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lead-card">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h6 class="mb-1">Financial Services Group</h6>
-                        <p class="text-muted mb-1">www.finservices.com</p>
-                        <p class="mb-0">Comprehensive financial planning and investment services</p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <span class="lead-score low">42</span>
-                        <div class="mt-2">
-                            <small class="text-muted">Last updated: 1 day ago</small>
-                        </div>
-                    </div>
-                </div>
+            <!-- No Results Message -->
+            <div id="noResults" class="no-results" style="display: none;">
+                <i class="bi bi-search" style="font-size: 3rem; color: var(--text-secondary);"></i>
+                <h5 class="lf-h4 mt-3">No leads found</h5>
+                <p class="lf-body">Try adjusting your search criteria or filters</p>
             </div>
 
             <!-- Pagination -->
             <div class="d-flex justify-content-between align-items-center mt-4">
                 <div>
-                    <small class="text-muted">Showing 1-10 of 1,247 results</small>
+                    <small class="lf-caption">Showing 1-10 of 1,247 results</small>
                 </div>
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm">
@@ -194,19 +663,490 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Lead Explorer functionality
-        console.log('Lead Explorer loaded');
-        
-        // Mock API integration
-        const leadExplorer = {
-            searchLeads: function(query) {
-                console.log('Searching for:', query);
-                // Integration with backend API would go here
-            },
+        // Lead Explorer State Management & API Integration
+        class LeadExplorer {
+            constructor() {
+                this.state = {
+                    leads: [],
+                    filters: {
+                        query: '',
+                        industry: '',
+                        score: '',
+                        companySize: '',
+                        location: '',
+                        revenue: '',
+                        leadSource: ''
+                    },
+                    selectedLeads: new Set(),
+                    sortBy: 'score-desc',
+                    loading: false,
+                    savedSearches: [
+                        { id: 'tech-startups', name: 'Tech Startups', filters: { industry: 'technology', companySize: 'startup' } },
+                        { id: 'healthcare-medium', name: 'Healthcare Medium', filters: { industry: 'healthcare', companySize: 'medium' } },
+                        { id: 'high-score-leads', name: 'High Score Leads', filters: { score: 'high' } }
+                    ],
+                    autocompleteData: [
+                        'TechCorp Solutions', 'HealthTech Innovations', 'Financial Services Group',
+                        'Software Development', 'Cloud Computing', 'Artificial Intelligence',
+                        'Machine Learning', 'Data Analytics', 'Cybersecurity', 'FinTech'
+                    ]
+                };
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.loadInitialData();
+            }
             
-            exportResults: function() {
-                console.log('Exporting results');
-                // Export functionality would go here
+            initializeElements() {
+                this.elements = {
+                    searchInput: document.getElementById('searchInput'),
+                    autocompleteDropdown: document.getElementById('autocompleteDropdown'),
+                    industrySelect: document.getElementById('industrySelect'),
+                    scoreSelect: document.getElementById('scoreSelect'),
+                    companySizeSelect: document.getElementById('companySizeSelect'),
+                    locationInput: document.getElementById('locationInput'),
+                    revenueSelect: document.getElementById('revenueSelect'),
+                    leadSourceSelect: document.getElementById('leadSourceSelect'),
+                    searchBtn: document.getElementById('searchBtn'),
+                    resetBtn: document.getElementById('resetBtn'),
+                    advancedBtn: document.getElementById('advancedBtn'),
+                    saveSearchBtn: document.getElementById('saveSearchBtn'),
+                    advancedFilters: document.getElementById('advancedFilters'),
+                    bulkActions: document.getElementById('bulkActions'),
+                    selectedCount: document.getElementById('selectedCount'),
+                    selectAllToggle: document.getElementById('selectAllToggle'),
+                    sortSelect: document.getElementById('sortSelect'),
+                    resultsContainer: document.getElementById('resultsContainer'),
+                    loadingSpinner: document.getElementById('loadingSpinner'),
+                    noResults: document.getElementById('noResults'),
+                    resultCount: document.getElementById('resultCount')
+                };
+            }
+            
+            bindEvents() {
+                // Search functionality
+                this.elements.searchInput.addEventListener('input', (e) => {
+                    this.handleSearchInput(e.target.value);
+                });
+                
+                this.elements.searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.performSearch();
+                    }
+                });
+                
+                // Filter changes
+                [this.elements.industrySelect, this.elements.scoreSelect, this.elements.companySizeSelect,
+                 this.elements.revenueSelect, this.elements.leadSourceSelect].forEach(select => {
+                    select.addEventListener('change', () => this.updateFilters());
+                });
+                
+                this.elements.locationInput.addEventListener('input', () => this.updateFilters());
+                
+                // Button events
+                this.elements.searchBtn.addEventListener('click', () => this.performSearch());
+                this.elements.resetBtn.addEventListener('click', () => this.resetFilters());
+                this.elements.advancedBtn.addEventListener('click', () => this.toggleAdvancedFilters());
+                this.elements.saveSearchBtn.addEventListener('click', () => this.saveCurrentSearch());
+                
+                // Bulk selection
+                this.elements.selectAllToggle.addEventListener('change', (e) => {
+                    this.toggleSelectAll(e.target.checked);
+                });
+                
+                // Sort changes
+                this.elements.sortSelect.addEventListener('change', (e) => {
+                    this.updateSort(e.target.value);
+                });
+                
+                // Saved searches
+                document.querySelectorAll('.saved-search-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        this.loadSavedSearch(e.target.dataset.search);
+                    });
+                });
+                
+                // Bulk actions
+                document.getElementById('bulkUpdateStatus').addEventListener('click', () => this.bulkUpdateStatus());
+                document.getElementById('bulkAddTags').addEventListener('click', () => this.bulkAddTags());
+                document.getElementById('bulkExport').addEventListener('click', () => this.bulkExport());
+                document.getElementById('bulkClear').addEventListener('click', () => this.clearSelection());
+                
+                // Lead checkboxes (delegated event)
+                document.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('lead-checkbox')) {
+                        this.toggleLeadSelection(e.target.dataset.leadId, e.target.checked);
+                    }
+                });
+                
+                // Lead card actions (delegated events)
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.lead-card')) {
+                        const leadCard = e.target.closest('.lead-card');
+                        const leadId = leadCard.dataset.leadId;
+                        
+                        if (e.target.title === 'Add Note') {
+                            this.addNote(leadId);
+                        } else if (e.target.title === 'Add Tags') {
+                            this.addTags(leadId);
+                        } else if (e.target.title === 'Adjust Score') {
+                            this.adjustScore(leadId);
+                        } else if (e.target.title === 'View Details') {
+                            this.viewDetails(leadId);
+                        }
+                    }
+                });
+            }
+            
+            // Search & Autocomplete
+            handleSearchInput(value) {
+                this.state.filters.query = value;
+                this.showAutocomplete(value);
+                
+                // Real-time search with debounce
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    if (value.length > 2) {
+                        this.performSearch();
+                    }
+                }, 500);
+            }
+            
+            showAutocomplete(query) {
+                const dropdown = this.elements.autocompleteDropdown;
+                
+                if (query.length < 2) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                
+                const matches = this.state.autocompleteData.filter(item => 
+                    item.toLowerCase().includes(query.toLowerCase())
+                ).slice(0, 5);
+                
+                if (matches.length > 0) {
+                    dropdown.innerHTML = matches.map(match => 
+                        `<div class="autocomplete-item" data-value="${match}">${match}</div>`
+                    ).join('');
+                    dropdown.style.display = 'block';
+                    
+                    // Add click handlers
+                    dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+                        item.addEventListener('click', (e) => {
+                            this.elements.searchInput.value = e.target.dataset.value;
+                            this.state.filters.query = e.target.dataset.value;
+                            dropdown.style.display = 'none';
+                            this.performSearch();
+                        });
+                    });
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            }
+            
+            // Filter Management
+            updateFilters() {
+                this.state.filters = {
+                    query: this.elements.searchInput.value,
+                    industry: this.elements.industrySelect.value,
+                    score: this.elements.scoreSelect.value,
+                    companySize: this.elements.companySizeSelect.value,
+                    location: this.elements.locationInput.value,
+                    revenue: this.elements.revenueSelect.value,
+                    leadSource: this.elements.leadSourceSelect.value
+                };
+                
+                // Auto-search when filters change
+                this.performSearch();
+            }
+            
+            resetFilters() {
+                // Reset all form elements
+                this.elements.searchInput.value = '';
+                this.elements.industrySelect.value = '';
+                this.elements.scoreSelect.value = '';
+                this.elements.companySizeSelect.value = '';
+                this.elements.locationInput.value = '';
+                this.elements.revenueSelect.value = '';
+                this.elements.leadSourceSelect.value = '';
+                
+                // Reset state
+                this.state.filters = {
+                    query: '', industry: '', score: '', companySize: '',
+                    location: '', revenue: '', leadSource: ''
+                };
+                
+                this.performSearch();
+            }
+            
+            toggleAdvancedFilters() {
+                this.elements.advancedFilters.classList.toggle('show');
+                const isVisible = this.elements.advancedFilters.classList.contains('show');
+                this.elements.advancedBtn.innerHTML = isVisible ? 
+                    '<i class="bi bi-sliders"></i> Basic' : 
+                    '<i class="bi bi-sliders"></i> Advanced';
+            }
+            
+            // Saved Searches
+            loadSavedSearch(searchId) {
+                const saved = this.state.savedSearches.find(s => s.id === searchId);
+                if (saved) {
+                    // Apply saved filters
+                    Object.keys(saved.filters).forEach(key => {
+                        if (this.elements[key + 'Select']) {
+                            this.elements[key + 'Select'].value = saved.filters[key];
+                        } else if (this.elements[key + 'Input']) {
+                            this.elements[key + 'Input'].value = saved.filters[key];
+                        }
+                    });
+                    
+                    this.updateFilters();
+                }
+            }
+            
+            saveCurrentSearch() {
+                const name = prompt('Enter a name for this search:');
+                if (name) {
+                    const newSearch = {
+                        id: 'custom-' + Date.now(),
+                        name: name,
+                        filters: { ...this.state.filters }
+                    };
+                    
+                    this.state.savedSearches.push(newSearch);
+                    this.updateSavedSearchesUI();
+                    
+                    // Save to localStorage
+                    localStorage.setItem('leadExplorerSavedSearches', 
+                        JSON.stringify(this.state.savedSearches));
+                }
+            }
+            
+            updateSavedSearchesUI() {
+                const container = document.getElementById('savedSearchesList');
+                container.innerHTML = this.state.savedSearches.map(search => 
+                    `<span class="saved-search-item" data-search="${search.id}">${search.name}</span>`
+                ).join('');
+            }
+            
+            // Selection Management
+            toggleLeadSelection(leadId, selected) {
+                if (selected) {
+                    this.state.selectedLeads.add(leadId);
+                } else {
+                    this.state.selectedLeads.delete(leadId);
+                }
+                
+                this.updateSelectionUI();
+            }
+            
+            toggleSelectAll(selectAll) {
+                const checkboxes = document.querySelectorAll('.lead-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAll;
+                    this.toggleLeadSelection(checkbox.dataset.leadId, selectAll);
+                });
+            }
+            
+            updateSelectionUI() {
+                const count = this.state.selectedLeads.size;
+                this.elements.selectedCount.textContent = count;
+                
+                if (count > 0) {
+                    this.elements.bulkActions.classList.add('show');
+                } else {
+                    this.elements.bulkActions.classList.remove('show');
+                }
+                
+                // Update select all checkbox
+                const totalCheckboxes = document.querySelectorAll('.lead-checkbox').length;
+                this.elements.selectAllToggle.checked = count === totalCheckboxes;
+                this.elements.selectAllToggle.indeterminate = count > 0 && count < totalCheckboxes;
+            }
+            
+            clearSelection() {
+                this.state.selectedLeads.clear();
+                document.querySelectorAll('.lead-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                this.updateSelectionUI();
+            }
+            
+            // Sorting
+            updateSort(sortBy) {
+                this.state.sortBy = sortBy;
+                this.applySorting();
+            }
+            
+            applySorting() {
+                // In a real app, this would re-sort the results
+                console.log('Sorting by:', this.state.sortBy);
+                // For now, just show a loading state briefly
+                this.showLoading(true);
+                setTimeout(() => {
+                    this.showLoading(false);
+                }, 500);
+            }
+            
+            // API Integration
+            async performSearch() {
+                this.showLoading(true);
+                
+                try {
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // In a real app, this would make an API call
+                    const results = await this.mockApiCall();
+                    
+                    this.state.leads = results;
+                    this.renderResults();
+                    
+                } catch (error) {
+                    console.error('Search failed:', error);
+                    this.showError('Search failed. Please try again.');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+            
+            async mockApiCall() {
+                // Mock API response
+                return {
+                    total: 1247,
+                    results: [
+                        // Current leads would be filtered/sorted here
+                    ]
+                };
+            }
+            
+            renderResults() {
+                // Update result count
+                this.elements.resultCount.textContent = this.state.leads.total || 1247;
+                
+                // Show/hide no results
+                if (this.state.leads.total === 0) {
+                    this.elements.noResults.style.display = 'block';
+                    this.elements.resultsContainer.style.display = 'none';
+                } else {
+                    this.elements.noResults.style.display = 'none';
+                    this.elements.resultsContainer.style.display = 'block';
+                }
+            }
+            
+            showLoading(show) {
+                this.state.loading = show;
+                if (show) {
+                    this.elements.loadingSpinner.classList.add('show');
+                    this.elements.resultsContainer.style.opacity = '0.5';
+                } else {
+                    this.elements.loadingSpinner.classList.remove('show');
+                    this.elements.resultsContainer.style.opacity = '1';
+                }
+            }
+            
+            showError(message) {
+                // Simple error display - in a real app, this would be more sophisticated
+                alert(message);
+            }
+            
+            // Lead Actions
+            addNote(leadId) {
+                const note = prompt('Enter a note for this lead:');
+                if (note) {
+                    console.log(`Adding note to lead ${leadId}:`, note);
+                    // API call would go here
+                }
+            }
+            
+            addTags(leadId) {
+                const tags = prompt('Enter tags (comma-separated):');
+                if (tags) {
+                    console.log(`Adding tags to lead ${leadId}:`, tags);
+                    // API call would go here
+                }
+            }
+            
+            adjustScore(leadId) {
+                const newScore = prompt('Enter new score (0-100):');
+                if (newScore && !isNaN(newScore) && newScore >= 0 && newScore <= 100) {
+                    console.log(`Adjusting score for lead ${leadId} to:`, newScore);
+                    // API call would go here
+                }
+            }
+            
+            viewDetails(leadId) {
+                console.log(`Viewing details for lead ${leadId}`);
+                // This would open a modal or navigate to a detail page
+            }
+            
+            // Bulk Actions
+            bulkUpdateStatus() {
+                if (this.state.selectedLeads.size === 0) return;
+                
+                const status = prompt('Enter new status (new/contacted/qualified/unqualified):');
+                if (status) {
+                    console.log(`Updating status for ${this.state.selectedLeads.size} leads to:`, status);
+                    // API call would go here
+                }
+            }
+            
+            bulkAddTags() {
+                if (this.state.selectedLeads.size === 0) return;
+                
+                const tags = prompt('Enter tags to add (comma-separated):');
+                if (tags) {
+                    console.log(`Adding tags to ${this.state.selectedLeads.size} leads:`, tags);
+                    // API call would go here
+                }
+            }
+            
+            bulkExport() {
+                if (this.state.selectedLeads.size === 0) return;
+                
+                console.log(`Exporting ${this.state.selectedLeads.size} leads`);
+                // This would trigger a download of the selected leads
+                this.downloadCSV(Array.from(this.state.selectedLeads));
+            }
+            
+            downloadCSV(leadIds) {
+                // Mock CSV export
+                const csvContent = "Lead ID,Company,Score,Status\n" +
+                    leadIds.map(id => `${id},Company ${id},85,New`).join('\n');
+                
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `leads-export-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+            
+            // Initialization
+            loadInitialData() {
+                // Load saved searches from localStorage
+                const saved = localStorage.getItem('leadExplorerSavedSearches');
+                if (saved) {
+                    this.state.savedSearches = JSON.parse(saved);
+                    this.updateSavedSearchesUI();
+                }
+                
+                // Perform initial search
+                this.performSearch();
+            }
+        }
+        
+        // Initialize the Lead Explorer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.leadExplorer = new LeadExplorer();
+            console.log('Lead Explorer initialized with Wave 1 enhancements');
+        });
+        
+        // Global export function for external access
+        window.exportLeads = function(format = 'csv') {
+            if (window.leadExplorer) {
+                window.leadExplorer.bulkExport();
             }
         };
     </script>

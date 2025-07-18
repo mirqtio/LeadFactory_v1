@@ -20,6 +20,9 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from pydantic import ValidationError
 
+from account_management.models import AccountUser
+from core.auth import get_current_user_dependency, require_organization_access
+
 from .checkout import CheckoutError, CheckoutItem, CheckoutManager
 from .schemas import (
     APIStatusResponse,
@@ -117,6 +120,8 @@ def handle_validation_error(exc: ValidationError) -> JSONResponse:
 async def initiate_checkout(
     request: CheckoutInitiationRequest,
     manager: CheckoutManager = Depends(get_checkout_manager),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ) -> CheckoutInitiationResponse:
     """
     Initiate checkout process - Acceptance Criteria: Checkout initiation API
@@ -246,7 +251,10 @@ async def stripe_webhook(
     description="Retrieve the current status of a checkout session",
 )
 async def get_session_status(
-    session_id: str, manager: CheckoutManager = Depends(get_checkout_manager)
+    session_id: str,
+    manager: CheckoutManager = Depends(get_checkout_manager),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ) -> CheckoutSessionStatusResponse:
     """
     Get checkout session status
@@ -286,6 +294,8 @@ async def payment_success(
     session_id: str,
     purchase_id: Optional[str] = None,
     manager: CheckoutManager = Depends(get_checkout_manager),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ) -> SuccessPageResponse:
     """
     Payment success page - Acceptance Criteria: Success page works
@@ -384,6 +394,8 @@ async def payment_success(
 async def create_audit_report_checkout(
     request: AuditReportCheckoutRequest,
     manager: CheckoutManager = Depends(get_checkout_manager),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ) -> CheckoutInitiationResponse:
     """
     Convenience endpoint for audit report checkout
@@ -425,6 +437,8 @@ async def create_audit_report_checkout(
 async def create_bulk_reports_checkout(
     request: BulkReportsCheckoutRequest,
     manager: CheckoutManager = Depends(get_checkout_manager),
+    current_user: AccountUser = Depends(get_current_user_dependency),
+    organization_id: str = Depends(require_organization_access),
 ) -> CheckoutInitiationResponse:
     """
     Convenience endpoint for bulk reports checkout

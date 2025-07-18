@@ -1,0 +1,385 @@
+# P2 Domain Coordination Configuration
+# =====================================
+
+metadata:
+  version: "1.0"
+  created_at: "2025-07-18"
+  last_updated: "2025-07-18"
+  description: "Comprehensive coordination configuration for P2 Lead Generation domain"
+
+# Meeting Schedules
+meetings:
+  weekly_p2_review:
+    type: "domain_review"
+    schedule: "0 10 * * 2"  # Every Tuesday at 10 AM EST
+    timezone: "America/New_York"
+    duration_minutes: 90
+    participants:
+      - "pm-p2@company.com"
+      - "p2-dev-team@company.com"
+      - "data-analysts@company.com"
+      - "qa-lead@company.com"
+      - "devops-p2@company.com"
+    agenda_template: "p2_weekly_review_agenda.md"
+    deliverables:
+      - "weekly_progress_report"
+      - "risk_assessment"
+      - "next_week_priorities"
+      - "stakeholder_updates"
+    meeting_room: "Conference Room B"
+    zoom_link: "https://zoom.us/j/p2-weekly-review"
+    recording_enabled: true
+    
+  p0_ui_integration:
+    type: "cross_domain_integration"
+    schedule: "0 14 * * 5"  # Every Friday at 2 PM EST
+    timezone: "America/New_York"
+    duration_minutes: 30
+    participants:
+      - "pm-p2@company.com"
+      - "pm-p0@company.com"
+      - "ui-team@company.com"
+      - "frontend-p2@company.com"
+    agenda_template: "p2_p0_integration_agenda.md"
+    focus_areas:
+      - "dashboard_integration"
+      - "pdf_viewer_integration"
+      - "design_system_compliance"
+      - "responsive_design_validation"
+    deliverables:
+      - "ui_integration_status"
+      - "design_compliance_report"
+      - "next_sprint_ui_tasks"
+    
+  p3_security_integration:
+    type: "security_coordination"
+    schedule: "0 15 * * 4"  # Every Thursday at 3 PM EST
+    timezone: "America/New_York"
+    duration_minutes: 45
+    participants:
+      - "pm-p2@company.com"
+      - "pm-p3@company.com"
+      - "security-team@company.com"
+      - "compliance-lead@company.com"
+    agenda_template: "p2_p3_security_agenda.md"
+    focus_areas:
+      - "analytics_access_controls"
+      - "unit_economics_security"
+      - "pdf_security_review"
+      - "audit_trail_compliance"
+    deliverables:
+      - "security_compliance_status"
+      - "vulnerability_assessment"
+      - "access_control_validation"
+    
+  bi_weekly_analytics:
+    type: "analytics_review"
+    schedule: "0 9 * * 1/2"  # Every other Monday at 9 AM EST
+    timezone: "America/New_York"
+    duration_minutes: 60
+    participants:
+      - "pm-p2@company.com"
+      - "analytics-team@company.com"
+      - "pm-p0@company.com"
+      - "pm-p3@company.com"
+      - "business-intelligence@company.com"
+    agenda_template: "analytics_review_agenda.md"
+    focus_areas:
+      - "unit_economics_trends"
+      - "conversion_optimization"
+      - "lead_scoring_effectiveness"
+      - "roi_cac_optimization"
+    deliverables:
+      - "analytics_insights_report"
+      - "business_recommendations"
+      - "optimization_action_items"
+    
+  monthly_executive_review:
+    type: "executive_validation"
+    schedule: "0 14 * * 5L"  # Last Friday of month at 2 PM EST
+    timezone: "America/New_York"
+    duration_minutes: 120
+    participants:
+      - "executive-team@company.com"
+      - "pm-p2@company.com"
+      - "pm-p0@company.com"
+      - "pm-p3@company.com"
+      - "business-stakeholders@company.com"
+    agenda_template: "executive_review_agenda.md"
+    focus_areas:
+      - "strategic_alignment"
+      - "business_impact_assessment"
+      - "resource_allocation"
+      - "quarterly_planning"
+    deliverables:
+      - "executive_summary"
+      - "strategic_decisions"
+      - "resource_allocation_plan"
+
+# Reporting Configuration
+reporting:
+  frequency: "weekly"
+  schedule: "0 8 * * 1"  # Every Monday at 8 AM EST
+  timezone: "America/New_York"
+  recipients:
+    executive_team:
+      - "ceo@company.com"
+      - "cto@company.com"
+      - "vp-product@company.com"
+    pm_leads:
+      - "pm-p0@company.com"
+      - "pm-p2@company.com"
+      - "pm-p3@company.com"
+    development_teams:
+      - "p2-dev-team@company.com"
+      - "ui-team@company.com"
+      - "analytics-team@company.com"
+  
+  dashboard_urls:
+    unit_economics: "http://localhost:8000/api/v1/analytics/unit_econ"
+    prp_tracking: "http://localhost:8000/api/v1/governance/prp_status"
+    performance_metrics: "http://localhost:8000/metrics"
+  
+  report_templates:
+    weekly_progress: "weekly_progress_report.md"
+    executive_summary: "executive_summary.md"
+    technical_status: "technical_status_report.md"
+  
+  distribution:
+    email_enabled: true
+    slack_enabled: true
+    slack_channels:
+      - "#p2-domain-coordination"
+      - "#executive-updates"
+      - "#pm-leads"
+    
+  retention_policy:
+    reports_retention_months: 12
+    metrics_retention_months: 24
+    meeting_notes_retention_months: 6
+
+# Validation Configuration
+validation:
+  pre_merge_requirements:
+    - "unit_tests_passing"
+    - "integration_tests_passing"
+    - "security_scan_completed"
+    - "performance_benchmarks_met"
+    - "code_coverage_threshold"
+    - "lint_checks_passed"
+  
+  coverage_thresholds:
+    unit_tests: 80
+    integration_tests: 70
+    end_to_end_tests: 60
+  
+  performance_benchmarks:
+    api_response_time_ms: 500
+    database_query_time_ms: 100
+    page_load_time_ms: 2000
+    memory_usage_mb: 512
+  
+  security_requirements:
+    vulnerability_scan: true
+    dependency_scan: true
+    secrets_scan: true
+    rbac_validation: true
+  
+  validation_gates:
+    - name: "code_quality"
+      required_checks:
+        - "lint_passed"
+        - "tests_passed"
+        - "coverage_met"
+    - name: "security"
+      required_checks:
+        - "vulnerability_scan_passed"
+        - "secrets_scan_passed"
+        - "rbac_validated"
+    - name: "performance"
+      required_checks:
+        - "response_time_met"
+        - "memory_usage_acceptable"
+        - "database_performance_met"
+
+# Cross-Domain Integration
+cross_domain_integrations:
+  p2_to_p0:
+    description: "P2 Analytics to P0 UI Integration"
+    integration_points:
+      - "analytics_dashboard_widgets"
+      - "unit_economics_displays"
+      - "pdf_viewer_components"
+      - "lead_explorer_analytics"
+    validation_requirements:
+      - "ui_consistency_check"
+      - "responsive_design_validation"
+      - "accessibility_compliance"
+      - "performance_optimization"
+    meeting_schedule: "p0_ui_integration"
+    
+  p2_to_p3:
+    description: "P2 Analytics to P3 Security Integration"
+    integration_points:
+      - "analytics_access_controls"
+      - "data_export_security"
+      - "audit_trail_integration"
+      - "compliance_reporting"
+    validation_requirements:
+      - "rbac_implementation"
+      - "data_privacy_compliance"
+      - "audit_trail_completeness"
+      - "security_vulnerability_assessment"
+    meeting_schedule: "p3_security_integration"
+
+# Metrics and KPIs
+metrics:
+  coordination_effectiveness:
+    meeting_attendance_target: 0.90
+    decision_velocity_hours: 24
+    cross_domain_conflicts: 0
+    stakeholder_satisfaction_min: 8.0
+  
+  domain_performance:
+    prp_completion_rate_monthly: 2.5
+    test_coverage_min: 0.80
+    defect_rate_max: 0.05
+    time_to_market_improvement: 0.30
+  
+  business_impact:
+    unit_economics_improvement: 0.15
+    cpl_optimization_target: 0.10
+    cac_reduction_target: 0.05
+    roi_improvement_target: 0.20
+  
+  risk_management:
+    risk_identification_rate: 1.0
+    mitigation_effectiveness: 0.85
+    escalation_response_hours: 4
+    stakeholder_satisfaction: 0.85
+
+# Automation Configuration
+automation:
+  enabled: true
+  scripts:
+    meeting_scheduler: "scripts/schedule_meetings.py"
+    report_generator: "scripts/generate_reports.py"
+    metrics_collector: "scripts/collect_metrics.py"
+    validation_runner: "scripts/run_validations.py"
+  
+  notification_channels:
+    email:
+      smtp_server: "smtp.company.com"
+      smtp_port: 587
+      username: "p2-coordination@company.com"
+    
+    slack:
+      webhook_url: "https://hooks.slack.com/services/P2/COORDINATION/WEBHOOK"
+      primary_channel: "#p2-domain-coordination"
+      
+    teams:
+      webhook_url: "https://company.webhook.office.com/webhookb2/P2-COORDINATION"
+  
+  scheduling:
+    calendar_integration: "google_calendar"
+    calendar_id: "p2-coordination@company.com"
+    time_zone: "America/New_York"
+    
+  monitoring:
+    health_check_interval_minutes: 15
+    alert_thresholds:
+      meeting_attendance_below: 0.80
+      prp_completion_behind_schedule: 0.20
+      test_coverage_below: 0.75
+      response_time_above_ms: 1000
+
+# SuperClaude Integration
+superclaud_framework:
+  enabled: true
+  task_agent_spawning: true
+  enterprise_grade_execution: true
+  
+  capabilities:
+    - "/implement"
+    - "/analyze --seq"
+    - "--c7"
+    - "--wave orchestration"
+  
+  pm_p2_capabilities:
+    - "analytics_work"
+    - "unit_economics_analysis"
+    - "cross_domain_coordination"
+    - "evidence_based_validation"
+  
+  execution_context: |
+    Use SuperClaude framework with /implement, /analyze --seq, --c7, --wave orchestration. 
+    Inherit all PM-P2 capabilities for analytics work. Execute with enterprise-grade 
+    patterns and evidence-based validation.
+  
+  task_routing:
+    analytics_tasks: "superclaud_analytics_agent"
+    coordination_tasks: "superclaud_coordination_agent"
+    validation_tasks: "superclaud_validation_agent"
+    
+  quality_gates:
+    - "enterprise_grade_validation"
+    - "evidence_based_decisions"
+    - "cross_domain_integration"
+    - "performance_optimization"
+
+# Environment Configuration
+environment:
+  development:
+    prp_tracking_path: ".claude/prp_tracking/prp_status.yaml"
+    analytics_api_base: "http://localhost:8000/api/v1/analytics"
+    mock_data_enabled: true
+    
+  staging:
+    prp_tracking_path: ".claude/prp_tracking/prp_status.yaml"
+    analytics_api_base: "https://staging.leadfactory.com/api/v1/analytics"
+    mock_data_enabled: false
+    
+  production:
+    prp_tracking_path: ".claude/prp_tracking/prp_status.yaml"
+    analytics_api_base: "https://api.leadfactory.com/api/v1/analytics"
+    mock_data_enabled: false
+    enhanced_security: true
+    audit_logging: true
+
+# Contact Information
+contacts:
+  pm_p2_lead:
+    name: "PM-P2 Lead"
+    email: "pm-p2@company.com"
+    phone: "+1-555-0101"
+    role: "P2 Domain Project Manager"
+  
+  development_team_lead:
+    name: "P2 Development Lead"
+    email: "p2-dev-lead@company.com"
+    phone: "+1-555-0102"
+    role: "P2 Technical Lead"
+  
+  analytics_team_lead:
+    name: "Analytics Team Lead"
+    email: "analytics-lead@company.com"
+    phone: "+1-555-0103"
+    role: "Data Analytics Manager"
+  
+  executive_sponsor:
+    name: "Executive Sponsor"
+    email: "vp-product@company.com"
+    phone: "+1-555-0104"
+    role: "VP Product & Strategy"
+
+# Documentation
+documentation:
+  framework_guide: "p2_domain_coordination_framework.md"
+  implementation_guide: "p2_coordination_implementation.py"
+  meeting_templates: "templates/"
+  runbooks: "runbooks/"
+  
+  knowledge_base:
+    confluence_space: "P2-COORDINATION"
+    github_repo: "leadfactory/p2-coordination"
+    shared_drive: "drive/p2-coordination"

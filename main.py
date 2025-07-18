@@ -208,6 +208,10 @@ if settings.enable_governance and governance_router is not None and AuditLogging
     # Mount static files for Governance UI
     app.mount("/static/governance", StaticFiles(directory="static/governance"), name="governance")
 
+# Design System (P0-028)
+# Mount design system CSS file
+app.mount("/static/design_system", StaticFiles(directory="static/design_system"), name="design_system")
+
 # Global Navigation Shell (P0-027)
 # Mount static files for all UI components
 app.mount("/static/global_navigation", StaticFiles(directory="static/global_navigation"), name="global_navigation")

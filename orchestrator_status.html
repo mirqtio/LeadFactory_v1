@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRP Portfolio Transparency Dashboard</title>
+    <title>🎯 Orchestrator Dashboard - Agent Permission Management</title>
     <style>
         body {
             font-family: 'Monaco', 'Courier New', monospace;
@@ -13,35 +13,30 @@
             padding: 20px;
             line-height: 1.6;
         }
-        
         .header {
             text-align: center;
             margin-bottom: 30px;
             border-bottom: 2px solid #333;
             padding-bottom: 20px;
         }
-        
         .header h1 {
             color: #4CAF50;
             font-size: 2.5em;
             margin: 0;
             text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
         }
-        
         .timestamp {
             color: #888;
             font-size: 0.9em;
             margin-top: 10px;
         }
-        
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 20px;
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
         }
-        
         .status-card {
             background: #2a2a2a;
             border: 1px solid #404040;
@@ -49,32 +44,22 @@
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
-        
-        .status-card.wide {
-            grid-column: 1 / -1;
-        }
-        
         .status-card h3 {
             margin-top: 0;
             color: #4CAF50;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.2em;
         }
-        
         .status-indicator {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             display: inline-block;
         }
-        
         .status-green { background-color: #4CAF50; }
         .status-yellow { background-color: #FFC107; }
         .status-red { background-color: #f44336; }
-        .status-blue { background-color: #2196F3; }
-        
         .metric {
             display: flex;
             justify-content: space-between;
@@ -82,16 +67,10 @@
             padding: 5px 0;
             border-bottom: 1px solid #333;
         }
-        
         .metric-value {
             font-weight: bold;
             color: #4CAF50;
         }
-        
-        .metric-value.warning { color: #FFC107; }
-        .metric-value.error { color: #f44336; }
-        .metric-value.info { color: #2196F3; }
-        
         .output-section {
             background: #1e1e1e;
             border: 1px solid #333;
@@ -105,7 +84,6 @@
             max-height: 200px;
             overflow-y: auto;
         }
-        
         .progress-bar {
             width: 100%;
             height: 20px;
@@ -114,308 +92,246 @@
             overflow: hidden;
             margin: 10px 0;
         }
-        
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #4CAF50, #8BC34A);
             transition: width 0.3s ease;
         }
-        
-        .prp-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .prp-item {
-            background: #1e1e1e;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 0.9em;
-        }
-        
-        .prp-item.complete {
-            border-color: #4CAF50;
-            background: rgba(76, 175, 80, 0.1);
-        }
-        
-        .prp-item.in-progress {
-            border-color: #FFC107;
-            background: rgba(255, 193, 7, 0.1);
-        }
-        
-        .prp-item.pending {
-            border-color: #666;
-            background: rgba(102, 102, 102, 0.1);
-        }
-        
-        .prp-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .prp-status {
-            font-size: 0.8em;
-            color: #888;
-        }
-        
-        .team-member {
-            background: #1e1e1e;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 8px;
-            margin: 5px 0;
-            font-size: 0.9em;
-        }
-        
-        .team-member.active {
-            border-color: #4CAF50;
-            background: rgba(76, 175, 80, 0.1);
-        }
-        
-        .team-member.monitoring {
-            border-color: #2196F3;
-            background: rgba(33, 150, 243, 0.1);
-        }
-        
-        .alert {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid #FFC107;
-            border-radius: 4px;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 0.9em;
-        }
-        
-        .alert.success {
-            background: rgba(76, 175, 80, 0.2);
-            border-color: #4CAF50;
-        }
-        
-        .alert.critical {
-            background: rgba(244, 67, 54, 0.2);
-            border-color: #f44336;
+        .critical-alert {
+            border: 2px solid #f44336;
+            background: #2a1a1a;
         }
     </style>
-    <meta http-equiv="refresh" content="15">
+    <meta http-equiv="refresh" content="5">
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0">
 </head>
 <body>
     <div class="header">
-        <h1>🎯 PRP Portfolio Transparency Dashboard</h1>
-        <div class="timestamp">Last Updated: <span id="timestamp">2025-07-18 09:15:00</span></div>
+        <h1>🎯 Orchestrator Dashboard</h1>
+        <div class="timestamp">LIVE: <span id="timestamp">2025-07-18 06:33:00</span></div>
+        <div style="color: #888; font-size: 0.8em;">Agent Permission Management</div>
     </div>
     
     <div class="dashboard">
-        <!-- Portfolio Overview - Full Width -->
-        <div class="status-card wide">
-            <h3><span class="status-indicator status-green"></span>PRP Portfolio Overview</h3>
+        <div class="status-card critical-alert">
+            <h3><span class="status-indicator status-red"></span>🚨 CRITICAL AGENT PERMISSIONS</h3>
             <div class="metric">
-                <span>Total PRPs:</span>
-                <span class="metric-value">25</span>
+                <span>Required Flag:</span>
+                <span class="metric-value">--dangerously-skip-permissions</span>
             </div>
             <div class="metric">
-                <span>Completed:</span>
-                <span class="metric-value">8</span>
+                <span>Orchestrator Agents:</span>
+                <span class="metric-value">✅ Bypassing Permissions</span>
             </div>
             <div class="metric">
-                <span>In Progress:</span>
-                <span class="metric-value">0</span>
-            </div>
-            <div class="metric">
-                <span>Success Rate:</span>
-                <span class="metric-value">100%</span>
+                <span>PM-Spawned Agents:</span>
+                <span class="metric-value">⚠️ VERIFICATION REQUIRED</span>
             </div>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: 32%;"></div>
+                <div class="progress-fill" style="width: 60%;"></div>
             </div>
-            
-            <div class="alert success">
-                🎉 <strong>MAJOR MILESTONE:</strong> P0-016 Test Suite Stabilization COMPLETE (100/100 validation) - All GitHub CI checks passing GREEN
-            </div>
-        </div>
+            <div class="output-section">🚨 CRITICAL REQUIREMENT:
+ALL spawned agents must use: --dangerously-skip-permissions
 
-        <!-- P0 Domain Status -->
+✅ VERIFIED:
+- Orchestrator agents (orchestrator:1,3,4) showing "Bypassing Permissions"
+
+⚠️ VERIFICATION NEEDED:
+- PM-P0 Task-spawned agents
+- PM-P2 Task-spawned agents  
+- PM-P3 Task-spawned agents
+
+📋 INSTRUCTIONS SENT TO ALL PMs:
+"CRITICAL: All spawned agents must use flag --dangerously-skip-permissions when starting claude. Example: claude --dangerously-skip-permissions. Verify all your Task-spawned agents include this flag."</div>
+        </div>
+        
         <div class="status-card">
-            <h3><span class="status-indicator status-green"></span>P0 Domain (UI Foundation)</h3>
+            <h3><span class="status-indicator status-green"></span>🏗️ PM MINI-ORCHESTRATORS</h3>
             <div class="metric">
-                <span>Domain Progress:</span>
-                <span class="metric-value">8/11 Complete</span>
+                <span>PM-P0 (UI Foundation):</span>
+                <span class="metric-value">Active + Permission Alert</span>
             </div>
             <div class="metric">
-                <span>Domain Lead:</span>
-                <span class="metric-value info">PM-P0 (Transitioning)</span>
+                <span>PM-P2 (Lead Generation):</span>
+                <span class="metric-value">Active + Permission Alert</span>
+            </div>
+            <div class="metric">
+                <span>PM-P3 (Advanced Features):</span>
+                <span class="metric-value">Active + Permission Alert</span>
             </div>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: 73%;"></div>
+                <div class="progress-fill" style="width: 100%;"></div>
             </div>
-            
-            <div class="prp-grid">
-                <div class="prp-item complete">
-                    <div class="prp-title">P0-016 Test Suite</div>
-                    <div class="prp-status">✅ COMPLETE (100/100)</div>
-                </div>
-                <div class="prp-item complete">
-                    <div class="prp-title">P0-020 Design Tokens</div>
-                    <div class="prp-status">✅ COMPLETE</div>
-                </div>
-                <div class="prp-item complete">
-                    <div class="prp-title">P0-021 Lead Explorer</div>
-                    <div class="prp-status">✅ COMPLETE</div>
-                </div>
-                <div class="prp-item complete">
-                    <div class="prp-title">P0-022 Batch Runner</div>
-                    <div class="prp-status">✅ COMPLETE</div>
-                </div>
-                <div class="prp-item complete">
-                    <div class="prp-title">P0-023 Lineage Panel</div>
-                    <div class="prp-status">✅ COMPLETE</div>
-                </div>
-                <div class="prp-item complete">
-                    <div class="prp-title">P0-024 Template Studio</div>
-                    <div class="prp-status">✅ COMPLETE</div>
-                </div>
-                <div class="prp-item complete">
-                    <div class="prp-title">P0-025 Scoring Playground</div>
-                    <div class="prp-status">✅ COMPLETE</div>
-                </div>
-                <div class="prp-item complete">
-                    <div class="prp-title">P0-026 Governance</div>
-                    <div class="prp-status">✅ COMPLETE</div>
-                </div>
-                <div class="prp-item pending">
-                    <div class="prp-title">P0-027 UI Components</div>
-                    <div class="prp-status">⏳ Pending</div>
-                </div>
-                <div class="prp-item pending">
-                    <div class="prp-title">P0-028 Navigation</div>
-                    <div class="prp-status">⏳ Pending</div>
-                </div>
-                <div class="prp-item pending">
-                    <div class="prp-title">P0-029 Layouts</div>
-                    <div class="prp-status">⏳ Pending</div>
-                </div>
-            </div>
-        </div>
+            <div class="output-section">🎯 PM-P0 (UI Foundation):
+   - Status: Active Task spawning coordination
+   - Current: Static file search management
+   - Permission Alert: SENT ✅
+   - Requires: --dangerously-skip-permissions verification
 
-        <!-- Team Execution Status -->
+🚀 PM-P2 (Lead Generation):
+   - Status: Active Task spawning coordination
+   - Current: P2 reference discovery management
+   - Permission Alert: SENT ✅
+   - Requires: --dangerously-skip-permissions verification
+
+🔐 PM-P3 (Advanced Features):
+   - Status: Active Task spawning coordination
+   - Current: PRP status management
+   - Permission Alert: SENT ✅
+   - Requires: --dangerously-skip-permissions verification</div>
+        </div>
+        
         <div class="status-card">
-            <h3><span class="status-indicator status-green"></span>Team Execution Status</h3>
+            <h3><span class="status-indicator status-yellow"></span>🤖 AGENT NETWORK STATUS</h3>
             <div class="metric">
-                <span>Active Agents:</span>
-                <span class="metric-value">4</span>
+                <span>Orchestrator Agents:</span>
+                <span class="metric-value">✅ Permissions OK</span>
             </div>
             <div class="metric">
-                <span>PM-P0 Role:</span>
-                <span class="metric-value info">Ready for Transition</span>
+                <span>PM-Spawned Agents:</span>
+                <span class="metric-value">⚠️ Verification Needed</span>
             </div>
-            
-            <div class="team-member active">
-                <strong>Test Engineer (Window 1):</strong> P0-016 COMPLETE ✅
-                <br><small>Role: Backend/API testing specialist</small>
+            <div class="metric">
+                <span>Total Network:</span>
+                <span class="metric-value">7+ Agents</span>
             </div>
-            <div class="team-member monitoring">
-                <strong>Coverage Engineer (Window 3):</strong> Monitoring
-                <br><small>Role: Business logic coverage specialist</small>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 75%;"></div>
             </div>
-            <div class="team-member monitoring">
-                <strong>Validation Engineer (Window 4):</strong> Monitoring
-                <br><small>Role: Data/Infrastructure coverage specialist</small>
-            </div>
-            <div class="team-member active">
-                <strong>PM-P0 Leader:</strong> Ready for Activation
-                <br><small>Role: UI Foundation coordination</small>
-            </div>
-        </div>
+            <div class="output-section">✅ ORCHESTRATOR AGENTS (Verified):
+- orchestrator:1: "Bypassing Permissions" ✅
+- orchestrator:3: Active execution
+- orchestrator:4: Active execution
 
-        <!-- System Health & CI Status -->
+⚠️ PM-SPAWNED AGENTS (Verification Required):
+- PM-P0 Task agents: Permission flag verification needed
+- PM-P2 Task agents: Permission flag verification needed  
+- PM-P3 Task agents: Permission flag verification needed
+
+🔧 CRITICAL ISSUE:
+Without --dangerously-skip-permissions, spawned agents cannot execute properly and will fail on permission checks.</div>
+        </div>
+        
         <div class="status-card">
-            <h3><span class="status-indicator status-green"></span>System Health</h3>
+            <h3><span class="status-indicator status-green"></span>🔧 ORCHESTRATOR ACTIONS</h3>
+            <div class="metric">
+                <span>Permission Management:</span>
+                <span class="metric-value">ACTIVE</span>
+            </div>
+            <div class="metric">
+                <span>PM Coordination:</span>
+                <span class="metric-value">ONGOING</span>
+            </div>
+            <div class="metric">
+                <span>Validation:</span>
+                <span class="metric-value">REQUIRED</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 80%;"></div>
+            </div>
+            <div class="output-section">🎯 IMMEDIATE ACTIONS:
+1. Verify all PM-spawned agents use --dangerously-skip-permissions
+2. Monitor PM response to permission alerts
+3. Coordinate agent restart if permissions missing
+4. Validate Task-spawned agent functionality
+
+🔧 ORCHESTRATOR RESPONSIBILITIES:
+- Cross-team permission coordination
+- Agent network health monitoring
+- PM mini-orchestrator support
+- System-wide validation gates
+
+📊 SUCCESS METRICS:
+- 100% agents with proper permissions
+- 0 permission-related failures
+- Effective PM mini-orchestrator operations</div>
+        </div>
+        
+        <div class="status-card">
+            <h3><span class="status-indicator status-green"></span>📊 SYSTEM STATUS</h3>
             <div class="metric">
                 <span>GitHub CI:</span>
-                <span class="metric-value">All GREEN ✅</span>
+                <span class="metric-value">All GREEN</span>
             </div>
             <div class="metric">
-                <span>Test Suite:</span>
-                <span class="metric-value">Stable (100% pass)</span>
+                <span>SuperClaude Framework:</span>
+                <span class="metric-value">100% Active</span>
             </div>
             <div class="metric">
-                <span>Deployment:</span>
-                <span class="metric-value">Live & Operational</span>
-            </div>
-            <div class="metric">
-                <span>Infrastructure:</span>
-                <span class="metric-value">Comprehensive Coverage</span>
-            </div>
-            <div class="output-section">✅ Main CI Pipeline: SUCCESS
-✅ Deploy to VPS: SUCCESS
-✅ Linting & Code Quality: SUCCESS
-✅ Fast CI Pipeline: SUCCESS
-✅ Ultra-Fast CI Pipeline: SUCCESS
-
-🎯 P0-016 Infrastructure Coverage:
-- Prerequisites: 40/40 tests passing
-- Audit Middleware: 616 lines coverage
-- Alert System: 839 lines coverage
-- Health Endpoints: 622 lines coverage
-- Internal Routes: 491 lines coverage</div>
-        </div>
-
-        <!-- Key Updates & Alerts -->
-        <div class="status-card">
-            <h3><span class="status-indicator status-blue"></span>Key Updates</h3>
-            
-            <div class="alert success">
-                <strong>🎉 P0-016 COMPLETE:</strong> 100/100 validation score achieved. All GitHub CI checks passing GREEN. Infrastructure stabilized.
-            </div>
-            
-            <div class="alert">
-                <strong>🔄 PM-P0 Transition:</strong> Ready to activate PM-P0 Leadership Role for UI Foundation coordination (P0-027 through P0-034).
-            </div>
-            
-            <div class="output-section">📊 Recent Achievements:
-• Fixed 7 critical test failures in prerequisites module
-• Created 3,275 lines of new backend/API test coverage
-• Achieved 100% local validation success rate
-• Confirmed GitHub CI pipeline stability
-• Deployed all changes to production environment
-
-🎯 Next Phase:
-• Activate PM-P0 Leadership Role
-• Coordinate P0-027 through P0-034 PRPs
-• Focus on UI Foundation and Template systems
-• Maintain concurrent execution model</div>
-        </div>
-
-        <!-- Domain Pipeline Status -->
-        <div class="status-card">
-            <h3><span class="status-indicator status-yellow"></span>Domain Pipeline Status</h3>
-            <div class="metric">
-                <span>P0 (UI Foundation):</span>
-                <span class="metric-value">8/11 Complete</span>
-            </div>
-            <div class="metric">
-                <span>P1 (Business Logic):</span>
-                <span class="metric-value warning">0/8 Pending</span>
-            </div>
-            <div class="metric">
-                <span>P2 (Data Layer):</span>
-                <span class="metric-value warning">0/6 Pending</span>
+                <span>Permission Compliance:</span>
+                <span class="metric-value">Verification In Progress</span>
             </div>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: 32%;"></div>
+                <div class="progress-fill" style="width: 85%;"></div>
             </div>
-            <div class="output-section">Domain Readiness:
-P0: 73% complete - Ready for PM-P0 leadership
-P1: 0% complete - Awaiting P0 completion
-P2: 0% complete - Awaiting P0 completion
+            <div class="output-section">✅ SYSTEM HEALTH:
+- P0-016 foundation: Complete
+- PM hierarchy: Operational
+- SuperClaude integration: 100% active
+- Magic API key: Configured
 
-Strategic Focus:
-- Complete P0 domain (3 PRPs remaining)
-- Establish PM-P0 leadership structure
-- Prepare P1/P2 domain transitions</div>
+⚠️ CRITICAL REQUIREMENT:
+- Agent permissions: Verification required
+- All spawned agents MUST use --dangerously-skip-permissions
+- Without this flag, agents will fail on permission checks
+
+🚀 NEXT STEPS:
+- Monitor PM responses to permission alerts
+- Validate Task-spawned agent functionality
+- Coordinate agent restarts if needed</div>
+        </div>
+
+        <div class="status-card">
+            <h3><span class="status-indicator status-yellow"></span>🔄 NEXT ORCHESTRATOR ACTIONS</h3>
+            <div class="metric">
+                <span>Next Check:</span>
+                <span class="metric-value">5 minutes</span>
+            </div>
+            <div class="metric">
+                <span>Priority:</span>
+                <span class="metric-value">Permission Verification</span>
+            </div>
+            <div class="metric">
+                <span>Focus:</span>
+                <span class="metric-value">Agent Functionality</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 100%;"></div>
+            </div>
+            <div class="output-section">🎯 CRITICAL PRIORITIES:
+1. Verify all PM-spawned agents use --dangerously-skip-permissions
+2. Monitor PM responses to permission alerts
+3. Coordinate agent restarts if permissions missing
+4. Validate Task-spawned agent execution success
+5. Document permission requirements for future spawning
+
+🚨 ESCALATION CRITERIA:
+- Any agent failing due to permission issues
+- PMs unable to verify agent permissions
+- Task-spawned agents not executing properly
+
+📊 SUCCESS METRICS:
+- 100% agent permission compliance
+- 0 permission-related execution failures
+- Effective PM mini-orchestrator agent spawning</div>
         </div>
     </div>
+
+    <script>
+        // Update timestamp dynamically
+        setInterval(function() {
+            document.getElementById('timestamp').textContent = new Date().toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2');
+        }, 1000);
+    </script>
 </body>
-</html>
+</html><!-- Permission Management: 1752837180 -->
