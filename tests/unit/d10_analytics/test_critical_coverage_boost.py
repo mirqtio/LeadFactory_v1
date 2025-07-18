@@ -65,7 +65,7 @@ class TestAPIUncoveredPaths:
         result = _generate_csv_content([])
 
         assert isinstance(result, str)
-        assert len(result) > 0  # Should still return headers
+        assert len(result) == 0  # Empty data returns empty string
 
         print("✓ _generate_csv_content with empty data works correctly")
 

@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "fix_unit_economics_refs"
+revision = "fix_unit_economics_table_references"
 down_revision = "324616807570"
 branch_labels = None
 depends_on = None
