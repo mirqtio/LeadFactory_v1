@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-07-18T17:39:56.855304+00:00",
+  "formatted_timestamp": "2025-07-18 17:39:56 UTC",
+  "redis_metrics": {
+    "redis_status": "healthy",
+    "merge_lock_owner": null,
+    "agent_count": 0,
+    "events_count": 0,
+    "last_updated": "2025-07-18T17:39:56.857120+00:00"
+  },
+  "prp_metrics": {
+    "total_prps": 57,
+    "completion_rate": 0.42,
+    "status_breakdown": {
+      "new": 7,
+      "validated": 25,
+      "in_progress": 1,
+      "complete": 24
+    },
+    "current_prp": {
+      "id": "P0-020",
+      "title": "Design System Token Extraction",
+      "started_at": "2025-07-18T16:47:10.730980Z"
+    }
+  },
+  "pm_status": [
+    {
+      "id": "PM-1",
+      "session": "PM-1:0",
+      "domain": "Core/UI",
+      "status": "unknown",
+      "current_prp": null,
+      "last_heartbeat": null,
+      "active": false
+    },
+    {
+      "id": "PM-2",
+      "session": "PM-2:0",
+      "domain": "Business Logic",
+      "status": "unknown",
+      "current_prp": null,
+      "last_heartbeat": null,
+      "active": false
+    },
+    {
+      "id": "PM-3",
+      "session": "PM-3:0",
+      "domain": "Data/Infrastructure",
+      "status": "unknown",
+      "current_prp": null,
+      "last_heartbeat": null,
+      "active": false
+    }
+  ],
+  "system_health": {
+    "redis_available": true,
+    "prp_manager_available": true,
+    "overall_status": "healthy"
+  }
+}

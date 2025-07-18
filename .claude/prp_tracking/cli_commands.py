@@ -13,15 +13,22 @@ from typing import List, Optional
 
 # Add current directory to path to import our modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add parent directory to path to import redis_cli
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from github_integration import GitHubIntegration
 from prp_state_manager import PRPEntry, PRPStateManager, PRPStatus
+from redis_enhanced_state_manager import RedisEnhancedStateManager, get_redis_state_manager
 
 
 class PRPCLICommands:
     """CLI interface for PRP management"""
 
-    def __init__(self):
-        self.prp_manager = PRPStateManager()
+    def __init__(self, use_redis: bool = True):
+        if use_redis:
+            self.prp_manager = get_redis_state_manager()
+        else:
+            self.prp_manager = PRPStateManager()
         self.github = GitHubIntegration()
 
     def status(self, prp_id: str = None) -> None:
@@ -236,6 +243,56 @@ class PRPCLICommands:
         print(f"   Validated: {next_prp.validated_at}")
         print(f"\\nTo start: `python .claude/prp_tracking/cli_commands.py start {next_prp.prp_id}`")
 
+    def redis_status(self) -> None:
+        """Show Redis connection and sync status"""
+        if isinstance(self.prp_manager, RedisEnhancedStateManager):
+            redis_status = self.prp_manager.get_redis_status()
+            print("📊 **Redis Status**")
+            print(f"   Connection: {'available' if redis_status['connected'] else 'unavailable'}")
+            print(f"   Enabled: {redis_status['enabled']}")
+            print(f"   Helper Available: {redis_status['helper_available']}")
+            print(f"   URL: {redis_status['url']}")
+            
+            if redis_status['connected'] and redis_status['enabled']:
+                print("   ✅ Redis coordination fully operational")
+            elif redis_status['enabled'] and not redis_status['connected']:
+                print("   ⚠️  Redis enabled but connection failed")
+            else:
+                print("   ⚠️  Redis functionality disabled - using YAML only")
+        else:
+            print("📊 **Redis Status**")
+            print("   ⚠️  Using basic PRP manager - Redis features not available")
+
+    def redis_sync(self) -> None:
+        """Sync all PRPs from YAML to Redis"""
+        if not isinstance(self.prp_manager, RedisEnhancedStateManager):
+            print("❌ Redis-enhanced manager not available")
+            return
+            
+        print("🔄 Syncing all PRPs from YAML to Redis...")
+        results = self.prp_manager.sync_all_to_redis()
+        
+        if 'error' in results:
+            print(f"❌ Sync failed: {results['error']}")
+            return
+            
+        print(f"✅ Sync completed successfully!")
+        print(f"   Synced: {results['synced']} PRPs")
+        if results['errors'] > 0:
+            print(f"   Errors: {results['errors']} PRPs failed to sync")
+        print(f"   PRPs: {', '.join(results['prps'])}")
+
+    def redis_merge_status(self) -> None:
+        """Show merge lock status"""
+        if not isinstance(self.prp_manager, RedisEnhancedStateManager):
+            print("❌ Redis-enhanced manager not available")
+            return
+            
+        # This would need async support, for now show basic info
+        print("🔒 **Merge Lock Status**")
+        print("   ⚠️  Async merge lock status check not implemented in CLI")
+        print("   Use Redis CLI: redis-cli get leadfactory:prp:merge:lock")
+
     def _get_allowed_transitions(self, current_status: PRPStatus) -> List[str]:
         """Get allowed transitions from current status"""
         transitions = {
@@ -276,6 +333,11 @@ def main():
     # Next command
     next_parser = subparsers.add_parser("next", help="Get next PRP ready for execution")
 
+    # Redis commands
+    redis_status_parser = subparsers.add_parser("redis-status", help="Show Redis connection status")
+    redis_sync_parser = subparsers.add_parser("redis-sync", help="Sync all PRPs to Redis")
+    redis_merge_parser = subparsers.add_parser("redis-merge-status", help="Show merge lock status")
+
     # Parse arguments
     args = parser.parse_args()
 
@@ -299,6 +361,12 @@ def main():
             cli.validate(args.prp_id)
         elif args.command == "next":
             cli.next_prp()
+        elif args.command == "redis-status":
+            cli.redis_status()
+        elif args.command == "redis-sync":
+            cli.redis_sync()
+        elif args.command == "redis-merge-status":
+            cli.redis_merge_status()
         else:
             print(f"❌ Unknown command: {args.command}")
 

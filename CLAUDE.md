@@ -1,39 +1,158 @@
-🚨🚨🚨 CRITICAL: PRP Status Management System 🚨🚨🚨
-ALL Project Requirement Plans (PRPs) are managed through an enforced state tracking system.
+🚨🚨🚨 CRITICAL: Multi-Agent PRP Orchestration System 🚨🚨🚨
+ALL Project Requirement Plans (PRPs) are managed through a multi-agent orchestration system with Redis-based coordination.
 
-📋 PRP STATES (Central Source of Truth: `.claude/prp_tracking/prp_status.yaml`):
-- **new**: PRP drafted, quality unknown, no execution done
-- **validated**: PRP passed 6-gate review, ready for execution  
-- **in_progress**: Execution started but not completed
-- **complete**: All requirements met, BPCI + GitHub CI passed
+🏗️ AGENT ARCHITECTURE (24x7 AI Operations):
+- **Orchestrator**: Strategic oversight, backlog prioritization, quality enforcement
+- **Project Managers (PMs)**: Feature development, owns PRP until handoff
+- **Integration Agent**: Merge management, CI orchestration, conflict resolution
+- **Validator**: Quality gates, standards enforcement, completion verification
 
-🔒 STATE TRANSITION RULES (Enforced by hooks):
-- new → validated: Requires 6-gate validation completion
-- validated → in_progress: Requires explicit start command
-- in_progress → complete: Requires BPCI pass + GitHub CI success + feature validation
-- NO backwards transitions without explicit override
-- ONLY ONE PRP can be in_progress at a time
+📋 PRP STATES (Central Source of Truth: Redis + `.claude/prp_tracking/prp_status.yaml`):
+- **new**: PRP drafted, quality unknown, awaiting assignment
+- **validated**: PRP passed 6-gate review, ready for assignment
+- **assigned**: PRP assigned to PM, development starting
+- **development**: PM actively developing feature
+- **integration**: PM finished, handed off to Integration Agent
+- **validate**: Integration complete, awaiting Validator approval
+- **complete**: All requirements met, smoke CI passed, deployed
 
-🛠️ PRP MANAGEMENT COMMANDS:
+🔒 STATE TRANSITION RULES & AGENT AUTHORITY:
+- **Orchestrator ONLY**: Assigns PRPs, changes priority, spawns subagents
+- **PM Authority**: new → assigned → development → integration (within assigned PRP)
+- **Integration Agent**: integration → validate (after smoke CI passes)
+- **Validator**: validate → complete (after quality gates pass)
+- **NO backwards transitions** without Orchestrator override
+- **MULTIPLE PRPs** can be in different phases simultaneously
+
+🛠️ AGENT COMMANDS & REDIS COORDINATION:
+
+**Redis Shared State** (All agents read/write):
+```bash
+# Core PRP tracking
+redis-cli SET prp:P0-024:state "development"
+redis-cli SET prp:P0-024:owner "pm-2"
+redis-cli LPUSH integration:queue "P0-024"
+redis-cli SET merge:lock "P0-024"
+
+# Agent status
+redis-cli SET agent:pm-1:current_prp "P0-025"
+redis-cli SET agent:pm-1:status "coding"
+```
+
+**Traditional PRP Commands** (Orchestrator use):
 - Status check: `python .claude/prp_tracking/cli_commands.py status [PRP_ID]`
-- Start PRP: `python .claude/prp_tracking/cli_commands.py start P2-010`
-- Complete PRP: `python .claude/prp_tracking/cli_commands.py complete P2-010`
-- List PRPs: `python .claude/prp_tracking/cli_commands.py list --status=in_progress`
-- Next PRP: `python .claude/prp_tracking/cli_commands.py next`
+- List PRPs: `python .claude/prp_tracking/cli_commands.py list --status=development`
+- Assign PRP: `python .claude/prp_tracking/cli_commands.py assign P2-010 pm-1`
+
+🎯 AGENT ROLES & RESPONSIBILITIES:
+
+**🎛️ Orchestrator (Strategic Authority)**:
+- **Backlog Management**: Prioritize PRP queue, assign to PMs
+- **Quality Oversight**: Monitor Validator for standards drift
+- **Bottleneck Detection**: Spawn additional agents when queues back up
+- **Escalation Handling**: Resolve conflicts, handle timeouts
+- **Subagent Spawning**: Create Architect/Security SMEs for complex PRPs
+- **Integration Health**: Ensure Integration Agent isn't gaming system
+
+**👨‍💻 Project Manager (Feature Development)**:
+- **PRP Ownership**: Own assigned PRP from development → integration handoff
+- **Feature Implementation**: Code, test, validate locally using `make quick-check`
+- **Branch Management**: Work on `feat/<prp-id>-<slug>` branches
+- **Handoff Protocol**: Push branch, set Redis state to "integration", move to next PRP
+- **CI Debug**: Return for debugging if Integration Agent hits complex failures
+- **Evidence Collection**: Document implementation for Validator review
+
+**🔄 Integration Agent (Merge & CI Orchestration)**:
+- **Merge Management**: Pull from Redis integration queue, acquire merge lock
+- **Branch Integration**: Merge feature branches to main using fast-forward/rebase
+- **Smoke CI**: Run fast smoke test suite (≤5 min) - NOT full BPCI
+- **Failure Triage**: Simple failures → fix; complex failures → ping owning PM
+- **Pipeline Health**: Monitor CI health, release merge lock after success/rollback
+- **Queue Management**: Process integration queue, notify Orchestrator of backups
+
+**✅ Validator (Quality Gates)**:
+- **Completion Review**: Verify PRP meets ALL success criteria before marking complete
+- **Evidence Validation**: Review PM documentation, test results, CI logs
+- **Standards Enforcement**: Ensure no corners cut, no "functionally complete" shortcuts
+- **Quality Gates**: Run comprehensive validation including coverage, performance
+- **Escalation**: Reject incomplete work back to PM via Orchestrator
+- **Metrics Tracking**: Monitor completion quality, flag declining standards
 
 🚨 CRITICAL: Definition of "Complete" 🚨🚨🚨
-A PRP is ONLY complete when:
-- Code is implemented and validated
-- `make quick-check` passes locally (MANDATORY)
-- `make pre-push` passes locally (MANDATORY)
-- Pushed to GitHub main branch  
-- ALL CI checks pass GREEN (not just some)
-- This includes Test Suite, Docker Build, Linting, Deploy to VPS - EVERYTHING
-- If CI was green before and isn't now, the changes broke it and must be fixed
-- NEVER mark a task as complete if ANY CI check is failing
-- NEVER use `--no-verify` or bypass validation
-- "Deploy to VPS passing" does NOT mean the task is complete if Test Suite is failing
-- PRP status transitions are enforced by hooks and cannot be bypassed
+A PRP is ONLY complete when Validator confirms:
+- **PM Evidence**: Feature implemented with passing `make quick-check`
+- **Integration Success**: Merged to main with smoke CI passing (≤5 min suite)
+- **Quality Gates**: All success criteria met (no shortcuts or "functional completion")
+- **No Regressions**: Existing functionality unaffected
+- **Standards Compliance**: Code quality, testing, documentation standards met
+- **Deployment Verified**: Feature accessible in deployed environment
+
+🔒 BRANCHING & MERGE STRATEGY:
+- **Feature Branches**: `feat/<prp-id>-<description>` per PRP
+- **Merge Serialization**: Redis `merge:lock` prevents concurrent merges
+- **Fast-Forward Only**: Rebase-and-merge to keep clean history
+- **Smoke CI Gate**: Integration Agent runs ≤5 min test suite before merge
+- **Nightly Regression**: Full test suite runs nightly, auto-generates fix PRPs
+
+📞 COMMUNICATION PROTOCOLS:
+
+**Tmux Messaging** (Between agents):
+```bash
+# Orchestrator → PM assignment
+/Users/charlieirwin/Tmux-Orchestrator/send-claude-message.sh pm-1:0 "Assigned P0-024. Review requirements and begin development."
+
+# PM → Integration handoff
+redis-cli SET prp:P0-024:state "integration"
+redis-cli LPUSH integration:queue "P0-024"
+
+# Integration → PM callback
+/Users/charlieirwin/Tmux-Orchestrator/send-claude-message.sh pm-2:0 "P0-024 CI failed. Debug branch feat/p0-024-auth. Your expertise needed."
+
+# Validator → Orchestrator escalation
+/Users/charlieirwin/Tmux-Orchestrator/send-claude-message.sh orchestrator:0 "P0-024 rejected. PM cutting corners on test coverage."
+```
+
+**Redis Status Updates** (All agents monitor):
+```bash
+# Agent heartbeat (every 10 min)
+redis-cli HSET agent:pm-1 status "coding" current_prp "P0-024" last_update "2025-01-17T10:30:00Z"
+
+# Queue monitoring
+redis-cli LLEN integration:queue  # Orchestrator monitors for backups
+redis-cli GET merge:lock          # Check who owns merge lock
+
+# Metrics tracking
+redis-cli INCR metrics:prps_completed_today
+redis-cli SET metrics:ci_success_rate "0.85"
+```
+
+⚡ ESCALATION & TIMEBOXING:
+
+**Automatic Escalation Triggers**:
+- **PM stalled**: Redis status unchanged >30 min → Orchestrator ping
+- **Integration queue backup**: >5 PRPs waiting → Spawn second Integration Agent
+- **CI failures**: Same PRP fails >3 times → Orchestrator intervention
+- **Validator rejection**: PRP rejected >2 times → Orchestrator review
+- **Merge lock held**: Same lock >60 min → Orchestrator override
+
+**Orchestrator Scheduled Checks** (Every 10 minutes):
+```bash
+# Check agent health
+for agent in pm-1 pm-2 pm-3 integration validator; do
+  last_update=$(redis-cli HGET agent:$agent last_update)
+  # Alert if >30 min stale
+done
+
+# Check queue health
+queue_len=$(redis-cli LLEN integration:queue)
+if [ $queue_len -gt 5 ]; then
+  # Spawn additional Integration Agent
+fi
+
+# Check merge lock timeout
+lock_age=$(redis-cli GET merge:lock:timestamp)
+# Override if >60 min old
+```
 
 🧱 Code Structure & Modularity
 Never create a file longer than 500 lines of code. If a file approaches this limit, refactor by splitting it into modules or helper files.
@@ -130,9 +249,89 @@ Available validation commands:
 - `make lint` - Check code quality with flake8
 - `make docker-test` - Run tests in Docker without full BPCI setup
 
-🤖 Agent Workflow
-- Use Task Subagents when possible.
-- ALWAYS validate code before committing using bulletproof CI system.
-- NEVER use `--no-verify` or bypass validation under any circumstances.
-- When validation fails, debugging validation becomes the highest priority work item.
-- Treat validation issues as system bugs to be fixed, not obstacles to avoid.
+🤖 Multi-Agent Workflow Integration
+
+**SuperClaude Framework Workflow (ALL Agents)**:
+- Use SuperClaude enhanced commands and intelligent personas
+- Leverage MCP servers for specialized capabilities
+- Apply appropriate flags for complexity and validation
+- Coordinate through Redis state management
+
+**Agent-Specific Workflows**:
+
+**PM Agent Workflow**:
+1. Receive PRP assignment via Redis and Tmux notification
+2. Execute `/analyze --focus requirements` to understand scope
+3. Implement using `/implement` with appropriate personas
+4. Validate locally with `make quick-check` (MANDATORY)
+5. Update Redis evidence and handoff to Integration Agent
+6. Available for callback if complex CI failures occur
+
+**Integration Agent Workflow**:
+1. Monitor Redis integration queue for new PRPs
+2. Acquire merge lock and execute `/git` workflow commands
+3. Run smoke CI suite (≤5 min validation)
+4. Handle simple failures, escalate complex issues to PM
+5. Update Redis state and handoff to Validator
+6. Release merge lock and process next queue item
+
+**Validator Workflow**:
+1. Receive handoff from Integration Agent via Redis
+2. Execute `/analyze --focus quality --persona-qa` comprehensive review
+3. Execute `/analyze --focus security --persona-security` validation
+4. Review all agent evidence and test results
+5. Run PRP completion validator (MUST score 100/100)
+6. Mark complete in Redis or escalate failures to Orchestrator
+
+**Orchestrator Workflow**:
+1. Monitor Redis agent health and queue status every 10 minutes
+2. Assign validated PRPs to available PMs
+3. Handle escalations using `/analyze --focus architecture --persona-architect`
+4. Spawn additional agents when bottlenecks detected
+5. Track system metrics and performance optimization
+
+**CRITICAL Validation Rules (ALL Agents)**:
+- ALWAYS validate code before committing using bulletproof CI system
+- NEVER use `--no-verify` or bypass validation under any circumstances
+- When validation fails, debugging becomes highest priority work item
+- Escalate through Redis coordination system, never work around validation
+- Use SuperClaude `/troubleshoot` commands for systematic debugging
+- Treat validation issues as system bugs requiring fixes, not obstacles to avoid
+
+**Redis Coordination Protocol**:
+- Check Redis state before all major operations
+- Update Redis with progress, evidence, and status changes
+- Respect locks and queue coordination
+- Escalate conflicts through proper Redis channels
+- Monitor system health and bottleneck indicators
+
+# Multi-Agent System Important Instruction Reminders
+
+**Multi-Agent Coordination Principles**:
+- Follow assigned agent role and responsibilities
+- Coordinate through Redis state management system
+- Use SuperClaude enhanced commands and intelligent personas
+- Escalate appropriately through defined channels
+- Maintain evidence and transparency for quality gates
+
+**Core Operational Rules**:
+- Do what has been asked within agent authority; nothing more, nothing less
+- NEVER create files unless absolutely necessary for achieving assigned PRP goals
+- ALWAYS prefer editing existing files to creating new ones
+- NEVER proactively create documentation files (*.md) or README files unless explicitly part of PRP requirements
+- Update Redis coordination state before and after major operations
+- Respect merge locks, queue coordination, and agent boundaries
+
+**SuperClaude Integration Requirements**:
+- Use appropriate enhanced commands for task complexity
+- Apply intelligent personas based on domain and agent role
+- Leverage MCP servers for specialized capabilities
+- Provide evidence and metrics for quality validation
+- Follow escalation procedures for complex issues or conflicts
+
+**Redis MCP Integration Note**: This multi-agent system requires Redis MCP server for coordination. The Redis shared state schema and agent coordination patterns are designed to work with Redis MCP for seamless state management and inter-agent communication.
+
+- Do not ever create a work around or mock data or a sample without explicit permission.
+- Follow multi-agent coordination protocols and Redis state management.
+- Use SuperClaude framework integration for enhanced AI capabilities.
+- Maintain agent role boundaries and escalation procedures.

@@ -428,6 +428,13 @@ class VerticalScoringEngine:
                         "or",
                         "in",
                         "not",
+                        "is",
+                        "None",
+                        "True",
+                        "False",
+                        "restaurant",  # Common literal values
+                        "medical",
+                        "healthcare",
                     ]:
                         expected_fields.add(match)
 
@@ -471,6 +478,13 @@ class VerticalScoringEngine:
                     "or",
                     "in",
                     "not",
+                    "is",
+                    "None",
+                    "True",
+                    "False",
+                    "restaurant",  # Common literal values
+                    "medical",
+                    "healthcare",
                 ]:
                     if field not in data or data[field] in [None, "", 0]:
                         has_needed_data = False

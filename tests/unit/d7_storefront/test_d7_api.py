@@ -23,6 +23,10 @@ from d7_storefront.checkout import CheckoutError
 from d7_storefront.schemas import CheckoutInitiationRequest, CheckoutInitiationResponse
 from d7_storefront.webhooks import WebhookError, WebhookStatus
 
+# Import authentication dependencies
+from account_management.models import AccountUser, UserStatus, AuthProvider
+from core.auth import get_current_user_dependency, require_organization_access
+
 # Test app setup
 app = FastAPI()
 app.include_router(router)
@@ -35,6 +39,33 @@ def clear_dependency_overrides():
     """Automatically clear dependency overrides after each test."""
     yield
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def mock_user():
+    """Fixture providing a mock authenticated user."""
+    user = Mock(spec=AccountUser)
+    user.id = "test_user_id"
+    user.email = "test@example.com"
+    user.organization_id = "test_org_id"
+    user.status = UserStatus.ACTIVE
+    user.auth_provider = AuthProvider.LOCAL
+    user.full_name = "Test User"
+    return user
+
+
+@pytest.fixture
+def mock_auth_dependencies(mock_user):
+    """Fixture to mock authentication dependencies."""
+    def mock_get_current_user():
+        return mock_user
+    
+    def mock_require_organization_access():
+        return mock_user.organization_id
+    
+    app.dependency_overrides[get_current_user_dependency] = mock_get_current_user
+    app.dependency_overrides[require_organization_access] = mock_require_organization_access
+    return mock_user
 
 
 @pytest.fixture
@@ -56,11 +87,10 @@ def mock_webhook_processor():
 class TestCheckoutInitiationAPI:
     """Test checkout initiation API endpoint"""
 
-    def test_initiate_checkout_success(self):
+    def test_initiate_checkout_success(self, mock_auth_dependencies, mock_checkout_manager):
         """Test successful checkout initiation - Acceptance Criteria"""
         # Mock successful checkout
-        mock_manager = Mock()
-        mock_manager.initiate_checkout.return_value = {
+        mock_checkout_manager.initiate_checkout.return_value = {
             "success": True,
             "purchase_id": "purchase_123",
             "checkout_url": "https://checkout.stripe.com/pay/cs_test_123",
@@ -80,11 +110,6 @@ class TestCheckoutInitiationAPI:
             ],
         }
 
-        # Override the FastAPI dependency for this test
-        from d7_storefront.api import get_checkout_manager
-
-        app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
-
         # Test request
         request_data = {
             "customer_email": "test@example.com",
@@ -101,57 +126,43 @@ class TestCheckoutInitiationAPI:
             "attribution_data": {"utm_source": "google", "utm_campaign": "test"},
         }
 
-        try:
-            response = client.post("/api/v1/checkout/initiate", json=request_data)
+        response = client.post("/api/v1/checkout/initiate", json=request_data)
 
-            assert response.status_code == 200
-            data = response.json()
-            assert data["success"] is True
-            assert data["purchase_id"] == "purchase_123"
-            assert data["checkout_url"] == "https://checkout.stripe.com/pay/cs_test_123"
-            assert data["session_id"] == "cs_test_123"
-            assert data["amount_total_usd"] == 29.99
-            assert data["test_mode"] is True
-        finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["purchase_id"] == "purchase_123"
+        assert data["checkout_url"] == "https://checkout.stripe.com/pay/cs_test_123"
+        assert data["session_id"] == "cs_test_123"
+        assert data["amount_total_usd"] == 29.99
+        assert data["test_mode"] is True
 
         # Verify manager was called correctly
-        mock_manager.initiate_checkout.assert_called_once()
+        mock_checkout_manager.initiate_checkout.assert_called_once()
 
-    def test_initiate_checkout_failure(self):
+    def test_initiate_checkout_failure(self, mock_auth_dependencies, mock_checkout_manager):
         """Test checkout initiation failure handling"""
         # Mock failed checkout
-        mock_manager = Mock()
-        mock_manager.initiate_checkout.return_value = {
+        mock_checkout_manager.initiate_checkout.return_value = {
             "success": False,
             "error": "Invalid email address",
             "error_type": "ValidationError",
         }
-
-        # Override the FastAPI dependency for this test
-        from d7_storefront.api import get_checkout_manager
-
-        app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
 
         request_data = {
             "customer_email": "test@example.com",
             "items": [{"product_name": "Website Audit Report", "amount_usd": 29.99}],
         }
 
-        try:
-            response = client.post("/api/v1/checkout/initiate", json=request_data)
+        response = client.post("/api/v1/checkout/initiate", json=request_data)
 
-            assert response.status_code == 200
-            data = response.json()
-            assert data["success"] is False
-            assert data["error"] == "Invalid email address"
-            assert data["error_type"] == "ValidationError"
-        finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is False
+        assert data["error"] == "Invalid email address"
+        assert data["error_type"] == "ValidationError"
 
-    def test_initiate_checkout_validation_error(self):
+    def test_initiate_checkout_validation_error(self, mock_auth_dependencies):
         """Test validation error handling - Acceptance Criteria: Error handling proper"""
         # Missing required fields
         request_data = {
@@ -167,11 +178,10 @@ class TestCheckoutInitiationAPI:
 class TestWebhookAPI:
     """Test webhook API endpoint"""
 
-    def test_webhook_success(self):
+    def test_webhook_success(self, mock_webhook_processor):
         """Test successful webhook processing - Acceptance Criteria"""
         # Mock successful webhook processing
-        mock_processor = Mock()
-        mock_processor.process_webhook.return_value = {
+        mock_webhook_processor.process_webhook.return_value = {
             "success": True,
             "event_id": "evt_test_123",
             "event_type": "checkout.session.completed",
@@ -183,11 +193,6 @@ class TestWebhookAPI:
             },
         }
 
-        # Override the FastAPI dependency for this test
-        from d7_storefront.api import get_webhook_processor
-
-        app.dependency_overrides[get_webhook_processor] = lambda: mock_processor
-
         # Mock webhook payload
         webhook_payload = {
             "id": "evt_test_123",
@@ -195,25 +200,21 @@ class TestWebhookAPI:
             "data": {"object": {"id": "cs_test_123", "payment_status": "paid"}},
         }
 
-        try:
-            response = client.post(
-                "/api/v1/checkout/webhook",
-                json=webhook_payload,
-                headers={"stripe-signature": "test_signature"},
-            )
+        response = client.post(
+            "/api/v1/checkout/webhook",
+            json=webhook_payload,
+            headers={"stripe-signature": "test_signature"},
+        )
 
-            assert response.status_code == 200
-            data = response.json()
-            assert data["success"] is True
-            assert data["event_id"] == "evt_test_123"
-            assert data["event_type"] == "checkout.session.completed"
-            assert data["processing_status"] == WebhookStatus.COMPLETED.value
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["event_id"] == "evt_test_123"
+        assert data["event_type"] == "checkout.session.completed"
+        assert data["processing_status"] == WebhookStatus.COMPLETED.value
 
-            # Verify processor was called
-            mock_processor.process_webhook.assert_called_once()
-        finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+        # Verify processor was called
+        mock_webhook_processor.process_webhook.assert_called_once()
 
     def test_webhook_missing_signature(self):
         """Test webhook security - missing signature - Acceptance Criteria: Webhook endpoint secure"""
@@ -250,11 +251,10 @@ class TestWebhookAPI:
 class TestSuccessPageAPI:
     """Test success page API endpoint"""
 
-    def test_success_page_paid_session(self):
+    def test_success_page_paid_session(self, mock_auth_dependencies, mock_checkout_manager):
         """Test success page for paid session - Acceptance Criteria"""
         # Mock successful session retrieval
-        mock_manager = Mock()
-        mock_manager.retrieve_session_status.return_value = {
+        mock_checkout_manager.retrieve_session_status.return_value = {
             "success": True,
             "session_id": "cs_test_123",
             "payment_status": "paid",
@@ -271,38 +271,28 @@ class TestSuccessPageAPI:
             },
         }
 
-        # Override the FastAPI dependency for this test
-        from d7_storefront.api import get_checkout_manager
+        response = client.get(
+            "/api/v1/checkout/success",
+            params={"session_id": "cs_test_123", "purchase_id": "purchase_123"},
+        )
 
-        app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["purchase_id"] == "purchase_123"
+        assert data["session_id"] == "cs_test_123"
+        assert data["customer_email"] == "test@example.com"
+        assert data["amount_total_usd"] == 29.99
+        assert data["payment_status"] == "paid"
+        assert len(data["items"]) == 1
+        assert data["items"][0]["name"] == "Website Audit Report"
+        assert data["report_status"] == "generating"
+        assert "within" in data["estimated_delivery"]
 
-        try:
-            response = client.get(
-                "/api/v1/checkout/success",
-                params={"session_id": "cs_test_123", "purchase_id": "purchase_123"},
-            )
-
-            assert response.status_code == 200
-            data = response.json()
-            assert data["success"] is True
-            assert data["purchase_id"] == "purchase_123"
-            assert data["session_id"] == "cs_test_123"
-            assert data["customer_email"] == "test@example.com"
-            assert data["amount_total_usd"] == 29.99
-            assert data["payment_status"] == "paid"
-            assert len(data["items"]) == 1
-            assert data["items"][0]["name"] == "Website Audit Report"
-            assert data["report_status"] == "generating"
-            assert "within" in data["estimated_delivery"]
-        finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
-
-    def test_success_page_unpaid_session(self):
+    def test_success_page_unpaid_session(self, mock_auth_dependencies, mock_checkout_manager):
         """Test success page for unpaid session"""
         # Mock unpaid session
-        mock_manager = Mock()
-        mock_manager.retrieve_session_status.return_value = {
+        mock_checkout_manager.retrieve_session_status.return_value = {
             "success": True,
             "session_id": "cs_test_123",
             "payment_status": "unpaid",
@@ -310,24 +300,15 @@ class TestSuccessPageAPI:
             "metadata": {},
         }
 
-        # Override the FastAPI dependency for this test
-        from d7_storefront.api import get_checkout_manager
+        response = client.get("/api/v1/checkout/success", params={"session_id": "cs_test_123"})
 
-        app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is False
+        assert data["payment_status"] == "unpaid"
+        assert "Payment not completed" in data["error"]
 
-        try:
-            response = client.get("/api/v1/checkout/success", params={"session_id": "cs_test_123"})
-
-            assert response.status_code == 200
-            data = response.json()
-            assert data["success"] is False
-            assert data["payment_status"] == "unpaid"
-            assert "Payment not completed" in data["error"]
-        finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
-
-    def test_success_page_invalid_session(self, mock_checkout_manager):
+    def test_success_page_invalid_session(self, mock_auth_dependencies, mock_checkout_manager):
         """Test success page for invalid session"""
         # Mock failed session retrieval
         mock_checkout_manager.retrieve_session_status.return_value = {
@@ -346,11 +327,10 @@ class TestSuccessPageAPI:
 class TestSessionStatusAPI:
     """Test session status API endpoint"""
 
-    def test_get_session_status_success(self):
+    def test_get_session_status_success(self, mock_auth_dependencies, mock_checkout_manager):
         """Test successful session status retrieval"""
         # Mock successful status retrieval
-        mock_manager = Mock()
-        mock_manager.retrieve_session_status.return_value = {
+        mock_checkout_manager.retrieve_session_status.return_value = {
             "success": True,
             "session_id": "cs_test_123",
             "payment_status": "paid",
@@ -362,57 +342,38 @@ class TestSessionStatusAPI:
             "metadata": {"purchase_id": "purchase_123"},
         }
 
-        # Override the FastAPI dependency for this test
-        from d7_storefront.api import get_checkout_manager
+        response = client.get("/api/v1/checkout/session/cs_test_123/status")
 
-        app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["session_id"] == "cs_test_123"
+        assert data["payment_status"] == "paid"
+        assert data["status"] == "complete"
+        assert data["amount_total"] == 2999
 
-        try:
-            response = client.get("/api/v1/checkout/session/cs_test_123/status")
-
-            assert response.status_code == 200
-            data = response.json()
-            assert data["success"] is True
-            assert data["session_id"] == "cs_test_123"
-            assert data["payment_status"] == "paid"
-            assert data["status"] == "complete"
-            assert data["amount_total"] == 2999
-        finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
-
-    def test_get_session_status_failure(self):
+    def test_get_session_status_failure(self, mock_auth_dependencies, mock_checkout_manager):
         """Test session status retrieval failure"""
         # Mock failed status retrieval
-        mock_manager = Mock()
-        mock_manager.retrieve_session_status.return_value = {
+        mock_checkout_manager.retrieve_session_status.return_value = {
             "success": False,
             "error": "Session not found",
             "error_type": "StripeError",
         }
 
-        # Override the FastAPI dependency for this test
-        from d7_storefront.api import get_checkout_manager
+        response = client.get("/api/v1/checkout/session/cs_invalid_123/status")
 
-        app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
-
-        try:
-            response = client.get("/api/v1/checkout/session/cs_invalid_123/status")
-
-            assert response.status_code == 200
-            data = response.json()
-            assert data["success"] is False
-            assert data["error"] == "Session not found"
-            assert data["error_type"] == "StripeError"
-        finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is False
+        assert data["error"] == "Session not found"
+        assert data["error_type"] == "StripeError"
 
 
 class TestConvenienceEndpoints:
     """Test convenience API endpoints"""
 
-    def test_audit_report_checkout(self, mock_checkout_manager):
+    def test_audit_report_checkout(self, mock_auth_dependencies, mock_checkout_manager):
         """Test audit report convenience endpoint"""
         # Mock successful audit report checkout
         mock_checkout_manager.create_audit_report_checkout.return_value = {
@@ -440,7 +401,7 @@ class TestConvenienceEndpoints:
         # Verify manager was called correctly
         mock_checkout_manager.create_audit_report_checkout.assert_called_once()
 
-    def test_bulk_reports_checkout(self, mock_checkout_manager):
+    def test_bulk_reports_checkout(self, mock_auth_dependencies, mock_checkout_manager):
         """Test bulk reports convenience endpoint"""
         # Mock successful bulk reports checkout
         mock_checkout_manager.create_bulk_reports_checkout.return_value = {
@@ -474,45 +435,34 @@ class TestConvenienceEndpoints:
 class TestAPIStatus:
     """Test API status endpoint"""
 
-    def test_api_status_healthy(self):
+    def test_api_status_healthy(self, mock_checkout_manager, mock_webhook_processor):
         """Test API status when all services are healthy"""
         # Mock healthy services
-        mock_manager = Mock()
-        mock_manager.get_status.return_value = {"test_mode": True}
-
-        mock_processor = Mock()
-        mock_processor.get_status.return_value = {"idempotency_enabled": True}
+        mock_checkout_manager.get_status.return_value = {"test_mode": True}
+        mock_webhook_processor.get_status.return_value = {"idempotency_enabled": True}
 
         mock_stripe = Mock()
         mock_stripe.get_status.return_value = {"webhook_configured": True}
 
-        # Override all dependencies
-        from d7_storefront.api import get_checkout_manager, get_webhook_processor
-
-        app.dependency_overrides[get_checkout_manager] = lambda: mock_manager
-        app.dependency_overrides[get_webhook_processor] = lambda: mock_processor
+        # Override stripe client dependency
         app.dependency_overrides[get_stripe_client] = lambda: mock_stripe
 
-        try:
-            response = client.get("/api/v1/checkout/status")
+        response = client.get("/api/v1/checkout/status")
 
-            assert response.status_code == 200
-            data = response.json()
-            assert data["status"] == "healthy"
-            assert data["version"] == "1.0.0"
-            assert "services" in data
-            assert data["services"]["stripe"] == "connected"
-            assert data["services"]["checkout_manager"] == "active"
-            assert data["services"]["webhook_processor"] == "active"
-        finally:
-            # Clean up dependency overrides
-            app.dependency_overrides.clear()
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "healthy"
+        assert data["version"] == "1.0.0"
+        assert "services" in data
+        assert data["services"]["stripe"] == "connected"
+        assert data["services"]["checkout_manager"] == "active"
+        assert data["services"]["webhook_processor"] == "active"
 
 
 class TestErrorHandling:
     """Test error handling throughout the API"""
 
-    def test_validation_error_response_format(self):
+    def test_validation_error_response_format(self, mock_auth_dependencies):
         """Test validation error response format - Acceptance Criteria: Error handling proper"""
         # Send invalid request data
         request_data = {
@@ -530,7 +480,7 @@ class TestErrorHandling:
         assert response.status_code == 422
         # FastAPI validation errors have a specific format
 
-    def test_checkout_error_handling(self, mock_checkout_manager):
+    def test_checkout_error_handling(self, mock_auth_dependencies, mock_checkout_manager):
         """Test checkout error handling"""
         # Mock CheckoutError
         mock_checkout_manager.initiate_checkout.side_effect = CheckoutError("Test checkout error")
@@ -567,7 +517,7 @@ class TestErrorHandling:
 class TestAcceptanceCriteria:
     """Test all acceptance criteria for Task 058"""
 
-    def test_checkout_initiation_api_acceptance_criteria(self, mock_checkout_manager):
+    def test_checkout_initiation_api_acceptance_criteria(self, mock_auth_dependencies, mock_checkout_manager):
         """Test: Checkout initiation API ✓"""
         mock_checkout_manager.initiate_checkout.return_value = {
             "success": True,
@@ -608,7 +558,7 @@ class TestAcceptanceCriteria:
 
         print("✓ Webhook endpoint secure")
 
-    def test_success_page_works_acceptance_criteria(self, mock_checkout_manager):
+    def test_success_page_works_acceptance_criteria(self, mock_auth_dependencies, mock_checkout_manager):
         """Test: Success page works ✓"""
         mock_checkout_manager.retrieve_session_status.return_value = {
             "success": True,
@@ -637,7 +587,7 @@ class TestAcceptanceCriteria:
 
         print("✓ Success page works")
 
-    def test_error_handling_proper_acceptance_criteria(self):
+    def test_error_handling_proper_acceptance_criteria(self, mock_auth_dependencies):
         """Test: Error handling proper ✓"""
         # Test validation errors
         response = client.post("/api/v1/checkout/initiate", json={})

@@ -42,7 +42,7 @@ class TestVerticalConfig:
         assert config.vertical_name == "medical"
         assert config.rules_file == "scoring_rules_medical.yaml"
         assert config.multiplier == 1.0
-        assert config.description == ""
+        assert config.description == "Medical industry scoring rules"
 
     def test_post_init_sets_default_description(self):
         """Test __post_init__ sets default description when empty."""
@@ -112,8 +112,19 @@ class TestVerticalScoringEngine:
         """Test initialization with supported vertical."""
         mock_base_parser = Mock()
         mock_base_parser.load_rules.return_value = True
+        mock_base_parser.engine_config = {"max_score": 100.0}
+        mock_base_parser.fallbacks = {}
+        mock_base_parser.component_rules = {}
+        mock_base_parser.tier_rules = {}
+        mock_base_parser.quality_control = None
+        
         mock_vertical_parser = Mock()
         mock_vertical_parser.load_rules.return_value = True
+        mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
+        mock_vertical_parser.fallbacks = {}
+        mock_vertical_parser.component_rules = {}
+        mock_vertical_parser.tier_rules = {}
+        mock_vertical_parser.quality_control = None
 
         def parser_side_effect(rules_file):
             if "restaurant" in rules_file:
@@ -158,6 +169,11 @@ class TestVerticalScoringEngine:
             mock_base_parser.load_rules.return_value = True
             mock_vertical_parser = Mock()
             mock_vertical_parser.load_rules.return_value = True
+            mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
+            mock_vertical_parser.fallbacks = {}
+            mock_vertical_parser.component_rules = {}
+            mock_vertical_parser.tier_rules = {}
+            mock_vertical_parser.quality_control = None
 
             def parser_side_effect(rules_file):
                 if "restaurant" in rules_file:
@@ -282,9 +298,28 @@ class TestVerticalScoringEngine:
     def test_calculate_confidence(self):
         """Test confidence calculation."""
         with patch("d5_scoring.vertical_overrides.ScoringRulesParser") as mock_parser_class:
-            mock_parser = Mock()
-            mock_parser.load_rules.return_value = True
-            mock_parser_class.return_value = mock_parser
+            mock_base_parser = Mock()
+            mock_base_parser.load_rules.return_value = True
+            mock_base_parser.engine_config = {"max_score": 100.0}
+            mock_base_parser.fallbacks = {}
+            mock_base_parser.component_rules = {}
+            mock_base_parser.tier_rules = {}
+            mock_base_parser.quality_control = None
+            
+            mock_vertical_parser = Mock()
+            mock_vertical_parser.load_rules.return_value = True
+            mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
+            mock_vertical_parser.fallbacks = {}
+            mock_vertical_parser.component_rules = {}
+            mock_vertical_parser.tier_rules = {}
+            mock_vertical_parser.quality_control = None
+
+            def parser_side_effect(rules_file):
+                if "restaurant" in rules_file:
+                    return mock_vertical_parser
+                return mock_base_parser
+
+            mock_parser_class.side_effect = parser_side_effect
 
             engine = VerticalScoringEngine(vertical="restaurant")
 
@@ -306,6 +341,11 @@ class TestVerticalScoringEngine:
         with patch("d5_scoring.vertical_overrides.ScoringRulesParser") as mock_parser_class:
             mock_parser = Mock()
             mock_parser.load_rules.return_value = True
+            mock_parser.engine_config = {"max_score": 100.0}
+            mock_parser.fallbacks = {}
+            mock_parser.component_rules = {}
+            mock_parser.tier_rules = {}
+            mock_parser.quality_control = None
 
             # Mock component rules with field extraction
             mock_component = Mock()
