@@ -293,7 +293,7 @@ async def stripe_create_checkout(session: StripeCheckoutSession, authorization: 
 # SendGrid endpoints
 class SendGridMail(BaseModel):
     personalizations: List[Dict[str, Any]]
-    from_email: Dict[str, str]
+    from_email: Dict[str, Any]  # Allow name field
     subject: str
     content: List[Dict[str, str]]
 
