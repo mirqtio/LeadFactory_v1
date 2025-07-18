@@ -4,8 +4,8 @@ Based on GPT o3's recommendation for simple Redis helper with get/set/blpop func
 """
 import json
 import time
-from typing import Any, Dict, List, Optional, Union
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Union
 
 import redis.asyncio as aioredis
 
@@ -23,7 +23,7 @@ class RedisCoordinator:
         self.namespace = namespace
         self.settings = get_settings()
         self.logger = get_logger(f"redis.{namespace}", domain="coordination")
-        
+
         # Redis connection
         self._redis: Optional[aioredis.Redis] = None
 
@@ -40,27 +40,27 @@ class RedisCoordinator:
     async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """
         Set a key-value pair in Redis
-        
+
         Args:
             key: Redis key (will be namespaced)
             value: Value to store (will be JSON serialized)
             ttl: Time to live in seconds (optional)
-            
+
         Returns:
             True if successful, False otherwise
         """
         try:
             redis = await self._get_redis()
             serialized_value = json.dumps(value, default=str)
-            
+
             if ttl:
                 result = await redis.setex(self._key(key), ttl, serialized_value)
             else:
                 result = await redis.set(self._key(key), serialized_value)
-                
+
             self.logger.debug(f"Set key: {key} (TTL: {ttl})")
             return bool(result)
-            
+
         except Exception as e:
             self.logger.error(f"Redis set error for key {key}: {e}")
             return False
@@ -68,22 +68,22 @@ class RedisCoordinator:
     async def get(self, key: str) -> Optional[Any]:
         """
         Get a value from Redis
-        
+
         Args:
             key: Redis key (will be namespaced)
-            
+
         Returns:
             Deserialized value or None if not found
         """
         try:
             redis = await self._get_redis()
             value = await redis.get(self._key(key))
-            
+
             if value is None:
                 return None
-                
+
             return json.loads(value)
-            
+
         except Exception as e:
             self.logger.error(f"Redis get error for key {key}: {e}")
             return None
@@ -91,10 +91,10 @@ class RedisCoordinator:
     async def delete(self, key: str) -> bool:
         """
         Delete a key from Redis
-        
+
         Args:
             key: Redis key (will be namespaced)
-            
+
         Returns:
             True if key was deleted, False otherwise
         """
@@ -103,7 +103,7 @@ class RedisCoordinator:
             result = await redis.delete(self._key(key))
             self.logger.debug(f"Deleted key: {key}")
             return bool(result)
-            
+
         except Exception as e:
             self.logger.error(f"Redis delete error for key {key}: {e}")
             return False
@@ -111,25 +111,25 @@ class RedisCoordinator:
     async def blpop(self, key: str, timeout: int = 0) -> Optional[Any]:
         """
         Blocking left pop from Redis list
-        
+
         Args:
             key: Redis key (will be namespaced)
             timeout: Timeout in seconds (0 = block indefinitely)
-            
+
         Returns:
             Popped value or None if timeout
         """
         try:
             redis = await self._get_redis()
             result = await redis.blpop(self._key(key), timeout=timeout)
-            
+
             if result is None:
                 return None
-                
+
             # result is (key, value) tuple
             _, value = result
             return json.loads(value)
-            
+
         except Exception as e:
             self.logger.error(f"Redis blpop error for key {key}: {e}")
             return None
@@ -137,11 +137,11 @@ class RedisCoordinator:
     async def lpush(self, key: str, value: Any) -> int:
         """
         Left push to Redis list
-        
+
         Args:
             key: Redis key (will be namespaced)
             value: Value to push (will be JSON serialized)
-            
+
         Returns:
             Length of list after push
         """
@@ -149,10 +149,10 @@ class RedisCoordinator:
             redis = await self._get_redis()
             serialized_value = json.dumps(value, default=str)
             result = await redis.lpush(self._key(key), serialized_value)
-            
+
             self.logger.debug(f"Pushed to list {key}, new length: {result}")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Redis lpush error for key {key}: {e}")
             return 0
@@ -160,35 +160,30 @@ class RedisCoordinator:
     async def setnx(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """
         Set key if not exists (distributed lock pattern)
-        
+
         Args:
             key: Redis key (will be namespaced)
             value: Value to store (will be JSON serialized)
             ttl: Time to live in seconds (optional)
-            
+
         Returns:
             True if key was set, False if already exists
         """
         try:
             redis = await self._get_redis()
             serialized_value = json.dumps(value, default=str)
-            
+
             # Use SET with NX option
-            result = await redis.set(
-                self._key(key), 
-                serialized_value, 
-                nx=True, 
-                ex=ttl if ttl else None
-            )
-            
+            result = await redis.set(self._key(key), serialized_value, nx=True, ex=ttl if ttl else None)
+
             success = result is not None
             if success:
                 self.logger.debug(f"Acquired lock: {key} (TTL: {ttl})")
             else:
                 self.logger.debug(f"Lock already held: {key}")
-                
+
             return success
-            
+
         except Exception as e:
             self.logger.error(f"Redis setnx error for key {key}: {e}")
             return False
@@ -196,10 +191,10 @@ class RedisCoordinator:
     async def keys(self, pattern: str) -> List[str]:
         """
         Get keys matching pattern
-        
+
         Args:
             pattern: Redis key pattern (will be namespaced)
-            
+
         Returns:
             List of matching keys (without namespace prefix)
         """
@@ -207,11 +202,11 @@ class RedisCoordinator:
             redis = await self._get_redis()
             namespaced_pattern = self._key(pattern)
             keys = await redis.keys(namespaced_pattern)
-            
+
             # Remove namespace prefix from returned keys
             prefix = f"{self.namespace}:"
             return [key.replace(prefix, "", 1) for key in keys]
-            
+
         except Exception as e:
             self.logger.error(f"Redis keys error for pattern {pattern}: {e}")
             return []
@@ -219,10 +214,10 @@ class RedisCoordinator:
     async def exists(self, key: str) -> bool:
         """
         Check if key exists
-        
+
         Args:
             key: Redis key (will be namespaced)
-            
+
         Returns:
             True if key exists, False otherwise
         """
@@ -230,7 +225,7 @@ class RedisCoordinator:
             redis = await self._get_redis()
             result = await redis.exists(self._key(key))
             return bool(result)
-            
+
         except Exception as e:
             self.logger.error(f"Redis exists error for key {key}: {e}")
             return False
@@ -238,10 +233,10 @@ class RedisCoordinator:
     async def ttl(self, key: str) -> int:
         """
         Get time to live for key
-        
+
         Args:
             key: Redis key (will be namespaced)
-            
+
         Returns:
             TTL in seconds (-1 if no expiry, -2 if key doesn't exist)
         """
@@ -249,7 +244,7 @@ class RedisCoordinator:
             redis = await self._get_redis()
             result = await redis.ttl(self._key(key))
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Redis ttl error for key {key}: {e}")
             return -2
@@ -257,7 +252,7 @@ class RedisCoordinator:
     async def ping(self) -> bool:
         """
         Ping Redis to check connectivity
-        
+
         Returns:
             True if Redis responds, False otherwise
         """
@@ -265,7 +260,7 @@ class RedisCoordinator:
             redis = await self._get_redis()
             result = await redis.ping()
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Redis ping error: {e}")
             return False
@@ -280,18 +275,14 @@ class RedisCoordinator:
 # Convenience functions for specific coordination patterns
 class PRPStateRedis(RedisCoordinator):
     """Redis helper for PRP state management"""
-    
+
     def __init__(self):
         super().__init__("prp")
 
     async def set_prp_state(self, prp_id: str, state: str, owner: str = None) -> bool:
         """Set PRP state and owner"""
         timestamp = datetime.now(timezone.utc).isoformat()
-        prp_data = {
-            "state": state,
-            "owner": owner,
-            "updated_at": timestamp
-        }
+        prp_data = {"state": state, "owner": owner, "updated_at": timestamp}
         return await self.set(f"{prp_id}:state", prp_data)
 
     async def get_prp_state(self, prp_id: str) -> Optional[Dict[str, Any]]:
@@ -321,18 +312,14 @@ class PRPStateRedis(RedisCoordinator):
 
 class AgentStateRedis(RedisCoordinator):
     """Redis helper for agent state management"""
-    
+
     def __init__(self):
         super().__init__("agent")
 
     async def set_agent_status(self, agent_id: str, status: str, current_prp: str = None) -> bool:
         """Set agent status and current PRP"""
         timestamp = datetime.now(timezone.utc).isoformat()
-        agent_data = {
-            "status": status,
-            "current_prp": current_prp,
-            "updated_at": timestamp
-        }
+        agent_data = {"status": status, "current_prp": current_prp, "updated_at": timestamp}
         return await self.set(f"{agent_id}:status", agent_data)
 
     async def get_agent_status(self, agent_id: str) -> Optional[Dict[str, Any]]:
@@ -348,14 +335,14 @@ class AgentStateRedis(RedisCoordinator):
         """Get status of all agents"""
         agent_keys = await self.keys("*:status")
         agents = []
-        
+
         for key in agent_keys:
             agent_id = key.replace(":status", "")
             status = await self.get_agent_status(agent_id)
             if status:
                 status["agent_id"] = agent_id
                 agents.append(status)
-                
+
         return agents
 
 
@@ -370,7 +357,7 @@ class SyncRedisHelper:
     Synchronous wrapper for Redis operations
     For use in scripts and non-async contexts
     """
-    
+
     def __init__(self, namespace: str = "leadfactory"):
         self.namespace = namespace
         self.settings = get_settings()
@@ -380,6 +367,7 @@ class SyncRedisHelper:
         """Get synchronous Redis connection"""
         if self.redis is None:
             import redis
+
             self.redis = redis.from_url(self.settings.redis_url, decode_responses=True)
         return self.redis
 
@@ -392,12 +380,12 @@ class SyncRedisHelper:
         try:
             redis = self._get_redis()
             serialized_value = json.dumps(value, default=str)
-            
+
             if ttl:
                 result = redis.setex(self._key(key), ttl, serialized_value)
             else:
                 result = redis.set(self._key(key), serialized_value)
-                
+
             return bool(result)
         except Exception:
             return False
@@ -407,10 +395,10 @@ class SyncRedisHelper:
         try:
             redis = self._get_redis()
             value = redis.get(self._key(key))
-            
+
             if value is None:
                 return None
-                
+
             return json.loads(value)
         except Exception:
             return None
@@ -420,10 +408,10 @@ class SyncRedisHelper:
         try:
             redis = self._get_redis()
             result = redis.blpop(self._key(key), timeout=timeout)
-            
+
             if result is None:
                 return None
-                
+
             _, value = result
             return json.loads(value)
         except Exception:
@@ -443,14 +431,9 @@ class SyncRedisHelper:
         try:
             redis = self._get_redis()
             serialized_value = json.dumps(value, default=str)
-            
-            result = redis.set(
-                self._key(key), 
-                serialized_value, 
-                nx=True, 
-                ex=ttl if ttl else None
-            )
-            
+
+            result = redis.set(self._key(key), serialized_value, nx=True, ex=ttl if ttl else None)
+
             return result is not None
         except Exception:
             return False

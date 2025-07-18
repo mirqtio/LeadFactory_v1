@@ -5,11 +5,11 @@ Provides serialized merge coordination with Redis locks
 """
 
 import asyncio
+import os
 import subprocess
 import sys
-import os
-from typing import Dict, Optional, Tuple
 from datetime import datetime, timezone
+from typing import Dict, Optional, Tuple
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -36,11 +36,11 @@ class MergeCoordinator:
     async def request_merge(self, prp_id: str, branch_name: str = None) -> Tuple[bool, str]:
         """
         Request permission to merge a PRP
-        
+
         Args:
             prp_id: PRP identifier
             branch_name: Feature branch name (defaults to feat/{prp_id})
-            
+
         Returns:
             (success, message)
         """
@@ -70,11 +70,11 @@ class MergeCoordinator:
     async def perform_merge(self, prp_id: str, branch_name: str = None) -> Tuple[bool, str]:
         """
         Perform the actual merge operation
-        
+
         Args:
             prp_id: PRP identifier
             branch_name: Feature branch name
-            
+
         Returns:
             (success, message)
         """
@@ -118,10 +118,10 @@ class MergeCoordinator:
     async def validate_ci_and_release_lock(self, prp_id: str) -> Tuple[bool, str]:
         """
         Validate CI status and release merge lock
-        
+
         Args:
             prp_id: PRP identifier
-            
+
         Returns:
             (success, message)
         """
@@ -138,7 +138,7 @@ class MergeCoordinator:
 
             # Validate CI status
             ci_valid, ci_message = self.github.validate_prp_completion(commit_hash)
-            
+
             if self.redis_available:
                 if ci_valid:
                     # CI passed - release lock
@@ -156,7 +156,7 @@ class MergeCoordinator:
     async def emergency_release_lock(self) -> Tuple[bool, str]:
         """
         Emergency release of merge lock (admin function)
-        
+
         Returns:
             (success, message)
         """
@@ -180,21 +180,16 @@ class MergeCoordinator:
     async def get_merge_status(self) -> Dict:
         """
         Get current merge coordination status
-        
+
         Returns:
             Status dictionary
         """
-        status = {
-            "redis_available": self.redis_available,
-            "lock_owner": None,
-            "lock_ttl": None,
-            "queue_length": 0
-        }
+        status = {"redis_available": self.redis_available, "lock_owner": None, "lock_ttl": None, "queue_length": 0}
 
         if self.redis_available:
             try:
                 status["lock_owner"] = await prp_redis.get_merge_lock_owner()
-                
+
                 if status["lock_owner"]:
                     # Get TTL for the lock
                     ttl = await prp_redis.ttl("merge:lock")
@@ -230,7 +225,7 @@ async def main():
             if len(sys.argv) < 3:
                 print("Usage: request <prp_id> [branch]")
                 return
-            
+
             prp_id = sys.argv[2]
             branch = sys.argv[3] if len(sys.argv) > 3 else None
             success, message = await coordinator.request_merge(prp_id, branch)
@@ -240,7 +235,7 @@ async def main():
             if len(sys.argv) < 3:
                 print("Usage: merge <prp_id> [branch]")
                 return
-            
+
             prp_id = sys.argv[2]
             branch = sys.argv[3] if len(sys.argv) > 3 else None
             success, message = await coordinator.perform_merge(prp_id, branch)
@@ -250,7 +245,7 @@ async def main():
             if len(sys.argv) < 3:
                 print("Usage: validate <prp_id>")
                 return
-            
+
             prp_id = sys.argv[2]
             success, message = await coordinator.validate_ci_and_release_lock(prp_id)
             print(f"{'✅' if success else '❌'} {message}")
@@ -262,8 +257,8 @@ async def main():
             print(f"   Lock Owner: {status['lock_owner'] or 'None'}")
             print(f"   Lock TTL: {status['lock_ttl'] or 'N/A'}")
             print(f"   Queue Length: {status['queue_length']}")
-            
-            if 'error' in status:
+
+            if "error" in status:
                 print(f"   ⚠️  Error: {status['error']}")
 
         elif command == "emergency-release":

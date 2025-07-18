@@ -252,10 +252,10 @@ class PRPCLICommands:
             print(f"   Enabled: {redis_status['enabled']}")
             print(f"   Helper Available: {redis_status['helper_available']}")
             print(f"   URL: {redis_status['url']}")
-            
-            if redis_status['connected'] and redis_status['enabled']:
+
+            if redis_status["connected"] and redis_status["enabled"]:
                 print("   ✅ Redis coordination fully operational")
-            elif redis_status['enabled'] and not redis_status['connected']:
+            elif redis_status["enabled"] and not redis_status["connected"]:
                 print("   ⚠️  Redis enabled but connection failed")
             else:
                 print("   ⚠️  Redis functionality disabled - using YAML only")
@@ -268,17 +268,17 @@ class PRPCLICommands:
         if not isinstance(self.prp_manager, RedisEnhancedStateManager):
             print("❌ Redis-enhanced manager not available")
             return
-            
+
         print("🔄 Syncing all PRPs from YAML to Redis...")
         results = self.prp_manager.sync_all_to_redis()
-        
-        if 'error' in results:
+
+        if "error" in results:
             print(f"❌ Sync failed: {results['error']}")
             return
-            
+
         print(f"✅ Sync completed successfully!")
         print(f"   Synced: {results['synced']} PRPs")
-        if results['errors'] > 0:
+        if results["errors"] > 0:
             print(f"   Errors: {results['errors']} PRPs failed to sync")
         print(f"   PRPs: {', '.join(results['prps'])}")
 
@@ -287,7 +287,7 @@ class PRPCLICommands:
         if not isinstance(self.prp_manager, RedisEnhancedStateManager):
             print("❌ Redis-enhanced manager not available")
             return
-            
+
         # This would need async support, for now show basic info
         print("🔒 **Merge Lock Status**")
         print("   ⚠️  Async merge lock status check not implemented in CLI")

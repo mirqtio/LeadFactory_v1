@@ -17,15 +17,15 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+# Import authentication dependencies
+from account_management.models import AccountUser, AuthProvider, UserStatus
+from core.auth import get_current_user_dependency, require_organization_access
+
 # Import modules to test
 from d7_storefront.api import get_checkout_manager, get_stripe_client, get_webhook_processor, router
 from d7_storefront.checkout import CheckoutError
 from d7_storefront.schemas import CheckoutInitiationRequest, CheckoutInitiationResponse
 from d7_storefront.webhooks import WebhookError, WebhookStatus
-
-# Import authentication dependencies
-from account_management.models import AccountUser, UserStatus, AuthProvider
-from core.auth import get_current_user_dependency, require_organization_access
 
 # Test app setup
 app = FastAPI()
@@ -57,12 +57,13 @@ def mock_user():
 @pytest.fixture
 def mock_auth_dependencies(mock_user):
     """Fixture to mock authentication dependencies."""
+
     def mock_get_current_user():
         return mock_user
-    
+
     def mock_require_organization_access():
         return mock_user.organization_id
-    
+
     app.dependency_overrides[get_current_user_dependency] = mock_get_current_user
     app.dependency_overrides[require_organization_access] = mock_require_organization_access
     return mock_user

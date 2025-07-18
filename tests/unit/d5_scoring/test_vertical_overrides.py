@@ -117,7 +117,7 @@ class TestVerticalScoringEngine:
         mock_base_parser.component_rules = {}
         mock_base_parser.tier_rules = {}
         mock_base_parser.quality_control = None
-        
+
         mock_vertical_parser = Mock()
         mock_vertical_parser.load_rules.return_value = True
         mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
@@ -305,7 +305,7 @@ class TestVerticalScoringEngine:
             mock_base_parser.component_rules = {}
             mock_base_parser.tier_rules = {}
             mock_base_parser.quality_control = None
-            
+
             mock_vertical_parser = Mock()
             mock_vertical_parser.load_rules.return_value = True
             mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
@@ -407,7 +407,7 @@ class TestVerticalScoringEngine:
             info = engine.get_vertical_info()
 
             assert info["vertical"] is None
-            assert "base" in info["description"]
+            assert "Base" in info["description"]
             assert "supported_verticals" in info
             assert "restaurant" in info["supported_verticals"]
             assert "medical" in info["supported_verticals"]
@@ -417,9 +417,19 @@ class TestVerticalScoringEngine:
         with patch("d5_scoring.vertical_overrides.ScoringRulesParser") as mock_parser_class:
             mock_base_parser = Mock()
             mock_base_parser.load_rules.return_value = True
+            mock_base_parser.engine_config = {"max_score": 100.0}
+            mock_base_parser.fallbacks = {}
+            mock_base_parser.component_rules = {"base_comp": Mock()}
+            mock_base_parser.tier_rules = {}
+            mock_base_parser.quality_control = None
+            
             mock_vertical_parser = Mock()
             mock_vertical_parser.load_rules.return_value = True
+            mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
+            mock_vertical_parser.fallbacks = {}
             mock_vertical_parser.component_rules = {"comp1": Mock()}
+            mock_vertical_parser.tier_rules = {}
+            mock_vertical_parser.quality_control = None
 
             def parser_side_effect(rules_file):
                 if "restaurant" in rules_file:
@@ -455,8 +465,19 @@ class TestVerticalScoringEngine:
         with patch("d5_scoring.vertical_overrides.ScoringRulesParser") as mock_parser_class:
             mock_base_parser = Mock()
             mock_base_parser.load_rules.return_value = True
+            mock_base_parser.engine_config = {"max_score": 100.0}
+            mock_base_parser.fallbacks = {}
+            mock_base_parser.component_rules = {}
+            mock_base_parser.tier_rules = {}
+            mock_base_parser.quality_control = None
+            
             mock_vertical_parser = Mock()
             mock_vertical_parser.load_rules.return_value = True
+            mock_vertical_parser.engine_config = {"vertical_multiplier": 1.2}
+            mock_vertical_parser.fallbacks = {}
+            mock_vertical_parser.component_rules = {}
+            mock_vertical_parser.tier_rules = {}
+            mock_vertical_parser.quality_control = None
 
             def parser_side_effect(rules_file):
                 if "medical" in rules_file:
@@ -477,6 +498,10 @@ class TestVerticalScoringEngine:
         mock_parser = Mock()
         mock_parser.load_rules.return_value = True
         mock_parser.engine_config = {"max_score": 100.0}
+        mock_parser.fallbacks = {}
+        mock_parser.component_rules = {}
+        mock_parser.tier_rules = {}
+        mock_parser.quality_control = None
         mock_parser.apply_fallbacks.return_value = {"company_name": "Test Corp"}
 
         # Mock component rules
@@ -488,6 +513,9 @@ class TestVerticalScoringEngine:
             "percentage": 80.0,
             "weighted_score": 8.0,
         }
+        mock_rule = Mock()
+        mock_rule.condition = "company_name is not None"
+        mock_component.rules = [mock_rule]
         mock_parser.get_component_rules.return_value = {"comp1": mock_component}
 
         # Mock tier determination
@@ -513,6 +541,10 @@ class TestVerticalScoringEngine:
             mock_parser = Mock()
             mock_parser.load_rules.return_value = True
             mock_parser.engine_config = {"max_score": 100.0}
+            mock_parser.fallbacks = {}
+            mock_parser.component_rules = {}
+            mock_parser.tier_rules = {}
+            mock_parser.quality_control = None
             mock_parser.apply_fallbacks.return_value = {"industry": "restaurant"}
 
             mock_component = Mock()
@@ -523,6 +555,9 @@ class TestVerticalScoringEngine:
                 "percentage": 80.0,
                 "weighted_score": 8.0,
             }
+            mock_rule = Mock()
+            mock_rule.condition = "industry is not None"
+            mock_component.rules = [mock_rule]
             mock_parser.get_component_rules.return_value = {"comp1": mock_component}
 
             mock_tier = Mock()
@@ -552,6 +587,10 @@ class TestVerticalScoringEngine:
         mock_parser = Mock()
         mock_parser.load_rules.return_value = True
         mock_parser.engine_config = {"max_score": 100.0}
+        mock_parser.fallbacks = {}
+        mock_parser.component_rules = {}
+        mock_parser.tier_rules = {}
+        mock_parser.quality_control = None
         mock_parser.apply_fallbacks.return_value = {"company_name": "Test Corp"}
 
         mock_component = Mock()
@@ -562,6 +601,9 @@ class TestVerticalScoringEngine:
             "percentage": 80.0,
             "weighted_score": 8.0,
         }
+        mock_rule = Mock()
+        mock_rule.condition = "company_name is not None"
+        mock_component.rules = [mock_rule]
         mock_parser.get_component_rules.return_value = {"comp1": mock_component}
 
         mock_tier = Mock()
