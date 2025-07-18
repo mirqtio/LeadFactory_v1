@@ -30,22 +30,21 @@ def get_prp_status():
     try:
         # Get all PRP status
         result = subprocess.run(
-            ["python", ".claude/prp_tracking/cli_commands.py", "list", "--status=complete"], 
-            capture_output=True, text=True
+            ["python", ".claude/prp_tracking/cli_commands.py", "list", "--status=complete"],
+            capture_output=True,
+            text=True,
         )
         completed_prps = result.stdout.strip() if result.returncode == 0 else "No completed PRPs"
-        
+
         # Get in-progress status
         result = subprocess.run(
-            ["python", ".claude/prp_tracking/cli_commands.py", "list", "--status=in_progress"], 
-            capture_output=True, text=True
+            ["python", ".claude/prp_tracking/cli_commands.py", "list", "--status=in_progress"],
+            capture_output=True,
+            text=True,
         )
         in_progress_prps = result.stdout.strip() if result.returncode == 0 else "No in-progress PRPs"
-        
-        return {
-            "completed": completed_prps,
-            "in_progress": in_progress_prps
-        }
+
+        return {"completed": completed_prps, "in_progress": in_progress_prps}
     except Exception as e:
         return {"error": f"Error: {str(e)}"}
 
@@ -278,8 +277,11 @@ def update_html_status():
 
     # Copy to Docker container volume if it exists
     try:
-        subprocess.run(["docker", "cp", "orchestrator_status.html", "orchestrator-status:/usr/share/nginx/html/index.html"], 
-                      capture_output=True, check=False)
+        subprocess.run(
+            ["docker", "cp", "orchestrator_status.html", "orchestrator-status:/usr/share/nginx/html/index.html"],
+            capture_output=True,
+            check=False,
+        )
     except Exception as e:
         print(f"Note: Docker container update failed (container may not be running): {e}")
 

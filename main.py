@@ -6,7 +6,7 @@ import time
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -207,6 +207,56 @@ if settings.enable_governance and governance_router is not None and AuditLogging
 
     # Mount static files for Governance UI
     app.mount("/static/governance", StaticFiles(directory="static/governance"), name="governance")
+
+# Global Navigation Shell (P0-027)
+# Mount static files for all UI components
+app.mount("/static/global_navigation", StaticFiles(directory="static/global_navigation"), name="global_navigation")
+app.mount("/static/lead_explorer", StaticFiles(directory="static/lead_explorer"), name="lead_explorer")
+app.mount("/static/batch_runner", StaticFiles(directory="static/batch_runner"), name="batch_runner")
+app.mount("/static/lineage", StaticFiles(directory="static/lineage"), name="lineage")
+
+
+# Root navigation routes (P0-027)
+@app.get("/")
+async def root():
+    """Redirect root to global navigation shell"""
+    return RedirectResponse(url="/static/global_navigation/index.html")
+
+
+@app.get("/lead-explorer")
+async def lead_explorer():
+    """Redirect to global navigation shell with lead explorer"""
+    return RedirectResponse(url="/static/global_navigation/index.html")
+
+
+@app.get("/batch-runner")
+async def batch_runner():
+    """Redirect to global navigation shell with batch runner"""
+    return RedirectResponse(url="/static/global_navigation/index.html")
+
+
+@app.get("/template-studio")
+async def template_studio():
+    """Redirect to global navigation shell with template studio"""
+    return RedirectResponse(url="/static/global_navigation/index.html")
+
+
+@app.get("/scoring-playground")
+async def scoring_playground():
+    """Redirect to global navigation shell with scoring playground"""
+    return RedirectResponse(url="/static/global_navigation/index.html")
+
+
+@app.get("/lineage")
+async def lineage():
+    """Redirect to global navigation shell with lineage"""
+    return RedirectResponse(url="/static/global_navigation/index.html")
+
+
+@app.get("/governance")
+async def governance():
+    """Redirect to global navigation shell with governance"""
+    return RedirectResponse(url="/static/global_navigation/index.html")
 
 
 if __name__ == "__main__":
