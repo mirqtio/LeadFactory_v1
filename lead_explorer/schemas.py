@@ -261,3 +261,157 @@ class HealthCheckResponseSchema(BaseModel):
     timestamp: datetime
     database: str = "connected"
     message: str = "Lead Explorer is healthy"
+
+
+# P0-021: Badge Management Schemas
+class BadgeTypeEnum(str, Enum):
+    """Badge type enumeration"""
+    
+    PRIORITY = "priority"
+    QUALIFIED = "qualified"
+    CONTACTED = "contacted"
+    OPPORTUNITY = "opportunity"
+    CUSTOMER = "customer"
+    BLOCKED = "blocked"
+    FOLLOW_UP = "follow_up"
+    DEMO_SCHEDULED = "demo_scheduled"
+    PROPOSAL_SENT = "proposal_sent"
+    CUSTOM = "custom"
+
+
+class CreateBadgeSchema(BaseModel):
+    """Schema for creating a new badge"""
+    
+    name: str = Field(..., min_length=1, max_length=100, description="Badge name")
+    description: Optional[str] = Field(None, max_length=1000, description="Badge description")
+    badge_type: BadgeTypeEnum = Field(..., description="Badge type")
+    color: str = Field("#007bff", regex=r"^#[0-9A-Fa-f]{6}$", description="Hex color code")
+    icon: Optional[str] = Field(None, max_length=50, description="Bootstrap icon name")
+    is_system: bool = Field(False, description="Is this a system badge?")
+    is_active: bool = Field(True, description="Is this badge active?")
+
+    @validator('name')
+    def validate_name(cls, v):
+        """Validate badge name"""
+        if not v.strip():
+            raise ValueError("Badge name cannot be empty")
+        return v.strip()
+
+
+class UpdateBadgeSchema(BaseModel):
+    """Schema for updating a badge"""
+    
+    name: Optional[str] = Field(None, min_length=1, max_length=100, description="Badge name")
+    description: Optional[str] = Field(None, max_length=1000, description="Badge description")
+    badge_type: Optional[BadgeTypeEnum] = Field(None, description="Badge type")
+    color: Optional[str] = Field(None, regex=r"^#[0-9A-Fa-f]{6}$", description="Hex color code")
+    icon: Optional[str] = Field(None, max_length=50, description="Bootstrap icon name")
+    is_active: Optional[bool] = Field(None, description="Is this badge active?")
+
+    @validator('name')
+    def validate_name(cls, v):
+        """Validate badge name"""
+        if v is not None and not v.strip():
+            raise ValueError("Badge name cannot be empty")
+        return v.strip() if v else v
+
+
+class BadgeResponseSchema(BaseResponseSchema):
+    """Schema for badge response"""
+    
+    name: str
+    description: Optional[str]
+    badge_type: BadgeTypeEnum
+    color: str
+    icon: Optional[str]
+    is_system: bool
+    is_active: bool
+    created_by: Optional[str]
+
+
+class AssignBadgeSchema(BaseModel):
+    """Schema for assigning a badge to a lead"""
+    
+    badge_id: str = Field(..., description="Badge ID to assign")
+    notes: Optional[str] = Field(None, max_length=1000, description="Assignment notes")
+    expires_at: Optional[datetime] = Field(None, description="Optional expiration date")
+
+
+class RemoveBadgeSchema(BaseModel):
+    """Schema for removing a badge from a lead"""
+    
+    badge_id: str = Field(..., description="Badge ID to remove")
+    removal_reason: Optional[str] = Field(None, max_length=1000, description="Reason for removal")
+
+
+class LeadBadgeResponseSchema(BaseModel):
+    """Schema for lead badge association response"""
+    
+    id: str
+    lead_id: str
+    badge_id: str
+    badge: BadgeResponseSchema
+    assigned_by: Optional[str]
+    assigned_at: datetime
+    notes: Optional[str]
+    expires_at: Optional[datetime]
+    is_active: bool
+    removed_at: Optional[datetime]
+    removed_by: Optional[str]
+    removal_reason: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class BadgeListResponseSchema(BaseModel):
+    """Schema for badge list response"""
+    
+    badges: List[BadgeResponseSchema]
+    total_count: int
+    page_info: Optional[dict] = None
+
+
+class LeadBadgeListResponseSchema(BaseModel):
+    """Schema for lead badge list response"""
+    
+    lead_badges: List[LeadBadgeResponseSchema]
+    total_count: int
+
+
+class BadgeAuditLogResponseSchema(BaseModel):
+    """Schema for badge audit log response"""
+    
+    id: str
+    lead_id: str
+    badge_id: str
+    lead_badge_id: Optional[str]
+    action: str
+    timestamp: datetime
+    user_id: Optional[str]
+    user_ip: Optional[str]
+    user_agent: Optional[str]
+    old_values: Optional[dict]
+    new_values: Optional[dict]
+    notes: Optional[str]
+    meta_data: Optional[dict]
+
+    class Config:
+        from_attributes = True
+
+
+class BadgeAuditTrailResponseSchema(BaseModel):
+    """Schema for badge audit trail response"""
+    
+    lead_id: str
+    badge_audit_logs: List[BadgeAuditLogResponseSchema]
+    total_count: int
+
+
+class BadgeFilterSchema(BaseModel):
+    """Schema for filtering badges"""
+    
+    badge_type: Optional[BadgeTypeEnum] = None
+    is_system: Optional[bool] = None
+    is_active: Optional[bool] = None
+    search: Optional[str] = Field(None, max_length=500, description="Search in name or description")

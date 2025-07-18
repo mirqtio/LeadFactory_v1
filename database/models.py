@@ -614,3 +614,131 @@ class AlertHistory(Base):
     violation = relationship("GuardrailViolation")
 
     __table_args__ = (Index("ix_alert_history_sent_at_channel", "sent_at", "alert_channel"),)
+
+
+# P0-021: Manual Badge System Models for CPO Lead Management
+class BadgeType(str, enum.Enum):
+    """Types of badges that can be assigned to leads"""
+
+    PRIORITY = "priority"  # High priority lead
+    QUALIFIED = "qualified"  # Qualified lead
+    CONTACTED = "contacted"  # Lead has been contacted
+    OPPORTUNITY = "opportunity"  # Sales opportunity
+    CUSTOMER = "customer"  # Converted to customer
+    BLOCKED = "blocked"  # Lead is blocked/unqualified
+    FOLLOW_UP = "follow_up"  # Requires follow-up
+    DEMO_SCHEDULED = "demo_scheduled"  # Demo scheduled
+    PROPOSAL_SENT = "proposal_sent"  # Proposal sent
+    CUSTOM = "custom"  # Custom badge
+
+
+class Badge(Base):
+    """Badge definitions for categorizing leads"""
+
+    __tablename__ = "badges"
+
+    # Primary identification
+    id = Column(String, primary_key=True, default=generate_uuid)
+
+    # Badge details
+    name = Column(String(100), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    badge_type = Column(DatabaseAgnosticEnum(BadgeType), nullable=False, index=True)
+
+    # Visual properties
+    color = Column(String(7), nullable=False, default="#007bff")  # Hex color
+    icon = Column(String(50), nullable=True)  # Bootstrap icon name
+
+    # Behavior
+    is_system = Column(Boolean, nullable=False, default=False)  # System vs user-created
+    is_active = Column(Boolean, nullable=False, default=True, index=True)
+
+    # Metadata
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=func.now(), onupdate=func.now())
+    created_by = Column(String(255), nullable=True)
+
+    # Relationships
+    lead_badges = relationship("LeadBadge", back_populates="badge", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("ix_badges_name_active", "name", "is_active"),
+        Index("ix_badges_type_active", "badge_type", "is_active"),
+        UniqueConstraint("name", name="uq_badges_name"),
+    )
+
+
+class LeadBadge(Base):
+    """Association table for leads and badges with audit trail"""
+
+    __tablename__ = "lead_badges"
+
+    # Primary identification
+    id = Column(String, primary_key=True, default=generate_uuid)
+
+    # Foreign keys
+    lead_id = Column(String, ForeignKey("leads.id", ondelete="CASCADE"), nullable=False, index=True)
+    badge_id = Column(String, ForeignKey("badges.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Assignment details
+    assigned_by = Column(String(255), nullable=True)  # User who assigned the badge
+    assigned_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+
+    # Optional metadata
+    notes = Column(Text, nullable=True)  # Reason for assignment
+    expires_at = Column(TIMESTAMP, nullable=True)  # Optional expiration
+
+    # Soft delete for audit trail
+    is_active = Column(Boolean, nullable=False, default=True, index=True)
+    removed_at = Column(TIMESTAMP, nullable=True)
+    removed_by = Column(String(255), nullable=True)
+    removal_reason = Column(Text, nullable=True)
+
+    # Relationships
+    lead = relationship("Lead", backref="lead_badges")
+    badge = relationship("Badge", back_populates="lead_badges")
+
+    __table_args__ = (
+        Index("ix_lead_badges_lead_active", "lead_id", "is_active"),
+        Index("ix_lead_badges_badge_active", "badge_id", "is_active"),
+        Index("ix_lead_badges_assigned_at", "assigned_at"),
+        UniqueConstraint("lead_id", "badge_id", name="uq_lead_badges_lead_badge"),
+    )
+
+
+class BadgeAuditLog(Base):
+    """Audit log for badge assignments and removals"""
+
+    __tablename__ = "badge_audit_logs"
+
+    # Primary identification
+    id = Column(String, primary_key=True, default=generate_uuid)
+
+    # Reference data
+    lead_id = Column(String, nullable=False, index=True)
+    badge_id = Column(String, nullable=False, index=True)
+    lead_badge_id = Column(String, nullable=True)  # Reference to LeadBadge record
+
+    # Audit details
+    action = Column(String(20), nullable=False, index=True)  # assign, remove, expire
+    timestamp = Column(TIMESTAMP, nullable=False, server_default=func.now(), index=True)
+
+    # User context
+    user_id = Column(String(255), nullable=True)
+    user_ip = Column(String(45), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+
+    # Change details
+    old_values = Column(JSON, nullable=True)
+    new_values = Column(JSON, nullable=True)
+    notes = Column(Text, nullable=True)
+
+    # Metadata
+    meta_data = Column(JSON, nullable=True)
+
+    __table_args__ = (
+        Index("ix_badge_audit_lead_timestamp", "lead_id", "timestamp"),
+        Index("ix_badge_audit_badge_timestamp", "badge_id", "timestamp"),
+        Index("ix_badge_audit_action_timestamp", "action", "timestamp"),
+        Index("ix_badge_audit_user_timestamp", "user_id", "timestamp"),
+    )

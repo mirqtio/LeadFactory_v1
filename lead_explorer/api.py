@@ -38,6 +38,17 @@ from .schemas import (
     QuickAddLeadSchema,
     QuickAddResponseSchema,
     UpdateLeadSchema,
+    # Badge schemas
+    BadgeFilterSchema,
+    BadgeListResponseSchema,
+    BadgeResponseSchema,
+    CreateBadgeSchema,
+    UpdateBadgeSchema,
+    AssignBadgeSchema,
+    RemoveBadgeSchema,
+    LeadBadgeResponseSchema,
+    LeadBadgeListResponseSchema,
+    BadgeAuditTrailResponseSchema,
 )
 
 # Initialize logger

@@ -47,26 +47,33 @@ class TestUserPreferencesAPI:
         mock_db.commit.return_value = None
         mock_db.refresh.return_value = None
 
-        # Mock authentication
-        mocker.patch("account_management.preference_api.get_current_user_dependency", return_value=self.mock_user)
-        mocker.patch("account_management.preference_api.get_db", return_value=mock_db)
+        # Override FastAPI dependencies
+        from account_management.preference_api import router
+        from core.auth import get_current_user_dependency
+        from database.session import get_db
 
-        # Make request
-        response = self.client.post(
-            "/api/v1/preferences/",
-            json={
-                "category": "dashboard",
-                "key": "theme",
-                "value": {"mode": "dark"},
-                "description": "User theme preference",
-            },
-            headers={"Authorization": "Bearer test-token"},
-        )
+        router.dependency_overrides[get_current_user_dependency] = lambda: self.mock_user
+        router.dependency_overrides[get_db] = lambda: mock_db
 
-        # Assertions
-        assert response.status_code == 201
-        mock_db.add.assert_called_once()
-        mock_db.commit.assert_called_once()
+        try:
+            # Make request
+            response = self.client.post(
+                "/api/v1/preferences/",
+                json={
+                    "category": "dashboard",
+                    "key": "theme",
+                    "value": {"mode": "dark"},
+                    "description": "User theme preference",
+                },
+            )
+
+            # Assertions
+            assert response.status_code == 201
+            mock_db.add.assert_called_once()
+            mock_db.commit.assert_called_once()
+        finally:
+            # Clean up dependency overrides
+            router.dependency_overrides.clear()
 
     def test_create_saved_search_success(self, mocker):
         """Test successful saved search creation"""
@@ -166,7 +173,7 @@ class TestUserPreferencesAPI:
 
     def test_authentication_required(self):
         """Test that authentication is required for all endpoints"""
-        # Test without Authorization header
+        # Test without Authorization header - quick test for auth requirement
         response = self.client.get("/api/v1/preferences/")
         assert response.status_code == 403  # Should require authentication
 
