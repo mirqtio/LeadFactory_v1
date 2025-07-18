@@ -1,0 +1,18 @@
+compliance_requirements:
+  gdpr: true
+  hipaa: false
+  pci_dss: true
+  soc2: true
+monitoring_endpoints:
+- /api/v1/health
+- /api/v1/metrics
+- /api/v1/security-status
+notification_channels:
+  email: security@leadfactory.com
+  pagerduty: https://events.pagerduty.com/...
+  slack: https://hooks.slack.com/services/...
+security_thresholds:
+  critical_response_time: 60
+  high_response_time: 240
+  low_response_time: 10080
+  medium_response_time: 1440

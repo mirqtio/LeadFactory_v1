@@ -348,7 +348,7 @@ class APICost(Base):
     id = Column(Integer, primary_key=True)
     provider = Column(String(50), nullable=False)  # dataaxle, hunter, openai, etc.
     operation = Column(String(100), nullable=False)  # match_business, find_email, etc.
-    lead_id = Column(Integer, nullable=True)  # ForeignKey("dim_lead.id", ondelete="CASCADE") when lead table exists
+    lead_id = Column(String(100), nullable=True)  # ForeignKey("dim_lead.id", ondelete="CASCADE") when lead table exists
     campaign_id = Column(
         Integer, nullable=True
     )  # ForeignKey("dim_campaign.id", ondelete="CASCADE") when campaign table exists
