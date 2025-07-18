@@ -28,15 +28,15 @@ class GooglePlacesClient(BaseAPIClient):
 
         # Set base URL based on stub configuration
         if settings.use_stubs:
-            self._base_url = f"{settings.stub_base_url}/maps/api/place"
+            self.base_url = f"{settings.stub_base_url}/maps/api/place"
         else:
-            self._base_url = "https://maps.googleapis.com/maps/api/place"
+            self.base_url = "https://maps.googleapis.com/maps/api/place"
 
         super().__init__(provider="google_places", api_key=api_key)
 
     def _get_base_url(self) -> str:
         """Get Google Places API base URL"""
-        return self._base_url
+        return self.base_url
 
     def _get_headers(self) -> Dict[str, str]:
         """Google Places uses API key in URL params, not headers"""
@@ -121,6 +121,10 @@ class GooglePlacesClient(BaseAPIClient):
         params = {"place_id": place_id, "fields": ",".join(fields), "key": self.api_key}
 
         response = await self.make_request("GET", "/details/json", params=params)
+
+        # Handle error responses
+        if response and response.get("status") != "OK":
+            return {"error": response.get("error_message", "Unknown error"), "status": response.get("status")}
 
         if response and response.get("result"):
             result = response["result"]

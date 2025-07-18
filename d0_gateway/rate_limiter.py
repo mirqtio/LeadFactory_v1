@@ -52,6 +52,11 @@ class RateLimiter:
         # Load Lua script
         self._load_lua_script()
 
+    @property
+    def rate(self) -> int:
+        """Get the rate limit in requests per second"""
+        return self.limits["burst_limit"]
+
     def _load_lua_script(self):
         """Load the Lua script for atomic rate limiting operations"""
         script_path = Path(__file__).parent / "lua_scripts" / "rate_limit.lua"

@@ -37,7 +37,9 @@ class BaseAPIClient(ABC):
         # Use stub URLs and keys if configured
         if self.settings.use_stubs:
             self.api_key = f"stub-{provider}-key"
-            self.base_url = self.settings.stub_base_url
+            # Only set base_url if it wasn't already set by child class
+            if not hasattr(self, "base_url"):
+                self.base_url = self.settings.stub_base_url
         else:
             self.api_key = api_key or self.settings.get_api_key(provider)
             self.base_url = base_url or self._get_base_url()

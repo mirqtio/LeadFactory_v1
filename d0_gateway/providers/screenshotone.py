@@ -78,6 +78,7 @@ class ScreenshotOneClient(BaseAPIClient):
         viewport_height: int = 1080,
         device_scale_factor: int = 1,
         format: str = "png",
+        quality: Optional[int] = None,
         lead_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
@@ -90,6 +91,7 @@ class ScreenshotOneClient(BaseAPIClient):
             viewport_height: Viewport height in pixels
             device_scale_factor: Device scale factor (1 for normal, 2 for retina)
             format: Image format (png or jpg)
+            quality: Image quality (1-100, only for jpg format)
             lead_id: Lead ID for cost tracking
 
         Returns:
@@ -113,6 +115,10 @@ class ScreenshotOneClient(BaseAPIClient):
             "cache": "true",  # Use cache if available
             "cache_ttl": 86400,  # 24 hours
         }
+
+        # Add quality parameter if specified and format is jpg
+        if quality is not None and format.lower() == "jpg":
+            params["quality"] = quality
 
         try:
             # Generate screenshot URL

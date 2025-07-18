@@ -132,6 +132,36 @@ def generate_pagespeed_data(url: str) -> Dict[str, Any]:
     }
 
 
+# ScreenshotOne API endpoints
+@app.get("/take")
+async def screenshotone_take(
+    url: str,
+    full_page: str = "true",
+    viewport_width: int = 1920,
+    viewport_height: int = 1080,
+    device_scale_factor: int = 1,
+    format: str = "png",
+    access_key: Optional[str] = None,
+    signature: Optional[str] = None,
+    **kwargs,
+):
+    """Mock ScreenshotOne API"""
+    if not USE_STUBS:
+        raise HTTPException(status_code=503, detail="Stub server disabled")
+
+    # Generate stub screenshot URL
+    timestamp = int(datetime.utcnow().timestamp())
+    screenshot_url = f"https://images.screenshotone.com/stub/{timestamp}_screenshot.{format}"
+
+    return {
+        "screenshot_url": screenshot_url,
+        "screenshot_thumb_url": f"https://images.screenshotone.com/stub/{timestamp}_thumb.{format}",
+        "success": True,
+        "cached": random.choice([True, False]),
+        "format": format,
+    }
+
+
 # Google Places API endpoints
 @app.get("/maps/api/place/findplacefromtext/json")
 async def google_places_find(
@@ -161,6 +191,13 @@ async def google_places_details(place_id: str, fields: Optional[str] = None, key
     """Mock Google Places Details API"""
     if not USE_STUBS:
         raise HTTPException(status_code=503, detail="Stub server disabled")
+
+    # Handle invalid place IDs
+    if "Invalid" in place_id or place_id == "InvalidPlaceID123":
+        return {
+            "error_message": "Invalid place_id provided",
+            "status": "INVALID_REQUEST",
+        }
 
     # Generate realistic business data
     has_hours = random.random() > 0.2  # 80% have hours

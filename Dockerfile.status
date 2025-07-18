@@ -1,0 +1,15 @@
+FROM nginx:alpine
+
+# Copy the status HTML file
+COPY orchestrator_status.html /usr/share/nginx/html/index.html
+
+# Create a simple update script
+RUN echo '#!/bin/sh' > /update_status.sh && \
+    echo 'cp /status/orchestrator_status.html /usr/share/nginx/html/index.html' >> /update_status.sh && \
+    chmod +x /update_status.sh
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

@@ -18,7 +18,6 @@ class TestGBPSmoke:
     """Smoke tests for Google Business Profile API"""
 
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="External service test needs proper stubs")
     async def test_gbp_find_place(self):
         """Test GBP place finding"""
         client = GooglePlacesClient(api_key=settings.google_api_key)
@@ -37,7 +36,6 @@ class TestGBPSmoke:
         print(f"  Found: {results['name']}")
         print(f"  Place ID: {results['place_id']}")
 
-    @pytest.mark.xfail(reason="Stub server missing /findplacefromtext/json endpoint")
     @pytest.mark.asyncio
     async def test_gbp_place_details(self):
         """Test GBP place details with focus on hours"""
@@ -78,7 +76,6 @@ class TestGBPSmoke:
             print(f"  Status: {details.get('business_status', 'Unknown')}")
 
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="External service test needs proper stubs")
     async def test_gbp_missing_hours_detection(self):
         """Test detection of missing business hours"""
         client = GooglePlacesClient(api_key=settings.google_api_key)
@@ -90,7 +87,7 @@ class TestGBPSmoke:
         )
 
         if results:
-            place_id = results[0]["place_id"]
+            place_id = results["place_id"]
             details = await client.get_place_details(place_id=place_id, fields=["name", "opening_hours"])
 
             has_hours = bool(details.get("opening_hours", {}).get("periods"))
@@ -106,8 +103,8 @@ class TestGBPSmoke:
         client = GooglePlacesClient(api_key=settings.google_api_key)
 
         # Cost should be $0.002 per place details call
-        cost = await client.calculate_cost("places/details")
-        assert cost == 0.002, f"Expected cost $0.002, got ${cost}"
+        cost = client.calculate_cost("places/details")
+        assert float(cost) == 0.002, f"Expected cost $0.002, got ${cost}"
 
         print(f"\n✓ GBP cost tracking correct: ${cost} per place details")
 
@@ -132,7 +129,7 @@ class TestGBPSmoke:
         results = await client.find_place(query="Chipotle San Francisco Financial District", fields=["place_id"])
 
         if results:
-            place_id = results[0]["place_id"]
+            place_id = results["place_id"]
             details = await client.get_place_details(
                 place_id=place_id,
                 fields=[

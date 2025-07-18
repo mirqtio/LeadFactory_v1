@@ -1,14 +1,1 @@
-{
-  "hooks": {
-    "userPromptSubmit": {
-      "command": "python .claude/prp_tracking/hooks/user_prompt_hook.py \"$PROMPT\"",
-      "description": "Intercepts PRP status change requests and validates them"
-    }
-  },
-  "prp_tracking": {
-    "enabled": true,
-    "status_file": ".claude/prp_tracking/prp_status.yaml",
-    "validation_required": true,
-    "auto_transition": false
-  }
-}
+{}

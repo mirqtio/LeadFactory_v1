@@ -19,35 +19,34 @@ class TestScreenshotOneSmoke:
     """Smoke tests for ScreenshotOne API"""
 
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="External service test needs proper stubs")
     async def test_screenshot_capture(self):
         """Test basic screenshot capture"""
         client = ScreenshotOneClient(
-            access_key=settings.screenshotone_key,
+            api_key=settings.screenshotone_key,
             secret_key=settings.screenshotone_secret,
         )
 
         # Capture screenshot of example.com
-        result = await client.capture_screenshot(url="https://example.com", full_page=True, format="png")
+        result = await client.take_screenshot(url="https://example.com", full_page=True, format="png")
 
         assert result is not None
-        assert "url" in result
-        assert result["url"].startswith("https://")
+        assert "screenshot_url" in result
+        assert result["screenshot_url"].startswith("http")
 
         print("✓ ScreenshotOne capture successful:")
-        print(f"  URL: {result['url']}")
+        print(f"  URL: {result['screenshot_url']}")
         print(f"  Cached: {result.get('cached', False)}")
 
     @pytest.mark.asyncio
     async def test_screenshot_with_options(self):
         """Test screenshot with various options"""
         client = ScreenshotOneClient(
-            access_key=settings.screenshotone_key,
+            api_key=settings.screenshotone_key,
             secret_key=settings.screenshotone_secret,
         )
 
         # Capture with options
-        result = await client.capture_screenshot(
+        result = await client.take_screenshot(
             url="https://stripe.com",
             full_page=False,
             viewport_width=1920,
@@ -58,16 +57,16 @@ class TestScreenshotOneSmoke:
         )
 
         assert result is not None
-        assert "url" in result
+        assert "screenshot_url" in result
 
         print("\n✓ ScreenshotOne with options successful:")
-        print(f"  Screenshot URL: {result['url'][:80]}...")
+        print(f"  Screenshot URL: {result['screenshot_url'][:80]}...")
 
     @pytest.mark.asyncio
     async def test_screenshot_timeout(self):
         """Test screenshot timeout handling"""
         client = ScreenshotOneClient(
-            access_key=settings.screenshotone_key,
+            api_key=settings.screenshotone_key,
             secret_key=settings.screenshotone_secret,
         )
 
@@ -75,7 +74,7 @@ class TestScreenshotOneSmoke:
         client.timeout = 8
 
         start = datetime.now()
-        await client.capture_screenshot(url="https://nytimes.com", full_page=True)  # Heavy page
+        await client.take_screenshot(url="https://nytimes.com", full_page=True)  # Heavy page
         duration = (datetime.now() - start).total_seconds()
 
         assert duration <= 10  # Should timeout before 10s
@@ -85,12 +84,12 @@ class TestScreenshotOneSmoke:
     async def test_screenshot_cost_tracking(self):
         """Test screenshot cost tracking"""
         client = ScreenshotOneClient(
-            access_key=settings.screenshotone_key,
+            api_key=settings.screenshotone_key,
             secret_key=settings.screenshotone_secret,
         )
 
         # Cost should be $0.010 per screenshot
-        cost = await client.calculate_cost()
+        cost = client.calculate_cost("take_screenshot")
         assert cost == 0.010, f"Expected cost $0.010, got ${cost}"
 
         print(f"\n✓ ScreenshotOne cost tracking correct: ${cost} per screenshot")
@@ -99,7 +98,7 @@ class TestScreenshotOneSmoke:
     async def test_screenshot_rate_limit(self):
         """Test screenshot rate limiting"""
         client = ScreenshotOneClient(
-            access_key=settings.screenshotone_key,
+            api_key=settings.screenshotone_key,
             secret_key=settings.screenshotone_secret,
         )
 
@@ -112,16 +111,15 @@ class TestScreenshotOneSmoke:
             print("\n⚠️  No rate limiter found on ScreenshotOne client")
 
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="External service test needs proper stubs")
     async def test_screenshot_error_handling(self):
         """Test screenshot error handling"""
         client = ScreenshotOneClient(
-            access_key=settings.screenshotone_key,
+            api_key=settings.screenshotone_key,
             secret_key=settings.screenshotone_secret,
         )
 
         # Test with invalid URL
-        result = await client.capture_screenshot(url="not-a-valid-url")
+        result = await client.take_screenshot(url="not-a-valid-url")
 
         # Should handle gracefully
         if result is None or "error" in result:
