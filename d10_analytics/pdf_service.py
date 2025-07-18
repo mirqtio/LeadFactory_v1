@@ -13,6 +13,7 @@ Acceptance Criteria:
 import base64
 import io
 import logging
+import time
 from datetime import date, datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -55,35 +56,70 @@ class UnitEconomicsPDFService:
             PDF content as bytes
         """
         try:
+            start_time = time.time()
             logger.info(f"Generating unit economics PDF for request {request_id}")
 
             # Generate charts if requested
             charts = {}
             if include_charts and unit_econ_data:
+                chart_start = time.time()
                 charts = await self._generate_charts(unit_econ_data, summary)
+                chart_time = time.time() - chart_start
+                logger.info(f"Chart generation completed in {chart_time:.2f}s")
 
-            # Prepare data for template
+            # Prepare data for template with defaults for empty data
+            default_summary = {
+                "overall_roi_percentage": None,
+                "avg_cac_cents": None,
+                "avg_ltv_cents": None,
+                "avg_cpl_cents": None,
+                "conversion_rate_pct": None,
+                "total_profit_cents": None,
+                "total_cost_cents": 0,
+                "total_revenue_cents": 0,
+                "total_leads": 0,
+                "total_conversions": 0,
+            }
+            # Merge with provided summary, using defaults for missing values
+            merged_summary = {**default_summary, **summary}
+
             template_data = {
                 "report_title": "Unit Economics Analysis Report",
                 "generation_date": datetime.utcnow().strftime("%B %d, %Y"),
                 "date_range": date_range,
-                "summary": summary,
+                "summary": merged_summary,
                 "daily_data": unit_econ_data,
                 "charts": charts,
                 "request_id": request_id,
                 "include_detailed_analysis": include_detailed_analysis,
-                "key_insights": self._generate_insights(unit_econ_data, summary),
-                "recommendations": self._generate_recommendations(summary),
+                "key_insights": self._generate_insights(unit_econ_data, merged_summary),
+                "recommendations": self._generate_recommendations(merged_summary),
+                "data_freshness": self._calculate_data_freshness(unit_econ_data, date_range),
             }
 
             # Render HTML template
+            template_start = time.time()
             template = self.template_env.get_template("unit_economics_report.html")
             html_content = template.render(**template_data)
+            template_time = time.time() - template_start
+            logger.info(f"Template rendering completed in {template_time:.2f}s")
 
             # Convert HTML to PDF using Playwright
+            pdf_start = time.time()
             pdf_content = await self._html_to_pdf(html_content)
+            pdf_time = time.time() - pdf_start
+            logger.info(f"PDF conversion completed in {pdf_time:.2f}s")
 
-            logger.info(f"Successfully generated PDF for request {request_id}")
+            total_time = time.time() - start_time
+            logger.info(f"Successfully generated PDF for request {request_id} in {total_time:.2f}s total")
+
+            # Performance validation - ensure O(n) complexity
+            data_size = len(unit_econ_data) if unit_econ_data else 0
+            if data_size > 0:
+                time_per_record = total_time / data_size
+                if time_per_record > 0.1:  # More than 100ms per record indicates potential performance issue
+                    logger.warning(f"Performance concern: {time_per_record:.3f}s per record for {data_size} records")
+
             return pdf_content
 
         except Exception as e:
@@ -399,6 +435,58 @@ class UnitEconomicsPDFService:
             recommendations.append("Contact analytics team for customized optimization recommendations")
 
         return recommendations[:6]  # Limit to top 6 recommendations
+
+    def _calculate_data_freshness(self, unit_econ_data: List[Dict], date_range: Dict[str, str]) -> Dict:
+        """Calculate data freshness indicators for the report"""
+        try:
+            now = datetime.utcnow()
+
+            # Parse end date from date range
+            end_date_str = date_range.get("end_date", "")
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+                days_since_end = (now - end_date).days
+            else:
+                days_since_end = 0
+
+            # Calculate freshness status
+            if days_since_end <= 1:
+                freshness_status = "fresh"
+                freshness_color = "#28a745"  # Green
+                freshness_text = "📊 Data is current (within 24 hours)"
+            elif days_since_end <= 7:
+                freshness_status = "recent"
+                freshness_color = "#ffc107"  # Yellow
+                freshness_text = f"⏰ Data is {days_since_end} days old"
+            else:
+                freshness_status = "stale"
+                freshness_color = "#dc3545"  # Red
+                freshness_text = f"⚠️ Data is {days_since_end} days old - consider refreshing"
+
+            # Calculate data completeness
+            total_possible_days = len(unit_econ_data) if unit_econ_data else 0
+            complete_days = sum(1 for day in unit_econ_data if day.get("total_leads", 0) > 0)
+            completeness_pct = (complete_days / total_possible_days * 100) if total_possible_days > 0 else 0
+
+            return {
+                "status": freshness_status,
+                "color": freshness_color,
+                "text": freshness_text,
+                "days_since_end": days_since_end,
+                "completeness_pct": completeness_pct,
+                "last_update": now.strftime("%Y-%m-%d %H:%M UTC"),
+            }
+
+        except Exception as e:
+            logger.error(f"Error calculating data freshness: {str(e)}")
+            return {
+                "status": "unknown",
+                "color": "#6c757d",
+                "text": "📊 Data freshness status unavailable",
+                "days_since_end": 0,
+                "completeness_pct": 0,
+                "last_update": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+            }
 
     async def _html_to_pdf(self, html_content: str) -> bytes:
         """Convert HTML content to PDF using Playwright"""

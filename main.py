@@ -16,6 +16,7 @@ import core.observability  # noqa: F401  (must be first import)
 
 # Import all routers at top level
 from account_management.api import router as account_router
+from api.analytics import router as analytics_router
 from api.health import router as health_router
 from api.lineage import router as lineage_router
 from batch_runner.api import router as batch_runner_router
@@ -30,7 +31,6 @@ from d3_assessment.api import router as assessment_router
 from d6_reports.api import router as reports_router
 from d7_storefront.api import router as storefront_router
 from d8_personalization.api import router as personalization_router
-from d10_analytics.api import router as analytics_router
 from d11_orchestration.api import router as orchestration_router
 from lead_explorer.api import limiter
 from lead_explorer.api import router as lead_explorer_router

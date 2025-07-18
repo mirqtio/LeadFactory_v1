@@ -56,6 +56,10 @@ class EventType(enum.Enum):
     ASSESSMENT_FAILURE = "assessment_failure"
     REPORT_GENERATED = "report_generated"
     PAYMENT_SUCCESS = "payment_success"
+    # Funnel event types
+    ENTRY = "entry"
+    CONVERSION = "conversion"
+    ABANDONMENT = "abandonment"
 
 
 class MetricType(enum.Enum):

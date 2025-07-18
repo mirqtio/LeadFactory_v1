@@ -60,8 +60,17 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
     
-    - name: Build Docker test image
-      run: docker build -f Dockerfile.test -t leadfactory-test .
+    - name: Build Docker test image with caching
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.test
+        target: test
+        push: false
+        tags: leadfactory-test:latest
+        cache-from: type=gha,scope=full-test
+        cache-to: type=gha,mode=max,scope=full-test
+        load: true
     
     - name: Start test services
       run: |
@@ -86,155 +95,87 @@ jobs:
     
     - name: Run ALL unit tests in Docker
       run: |
-        # Get the actual network name created by docker-compose
-        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
-        echo "Using Docker network: $NETWORK_NAME"
+        echo "Running ALL unit tests in Docker container..."
         
-        # Run tests with proper environment and network connection
-        docker run --rm \
-          --network $NETWORK_NAME \
-          -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
-          -e USE_STUBS=$USE_STUBS \
-          -e STUB_BASE_URL="http://stub-server:5010" \
-          -e ENVIRONMENT=$ENVIRONMENT \
-          -e SECRET_KEY=$SECRET_KEY \
-          -e PYTHONPATH=/app \
-          -e CI=true \
-          -v $(pwd)/coverage:/app/coverage \
-          -v $(pwd)/test-results:/app/test-results \
-          -v $(pwd)/.coveragerc:/app/.coveragerc:ro \
-          -v $(pwd)/pytest-full.ini:/app/pytest-full.ini:ro \
-          leadfactory-test \
-          bash -c "
-            echo 'Creating output directories...' &&
-            mkdir -p /app/coverage /app/test-results &&
-            echo 'Running database migrations...' &&
-            python scripts/run_migrations.py &&
-            echo 'Waiting for stub server...' &&
-            python scripts/wait_for_stub.py &&
-            echo 'Running ALL unit tests (stable only)...' &&
-            pytest -c pytest-full.ini -v --tb=short --timeout=60 tests/unit/ \
-              --cov=. \
-              --cov-report=xml:/app/coverage/coverage.xml \
-              --junitxml=/app/test-results/junit.xml \
-              --cov-config=/app/.coveragerc
-          "
+        # Run tests using docker compose with proper volume mounts
+        # All pytest execution happens inside Docker containers
+        docker compose -f docker-compose.test.yml run --rm test bash -c "
+          echo 'Creating output directories...' &&
+          mkdir -p /app/coverage /app/test-results &&
+          echo 'Running database migrations...' &&
+          python scripts/run_migrations.py &&
+          echo 'Waiting for stub server...' &&
+          python scripts/wait_for_stub.py &&
+          echo 'Running ALL unit tests (stable only)...' &&
+          pytest -c pytest-full.ini -v --tb=short --timeout=60 tests/unit/ \
+            --cov=. \
+            --cov-report=xml:/app/coverage/coverage.xml \
+            --junitxml=/app/test-results/junit.xml \
+            --cov-config=/app/.coveragerc
+        "
     
-    - name: Run ALL integration tests
+    - name: Run ALL integration tests in Docker
       run: |
-        # Get the actual network name created by docker-compose
-        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
-        echo "Using Docker network: $NETWORK_NAME"
+        echo "Running ALL integration tests in Docker container..."
         
-        docker run --rm \
-          --network $NETWORK_NAME \
-          -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
-          -e USE_STUBS=true \
-          -e STUB_BASE_URL="http://stub-server:5010" \
-          -e ENVIRONMENT=$ENVIRONMENT \
-          -e SECRET_KEY=$SECRET_KEY \
-          -e PYTHONPATH=/app \
-          -e CI=true \
-          -v $(pwd)/coverage:/app/coverage \
-          -v $(pwd)/test-results:/app/test-results \
-          -v $(pwd)/.coveragerc:/app/.coveragerc:ro \
-          -v $(pwd)/pytest-full.ini:/app/pytest-full.ini:ro \
-          leadfactory-test \
-          bash -c "
-            echo 'Running ALL integration tests (stable only)...' &&
-            pytest -c pytest-full.ini -v --tb=short --timeout=120 tests/integration/ \
-              --cov=. \
-              --cov-report=xml:/app/coverage/coverage-integration.xml \
-              --junitxml=/app/test-results/junit-integration.xml \
-              --cov-config=/app/.coveragerc
-          "
+        # Run tests using docker compose with proper volume mounts
+        # All pytest execution happens inside Docker containers
+        docker compose -f docker-compose.test.yml run --rm test bash -c "
+          echo 'Running ALL integration tests (stable only)...' &&
+          pytest -c pytest-full.ini -v --tb=short --timeout=120 tests/integration/ \
+            --cov=. \
+            --cov-report=xml:/app/coverage/coverage-integration.xml \
+            --junitxml=/app/test-results/junit-integration.xml \
+            --cov-config=/app/.coveragerc
+        "
     
-    - name: Run E2E tests
+    - name: Run E2E tests in Docker
       continue-on-error: true
       run: |
-        # Get the actual network name created by docker-compose
-        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
-        echo "Using Docker network: $NETWORK_NAME"
+        echo "Running E2E tests in Docker container..."
         
-        docker run --rm \
-          --network $NETWORK_NAME \
-          -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
-          -e USE_STUBS=true \
-          -e STUB_BASE_URL="http://stub-server:5010" \
-          -e ENVIRONMENT=$ENVIRONMENT \
-          -e SECRET_KEY=$SECRET_KEY \
-          -e PYTHONPATH=/app \
-          -e CI=true \
-          -v $(pwd)/coverage:/app/coverage \
-          -v $(pwd)/test-results:/app/test-results \
-          -v $(pwd)/.coveragerc:/app/.coveragerc:ro \
-          leadfactory-test \
-          bash -c "
-            echo 'Running E2E tests...' &&
-            pytest -v --tb=short --timeout=180 tests/e2e/ \
-              --cov=. \
-              --cov-report=xml:/app/coverage/coverage-e2e.xml \
-              --junitxml=/app/test-results/junit-e2e.xml \
-              --cov-config=/app/.coveragerc
-          "
+        # Run tests using docker compose with proper volume mounts
+        # All pytest execution happens inside Docker containers
+        docker compose -f docker-compose.test.yml run --rm test bash -c "
+          echo 'Running E2E tests...' &&
+          pytest -v --tb=short --timeout=180 tests/e2e/ \
+            --cov=. \
+            --cov-report=xml:/app/coverage/coverage-e2e.xml \
+            --junitxml=/app/test-results/junit-e2e.xml \
+            --cov-config=/app/.coveragerc
+        "
     
-    - name: Run performance tests
+    - name: Run performance tests in Docker
       continue-on-error: true
       run: |
-        # Get the actual network name created by docker-compose
-        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
-        echo "Using Docker network: $NETWORK_NAME"
+        echo "Running performance tests in Docker container..."
         
-        docker run --rm \
-          --network $NETWORK_NAME \
-          -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
-          -e USE_STUBS=true \
-          -e STUB_BASE_URL="http://stub-server:5010" \
-          -e ENVIRONMENT=$ENVIRONMENT \
-          -e SECRET_KEY=$SECRET_KEY \
-          -e PYTHONPATH=/app \
-          -e CI=true \
-          -v $(pwd)/coverage:/app/coverage \
-          -v $(pwd)/test-results:/app/test-results \
-          -v $(pwd)/.coveragerc:/app/.coveragerc:ro \
-          leadfactory-test \
-          bash -c "
-            echo 'Running performance tests...' &&
-            pytest -v --tb=short --timeout=300 tests/performance/ \
-              --cov=. \
-              --cov-report=xml:/app/coverage/coverage-performance.xml \
-              --junitxml=/app/test-results/junit-performance.xml \
-              --cov-config=/app/.coveragerc || true
-          "
+        # Run tests using docker compose with proper volume mounts
+        # All pytest execution happens inside Docker containers
+        docker compose -f docker-compose.test.yml run --rm test bash -c "
+          echo 'Running performance tests...' &&
+          pytest -v --tb=short --timeout=300 tests/performance/ \
+            --cov=. \
+            --cov-report=xml:/app/coverage/coverage-performance.xml \
+            --junitxml=/app/test-results/junit-performance.xml \
+            --cov-config=/app/.coveragerc || true
+        "
     
-    - name: Run security tests
+    - name: Run security tests in Docker
       continue-on-error: true
       run: |
-        # Get the actual network name created by docker-compose
-        NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep test-network | head -1)
-        echo "Using Docker network: $NETWORK_NAME"
+        echo "Running security tests in Docker container..."
         
-        docker run --rm \
-          --network $NETWORK_NAME \
-          -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
-          -e USE_STUBS=true \
-          -e STUB_BASE_URL="http://stub-server:5010" \
-          -e ENVIRONMENT=$ENVIRONMENT \
-          -e SECRET_KEY=$SECRET_KEY \
-          -e PYTHONPATH=/app \
-          -e CI=true \
-          -v $(pwd)/coverage:/app/coverage \
-          -v $(pwd)/test-results:/app/test-results \
-          -v $(pwd)/.coveragerc:/app/.coveragerc:ro \
-          leadfactory-test \
-          bash -c "
-            echo 'Running security tests...' &&
-            pytest -v --tb=short --timeout=120 tests/security/ \
-              --cov=. \
-              --cov-report=xml:/app/coverage/coverage-security.xml \
-              --junitxml=/app/test-results/junit-security.xml \
-              --cov-config=/app/.coveragerc || true
-          "
+        # Run tests using docker compose with proper volume mounts
+        # All pytest execution happens inside Docker containers
+        docker compose -f docker-compose.test.yml run --rm test bash -c "
+          echo 'Running security tests...' &&
+          pytest -v --tb=short --timeout=120 tests/security/ \
+            --cov=. \
+            --cov-report=xml:/app/coverage/coverage-security.xml \
+            --junitxml=/app/test-results/junit-security.xml \
+            --cov-config=/app/.coveragerc || true
+        "
     
     - name: Generate test report
       if: always()

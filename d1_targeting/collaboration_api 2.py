@@ -1268,73 +1268,52 @@ async def bulk_lead_operation(
     failure_count = 0
     failures = []
 
-    try:
-        # Use bulk operations for better performance
-        if operation.operation == "add":
-            # Bulk update leads - add to bucket
-            if bucket.bucket_type == "vertical":
-                update_result = (
-                    db.query(Business)
-                    .filter(Business.id.in_(operation.lead_ids))
-                    .update({"vert_bucket": bucket.bucket_key}, synchronize_session=False)
-                )
-            elif bucket.bucket_type == "geographic":
-                update_result = (
-                    db.query(Business)
-                    .filter(Business.id.in_(operation.lead_ids))
-                    .update({"geo_bucket": bucket.bucket_key}, synchronize_session=False)
-                )
+    # Process each lead
+    for lead_id in operation.lead_ids:
+        try:
+            if operation.operation == "add":
+                # Add lead to bucket (update vert_bucket or geo_bucket)
+                if bucket.bucket_type == "vertical":
+                    db.query(Business).filter(Business.id == lead_id).update({"vert_bucket": bucket.bucket_key})
+                elif bucket.bucket_type == "geographic":
+                    db.query(Business).filter(Business.id == lead_id).update({"geo_bucket": bucket.bucket_key})
 
-            # Create bulk activities for successful operations
-            activity_type = BucketActivityType.LEAD_ADDED
-            success_count = update_result
-
-        elif operation.operation == "remove":
-            # Bulk remove leads from bucket
-            if bucket.bucket_type == "vertical":
-                update_result = (
-                    db.query(Business)
-                    .filter(Business.id.in_(operation.lead_ids), Business.vert_bucket == bucket.bucket_key)
-                    .update({"vert_bucket": None}, synchronize_session=False)
-                )
-            elif bucket.bucket_type == "geographic":
-                update_result = (
-                    db.query(Business)
-                    .filter(Business.id.in_(operation.lead_ids), Business.geo_bucket == bucket.bucket_key)
-                    .update({"geo_bucket": None}, synchronize_session=False)
-                )
-
-            # Create bulk activities for successful operations
-            activity_type = BucketActivityType.LEAD_REMOVED
-            success_count = update_result
-
-        # Create activities for all successful operations in bulk
-        if success_count > 0:
-            activities = []
-            for lead_id in operation.lead_ids[:success_count]:  # Only create activities for successful operations
-                activity = BucketActivity(
+                # Create activity
+                await create_activity(
+                    db,
                     bucket_id=bucket_id,
                     user_id=current_user["id"],
-                    activity_type=activity_type,
+                    activity_type=BucketActivityType.LEAD_ADDED,
                     entity_type="lead",
                     entity_id=lead_id,
-                    created_at=datetime.utcnow(),
                 )
-                activities.append(activity)
 
-            # Bulk insert activities
-            db.bulk_save_objects(activities)
+            elif operation.operation == "remove":
+                # Remove lead from bucket
+                if bucket.bucket_type == "vertical":
+                    db.query(Business).filter(Business.id == lead_id, Business.vert_bucket == bucket.bucket_key).update(
+                        {"vert_bucket": None}
+                    )
+                elif bucket.bucket_type == "geographic":
+                    db.query(Business).filter(Business.id == lead_id, Business.geo_bucket == bucket.bucket_key).update(
+                        {"geo_bucket": None}
+                    )
 
-        # Any leads that couldn't be processed go to failures
-        failure_count = len(operation.lead_ids) - success_count
-        if failure_count > 0:
-            failed_leads = operation.lead_ids[success_count:]
-            failures = [{"lead_id": lead_id, "error": "Lead not found or operation failed"} for lead_id in failed_leads]
+                # Create activity
+                await create_activity(
+                    db,
+                    bucket_id=bucket_id,
+                    user_id=current_user["id"],
+                    activity_type=BucketActivityType.LEAD_REMOVED,
+                    entity_type="lead",
+                    entity_id=lead_id,
+                )
 
-    except Exception as e:
-        failure_count = len(operation.lead_ids)
-        success_count = 0
-        failures = [{"lead_id": lead_id, "error": str(e)} for lead_id in operation.lead_ids]
+            success_count += 1
+
+        except Exception as e:
+            failure_count += 1
+            failures.append({"lead_id": lead_id, "error": str(e)})
 
     # Update lead count
     if bucket.bucket_type == "vertical":
@@ -1515,62 +1494,3 @@ async def list_tags(
     tags = db.query(BucketTagDefinition).order_by(BucketTagDefinition.name).all()
 
     return tags
-
-
-# Performance monitoring endpoints
-@router.get("/performance/memory-stats")
-async def get_memory_stats(
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Get memory usage statistics for WebSocket connections"""
-    # Get WebSocket manager stats
-    ws_stats = ws_manager.get_connection_stats()
-
-    # Get database connection pool stats (if available)
-    db_stats = {}
-    try:
-        if hasattr(db.get_bind(), "pool"):
-            pool = db.get_bind().pool
-            db_stats = {
-                "pool_size": pool.size(),
-                "checked_in": pool.checkedin(),
-                "checked_out": pool.checkedout(),
-                "overflow": pool.overflow(),
-                "invalidated": pool.invalidated(),
-            }
-    except Exception:
-        db_stats = {"error": "Could not retrieve database pool stats"}
-
-    return {
-        "websocket_connections": ws_stats,
-        "database_pool": db_stats,
-        "performance_recommendations": _get_performance_recommendations(ws_stats),
-    }
-
-
-def _get_performance_recommendations(ws_stats: Dict[str, Any]) -> List[str]:
-    """Generate performance recommendations based on current stats"""
-    recommendations = []
-
-    total_connections = ws_stats.get("total_connections", 0)
-    total_buckets = ws_stats.get("total_buckets", 0)
-    total_users = ws_stats.get("total_users", 0)
-
-    # Connection recommendations
-    if total_connections > 1000:
-        recommendations.append("Consider implementing connection pooling for high connection counts")
-
-    if total_buckets > 100:
-        recommendations.append("Monitor memory usage for bucket connection tracking")
-
-    if total_users > 500:
-        recommendations.append("Consider implementing user session cleanup")
-
-    # Connection density recommendations
-    if total_connections > 0 and total_buckets > 0:
-        avg_connections_per_bucket = total_connections / total_buckets
-        if avg_connections_per_bucket > 20:
-            recommendations.append("High connection density detected - consider bucket-based connection limits")
-
-    return recommendations if recommendations else ["Performance metrics are within normal ranges"]

@@ -469,16 +469,16 @@ DROP MATERIALIZED VIEW IF EXISTS unit_economics_day CASCADE;
 -- Create unit economics daily materialized view for P2-010
 CREATE MATERIALIZED VIEW unit_economics_day AS
 WITH daily_costs AS (
-    -- Aggregate daily gateway costs from cost ledger
+    -- Aggregate daily gateway costs from API cost ledger
     SELECT 
-        DATE(created_at) as date,
-        SUM(cost_cents) as total_cost_cents,
+        DATE(timestamp) as date,
+        SUM(cost_usd * 100) as total_cost_cents, -- Convert USD to cents
         COUNT(*) as total_api_calls,
-        COUNT(DISTINCT session_id) as unique_sessions,
-        AVG(cost_cents) as avg_cost_per_call_cents
-    FROM gateway_cost_ledger
-    WHERE created_at >= CURRENT_DATE - INTERVAL '365 days'
-    GROUP BY DATE(created_at)
+        COUNT(DISTINCT request_id) as unique_requests,
+        AVG(cost_usd * 100) as avg_cost_per_call_cents
+    FROM fct_api_cost
+    WHERE timestamp >= CURRENT_DATE - INTERVAL '365 days'
+    GROUP BY DATE(timestamp)
 ),
 daily_conversions AS (
     -- Aggregate daily conversions from payment events
@@ -527,7 +527,7 @@ SELECT
     -- Cost metrics
     COALESCE(dc.total_cost_cents, 0) as total_cost_cents,
     COALESCE(dc.total_api_calls, 0) as total_api_calls,
-    COALESCE(dc.unique_sessions, 0) as unique_sessions,
+    COALESCE(dc.unique_requests, 0) as unique_requests,
     COALESCE(dc.avg_cost_per_call_cents, 0) as avg_cost_per_call_cents,
     
     -- Revenue metrics

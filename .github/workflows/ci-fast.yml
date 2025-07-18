@@ -23,72 +23,101 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    - name: Set up Python 3.11 (no Docker for speed)
-      uses: actions/setup-python@v4
+    - name: Create directories for artifacts
+      run: |
+        mkdir -p ./coverage ./test-results
+        chmod 777 ./coverage ./test-results
+    
+    - name: Build fast test image with caching
+      uses: docker/build-push-action@v5
       with:
-        python-version: "3.11"
-        cache: 'pip'
+        context: .
+        file: ./Dockerfile.test
+        target: test
+        push: false
+        tags: leadfactory-test:fast
+        cache-from: type=gha,scope=fast-test
+        cache-to: type=gha,mode=max,scope=fast-test
+        load: true
     
-    - name: Install dependencies (cached)
+    - name: Run ultra-fast test suite in Docker (no infrastructure)
       run: |
-        # Install only essential dependencies for speed
-        pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout pytest-cov
-        # Install minimal subset of requirements for tests
-        pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy fastapi requests jinja2 pytest-mock uvicorn
-        # Additional dependencies for imports
-        pip install redis faker stripe sendgrid twilio google-api-python-client openai psycopg2-binary alembic
-        # Critical dependencies to fix import errors
-        pip install python-json-logger prometheus-client beautifulsoup4 pandas numpy tenacity aiohttp geopy
-        # Additional missing dependencies
-        pip install click email-validator passlib[bcrypt] pyjwt python-multipart slowapi sentry-sdk[fastapi]
-        # YAML and other core dependencies
-        pip install pyyaml python-dateutil pytz cryptography
-        # Additional potential dependencies
-        pip install asyncpg GitPython PyGithub openpyxl websockets
-        # Fix jsonschema import error
-        pip install jsonschema
-    
-    - name: Run ultra-fast test suite (no infrastructure)
-      env:
-        USE_STUBS: "false"
-        ENVIRONMENT: "test"
-        SKIP_INFRASTRUCTURE: "true"
-        # Disable all external providers for speed
-        ENABLE_GBP: "false"
-        ENABLE_PAGESPEED: "false"
-        ENABLE_SENDGRID: "false"
-        ENABLE_OPENAI: "false"
-        ENABLE_DATAAXLE: "false"
-        ENABLE_HUNTER: "false"
-        ENABLE_SEMRUSH: "false"
-        ENABLE_SCREENSHOTONE: "false"
-        DATABASE_URL: "sqlite:///:memory:"
-      run: |
-        echo "🚀 Starting ultra-fast test suite - target <3 minutes"
+        echo "🚀 Starting ultra-fast test suite in Docker - target <3 minutes"
         
         # Run ultra-fast subset without any infrastructure setup
-        timeout 150 python -m pytest \
-          --tb=no \
-          -q \
-          -x \
-          --maxfail=1 \
-          --disable-warnings \
-          -p no:warnings \
-          --timeout=15 \
-          --timeout-method=signal \
-          -n 2 \
-          tests/unit/d5_scoring/test_omega.py \
-          tests/unit/d5_scoring/test_impact_calculator.py \
-          tests/unit/d8_personalization/test_templates.py \
-          tests/unit/design/test_token_extraction.py \
-          tests/unit/design/test_validation_module.py \
+        # All pytest execution happens inside Docker containers
+        timeout 150 docker run --rm \
+          -e USE_STUBS=false \
+          -e ENVIRONMENT=test \
+          -e SKIP_INFRASTRUCTURE=true \
+          -e ENABLE_GBP=false \
+          -e ENABLE_PAGESPEED=false \
+          -e ENABLE_SENDGRID=false \
+          -e ENABLE_OPENAI=false \
+          -e ENABLE_DATAAXLE=false \
+          -e ENABLE_HUNTER=false \
+          -e ENABLE_SEMRUSH=false \
+          -e ENABLE_SCREENSHOTONE=false \
+          -e DATABASE_URL="sqlite:///:memory:" \
+          -e PYTHONPATH=/app \
+          -e CI=true \
+          -v $(pwd)/coverage:/app/coverage \
+          -v $(pwd)/test-results:/app/test-results \
+          -w /app \
+          leadfactory-test:fast \
+          python -m pytest \
+            --tb=no \
+            -q \
+            -x \
+            --maxfail=1 \
+            --disable-warnings \
+            -p no:warnings \
+            --timeout=15 \
+            --timeout-method=signal \
+            -n 2 \
+            --cov=. \
+            --cov-report=xml:/app/coverage/coverage.xml \
+            --junitxml=/app/test-results/junit.xml \
+            tests/unit/d5_scoring/test_omega.py \
+            tests/unit/d5_scoring/test_impact_calculator.py \
+            tests/unit/d8_personalization/test_templates.py \
+            tests/unit/design/test_token_extraction.py \
+            tests/unit/design/test_validation_module.py \
           || {
           echo "::error::Ultra-fast test suite failed or exceeded 2.5-minute limit"
           exit 1
         }
         
         echo "✅ Ultra-fast test suite completed successfully"
+    
+    - name: Extract fast test results
+      if: always()
+      run: |
+        echo "Extracting fast test results..."
+        
+        # Ensure test-results directory exists for artifact upload
+        mkdir -p test-results
+        
+        # Copy coverage report if it exists
+        if [ -f "./coverage/coverage.xml" ]; then
+          cp ./coverage/coverage.xml ./test-results/
+          echo "✅ Extracted coverage.xml"
+        fi
+        
+        # Show final artifact contents
+        echo "Fast test artifacts:"
+        ls -la test-results/ 2>/dev/null || echo "No test results"
+    
+    - name: Upload fast test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: fast-test-results
+        path: |
+          test-results/**
+          coverage/**
+        retention-days: 3
+        if-no-files-found: warn
     
     - name: Performance verification
       run: |

@@ -145,7 +145,7 @@ class TestUnitEconomicsPDFService:
             "overall_roi_percentage": 400.0,
             "avg_cac_cents": 1000,
             "avg_ltv_cents": 4000,
-            "conversion_rate_pct": 5.0,
+            "conversion_rate_pct": 6.0,  # Changed to 6.0 to trigger "High conversion rate"
             "total_leads": 1500,
             "total_conversions": 75,
         }
@@ -229,10 +229,12 @@ class TestUnitEconomicsPDFService:
         mock_page.pdf.return_value = b"mock_pdf_bytes"
         mock_browser.new_page.return_value = mock_page
 
-        mock_playwright = AsyncMock()
-        mock_playwright.chromium.launch.return_value = mock_browser
+        mock_playwright_ctx = AsyncMock()
+        mock_playwright_ctx.chromium.launch.return_value = mock_browser
+        mock_playwright_ctx.__aenter__.return_value = mock_playwright_ctx
+        mock_playwright_ctx.__aexit__.return_value = None
 
-        with patch("d10_analytics.pdf_service.async_playwright", return_value=mock_playwright):
+        with patch("playwright.async_api.async_playwright", return_value=mock_playwright_ctx):
             result = await pdf_service._html_to_pdf("<html><body>Test</body></html>")
 
             assert result == b"mock_pdf_bytes"
@@ -242,7 +244,7 @@ class TestUnitEconomicsPDFService:
     @pytest.mark.asyncio
     async def test_html_to_pdf_error_handling(self, pdf_service):
         """Test HTML to PDF conversion error handling"""
-        with patch("d10_analytics.pdf_service.async_playwright", side_effect=Exception("Playwright error")):
+        with patch("playwright.async_api.async_playwright", side_effect=Exception("Playwright error")):
             with pytest.raises(Exception, match="Playwright error"):
                 await pdf_service._html_to_pdf("<html><body>Test</body></html>")
 

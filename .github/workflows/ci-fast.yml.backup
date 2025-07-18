@@ -1,0 +1,97 @@
+name: Fast CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  fast-test:
+    name: Ultra-Fast Test Suite (<5 min target)
+    runs-on: ubuntu-latest
+    timeout-minutes: 4  # Stricter 4-minute timeout for buffer
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Set up Python 3.11 (no Docker for speed)
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+    
+    - name: Install dependencies (cached)
+      run: |
+        # Install only essential dependencies for speed
+        pip install --upgrade pip
+        pip install pytest pytest-xdist pytest-timeout pytest-cov
+        # Install minimal subset of requirements for tests
+        pip install pydantic pydantic-settings python-dotenv httpx sqlalchemy fastapi requests jinja2 pytest-mock uvicorn
+        # Additional dependencies for imports
+        pip install redis faker stripe sendgrid twilio google-api-python-client openai psycopg2-binary alembic
+        # Critical dependencies to fix import errors
+        pip install python-json-logger prometheus-client beautifulsoup4 pandas numpy tenacity aiohttp geopy
+        # Additional missing dependencies
+        pip install click email-validator passlib[bcrypt] pyjwt python-multipart slowapi sentry-sdk[fastapi]
+        # YAML and other core dependencies
+        pip install pyyaml python-dateutil pytz cryptography
+        # Additional potential dependencies
+        pip install asyncpg GitPython PyGithub openpyxl websockets
+        # Fix jsonschema import error
+        pip install jsonschema
+    
+    - name: Run ultra-fast test suite (no infrastructure)
+      env:
+        USE_STUBS: "false"
+        ENVIRONMENT: "test"
+        SKIP_INFRASTRUCTURE: "true"
+        # Disable all external providers for speed
+        ENABLE_GBP: "false"
+        ENABLE_PAGESPEED: "false"
+        ENABLE_SENDGRID: "false"
+        ENABLE_OPENAI: "false"
+        ENABLE_DATAAXLE: "false"
+        ENABLE_HUNTER: "false"
+        ENABLE_SEMRUSH: "false"
+        ENABLE_SCREENSHOTONE: "false"
+        DATABASE_URL: "sqlite:///:memory:"
+      run: |
+        echo "🚀 Starting ultra-fast test suite - target <3 minutes"
+        
+        # Run ultra-fast subset without any infrastructure setup
+        timeout 150 python -m pytest \
+          --tb=no \
+          -q \
+          -x \
+          --maxfail=1 \
+          --disable-warnings \
+          -p no:warnings \
+          --timeout=15 \
+          --timeout-method=signal \
+          -n 2 \
+          tests/unit/d5_scoring/test_omega.py \
+          tests/unit/d5_scoring/test_impact_calculator.py \
+          tests/unit/d8_personalization/test_templates.py \
+          tests/unit/design/test_token_extraction.py \
+          tests/unit/design/test_validation_module.py \
+          || {
+          echo "::error::Ultra-fast test suite failed or exceeded 2.5-minute limit"
+          exit 1
+        }
+        
+        echo "✅ Ultra-fast test suite completed successfully"
+    
+    - name: Performance verification
+      run: |
+        echo "✅ Fast CI Pipeline completed within 5-minute target"
+        echo "This workflow focuses on critical path validation for rapid feedback"
+        echo "Full test coverage is handled by the comprehensive CI Pipeline"

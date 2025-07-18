@@ -241,6 +241,14 @@
         <div class="date-range">
             Analysis Period: {{ date_range.start_date }} to {{ date_range.end_date }}
         </div>
+        {% if data_freshness %}
+        <div class="data-freshness" style="margin-top: 10px; padding: 8px 16px; border-radius: 6px; background: #f8f9fa; border: 1px solid {{ data_freshness.color }}; color: {{ data_freshness.color }}; font-size: 12px;">
+            {{ data_freshness.text }} | Last updated: {{ data_freshness.last_update }}
+            {% if data_freshness.completeness_pct < 100 %}
+            | Data completeness: {{ "%.1f"|format(data_freshness.completeness_pct) }}%
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 
     <!-- Executive Summary -->
@@ -288,12 +296,22 @@
                 <div class="metric-label">Cost Per Lead</div>
             </div>
             <div class="metric-card">
-                <div class="metric-value">{{ "%.1f"|format(summary.conversion_rate_pct) }}%</div>
+                <div class="metric-value">
+                    {% if summary.conversion_rate_pct is not none %}
+                        {{ "%.1f"|format(summary.conversion_rate_pct) }}%
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
                 <div class="metric-label">Conversion Rate</div>
             </div>
             <div class="metric-card">
                 <div class="metric-value">
-                    ${{ "%.2f"|format(summary.total_profit_cents / 100) }}
+                    {% if summary.total_profit_cents is not none %}
+                        ${{ "%.2f"|format(summary.total_profit_cents / 100) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
                 </div>
                 <div class="metric-label">Total Profit</div>
             </div>

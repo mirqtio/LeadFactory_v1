@@ -1,5 +1,5 @@
 """
-Unit tests for D10 Analytics API - Task 073
+Unit tests for D10 Analytics API - Task 073 (Fixed Version)
 
 Tests the analytics API endpoints including metrics retrieval,
 date range filtering, segment filtering, and CSV export functionality.
@@ -22,8 +22,6 @@ from account_management.models import AccountUser
 from core.auth import get_current_user_dependency, require_organization_access
 from d10_analytics.api import get_warehouse, router
 from d10_analytics.schemas import DateRangeFilter, SegmentFilter
-
-# Removed enum imports to avoid circular imports - using string literals instead
 
 
 class TestAnalyticsAPI:
@@ -75,6 +73,12 @@ class TestAnalyticsAPI:
             funnel_stages=["targeting", "assessment"],
         )
 
+    def setup_dependencies(self, client, mock_warehouse, mock_user):
+        """Setup all dependency overrides"""
+        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        client.app.dependency_overrides[get_current_user_dependency] = lambda: mock_user
+        client.app.dependency_overrides[require_organization_access] = lambda: "test_org_id"
+
     def test_get_metrics_endpoint(self, client, mock_warehouse, mock_user, sample_date_range):
         """Test metrics endpoints work - Metrics endpoints work"""
         # Mock warehouse response
@@ -96,10 +100,7 @@ class TestAnalyticsAPI:
             ]
         }
 
-        # Override dependencies
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
-        client.app.dependency_overrides[get_current_user_dependency] = lambda: mock_user
-        client.app.dependency_overrides[require_organization_access] = lambda: "test_org_id"
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         # Test request
         request_data = {
@@ -148,9 +149,7 @@ class TestAnalyticsAPI:
         # Mock warehouse response
         mock_warehouse.get_daily_metrics.return_value = {"records": []}
 
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
-        client.app.dependency_overrides[get_current_user_dependency] = lambda: mock_user
-        client.app.dependency_overrides[require_organization_access] = lambda: "test_org_id"
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         # Test valid date range
         request_data = {"date_range": {"start_date": "2025-06-01", "end_date": "2025-06-07"}}
@@ -180,12 +179,12 @@ class TestAnalyticsAPI:
 
         print("✓ Date range filtering works")
 
-    def test_segment_filtering(self, client, mock_warehouse, sample_date_range, sample_segment_filter):
+    def test_segment_filtering(self, client, mock_warehouse, mock_user, sample_date_range, sample_segment_filter):
         """Test segment filtering - Segment filtering"""
         # Mock warehouse response
         mock_warehouse.get_daily_metrics.return_value = {"records": []}
 
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         # Test with segment filters
         request_data = {
@@ -218,7 +217,7 @@ class TestAnalyticsAPI:
 
         print("✓ Segment filtering works")
 
-    def test_funnel_metrics_endpoint(self, client, mock_warehouse, sample_date_range):
+    def test_funnel_metrics_endpoint(self, client, mock_warehouse, mock_user, sample_date_range):
         """Test funnel metrics endpoint"""
         # Mock warehouse response
         mock_warehouse.calculate_funnel_conversions.return_value = {
@@ -239,7 +238,7 @@ class TestAnalyticsAPI:
             "paths": [],
         }
 
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         request_data = {
             "date_range": {
@@ -272,7 +271,7 @@ class TestAnalyticsAPI:
 
         print("✓ Funnel metrics endpoint works")
 
-    def test_cohort_analysis_endpoint(self, client, mock_warehouse):
+    def test_cohort_analysis_endpoint(self, client, mock_warehouse, mock_user):
         """Test cohort analysis endpoint"""
         # Mock warehouse response
         mock_warehouse.analyze_cohort_retention.return_value = {
@@ -298,7 +297,7 @@ class TestAnalyticsAPI:
             ]
         }
 
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         request_data = {
             "cohort_start_date": "2025-06-01",
@@ -329,7 +328,7 @@ class TestAnalyticsAPI:
 
         print("✓ Cohort analysis endpoint works")
 
-    def test_csv_export_functionality(self, client, mock_warehouse, sample_date_range):
+    def test_csv_export_functionality(self, client, mock_warehouse, mock_user, sample_date_range):
         """Test CSV export option - CSV export option"""
         # Mock warehouse response
         mock_warehouse.get_daily_metrics.return_value = {
@@ -349,7 +348,7 @@ class TestAnalyticsAPI:
             ]
         }
 
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         # Test export request
         export_request = {
@@ -376,8 +375,8 @@ class TestAnalyticsAPI:
 
         # Test getting export status (would be completed in production after background task)
         # For now, we'll test the endpoint structure
-        client.get(f"/api/v1/analytics/export/{export_id}")
-        # Status will be processing since background task hasn't completed in test
+        status_response = client.get(f"/api/v1/analytics/export/{export_id}")
+        assert status_response.status_code == 200
 
         # Test invalid export type
         invalid_export = {
@@ -393,10 +392,10 @@ class TestAnalyticsAPI:
 
         print("✓ CSV export functionality works")
 
-    def test_export_file_formats(self, client, mock_warehouse, sample_date_range):
+    def test_export_file_formats(self, client, mock_warehouse, mock_user, sample_date_range):
         """Test different export file formats"""
         mock_warehouse.get_daily_metrics.return_value = {"records": []}
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         # Test CSV format
         csv_request = {
@@ -439,9 +438,9 @@ class TestAnalyticsAPI:
 
         print("✓ Export file formats work")
 
-    def test_health_check_endpoint(self, client, mock_warehouse):
+    def test_health_check_endpoint(self, client, mock_warehouse, mock_user):
         """Test health check endpoint"""
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         response = client.get("/api/v1/analytics/health")
 
@@ -457,11 +456,11 @@ class TestAnalyticsAPI:
 
         print("✓ Health check endpoint works")
 
-    def test_error_handling(self, client, mock_warehouse, sample_date_range):
+    def test_error_handling(self, client, mock_warehouse, mock_user, sample_date_range):
         """Test proper error handling"""
         # Test warehouse error
         mock_warehouse.get_daily_metrics.side_effect = Exception("Database error")
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         request_data = {
             "date_range": {
@@ -479,9 +478,9 @@ class TestAnalyticsAPI:
 
         print("✓ Error handling works")
 
-    def test_validation_errors(self, client, mock_warehouse):
+    def test_validation_errors(self, client, mock_warehouse, mock_user):
         """Test request validation"""
-        client.app.dependency_overrides[get_warehouse] = lambda: mock_warehouse
+        self.setup_dependencies(client, mock_warehouse, mock_user)
 
         # Test missing required fields
         response = client.post("/api/v1/analytics/metrics", json={})
@@ -494,6 +493,44 @@ class TestAnalyticsAPI:
         assert response.status_code == 422
 
         print("✓ Validation errors work")
+
+    def test_unit_economics_endpoint(self, client, mock_warehouse, mock_user):
+        """Test unit economics endpoint"""
+        self.setup_dependencies(client, mock_warehouse, mock_user)
+
+        # Test with date parameter
+        response = client.get("/api/v1/analytics/unit_econ?date=2025-06-01")
+        assert response.status_code == 200
+
+        data = response.json()
+        assert "request_id" in data
+        assert "date_range" in data
+        assert "summary" in data
+        assert "daily_data" in data
+
+        # Test CSV format
+        response = client.get("/api/v1/analytics/unit_econ?date=2025-06-01&format=csv")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "text/csv; charset=utf-8"
+
+        print("✓ Unit economics endpoint works")
+
+    def test_unit_economics_pdf_endpoint(self, client, mock_warehouse, mock_user):
+        """Test unit economics PDF endpoint"""
+        self.setup_dependencies(client, mock_warehouse, mock_user)
+
+        # Test PDF generation
+        response = client.get("/api/v1/analytics/unit_econ/pdf?date=2025-06-01")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/pdf"
+
+        # Test with parameters
+        response = client.get(
+            "/api/v1/analytics/unit_econ/pdf?date=2025-06-01&include_charts=true&include_detailed_analysis=true"
+        )
+        assert response.status_code == 200
+
+        print("✓ Unit economics PDF endpoint works")
 
 
 def test_all_acceptance_criteria():

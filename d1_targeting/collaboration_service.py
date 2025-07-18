@@ -4,8 +4,10 @@ P2-010: Collaborative Bucket Service
 Service layer for bucket collaboration including permissions,
 activity tracking, notifications, and WebSocket management.
 """
+import asyncio
 import json
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set
 
 from fastapi import HTTPException, WebSocket, status
@@ -15,6 +17,7 @@ from sqlalchemy.orm import Session
 from .collaboration_models import (
     BucketActivity,
     BucketActivityType,
+    BucketComment,
     BucketNotification,
     BucketPermission,
     BucketPermissionGrant,
@@ -28,15 +31,28 @@ from .collaboration_schemas import WSMessage
 class WebSocketManager:
     """Manages WebSocket connections for real-time collaboration"""
 
-    def __init__(self):
+    def __init__(self, connection_timeout: int = 1800):  # 30 minutes default
         # bucket_id -> {user_id -> websocket}
         self.active_connections: Dict[str, Dict[str, WebSocket]] = {}
         # user_id -> set of bucket_ids
         self.user_buckets: Dict[str, Set[str]] = {}
+        # Connection tracking: {bucket_id -> {user_id -> last_activity_timestamp}}
+        self.connection_timestamps: Dict[str, Dict[str, float]] = {}
+        # Connection timeout in seconds
+        self.connection_timeout = connection_timeout
+        # Cleanup task
+        self._cleanup_task: Optional[asyncio.Task] = None
+        # Flag to ensure cleanup task is started only once
+        self._cleanup_started = False
+        # Start periodic cleanup - delayed to avoid event loop issues
+        self._start_cleanup_task()
 
     async def connect(self, websocket: WebSocket, bucket_id: str, user_id: str):
         """Accept a new WebSocket connection"""
         await websocket.accept()
+
+        # Start cleanup task if not already started
+        self._start_cleanup_task()
 
         # Add to bucket connections
         if bucket_id not in self.active_connections:
@@ -47,6 +63,9 @@ class WebSocketManager:
         if user_id not in self.user_buckets:
             self.user_buckets[user_id] = set()
         self.user_buckets[user_id].add(bucket_id)
+
+        # Update activity timestamp
+        self._update_activity_timestamp(bucket_id, user_id)
 
     def disconnect(self, websocket: WebSocket, bucket_id: str, user_id: str):
         """Remove a WebSocket connection"""
@@ -61,6 +80,12 @@ class WebSocketManager:
             self.user_buckets[user_id].discard(bucket_id)
             if not self.user_buckets[user_id]:
                 del self.user_buckets[user_id]
+
+        # Clean up timestamp tracking
+        if bucket_id in self.connection_timestamps:
+            self.connection_timestamps[bucket_id].pop(user_id, None)
+            if not self.connection_timestamps[bucket_id]:
+                del self.connection_timestamps[bucket_id]
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         """Send a message to a specific WebSocket"""
@@ -78,6 +103,8 @@ class WebSocketManager:
                 if user_id != exclude_user:
                     try:
                         await websocket.send_text(message_json)
+                        # Update activity timestamp on successful send
+                        self._update_activity_timestamp(bucket_id, user_id)
                     except Exception:
                         # Connection closed, mark for removal
                         disconnected_users.append(user_id)
@@ -111,6 +138,82 @@ class WebSocketManager:
         if user_id in self.user_buckets:
             return list(self.user_buckets[user_id])
         return []
+
+    def _start_cleanup_task(self):
+        """Start the periodic cleanup task"""
+        if self._cleanup_started or (self._cleanup_task is not None and not self._cleanup_task.done()):
+            return
+
+        try:
+            # Only start cleanup task if there's a running event loop
+            asyncio.get_running_loop()
+            self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
+            self._cleanup_started = True
+        except RuntimeError:
+            # No event loop running, defer cleanup task start
+            pass
+
+    async def _periodic_cleanup(self):
+        """Periodically clean up expired connections"""
+        while True:
+            try:
+                await asyncio.sleep(300)  # Check every 5 minutes
+                await self._cleanup_expired_connections()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                # Log error but continue cleanup
+                print(f"WebSocket cleanup error: {e}")
+                continue
+
+    async def _cleanup_expired_connections(self):
+        """Remove connections that have exceeded timeout"""
+        current_time = time.time()
+        expired_connections = []
+
+        # Find expired connections
+        for bucket_id, user_timestamps in self.connection_timestamps.items():
+            for user_id, last_activity in user_timestamps.items():
+                if current_time - last_activity > self.connection_timeout:
+                    expired_connections.append((bucket_id, user_id))
+
+        # Remove expired connections
+        for bucket_id, user_id in expired_connections:
+            if bucket_id in self.active_connections and user_id in self.active_connections[bucket_id]:
+                websocket = self.active_connections[bucket_id][user_id]
+                try:
+                    await websocket.close(code=1000, reason="Connection timeout")
+                except Exception:
+                    pass  # Connection might already be closed
+                self.disconnect(websocket, bucket_id, user_id)
+
+    def _update_activity_timestamp(self, bucket_id: str, user_id: str):
+        """Update the last activity timestamp for a connection"""
+        if bucket_id not in self.connection_timestamps:
+            self.connection_timestamps[bucket_id] = {}
+        self.connection_timestamps[bucket_id][user_id] = time.time()
+
+    def get_connection_stats(self) -> Dict[str, Any]:
+        """Get statistics about active connections"""
+        total_connections = sum(len(users) for users in self.active_connections.values())
+        total_buckets = len(self.active_connections)
+        total_users = len(self.user_buckets)
+
+        return {
+            "total_connections": total_connections,
+            "total_buckets": total_buckets,
+            "total_users": total_users,
+            "memory_usage": {
+                "active_connections": len(self.active_connections),
+                "user_buckets": len(self.user_buckets),
+                "connection_timestamps": len(self.connection_timestamps),
+            },
+        }
+
+    def stop_cleanup_task(self):
+        """Stop the periodic cleanup task"""
+        if self._cleanup_task and not self._cleanup_task.done():
+            self._cleanup_task.cancel()
 
 
 class BucketCollaborationService:

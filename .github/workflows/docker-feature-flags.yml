@@ -1,0 +1,211 @@
+name: Docker CI Feature Flags
+
+# Feature flags for Docker-based CI integration
+# This workflow allows gradual rollout and rollback of Docker changes
+
+on:
+  workflow_dispatch:
+    inputs:
+      enable_docker_caching:
+        description: 'Enable Docker build caching optimization'
+        required: false
+        default: 'true'
+        type: boolean
+      
+      enable_unified_docker_tests:
+        description: 'Enable unified Docker test execution'
+        required: false
+        default: 'true'
+        type: boolean
+      
+      enable_coverage_validation:
+        description: 'Enable coverage threshold validation'
+        required: false
+        default: 'true'
+        type: boolean
+      
+      rollback_to_legacy:
+        description: 'Rollback to legacy non-Docker test execution'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  
+  # Feature flags (can be overridden by workflow_dispatch inputs)
+  ENABLE_DOCKER_CACHING: ${{ github.event.inputs.enable_docker_caching || 'true' }}
+  ENABLE_UNIFIED_DOCKER_TESTS: ${{ github.event.inputs.enable_unified_docker_tests || 'true' }}
+  ENABLE_COVERAGE_VALIDATION: ${{ github.event.inputs.enable_coverage_validation || 'true' }}
+  ROLLBACK_TO_LEGACY: ${{ github.event.inputs.rollback_to_legacy || 'false' }}
+
+jobs:
+  test-with-feature-flags:
+    name: Test with Feature Flags
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Feature flag status
+      run: |
+        echo "=== Docker CI Feature Flags Status ==="
+        echo "Docker Caching: ${{ env.ENABLE_DOCKER_CACHING }}"
+        echo "Unified Docker Tests: ${{ env.ENABLE_UNIFIED_DOCKER_TESTS }}"
+        echo "Coverage Validation: ${{ env.ENABLE_COVERAGE_VALIDATION }}"
+        echo "Rollback to Legacy: ${{ env.ROLLBACK_TO_LEGACY }}"
+        echo "=================================="
+    
+    - name: Set up Docker Buildx
+      if: env.ROLLBACK_TO_LEGACY == 'false'
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Create directories for artifacts
+      run: |
+        mkdir -p ./coverage ./test-results
+        chmod 777 ./coverage ./test-results
+    
+    # Legacy Python setup (rollback option)
+    - name: Set up Python 3.11 (legacy mode)
+      if: env.ROLLBACK_TO_LEGACY == 'true'
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+    
+    - name: Install dependencies (legacy mode)
+      if: env.ROLLBACK_TO_LEGACY == 'true'
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    # Docker build with optional caching
+    - name: Build test image with caching
+      if: env.ROLLBACK_TO_LEGACY == 'false' && env.ENABLE_DOCKER_CACHING == 'true'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.test
+        target: test
+        push: false
+        tags: leadfactory-test:latest
+        cache-from: type=gha,scope=test
+        cache-to: type=gha,mode=max,scope=test
+        load: true
+    
+    - name: Build test image without caching
+      if: env.ROLLBACK_TO_LEGACY == 'false' && env.ENABLE_DOCKER_CACHING == 'false'
+      run: docker build -f Dockerfile.test -t leadfactory-test .
+    
+    # Docker-based testing
+    - name: Start services (Docker mode)
+      if: env.ROLLBACK_TO_LEGACY == 'false'
+      run: |
+        echo "Starting test services..."
+        docker compose -f docker-compose.test.yml up -d postgres stub-server
+        
+        # Wait for services to be ready using health checks
+        echo "Waiting for services to be healthy..."
+        timeout 120 bash -c 'until docker compose -f docker-compose.test.yml ps --format json | jq -r ".[] | select(.Service==\"postgres\") | .Health" | grep -q "healthy"; do echo "Waiting for PostgreSQL..."; sleep 2; done'
+        timeout 120 bash -c 'until docker compose -f docker-compose.test.yml ps --format json | jq -r ".[] | select(.Service==\"stub-server\") | .Health" | grep -q "healthy"; do echo "Waiting for stub server..."; sleep 2; done'
+        echo "✅ All services are healthy"
+    
+    - name: Run tests in Docker (unified mode)
+      if: env.ROLLBACK_TO_LEGACY == 'false' && env.ENABLE_UNIFIED_DOCKER_TESTS == 'true'
+      run: |
+        echo "Running tests in unified Docker mode..."
+        docker compose -f docker-compose.test.yml run --rm test
+    
+    - name: Run tests in Docker (legacy mode)
+      if: env.ROLLBACK_TO_LEGACY == 'false' && env.ENABLE_UNIFIED_DOCKER_TESTS == 'false'
+      run: |
+        echo "Running tests in Docker legacy mode..."
+        docker run --rm \
+          --network $(docker network ls --format "{{.Name}}" | grep test-network | head -1) \
+          -e DATABASE_URL="postgresql://postgres:postgres@postgres:5432/leadfactory_test" \
+          -e USE_STUBS=true \
+          -e STUB_BASE_URL="http://stub-server:5010" \
+          -e ENVIRONMENT=test \
+          -e SECRET_KEY=test-secret-key \
+          -e PYTHONPATH=/app \
+          -e CI=true \
+          -v $(pwd)/coverage:/app/coverage \
+          -v $(pwd)/test-results:/app/test-results \
+          leadfactory-test \
+          pytest -v --tb=short --cov=. --cov-report=xml:/app/coverage/coverage.xml --junitxml=/app/test-results/junit.xml
+    
+    # Legacy Python-based testing (rollback option)
+    - name: Run tests in Python (rollback mode)
+      if: env.ROLLBACK_TO_LEGACY == 'true'
+      env:
+        USE_STUBS: "false"
+        ENVIRONMENT: "test"
+        DATABASE_URL: "sqlite:///:memory:"
+      run: |
+        echo "Running tests in Python rollback mode..."
+        python -m pytest -v --tb=short --cov=. --cov-report=xml:coverage.xml --junitxml=junit.xml tests/unit/
+    
+    # Coverage validation (optional)
+    - name: Validate coverage threshold
+      if: env.ENABLE_COVERAGE_VALIDATION == 'true'
+      run: |
+        COVERAGE_FILE=""
+        if [ -f "./test-results/coverage.xml" ]; then
+          COVERAGE_FILE="./test-results/coverage.xml"
+        elif [ -f "./coverage/coverage.xml" ]; then
+          COVERAGE_FILE="./coverage/coverage.xml"
+        elif [ -f "./coverage.xml" ]; then
+          COVERAGE_FILE="./coverage.xml"
+        fi
+        
+        if [ -n "$COVERAGE_FILE" ]; then
+          COVERAGE=$(python3 -c "
+import xml.etree.ElementTree as ET
+import sys
+try:
+    tree = ET.parse('$COVERAGE_FILE')
+    root = tree.getroot()
+    line_rate = float(root.get('line-rate', 0))
+    coverage_pct = line_rate * 100
+    print(f'{coverage_pct:.1f}')
+    if coverage_pct < 80:
+        print(f'ERROR: Coverage {coverage_pct:.1f}% is below 80% threshold', file=sys.stderr)
+        sys.exit(1)
+except Exception as e:
+    print(f'Error parsing coverage: {e}', file=sys.stderr)
+    sys.exit(1)
+" 2>&1)
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Coverage: ${COVERAGE}% (meets ≥80% threshold)"
+          else
+            echo "❌ Coverage validation failed"
+            exit 1
+          fi
+        else
+          echo "⚠️  No coverage report found, skipping threshold validation"
+        fi
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: feature-flag-test-results
+        path: |
+          test-results/**
+          coverage/**
+          *.xml
+        retention-days: 5
+        if-no-files-found: warn
+    
+    - name: Clean up
+      if: always()
+      run: |
+        if [ "${{ env.ROLLBACK_TO_LEGACY }}" == "false" ]; then
+          docker compose -f docker-compose.test.yml down -v
+        fi
+        echo "✅ Cleanup completed"
