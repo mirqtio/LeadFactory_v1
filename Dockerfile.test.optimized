@@ -1,0 +1,79 @@
+# Ultra-fast test Dockerfile optimized for CI speed
+FROM python:3.11.0-slim AS deps
+
+# Install system dependencies in single layer
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Set working directory
+WORKDIR /app
+
+# Copy only dependency files for better caching
+COPY requirements.txt requirements-dev.txt ./
+
+# Install minimal dependencies for ultra-fast tests
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+        pytest \
+        pytest-xdist \
+        pytest-timeout \
+        pytest-cov \
+        pytest-mock \
+        pydantic \
+        pydantic-settings \
+        python-dotenv \
+        httpx \
+        sqlalchemy \
+        fastapi \
+        requests \
+        python-json-logger \
+        pyyaml
+
+# Ultra-fast test stage - minimal setup for core/database tests only
+FROM deps AS ultra-fast
+
+# Copy only essential application code
+COPY core/ ./core/
+COPY database/ ./database/
+COPY tests/unit/core/ ./tests/unit/core/
+COPY tests/unit/database/ ./tests/unit/database/
+COPY conftest.py pytest.ini ./
+
+# Set environment variables for testing
+ENV PYTHONPATH=/app
+ENV DATABASE_URL=sqlite:///:memory:
+ENV ENVIRONMENT=test
+ENV CI=true
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Create required directories
+RUN mkdir -p /app/coverage /app/test-results && \
+    chmod -R 777 /app/coverage /app/test-results
+
+# Verify test setup
+RUN python -c "import pytest; import core; import database; print('✅ Ultra-fast test dependencies verified')"
+
+# Default command for ultra-fast tests
+CMD ["python", "-m", "pytest", \
+     "-x", \
+     "--tb=no", \
+     "-q", \
+     "--disable-warnings", \
+     "-p", "no:warnings", \
+     "--timeout=10", \
+     "--timeout-method=signal", \
+     "-n", "auto", \
+     "--dist=loadfile", \
+     "--cov=core", \
+     "--cov=database", \
+     "--cov-report=xml:/app/coverage/coverage.xml", \
+     "--cov-fail-under=0", \
+     "--junitxml=/app/test-results/junit.xml", \
+     "tests/unit/core/", \
+     "tests/unit/database/"]
