@@ -44,6 +44,19 @@
 - **Update Frequency**: 15-minute Redis updates, 10-minute orchestrator checks
 - **Handoff Documentation**: Always include context, evidence, and next steps
 
+#### 🚨 CRITICAL: Tmux Communication Protocol (Added 2025-07-19)
+- **CORRECT METHOD**: Use orchestrator session windows `orchestrator:1` through `orchestrator:5`
+  - Window 1: PM-1 agent
+  - Window 2: PM-2 agent  
+  - Window 3: PM-3 agent
+  - Window 4: Validator agent
+  - Window 5: Integration agent
+- **INCORRECT METHOD**: Using separate PM sessions (`PM-1:0`, `PM-2:0`, `PM-3:0`) - messages don't reach agents
+- **VALIDATION**: Always check `tmux capture-pane -t orchestrator:X -p` to verify message delivery
+- **TROUBLESHOOTING**: If messages not appearing, verify window numbers with `tmux list-windows -t orchestrator`
+- **DISCOVERY**: 290+ minute session communication breakdown resolved by using correct window protocol
+- **CRITICAL**: Agents worry when orchestrator communication fails - immediate response required
+
 ### Tool Usage Refinements
 - **Tmux Commands**: Pre-defined command templates for common agent interactions
 - **Redis Patterns**: Structured key naming for cross-agent coordination
