@@ -73,8 +73,8 @@ jobs:
         target: test
         push: false
         tags: leadfactory-test:latest
-        cache-from: type=gha,scope=full-test
-        cache-to: type=gha,mode=max,scope=full-test
+        cache-from: type=gha,scope=full-test,ignore-error=true
+        cache-to: type=gha,mode=max,scope=full-test,ignore-error=true
         load: true
     
     - name: Start test services

@@ -41,11 +41,11 @@ jobs:
         push: false
         tags: leadfactory-test:ultra-fast
         cache-from: |
-          type=gha,scope=deps-cache
-          type=gha,scope=ultra-fast-cache
+          type=gha,scope=deps-cache,ignore-error=true
+          type=gha,scope=ultra-fast-cache,ignore-error=true
         cache-to: |
-          type=gha,mode=max,scope=deps-cache,target=deps
-          type=gha,mode=max,scope=ultra-fast-cache,target=ultra-fast
+          type=gha,mode=max,scope=deps-cache,target=deps,ignore-error=true
+          type=gha,mode=max,scope=ultra-fast-cache,target=ultra-fast,ignore-error=true
         load: true
         build-args: |
           BUILDKIT_INLINE_CACHE=1
