@@ -35,6 +35,7 @@ from d8_personalization.api import router as personalization_router
 from d11_orchestration.api import router as orchestration_router
 from lead_explorer.api import limiter
 from lead_explorer.api import router as lead_explorer_router
+from orchestrator.budget_alert_api import router as budget_alert_router
 
 # Conditional imports for features
 try:
@@ -186,6 +187,8 @@ app.include_router(lineage_router)
 app.include_router(lead_explorer_router, prefix="/api/v1", tags=["lead_explorer"])
 # Batch Runner router
 app.include_router(batch_runner_router, prefix="/api", tags=["batch_runner"])
+# P2-040 Unified Budget Monitoring System (PM-1 + PM-2 Integration)
+app.include_router(budget_alert_router, tags=["budget_monitoring"])
 
 # Template Studio (P0-024)
 if settings.enable_template_studio and template_studio_router is not None:
