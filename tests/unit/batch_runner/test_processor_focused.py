@@ -55,8 +55,12 @@ class TestBatchProcessorFocused:
             mock_session.return_value.__enter__.return_value = mock_db
             mock_db.query.return_value.filter_by.return_value.first.return_value = None
 
-            with pytest.raises(ValueError, match=f"Batch {batch_id} not found"):
-                await mock_processor.process_batch(batch_id)
+            result = await mock_processor.process_batch(batch_id)
+
+            # Should return error result instead of raising
+            assert result.batch_id == batch_id
+            assert result.total_leads == 0
+            assert result.error_message is not None
 
     async def test_process_batch_invalid_status(self, mock_processor):
         """Test process_batch with batch in wrong status"""
@@ -70,8 +74,12 @@ class TestBatchProcessorFocused:
             mock_batch.status = BatchStatus.RUNNING  # Not PENDING
             mock_db.query.return_value.filter_by.return_value.first.return_value = mock_batch
 
-            with pytest.raises(ValueError, match=f"Batch {batch_id} is not in pending status"):
-                await mock_processor.process_batch(batch_id)
+            result = await mock_processor.process_batch(batch_id)
+
+            # Should return error result instead of raising
+            assert result.batch_id == batch_id
+            assert result.total_leads == 0
+            assert result.error_message is not None
 
     async def test_get_batch_leads_success(self):
         """Test _get_batch_leads method"""

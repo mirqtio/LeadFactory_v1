@@ -85,6 +85,15 @@
 - **AGENT CONSENSUS**: All 5 agents approved format with enhancements for human readability and machine parsing
 - **IMPLEMENTATION**: Added to CLAUDE.md as mandatory orchestrator protocol with Redis integration requirements
 
+#### 🚨 CRITICAL: Agent Communication Response Protocol (Added 2025-07-19)
+- **WORKFLOW DISRUPTION**: Requesting status updates without responding to agent replies STOPS their work
+- **CORRECT WORKFLOW**: 1) Check tmux windows for agent responses, 2) Read actual responses, 3) Acknowledge + provide guidance, 4) Let agents continue
+- **WRONG WORKFLOW**: 1) Request status, 2) Don't read responses, 3) Agents stuck waiting, 4) Work stops
+- **MANDATORY**: Always read `tmux capture-pane -t orchestrator:X -p | tail -15` BEFORE requesting new status
+- **RESPONSE REQUIREMENT**: Acknowledge agent updates with "✅ ACKNOWLEDGED:" + specific guidance/approval
+- **WORKFLOW PRESERVATION**: Let agents continue working without unnecessary interruptions
+- **DISCOVERY**: User identified orchestrator breaking agent workflow by not responding to status updates
+
 ### Tool Usage Refinements
 - **Tmux Commands**: Pre-defined command templates for common agent interactions
 - **Redis Patterns**: Structured key naming for cross-agent coordination

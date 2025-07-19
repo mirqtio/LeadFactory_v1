@@ -106,16 +106,23 @@ class TestCreateAuditLog:
             new_values={"email": "test@example.com"},
         )
 
-        # Check that audit log was created
+        # Check that audit logs were created (session event listener + manual call)
         audit_logs = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).all()
-        assert len(audit_logs) == 1
+        assert len(audit_logs) == 2  # One from session event, one from manual create_audit_log call
 
-        audit_log = audit_logs[0]
-        assert audit_log.lead_id == created_lead.id
-        assert audit_log.action == AuditAction.CREATE
-        assert audit_log.user_id == "test_user"
-        assert audit_log.user_ip == "192.168.1.1"
-        assert audit_log.checksum is not None
+        # Find the manual audit log (has user context set)
+        manual_audit_log = None
+        for log in audit_logs:
+            if log.user_id == "test_user" and log.user_ip == "192.168.1.1":
+                manual_audit_log = log
+                break
+
+        assert manual_audit_log is not None
+        assert manual_audit_log.lead_id == created_lead.id
+        assert manual_audit_log.action == AuditAction.CREATE
+        assert manual_audit_log.user_id == "test_user"
+        assert manual_audit_log.user_ip == "192.168.1.1"
+        assert manual_audit_log.checksum is not None
 
     def test_create_audit_log_with_old_and_new_values(self, db_session, created_lead, monkeypatch):
         """Test creating audit log with both old and new values"""
@@ -133,11 +140,20 @@ class TestCreateAuditLog:
             new_values=new_values,
         )
 
-        audit_log = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).first()
-        assert audit_log is not None
-        assert audit_log.action == AuditAction.UPDATE
-        assert "old@example.com" in audit_log.old_values
-        assert "new@example.com" in audit_log.new_values
+        # Get all audit logs and find the UPDATE one (the manual call)
+        audit_logs = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).all()
+
+        # Find the UPDATE audit log (from manual call)
+        update_audit_log = None
+        for log in audit_logs:
+            if log.action == AuditAction.UPDATE:
+                update_audit_log = log
+                break
+
+        assert update_audit_log is not None
+        assert update_audit_log.action == AuditAction.UPDATE
+        assert "old@example.com" in update_audit_log.old_values
+        assert "new@example.com" in update_audit_log.new_values
 
     def test_create_audit_log_no_user_context(self, db_session, created_lead, monkeypatch):
         """Test creating audit log without user context"""
@@ -249,16 +265,17 @@ class TestGetAuditSummary:
     """Test get_audit_summary function"""
 
     def test_get_audit_summary_empty(self, db_session, created_lead):
-        """Test audit summary for lead with no audit logs"""
+        """Test audit summary for lead with automatic audit logs from session events"""
         summary = get_audit_summary(db_session, created_lead.id)
 
-        assert summary["total_events"] == 0
-        assert summary["create_events"] == 0
+        # created_lead fixture now triggers session event listener, so we expect 1 CREATE event
+        assert summary["total_events"] == 1
+        assert summary["create_events"] == 1
         assert summary["update_events"] == 0
         assert summary["delete_events"] == 0
-        assert summary["first_event"] is None
-        assert summary["last_event"] is None
-        assert summary["unique_users"] == 0
+        assert summary["first_event"] is not None
+        assert summary["last_event"] is not None
+        assert summary["unique_users"] == 0  # No user context set for the automatic event
 
     def test_get_audit_summary_with_events(self, db_session, created_lead, monkeypatch):
         """Test audit summary for lead with audit logs"""
@@ -291,13 +308,14 @@ class TestGetAuditSummary:
 
         summary = get_audit_summary(db_session, created_lead.id)
 
-        assert summary["total_events"] == 3
-        assert summary["create_events"] == 1
+        # We now have: 1 automatic CREATE (from created_lead) + 1 manual CREATE + 2 manual UPDATEs = 4 total
+        assert summary["total_events"] == 4
+        assert summary["create_events"] == 2  # 1 automatic + 1 manual
         assert summary["update_events"] == 2
         assert summary["delete_events"] == 0
         assert summary["first_event"] is not None
         assert summary["last_event"] is not None
-        assert summary["unique_users"] == 2  # user1 and user2
+        assert summary["unique_users"] == 2  # user1 and user2 (automatic event may have no user)
 
     def test_get_audit_summary_integrity_check(self, db_session, created_lead, monkeypatch):
         """Test audit summary includes integrity verification"""
@@ -323,45 +341,31 @@ class TestAuditEventListeners:
     """Test SQLAlchemy event listeners for audit logging"""
 
     def test_audit_listener_on_insert(self, db_session, monkeypatch):
-        """Test that lead creation triggers audit log"""
-        # Since event listeners are registered at module import time based on ENVIRONMENT,
-        # and they're not registered in test environment, we need to manually test
-        # the listener functions instead of relying on automatic triggers
-
-        # Import and manually call the listener function
-        from lead_explorer.audit import create_audit_log, get_model_values
-
-        # Temporarily disable the test environment check
-        monkeypatch.setenv("ENVIRONMENT", "development")
+        """Test that lead creation triggers audit log via session event listeners"""
+        # Enable audit logging for testing
+        monkeypatch.setenv("ENABLE_AUDIT_LOGGING", "true")
 
         AuditContext.set_user_context(user_id="test_user")
 
-        # Create a lead
+        # Create a lead - this should trigger the after_flush event listener
         lead = Lead(email="test@example.com", is_manual=True)
         db_session.add(lead)
         db_session.commit()
 
-        # Check if audit log was already created by event listener
-        existing_logs = db_session.query(AuditLogLead).filter_by(lead_id=lead.id).all()
-
-        if len(existing_logs) == 0:
-            # Manually trigger what the listener would do if it wasn't already triggered
-            new_values = get_model_values(lead)
-            create_audit_log(session=db_session, lead_id=lead.id, action=AuditAction.CREATE, new_values=new_values)
-            db_session.commit()
-
-        # Check that audit log was created
+        # Check that audit log was created by the session event listener
         audit_logs = db_session.query(AuditLogLead).filter_by(lead_id=lead.id).all()
-        assert len(audit_logs) == 1
-        assert audit_logs[0].action == AuditAction.CREATE
-        assert audit_logs[0].user_id == "test_user"
+        assert len(audit_logs) >= 1
+
+        # Find the CREATE audit log
+        create_logs = [log for log in audit_logs if log.action == AuditAction.CREATE]
+        assert len(create_logs) == 1
+        assert create_logs[0].user_id == "test_user"
+        assert "test@example.com" in create_logs[0].new_values
 
     def test_audit_listener_on_update(self, db_session, created_lead, monkeypatch):
-        """Test that lead update triggers audit log"""
-        # Temporarily disable the test environment check
-        monkeypatch.setenv("ENVIRONMENT", "development")
-
-        from lead_explorer.audit import create_audit_log, get_model_values
+        """Test that lead update triggers audit log via session event listeners"""
+        # Enable audit logging for testing
+        monkeypatch.setenv("ENABLE_AUDIT_LOGGING", "true")
 
         AuditContext.set_user_context(user_id="test_user")
 
@@ -369,37 +373,61 @@ class TestAuditEventListeners:
         initial_logs = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).all()
         initial_update_count = len([log for log in initial_logs if log.action == AuditAction.UPDATE])
 
-        # Get old values before update
-        old_values = get_model_values(created_lead)
-
-        # Update the lead
+        # Update the lead - this should trigger the after_flush event listener
         created_lead.company_name = "Updated Company"
         db_session.commit()
 
-        # Check if an update log was already created
-        current_logs = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).all()
-        current_update_count = len([log for log in current_logs if log.action == AuditAction.UPDATE])
-
-        if current_update_count == initial_update_count:
-            # No automatic log was created, so create one manually
-            new_values = get_model_values(created_lead)
-
-            if old_values != new_values:
-                create_audit_log(
-                    session=db_session,
-                    lead_id=created_lead.id,
-                    action=AuditAction.UPDATE,
-                    old_values=old_values,
-                    new_values=new_values,
-                )
-                db_session.commit()
-
-        # Check that audit log was created
+        # Check that audit log was created by the session event listener
         audit_logs = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).all()
         update_logs = [log for log in audit_logs if log.action == AuditAction.UPDATE]
         assert len(update_logs) >= 1
-        assert update_logs[0].old_values is not None
-        assert update_logs[0].new_values is not None
+
+        # Find the most recent update log
+        recent_update = max(update_logs, key=lambda log: log.timestamp)
+        assert recent_update.old_values is not None
+        assert recent_update.new_values is not None
+        assert "Updated Company" in recent_update.new_values
+
+    def test_audit_listener_on_soft_delete(self, db_session, created_lead, monkeypatch):
+        """Test that soft delete (is_deleted flag) triggers audit log as UPDATE"""
+        # Enable audit logging for testing
+        monkeypatch.setenv("ENABLE_AUDIT_LOGGING", "true")
+
+        AuditContext.set_user_context(user_id="test_user")
+
+        # Soft delete the lead - this should trigger the after_flush event listener
+        created_lead.is_deleted = True
+        db_session.commit()
+
+        # Check that audit log was created with soft delete marker
+        audit_logs = db_session.query(AuditLogLead).filter_by(lead_id=created_lead.id).all()
+        update_logs = [log for log in audit_logs if log.action == AuditAction.UPDATE]
+        assert len(update_logs) >= 1
+
+        # Find the soft delete log
+        soft_delete_log = None
+        for log in update_logs:
+            if log.new_values and "_soft_delete" in log.new_values:
+                soft_delete_log = log
+                break
+
+        assert soft_delete_log is not None
+        assert soft_delete_log.action == AuditAction.UPDATE
+        assert '"_soft_delete": true' in soft_delete_log.new_values
+
+    def test_audit_listener_disabled(self, db_session, monkeypatch):
+        """Test that audit logging can be disabled with ENABLE_AUDIT_LOGGING=false"""
+        # Disable audit logging
+        monkeypatch.setenv("ENABLE_AUDIT_LOGGING", "false")
+
+        # Create a lead
+        lead = Lead(email="disabled@example.com", is_manual=True)
+        db_session.add(lead)
+        db_session.commit()
+
+        # Check that no audit log was created
+        audit_logs = db_session.query(AuditLogLead).filter_by(lead_id=lead.id).all()
+        assert len(audit_logs) == 0
 
 
 class TestSetupAuditLogging:

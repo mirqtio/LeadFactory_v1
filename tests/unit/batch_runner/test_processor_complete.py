@@ -34,8 +34,15 @@ class TestBatchProcessorComplete:
             # Create processor
             processor = BatchProcessor()
 
+            # Setup async mocks for connection manager
+            mock_conn_instance = MagicMock()
+            mock_conn_instance.broadcast_progress = AsyncMock()
+            mock_conn_instance.broadcast_completion = AsyncMock()
+            mock_conn_instance.broadcast_error = AsyncMock()
+            mock_conn.return_value = mock_conn_instance
+
             # Store mocks for access
-            processor._test_connection_manager = mock_conn.return_value
+            processor._test_connection_manager = mock_conn_instance
             processor._test_cost_calculator = mock_cost.return_value
             processor._test_report_generator = mock_report.return_value
             processor._test_thread_pool = mock_thread.return_value

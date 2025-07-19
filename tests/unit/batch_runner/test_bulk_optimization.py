@@ -136,25 +136,16 @@ class TestBulkOptimization:
 
     @patch("batch_runner.api.get_cost_calculator")
     @patch("lead_explorer.repository.LeadRepository")
-    async def test_empty_lead_list_handling(self, mock_repo_class, mock_get_calculator, mock_db, mock_cost_calculator):
-        """Test handling of empty lead list"""
-        mock_lead_repo = Mock()
-        mock_lead_repo.get_leads_by_ids.return_value = []
+    async def test_empty_lead_list_validation(
+        self, mock_repo_class, mock_get_calculator, mock_db, mock_cost_calculator
+    ):
+        """Test that empty lead list is caught at schema validation level"""
+        # Try to create schema with empty list - should fail validation
+        with pytest.raises(Exception) as exc_info:
+            CreateBatchSchema(lead_ids=[], template_version="v1.2", name="Test Batch", description="Empty leads test")
 
-        mock_repo_class.return_value = mock_lead_repo
-        mock_get_calculator.return_value = mock_cost_calculator
-
-        request = CreateBatchSchema(
-            lead_ids=[], template_version="v1.2", name="Test Batch", description="Empty leads test"
-        )
-
-        # Execute
-        with pytest.raises(HTTPException) as exc_info:
-            await preview_batch_cost(request, mock_db)
-
-        # Verify bulk method handles empty list gracefully
-        mock_lead_repo.get_leads_by_ids.assert_called_once_with([])
-        assert exc_info.value.status_code == 422
+        # Verify pydantic validation catches empty list
+        assert "too_short" in str(exc_info.value) or "at least 1 item" in str(exc_info.value)
 
 
 class TestPerformanceImprovement:

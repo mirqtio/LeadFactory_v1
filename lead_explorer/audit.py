@@ -69,8 +69,8 @@ def create_audit_log(
     new_values: Optional[Dict[str, Any]] = None,
 ):
     """Create an audit log entry with tamper detection"""
-    # Skip audit logging in test environment
-    if os.getenv("ENVIRONMENT") == "test":
+    # Skip audit logging if disabled by feature flag
+    if not ENABLE_AUDIT_LOGGING:
         return
 
     try:
@@ -111,78 +111,154 @@ def create_audit_log(
         # Don't raise - audit logging failure should not break the main operation
 
 
-# Event listeners for automatic audit logging
+# Session-level event listeners for reliable audit logging
 
-# Only enable audit logging if not in test environment
-if os.getenv("ENVIRONMENT") != "test":
+# Enable audit logging with feature flag (default: True)
+ENABLE_AUDIT_LOGGING = os.getenv("ENABLE_AUDIT_LOGGING", "true").lower() == "true"
 
-    @event.listens_for(Lead, "after_insert")
-    def log_lead_insert(mapper, connection, target):
-        """Log lead creation"""
-        session = Session.object_session(target)
-        if session:
-            new_values = get_model_values(target)
-            create_audit_log(session=session, lead_id=target.id, action=AuditAction.CREATE, new_values=new_values)
+if ENABLE_AUDIT_LOGGING:
 
-    @event.listens_for(Lead, "after_update")
-    def log_lead_update(mapper, connection, target):
-        """Log lead updates"""
-        session = Session.object_session(target)
-        if session:
-            # Initialize old_values
-            old_values = None
+    @event.listens_for(Session, "after_commit")
+    def log_session_changes(session):
+        """Log all Lead changes after successful commit - ensures all data is persisted"""
+        # Check if audit logging is enabled at runtime
+        if os.getenv("ENABLE_AUDIT_LOGGING", "true").lower() != "true":
+            return
 
-            # Try to get old values from SQLAlchemy's state tracking
-            from sqlalchemy import inspect
+        try:
+            # We need to track changes during the transaction, but create audit logs after commit
+            # Use a thread-local storage to track what needs to be audited
+            if not hasattr(session, "_audit_changes"):
+                return
 
-            state = inspect(target)
-            if state.attrs:
-                # Get history for changed attributes
-                old_values = {}
-                for key in [
-                    "email",
-                    "domain",
-                    "company_name",
-                    "contact_name",
-                    "enrichment_status",
-                    "enrichment_task_id",
-                    "enrichment_error",
-                    "is_manual",
-                    "source",
-                    "is_deleted",
-                    "created_by",
-                    "updated_by",
-                    "deleted_by",
-                ]:
-                    if hasattr(state.attrs, key):
-                        attr = getattr(state.attrs, key)
-                        history = attr.history
-                        if history.has_changes() and history.deleted:
-                            old_val = history.deleted[0]
-                            if hasattr(old_val, "value"):  # Handle enums
-                                old_values[key] = old_val.value
-                            else:
-                                old_values[key] = old_val
+            # Create audit logs using the same engine as the original session
+            # This ensures we use the correct database (test vs production)
+            audit_session = Session(bind=session.get_bind())
+            try:
+                # Process stored audit changes
+                for change in session._audit_changes:
+                    create_audit_log(
+                        session=audit_session,
+                        lead_id=change["lead_id"],
+                        action=change["action"],
+                        old_values=change.get("old_values"),
+                        new_values=change.get("new_values"),
+                    )
 
-            new_values = get_model_values(target)
+                audit_session.commit()
+            finally:
+                audit_session.close()
 
-            # Only log if there are actual changes
-            if old_values != new_values:
-                create_audit_log(
-                    session=session,
-                    lead_id=target.id,
-                    action=AuditAction.UPDATE,
-                    old_values=old_values,
-                    new_values=new_values,
-                )
+            # Clear the changes after processing
+            delattr(session, "_audit_changes")
 
-    @event.listens_for(Lead, "after_delete")
-    def log_lead_delete(mapper, connection, target):
-        """Log lead deletion (this handles hard deletes, soft deletes use update)"""
-        session = Session.object_session(target)
-        if session:
-            old_values = get_model_values(target)
-            create_audit_log(session=session, lead_id=target.id, action=AuditAction.DELETE, old_values=old_values)
+        except Exception as e:
+            logger.error(f"Failed to create audit logs after commit: {str(e)}")
+            # Don't raise - audit logging failure should not break the main operation
+
+    @event.listens_for(Session, "before_flush")
+    def collect_session_changes(session, flush_context, instances):
+        """Collect Lead changes before flush to track for audit logging"""
+        # Check if audit logging is enabled at runtime
+        if os.getenv("ENABLE_AUDIT_LOGGING", "true").lower() != "true":
+            return
+
+        try:
+            if not hasattr(session, "_audit_changes"):
+                session._audit_changes = []
+
+            # Track all Lead model changes in this session
+            for instance in session.new:
+                if isinstance(instance, Lead):
+                    new_values = get_model_values(instance)
+                    session._audit_changes.append(
+                        {
+                            "lead_id": instance.id,  # Will be set after flush
+                            "action": AuditAction.CREATE,
+                            "new_values": new_values,
+                            "instance": instance,  # Keep reference to get ID after flush
+                        }
+                    )
+
+            for instance in session.dirty:
+                if isinstance(instance, Lead):
+                    # Get old values from attribute history
+                    old_values = {}
+                    from sqlalchemy import inspect
+
+                    state = inspect(instance)
+                    for key in [
+                        "email",
+                        "domain",
+                        "company_name",
+                        "contact_name",
+                        "enrichment_status",
+                        "enrichment_task_id",
+                        "enrichment_error",
+                        "is_manual",
+                        "source",
+                        "is_deleted",
+                        "created_by",
+                        "updated_by",
+                        "deleted_by",
+                    ]:
+                        if hasattr(state.attrs, key):
+                            attr = getattr(state.attrs, key)
+                            if attr.history.has_changes() and attr.history.deleted:
+                                old_val = attr.history.deleted[0]
+                                old_values[key] = old_val.value if hasattr(old_val, "value") else old_val
+
+                    new_values = get_model_values(instance)
+
+                    # Only log if there are actual changes
+                    if old_values and old_values != new_values:
+                        # Check if this is a soft delete (is_deleted flag change)
+                        if old_values.get("is_deleted") is False and new_values.get("is_deleted") is True:
+                            # Soft delete - log as UPDATE but note the deletion context
+                            new_values["_soft_delete"] = True
+
+                        session._audit_changes.append(
+                            {
+                                "lead_id": instance.id,
+                                "action": AuditAction.UPDATE,
+                                "old_values": old_values,
+                                "new_values": new_values,
+                                "instance": instance,
+                            }
+                        )
+
+            for instance in session.deleted:
+                if isinstance(instance, Lead):
+                    old_values = get_model_values(instance)
+                    session._audit_changes.append(
+                        {
+                            "lead_id": instance.id,
+                            "action": AuditAction.DELETE,
+                            "old_values": old_values,
+                            "instance": instance,
+                        }
+                    )
+
+        except Exception as e:
+            logger.error(f"Failed to collect changes for audit logging: {str(e)}")
+            # Don't raise - audit logging failure should not break the main operation
+
+    @event.listens_for(Session, "after_flush")
+    def update_audit_change_ids(session, flush_context):
+        """Update audit changes with proper IDs after flush"""
+        # Check if audit logging is enabled at runtime
+        if os.getenv("ENABLE_AUDIT_LOGGING", "true").lower() != "true":
+            return
+
+        try:
+            if hasattr(session, "_audit_changes"):
+                for change in session._audit_changes:
+                    if "instance" in change and change["instance"].id:
+                        change["lead_id"] = change["instance"].id
+                    # Remove instance reference to avoid memory issues
+                    change.pop("instance", None)
+        except Exception as e:
+            logger.error(f"Failed to update audit change IDs: {str(e)}")
 
 
 class AuditMiddleware:
