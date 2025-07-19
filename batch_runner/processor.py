@@ -193,12 +193,11 @@ class BatchProcessor:
         """Process leads with controlled concurrency and enhanced error recovery"""
         semaphore = asyncio.Semaphore(self.max_concurrent_leads)
         tasks = []
-        
+
         # Enhanced task creation with error isolation
         for lead in leads:
             task = asyncio.create_task(
-                self._process_single_lead_with_semaphore(semaphore, batch_id, lead),
-                name=f"lead-{lead.lead_id}"
+                self._process_single_lead_with_semaphore(semaphore, batch_id, lead), name=f"lead-{lead.lead_id}"
             )
             tasks.append(task)
 
@@ -218,7 +217,7 @@ class BatchProcessor:
                 processing_rate = completed_count / elapsed_time if elapsed_time > 0 else 0
                 remaining_leads = len(leads) - completed_count
                 estimated_remaining_time = remaining_leads / processing_rate if processing_rate > 0 else None
-                
+
                 progress_percentage = (completed_count / len(leads)) * 100
 
                 await self._update_batch_progress(
@@ -241,7 +240,9 @@ class BatchProcessor:
                         "progress_percentage": progress_percentage,
                         "current_lead": result.lead_id,
                         "processing_rate_per_second": round(processing_rate, 2),
-                        "estimated_remaining_seconds": round(estimated_remaining_time) if estimated_remaining_time else None,
+                        "estimated_remaining_seconds": round(estimated_remaining_time)
+                        if estimated_remaining_time
+                        else None,
                         "last_result": {
                             "lead_id": result.lead_id,
                             "success": result.success,
@@ -314,12 +315,15 @@ class BatchProcessor:
             )
 
         except Exception as e:
-            logger.error(f"Failed to process lead {lead_id}: {str(e)}", extra={
-                "batch_id": batch_id, 
-                "lead_id": lead_id,
-                "error_type": type(e).__name__,
-                "processing_duration_ms": int((datetime.utcnow() - start_time).total_seconds() * 1000)
-            })
+            logger.error(
+                f"Failed to process lead {lead_id}: {str(e)}",
+                extra={
+                    "batch_id": batch_id,
+                    "lead_id": lead_id,
+                    "error_type": type(e).__name__,
+                    "processing_duration_ms": int((datetime.utcnow() - start_time).total_seconds() * 1000),
+                },
+            )
 
             end_time = datetime.utcnow()
             processing_time_ms = int((end_time - start_time).total_seconds() * 1000)

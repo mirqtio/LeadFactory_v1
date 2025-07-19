@@ -346,40 +346,37 @@ class CostCalculator:
             "simple": {"avg_seconds_per_lead": 30, "std_dev": 8, "concurrent_efficiency": 0.85},
             "standard": {"avg_seconds_per_lead": 60, "std_dev": 15, "concurrent_efficiency": 0.80},
             "comprehensive": {"avg_seconds_per_lead": 90, "std_dev": 25, "concurrent_efficiency": 0.75},
-            "v1": {"avg_seconds_per_lead": 60, "std_dev": 15, "concurrent_efficiency": 0.80}  # Default
+            "v1": {"avg_seconds_per_lead": 60, "std_dev": 15, "concurrent_efficiency": 0.80},  # Default
         }
-        
+
         rate_data = historical_rates.get(template_version, historical_rates["v1"])
-        
+
         # Base calculation with concurrency
-        max_concurrent = getattr(self.settings, 'batch_max_concurrent_leads', 5)
+        max_concurrent = getattr(self.settings, "batch_max_concurrent_leads", 5)
         concurrent_batches = (lead_count + max_concurrent - 1) // max_concurrent
-        
+
         # Account for concurrent efficiency loss
         efficiency = rate_data["concurrent_efficiency"]
         base_seconds = rate_data["avg_seconds_per_lead"] / efficiency
-        
+
         estimated_seconds = concurrent_batches * base_seconds
-        
+
         # Add overhead buffer (network delays, database writes, etc.)
         overhead_buffer = 1.15  # 15% overhead
         total_seconds = estimated_seconds * overhead_buffer
-        
+
         # Calculate confidence intervals based on historical variance
         std_dev = rate_data["std_dev"]
         confidence_low = max(0, total_seconds - (std_dev * 1.96))  # 95% confidence interval
         confidence_high = total_seconds + (std_dev * 1.96)
-        
+
         return {
             "estimated_minutes": int(total_seconds / 60),
             "estimated_seconds": int(total_seconds),
-            "confidence_interval": {
-                "low_minutes": int(confidence_low / 60),
-                "high_minutes": int(confidence_high / 60)
-            },
+            "confidence_interval": {"low_minutes": int(confidence_low / 60), "high_minutes": int(confidence_high / 60)},
             "processing_rate_estimate": f"{lead_count / (total_seconds / 60):.1f} leads/min",
             "concurrent_batches": concurrent_batches,
-            "max_concurrent": max_concurrent
+            "max_concurrent": max_concurrent,
         }
 
     def validate_budget(self, total_cost: float, daily_budget_override: Optional[float] = None) -> Dict:

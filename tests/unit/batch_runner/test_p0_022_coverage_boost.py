@@ -22,20 +22,14 @@ class TestBatchSchemasCoverage:
     def test_create_batch_schema_validation(self):
         """Test CreateBatchSchema validation"""
         # Valid schema
-        schema = CreateBatchSchema(
-            lead_ids=["lead-1", "lead-2", "lead-3"],
-            template_version="v1.0"
-        )
+        schema = CreateBatchSchema(lead_ids=["lead-1", "lead-2", "lead-3"], template_version="v1.0")
         assert len(schema.lead_ids) == 3
         assert schema.template_version == "v1.0"
 
     def test_create_batch_schema_duplicate_leads(self):
         """Test validation with duplicate lead IDs"""
         with pytest.raises(ValueError, match="Duplicate lead IDs are not allowed"):
-            CreateBatchSchema(
-                lead_ids=["lead-1", "lead-1", "lead-2"],
-                template_version="v1.0"
-            )
+            CreateBatchSchema(lead_ids=["lead-1", "lead-1", "lead-2"], template_version="v1.0")
 
     def test_create_batch_schema_too_many_leads(self):
         """Test validation with too many leads"""
@@ -51,7 +45,7 @@ class TestBatchSchemasCoverage:
             template_version="v1.0",
             estimated_cost_usd=25.0,
             cost_approved=True,
-            created_by="user123"
+            created_by="user123",
         )
         assert schema.name == "Test Batch"
         assert schema.cost_approved is True
@@ -206,11 +200,11 @@ class TestBatchProcessorCoverage:
         """Test concurrent processing capabilities"""
         # Test that processor can handle concurrent operations
         leads = [{"id": f"lead-{i}", "data": {"company": f"Company {i}"}} for i in range(3)]
-        
+
         # Mock concurrent processing
         with patch("batch_runner.processor.asyncio.gather") as mock_gather:
             mock_gather.return_value = [{"success": True} for _ in leads]
-            
+
             batch_id = str(uuid.uuid4())
             # This would test concurrent processing if the method existed
             assert len(leads) == 3
@@ -328,7 +322,7 @@ class TestWebSocketManagerCoverage:
     def test_websocket_manager_initialization(self):
         """Test WebSocket manager initialization"""
         from batch_runner.websocket_manager import ConnectionManager
-        
+
         manager = ConnectionManager()
         stats = manager.get_stats()
         assert isinstance(stats, dict)
@@ -337,7 +331,7 @@ class TestWebSocketManagerCoverage:
     def test_websocket_connection_stats(self):
         """Test WebSocket connection statistics"""
         from batch_runner.websocket_manager import get_connection_manager
-        
+
         manager = get_connection_manager()
         initial_stats = manager.get_stats()
         assert initial_stats["active_connections"] >= 0

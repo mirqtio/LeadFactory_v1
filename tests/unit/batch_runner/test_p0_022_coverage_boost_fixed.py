@@ -23,20 +23,14 @@ class TestBatchSchemasCoverage:
     def test_create_batch_schema_validation(self):
         """Test CreateBatchSchema validation"""
         # Valid schema
-        schema = CreateBatchSchema(
-            lead_ids=["lead-1", "lead-2", "lead-3"],
-            template_version="v1.0"
-        )
+        schema = CreateBatchSchema(lead_ids=["lead-1", "lead-2", "lead-3"], template_version="v1.0")
         assert len(schema.lead_ids) == 3
         assert schema.template_version == "v1.0"
 
     def test_create_batch_schema_duplicate_leads(self):
         """Test validation with duplicate lead IDs"""
         with pytest.raises(ValidationError):
-            CreateBatchSchema(
-                lead_ids=["lead-1", "lead-1", "lead-2"],
-                template_version="v1.0"
-            )
+            CreateBatchSchema(lead_ids=["lead-1", "lead-1", "lead-2"], template_version="v1.0")
 
     def test_create_batch_schema_too_many_leads(self):
         """Test validation with too many leads"""
@@ -52,7 +46,7 @@ class TestBatchSchemasCoverage:
             template_version="v1.0",
             estimated_cost_usd=25.0,
             cost_approved=True,
-            created_by="user123"
+            created_by="user123",
         )
         assert schema.name == "Test Batch"
         assert schema.cost_approved is True
@@ -89,22 +83,22 @@ class TestCostCalculatorCoverage:
         """Test CostRates caching mechanism"""
         # First call loads rates
         rates1 = cost_rates.get_rates()
-        
+
         # Second call should use cache
         rates2 = cost_rates.get_rates()
-        
+
         # Should be same object (cached)
         assert rates1 is rates2
 
     def test_cost_calculator_batch_preview(self, calculator):
         """Test batch cost preview calculation"""
-        with patch('batch_runner.cost_calculator.SessionLocal') as mock_session:
+        with patch("batch_runner.cost_calculator.SessionLocal") as mock_session:
             mock_db = MagicMock()
             mock_session.return_value.__enter__.return_value = mock_db
             mock_db.execute.return_value.fetchall.return_value = []
-            
+
             result = calculator.calculate_batch_preview(["lead-1", "lead-2"], "v1")
-            
+
             assert isinstance(result, dict)
             assert "cost_breakdown" in result
             assert "estimated_duration_minutes" in result
@@ -112,7 +106,7 @@ class TestCostCalculatorCoverage:
     def test_cost_calculator_budget_validation(self, calculator):
         """Test budget validation"""
         result = calculator.validate_budget(25.0)
-        
+
         assert isinstance(result, dict)
         assert "is_within_budget" in result
 
@@ -130,16 +124,16 @@ class TestBatchProcessorCoverage:
         """Test batch processing initialization"""
         mock_db = MagicMock()
         mock_session.return_value.__enter__.return_value = mock_db
-        
+
         # Mock batch with no leads
         mock_batch = MagicMock()
         mock_batch.status = BatchStatus.PENDING
         mock_db.query.return_value.filter_by.return_value.first.return_value = mock_batch
         mock_db.query.return_value.filter_by.return_value.all.return_value = []
-        
+
         batch_id = str(uuid.uuid4())
         result = await processor.process_batch(batch_id)
-        
+
         assert isinstance(result, dict)
         assert "processed_count" in result
 
@@ -149,13 +143,8 @@ class TestModelsCoverage:
 
     def test_batch_report_creation(self):
         """Test BatchReport model creation"""
-        batch = BatchReport(
-            name="Test Batch",
-            template_version="v1.0",
-            total_leads=10,
-            created_by="user123"
-        )
-        
+        batch = BatchReport(name="Test Batch", template_version="v1.0", total_leads=10, created_by="user123")
+
         assert batch.name == "Test Batch"
         assert batch.template_version == "v1.0"
         assert batch.total_leads == 10
@@ -170,7 +159,7 @@ class TestModelsCoverage:
             status=LeadProcessingStatus.PENDING,
             created_at=datetime.utcnow(),
         )
-        
+
         assert lead.order_index == 1
         assert lead.status == LeadProcessingStatus.PENDING
         assert isinstance(lead.batch_id, str)
@@ -189,7 +178,7 @@ class TestModelsCoverage:
             created_by="user123",
             status=BatchStatus.RUNNING,
         )
-        
+
         # Test progress tracking
         assert batch.processed_leads == 50
         assert batch.successful_leads == 45
@@ -227,7 +216,7 @@ class TestWebSocketManagerCoverage:
     def test_websocket_manager_initialization(self):
         """Test WebSocket manager initialization"""
         from batch_runner.websocket_manager import ConnectionManager
-        
+
         manager = ConnectionManager()
         stats = manager.get_stats()
         assert isinstance(stats, dict)
@@ -236,7 +225,7 @@ class TestWebSocketManagerCoverage:
     def test_websocket_connection_stats(self):
         """Test WebSocket connection statistics"""
         from batch_runner.websocket_manager import get_connection_manager
-        
+
         manager = get_connection_manager()
         initial_stats = manager.get_stats()
         assert initial_stats["active_connections"] >= 0
@@ -248,26 +237,26 @@ class TestAPIEndpointsCoverage:
     def test_api_error_handling_decorator(self):
         """Test API error handling decorator"""
         from batch_runner.api import handle_api_errors
-        
+
         @handle_api_errors
         async def test_function():
             raise LeadFactoryError("Test error", status_code=400)
-        
+
         # Test that decorator exists and can be applied
-        assert hasattr(test_function, '__name__')
-        assert test_function.__name__ == 'wrapper'
+        assert hasattr(test_function, "__name__")
+        assert test_function.__name__ == "wrapper"
 
     def test_user_context_extraction(self):
         """Test user context extraction"""
         from batch_runner.api import get_user_context
-        
+
         # Mock request object
         mock_request = MagicMock()
         mock_request.headers = {"X-User-ID": "user123", "User-Agent": "test-agent"}
         mock_request.client.host = "127.0.0.1"
-        
+
         context = get_user_context(mock_request)
-        
+
         assert isinstance(context, dict)
         assert "user_id" in context
         assert "user_ip" in context
@@ -281,7 +270,7 @@ class TestConfigurationCoverage:
         """Test default cost rates configuration"""
         rates = CostRates()
         default_rates = rates._get_default_rates()
-        
+
         assert isinstance(default_rates, dict)
         assert "report_generation" in default_rates
         assert "providers" in default_rates
@@ -293,7 +282,7 @@ class TestConfigurationCoverage:
         # Test with non-existent config path
         rates = CostRates(config_path="non/existent/path.json")
         config = rates.get_rates()
-        
+
         # Should fall back to defaults
         assert isinstance(config, dict)
         assert "report_generation" in config
@@ -313,7 +302,7 @@ class TestBatchUtilitiesCoverage:
             created_by="user123",
             status=BatchStatus.COMPLETED,
         )
-        
+
         # Test cost variance calculation
         if batch.actual_cost_usd and batch.estimated_cost_usd:
             variance = batch.actual_cost_usd - batch.estimated_cost_usd
@@ -331,7 +320,7 @@ class TestBatchUtilitiesCoverage:
             started_at=now,
             completed_at=now + timedelta(minutes=30),
         )
-        
+
         assert batch.created_at == now
         assert batch.started_at == now
         assert batch.completed_at > batch.started_at
