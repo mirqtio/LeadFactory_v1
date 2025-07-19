@@ -136,6 +136,48 @@ def check_monthly_budget_limit() -> tuple[bool, Decimal, Decimal]:
     return is_exceeded, current_spend, monthly_limit
 
 
+def check_monthly_budget_threshold(warning_threshold: float = 0.8) -> tuple[bool, float, str, Decimal, Decimal]:
+    """
+    Enhanced budget threshold checking with proactive warnings
+
+    P2-040: Budget Monitoring - Check if spending is approaching monthly budget limits
+    Provides proactive alerts at configurable thresholds (70%, 80%, 90%)
+
+    Args:
+        warning_threshold: Threshold percentage (0.0-1.0) to trigger warnings
+
+    Returns:
+        Tuple of (is_over_threshold, percentage_used, alert_level, current_spend, monthly_limit)
+    """
+    settings = get_settings()
+    monthly_limit = Decimal(str(getattr(settings, "guardrail_global_monthly_limit", 3000.0)))
+    current_spend = get_monthly_costs()
+
+    if monthly_limit > 0:
+        percentage_used = float(current_spend / monthly_limit)
+    else:
+        percentage_used = 0.0
+
+    # Enhanced threshold detection with multiple alert levels
+    if percentage_used >= 1.0:
+        alert_level = "critical"
+        is_over = True
+    elif percentage_used >= 0.9:  # 90% threshold
+        alert_level = "high"
+        is_over = True
+    elif percentage_used >= warning_threshold:  # Default 80% threshold
+        alert_level = "warning"
+        is_over = True
+    elif percentage_used >= 0.7:  # 70% early warning
+        alert_level = "notice"
+        is_over = True
+    else:
+        alert_level = "ok"
+        is_over = False
+
+    return is_over, percentage_used, alert_level, current_spend, monthly_limit
+
+
 def budget_circuit_breaker(flow_func):
     """
     P2-040: Decorator to check monthly budget before flow execution
@@ -399,6 +441,118 @@ def create_profit_report(metrics: Dict[str, float], bucket_performance: List[Dic
 
 
 @flow(
+    name="monthly-budget-monitor-flow",
+    description="P2-040: Proactive monthly budget monitoring with threshold alerts",
+    retries=2,
+    retry_delay_seconds=300,
+)
+def monthly_budget_monitor_flow(warning_threshold: float = 0.8) -> Dict[str, any]:
+    """
+    P2-040: Monthly Budget Monitoring - Proactive threshold checking
+
+    Monitors monthly spending against budget limits and sends proactive alerts
+    when approaching thresholds (70%, 80%, 90%, 100%)
+
+    Args:
+        warning_threshold: Main warning threshold (default 0.8 = 80%)
+
+    Returns:
+        Dict with monitoring results and alert status
+    """
+    logger = get_run_logger()
+    logger.info("Starting P2-040 monthly budget monitoring")
+
+    # Check monthly budget thresholds
+    is_over, percentage_used, alert_level, current_spend, monthly_limit = check_monthly_budget_threshold(
+        warning_threshold
+    )
+
+    result = {
+        "current_spend": float(current_spend),
+        "monthly_limit": float(monthly_limit),
+        "percentage_used": percentage_used,
+        "alert_level": alert_level,
+        "is_over_threshold": is_over,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    # Send proactive alerts for threshold violations
+    if is_over and alert_level != "ok":
+        try:
+            # Map alert levels to GuardrailViolation severity
+            severity_map = {
+                "critical": AlertSeverity.CRITICAL,
+                "high": AlertSeverity.HIGH,
+                "warning": AlertSeverity.MEDIUM,
+                "notice": AlertSeverity.LOW,
+            }
+
+            violation = GuardrailViolation(
+                limit_name="monthly_budget_threshold",
+                scope=LimitScope.GLOBAL,
+                severity=severity_map.get(alert_level, AlertSeverity.MEDIUM),
+                current_spend=current_spend,
+                limit_amount=monthly_limit,
+                percentage_used=percentage_used,
+                provider="global",
+                operation="budget_monitoring",
+                action_taken=[GuardrailAction.ALERT],
+                metadata={
+                    "threshold_type": alert_level,
+                    "warning_threshold": warning_threshold,
+                    "current_spend": float(current_spend),
+                    "monthly_limit": float(monthly_limit),
+                    "percentage_used": percentage_used,
+                    "days_remaining": (datetime.utcnow().replace(day=28).day - datetime.utcnow().day),
+                    "projected_monthly_spend": float(current_spend) * (30 / max(datetime.utcnow().day, 1)),
+                    "monitoring_type": "proactive_threshold",
+                },
+            )
+
+            # Send alert using existing system
+            try:
+                loop = asyncio.get_event_loop()
+                loop.run_until_complete(send_cost_alert(violation))
+            except RuntimeError:
+                asyncio.run(send_cost_alert(violation))
+
+            result["alert_sent"] = True
+            logger.warning(f"Budget threshold alert sent: {alert_level} at {percentage_used:.1%}")
+
+        except Exception as e:
+            logger.error(f"Failed to send budget threshold alert: {e}")
+            result["alert_sent"] = False
+    else:
+        result["alert_sent"] = False
+        logger.info(f"Budget monitoring OK: {percentage_used:.1%} of monthly limit")
+
+    # Create monitoring artifact
+    if PREFECT_AVAILABLE:
+        artifact_markdown = f"""# P2-040 Monthly Budget Monitoring
+
+**Status**: {alert_level.upper()}
+**Budget Used**: {percentage_used:.1%} (${current_spend:.2f} / ${monthly_limit:.2f})
+**Alert Level**: {alert_level}
+**Time**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+
+## Threshold Status
+- ✅ 70% Threshold: {'⚠️ TRIGGERED' if percentage_used >= 0.7 else '✅ OK'}
+- ✅ 80% Threshold: {'⚠️ TRIGGERED' if percentage_used >= 0.8 else '✅ OK'}  
+- ✅ 90% Threshold: {'🚨 TRIGGERED' if percentage_used >= 0.9 else '✅ OK'}
+- ✅ 100% Limit: {'🔴 EXCEEDED' if percentage_used >= 1.0 else '✅ OK'}
+
+## Projections
+- **Days in Month**: {datetime.utcnow().day}
+- **Projected Monthly**: ${float(current_spend) * (30 / max(datetime.utcnow().day, 1)):.2f}
+- **Remaining Budget**: ${float(monthly_limit - current_spend):.2f}
+"""
+        create_markdown_artifact(markdown=artifact_markdown, key="monthly-budget-monitor")
+
+    logger.info(f"Monthly budget monitoring complete: {alert_level}")
+    return result
+
+
+@flow(
     name="cost-guardrail-flow",
     description="Monitor costs and pause operations if over budget",
     retries=2,
@@ -575,10 +729,130 @@ def create_profit_snapshot_deployment() -> Deployment:
     return deployment
 
 
+def create_monthly_budget_monitor_deployment() -> Deployment:
+    """Create deployment for P2-040 monthly budget monitoring"""
+
+    deployment = Deployment.build_from_flow(
+        flow=monthly_budget_monitor_flow,
+        name="monthly-budget-monitor",
+        schedule=IntervalSchedule(interval=timedelta(hours=4)),  # Check every 4 hours
+        work_queue_name="monitoring",
+        parameters={"warning_threshold": 0.8},
+        description="P2-040: Proactive monthly budget threshold monitoring",
+        tags=["budget-monitoring", "p2-040", "cost-control", "phase-0.5"],
+    )
+
+    return deployment
+
+
+@task(
+    name="real-time-cost-check",
+    description="P2-040: Real-time API cost monitoring integration",
+    retries=1,
+    retry_delay_seconds=30,
+)
+def real_time_cost_check(operation_cost: float, provider: str = "unknown") -> Dict[str, any]:
+    """
+    P2-040: Real-time API cost monitoring - Check budget impact before operation
+
+    Integrates with existing budget monitoring to provide real-time cost tracking
+    and prevent budget overruns during expensive operations
+
+    Args:
+        operation_cost: Estimated cost of the operation in USD
+        provider: Provider name for the operation
+
+    Returns:
+        Dict with cost check results and recommendations
+    """
+    logger = get_run_logger()
+
+    # Get current budget status
+    is_over, percentage_used, alert_level, current_spend, monthly_limit = check_monthly_budget_threshold()
+
+    # Calculate projected spend after operation
+    projected_spend = current_spend + Decimal(str(operation_cost))
+    projected_percentage = float(projected_spend / monthly_limit) if monthly_limit > 0 else 0.0
+
+    # Determine if operation should proceed
+    should_proceed = True
+    recommendation = "proceed"
+
+    if projected_percentage >= 1.0:
+        should_proceed = False
+        recommendation = "block_critical"
+    elif projected_percentage >= 0.95:
+        should_proceed = False
+        recommendation = "block_high_risk"
+    elif projected_percentage >= 0.9:
+        recommendation = "proceed_with_caution"
+    elif projected_percentage >= 0.8:
+        recommendation = "proceed_with_monitoring"
+    else:
+        recommendation = "proceed"
+
+    result = {
+        "should_proceed": should_proceed,
+        "recommendation": recommendation,
+        "current_spend": float(current_spend),
+        "operation_cost": operation_cost,
+        "projected_spend": float(projected_spend),
+        "current_percentage": percentage_used,
+        "projected_percentage": projected_percentage,
+        "monthly_limit": float(monthly_limit),
+        "provider": provider,
+        "alert_level": alert_level,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    # Log recommendations
+    if not should_proceed:
+        logger.error(f"Operation blocked: {recommendation} - ${operation_cost} would exceed budget limits")
+    elif recommendation in ["proceed_with_caution", "proceed_with_monitoring"]:
+        logger.warning(f"Operation requires monitoring: {recommendation} - budget at {percentage_used:.1%}")
+    else:
+        logger.info(f"Operation approved: budget impact {projected_percentage:.1%}")
+
+    return result
+
+
+def get_budget_status_for_api() -> Dict[str, any]:
+    """
+    P2-040: API endpoint for real-time budget status
+
+    Provides current budget status for integration with other systems
+
+    Returns:
+        Dict with current budget status and thresholds
+    """
+    is_over, percentage_used, alert_level, current_spend, monthly_limit = check_monthly_budget_threshold()
+
+    return {
+        "status": "healthy"
+        if alert_level == "ok"
+        else "warning"
+        if alert_level in ["notice", "warning"]
+        else "critical",
+        "current_spend": float(current_spend),
+        "monthly_limit": float(monthly_limit),
+        "percentage_used": percentage_used,
+        "alert_level": alert_level,
+        "remaining_budget": float(monthly_limit - current_spend),
+        "thresholds": {"notice": 0.7, "warning": 0.8, "high": 0.9, "critical": 1.0},
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
 # Manual triggers for testing
 async def check_costs_now() -> Dict[str, any]:
     """Manually trigger cost guardrail check"""
     result = cost_guardrail_flow()
+    return result
+
+
+async def monitor_monthly_budget_now() -> Dict[str, any]:
+    """Manually trigger P2-040 monthly budget monitoring"""
+    result = monthly_budget_monitor_flow()
     return result
 
 

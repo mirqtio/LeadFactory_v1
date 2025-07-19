@@ -104,10 +104,9 @@ class BatchReport(Base):
     @property
     def duration_seconds(self) -> Optional[float]:
         """Calculate processing duration in seconds"""
-        if not self.started_at:
+        if not self.started_at or not self.completed_at:
             return None
-        end_time = self.completed_at or datetime.utcnow()
-        return (end_time - self.started_at).total_seconds()
+        return (self.completed_at - self.started_at).total_seconds()
 
     @property
     def success_rate(self) -> float:
@@ -127,6 +126,42 @@ class BatchReport(Base):
             self.progress_percentage = (processed / self.total_leads) * 100
 
         self.updated_at = datetime.utcnow()
+
+    def to_dict(self) -> dict:
+        """Convert batch report to dictionary"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "status": self.status.value if isinstance(self.status, BatchStatus) else self.status,
+            "total_leads": self.total_leads,
+            "processed_leads": self.processed_leads,
+            "successful_leads": self.successful_leads,
+            "failed_leads": self.failed_leads,
+            "progress_percentage": float(self.progress_percentage) if self.progress_percentage else 0.0,
+            "estimated_cost_usd": float(self.estimated_cost_usd) if self.estimated_cost_usd else None,
+            "actual_cost_usd": float(self.actual_cost_usd) if self.actual_cost_usd else None,
+            "template_version": self.template_version,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "started_at": self.started_at.isoformat() if self.started_at else None,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "created_by": self.created_by,
+            "retry_count": self.retry_count,
+        }
+
+    @property
+    def results_summary(self) -> dict:
+        """Get results summary"""
+        return {
+            "successful": self.successful_leads,
+            "failed": self.failed_leads,
+            "total_cost": float(self.actual_cost_usd) if self.actual_cost_usd else 0.0,
+            "success_rate": self.success_rate / 100 if self.processed_leads > 0 else 0.0,
+        }
+
+    def is_terminal_status(self) -> bool:
+        """Check if batch is in terminal status"""
+        return self.status in [BatchStatus.COMPLETED, BatchStatus.FAILED, BatchStatus.CANCELLED]
 
 
 class BatchReportLead(Base):
@@ -183,17 +218,17 @@ class BatchReportLead(Base):
     @property
     def processing_duration_seconds(self) -> Optional[float]:
         """Calculate processing duration in seconds"""
-        if not self.started_at:
+        if not self.started_at or not self.completed_at:
             return None
-        end_time = self.completed_at or datetime.utcnow()
-        return (end_time - self.started_at).total_seconds()
+        return (self.completed_at - self.started_at).total_seconds()
 
-    @property
-    def is_retryable(self) -> bool:
+    def is_retryable(self, max_retries: Optional[int] = None) -> bool:
         """Check if lead can be retried"""
-        return self.status == LeadProcessingStatus.FAILED and self.retry_count < self.max_retries
+        if max_retries is None:
+            max_retries = self.max_retries
+        return self.status == LeadProcessingStatus.FAILED and self.retry_count < max_retries
 
-    def mark_started(self):
+    def mark_processing(self):
         """Mark lead processing as started"""
         self.status = LeadProcessingStatus.PROCESSING
         self.started_at = datetime.utcnow()
@@ -203,6 +238,7 @@ class BatchReportLead(Base):
         report_url: Optional[str] = None,
         actual_cost: Optional[float] = None,
         quality_score: Optional[float] = None,
+        processing_time_ms: Optional[int] = None,
     ):
         """Mark lead processing as completed successfully"""
         self.status = LeadProcessingStatus.COMPLETED
@@ -215,8 +251,10 @@ class BatchReportLead(Base):
             self.actual_cost_usd = actual_cost
         if quality_score is not None:
             self.quality_score = quality_score
+        if processing_time_ms is not None:
+            self.processing_duration_ms = processing_time_ms
 
-        if self.started_at:
+        if self.started_at and processing_time_ms is None:
             duration_ms = (self.completed_at - self.started_at).total_seconds() * 1000
             self.processing_duration_ms = int(duration_ms)
 
@@ -239,3 +277,36 @@ class BatchReportLead(Base):
         self.completed_at = None
         self.error_message = None
         self.error_code = None
+
+    def to_dict(self) -> dict:
+        """Convert batch report lead to dictionary"""
+        return {
+            "id": self.id,
+            "batch_id": self.batch_id,
+            "lead_id": self.lead_id,
+            "status": self.status.value if isinstance(self.status, LeadProcessingStatus) else self.status,
+            "order_index": self.order_index,
+            "report_generated": self.report_generated,
+            "report_url": self.report_url,
+            "processing_duration_ms": self.processing_duration_ms,
+            "actual_cost_usd": float(self.actual_cost_usd) if self.actual_cost_usd else None,
+            "error_message": self.error_message,
+            "error_code": self.error_code,
+            "retry_count": self.retry_count,
+            "max_retries": self.max_retries,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "started_at": self.started_at.isoformat() if self.started_at else None,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "quality_score": float(self.quality_score) if self.quality_score else None,
+        }
+
+    def is_terminal_status(self) -> bool:
+        """Check if lead is in terminal status"""
+        return self.status in [LeadProcessingStatus.COMPLETED, LeadProcessingStatus.FAILED]
+
+    def reset_for_retry(self):
+        """Reset lead for retry attempt"""
+        self.status = LeadProcessingStatus.PENDING
+        self.error_message = None
+        self.error_code = None
+        self.completed_at = None

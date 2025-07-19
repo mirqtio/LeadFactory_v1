@@ -323,7 +323,16 @@ Legendary Coordination =
 - **Evidence Collection**: Comprehensive audit trails throughout development
 - **Crisis Resilience**: Rapid validation and fact-based problem resolution
 
-**Last Updated**: 2025-07-19 07:00:00 EDT  
-**Session Context**: 280+ minute legendary operation with dual PRP success + learning integration  
+#### 🚨 CRITICAL: Redis Status Update Enforcement (Added 2025-07-19)
+- **SILENT AGENTS**: Agents may stop posting Redis updates while continuing to work, breaking orchestrator visibility
+- **MANDATORY REMINDERS**: Include "REDIS UPDATE REQUIRED" in agent communications when status is stale
+- **UNIVERSAL FORMAT**: Remind agents of format: "Agent Symbol Task(Progress) | Activity | Blockers | Time | ETA"
+- **COORDINATION DEPENDENCY**: Orchestrator decision-making depends on accurate Redis status from all agents
+- **DETECTION**: Check Redis timestamps, send update reminders when agents go silent
+- **USER DISCOVERY**: User noticed Validator hadn't updated Redis despite active work
+- **SYSTEMATIC APPROACH**: Include Redis update reminders in all agent activation messages
+
+**Last Updated**: 2025-07-19 07:30:00 EDT  
+**Session Context**: 280+ minute legendary operation with dual PRP success + learning integration + Redis coordination  
 **Next Review**: 2025-07-26 (Weekly cycle)  
-**Process Version**: 1.1 (Legendary session learnings integrated)
+**Process Version**: 1.2 (Redis enforcement learnings integrated)

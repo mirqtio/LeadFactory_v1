@@ -202,6 +202,27 @@ prod-test:
 	@echo "Running full production readiness tests..."
 	python scripts/run_production_tests.py
 
+# Performance testing commands
+test-performance:
+	@echo "🚀 Running performance test suite..."
+	pytest tests/performance/ -v -m performance --tb=short
+
+test-performance-audit:
+	@echo "📊 Running P3-003 audit performance tests..."
+	pytest tests/performance/test_p3_003_audit_performance.py -v --tb=short
+
+test-performance-integration:
+	@echo "🔗 Running P3-003 + P2-040 integration performance tests..."
+	pytest tests/performance/test_integration_performance.py -v --tb=short
+
+test-performance-monitoring:
+	@echo "📈 Running production monitoring performance tests..."
+	pytest tests/performance/test_production_monitoring.py -v --tb=short
+
+test-performance-full:
+	@echo "🧪 Running complete performance validation suite..."
+	pytest tests/performance/ -v -m performance --tb=short --cov=lead_explorer.audit --cov=orchestrator.budget_monitor --cov-report=term-missing
+
 # Environment validation
 check-env:
 	@echo "Checking environment configuration..."
