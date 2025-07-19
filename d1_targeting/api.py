@@ -12,10 +12,13 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from account_management.models import AccountUser
+from core.auth import require_authenticated_user, require_delete_permission, require_write_permission
 from core.exceptions import LeadFactoryError
 from core.exceptions import ValidationError as CoreValidationError
 from core.logging import get_logger
 from core.metrics import metrics
+from core.rbac import Resource
 from database.session import SessionLocal
 
 from .batch_scheduler import BatchScheduler
@@ -98,7 +101,11 @@ def handle_api_errors(func):
 # Target Universe endpoints
 @router.post("/universes", response_model=TargetUniverseResponseSchema, status_code=201)
 @handle_api_errors
-async def create_target_universe(request: CreateTargetUniverseSchema, db: Session = Depends(get_db)):
+async def create_target_universe(
+    request: CreateTargetUniverseSchema,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = require_write_permission(Resource.TARGETING),
+):
     """
     Create a new target universe with specified targeting criteria.
 
@@ -142,6 +149,7 @@ async def create_target_universe(request: CreateTargetUniverseSchema, db: Sessio
 @router.get("/universes", response_model=List[TargetUniverseResponseSchema])
 async def list_target_universes(
     db: Session = Depends(get_db),
+    current_user: AccountUser = require_authenticated_user(),
     page: int = Query(default=1, ge=1, description="Page number"),
     size: int = Query(default=20, ge=1, le=100, description="Items per page"),
     name_contains: Optional[str] = Query(None, description="Filter by name containing text"),
@@ -203,7 +211,12 @@ async def get_target_universe(universe_id: str, db: Session = Depends(get_db)):
 
 @router.put("/universes/{universe_id}", response_model=TargetUniverseResponseSchema)
 @handle_api_errors
-async def update_target_universe(universe_id: str, request: UpdateTargetUniverseSchema, db: Session = Depends(get_db)):
+async def update_target_universe(
+    universe_id: str,
+    request: UpdateTargetUniverseSchema,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = require_write_permission(Resource.TARGETING),
+):
     """
     Update a target universe.
     """

@@ -12,15 +12,15 @@ ALL Project Requirement Plans (PRPs) are managed through a multi-agent orchestra
 - **validated**: PRP passed 6-gate review, ready for assignment
 - **assigned**: PRP assigned to PM, development starting
 - **development**: PM actively developing feature
-- **integration**: PM finished, handed off to Integration Agent
-- **validate**: Integration complete, awaiting Validator approval
-- **complete**: All requirements met, smoke CI passed, deployed
+- **validation**: PM finished, handed off to Validator for quality review
+- **integration**: Validator approved, handed off to Integration Agent for CI
+- **complete**: All requirements met, CI passed, Orchestrator verified
 
 🔒 STATE TRANSITION RULES & AGENT AUTHORITY:
-- **Orchestrator ONLY**: Assigns PRPs, changes priority, spawns subagents
-- **PM Authority**: new → assigned → development → integration (within assigned PRP)
-- **Integration Agent**: integration → validate (after smoke CI passes)
-- **Validator**: validate → complete (after quality gates pass)
+- **Orchestrator ONLY**: Assigns PRPs, changes priority, spawns subagents, marks complete after CI success
+- **PM Authority**: new → assigned → development → validation (within assigned PRP)
+- **Validator**: validation → integration (after quality gates pass) OR back to PM if rejected
+- **Integration Agent**: integration → ready for Orchestrator (after CI passes)
 - **NO backwards transitions** without Orchestrator override
 - **MULTIPLE PRPs** can be in different phases simultaneously
 
@@ -55,34 +55,34 @@ redis-cli SET agent:pm-1:status "coding"
 - **Integration Health**: Ensure Integration Agent isn't gaming system
 
 **👨‍💻 Project Manager (Feature Development)**:
-- **PRP Ownership**: Own assigned PRP from development → integration handoff
+- **PRP Ownership**: Own assigned PRP from development → validation handoff
 - **Feature Implementation**: Code, test, validate locally using `make quick-check`
 - **Branch Management**: Work on `feat/<prp-id>-<slug>` branches
-- **Handoff Protocol**: Push branch, set Redis state to "integration", move to next PRP
-- **CI Debug**: Return for debugging if Integration Agent hits complex failures
+- **Handoff Protocol**: Push branch, set Redis state to "validation", move to next PRP
+- **Quality Fixes**: Return for fixes if Validator rejects for quality issues
 - **Evidence Collection**: Document implementation for Validator review
 
-**🔄 Integration Agent (Merge & CI Orchestration)**:
-- **Merge Management**: Pull from Redis integration queue, acquire merge lock
-- **Branch Integration**: Merge feature branches to main using fast-forward/rebase
-- **Smoke CI**: Run fast smoke test suite (≤5 min) - NOT full BPCI
-- **Failure Triage**: Simple failures → fix; complex failures → ping owning PM
-- **Pipeline Health**: Monitor CI health, release merge lock after success/rollback
-- **Queue Management**: Process integration queue, notify Orchestrator of backups
-
 **✅ Validator (Quality Gates)**:
-- **Completion Review**: Verify PRP meets ALL success criteria before marking complete
-- **Evidence Validation**: Review PM documentation, test results, CI logs
+- **Quality Review**: Receive PRPs from PMs, verify ALL success criteria met
+- **Evidence Validation**: Review PM documentation, test results, local validation
 - **Standards Enforcement**: Ensure no corners cut, no "functionally complete" shortcuts
 - **Quality Gates**: Run comprehensive validation including coverage, performance
-- **Escalation**: Reject incomplete work back to PM via Orchestrator
+- **Handoff Decision**: Pass to Integration Agent OR reject back to PM
 - **Metrics Tracking**: Monitor completion quality, flag declining standards
 
+**🔄 Integration Agent (Merge & CI Orchestration)**:
+- **Merge Management**: Receive Validator-approved PRPs, acquire merge lock
+- **Branch Integration**: Merge feature branches to main using fast-forward/rebase
+- **CI Execution**: Run full CI suite - smoke tests, integration tests, deployment
+- **CI Monitoring**: Monitor CI success/failure, handle simple fixes
+- **Orchestrator Handoff**: Report CI results to Orchestrator for final completion
+- **Queue Management**: Process integration queue, notify Orchestrator of backups
+
 🚨 CRITICAL: Definition of "Complete" 🚨🚨🚨
-A PRP is ONLY complete when Validator confirms:
+A PRP is ONLY complete when Orchestrator confirms:
 - **PM Evidence**: Feature implemented with passing `make quick-check`
-- **Integration Success**: Merged to main with smoke CI passing (≤5 min suite)
-- **Quality Gates**: All success criteria met (no shortcuts or "functional completion")
+- **Validator Approval**: All quality gates passed, standards met
+- **Integration Success**: Merged to main with full CI passing
 - **No Regressions**: Existing functionality unaffected
 - **Standards Compliance**: Code quality, testing, documentation standards met
 - **Deployment Verified**: Feature accessible in deployed environment
@@ -264,24 +264,24 @@ Available validation commands:
 2. Execute `/analyze --focus requirements` to understand scope
 3. Implement using `/implement` with appropriate personas
 4. Validate locally with `make quick-check` (MANDATORY)
-5. Update Redis evidence and handoff to Integration Agent
-6. Available for callback if complex CI failures occur
-
-**Integration Agent Workflow**:
-1. Monitor Redis integration queue for new PRPs
-2. Acquire merge lock and execute `/git` workflow commands
-3. Run smoke CI suite (≤5 min validation)
-4. Handle simple failures, escalate complex issues to PM
-5. Update Redis state and handoff to Validator
-6. Release merge lock and process next queue item
+5. Update Redis evidence and handoff to Validator
+6. Available for callback if Validator rejects for quality issues
 
 **Validator Workflow**:
-1. Receive handoff from Integration Agent via Redis
+1. Receive handoff from PM via Redis validation queue
 2. Execute `/analyze --focus quality --persona-qa` comprehensive review
 3. Execute `/analyze --focus security --persona-security` validation
-4. Review all agent evidence and test results
+4. Review all PM evidence and test results
 5. Run PRP completion validator (MUST score 100/100)
-6. Mark complete in Redis or escalate failures to Orchestrator
+6. Pass to Integration Agent OR reject back to PM via Redis
+
+**Integration Agent Workflow**:
+1. Monitor Redis integration queue for Validator-approved PRPs
+2. Acquire merge lock and execute `/git` workflow commands
+3. Run full CI suite - smoke tests, integration tests, deployment
+4. Handle simple failures, escalate complex issues to PM
+5. Report CI success/failure to Orchestrator for final completion
+6. Release merge lock and process next queue item
 
 **Orchestrator Workflow**:
 1. Monitor Redis agent health and queue status every 10 minutes

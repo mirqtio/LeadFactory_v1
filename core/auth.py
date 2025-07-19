@@ -1,6 +1,6 @@
 """Authentication utilities for FastAPI routes with RBAC support"""
 import os
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -13,8 +13,25 @@ from core.config import settings
 from core.logging import get_logger
 from database.session import get_db
 
+if TYPE_CHECKING:
+    from core.rbac import Permission, RBACService, Resource, Role
+
 logger = get_logger(__name__)
 security = HTTPBearer()
+
+# Import RBAC system for integration
+try:
+    from core.rbac import Permission, RBACService, Resource, Role
+
+    RBAC_ENABLED = True
+except ImportError:
+    logger.warning("RBAC system not available")
+    RBAC_ENABLED = False
+    # Define stub types for when RBAC is not available
+    Permission = None
+    Resource = None
+    Role = None
+    RBACService = None
 
 
 def get_current_user_dependency(
@@ -193,3 +210,114 @@ def get_current_user() -> Optional[str]:
     """
     # TODO: Implement actual user authentication
     return "system"
+
+
+def get_current_user_with_rbac(
+    permission: Optional["Permission"] = None,
+    resource: Optional["Resource"] = None,
+    required_role: Optional["Role"] = None,
+):
+    """
+    Enhanced authentication dependency with RBAC support
+
+    Args:
+        permission: Required permission for access
+        resource: Target resource for permission check
+        required_role: Minimum required role
+
+    Returns:
+        Dependency function that returns authenticated user with RBAC validation
+    """
+
+    def dependency(
+        credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)
+    ) -> AccountUser:
+        # First, authenticate the user
+        user = get_current_user_dependency(credentials, db)
+
+        if not RBAC_ENABLED:
+            logger.warning("RBAC not enabled, skipping authorization checks")
+            return user
+
+        # Perform RBAC checks if specified
+        if required_role:
+            user_role = RBACService.get_user_role(user, db)
+            role_hierarchy = {
+                Role.GUEST: 0,
+                Role.VIEWER: 1,
+                Role.SALES_REP: 2,
+                Role.MARKETING_USER: 2,
+                Role.ANALYST: 3,
+                Role.TEAM_LEAD: 4,
+                Role.MANAGER: 5,
+                Role.ADMIN: 6,
+                Role.SUPER_ADMIN: 7,
+            }
+
+            user_level = role_hierarchy.get(user_role, 0)
+            required_level = role_hierarchy.get(required_role, 0)
+
+            if user_level < required_level:
+                logger.warning(
+                    f"Role access denied: user={user.email}, role={user_role.value}, required={required_role.value}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN, detail=f"Insufficient role. Required: {required_role.value}"
+                )
+
+        if permission:
+            if not RBACService.has_permission(user, permission, resource, db):
+                user_role = RBACService.get_user_role(user, db)
+                logger.warning(
+                    f"Permission denied: user={user.email}, role={user_role.value}, permission={permission.value}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Insufficient permissions. Required: {permission.value}"
+                    + (f" on {resource.value}" if resource else ""),
+                )
+
+        return user
+
+    return dependency
+
+
+# Convenience functions for common RBAC patterns
+def require_authenticated_user():
+    """Require any authenticated user"""
+    return Depends(get_current_user_dependency)
+
+
+def require_read_permission(resource: Optional["Resource"] = None):
+    """Require read permission on resource"""
+    if RBAC_ENABLED:
+        return get_current_user_with_rbac(permission=Permission.READ, resource=resource)
+    return require_authenticated_user()
+
+
+def require_write_permission(resource: Optional["Resource"] = None):
+    """Require create/update permission on resource"""
+    if RBAC_ENABLED:
+        return get_current_user_with_rbac(permission=Permission.CREATE, resource=resource)
+    return require_authenticated_user()
+
+
+def require_delete_permission(resource: Optional["Resource"] = None):
+    """Require delete permission on resource"""
+    if RBAC_ENABLED:
+        return get_current_user_with_rbac(permission=Permission.DELETE, resource=resource)
+    return require_authenticated_user()
+
+
+def require_admin_role():
+    """Require admin role or higher"""
+    if RBAC_ENABLED:
+        return get_current_user_with_rbac(required_role=Role.ADMIN)
+    return require_authenticated_user()
+
+
+def require_manager_role():
+    """Require manager role or higher"""
+    if RBAC_ENABLED:
+        return get_current_user_with_rbac(required_role=Role.MANAGER)
+    return require_authenticated_user()
