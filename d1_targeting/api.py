@@ -240,7 +240,11 @@ async def update_target_universe(
 
 @router.delete("/universes/{universe_id}", response_model=BaseResponseSchema)
 @handle_api_errors
-async def delete_target_universe(universe_id: str, db: Session = Depends(get_db)):
+async def delete_target_universe(
+    universe_id: str,
+    db: Session = Depends(get_db),
+    current_user: AccountUser = require_delete_permission(Resource.TARGETING),
+):
     """
     Delete (soft delete) a target universe.
     """

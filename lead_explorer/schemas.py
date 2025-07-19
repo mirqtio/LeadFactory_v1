@@ -29,6 +29,21 @@ class AuditActionEnum(str, Enum):
     DELETE = "delete"
 
 
+class BadgeTypeEnum(str, Enum):
+    """Badge type enumeration"""
+
+    PRIORITY = "priority"
+    QUALIFIED = "qualified"
+    CONTACTED = "contacted"
+    OPPORTUNITY = "opportunity"
+    CUSTOMER = "customer"
+    BLOCKED = "blocked"
+    FOLLOW_UP = "follow_up"
+    DEMO_SCHEDULED = "demo_scheduled"
+    PROPOSAL_SENT = "proposal_sent"
+    CUSTOM = "custom"
+
+
 # Base schemas
 class BaseResponseSchema(BaseModel):
     """Base response schema with common fields"""
@@ -269,28 +284,13 @@ class HealthCheckResponseSchema(BaseModel):
 
 
 # P0-021: Badge Management Schemas
-class BadgeTypeEnum(str, Enum):
-    """Badge type enumeration"""
-
-    PRIORITY = "priority"
-    QUALIFIED = "qualified"
-    CONTACTED = "contacted"
-    OPPORTUNITY = "opportunity"
-    CUSTOMER = "customer"
-    BLOCKED = "blocked"
-    FOLLOW_UP = "follow_up"
-    DEMO_SCHEDULED = "demo_scheduled"
-    PROPOSAL_SENT = "proposal_sent"
-    CUSTOM = "custom"
-
-
 class CreateBadgeSchema(BaseModel):
     """Schema for creating a new badge"""
 
     name: str = Field(..., min_length=1, max_length=100, description="Badge name")
     description: Optional[str] = Field(None, max_length=1000, description="Badge description")
     badge_type: BadgeTypeEnum = Field(..., description="Badge type")
-    color: str = Field("#007bff", regex=r"^#[0-9A-Fa-f]{6}$", description="Hex color code")
+    color: str = Field("#007bff", pattern=r"^#[0-9A-Fa-f]{6}$", description="Hex color code")
     icon: Optional[str] = Field(None, max_length=50, description="Bootstrap icon name")
     is_system: bool = Field(False, description="Is this a system badge?")
     is_active: bool = Field(True, description="Is this badge active?")

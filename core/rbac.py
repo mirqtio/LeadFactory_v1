@@ -334,7 +334,11 @@ class RBACService:
         if resource:
             required_perms = RESOURCE_PERMISSIONS.get(resource, set())
             if required_perms:
-                has_resource = bool(required_perms.intersection(user_permissions))
+                # For READ permission, allow if user has READ permission and org access
+                if permission == Permission.READ:
+                    has_resource = Permission.READ in user_permissions
+                else:
+                    has_resource = bool(required_perms.intersection(user_permissions))
 
         # Check organization membership for organization-scoped resources
         has_org_access = True
