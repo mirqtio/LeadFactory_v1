@@ -57,6 +57,34 @@
 - **DISCOVERY**: 290+ minute session communication breakdown resolved by using correct window protocol
 - **CRITICAL**: Agents worry when orchestrator communication fails - immediate response required
 
+#### 🚨 CRITICAL: PRP File Location Requirement (Added 2025-07-19)
+- **MANDATORY**: ALL agents working on PRPs MUST receive the actual PRP file paths
+- **LOCATION**: `/Users/charlieirwin/Documents/GitHub/LeadFactory_v1_Final/.claude/PRPs/PRP-[ID]-[name].md`
+- **MISSING STEP**: User discovered orchestrator was NOT providing PRP file locations to agents
+- **IMPACT**: Agents were working without complete requirements, acceptance criteria, or technical specifications
+- **CORRECTION**: Immediately send PRP file paths to PM agents, Validator, and Integration Agent
+- **VALIDATION**: Verify agents have read the actual PRP files before proceeding with implementation
+- **EXAMPLE**: P2-040 was misidentified as "Dynamic Report Designer" when it's actually "Orchestration Budget Stop"
+- **PROCESS**: Always provide: `/path/to/PRP-file.md` with instructions to read complete requirements
+
+#### 🚨 CRITICAL: PRP Evidence Documentation Process (Added 2025-07-19)
+- **MANDATORY**: PM agents MUST update PRP files with evidence for each success criteria as they complete work
+- **EVIDENCE FORMAT**: Add `✅ [Evidence: description]` or `✅ [Complete: test results/metrics/links]` after each criteria
+- **WORKFLOW**: PM completes work → Updates PRP file with evidence → Validator reviews evidence in PRP → Integration validates evidence trail
+- **BENEFITS**: Complete audit trail, no missed requirements, seamless handoffs, clear completion validation
+- **EXAMPLE**: `- [x] Cost preview calculation accurate within ±5% ✅ [Evidence: test_cost_accuracy.py shows 2.3% deviation, benchmark data attached]`
+- **HANDOFF**: PRP file becomes living documentation with implementation evidence for Validator review
+- **USER SUGGESTION**: This ensures evidence flows through PM → Validator → Orchestrator with complete traceability
+
+#### 🚨 CRITICAL: Universal Status Format & 10-Minute Checkin Protocol (Added 2025-07-19)
+- **MANDATORY**: Orchestrator MUST perform 10-minute checkins using `/Users/charlieirwin/Tmux-Orchestrator/next_check_note.txt`
+- **UNIVERSAL FORMAT**: `{Agent} {Symbol} {Task}({Progress}) | {Activity} | {Blockers} | ⏱️{Time} | ETA:{Estimate}`
+- **EXAMPLE**: `PM-1 🔄 P0-022 (60%) | implementing bulk validation tests | ✅ no blockers | ⏱️05:30 | ETA:15m`
+- **STATUS SYMBOLS**: 📋 PENDING, 🔄 IN_PROGRESS, ⚠️ BLOCKED, ✅ COMPLETE, 🚨 URGENT, 🟢 READY, ❌ FAILED, 📊 ANALYZING
+- **REDIS COORDINATION**: Status updates go to Redis, NOT chat channels - chat for specific task coordination only
+- **AGENT CONSENSUS**: All 5 agents approved format with enhancements for human readability and machine parsing
+- **IMPLEMENTATION**: Added to CLAUDE.md as mandatory orchestrator protocol with Redis integration requirements
+
 ### Tool Usage Refinements
 - **Tmux Commands**: Pre-defined command templates for common agent interactions
 - **Redis Patterns**: Structured key naming for cross-agent coordination

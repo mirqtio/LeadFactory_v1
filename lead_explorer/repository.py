@@ -75,6 +75,21 @@ class LeadRepository:
         """Get lead by ID"""
         return self.db.query(Lead).filter(Lead.id == lead_id, Lead.is_deleted.is_(False)).first()
 
+    def get_leads_by_ids(self, lead_ids: List[str]) -> List[Lead]:
+        """
+        Get multiple leads by IDs in a single query (bulk operation)
+
+        Args:
+            lead_ids: List of lead IDs to retrieve
+
+        Returns:
+            List of Lead objects found (only existing, non-deleted leads)
+        """
+        if not lead_ids:
+            return []
+
+        return self.db.query(Lead).filter(Lead.id.in_(lead_ids), Lead.is_deleted.is_(False)).all()
+
     def get_lead_by_email(self, email: str) -> Optional[Lead]:
         """Get lead by email"""
         return self.db.query(Lead).filter(Lead.email == email.lower(), Lead.is_deleted.is_(False)).first()

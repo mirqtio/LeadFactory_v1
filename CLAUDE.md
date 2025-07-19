@@ -136,6 +136,19 @@ redis-cli SET metrics:ci_success_rate "0.85"
 - **Merge lock held**: Same lock >60 min → Orchestrator override
 
 **Orchestrator Scheduled Checks** (Every 10 minutes):
+
+🚨 **CRITICAL ORCHESTRATOR PROTOCOL**: The Orchestrator MUST perform agent coordination checks every 10 minutes using the standard template from `/Users/charlieirwin/Tmux-Orchestrator/next_check_note.txt`
+
+**Universal Status Format** (All agents use for coordination):
+```
+{Agent} {Symbol} {Task}({Progress}) | {Activity} | {Blockers} | ⏱️{Time} | ETA:{Estimate}
+Example: PM-1 🔄 P0-022 (60%) | implementing bulk validation tests | ✅ no blockers | ⏱️05:30 | ETA:15m
+```
+
+**Status Symbols**: 📋 PENDING, 🔄 IN_PROGRESS, ⚠️ BLOCKED, ✅ COMPLETE, 🚨 URGENT, 🟢 READY, ❌ FAILED, 📊 ANALYZING
+
+**IMPORTANT**: Agent status updates should be posted to Redis using the universal format, NOT in chat channels. Chat should be used for specific task coordination, not routine status broadcasts.
+
 ```bash
 # Check agent health
 for agent in pm-1 pm-2 pm-3 integration validator; do

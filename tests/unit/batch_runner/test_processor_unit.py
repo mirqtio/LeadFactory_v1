@@ -184,7 +184,7 @@ class TestBatchProcessorUnit:
         mock_settings.return_value = type(
             "Settings",
             (),
-            {"batch_runner_max_concurrent": 3, "batch_runner_retry_count": 2, "batch_runner_processing_timeout": 300},
+            {"BATCH_MAX_CONCURRENT_LEADS": 3, "batch_runner_retry_count": 2, "batch_runner_processing_timeout": 300},
         )()
 
         mock_conn.return_value = MagicMock()
@@ -195,7 +195,7 @@ class TestBatchProcessorUnit:
 
         # Verify concurrency settings are applied
         mock_thread.assert_called_once_with(max_workers=3)
-        assert processor.settings.batch_runner_max_concurrent == 3
+        assert processor.max_concurrent_leads == 3
 
     @patch("batch_runner.processor.get_settings")
     @patch("batch_runner.processor.get_connection_manager")

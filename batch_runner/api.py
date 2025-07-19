@@ -95,24 +95,24 @@ async def preview_batch_cost(request: CreateBatchSchema, db: Session = Depends(g
     """
     logger.info(f"Previewing batch cost for {len(request.lead_ids)} leads")
 
-    # Validate lead IDs exist
+    # Validate lead IDs exist (bulk operation for performance)
     from lead_explorer.repository import LeadRepository
 
     lead_repo = LeadRepository(db)
 
-    valid_leads = []
-    for lead_id in request.lead_ids:
-        lead = lead_repo.get_lead_by_id(lead_id)
-        if lead:
-            valid_leads.append(lead_id)
-        else:
-            logger.warning(f"Lead {lead_id} not found for batch preview")
+    # Single query to get all existing leads
+    existing_leads = lead_repo.get_leads_by_ids(request.lead_ids)
+    valid_leads = [lead.id for lead in existing_leads]
+
+    # Log any missing leads
+    if len(valid_leads) != len(request.lead_ids):
+        missing_leads = set(request.lead_ids) - set(valid_leads)
+        for missing_id in missing_leads:
+            logger.warning(f"Lead {missing_id} not found for batch preview")
+        logger.warning(f"Only {len(valid_leads)} of {len(request.lead_ids)} leads are valid")
 
     if not valid_leads:
         raise HTTPException(status_code=422, detail="No valid leads found")
-
-    if len(valid_leads) != len(request.lead_ids):
-        logger.warning(f"Only {len(valid_leads)} of {len(request.lead_ids)} leads are valid")
 
     # Calculate cost preview
     cost_calculator = get_cost_calculator()
@@ -157,16 +157,14 @@ async def start_batch_processing_endpoint(
     """
     logger.info(f"Starting batch processing for {len(request.lead_ids)} leads")
 
-    # Validate leads again
+    # Validate leads again (bulk operation for performance)
     from lead_explorer.repository import LeadRepository
 
     lead_repo = LeadRepository(db)
 
-    valid_leads = []
-    for lead_id in request.lead_ids:
-        lead = lead_repo.get_lead_by_id(lead_id)
-        if lead:
-            valid_leads.append(lead_id)
+    # Single query to get all existing leads
+    existing_leads = lead_repo.get_leads_by_ids(request.lead_ids)
+    valid_leads = [lead.id for lead in existing_leads]
 
     if not valid_leads:
         raise HTTPException(status_code=422, detail="No valid leads found")

@@ -1,13 +1,18 @@
 """
 Cost guardrail flows for Phase 0.5
 Task OR-09: Prefect cost_guardrail & profit_snapshot flows
+P2-040: Orchestration Budget Stop - Monthly circuit breaker
 
 Monitors spending limits and profitability metrics to ensure
 the system stays within budget and maintains positive unit economics.
+Includes monthly budget circuit breaker to prevent exceeding planned spend.
 """
 
 import asyncio
+from calendar import monthrange
 from datetime import datetime, timedelta
+from decimal import Decimal
+from functools import wraps
 from typing import Dict, List, Optional, Tuple
 
 try:
@@ -63,9 +68,129 @@ except ImportError:
 from sqlalchemy import text
 
 from core.config import get_settings
-from d0_gateway.guardrail_alerts import GuardrailViolation, send_cost_alert
-from d0_gateway.guardrails import AlertSeverity, guardrail_manager
+from d0_gateway.guardrail_alerts import send_cost_alert
+from d0_gateway.guardrails import AlertSeverity, GuardrailAction, GuardrailViolation, LimitScope, guardrail_manager
 from database.session import SessionLocal
+
+
+# P2-040: Budget Circuit Breaker Implementation
+class BudgetExceededException(Exception):
+    """Raised when monthly budget is exceeded"""
+
+    def __init__(self, current_spend: Decimal, monthly_limit: Decimal, message: str = None):
+        self.current_spend = current_spend
+        self.monthly_limit = monthly_limit
+        self.message = message or f"Monthly budget exceeded: ${current_spend} / ${monthly_limit}"
+        super().__init__(self.message)
+
+
+def get_monthly_costs() -> Decimal:
+    """Get current month's total costs"""
+    with SessionLocal() as db:
+        # Get first and last day of current month
+        now = datetime.utcnow()
+        first_day = now.replace(day=1).date()
+
+        # Query monthly costs from both daily aggregates and individual costs
+        query = text(
+            """
+            SELECT 
+                COALESCE(SUM(total_cost_usd), 0) as monthly_cost
+            FROM agg_daily_cost
+            WHERE date >= :first_day AND date <= :today
+            
+            UNION ALL
+            
+            SELECT 
+                COALESCE(SUM(cost_usd), 0) as monthly_cost
+            FROM fct_api_cost
+            WHERE DATE(timestamp) >= :first_day 
+            AND DATE(timestamp) <= :today
+            AND timestamp > (
+                SELECT COALESCE(MAX(date), '1900-01-01') 
+                FROM agg_daily_cost 
+                WHERE date >= :first_day
+            )
+        """
+        )
+
+        result = db.execute(query, {"first_day": first_day, "today": now.date()}).fetchall()
+
+        # Sum both aggregated and non-aggregated costs
+        total_cost = sum(Decimal(str(row.monthly_cost)) for row in result)
+        return total_cost
+
+
+def check_monthly_budget_limit() -> tuple[bool, Decimal, Decimal]:
+    """
+    Check if monthly budget limit is exceeded
+
+    Returns:
+        (is_exceeded, current_spend, monthly_limit)
+    """
+    settings = get_settings()
+    monthly_limit = Decimal(str(getattr(settings, "guardrail_global_monthly_limit", 3000.0)))
+    current_spend = get_monthly_costs()
+
+    is_exceeded = current_spend >= monthly_limit
+    return is_exceeded, current_spend, monthly_limit
+
+
+def budget_circuit_breaker(flow_func):
+    """
+    P2-040: Decorator to check monthly budget before flow execution
+
+    When ledger total > monthly cap, flows transition to Failed with custom message.
+    Preserves state for auto-resume next month.
+    """
+
+    @wraps(flow_func)
+    def wrapper(*args, **kwargs):
+        # Check monthly budget
+        is_exceeded, current_spend, monthly_limit = check_monthly_budget_limit()
+
+        if is_exceeded:
+            # Send alert notification
+            try:
+                violation = GuardrailViolation(
+                    limit_name="monthly_budget_circuit_breaker",
+                    scope=LimitScope.GLOBAL,
+                    severity=AlertSeverity.CRITICAL,
+                    current_spend=current_spend,
+                    limit_amount=monthly_limit,
+                    percentage_used=float(current_spend / monthly_limit),
+                    provider="global",
+                    operation="flow_execution",
+                    action_taken=[GuardrailAction.BLOCK],
+                    metadata={
+                        "flow_name": flow_func.__name__,
+                        "current_spend": float(current_spend),
+                        "monthly_limit": float(monthly_limit),
+                        "exceeded_by": float(current_spend - monthly_limit),
+                        "action": "flow_blocked",
+                        "auto_resume": "next_month",
+                    },
+                )
+
+                # Use asyncio to call the async function
+                try:
+                    loop = asyncio.get_event_loop()
+                    loop.run_until_complete(send_cost_alert(violation))
+                except RuntimeError:
+                    # No event loop running, create a new one
+                    asyncio.run(send_cost_alert(violation))
+            except Exception as e:
+                logger = get_run_logger() if PREFECT_AVAILABLE else None
+                if logger:
+                    logger.error(f"Failed to send budget alert: {e}")
+
+            # Raise exception to fail the flow with preserved state
+            raise BudgetExceededException(current_spend, monthly_limit)
+
+        # Budget OK - proceed with flow execution
+        return flow_func(*args, **kwargs)
+
+    return wrapper
 
 
 @task(
