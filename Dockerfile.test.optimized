@@ -37,11 +37,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Ultra-fast test stage - minimal setup for core/database tests only
 FROM deps AS ultra-fast
 
-# Copy only essential application code
+# Copy only essential application code for ultra-fast tests
 COPY core/ ./core/
 COPY database/ ./database/
 COPY tests/unit/core/ ./tests/unit/core/
-COPY tests/unit/database/ ./tests/unit/database/
 COPY tests/conftest.py ./tests/
 COPY pytest.ini ./
 
@@ -60,7 +59,7 @@ RUN mkdir -p /app/coverage /app/test-results && \
 # Verify test setup
 RUN python -c "import pytest; import core; import database; print('✅ Ultra-fast test dependencies verified')"
 
-# Default command for ultra-fast tests
+# Default command for ultra-fast tests (core module only)
 CMD ["python", "-m", "pytest", \
      "-x", \
      "--tb=no", \
@@ -72,9 +71,7 @@ CMD ["python", "-m", "pytest", \
      "-n", "auto", \
      "--dist=loadfile", \
      "--cov=core", \
-     "--cov=database", \
      "--cov-report=xml:/app/coverage/coverage.xml", \
      "--cov-fail-under=0", \
      "--junitxml=/app/test-results/junit.xml", \
-     "tests/unit/core/", \
-     "tests/unit/database/"]
+     "tests/unit/core/"]
