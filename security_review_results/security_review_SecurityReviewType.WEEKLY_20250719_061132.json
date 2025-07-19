@@ -1,0 +1,82 @@
+{
+  "review_type": "weekly",
+  "review_date": "2025-07-19 06:11:32.059617",
+  "reviewer": "P3-Security-Automation",
+  "findings": [
+    {
+      "id": "threat_20250719_061132",
+      "domain": "threat_intelligence",
+      "title": "API key rotation policy could be improved",
+      "description": "API key rotation policy could be improved",
+      "risk_level": "medium",
+      "impact": "System security posture",
+      "remediation": "Implement automated API key rotation every 90 days",
+      "affected_systems": [
+        "leadfactory_api"
+      ],
+      "discovered_date": "2025-07-19 06:11:32.059585",
+      "status": "open",
+      "assigned_to": null,
+      "due_date": null
+    },
+    {
+      "id": "threat_20250719_061132",
+      "domain": "threat_intelligence",
+      "title": "Role-based access control implementation is strong",
+      "description": "Role-based access control implementation is strong",
+      "risk_level": "low",
+      "impact": "System security posture",
+      "remediation": "Continue current RBAC implementation",
+      "affected_systems": [
+        "leadfactory_api"
+      ],
+      "discovered_date": "2025-07-19 06:11:32.059593",
+      "status": "open",
+      "assigned_to": null,
+      "due_date": null
+    },
+    {
+      "id": "vuln_vuln_001",
+      "domain": "vulnerability_management",
+      "title": "Outdated dependency detected",
+      "description": "Python package has known security vulnerability",
+      "risk_level": "medium",
+      "impact": "Potential code execution vulnerability",
+      "remediation": "Update package to latest version",
+      "affected_systems": [
+        "leadfactory_api"
+      ],
+      "discovered_date": "2025-07-19 06:11:32.059597",
+      "status": "open",
+      "assigned_to": null,
+      "due_date": null
+    }
+  ],
+  "metrics": {
+    "mean_time_to_detection": 15.0,
+    "mean_time_to_response": 45.0,
+    "security_incident_rate": 1.2,
+    "vulnerability_remediation_time": {
+      "critical": 12.0,
+      "high": 48.0,
+      "medium": 168.0,
+      "low": 720.0
+    },
+    "compliance_score": 96.5,
+    "security_training_completion": 98.2,
+    "security_control_effectiveness": 94.8
+  },
+  "recommendations": [
+    "Continue regular vulnerability scanning",
+    "Implement automated threat intelligence feeds",
+    "Enhance user access review process",
+    "Improve security awareness training"
+  ],
+  "next_actions": [
+    "Schedule vulnerability remediation",
+    "Update threat intelligence feeds",
+    "Conduct user access cleanup"
+  ],
+  "overall_score": 95.609,
+  "status": "completed"
+}

@@ -309,7 +309,7 @@ class UpdateBadgeSchema(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100, description="Badge name")
     description: Optional[str] = Field(None, max_length=1000, description="Badge description")
     badge_type: Optional[BadgeTypeEnum] = Field(None, description="Badge type")
-    color: Optional[str] = Field(None, regex=r"^#[0-9A-Fa-f]{6}$", description="Hex color code")
+    color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$", description="Hex color code")
     icon: Optional[str] = Field(None, max_length=50, description="Bootstrap icon name")
     is_active: Optional[bool] = Field(None, description="Is this badge active?")
 

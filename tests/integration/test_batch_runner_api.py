@@ -47,8 +47,8 @@ class TestBatchRunnerAPIIntegration:
     """Integration tests for all Batch Runner API endpoints"""
 
     def test_health_check_endpoint(self, test_client):
-        """Test GET /api/batch/health endpoint"""
-        response = test_client.get("/api/batch/health")
+        """Test GET /api/health endpoint"""
+        response = test_client.get("/api/health")
 
         assert response.status_code == 200
         data = response.json()

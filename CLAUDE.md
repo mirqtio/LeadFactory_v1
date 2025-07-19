@@ -336,5 +336,28 @@ Available validation commands:
 - Use SuperClaude framework integration for enhanced AI capabilities.
 - Maintain agent role boundaries and escalation procedures.
 
+# Orchestrator Learning System
+
+📚 **Learning & Process Improvement Framework**:
+- **Learning File**: `.claude/orchestrator_learnings.md` - Comprehensive session insights and process optimizations
+- **Structure**: Process Improvement Suggestions (top) → Ongoing Learnings (bottom)
+- **Agent Learning**: Each agent maintains their own learning files for domain expertise
+- **Review Cycle**: Regular learning capture during 10-minute orchestrator checks
+- **Improvement Integration**: Process suggestions evaluated and implemented continuously
+
+**Learning Capture Requirements**:
+- Document session patterns, crisis resolutions, and coordination successes
+- Track agent-specific performance insights and optimization opportunities
+- Maintain process improvement suggestions by agent role (PM, Validator, Integration)
+- Update operational protocols based on real-world session experience
+- Ask agents regularly for process improvement suggestions and learning contributions
+
+**Process Evolution Principles**:
+- Continuous improvement through systematic learning capture
+- Evidence-based process optimization using session data
+- Cross-agent pattern recognition and knowledge sharing
+- Operational excellence through iterative refinement
+- Strategic decision support through historical insight analysis
+
 # Tmux Communication Notes
 - **IMPORTANT**: When sending a prompt to another tmux window the Enter key must be sent as a second command.
