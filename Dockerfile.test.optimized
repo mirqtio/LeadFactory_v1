@@ -42,7 +42,8 @@ COPY core/ ./core/
 COPY database/ ./database/
 COPY tests/unit/core/ ./tests/unit/core/
 COPY tests/unit/database/ ./tests/unit/database/
-COPY conftest.py pytest.ini ./
+COPY tests/conftest.py ./tests/
+COPY pytest.ini ./
 
 # Set environment variables for testing
 ENV PYTHONPATH=/app
