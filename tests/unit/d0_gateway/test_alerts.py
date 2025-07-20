@@ -34,7 +34,7 @@ from d0_gateway.guardrails import AlertSeverity, GuardrailViolation
 class TestAlertModels:
     """Test alert data models."""
 
-    def test_alert_context_creation(self):
+    def test_alert_context_creation(self, test_db):
         """Test AlertContext model creation."""
         violation = GuardrailViolation(
             limit_name="daily_spend",
@@ -45,6 +45,8 @@ class TestAlertModels:
             percentage_used=0.855,
             severity=AlertSeverity.WARNING,
             campaign_id=123,
+            scope="campaign",
+            action_taken=["block"],
         )
 
         context = AlertContext(
@@ -86,7 +88,7 @@ class TestAlertModels:
         assert template.html_body == "<p>Provider {provider} has an issue</p>"
         assert template.slack_blocks == [{"type": "section", "text": "Test"}]
 
-    def test_alert_history_creation(self):
+    def test_alert_history_creation(self, test_db):
         """Test AlertHistory model creation."""
         now = datetime.utcnow()
         violation = GuardrailViolation(
@@ -97,6 +99,8 @@ class TestAlertModels:
             limit_amount=Decimal("100.00"),
             percentage_used=0.5,
             severity=AlertSeverity.WARNING,
+            scope="campaign",
+            action_taken=["alert"],
         )
 
         history = AlertHistory(
@@ -127,7 +131,7 @@ class TestAlertModels:
 class TestAlertManager:
     """Test AlertManager class."""
 
-    def test_alert_manager_initialization(self):
+    def test_alert_manager_initialization(self, test_db):
         """Test AlertManager initialization."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -140,7 +144,7 @@ class TestAlertManager:
             assert "halt" in manager._templates
             assert manager._sendgrid is None
 
-    def test_load_templates(self):
+    def test_load_templates(self, test_db):
         """Test template loading."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -166,7 +170,7 @@ class TestAlertManager:
             assert "HALTED" in halt.subject
             assert "BLOCKED" in halt.body
 
-    def test_get_alert_level_mapping(self):
+    def test_get_alert_level_mapping(self, test_db):
         """Test alert level mapping from violation severity."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -181,6 +185,8 @@ class TestAlertManager:
                 limit_amount=Decimal("100.00"),
                 percentage_used=1.0,
                 severity=AlertSeverity.WARNING,
+                scope="campaign",
+                action_taken=["block"],
             )
             assert manager._get_alert_level(violation) == AlertLevel.HALT
 
@@ -201,7 +207,7 @@ class TestAlertManager:
             violation.severity = AlertSeverity.INFO
             assert manager._get_alert_level(violation) == AlertLevel.INFO
 
-    def test_build_context(self):
+    def test_build_context(self, test_db):
         """Test building alert context from violation."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -216,6 +222,8 @@ class TestAlertManager:
                 percentage_used=0.8,
                 severity=AlertSeverity.WARNING,
                 campaign_id=456,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             with patch.object(manager, "_calculate_spend_rate", return_value=5.0):
@@ -232,7 +240,7 @@ class TestAlertManager:
                 assert context.time_to_limit == "4.0 hours"  # (100-80)/5 = 4 hours
                 assert "Monitor closely" in context.recommended_action
 
-    def test_build_context_time_calculations(self):
+    def test_build_context_time_calculations(self, test_db):
         """Test time to limit calculations in different scenarios."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -246,6 +254,8 @@ class TestAlertManager:
                 limit_amount=Decimal("100.00"),
                 percentage_used=0.9,
                 severity=AlertSeverity.WARNING,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             # Test minutes calculation (< 1 hour)
@@ -263,7 +273,7 @@ class TestAlertManager:
                 context = manager._build_context(violation)
                 assert "N/A" in context.time_to_limit
 
-    def test_recommended_actions(self):
+    def test_recommended_actions(self, test_db):
         """Test recommended action logic based on usage percentage."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -279,6 +289,8 @@ class TestAlertManager:
                     limit_amount=Decimal("100.00"),
                     percentage_used=1.0,
                     severity=AlertSeverity.EMERGENCY,
+                    scope="campaign",
+                    action_taken=["block"],
                 )
                 context = manager._build_context(violation)
                 assert "Increase limit or stop all operations" in context.recommended_action
@@ -316,7 +328,7 @@ class TestAlertManager:
             assert AlertChannel.EMAIL in channels
             assert AlertChannel.SLACK in channels
 
-    def test_get_configured_channels_minimal(self):
+    def test_get_configured_channels_minimal(self, test_db):
         """Test getting configured channels with minimal config."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_email = None
@@ -329,7 +341,7 @@ class TestAlertManager:
 
             assert channels == [AlertChannel.LOG]  # Only log when nothing configured
 
-    def test_should_send_throttling(self):
+    def test_should_send_throttling(self, test_db):
         """Test alert throttling logic."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -343,6 +355,8 @@ class TestAlertManager:
                 limit_amount=Decimal("100.00"),
                 percentage_used=0.8,
                 severity=AlertSeverity.WARNING,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             # Test HALT alerts are never throttled
@@ -371,7 +385,7 @@ class TestAlertManager:
             manager._history["email:daily_spend"].count_this_hour = 10
             assert manager._should_send(AlertChannel.EMAIL, violation, AlertLevel.WARNING) is False
 
-    def test_record_sent(self):
+    def test_record_sent(self, test_db):
         """Test recording sent alerts."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -385,6 +399,8 @@ class TestAlertManager:
                 limit_amount=Decimal("100.00"),
                 percentage_used=0.8,
                 severity=AlertSeverity.WARNING,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             # Test first record
@@ -406,7 +422,7 @@ class TestAlertManager:
             manager._record_sent(AlertChannel.EMAIL, violation)
             assert manager._history[key].count_this_hour == 1  # Reset
 
-    def test_send_log_alert(self):
+    def test_send_log_alert(self, test_db):
         """Test sending log alerts."""
         with patch("d0_gateway.alerts.get_settings") as mock_settings:
             mock_settings.return_value = Mock()
@@ -420,6 +436,8 @@ class TestAlertManager:
                 limit_amount=Decimal("100.00"),
                 percentage_used=0.8,
                 severity=AlertSeverity.WARNING,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             context = AlertContext(
@@ -442,7 +460,7 @@ class TestAlertManager:
                 assert "$80.00/$100.00" in call_args
 
     @pytest.mark.asyncio
-    async def test_send_email_alert_success(self):
+    async def test_send_email_alert_success(self, test_db):
         """Test successful email alert sending."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_email = "admin@test.com"
@@ -466,6 +484,8 @@ class TestAlertManager:
                     limit_amount=Decimal("100.00"),
                     percentage_used=0.8,
                     severity=AlertSeverity.WARNING,
+                    scope="campaign",
+                    action_taken=["alert"],
                 )
 
                 context = AlertContext(
@@ -489,7 +509,7 @@ class TestAlertManager:
                 assert "80%" in call_kwargs["subject"]
 
     @pytest.mark.asyncio
-    async def test_send_email_alert_no_config(self):
+    async def test_send_email_alert_no_config(self, test_db):
         """Test email alert when not configured."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_email = None
@@ -503,7 +523,7 @@ class TestAlertManager:
             assert result is False
 
     @pytest.mark.asyncio
-    async def test_send_slack_alert_success(self):
+    async def test_send_slack_alert_success(self, test_db):
         """Test successful Slack alert sending."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_slack_webhook = "https://hooks.slack.com/test"
@@ -519,6 +539,8 @@ class TestAlertManager:
                 limit_amount=Decimal("100.00"),
                 percentage_used=0.8,
                 severity=AlertSeverity.WARNING,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             context = AlertContext(
@@ -555,7 +577,7 @@ class TestAlertManager:
                 assert "openai at 80%" in attachment["title"]
 
     @pytest.mark.asyncio
-    async def test_send_slack_alert_failure(self):
+    async def test_send_slack_alert_failure(self, test_db):
         """Test Slack alert sending failure."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_slack_webhook = "https://hooks.slack.com/test"
@@ -586,7 +608,7 @@ class TestAlertManager:
                     mock_error.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_send_alert_integration(self):
+    async def test_send_alert_integration(self, test_db):
         """Test complete send_alert workflow."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_email = "admin@test.com"
@@ -603,6 +625,8 @@ class TestAlertManager:
                 limit_amount=Decimal("100.00"),
                 percentage_used=0.8,
                 severity=AlertSeverity.WARNING,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             with patch.object(manager, "_send_log_alert", return_value=True) as mock_log, patch.object(
@@ -616,7 +640,7 @@ class TestAlertManager:
                 mock_email.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_send_alert_with_throttling(self):
+    async def test_send_alert_with_throttling(self, test_db):
         """Test send_alert with throttling applied."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_email = "admin@test.com"
@@ -633,6 +657,8 @@ class TestAlertManager:
                 limit_amount=Decimal("100.00"),
                 percentage_used=0.8,
                 severity=AlertSeverity.WARNING,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             # Set up throttling
@@ -657,7 +683,7 @@ class TestUtilityFunctions:
     """Test utility functions."""
 
     @pytest.mark.asyncio
-    async def test_send_cost_alert(self):
+    async def test_send_cost_alert(self, test_db):
         """Test send_cost_alert convenience function."""
         violation = GuardrailViolation(
             limit_name="test",
@@ -667,6 +693,8 @@ class TestUtilityFunctions:
             limit_amount=Decimal("100.00"),
             percentage_used=0.5,
             severity=AlertSeverity.WARNING,
+            scope="campaign",
+            action_taken=["alert"],
         )
 
         with patch("d0_gateway.alerts.alert_manager") as mock_manager:
@@ -679,7 +707,7 @@ class TestUtilityFunctions:
             assert call_args[0][0] == violation
             assert call_args[0][1] == [AlertChannel.LOG]
 
-    def test_get_alert_manager(self):
+    def test_get_alert_manager(self, test_db):
         """Test get_alert_manager function."""
         manager = get_alert_manager()
         assert isinstance(manager, AlertManager)
@@ -690,7 +718,7 @@ class TestAlertsIntegration:
     """Integration tests for alert system."""
 
     @pytest.mark.asyncio
-    async def test_complete_alert_workflow(self):
+    async def test_complete_alert_workflow(self, test_db):
         """Test complete alert workflow from violation to delivery."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_email = "admin@test.com"
@@ -711,6 +739,8 @@ class TestAlertsIntegration:
                 percentage_used=0.95,
                 severity=AlertSeverity.CRITICAL,
                 campaign_id=789,
+                scope="campaign",
+                action_taken=["alert"],
             )
 
             # Mock all channel implementations
@@ -750,7 +780,7 @@ class TestAlertsIntegration:
                 mock_log_error.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_mixed_success_failure_scenario(self):
+    async def test_mixed_success_failure_scenario(self, test_db):
         """Test scenario with mixed success and failure across channels."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_email = "admin@test.com"
@@ -767,6 +797,8 @@ class TestAlertsIntegration:
                 limit_amount=Decimal("100.00"),
                 percentage_used=1.0,
                 severity=AlertSeverity.EMERGENCY,
+                scope="campaign",
+                action_taken=["block"],
             )
 
             # Mock email success but Slack failure
@@ -793,7 +825,7 @@ class TestAlertsIntegration:
                 assert "Failed to send alert via slack" in error_call
 
     @pytest.mark.asyncio
-    async def test_halt_alert_bypasses_throttling(self):
+    async def test_halt_alert_bypasses_throttling(self, test_db):
         """Test that HALT alerts bypass all throttling mechanisms."""
         mock_settings = Mock()
         mock_settings.guardrail_alert_email = "admin@test.com"
@@ -811,6 +843,8 @@ class TestAlertsIntegration:
                 limit_amount=Decimal("100.00"),
                 percentage_used=1.05,
                 severity=AlertSeverity.EMERGENCY,
+                scope="campaign",
+                action_taken=["block"],
             )
 
             # Set up aggressive throttling
