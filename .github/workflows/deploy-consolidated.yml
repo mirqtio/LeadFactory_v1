@@ -52,25 +52,16 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keygen -l -f ~/.ssh/deploy_key
     
-    - name: Build and push production image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./Dockerfile
-        push: true
-        tags: |
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEPLOYMENT_SHA }}
-        platforms: linux/amd64
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+    - name: Add VPS to known_hosts
+      run: |
+        ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
     
     - name: Prepare deployment package
       run: |
@@ -98,33 +89,69 @@ jobs:
         
         echo "✅ Deployment package prepared"
     
-    - name: Trigger VPS Deployment
+    - name: Deploy to VPS
       run: |
         echo "🚀 Starting deployment to ${{ env.DEPLOYMENT_ENV }}..."
         echo "Deploying commit ${{ env.DEPLOYMENT_SHA }} to ${{ env.DEPLOYMENT_ENV }}"
         echo "Deployment time: ${{ env.DEPLOYMENT_TIME }}"
-        echo ""
-        echo "✅ Docker image pushed to registry:"
-        echo "   ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-        echo "   ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEPLOYMENT_SHA }}"
-        echo ""
-        echo "🔄 VPS will automatically detect and deploy the new image"
-        echo "✅ Deployment trigger completed successfully"
+        
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
+          set -e
+          echo "Connected to VPS as deploy user"
+          
+          # Navigate to app directory
+          cd /srv/leadfactory
+          
+          # Pull latest code from GitHub (VPS uses its own deploy key)
+          echo "Pulling latest code from GitHub..."
+          git pull origin main
+          
+          # Update containers with latest code
+          echo "Updating Docker containers..."
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans
+          
+          echo "✅ Deployment completed successfully"
+        SSH
     
-    - name: Wait for VPS deployment
+    - name: Health check deployment
       if: env.SKIP_HEALTH_CHECK != 'true'
       run: |
-        echo "🏥 Waiting for VPS to pull and deploy new image..."
-        echo "⏳ VPS deployment typically takes 2-3 minutes"
-        echo "📋 VPS will automatically:"
-        echo "   1. Detect new image in registry"
-        echo "   2. Pull the latest image"
-        echo "   3. Restart containers with new image"
-        echo "   4. Run database migrations if needed"
-        echo "   5. Perform health checks"
-        echo ""
-        echo "✅ Registry push completed - VPS deployment in progress"
-        echo "🌐 Monitor your VPS logs for deployment status"
+        echo "🏥 Performing health check on deployed application..."
+        echo "⏳ Waiting for containers to stabilize..."
+        sleep 30
+        
+        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'HEALTH_CHECK'
+          set -e
+          echo "🔍 Checking container health status..."
+          
+          # Check if containers are running
+          if ! docker compose -f /srv/leadfactory/docker-compose.prod.yml ps --filter "status=running" | grep -q "leadfactory_web"; then
+            echo "❌ Web container not running"
+            exit 1
+          fi
+          
+          if ! docker compose -f /srv/leadfactory/docker-compose.prod.yml ps --filter "status=running" | grep -q "leadfactory_db"; then
+            echo "❌ Database container not running"
+            exit 1
+          fi
+          
+          # Wait for application startup
+          echo "⏳ Waiting for application to be ready..."
+          for i in {1..12}; do
+            if curl -f -s http://localhost:8000/health > /dev/null 2>&1; then
+              echo "✅ Health check passed - application is responding"
+              exit 0
+            fi
+            echo "⏳ Attempt $i/12: Waiting for application..."
+            sleep 10
+          done
+          
+          echo "❌ Health check failed - application not responding after 2 minutes"
+          echo "📋 Container logs:"
+          docker compose -f /srv/leadfactory/docker-compose.prod.yml logs --tail=20
+          exit 1
+        HEALTH_CHECK
     
     - name: Deployment notification
       if: always()

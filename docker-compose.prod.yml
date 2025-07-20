@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/mirqtio/leadfactory_v1:latest
+    build: .
     container_name: leadfactory_web
     restart: always
     ports:
