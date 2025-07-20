@@ -42,7 +42,8 @@ class TestProviderFeatureFlags:
             # Mock the parent class initialization
             with patch("d0_gateway.providers.google_places.BaseAPIClient.__init__"):
                 client = GooglePlacesClient()
-                assert client._base_url == "http://localhost:5010/maps/api/place"
+                # The attribute should be base_url, not _base_url
+                assert client.base_url == "http://localhost:5010/maps/api/place"
 
     def test_google_places_uses_real_url_without_stubs(self):
         """Test that GooglePlacesClient uses real URL when not using stubs"""
@@ -54,7 +55,8 @@ class TestProviderFeatureFlags:
             # Mock the parent class initialization
             with patch("d0_gateway.providers.google_places.BaseAPIClient.__init__"):
                 client = GooglePlacesClient()
-                assert client._base_url == "https://maps.googleapis.com/maps/api/place"
+                # The attribute should be base_url, not _base_url
+                assert client.base_url == "https://maps.googleapis.com/maps/api/place"
 
     def test_pagespeed_respects_enable_flag(self):
         """Test that PageSpeedClient raises error when ENABLE_PAGESPEED=false"""

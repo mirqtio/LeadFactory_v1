@@ -41,12 +41,41 @@ from d0_gateway.guardrails import AlertSeverity, CostLimit, GuardrailStatus, Lim
 @pytest.fixture(autouse=True)
 def mock_guardrail_database():
     """Mock all database access in guardrail manager for all tests"""
-    with patch("d0_gateway.guardrails.get_db_sync") as mock_get_db:
+    from decimal import Decimal
+
+    with patch("d0_gateway.guardrails.get_db_sync") as mock_get_db, patch(
+        "d0_gateway.guardrails.GuardrailManager._get_current_spend"
+    ) as mock_get_spend:
         mock_session = MagicMock()
         mock_get_db.return_value.__enter__.return_value = mock_session
-        # Mock database queries to return 0 costs by default
-        mock_session.query.return_value.filter.return_value.scalar.return_value = None
+        # Mock database queries to return 0 costs by default (as Decimal for math operations)
+        mock_session.query.return_value.filter.return_value.scalar.return_value = Decimal("0")
+        # Mock the _get_current_spend method to always return Decimal("0")
+        mock_get_spend.return_value = Decimal("0")
         yield mock_session
+
+
+@pytest.fixture(autouse=True)
+def reset_guardrail_manager():
+    """Reset guardrail manager to clean state for each test"""
+    from d0_gateway.guardrails import guardrail_manager
+
+    # Store original state
+    original_limits = guardrail_manager._limits.copy()
+    original_rate_limits = guardrail_manager._rate_limits.copy()
+    original_circuit_breakers = guardrail_manager._circuit_breakers.copy()
+
+    # Clear for test
+    guardrail_manager._limits.clear()
+    guardrail_manager._rate_limits.clear()
+    guardrail_manager._circuit_breakers.clear()
+
+    yield guardrail_manager
+
+    # Restore original state
+    guardrail_manager._limits = original_limits
+    guardrail_manager._rate_limits = original_rate_limits
+    guardrail_manager._circuit_breakers = original_circuit_breakers
 
 
 class TestGuardrailApiModels:
@@ -201,7 +230,7 @@ class TestGuardrailApiEndpoints:
 
     def test_router_configuration(self):
         """Test that router is properly configured"""
-        assert router.prefix == "/api/v1/gateway/guardrails"
+        assert router.prefix == "/guardrails"
         assert "Cost Guardrails" in router.tags
 
     @pytest.mark.asyncio
@@ -240,51 +269,54 @@ class TestGuardrailApiEndpoints:
             assert len(result.limits) == 1
 
     @pytest.mark.asyncio
-    async def test_get_guardrail_status_with_filters(self):
+    async def test_get_guardrail_status_with_filters(self, reset_guardrail_manager):
         """Test guardrail status with provider and campaign filters"""
-        mock_limit1 = MagicMock()
-        mock_limit1.name = "provider_limit"
-        mock_limit1.enabled = True
-        mock_limit1.provider = "dataaxle"
-        mock_limit1.campaign_id = 123
-        mock_limit1.operation = "search"
-        # Add string attributes for Pydantic validation
-        mock_limit1.scope = LimitScope.PROVIDER
-        mock_limit1.period = LimitPeriod.DAILY
 
-        mock_limit2 = MagicMock()
-        mock_limit2.name = "other_limit"
-        mock_limit2.enabled = True
-        mock_limit2.provider = "openai"
-        mock_limit2.campaign_id = 456
-        mock_limit2.operation = "chat"
-        # Add string attributes for Pydantic validation
-        mock_limit2.scope = LimitScope.PROVIDER
-        mock_limit2.period = LimitPeriod.DAILY
+        limit1 = CostLimit(
+            name="provider_limit",
+            scope=LimitScope.PROVIDER,
+            period=LimitPeriod.DAILY,
+            limit_usd=Decimal("1000.0"),
+            provider="dataaxle",
+            campaign_id=123,
+            operation="search",
+            enabled=True,
+            warning_threshold=0.8,
+            critical_threshold=0.95,
+            circuit_breaker_enabled=False,
+        )
 
-        mock_status = MagicMock()
-        mock_status.limit_name = "provider_limit"
-        mock_status.is_over_limit = False
-        mock_status.status = MagicMock()
-        mock_status.status.value = "ok"
+        limit2 = CostLimit(
+            name="other_limit",
+            scope=LimitScope.PROVIDER,
+            period=LimitPeriod.DAILY,
+            limit_usd=Decimal("500.0"),
+            provider="openai",
+            campaign_id=456,
+            operation="chat",
+            enabled=True,
+            warning_threshold=0.8,
+            critical_threshold=0.95,
+            circuit_breaker_enabled=False,
+        )
 
-        with patch("d0_gateway.guardrail_api.guardrail_manager") as mock_manager:
-            mock_manager._limits.values = Mock(return_value=[mock_limit1, mock_limit2])
-            mock_manager.check_limits.return_value = [mock_status]
+        # Add limits to the clean guardrail manager
+        reset_guardrail_manager.add_limit(limit1)
+        reset_guardrail_manager.add_limit(limit2)
 
-            # Test provider filter
-            result = await get_guardrail_status(provider="dataaxle")
-            assert result.total_limits == 1
+        # Test provider filter (use explicit parameters)
+        result = await get_guardrail_status(provider="dataaxle", campaign_id=None)
+        assert result.total_limits == 1
 
-            # Test campaign filter
-            result = await get_guardrail_status(campaign_id=123)
-            assert result.total_limits == 1
+        # Test campaign filter (use explicit parameters)
+        result = await get_guardrail_status(provider=None, campaign_id=123)
+        assert result.total_limits == 1
 
     @pytest.mark.asyncio
-    async def test_list_limits_success(self):
+    async def test_list_limits_success(self, reset_guardrail_manager):
         """Test successful limits listing"""
-        # Create a real CostLimit object instead of a mock
-        mock_limit = CostLimit(
+        # Create a real CostLimit object and add it to the clean manager
+        test_limit = CostLimit(
             name="test_limit",
             scope=LimitScope.PROVIDER,
             period=LimitPeriod.DAILY,
@@ -298,61 +330,74 @@ class TestGuardrailApiEndpoints:
             circuit_breaker_enabled=False,
         )
 
-        with patch("d0_gateway.guardrail_api.guardrail_manager") as mock_manager:
-            # Set up the mock properly - _limits should be a dict-like object
-            mock_limits_dict = {mock_limit.name: mock_limit}
-            mock_manager._limits = mock_limits_dict
+        # Add the limit to the clean guardrail manager
+        reset_guardrail_manager.add_limit(test_limit)
 
-            # Debug: Check that the mock is working
-            print(f"DEBUG: mock_manager._limits.values() = {list(mock_manager._limits.values())}")
-            print(f"DEBUG: mock_limit.enabled = {mock_limit.enabled}")
-            print(f"DEBUG: mock_limit.scope = {mock_limit.scope}")
-            print(f"DEBUG: mock_limit.provider = {mock_limit.provider}")
+        # Call the function with explicit parameters to work around FastAPI Query default issue
+        result = await list_limits(scope=None, provider=None, enabled_only=True)
 
-            result = await list_limits()
-
-            print(f"DEBUG: result = {result}")
-            print(f"DEBUG: len(result) = {len(result)}")
-
-            assert isinstance(result, list)
-            assert len(result) == 1
-            assert isinstance(result[0], LimitResponse)
-            assert result[0].name == "test_limit"
-            assert result[0].scope == "provider"
-            assert result[0].limit_usd == 1000.0
+        assert isinstance(result, list)
+        assert len(result) == 1
+        assert isinstance(result[0], LimitResponse)
+        assert result[0].name == "test_limit"
+        assert result[0].scope == "provider"
+        assert result[0].limit_usd == 1000.0
 
     @pytest.mark.asyncio
-    async def test_list_limits_with_filters(self):
+    async def test_list_limits_with_filters(self, reset_guardrail_manager):
         """Test limits listing with filters"""
-        mock_limit1 = MagicMock()
-        mock_limit1.scope = LimitScope.PROVIDER
-        mock_limit1.provider = "dataaxle"
-        mock_limit1.enabled = True
+        limit1 = CostLimit(
+            name="provider1",
+            scope=LimitScope.PROVIDER,
+            period=LimitPeriod.DAILY,
+            limit_usd=Decimal("1000.0"),
+            provider="dataaxle",
+            enabled=True,
+            warning_threshold=0.8,
+            critical_threshold=0.95,
+            circuit_breaker_enabled=False,
+        )
 
-        mock_limit2 = MagicMock()
-        mock_limit2.scope = LimitScope.GLOBAL
-        mock_limit2.provider = None
-        mock_limit2.enabled = False
+        limit2 = CostLimit(
+            name="limit2",
+            scope=LimitScope.GLOBAL,
+            period=LimitPeriod.DAILY,
+            limit_usd=Decimal("2000.0"),
+            provider=None,
+            enabled=False,
+            warning_threshold=0.8,
+            critical_threshold=0.95,
+            circuit_breaker_enabled=False,
+        )
 
-        mock_limit3 = MagicMock()
-        mock_limit3.scope = LimitScope.PROVIDER
-        mock_limit3.provider = "openai"
-        mock_limit3.enabled = True
+        limit3 = CostLimit(
+            name="provider3",
+            scope=LimitScope.PROVIDER,
+            period=LimitPeriod.DAILY,
+            limit_usd=Decimal("500.0"),
+            provider="openai",
+            enabled=True,
+            warning_threshold=0.8,
+            critical_threshold=0.95,
+            circuit_breaker_enabled=False,
+        )
 
-        with patch("d0_gateway.guardrail_api.guardrail_manager") as mock_manager:
-            mock_manager._limits.values = Mock(return_value=[mock_limit1, mock_limit2, mock_limit3])
+        # Add limits to the clean guardrail manager
+        reset_guardrail_manager.add_limit(limit1)
+        reset_guardrail_manager.add_limit(limit2)
+        reset_guardrail_manager.add_limit(limit3)
 
-            # Test scope filter
-            result = await list_limits(scope=LimitScope.PROVIDER)
-            assert len(result) == 2  # Only provider limits
+        # Test scope filter (use explicit parameters)
+        result = await list_limits(scope=LimitScope.PROVIDER, provider=None, enabled_only=True)
+        assert len(result) == 2  # Only provider limits
 
-            # Test provider filter
-            result = await list_limits(provider="dataaxle")
-            assert len(result) == 1  # Only dataaxle limit
+        # Test provider filter (use explicit parameters)
+        result = await list_limits(scope=None, provider="dataaxle", enabled_only=True)
+        assert len(result) == 1  # Only dataaxle limit
 
-            # Test enabled_only filter
-            result = await list_limits(enabled_only=False)
-            assert len(result) == 3  # All limits including disabled
+        # Test enabled_only filter (use explicit parameters)
+        result = await list_limits(scope=None, provider=None, enabled_only=False)
+        assert len(result) == 3  # All limits including disabled
 
     @pytest.mark.asyncio
     async def test_create_limit_success(self):
@@ -703,7 +748,7 @@ class TestGuardrailApiEdgeCases:
         with patch("d0_gateway.guardrail_api.guardrail_manager") as mock_manager:
             mock_manager._limits.values = Mock(return_value=[mock_limit])
 
-            result = await get_budget_summary()
+            result = await get_budget_summary(period=LimitPeriod.DAILY)
 
             assert result.providers == {}
             assert result.total_remaining == 0.0

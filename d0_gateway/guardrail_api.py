@@ -23,7 +23,7 @@ from d0_gateway.guardrails import (
 
 logger = get_logger("gateway.guardrail_api", domain="d0")
 
-router = APIRouter(prefix="/api/v1/gateway/guardrails", tags=["Cost Guardrails"])
+router = APIRouter(prefix="/guardrails", tags=["Cost Guardrails"])
 
 
 # Request/Response models

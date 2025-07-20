@@ -76,7 +76,13 @@ class TestCostAPIModels:
     def test_cost_trend_model(self):
         """Test CostTrend model creation"""
         daily_record = DailyCostRecord(
-            date="2025-01-15", provider="openai", total_cost=25.0, request_count=50, avg_cost=0.50
+            date="2025-01-15",
+            provider="openai",
+            operation="completion",
+            campaign_id=123,
+            total_cost=25.0,
+            request_count=50,
+            avg_cost=0.50,
         )
 
         trend = CostTrend(
@@ -217,7 +223,15 @@ class TestCostAPIEndpoints:
                 "request_count": 50,
                 "avg_cost": 0.50,
             },
-            {"date": "2025-01-20", "provider": "dataaxle", "total_cost": 50.0, "request_count": 100, "avg_cost": 0.50},
+            {
+                "date": "2025-01-20",
+                "provider": "dataaxle",
+                "operation": "search",
+                "campaign_id": 789,
+                "total_cost": 50.0,
+                "request_count": 100,
+                "avg_cost": 0.50,
+            },
         ]
         mock_ledger.get_daily_costs.return_value = mock_costs
 

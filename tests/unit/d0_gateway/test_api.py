@@ -58,12 +58,14 @@ class TestGatewayAPI:
         """Test that router has expected number of routes"""
         # Router should have at least the health endpoint
         routes = [route for route in router.routes if hasattr(route, "path")]
-        health_routes = [route for route in routes if route.path == "/health"]
+        health_routes = [route for route in routes if route.path == "/api/v1/gateway/health"]
         assert len(health_routes) == 1
 
     def test_health_endpoint_route_details(self):
         """Test health endpoint route configuration"""
-        health_routes = [route for route in router.routes if hasattr(route, "path") and route.path == "/health"]
+        health_routes = [
+            route for route in router.routes if hasattr(route, "path") and route.path == "/api/v1/gateway/health"
+        ]
         assert len(health_routes) == 1
 
         health_route = health_routes[0]
