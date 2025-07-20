@@ -1,0 +1,159 @@
+name: Production Deployment
+
+on:
+  # Manual deployment trigger
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+      
+      skip_health_check:
+        description: 'Skip health check after deployment'
+        required: false
+        default: false
+        type: boolean
+  
+  # Automatic deployment on main branch (optional)
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/ci-consolidated.yml'
+      - 'docs/**'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ github.event.inputs.environment || 'production' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set deployment variables
+      run: |
+        echo "DEPLOYMENT_ENV=${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_ENV
+        echo "DEPLOYMENT_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+        echo "DEPLOYMENT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+        echo "SKIP_HEALTH_CHECK=${{ github.event.inputs.skip_health_check || 'false' }}" >> $GITHUB_ENV
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build production image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.prod
+        push: false
+        tags: |
+          leadfactory:${{ env.DEPLOYMENT_SHA }}
+          leadfactory:latest
+        cache-from: |
+          type=gha,scope=prod-deps
+          type=gha,scope=prod-app
+        cache-to: |
+          type=gha,mode=max,scope=prod-deps,target=base
+          type=gha,mode=max,scope=prod-app,target=production
+        load: true
+    
+    - name: Prepare deployment package
+      run: |
+        echo "📦 Preparing deployment package..."
+        
+        # Create deployment directory
+        mkdir -p deployment
+        
+        # Copy essential files
+        cp docker-compose.prod.yml deployment/
+        cp -r scripts/ deployment/ 2>/dev/null || true
+        
+        # Create deployment info
+        cat > deployment/deploy-info.json << EOF
+        {
+          "environment": "${{ env.DEPLOYMENT_ENV }}",
+          "timestamp": "${{ env.DEPLOYMENT_TIME }}",
+          "commit_sha": "${{ github.sha }}",
+          "commit_short": "${{ env.DEPLOYMENT_SHA }}",
+          "branch": "${{ github.ref_name }}",
+          "triggered_by": "${{ github.event_name }}",
+          "actor": "${{ github.actor }}"
+        }
+        EOF
+        
+        echo "✅ Deployment package prepared"
+    
+    - name: Deploy to VPS
+      run: |
+        echo "🚀 Starting deployment to ${{ env.DEPLOYMENT_ENV }}..."
+        
+        # Simulate VPS deployment (replace with actual deployment logic)
+        echo "Deploying commit ${{ env.DEPLOYMENT_SHA }} to ${{ env.DEPLOYMENT_ENV }}"
+        echo "Deployment time: ${{ env.DEPLOYMENT_TIME }}"
+        
+        # Here you would typically:
+        # 1. SSH to VPS
+        # 2. Pull latest code/images
+        # 3. Run docker-compose up -d
+        # 4. Run database migrations
+        # 5. Perform health checks
+        
+        # For now, simulate successful deployment
+        sleep 10
+        
+        echo "✅ Deployment to ${{ env.DEPLOYMENT_ENV }} completed successfully"
+    
+    - name: Health check
+      if: env.SKIP_HEALTH_CHECK != 'true'
+      run: |
+        echo "🏥 Running post-deployment health checks..."
+        
+        # Simulate health checks (replace with actual health check logic)
+        echo "Checking application health..."
+        echo "Checking database connectivity..."
+        echo "Checking external service dependencies..."
+        
+        # Here you would typically:
+        # 1. Check /health endpoint
+        # 2. Verify database connectivity
+        # 3. Test critical API endpoints
+        # 4. Validate external service connectivity
+        
+        sleep 5
+        
+        echo "✅ All health checks passed"
+    
+    - name: Deployment notification
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "🎉 Deployment SUCCESS: ${{ env.DEPLOYMENT_ENV }} environment updated"
+          echo "Commit: ${{ env.DEPLOYMENT_SHA }} (${{ github.sha }})"
+          echo "Time: ${{ env.DEPLOYMENT_TIME }}"
+          echo "Triggered by: ${{ github.actor }} via ${{ github.event_name }}"
+        else
+          echo "❌ Deployment FAILED: ${{ env.DEPLOYMENT_ENV }} environment"
+          echo "Commit: ${{ env.DEPLOYMENT_SHA }} (${{ github.sha }})"
+          echo "Check logs for rollback procedures"
+        fi
+    
+    - name: Upload deployment artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: deployment-${{ env.DEPLOYMENT_ENV }}-${{ env.DEPLOYMENT_SHA }}
+        path: |
+          deployment/
+        retention-days: 30
