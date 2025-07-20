@@ -18,13 +18,13 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     
     - name: Set up Docker Buildx with inline cache
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
       with:
         driver-opts: |
-          image=moby/buildkit:v0.12.0
+          image=moby/buildkit:v0.15.0
           network=host
     
     - name: Create optimized test directories
@@ -33,7 +33,7 @@ jobs:
         chmod 755 ./coverage ./test-results
     
     - name: Build optimized test image (multi-stage caching)
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         file: ./Dockerfile.test.optimized
@@ -41,11 +41,11 @@ jobs:
         push: false
         tags: leadfactory-test:ultra-fast
         cache-from: |
-          type=gha,scope=deps-cache,ignore-error=true
-          type=gha,scope=ultra-fast-cache,ignore-error=true
+          type=gha,scope=deps-cache
+          type=gha,scope=ultra-fast-cache
         cache-to: |
-          type=gha,mode=max,scope=deps-cache,target=deps,ignore-error=true
-          type=gha,mode=max,scope=ultra-fast-cache,target=ultra-fast,ignore-error=true
+          type=gha,mode=max,scope=deps-cache,target=deps
+          type=gha,mode=max,scope=ultra-fast-cache,target=ultra-fast
         load: true
         build-args: |
           BUILDKIT_INLINE_CACHE=1
