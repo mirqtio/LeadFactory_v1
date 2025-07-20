@@ -59,7 +59,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Build production image
+    - name: Build production image (with graceful cache handling)
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -70,6 +70,7 @@ jobs:
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/prod-cache:${{ env.DEPLOYMENT_SHA }}
           leadfactory:${{ env.DEPLOYMENT_SHA }}
           leadfactory:latest
+        # Note: cache-from will gracefully handle missing images
         cache-from: |
           type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/prod-cache:latest
           type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/deps-cache:latest
@@ -77,6 +78,10 @@ jobs:
           type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/prod-cache:latest,mode=max
           type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/deps-cache:latest,mode=max,target=base
         load: true
+        platforms: linux/amd64
+        # Enable BuildKit inline cache for better performance  
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
     
     - name: Prepare deployment package
       run: |
