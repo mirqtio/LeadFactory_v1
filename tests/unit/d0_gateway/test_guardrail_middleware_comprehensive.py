@@ -449,9 +449,9 @@ class TestEnforceCostGuardrailsDecorator:
         async def test_method(self, operation="test_op"):
             return "success"
 
-        mock_client = Mock()
+        mock_client = Mock(spec=["provider"])  # Only allow 'provider' attribute
         mock_client.provider = "test_provider"
-        # No calculate_cost method
+        # No calculate_cost method by spec
 
         mock_estimate = Mock()
         mock_estimate.estimated_cost = Decimal("3.25")
@@ -460,7 +460,12 @@ class TestEnforceCostGuardrailsDecorator:
             "d0_gateway.guardrail_middleware.guardrail_manager"
         ) as mock_manager:
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
-            mock_manager.estimate_cost.return_value = mock_estimate
+
+            # Ensure the mock estimate_cost method is properly configured
+            def mock_estimate_cost(*args, **kwargs):
+                return mock_estimate
+
+            mock_manager.estimate_cost.side_effect = mock_estimate_cost
             mock_manager.enforce_limits.return_value = True
             mock_rate_limiter.consume_tokens.return_value = None
 
@@ -530,8 +535,8 @@ class TestEnforceCostGuardrailsDecorator:
             mock_rate_limiter.consume_tokens.return_value = None
             mock_manager._limits.values.return_value = [mock_limit]
 
-            # Mock fast failure (< 1 second)
-            mock_time.side_effect = [1000, 1000.5]  # 0.5 second elapsed
+            # Mock fast failure (< 1 second) - provide enough values for all time.time() calls
+            mock_time.side_effect = [1000, 1000, 1000.5]  # 0.5 second elapsed
 
             with pytest.raises(Exception, match="API call failed"):
                 await test_method(mock_client)
@@ -928,7 +933,9 @@ class TestMiddlewareIntegration:
         mock_limit.provider = "test_provider"
 
         with patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager:
-            mock_manager._limits = {"test_limit": mock_limit}
+            # Set up the mock to properly handle the _limits attribute iteration
+            limits_dict = {"test_limit": mock_limit}
+            mock_manager._limits = limits_dict
 
             # First call should check guardrails
             with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter:
@@ -937,11 +944,13 @@ class TestMiddlewareIntegration:
 
                 # Call with context bypass
                 with GuardrailContext(provider="test_provider", bypass_guardrails=True):
+                    # Check that the limit was disabled within the context
+                    assert (
+                        mock_limit.enabled is False
+                    ), f"Expected mock_limit.enabled to be False, got {mock_limit.enabled}"
                     result = api_call(mock_client)
 
                 assert result == "success"
-                # Guardrails should have been bypassed
-                assert mock_limit.enabled is False
 
             # After context, guardrails should be restored
             assert mock_limit.enabled is True

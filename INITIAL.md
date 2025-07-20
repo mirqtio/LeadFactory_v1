@@ -1,12 +1,49 @@
-# LeadFactory Implementation Plan
+# LeadFactory Remaining Implementation Plan
 
 ## Overview
 
-Two-phase implementation to stabilize the existing LeadFactory codebase, then expand with Phase 0.5 features from PRD v1.2.
+This document contains the remaining incomplete PRPs from the LeadFactory implementation plan. The core stabilization work has been completed, and this represents the remaining expansion and enhancement work.
 
-**Wave A**: Fix broken tests, wire up orchestration, dockerize, and deploy the v1 happy path (GBP → PageSpeed → Tech → Score → PDF → Email).
+**Current Status**: Wave A stabilization is complete. This document shows remaining work for Wave B expansion, Wave C critical fixes, and Wave D UI consolidation.
 
-**Wave B**: Add rich metrics providers (SEMrush, Lighthouse, Visual Analysis, LLM Audit) and cost controls.
+**Total Remaining**: 27 PRPs across multiple waves focusing on rich metrics providers, cost controls, UI completion, and critical fixes.
+
+## Remaining Work Summary
+
+### Wave B - Expand (8 PRPs Remaining)
+- P1-010: SEMrush Client & Metrics
+- P1-020: Lighthouse Headless Audit  
+- P1-030: Visual Rubric Analyzer
+- P1-040: LLM Heuristic Audit
+- P1-050: Gateway Cost Ledger
+- P1-060: Cost Guardrails
+- P1-070: DataAxle Client
+- P1-080: Bucket Enrichment Flow
+
+### Wave B - Analytics (4 PRPs Remaining)
+- P2-010: Unit Economics Views
+- P2-020: Unit Economics PDF Section  
+- P2-030: Email Personalization V2
+- P2-040: Orchestration Budget Stop
+
+### Wave C - Critical Fixes (7 PRPs Remaining)
+- P3-001: Fix RBAC for All API Endpoints
+- P3-002: Complete Lineage Integration  
+- P3-003: Fix Lead Explorer Audit Trail
+- P3-004: Create Batch Runner UI
+- P3-005: Complete Test Coverage
+- P3-006: Replace Mock Integrations
+- P3-007: Fix CI Docker Test Execution
+
+### Wave D - UI Consolidation (8 PRPs Remaining)
+- P0-027: Global Navigation Shell
+- P0-028: Design-System UI Foundations
+- P0-029: Lead Explorer UI
+- P0-030: Lineage Panel UI
+- P0-031: Batch Report Runner UI
+- P0-032: Template Studio Polish
+- P0-033: Scoring Playground Integration
+- P0-034: Governance Console Polish
 
 ## Shared Constraints
 
@@ -108,13 +145,26 @@ All PRPs must enforce these security requirements:
 
 ## Success Criteria
 
-**Wave A Complete When:**
-- All KEEP tests passing (60 core test files)
-- Docker image builds and runs tests successfully
-- Prefect pipeline processes a business end-to-end
-- Application deployed to VPS and responding to health checks
-- PDF reports generate without errors
-- Emails send via SendGrid in production
+**Completion Status by Wave:**
+
+**Wave A**: ✅ Complete - All 26 PRPs delivered
+- KEEP test suite stable and passing
+- Docker CI/CD pipeline operational  
+- VPS deployment with persistent storage
+- Core lead management and governance features
+
+**Wave B**: ⏳ In Progress - 8 PRPs remaining
+- Rich metrics providers (SEMrush, Lighthouse, Visual Analysis, LLM Audit)
+- Cost tracking and guardrails
+- Unit economics analytics
+
+**Wave C**: 📋 Planned - 3 PRPs remaining
+- Critical security and integration fixes
+- Complete missing features from Wave A
+
+**Wave D**: 📋 Planned - 8 PRPs remaining  
+- Unified React UI consolidation
+- Design system implementation
 
 **Wave B Complete When:**
 - All Phase 0.5 xfail markers removed
@@ -125,707 +175,19 @@ All PRPs must enforce these security requirements:
 - LLM audit providing 7 heuristic scores
 - Unit economics dashboard accessible
 
-## Wave A - Stabilize (Priority P0)
-
-### P0-000 Prerequisites Check
-**Dependencies**: None  
-**Goal**: Ensure development environment is properly configured  
-**Integration Points**: 
-- `.env` file creation
-- Virtual environment setup
-- Database initialization
-
-**Tests to Pass**:
-- `pytest --collect-only` succeeds without errors
-- `python -m py_compile **/*.py` has no syntax errors
-- `docker --version` shows 20.10+
-- `docker-compose --version` shows 2.0+
-
-**Example**: see examples/REFERENCE_MAP.md → P0-000  
-**Reference**: Setup documentation in README.md
-
-**Acceptance Criteria**:
-- [ ] Document system dependencies in README
-- [ ] Create setup.sh script for new developers
-- [ ] Verify all requirements installable
-- [ ] Database migrations run cleanly
-
-**Rollback**: Delete setup.sh if created
-
-### P0-001 Fix D4 Coordinator
-**Dependencies**: P0-000  
-**Goal**: Repair enrichment coordinator merge/cache logic  
-**Integration Points**:
-- `d4_enrichment/coordinator.py`
-- `d4_enrichment/models.py`
-
-**Tests to Pass**:
-- `pytest tests/unit/d4_enrichment/test_d4_coordinator.py -v`
-
-**Example**: see examples/REFERENCE_MAP.md → P0-001  
-**Reference**: PRD section "D4 Enrichment Coordinator – merge strategy"
-
-**Acceptance Criteria**:
-- [ ] Remove xfail marker from test file
-- [ ] Fix merge_enrichment_data method
-- [ ] Fix cache key generation
-- [ ] All 12 coordinator tests passing
-
-**Rollback**: `git revert` to restore previous coordinator logic
-
-### P0-002 Wire Prefect Full Pipeline
-**Dependencies**: P0-001  
-**Goal**: Create end-to-end orchestration flow  
-**Integration Points**:
-- Create `flows/full_pipeline_flow.py`
-- Import all coordinator classes
-- Wire sequential flow with error handling
-
-**Tests to Pass**:
-- New: `tests/smoke/test_full_pipeline_flow.py`
-- Must process a business from targeting through delivery
-
-**Example**: see examples/REFERENCE_MAP.md → P0-002  
-**Reference**: Prefect docs - https://docs.prefect.io/latest/concepts/flows/
-
-**Acceptance Criteria**:
-- [ ] Flow chains: Target → Source → Assess → Score → Report → Deliver
-- [ ] Error handling with retries
-- [ ] Metrics logged at each stage
-- [ ] Integration test creates PDF and email record
-
-**Rollback**: Delete flows/full_pipeline_flow.py
-
-### P0-003 Dockerize CI
-**Dependencies**: P0-002  
-**Goal**: Create working Docker test environment  
-**Integration Points**:
-- Create `Dockerfile.test`
-- Update `.dockerignore`
-- Update `.github/workflows/test.yml`
-
-**Tests to Pass**:
-- `docker build -f Dockerfile.test -t leadfactory-test .` succeeds
-- `docker run leadfactory-test pytest -q` shows 0 failures
-- Entire KEEP suite must pass inside the Docker image
-
-**Example**: see examples/REFERENCE_MAP.md → P0-003  
-**Reference**: GitHub Actions Docker docs - https://docs.github.com/actions/publishing-images
-
-**Acceptance Criteria**:
-- [ ] Multi-stage Dockerfile with test target
-- [ ] All Python dependencies installed
-- [ ] Postgres service in docker-compose.test.yml
-- [ ] Stub server accessible from container
-- [ ] CI builds and runs tests in container
-
-**Rollback**: Remove Dockerfile.test and revert CI workflow
-
-### P0-004 Database Migrations Current
-**Dependencies**: P0-003  
-**Goal**: Ensure schema matches models  
-**Integration Points**:
-- `alembic/versions/`
-- All model files in `*/models.py`
-
-**Tests to Pass**:
-- `alembic upgrade head` runs cleanly
-- `alembic check` shows no pending changes
-- New: `tests/unit/test_migrations.py` - runs alembic upgrade and asserts autogenerate diff is empty
-
-**Example**: see examples/REFERENCE_MAP.md → P0-004  
-**Reference**: Alembic docs "autogenerate" section
-
-**Acceptance Criteria**:
-- [ ] All model changes captured in migrations
-- [ ] No duplicate migrations
-- [ ] Migrations run in correct order
-- [ ] Rollback tested for each migration
-
-**Rollback**: Use `alembic downgrade` to previous revision
-
-### P0-005 Environment & Stub Wiring
-**Dependencies**: P0-004  
-**Goal**: Proper test/prod environment separation  
-**Integration Points**:
-- `core/config.py`
-- `stubs/server.py`
-- All test fixtures
-
-**Tests to Pass**:
-- All tests pass with `USE_STUBS=true`
-- No real API calls in test suite
-- `tests/integration/test_stub_server.py` passes
-
-**Example**: see examples/REFERENCE_MAP.md → P0-005  
-**Reference**: README § "Running stub server locally"
-
-**Acceptance Criteria**:
-- [ ] Stub server auto-starts in tests
-- [ ] Environment variables documented
-- [ ] Secrets never logged
-- [ ] Feature flags for each provider
-
-**Rollback**: Revert config.py changes
-
-### P0-006 Green KEEP Test Suite
-**Dependencies**: P0-005  
-**Goal**: All core tests passing  
-**Integration Points**:
-- 60 test files marked as KEEP
-- Remove/fix all xfail markers
-
-**Tests to Pass**:
-```bash
-pytest -m "not slow and not phase_future" --tb=short
-```
-- New: `tests/test_marker_policy.py` - collects tests and asserts no un-marked failures
-
-**Example**: see examples/REFERENCE_MAP.md → P0-006  
-**Reference**: CLAUDE.md "Test policy" block
-
-**Acceptance Criteria**:
-- [ ] 0 test failures
-- [ ] 0 error collections  
-- [ ] <5 minute total runtime
-- [ ] Coverage >80% on core modules (Wave A target)
-
-**Rollback**: Re-add xfail markers to unblock CI
-
-### P0-007 Health Endpoint
-**Dependencies**: P0-006  
-**Goal**: Production monitoring endpoint  
-**Integration Points**:
-- `api/health.py`
-- Main FastAPI app
-
-**Tests to Pass**:
-- `tests/unit/test_health_endpoint.py`
-- Deploy workflow health check
-- Already covered in P0-004 smoke test
-
-**Example**: see examples/REFERENCE_MAP.md → P0-007  
-**Reference**: FastAPI docs health check patterns
-
-**Acceptance Criteria**:
-- [ ] Returns 200 with JSON status
-- [ ] Checks database connectivity
-- [ ] Checks Redis connectivity
-- [ ] Returns version info
-- [ ] <100ms response time
-
-**Rollback**: Remove /health route from API
-
-### P0-008 Test Infrastructure Cleanup
-**Dependencies**: P0-007  
-**Goal**: Fix test discovery and marking issues  
-**Integration Points**:
-- `conftest.py`
-- `pytest.ini`
-- CI workflow files
-
-**Tests to Pass**:
-- `pytest --collect-only` shows correct test counts
-- CI runs in <10 minutes
-- `pytest -m "slow" -q` runs zero slow tests in CI
-
-**Example**: see examples/REFERENCE_MAP.md → P0-008  
-**Reference**: pytest documentation on markers
-
-**Acceptance Criteria**:
-- [ ] Phase 0.5 tests auto-marked as xfail
-- [ ] Slow tests excluded from PR builds
-- [ ] Import errors in ignored files fixed
-- [ ] Test collection time <5 seconds
-
-**Rollback**: Revert conftest.py and pytest.ini changes
-
-### P0-009 Remove Yelp Remnants
-**Dependencies**: P0-008  
-**Goal**: Complete Yelp provider removal  
-**Integration Points**:
-- Any remaining Yelp imports
-- Database columns mentioning Yelp
-- Stub server endpoints
-
-**Tests to Pass**:
-- `grep -r "yelp" --include="*.py" .` returns only comments
-- New: `tests/test_yelp_purge.py` - verifies no active Yelp code
-
-**Example**: see examples/REFERENCE_MAP.md → P0-009  
-**Reference**: Git grep documentation
-
-**Acceptance Criteria**:
-- [ ] No Yelp imports in codebase
-- [ ] Migrations to drop Yelp columns
-- [ ] Documentation updated
-- [ ] Stub server Yelp routes removed
-
-**Rollback**: Not applicable - Yelp already removed
-
-### P0-010 Fix Missing Dependencies
-**Dependencies**: P0-009  
-**Goal**: Align local and CI environments  
-**Integration Points**:
-- `requirements.txt`
-- `requirements-dev.txt`
-- CI cache configuration
-
-**Tests to Pass**:
-- Fresh virtualenv install works
-- CI and local tests have same results
-- CI green on a fresh Docker build
-- `pip check` passes in CI
-
-**Example**: see examples/REFERENCE_MAP.md → P0-010  
-**Reference**: pip-tools documentation for dependency management
-
-**Acceptance Criteria**:
-- [ ] All imports resolve correctly
-- [ ] Version pins for all packages
-- [ ] No conflicting dependencies
-- [ ] CI cache working properly
-
-**Rollback**: Restore previous requirements.txt
-
-### P0-011 Deploy to VPS
-**Dependencies**: P0-010  
-**Goal**: Automated deployment pipeline  
-**Integration Points**:
-- Create `.github/workflows/deploy.yml`
-- Add production Dockerfile
-- Configure GitHub secrets
-
-**Tests to Pass**:
-- Deployment workflow runs without errors
-- `curl https://vps-ip/health` returns 200
-- New: `tests/smoke/test_health.py` passes
-
-**Example**: see examples/REFERENCE_MAP.md → P0-011  
-**Reference**: VPS hardening checklist from "Move LeadFactory to VPS" thread
-
-**Acceptance Criteria**:
-- [ ] GHCR image pushed on main branch
-- [ ] SSH key authentication working
-- [ ] Docker installed on VPS if missing
-- [ ] Container runs with restart policy
-- [ ] Nginx reverse proxy configured
-
-**Rollback**: Delete deploy.yml workflow
-
-### P0-012 Postgres on VPS Container
-**Dependencies**: P0-011  
-**Goal**: Database container with persistent storage  
-**Integration Points**:
-- Extend `.github/workflows/deploy.yml`
-- Docker network for app-db communication
-- Named volume for data persistence
-
-**Tests to Pass**:
-- Database container runs with named volume
-- App container connects successfully
-- `alembic upgrade head` completes in deployment
-
-**Example**: see examples/REFERENCE_MAP.md → P0-012  
-**Reference**: Docker Compose networking documentation
-
-**Acceptance Criteria**:
-- [ ] Deploy workflow pulls postgres:15 image
-- [ ] Database runs with named volume for persistence
-- [ ] App uses DATABASE_URL=postgresql://lf:strongpassword@db/leadfactory
-- [ ] Migrations run after database is ready
-- [ ] Database backup strategy documented
-
-**Rollback**: Stop postgres container, keep volume for data recovery
-
-### P0-013 CI/CD Pipeline Stabilization
-**Dependencies**: P0-012 (must preserve prior fixes and compatibility)  
-**Goal**: Fix all CI/CD issues to achieve green builds across all workflows  
-**Integration Points**:
-- `.github/workflows/*.yml` – CI configuration files
-- `Dockerfile` – Final production container definition
-- `Dockerfile.test` – CI-only test image
-- `requirements.txt` / `requirements-dev.txt` – Dependency boundaries and separation
-
-**Tests to Pass**:
-- Linting workflow completes without errors
-- Minimal test suite runs without failure
-- Docker build completes in CI
-- Deploy workflow runs migrations successfully (CI + manual verification)
-
-**Example**: see examples/REFERENCE_MAP.md → P0-013  
-**Reference**: GitHub Actions documentation, Docker best practices
-
-**Business Logic**: A stable CI/CD pipeline is critical for reliable deployment, preventing regressions, and maintaining development velocity. Without consistently passing CI, we cannot safely release changes or rely on automation for testing and deploys.
-
-**Acceptance Criteria**:
-- [ ] All GitHub Actions workflows pass: `lint`, `test-minimal`, `test`, `docker`, and `deploy`
-- [ ] Production Docker image builds successfully with all required dependencies
-- [ ] Alembic migrations run successfully inside the production container
-- [ ] Test dependencies are properly separated from production dependencies
-- [ ] No linting errors block CI
-
-**Rollback**: Revert workflow, Docker, or dependency changes that break existing successful builds
-
-### P0-014 Test Suite Re-Enablement and Coverage Plan
-**Dependencies**: P0-013 (must have green CI before extending)  
-**Goal**: Reintroduce full KEEP test coverage, optimize test structure for CI reliability, and establish a path to restore coverage ≥70%.  
-**Integration Points**:
-- `tests/` structure and pytest config
-- `.github/workflows/test.yml` (if matrix strategy added)
-- `conftest.py` or `pytest.ini` marker logic
-- Formula evaluator test modules
-
-**Tests to Pass**:
-- KEEP suite runs end-to-end in CI (with `xfail` isolation)
-- Test matrix doesn't exceed runner timeout limit
-- Phase 0.5 formula logic does not regress
-
-**Example**: see examples/REFERENCE_MAP.md → P0-014  
-**Reference**: pytest documentation on test collection optimization
-
-**Business Logic**: Phase 0.5 tooling, especially for the CPO, requires confidence in rule, config, and evaluator correctness. Rebuilding full test coverage allows those tools to validate pipeline behavior safely.
-
-**Acceptance Criteria**:
-- [ ] All KEEP tests either run, are `xfail`, or are conditionally skipped with markers
-- [ ] CI test collection time remains under 30 seconds
-- [ ] GitHub Actions workflows pass with full test suite enabled or split
-- [ ] Test time reduced via selective markers or job matrix
-- [ ] Formula evaluator test structure supports partial implementation
-
-**Rollback**: If test re-enable breaks CI, fallback to prior ignore list, isolate failing files, and track re-enable path in PR.
-
-### P0-015 Test Coverage Enhancement to 80%
-**Dependencies**: P0-014 (must have test suite running before enhancing coverage)  
-**Goal**: Increase test coverage from 57% to 80% while maintaining CI runtime under 5 minutes  
-**Integration Points**:
-- All modules with <40% coverage (gateway providers, targeting, batch runner)
-- Test infrastructure: mock factories, fixtures, utilities
-- Coverage configuration in `.coveragerc`
-- CI coverage gates in `.github/workflows/test.yml`
-
-**Tests to Pass**:
-- `pytest --cov=. --cov-report=term-missing` shows ≥80% coverage
-- All CI checks remain green (no regressions)
-- CI runtime stays under 5 minutes
-- No flaky tests in 10 consecutive runs
-
-**Example**: see examples/REFERENCE_MAP.md → P0-015  
-**Reference**: pytest-cov documentation, testing best practices guide
-
-**Business Logic**: Production readiness requires high test coverage to prevent regressions, ensure code quality, and maintain confidence in deployments. The 80% target balances thoroughness with development velocity.
-
-**Acceptance Criteria**:
-- [ ] Overall test coverage ≥80% (currently 57.37%)
-- [ ] All gateway providers have >70% coverage with mock HTTP responses
-- [ ] D1 targeting modules (geo_validator, quota_tracker, batch_scheduler) reach >70%
-- [ ] Batch runner modules achieve >70% coverage
-- [ ] Mock factory system created for external dependencies
-- [ ] Test utilities for async operations implemented
-- [ ] CI enforces 80% coverage requirement (fails if below)
-- [ ] Coverage report published to PR comments
-- [ ] No critical business logic paths below 70% coverage
-- [ ] Performance: test suite completes in <5 minutes
-
-**Rollback**: Lower coverage requirement to 70% if 80% proves infeasible within timeline
-
-### P0-016 Test Suite Stabilization and Performance Optimization
-**Dependencies**: P0-015 (must have coverage baseline before systematic stabilization)  
-**Goal**: Achieve 100% stable test suite with zero flaky tests, optimized performance, and systematic test management to prevent future regressions  
-**Integration Points**:
-- All test files in `tests/` directory
-- Test infrastructure: `conftest.py`, `pytest.ini`, CI workflows
-- Test categorization and marking system
-- Performance monitoring and timeout management
-- Pre-push validation hooks
-
-**Tests to Pass**:
-- All non-xfail tests pass consistently across 10 consecutive runs
-- Test suite completes in <5 minutes (current: times out at 2 minutes)
-- No test collection warnings or import errors
-- Full Test Suite workflow passes in CI without failures
-- `make pre-push` completes without timeout
-
-**Example**: see examples/REFERENCE_MAP.md → P0-016  
-**Reference**: pytest documentation on test organization, CI best practices
-
-**Business Logic**: A stable test suite is foundational to all development work. Flaky tests erode confidence, slow development velocity, and mask real issues. Performance problems in validation hooks block commits and reduce developer productivity. This must be solved systematically rather than with tactical fixes.
-
-**Acceptance Criteria**:
-- [ ] Zero flaky tests - all tests pass consistently
-- [ ] Test suite performance optimized to <5 minutes total runtime
-- [ ] Pre-push validation completes without timeout
-- [ ] Test categorization system implemented (unit, integration, slow, flaky)
-- [ ] Systematic test exclusion/inclusion policies documented
-- [ ] Performance monitoring with regression detection
-- [ ] Root cause analysis and fixes for all historical test failures
-- [ ] Test parallel execution optimized for CI environment
-- [ ] Mock and stub systems properly configured
-- [ ] Database test isolation guaranteed
-- [ ] Memory usage optimization for large test suites
-- [ ] Deterministic test execution order
-- [ ] Comprehensive error reporting and debugging tools
-- [ ] Test maintenance procedures and monitoring
-- [ ] Documentation for test debugging and maintenance
-
-**Rollback**: Revert to previous test configuration with documented flaky test list
-
-### P0-020 Design System Token Extraction
-**Dependencies**: P0-014 (requires stable CI for UI task validation)  
-**Goal**: Extract machine-readable design tokens from HTML style guide for UI component validation  
-**Integration Points**:
-- Create `design/design_tokens.json` (≤2KB)
-- Move `design/styleguide.html` to proper location
-- Update design system references in documentation
-
-**Tests to Pass**:
-- `pytest tests/unit/design/test_design_tokens.py` (token validation)
-- Design token JSON schema validation
-- Style guide accessibility compliance tests
-
-**Example**: see examples/REFERENCE_MAP.md → P0-020  
-**Reference**: Anthrasite Design System HTML guide, CSS custom properties documentation
-
-**Business Logic**: UI tasks in Wave B require validated design tokens to prevent hardcoded colors, spacing, and typography values. Extracting tokens from the comprehensive HTML style guide ensures consistency across all UI components and enables automated style guide enforcement.
-
-**Acceptance Criteria**:
-- [ ] Design tokens extracted to `design/design_tokens.json` 
-- [ ] All colors, spacing, typography, and animation values tokenized
-- [ ] JSON schema validates token structure and naming conventions
-- [ ] Style guide moved to `design/styleguide.html` with updated references
-- [ ] Token validation prevents hardcoded hex values in UI code
-- [ ] WCAG 2.1 AA contrast ratios documented and validated
-- [ ] Design system documentation updated with token usage examples
-- [ ] Storybook setup with design token addon for visual documentation
-- [ ] Chromatic integration for visual regression testing (fail on color delta > ΔE 5)
-- [ ] Token enforcement linter preventing hardcoded colors/spacing in `src/`
-- [ ] CI job validates token extraction matches source styleguide
-- [ ] Pre-commit hook blocks hardcoded hex/rgb values unless prefixed `--synthesis-`
-
-**CI Token Regeneration Check**:
-```yaml
-jobs:
-  token_regen:
-    steps:
-      - run: python scripts/extract_tokens.py > design/design_tokens.auto.json
-      - run: diff -q design/design_tokens.json design/design_tokens.auto.json
-```
-
-**Rollback**: Remove design tokens file and revert to inline CSS values
-
-### P0-021 Lead Explorer
-**Dependencies**: P0-020  
-**Goal**: Give the CPO a /leads console that supports full CRUD and an audit-log, plus a Quick-Add form that immediately kicks off async enrichment  
-**Integration Points**:
-- CRUD API & UI – list, create, update, soft-delete leads
-- Quick-Add – email + domain → enrichment task queued
-- Badging – is_manual + "manual / test" chip in table rows
-- Audit Trail – every mutation → audit_log_leads row
-
-**Tests to Pass**:
-- POST/GET/PUT/DELETE endpoints return 2xx & validate schemas
-- Quick-Add sets enrichment_status=in_progress and persists task-id
-- CPO console table shows manual badge; filters by is_manual
-- ≥80% coverage on lead_explorer code
-- CI green, KEEP suite unaffected
-
-**Example**: see examples/REFERENCE_MAP.md → P0-021  
-**Reference**: FastAPI SQL databases tutorial - https://fastapi.tiangolo.com/tutorial/sql-databases/
-
-**Business Logic**: Manual seeding keeps demos moving and lets business users validate downstream flows before automated sources are live.
-
-**Acceptance Criteria**:
-- [ ] CRUD endpoints implemented with proper validation
-- [ ] Quick-Add form queues enrichment tasks correctly
-- [ ] Manual leads display "manual / test" badge
-- [ ] Audit trail captures all mutations
-- [ ] Test coverage ≥80% on lead_explorer module
-- [ ] Playwright smoke test: opens page → filters → creates lead → sees badge
-- [ ] Visual regression test via Chromatic/Storybook for lead table UI
-- [ ] Background task queue explicitly uses Prefect (specify in docs)
-- [ ] CI recursion: PR must pass all tests in Docker before merge
-- [ ] Viewer role gets 403 on mutations (tie-in with P0-026 governance)
-- [ ] Pagination performance test with 10k mock leads
-
-**Rollback**: Remove lead_explorer module and revert API routes
-
-### P0-022 Batch Report Runner
-**Dependencies**: P0-021  
-**Goal**: Enable the CPO to pick any set of leads, preview cost, and launch a bulk report run with real-time progress  
-**Integration Points**:
-- Lead table with filters + multi-select
-- Template/version picker (default = latest)
-- Cost Preview = lead-count × blended rate (from costs.json)
-- Start run → WebSocket progress bar (≥1 msg / 2s)
-- Resilient: failing lead ≠ failing batch
-
-**Tests to Pass**:
-- Preview within ±5% of actual spend
-- Batch status endpoints < 500ms
-- Progress pushes throttle correctly
-- Failed leads logged; batch continues
-- ≥80% coverage on batch_runner
-
-**Example**: see examples/REFERENCE_MAP.md → P0-022  
-**Reference**: FastAPI WebSockets tutorial - https://fastapi.tiangolo.com/tutorial/websockets/
-
-**Business Logic**: Bulk processing is the CPO's core "job-to-be-done" and must respect cost guardrails.
-
-**Acceptance Criteria**:
-- [ ] Lead multi-select with filters working
-- [ ] Cost preview accurate within ±5%
-- [ ] WebSocket progress updates every 2 seconds
-- [ ] Failed leads don't stop batch processing
-- [ ] Test coverage ≥80% on batch_runner module
-- [ ] Cost guardrail stub check (raises if ENABLE_COST_GUARDRAILS=true)
-- [ ] Playwright test: opens WebSocket, asserts 5+ progress messages during stub run
-- [ ] Stale batch auto-cleanup via cron job (mark FAILED after 24h)
-- [ ] CI must be green in Docker before merge (explicit iteration requirement)
-- [ ] Visual regression test for progress bar UI component
-
-**Rollback**: Remove batch_runner module and WebSocket endpoints
-
-### P0-023 Lineage Panel
-**Dependencies**: P0-022  
-**Goal**: Persist and surface the {lead_id, pipeline_run_id, template_version_id} triplet for every PDF, with click-through to raw inputs  
-**Integration Points**:
-- SQLAlchemy report_lineage table (+ migration)
-- Write lineage row at end of PDF generation
-- /lineage API + console panel
-- Read-only JSON viewer for pipeline logs
-- Download gzipped raw-input bundle (≤2MB)
-
-**Tests to Pass**:
-- 100% of new PDFs have lineage row
-- Log viewer loads < 500ms
-- Download obeys size ceiling
-- ≥80% coverage on lineage_panel
-
-**Example**: see examples/REFERENCE_MAP.md → P0-023  
-**Reference**: Python gzip documentation - https://docs.python.org/3/library/gzip.html
-
-**Business Logic**: Enables lightning-fast debugging, compliance audits, and transparent customer support.
-
-**Acceptance Criteria**:
-- [ ] Report lineage table created with proper schema
-- [ ] Every PDF generation creates lineage record
-- [ ] JSON log viewer loads quickly
-- [ ] Raw input downloads compressed and size-limited
-- [ ] Test coverage ≥80% on lineage_panel module
-- [ ] PII redaction for sensitive fields (email, phone) in raw inputs
-- [ ] Encryption at rest for lineage data using SQLAlchemy encrypted fields
-- [ ] Backfill script: `python scripts/backfill_lineage.py --days=30`
-- [ ] Read-only API role enforced, DELETE/UPDATE returns 405
-- [ ] Visual regression test for JSON viewer UI
-- [ ] CI schema diff check ensures lineage capture doesn't break
-
-**Rollback**: Drop report_lineage table and remove API endpoints
-
-### P0-024 Template Studio
-**Dependencies**: P0-023  
-**Goal**: Web-based Jinja2 editor with live preview and GitHub PR workflow — no developer required for daily copy tweaks  
-**Integration Points**:
-- List all templates + git SHA/version
-- Monaco editor (CDN) with Jinja2 syntax
-- Preview pane (lead_id=1) renders < 500ms
-- "Propose changes" → new branch, commit, GH PR; diff viewer
-
-**Tests to Pass**:
-- Git metadata appears in list
-- Valid auth required for mutations; viewers are read-only
-- PR body includes semantic commit msg
-- Diff view shows additions/deletions
-- ≥80% coverage on template_studio
-
-**Example**: see examples/REFERENCE_MAP.md → P0-024  
-**Reference**: Monaco Editor API - https://microsoft.github.io/monaco-editor/api/index.html, GitHub Create PR API - https://docs.github.com/en/rest/pulls/pulls#create-a-pull-request
-
-**Business Logic**: Web-based template editing empowers non-developers to make copy changes without deployment friction.
-
-**Acceptance Criteria**:
-- [ ] Template list shows git metadata
-- [ ] Monaco editor supports Jinja2 syntax highlighting
-- [ ] Preview renders in under 500ms
-- [ ] GitHub PR created with proper diff
-- [ ] Test coverage ≥80% on template_studio module
-- [ ] Strict CSP header: `Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net`
-- [ ] GitHub Action PR bot runs `pytest d6_reports/templates` on new templates
-- [ ] Visual regression test for template preview frame
-- [ ] Rate limiting: max 20 preview requests/sec returns 429
-- [ ] Jinja2 autoescape enabled, double-escaped content flagged in tests
-- [ ] OWASP ZAP scan in CI for XSS vulnerabilities
-
-**Rollback**: Remove template_studio module and UI components
-
-### P0-025 Scoring Playground
-**Dependencies**: P0-024  
-**Goal**: Safely experiment with YAML weight vectors in Google Sheets, see deltas on a 100-lead sample, and raise a PR with new weights  
-**Integration Points**:
-- "Import weights" → copies current YAML to Sheet weights_preview
-- UI grid shows live Sheet edits (Sheets API)
-- "Re-score sample 100" → delta table in console
-- "Propose diff" → updates YAML + GitHub PR
-
-**Tests to Pass**:
-- Sum(weights) must equal 1 ± 0.005 else error
-- Delta table renders < 1s (cached sample)
-- PR includes before/after YAML diff
-- ≥80% coverage on scoring_playground
-
-**Example**: see examples/REFERENCE_MAP.md → P0-025  
-**Reference**: Google Sheets API Python Quickstart - https://developers.google.com/sheets/api/quickstart/python
-
-**Business Logic**: Allows safe experimentation with scoring weights using familiar spreadsheet interface.
-
-**Acceptance Criteria**:
-- [ ] Weights import to Google Sheets correctly
-- [ ] Weight sum validation enforced
-- [ ] Delta calculations render quickly
-- [ ] GitHub PR includes proper YAML diff
-- [ ] Test coverage ≥80% on scoring_playground module
-- [ ] Sheets quota guard: stop polling after 3 quota errors, show UI toast
-- [ ] Optimistic locking: PR branch includes SHA of YAML at import time
-- [ ] CI fails if base YAML changed during concurrent edits
-- [ ] Sample leads anonymized or consent verified for PII protection
-- [ ] Performance regression test with 10x sample size behind feature flag
-- [ ] Rate limit on Sheets API calls (max 100/min)
-
-**Rollback**: Remove scoring_playground module and Sheets integration
-
-### P0-026 Governance
-**Dependencies**: P0-025  
-**Goal**: Ship single-tenant RBAC ("Admin" vs "Viewer") and a global immutable audit-trail covering every mutation in the CPO console  
-**Integration Points**:
-- Role table + enum (admin, viewer)
-- Router dependency that checks role before any POST/PUT/DELETE
-- audit_log_global table: {user_id, action, object_type, object_id, ts, details}
-- Viewer gets 403 on all mutating endpoints
-
-**Tests to Pass**:
-- All mutating endpoints blocked for viewer role in tests
-- 100% of successful mutations insert audit row
-- Tamper-proof: content hash & checksum stored
-- ≥80% coverage on governance module
-
-**Example**: see examples/REFERENCE_MAP.md → P0-026  
-**Reference**: FastAPI Advanced Dependencies - https://fastapi.tiangolo.com/advanced/advanced-dependencies/
-
-**Business Logic**: RBAC and audit trails ensure proper access control and compliance for enterprise deployments.
-
-**Acceptance Criteria**:
-- [ ] Role-based access control implemented
-- [ ] Viewers receive 403 on mutations
-- [ ] All mutations create audit log entries
-- [ ] Audit logs include tamper-proof checksums
-- [ ] Test coverage ≥80% on governance module
-- [ ] Automated test sweep iterates all routers, asserts POST/PUT/DELETE have RoleChecker
-- [ ] Log retention policy: 365 days → S3 cold storage via cron job
-- [ ] CI test verifies rotation job doesn't delete within retention window
-- [ ] Admin escalation flow documented, viewer→admin upgrade audited
-- [ ] Cross-module compatibility test: run KEEP suite with ENABLE_RBAC=false
-- [ ] < 100ms performance overhead verified in load tests
-
-**Rollback**: Drop role and audit_log_global tables, remove RBAC middleware
+## Wave A - Stabilization Complete
+
+**Status**: All Wave A PRPs (P0-001 through P0-026) have been completed. Core stabilization including test fixes, orchestration, dockerization, deployment, and basic governance is now operational.
+
+**Key Achievements**:
+- Full KEEP test suite passing
+- Docker CI/CD pipeline operational
+- VPS deployment with persistent database
+- Core UI components for lead management
+- RBAC and audit trail systems
+- Test coverage >80%
+
+**Remaining Work**: Wave B expansion, Wave C critical fixes, and Wave D UI consolidation (see sections below).
 
 ## Wave B - Expand (Priority P1-P2)
 
@@ -1598,7 +960,7 @@ These PRPs consolidate all UI components into a unified React application with s
 
 **PRP Generation**: Each ### section above becomes one PRP file with the naming convention `PRP-{priority}-{title-slug}.md`.
 
-**Dependencies**: Wave B cannot start until ALL of Wave A is complete and deployed.
+**Dependencies**: Wave A is complete. Wave B, C, and D can now proceed according to their individual dependency chains.
 
 **Testing Strategy**: 
 - Each PRP must make its specific tests pass
