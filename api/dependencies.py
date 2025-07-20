@@ -71,6 +71,13 @@ async def get_current_user_optional() -> Optional[str]:
     return None
 
 
+async def get_current_user_dependency() -> Optional[str]:
+    """Get current user dependency for API endpoints"""
+    # TODO: Implement actual authentication
+    # For now, return None to allow anonymous access
+    return None
+
+
 async def close_redis():
     """Close Redis connection (for app shutdown)"""
     global _redis_client

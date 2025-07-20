@@ -1076,19 +1076,7 @@ class TestGatewayFacadeErrorHandling:
         with pytest.raises(Exception, match="AI error"):
             await facade_instance.generate_website_insights("https://example.com")
 
-    @pytest.mark.asyncio
-    async def test_generate_personalized_email_error(self, facade):
-        """Test generate_personalized_email error handling"""
-        facade_instance, mock_factory = facade
-
-        # Mock client that raises exception
-        mock_client = AsyncMock()
-        mock_client.generate_personalized_content.side_effect = Exception("Email generation error")
-        mock_factory.create_client.return_value = mock_client
-
-        # Should raise exception
-        with pytest.raises(Exception, match="Email generation error"):
-            await facade_instance.generate_personalized_email("test@example.com", "test subject", "test content")
+    # Removed duplicate test - replaced by correct test below
 
     @pytest.mark.asyncio
     async def test_send_email_error(self, facade):

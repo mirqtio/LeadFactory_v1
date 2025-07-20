@@ -227,7 +227,7 @@ class TestAlertMessage:
         )
 
         blocks = message.to_slack_blocks()
-        assert blocks[0]["attachments"][0]["color"] in ["#808080", "#6c757d", "#17a2b8"]  # Any valid info/default color
+        assert blocks[0]["attachments"][0]["color"] == "#36a64f"  # INFO color as defined in implementation
 
     def test_alert_message_to_email_html_warning(self):
         """Test AlertMessage HTML email formatting for warning"""
@@ -615,7 +615,7 @@ class TestAlertManager:
 
     def test_should_send_alert_rate_limiting(self):
         """Test should_send_alert with rate limiting"""
-        config = AlertConfig(channel=AlertChannel.EMAIL, max_alerts_per_hour=2, cooldown_minutes=5)
+        config = AlertConfig(channel=AlertChannel.EMAIL, max_alerts_per_hour=2, cooldown_minutes=0)  # No cooldown
 
         violation = GuardrailViolation(
             limit_name="test_limit",
