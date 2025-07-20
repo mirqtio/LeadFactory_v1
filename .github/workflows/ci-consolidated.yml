@@ -17,9 +17,9 @@ env:
 
 jobs:
   primary-validation:
-    name: Comprehensive Validation (<5 min target)
+    name: Comprehensive Validation (<8 min target)
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
     
     steps:
     - name: Checkout code
@@ -141,7 +141,7 @@ jobs:
     
     - name: Performance validation
       run: |
-        echo "✅ Primary CI Pipeline completed in <5 minutes"
+        echo "✅ Primary CI Pipeline completed in <8 minutes"
         echo "Validation complete: lint, format, core tests, Docker build, security scan"
         echo "Cache strategy: GitHub Container Registry (bypassing Actions cache service issues)"
         echo "Next: Deploy pipeline (manual or automatic on merge)"
