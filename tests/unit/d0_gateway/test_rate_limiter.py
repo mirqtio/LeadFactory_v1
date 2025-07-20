@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
+from d0_gateway.rate_limiter import RateLimiter  # noqa: E402
+
 # Most Phase 0.5 rate limiter features have been implemented
 # Only specific tests that aren't ready are marked with xfail below
-
-from d0_gateway.rate_limiter import RateLimiter  # noqa: E402
 
 
 class TestRateLimiter:
