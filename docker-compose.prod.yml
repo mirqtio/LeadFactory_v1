@@ -5,8 +5,8 @@ services:
     restart: always
     ports:
       - "8000:8000"
-    mem_limit: 512m
-    memswap_limit: 512m
+    mem_limit: 1g
+    memswap_limit: 1g
     environment:
       - DATABASE_URL=postgresql://leadfactory:${DB_PASSWORD:-leadfactory}@db:5432/leadfactory
       - REDIS_URL=redis://redis:6379
