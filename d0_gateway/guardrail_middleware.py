@@ -50,6 +50,12 @@ class RateLimiter:
             return True, None
 
         bucket = self._buckets[key]
+        
+        # Initialize bucket with full burst size on first access
+        if bucket["tokens"] == 0 and bucket["last_refill"] == bucket.get("_initialized_at", bucket["last_refill"]):
+            bucket["tokens"] = rate_limit.burst_size
+            bucket["_initialized_at"] = bucket["last_refill"]
+        
         now = time.time()
 
         # Check request rate limit
@@ -64,16 +70,21 @@ class RateLimiter:
 
         # Check cost rate limit if applicable
         if cost and rate_limit.cost_per_minute:
+            # Initialize cost bucket with full burst size on first access
+            if bucket["cost_tokens"] == Decimal("0") and bucket["cost_last_refill"] == bucket.get("_cost_initialized_at", bucket["cost_last_refill"]):
+                bucket["cost_tokens"] = Decimal(str(rate_limit.cost_burst_size or rate_limit.cost_per_minute * 2))
+                bucket["_cost_initialized_at"] = bucket["cost_last_refill"]
+            
             cost_time_passed = now - bucket["cost_last_refill"]
             cost_refill = (cost_time_passed / 60) * rate_limit.cost_per_minute
             bucket["cost_tokens"] = min(
-                rate_limit.cost_burst_size or rate_limit.cost_per_minute * 2,
+                Decimal(str(rate_limit.cost_burst_size or rate_limit.cost_per_minute * 2)),
                 bucket["cost_tokens"] + Decimal(str(cost_refill)),
             )
             bucket["cost_last_refill"] = now
 
             if bucket["cost_tokens"] < cost:
-                retry_after = float((cost - bucket["cost_tokens"]) * 60 / rate_limit.cost_per_minute)
+                retry_after = float((cost - bucket["cost_tokens"]) * Decimal("60") / Decimal(str(rate_limit.cost_per_minute)))
                 return False, retry_after
 
         return True, None
@@ -144,9 +155,10 @@ def enforce_cost_guardrails(
             else:
                 estimated_cost = Decimal("0.00")
 
-            # Check guardrails
+            # Check guardrails - extract campaign_id from kwargs to avoid duplication
+            enforce_kwargs = {k: v for k, v in kwargs.items() if k != campaign_field}
             result = guardrail_manager.enforce_limits(
-                provider=provider, operation=operation, estimated_cost=estimated_cost, campaign_id=campaign_id, **kwargs
+                provider=provider, operation=operation, estimated_cost=estimated_cost, campaign_id=campaign_id, **enforce_kwargs
             )
 
             if isinstance(result, GuardrailViolation):
@@ -223,9 +235,10 @@ def enforce_cost_guardrails(
             else:
                 estimated_cost = Decimal("0.00")
 
-            # Check guardrails
+            # Check guardrails - extract campaign_id from kwargs to avoid duplication
+            enforce_kwargs = {k: v for k, v in kwargs.items() if k != campaign_field}
             result = guardrail_manager.enforce_limits(
-                provider=provider, operation=operation, estimated_cost=estimated_cost, campaign_id=campaign_id, **kwargs
+                provider=provider, operation=operation, estimated_cost=estimated_cost, campaign_id=campaign_id, **enforce_kwargs
             )
 
             if isinstance(result, GuardrailViolation):
