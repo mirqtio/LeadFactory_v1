@@ -1023,3 +1023,684 @@ class TestThreadSafety:
             assert all(client is mock_client for client in results)
             # Client should only be created once due to caching
             assert mock_client_class.call_count == 1
+
+
+class TestGatewayFacadeErrorHandling:
+    """Test error handling in Gateway Facade"""
+
+    @pytest.fixture
+    def facade(self):
+        """Create facade with mocked factory"""
+        mock_factory = Mock()
+        return GatewayFacade(factory=mock_factory), mock_factory
+
+    @pytest.mark.asyncio
+    async def test_get_core_web_vitals_error(self, facade):
+        """Test get_core_web_vitals error handling"""
+        facade_instance, mock_factory = facade
+
+        # Mock client that raises exception
+        mock_client = AsyncMock()
+        mock_client.get_core_web_vitals.side_effect = Exception("API error")
+        mock_factory.create_client.return_value = mock_client
+
+        # Should raise exception
+        with pytest.raises(Exception, match="API error"):
+            await facade_instance.get_core_web_vitals("https://example.com")
+
+    @pytest.mark.asyncio
+    async def test_analyze_multiple_websites_error(self, facade):
+        """Test analyze_multiple_websites error handling"""
+        facade_instance, mock_factory = facade
+
+        # Mock client that raises exception
+        mock_client = AsyncMock()
+        mock_client.batch_analyze_urls.side_effect = Exception("Batch error")
+        mock_factory.create_client.return_value = mock_client
+
+        # Should raise exception
+        with pytest.raises(Exception, match="Batch error"):
+            await facade_instance.analyze_multiple_websites(["https://example.com"])
+
+    @pytest.mark.asyncio
+    async def test_generate_website_insights_error(self, facade):
+        """Test generate_website_insights error handling"""
+        facade_instance, mock_factory = facade
+
+        # Mock client that raises exception
+        mock_client = AsyncMock()
+        mock_client.analyze_website_performance.side_effect = Exception("AI error")
+        mock_factory.create_client.return_value = mock_client
+
+        # Should raise exception
+        with pytest.raises(Exception, match="AI error"):
+            await facade_instance.generate_website_insights("https://example.com")
+
+    @pytest.mark.asyncio
+    async def test_generate_email_content_error(self, facade):
+        """Test generate_email_content error handling"""
+        facade_instance, mock_factory = facade
+
+        # Mock client that raises exception
+        mock_client = AsyncMock()
+        mock_client.generate_email_content.side_effect = Exception("Email generation error")
+        mock_factory.create_client.return_value = mock_client
+
+        # Should raise exception
+        with pytest.raises(Exception, match="Email generation error"):
+            await facade_instance.generate_email_content("test prompt")
+
+    @pytest.mark.asyncio
+    async def test_send_email_error(self, facade):
+        """Test send_email error handling"""
+        facade_instance, mock_factory = facade
+
+        # Mock client that raises exception
+        mock_client = AsyncMock()
+        mock_client.send_email.side_effect = Exception("Send error")
+        mock_factory.create_client.return_value = mock_client
+
+        # Should raise exception
+        with pytest.raises(Exception, match="Send error"):
+            await facade_instance.send_email("test@example.com", "Subject", "Body")
+
+    @pytest.mark.asyncio
+    async def test_create_checkout_session_error(self, facade):
+        """Test create_checkout_session error handling"""
+        facade_instance, mock_factory = facade
+
+        # Mock client that raises exception
+        mock_client = AsyncMock()
+        mock_client.create_checkout_session.side_effect = Exception("Stripe error")
+        mock_factory.create_client.return_value = mock_client
+
+        # Should raise exception
+        with pytest.raises(Exception, match="Stripe error"):
+            await facade_instance.create_checkout_session("price_123", "https://success.com", "https://cancel.com")
+
+    @pytest.mark.asyncio
+    async def test_retrieve_checkout_session_error(self, facade):
+        """Test retrieve_checkout_session error handling"""
+        facade_instance, mock_factory = facade
+
+        # Mock client that raises exception
+        mock_client = AsyncMock()
+        mock_client.retrieve_checkout_session.side_effect = Exception("Retrieve error")
+        mock_factory.create_client.return_value = mock_client
+
+        # Should raise exception
+        with pytest.raises(Exception, match="Retrieve error"):
+            await facade_instance.retrieve_checkout_session("cs_123")
+
+    @pytest.mark.asyncio
+    async def test_complete_business_analysis_partial_error(self, facade):
+        """Test complete_business_analysis with partial errors"""
+        facade_instance, mock_factory = facade
+
+        # Mock clients with mixed success/failure
+        mock_pagespeed_client = AsyncMock()
+        mock_openai_client = AsyncMock()
+
+        # PageSpeed succeeds
+        mock_pagespeed_client.analyze_url.return_value = {
+            "lighthouseResult": {"categories": {"performance": {"score": 0.8}}}
+        }
+
+        # OpenAI fails
+        mock_openai_client.analyze_website_performance.side_effect = Exception("AI error")
+
+        def create_client_side_effect(provider):
+            if provider == "pagespeed":
+                return mock_pagespeed_client
+            elif provider == "openai":
+                return mock_openai_client
+
+        mock_factory.create_client.side_effect = create_client_side_effect
+
+        # Should handle partial failure gracefully
+        result = await facade_instance.complete_business_analysis(
+            business_id="test-123", business_url="https://example.com", include_ai_insights=True
+        )
+
+        # Should have website analysis but errors for AI
+        assert result["business_id"] == "test-123"
+        assert result["website_analysis"] is not None
+        assert result["ai_insights"] is None
+        assert len(result["errors"]) > 0
+
+    def test_facade_initialization_with_factory(self):
+        """Test facade initialization with provided factory"""
+        mock_factory = Mock()
+        facade_instance = GatewayFacade(factory=mock_factory)
+
+        assert facade_instance.factory is mock_factory
+        assert facade_instance.logger is not None
+        assert facade_instance.metrics is not None
+
+    def test_facade_initialization_default_factory(self):
+        """Test facade initialization with default factory"""
+        with patch("d0_gateway.facade.get_gateway_factory") as mock_get_factory:
+            mock_factory = Mock()
+            mock_get_factory.return_value = mock_factory
+
+            facade_instance = GatewayFacade()
+
+            assert facade_instance.factory is mock_factory
+            mock_get_factory.assert_called_once()
+
+
+class TestGatewayFacadeModuleFunctions:
+    """Test module-level functions"""
+
+    def test_get_gateway_facade_singleton(self):
+        """Test get_gateway_facade returns singleton"""
+        # Reset any existing facade
+        import d0_gateway.facade
+
+        d0_gateway.facade._facade_instance = None
+
+        facade1 = get_gateway_facade()
+        facade2 = get_gateway_facade()
+
+        assert facade1 is facade2
+        assert isinstance(facade1, GatewayFacade)
+
+
+class TestGatewayFacadeMissingCoverage:
+    """Test missing coverage areas to reach 80%+ coverage"""
+
+    @pytest.fixture
+    def mock_factory(self):
+        """Create a mock factory for testing"""
+        factory = Mock()
+        factory.create_client.return_value = Mock()
+        return factory
+
+    @pytest.fixture
+    def facade(self, mock_factory):
+        """Create facade with mock factory"""
+        return GatewayFacade(factory=mock_factory)
+
+    @pytest.mark.asyncio
+    async def test_get_core_web_vitals_success(self, facade, mock_factory):
+        """Test get_core_web_vitals success path"""
+        # Mock PageSpeed client
+        mock_client = AsyncMock()
+        mock_client.get_core_web_vitals.return_value = {"metrics": {"FCP": 1.5, "LCP": 2.1, "CLS": 0.1}}
+        mock_factory.create_client.return_value = mock_client
+
+        result = await facade.get_core_web_vitals("https://example.com", "desktop")
+
+        mock_factory.create_client.assert_called_with("pagespeed")
+        mock_client.get_core_web_vitals.assert_called_with("https://example.com", "desktop")
+        assert result["metrics"]["FCP"] == 1.5
+
+    @pytest.mark.asyncio
+    async def test_get_core_web_vitals_error(self, facade, mock_factory):
+        """Test get_core_web_vitals error path"""
+        mock_client = AsyncMock()
+        mock_client.get_core_web_vitals.side_effect = Exception("API error")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="API error"):
+            await facade.get_core_web_vitals("https://example.com")
+
+    @pytest.mark.asyncio
+    async def test_analyze_multiple_websites_success(self, facade, mock_factory):
+        """Test analyze_multiple_websites success path"""
+        mock_client = AsyncMock()
+        mock_client.batch_analyze_urls.return_value = {"results": [{"url": "https://example.com", "score": 85}]}
+        mock_factory.create_client.return_value = mock_client
+
+        result = await facade.analyze_multiple_websites(["https://example.com"], "mobile")
+
+        mock_factory.create_client.assert_called_with("pagespeed")
+        mock_client.batch_analyze_urls.assert_called_with(["https://example.com"], "mobile")
+        assert len(result["results"]) == 1
+
+    @pytest.mark.asyncio
+    async def test_analyze_multiple_websites_error(self, facade, mock_factory):
+        """Test analyze_multiple_websites error path"""
+        mock_client = AsyncMock()
+        mock_client.batch_analyze_urls.side_effect = Exception("Batch error")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Batch error"):
+            await facade.analyze_multiple_websites(["https://example.com"])
+
+    @pytest.mark.asyncio
+    async def test_generate_website_insights_error(self, facade, mock_factory):
+        """Test generate_website_insights error path"""
+        mock_client = AsyncMock()
+        mock_client.analyze_website_performance.side_effect = Exception("AI insights failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="AI insights failed"):
+            await facade.generate_website_insights({"data": "test"})
+
+    @pytest.mark.asyncio
+    async def test_generate_personalized_email_success(self, facade, mock_factory):
+        """Test generate_personalized_email success path"""
+        mock_client = AsyncMock()
+        mock_client.generate_email_content.return_value = {"subject": "Test Subject", "body": "Test Body"}
+        mock_factory.create_client.return_value = mock_client
+
+        result = await facade.generate_personalized_email("Test Business", [{"issue": "slow loading"}], "John Doe")
+
+        mock_factory.create_client.assert_called_with("openai")
+        mock_client.generate_email_content.assert_called_with(
+            business_name="Test Business", website_issues=[{"issue": "slow loading"}], recipient_name="John Doe"
+        )
+        assert result["subject"] == "Test Subject"
+
+    @pytest.mark.asyncio
+    async def test_generate_personalized_email_error(self, facade, mock_factory):
+        """Test generate_personalized_email error path"""
+        mock_client = AsyncMock()
+        mock_client.generate_email_content.side_effect = Exception("Email generation failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Email generation failed"):
+            await facade.generate_personalized_email("Test", [{"issue": "test"}])
+
+    @pytest.mark.asyncio
+    async def test_send_bulk_emails_error(self, facade, mock_factory):
+        """Test send_bulk_emails error path"""
+        mock_client = AsyncMock()
+        mock_client.send_bulk_emails.side_effect = Exception("Bulk send failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Bulk send failed"):
+            await facade.send_bulk_emails([{"to": "test@example.com"}], "from@example.com")
+
+    @pytest.mark.asyncio
+    async def test_get_email_stats_error(self, facade, mock_factory):
+        """Test get_email_stats error path"""
+        mock_client = AsyncMock()
+        mock_client.get_email_stats.side_effect = Exception("Stats failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Stats failed"):
+            await facade.get_email_stats("2024-01-01")
+
+    @pytest.mark.asyncio
+    async def test_get_bounces_error(self, facade, mock_factory):
+        """Test get_bounces error path"""
+        mock_client = AsyncMock()
+        mock_client.get_bounces.side_effect = Exception("Bounces failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Bounces failed"):
+            await facade.get_bounces()
+
+    @pytest.mark.asyncio
+    async def test_delete_bounce_error(self, facade, mock_factory):
+        """Test delete_bounce error path"""
+        mock_client = AsyncMock()
+        mock_client.delete_bounce.side_effect = Exception("Delete failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Delete failed"):
+            await facade.delete_bounce("test@example.com")
+
+    @pytest.mark.asyncio
+    async def test_validate_email_address_error(self, facade, mock_factory):
+        """Test validate_email_address error path"""
+        mock_client = AsyncMock()
+        mock_client.validate_email_address.side_effect = Exception("Validation failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Validation failed"):
+            await facade.validate_email_address("test@example.com")
+
+    @pytest.mark.asyncio
+    async def test_get_webhook_stats_error(self, facade, mock_factory):
+        """Test get_webhook_stats error path"""
+        mock_client = AsyncMock()
+        mock_client.get_webhook_stats.side_effect = Exception("Webhook stats failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Webhook stats failed"):
+            await facade.get_webhook_stats()
+
+    @pytest.mark.asyncio
+    async def test_create_checkout_session_with_line_items_success(self, facade, mock_factory):
+        """Test create_checkout_session_with_line_items success path"""
+        mock_client = AsyncMock()
+        mock_client.create_checkout_session_with_line_items.return_value = {
+            "id": "cs_test_123",
+            "url": "https://checkout.stripe.com/cs_test_123",
+        }
+        mock_factory.create_client.return_value = mock_client
+
+        line_items = [{"price": "price_123", "quantity": 1}]
+        result = await facade.create_checkout_session_with_line_items(
+            line_items=line_items,
+            success_url="https://success.com",
+            cancel_url="https://cancel.com",
+            customer_email="test@example.com",
+            mode="subscription",
+            expires_at=1640995200,
+            payment_method_types=["card"],
+            billing_address_collection="required",
+            allow_promotion_codes=True,
+        )
+
+        mock_factory.create_client.assert_called_with("stripe")
+        mock_client.create_checkout_session_with_line_items.assert_called_with(
+            line_items=line_items,
+            success_url="https://success.com",
+            cancel_url="https://cancel.com",
+            customer_email="test@example.com",
+            client_reference_id=None,
+            metadata=None,
+            mode="subscription",
+            expires_at=1640995200,
+            payment_method_types=["card"],
+            billing_address_collection="required",
+            allow_promotion_codes=True,
+        )
+        assert result["id"] == "cs_test_123"
+
+    @pytest.mark.asyncio
+    async def test_create_checkout_session_with_line_items_error(self, facade, mock_factory):
+        """Test create_checkout_session_with_line_items error path"""
+        mock_client = AsyncMock()
+        mock_client.create_checkout_session_with_line_items.side_effect = Exception("Line items failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Line items failed"):
+            await facade.create_checkout_session_with_line_items([], "https://success.com", "https://cancel.com")
+
+    @pytest.mark.asyncio
+    async def test_create_payment_intent_error(self, facade, mock_factory):
+        """Test create_payment_intent error path"""
+        mock_client = AsyncMock()
+        mock_client.create_payment_intent.side_effect = Exception("Payment intent failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Payment intent failed"):
+            await facade.create_payment_intent(1000)
+
+    @pytest.mark.asyncio
+    async def test_get_checkout_session_error(self, facade, mock_factory):
+        """Test get_checkout_session error path"""
+        mock_client = AsyncMock()
+        mock_client.get_checkout_session.side_effect = Exception("Get session failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Get session failed"):
+            await facade.get_checkout_session("cs_123")
+
+    @pytest.mark.asyncio
+    async def test_get_payment_intent_success(self, facade, mock_factory):
+        """Test get_payment_intent success path"""
+        mock_client = AsyncMock()
+        mock_client.get_payment_intent.return_value = {"id": "pi_123", "status": "succeeded"}
+        mock_factory.create_client.return_value = mock_client
+
+        result = await facade.get_payment_intent("pi_123")
+
+        mock_factory.create_client.assert_called_with("stripe")
+        mock_client.get_payment_intent.assert_called_with("pi_123")
+        assert result["id"] == "pi_123"
+
+    @pytest.mark.asyncio
+    async def test_get_payment_intent_error(self, facade, mock_factory):
+        """Test get_payment_intent error path"""
+        mock_client = AsyncMock()
+        mock_client.get_payment_intent.side_effect = Exception("Get payment intent failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Get payment intent failed"):
+            await facade.get_payment_intent("pi_123")
+
+    @pytest.mark.asyncio
+    async def test_create_customer_error(self, facade, mock_factory):
+        """Test create_customer error path"""
+        mock_client = AsyncMock()
+        mock_client.create_customer.side_effect = Exception("Create customer failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Create customer failed"):
+            await facade.create_customer("test@example.com")
+
+    @pytest.mark.asyncio
+    async def test_get_customer_success(self, facade, mock_factory):
+        """Test get_customer success path"""
+        mock_client = AsyncMock()
+        mock_client.get_customer.return_value = {"id": "cus_123", "email": "test@example.com"}
+        mock_factory.create_client.return_value = mock_client
+
+        result = await facade.get_customer("cus_123")
+
+        mock_factory.create_client.assert_called_with("stripe")
+        mock_client.get_customer.assert_called_with("cus_123")
+        assert result["id"] == "cus_123"
+
+    @pytest.mark.asyncio
+    async def test_get_customer_error(self, facade, mock_factory):
+        """Test get_customer error path"""
+        mock_client = AsyncMock()
+        mock_client.get_customer.side_effect = Exception("Get customer failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Get customer failed"):
+            await facade.get_customer("cus_123")
+
+    @pytest.mark.asyncio
+    async def test_create_product_success(self, facade, mock_factory):
+        """Test create_product success path"""
+        mock_client = AsyncMock()
+        mock_client.create_product.return_value = {"id": "prod_123", "name": "Test Product"}
+        mock_factory.create_client.return_value = mock_client
+
+        result = await facade.create_product(
+            name="Test Product", description="Test Description", metadata={"key": "value"}, active=False
+        )
+
+        mock_factory.create_client.assert_called_with("stripe")
+        mock_client.create_product.assert_called_with(
+            name="Test Product", description="Test Description", metadata={"key": "value"}, active=False
+        )
+        assert result["id"] == "prod_123"
+
+    @pytest.mark.asyncio
+    async def test_create_product_error(self, facade, mock_factory):
+        """Test create_product error path"""
+        mock_client = AsyncMock()
+        mock_client.create_product.side_effect = Exception("Create product failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Create product failed"):
+            await facade.create_product("Test Product")
+
+    @pytest.mark.asyncio
+    async def test_list_charges_error(self, facade, mock_factory):
+        """Test list_charges error path"""
+        mock_client = AsyncMock()
+        mock_client.list_charges.side_effect = Exception("List charges failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="List charges failed"):
+            await facade.list_charges()
+
+    @pytest.mark.asyncio
+    async def test_create_price_success(self, facade, mock_factory):
+        """Test create_price success path"""
+        mock_client = AsyncMock()
+        mock_client.create_price.return_value = {"id": "price_123", "unit_amount": 1000}
+        mock_factory.create_client.return_value = mock_client
+
+        result = await facade.create_price(
+            amount=1000,
+            currency="eur",
+            product_id="prod_123",
+            product_data={"name": "Test"},
+            recurring={"interval": "month"},
+        )
+
+        mock_factory.create_client.assert_called_with("stripe")
+        mock_client.create_price.assert_called_with(
+            amount=1000,
+            currency="eur",
+            product_id="prod_123",
+            product_data={"name": "Test"},
+            recurring={"interval": "month"},
+        )
+        assert result["id"] == "price_123"
+
+    @pytest.mark.asyncio
+    async def test_create_price_error(self, facade, mock_factory):
+        """Test create_price error path"""
+        mock_client = AsyncMock()
+        mock_client.create_price.side_effect = Exception("Create price failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Create price failed"):
+            await facade.create_price(1000)
+
+    @pytest.mark.asyncio
+    async def test_create_webhook_endpoint_error(self, facade, mock_factory):
+        """Test create_webhook_endpoint error path"""
+        mock_client = AsyncMock()
+        mock_client.create_webhook_endpoint.side_effect = Exception("Webhook endpoint failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Webhook endpoint failed"):
+            await facade.create_webhook_endpoint("https://example.com", ["event"])
+
+    @pytest.mark.asyncio
+    async def test_construct_webhook_event_success(self, facade, mock_factory):
+        """Test construct_webhook_event success path"""
+        mock_client = AsyncMock()
+        mock_client.construct_webhook_event.return_value = {
+            "type": "checkout.session.completed",
+            "data": {"object": {"id": "cs_123"}},
+        }
+        mock_factory.create_client.return_value = mock_client
+
+        result = await facade.construct_webhook_event(
+            payload='{"test": "data"}', signature="signature", endpoint_secret="secret"
+        )
+
+        mock_factory.create_client.assert_called_with("stripe")
+        mock_client.construct_webhook_event.assert_called_with(
+            payload='{"test": "data"}', signature="signature", endpoint_secret="secret"
+        )
+        assert result["type"] == "checkout.session.completed"
+
+    @pytest.mark.asyncio
+    async def test_construct_webhook_event_error(self, facade, mock_factory):
+        """Test construct_webhook_event error path"""
+        mock_client = AsyncMock()
+        mock_client.construct_webhook_event.side_effect = Exception("Webhook event failed")
+        mock_factory.create_client.return_value = mock_client
+
+        with pytest.raises(Exception, match="Webhook event failed"):
+            await facade.construct_webhook_event("payload", "signature", "secret")
+
+    @pytest.mark.asyncio
+    async def test_complete_business_analysis_no_url(self, facade, mock_factory):
+        """Test complete_business_analysis with no URL"""
+        result = await facade.complete_business_analysis("test-123")
+
+        assert result["business_id"] == "test-123"
+        assert result["business_data"] is None
+        assert result["website_analysis"] is None
+        assert result["ai_insights"] is None
+        assert result["email_content"] is None
+        assert "No website URL provided" in result["errors"]
+
+    @pytest.mark.asyncio
+    async def test_complete_business_analysis_website_error(self, facade, mock_factory):
+        """Test complete_business_analysis with website analysis error"""
+        # Mock facade methods to raise exception for website analysis
+        with patch.object(facade, "analyze_website", side_effect=Exception("Website analysis failed")):
+            result = await facade.complete_business_analysis("test-123", business_url="https://example.com")
+
+            assert result["business_id"] == "test-123"
+            assert result["website_analysis"] is None
+            assert "Website analysis failed: Website analysis failed" in result["errors"]
+
+    @pytest.mark.asyncio
+    async def test_complete_business_analysis_ai_error(self, facade, mock_factory):
+        """Test complete_business_analysis with AI insights error"""
+        # Mock website analysis success but AI insights failure
+        with patch.object(facade, "analyze_website", return_value={"data": "test"}), patch.object(
+            facade, "generate_website_insights", side_effect=Exception("AI failed")
+        ):
+            result = await facade.complete_business_analysis("test-123", business_url="https://example.com")
+
+            assert result["business_id"] == "test-123"
+            assert result["website_analysis"] == {"data": "test"}
+            assert result["ai_insights"] is None
+            assert "AI insights failed: AI failed" in result["errors"]
+
+    @pytest.mark.asyncio
+    async def test_complete_business_analysis_email_error(self, facade, mock_factory):
+        """Test complete_business_analysis with email generation error"""
+        # Mock successful website and AI but email failure
+        with patch.object(facade, "analyze_website", return_value={"data": "test"}), patch.object(
+            facade, "generate_website_insights", return_value={"ai_recommendations": [{"issue": "test"}]}
+        ), patch.object(facade, "generate_personalized_email", side_effect=Exception("Email failed")):
+            result = await facade.complete_business_analysis(
+                "test-123", business_url="https://example.com", include_email_generation=True
+            )
+
+            assert result["business_id"] == "test-123"
+            assert result["website_analysis"] == {"data": "test"}
+            assert result["ai_insights"] == {"ai_recommendations": [{"issue": "test"}]}
+            assert result["email_content"] is None
+            assert "Email generation failed: Email failed" in result["errors"]
+
+    def test_get_gateway_status_error(self, facade, mock_factory):
+        """Test get_gateway_status error handling"""
+        mock_factory.get_client_status.side_effect = Exception("Status error")
+
+        status = facade.get_gateway_status()
+
+        assert status["status"] == "error"
+        assert "Status error" in status["error"]
+
+    @pytest.mark.asyncio
+    async def test_get_all_rate_limits_with_errors(self, facade, mock_factory):
+        """Test get_all_rate_limits with provider errors"""
+        mock_factory.get_provider_names.return_value = ["provider1", "provider2"]
+
+        def create_client_side_effect(provider):
+            if provider == "provider1":
+                raise Exception("Provider 1 error")
+            else:
+                mock_client = Mock()
+                mock_client.get_rate_limit.return_value = {"limit": 100}
+                return mock_client
+
+        mock_factory.create_client.side_effect = create_client_side_effect
+
+        rate_limits = await facade.get_all_rate_limits()
+
+        assert "provider1" in rate_limits
+        assert "provider2" in rate_limits
+        assert "Provider 1 error" in rate_limits["provider1"]["error"]
+        assert rate_limits["provider2"]["limit"] == 100
+
+    @pytest.mark.asyncio
+    async def test_calculate_total_costs_with_errors(self, facade, mock_factory):
+        """Test calculate_total_costs with provider errors"""
+        mock_factory.get_provider_names.return_value = ["provider1", "provider2"]
+
+        def create_client_side_effect(provider):
+            if provider == "provider1":
+                raise Exception("Provider 1 cost error")
+            else:
+                return Mock()
+
+        mock_factory.create_client.side_effect = create_client_side_effect
+
+        costs = await facade.calculate_total_costs()
+
+        assert "provider1" in costs
+        assert "provider2" in costs
+        assert costs["provider1"] == 0.00
+        assert costs["provider2"] == 0.00

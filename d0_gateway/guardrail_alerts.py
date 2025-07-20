@@ -27,6 +27,9 @@ class AlertChannel(str, Enum):
     WEBHOOK = "webhook"
     LOG = "log"  # Default, always enabled
 
+    def __str__(self):
+        return self.value
+
 
 class AlertConfig(BaseModel):
     """Configuration for an alert channel"""

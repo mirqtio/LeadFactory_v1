@@ -440,13 +440,10 @@ async def acknowledge_alert(ack: AlertAcknowledgment) -> Dict[str, Any]:
     return response
 
 
-@router.post("/alerts/test")
-async def test_alert(
-    channel: AlertChannel = Query(..., description="Channel to test"),
-    severity: str = Query("warning", description="Alert severity to simulate"),
-) -> Dict[str, Any]:
-    """Test alert delivery to a specific channel"""
+async def _test_alert_core(channel, severity: str) -> Dict[str, Any]:
+    """Core test alert functionality that can be called directly or via API"""
     from d0_gateway.alerts import alert_manager
+    from d0_gateway.guardrail_alerts import AlertChannel
     from d0_gateway.guardrails import AlertSeverity, GuardrailAction, GuardrailViolation, LimitScope
 
     # Create a test violation
@@ -463,14 +460,27 @@ async def test_alert(
         metadata={"test": True},
     )
 
+    # Handle both AlertChannel enum and raw channel values
+    channel_enum = channel if isinstance(channel, AlertChannel) else AlertChannel(channel)
+    channel_value = channel_enum.value
+
     # Send test alert
-    results = await alert_manager.send_alert(test_violation, [channel])
+    results = await alert_manager.send_alert(test_violation, [channel_enum])
 
     return {
-        "channel": channel.value,
-        "success": results.get(channel, False),
-        "message": f"Test alert sent to {channel.value}"
-        if results.get(channel)
-        else f"Failed to send test alert to {channel.value}",
+        "channel": channel_value,
+        "success": results.get(channel_enum, False),
+        "message": f"Test alert sent to {channel_value}"
+        if results.get(channel_enum)
+        else f"Failed to send test alert to {channel_value}",
         "timestamp": datetime.utcnow(),
     }
+
+
+@router.post("/alerts/test")
+async def test_alert(
+    channel: AlertChannel = Query(..., description="Channel to test"),
+    severity: str = Query("warning", description="Alert severity to simulate"),
+) -> Dict[str, Any]:
+    """Test alert delivery to a specific channel"""
+    return await _test_alert_core(channel, severity)

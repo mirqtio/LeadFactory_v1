@@ -8,6 +8,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from core.auth import get_current_user_dependency, require_organization_access
 from database.models import EnrichmentStatus
 from lead_explorer.api import router
 
@@ -16,9 +17,24 @@ pytestmark = [pytest.mark.unit, pytest.mark.critical]
 
 
 @pytest.fixture
-def app():
+def mock_current_user():
+    """Mock current user for authentication"""
+    user = Mock()
+    user.id = "test-user-id"
+    user.email = "test@example.com"
+    user.organization_id = "test-org-id"
+    return user
+
+
+@pytest.fixture
+def app(mock_current_user):
     """Create FastAPI app for testing"""
     app = FastAPI()
+
+    # Override auth dependencies
+    app.dependency_overrides[get_current_user_dependency] = lambda: mock_current_user
+    app.dependency_overrides[require_organization_access] = lambda: "test-org-id"
+
     app.include_router(router, prefix="/api/v1/lead-explorer")
     return app
 

@@ -112,9 +112,12 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_proceed(self):
         """Test real-time cost check allowing operation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold:
+        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
+            "d11_orchestration.cost_guardrails.get_run_logger"
+        ) as mock_logger:
             # Mock 60% current usage, operation would bring to 65%
             mock_threshold.return_value = (False, 0.6, "ok", Decimal("1800.0"), Decimal("3000.0"))
+            mock_logger.return_value = MagicMock()
 
             result = real_time_cost_check.fn(operation_cost=150.0, provider="openai")
 
@@ -126,9 +129,12 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_proceed_with_monitoring(self):
         """Test real-time cost check with monitoring recommendation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold:
+        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
+            "d11_orchestration.cost_guardrails.get_run_logger"
+        ) as mock_logger:
             # Mock 75% current usage, operation would bring to 85%
             mock_threshold.return_value = (True, 0.75, "notice", Decimal("2250.0"), Decimal("3000.0"))
+            mock_logger.return_value = MagicMock()
 
             result = real_time_cost_check.fn(operation_cost=300.0, provider="dataaxle")
 
@@ -138,9 +144,12 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_proceed_with_caution(self):
         """Test real-time cost check with caution recommendation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold:
+        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
+            "d11_orchestration.cost_guardrails.get_run_logger"
+        ) as mock_logger:
             # Mock 85% current usage, operation would bring to 92%
             mock_threshold.return_value = (True, 0.85, "warning", Decimal("2550.0"), Decimal("3000.0"))
+            mock_logger.return_value = MagicMock()
 
             result = real_time_cost_check.fn(operation_cost=210.0, provider="hunter")
 
@@ -150,9 +159,12 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_block_high_risk(self):
         """Test real-time cost check blocking high risk operation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold:
+        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
+            "d11_orchestration.cost_guardrails.get_run_logger"
+        ) as mock_logger:
             # Mock 90% current usage, operation would bring to 96%
             mock_threshold.return_value = (True, 0.9, "high", Decimal("2700.0"), Decimal("3000.0"))
+            mock_logger.return_value = MagicMock()
 
             result = real_time_cost_check.fn(operation_cost=180.0, provider="openai")
 
@@ -162,9 +174,12 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_block_critical(self):
         """Test real-time cost check blocking critical operation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold:
+        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
+            "d11_orchestration.cost_guardrails.get_run_logger"
+        ) as mock_logger:
             # Mock 95% current usage, operation would exceed 100%
             mock_threshold.return_value = (True, 0.95, "high", Decimal("2850.0"), Decimal("3000.0"))
+            mock_logger.return_value = MagicMock()
 
             result = real_time_cost_check.fn(operation_cost=200.0, provider="dataaxle")
 
@@ -241,19 +256,27 @@ class TestP2040BudgetMonitoringFlow:
         ) as mock_logger, patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert, patch(
             "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
         ), patch(
+            "asyncio.get_event_loop"
+        ) as mock_get_loop, patch(
             "asyncio.run"
         ) as mock_asyncio:
             # Mock warning status
             mock_threshold.return_value = (True, 0.8, "warning", Decimal("2400.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
 
+            # Mock the event loop path
+            mock_loop = MagicMock()
+            mock_get_loop.return_value = mock_loop
+            mock_loop.run_until_complete.return_value = None
+            mock_alert.return_value = None
+
             result = monthly_budget_monitor_flow.fn()
 
             assert result["alert_level"] == "warning"
             assert result["is_over_threshold"] is True
             assert result["alert_sent"] is True
-            # Verify alert was sent
-            mock_asyncio.assert_called_once()
+            # Verify alert was sent via event loop
+            mock_loop.run_until_complete.assert_called_once()
 
     def test_monthly_budget_monitor_flow_alert_failure(self):
         """Test monthly budget monitoring flow with alert failure"""
@@ -262,11 +285,18 @@ class TestP2040BudgetMonitoringFlow:
         ) as mock_logger, patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert, patch(
             "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
         ), patch(
+            "asyncio.get_event_loop"
+        ) as mock_get_loop, patch(
             "asyncio.run", side_effect=Exception("Alert failed")
         ):
             # Mock warning status
             mock_threshold.return_value = (True, 0.8, "warning", Decimal("2400.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
+
+            # Mock the event loop path to fail
+            mock_loop = MagicMock()
+            mock_get_loop.return_value = mock_loop
+            mock_loop.run_until_complete.side_effect = Exception("Alert failed")
 
             result = monthly_budget_monitor_flow.fn()
 

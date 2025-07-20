@@ -3,6 +3,18 @@ Shared test configuration for D0 Gateway tests
 """
 import pytest
 from prometheus_client import REGISTRY
+from sqlalchemy import create_engine
+
+from database.models import Base
+
+
+@pytest.fixture(scope="function")
+def test_engine():
+    """Create test database engine and tables for each test"""
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    yield engine
+    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture(autouse=True)

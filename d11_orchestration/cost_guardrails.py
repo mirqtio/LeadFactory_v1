@@ -482,15 +482,15 @@ def monthly_budget_monitor_flow(warning_threshold: float = 0.8) -> Dict[str, any
             # Map alert levels to GuardrailViolation severity
             severity_map = {
                 "critical": AlertSeverity.CRITICAL,
-                "high": AlertSeverity.HIGH,
-                "warning": AlertSeverity.MEDIUM,
-                "notice": AlertSeverity.LOW,
+                "high": AlertSeverity.CRITICAL,
+                "warning": AlertSeverity.WARNING,
+                "notice": AlertSeverity.INFO,
             }
 
             violation = GuardrailViolation(
                 limit_name="monthly_budget_threshold",
                 scope=LimitScope.GLOBAL,
-                severity=severity_map.get(alert_level, AlertSeverity.MEDIUM),
+                severity=severity_map.get(alert_level, AlertSeverity.WARNING),
                 current_spend=current_spend,
                 limit_amount=monthly_limit,
                 percentage_used=percentage_used,
