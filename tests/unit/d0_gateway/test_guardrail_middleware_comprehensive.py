@@ -8,6 +8,7 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
+from contextlib import contextmanager
 
 from d0_gateway.guardrail_middleware import (
     GuardrailBlocked,
@@ -29,6 +30,19 @@ from d0_gateway.guardrails import (
     LimitScope,
     RateLimitConfig,
 )
+
+
+@pytest.fixture(autouse=True)
+def mock_db_session(monkeypatch, test_db):
+    """Automatically mock all database sessions to use test SQLite fixture"""
+    @contextmanager
+    def mock_get_db_sync():
+        yield test_db
+    
+    # Patch the database session function used by guardrails
+    monkeypatch.setattr("d0_gateway.guardrails.get_db_sync", mock_get_db_sync)
+    monkeypatch.setattr("database.session.get_db_sync", mock_get_db_sync)
+    return test_db
 
 
 class TestRateLimiter:
@@ -220,7 +234,7 @@ class TestRateLimiter:
 class TestEnforceCostGuardrailsDecorator:
     """Test enforce_cost_guardrails decorator"""
 
-    def test_decorator_async_function_success(self):
+    def test_decorator_async_function_success(self, test_db):
         """Test decorator on async function with successful execution"""
 
         @enforce_cost_guardrails()
@@ -250,7 +264,7 @@ class TestEnforceCostGuardrailsDecorator:
             assert call_args[1]["provider"] == "test_provider"
             assert call_args[1]["operation"] == "operation"  # Uses operation_field default
 
-    def test_decorator_sync_function_success(self):
+    def test_decorator_sync_function_success(self, test_db):
         """Test decorator on sync function with successful execution"""
 
         @enforce_cost_guardrails()
@@ -271,7 +285,7 @@ class TestEnforceCostGuardrailsDecorator:
             result = test_sync_method(mock_client)
             assert result == "success"
 
-    def test_decorator_no_provider_error(self):
+    def test_decorator_no_provider_error(self, test_db):
         """Test decorator when no provider is found"""
 
         @enforce_cost_guardrails()
@@ -291,7 +305,7 @@ class TestEnforceCostGuardrailsDecorator:
             assert result == "success"
             mock_logger.error.assert_called_once()
 
-    def test_decorator_rate_limit_exceeded(self):
+    def test_decorator_rate_limit_exceeded(self, test_db):
         """Test decorator when rate limit is exceeded"""
 
         @enforce_cost_guardrails()
@@ -313,7 +327,7 @@ class TestEnforceCostGuardrailsDecorator:
             assert "Rate limit exceeded" in str(exc)
             assert "30.0 seconds" in str(exc)
 
-    def test_decorator_guardrail_blocked(self):
+    def test_decorator_guardrail_blocked(self, test_db):
         """Test decorator when guardrail blocks operation"""
 
         @enforce_cost_guardrails()
@@ -325,7 +339,9 @@ class TestEnforceCostGuardrailsDecorator:
 
         violation = GuardrailViolation(
             limit_name="test_limit",
-            scope=LimitScope.PROVIDER,
+            provider="test_provider",
+            operation="test_op",
+            scope="provider",
             severity=AlertSeverity.CRITICAL,
             current_spend=Decimal("1100.0"),
             limit_amount=Decimal("1000.0"),
@@ -349,7 +365,7 @@ class TestEnforceCostGuardrailsDecorator:
             assert "test_limit" in str(exc)
 
     @pytest.mark.asyncio
-    async def test_decorator_guardrail_throttle(self):
+    async def test_decorator_guardrail_throttle(self, test_db):
         """Test decorator when guardrail throttles operation"""
 
         @enforce_cost_guardrails()
@@ -361,7 +377,9 @@ class TestEnforceCostGuardrailsDecorator:
 
         violation = GuardrailViolation(
             limit_name="test_limit",
-            scope=LimitScope.PROVIDER,
+            provider="test_provider",
+            operation="test_op",
+            scope="provider",
             severity=AlertSeverity.WARNING,
             current_spend=Decimal("900.0"),
             limit_amount=Decimal("1000.0"),
@@ -382,7 +400,7 @@ class TestEnforceCostGuardrailsDecorator:
             # Should throttle for 9 seconds (0.9 * 10)
             assert mock_sleep.call_args[0][0] == 9.0
 
-    def test_decorator_sync_guardrail_throttle(self):
+    def test_decorator_sync_guardrail_throttle(self, test_db):
         """Test decorator sync version when guardrail throttles operation"""
 
         @enforce_cost_guardrails()
@@ -394,7 +412,9 @@ class TestEnforceCostGuardrailsDecorator:
 
         violation = GuardrailViolation(
             limit_name="test_limit",
-            scope=LimitScope.PROVIDER,
+            provider="test_provider",
+            operation="test_op",
+            scope="provider",
             severity=AlertSeverity.WARNING,
             current_spend=Decimal("800.0"),
             limit_amount=Decimal("1000.0"),
@@ -413,7 +433,7 @@ class TestEnforceCostGuardrailsDecorator:
             assert result == "success"
             mock_sleep.assert_called_once_with(8.0)  # 0.8 * 10
 
-    def test_decorator_cost_estimation_with_calculate_cost(self):
+    def test_decorator_cost_estimation_with_calculate_cost(self, test_db):
         """Test decorator cost estimation using client's calculate_cost method"""
 
         @enforce_cost_guardrails(estimate_cost=True)
@@ -442,7 +462,7 @@ class TestEnforceCostGuardrailsDecorator:
             call_args = mock_manager.enforce_limits.call_args
             assert call_args[1]["estimated_cost"] == Decimal("5.50")
 
-    def test_decorator_cost_estimation_with_guardrail_manager(self):
+    def test_decorator_cost_estimation_with_guardrail_manager(self, test_db):
         """Test decorator cost estimation using guardrail manager"""
 
         @enforce_cost_guardrails(estimate_cost=True)
@@ -480,7 +500,7 @@ class TestEnforceCostGuardrailsDecorator:
             call_args = mock_manager.enforce_limits.call_args
             assert call_args[1]["estimated_cost"] == Decimal("3.25")
 
-    def test_decorator_cost_estimation_failure(self):
+    def test_decorator_cost_estimation_failure(self, test_db):
         """Test decorator handles cost estimation failures gracefully"""
 
         @enforce_cost_guardrails(estimate_cost=True)
@@ -510,7 +530,7 @@ class TestEnforceCostGuardrailsDecorator:
             assert call_args[1]["estimated_cost"] == Decimal("0.00")
 
     @pytest.mark.asyncio
-    async def test_decorator_circuit_breaker_update_on_failure(self):
+    async def test_decorator_circuit_breaker_update_on_failure(self, test_db):
         """Test decorator updates circuit breaker on fast failures"""
 
         @enforce_cost_guardrails()
@@ -544,7 +564,7 @@ class TestEnforceCostGuardrailsDecorator:
             # Verify circuit breaker was updated
             mock_manager._update_circuit_breaker.assert_called_once_with("test_limit", 5, 300)
 
-    def test_decorator_custom_field_names(self):
+    def test_decorator_custom_field_names(self, test_db):
         """Test decorator with custom field names"""
 
         @enforce_cost_guardrails(
@@ -576,7 +596,7 @@ class TestEnforceCostGuardrailsDecorator:
 class TestGuardrailContext:
     """Test GuardrailContext context manager"""
 
-    def test_context_manager_bypass_guardrails(self):
+    def test_context_manager_bypass_guardrails(self, test_db):
         """Test context manager bypassing guardrails"""
         mock_limit1 = Mock()
         mock_limit1.enabled = True
@@ -598,7 +618,7 @@ class TestGuardrailContext:
             assert mock_limit1.enabled is True
             assert mock_limit2.enabled is True
 
-    def test_context_manager_bypass_all_guardrails(self):
+    def test_context_manager_bypass_all_guardrails(self, test_db):
         """Test context manager bypassing all guardrails"""
         mock_limit1 = Mock()
         mock_limit1.enabled = True
@@ -620,7 +640,7 @@ class TestGuardrailContext:
             assert mock_limit1.enabled is True
             assert mock_limit2.enabled is True
 
-    def test_context_manager_temporary_limits(self):
+    def test_context_manager_temporary_limits(self, test_db):
         """Test context manager with temporary limit overrides"""
         mock_limit = Mock()
         mock_limit.limit_usd = Decimal("1000.0")
@@ -634,7 +654,7 @@ class TestGuardrailContext:
             # Should be restored after context
             assert mock_limit.limit_usd == Decimal("1000.0")
 
-    def test_context_manager_nonexistent_limit(self):
+    def test_context_manager_nonexistent_limit(self, test_db):
         """Test context manager with nonexistent limit name"""
         with patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager:
             mock_manager._limits = {}
@@ -643,7 +663,7 @@ class TestGuardrailContext:
             with GuardrailContext(temporary_limits={"nonexistent_limit": Decimal("1000.0")}):
                 pass
 
-    def test_context_manager_exception_in_context(self):
+    def test_context_manager_exception_in_context(self, test_db):
         """Test context manager properly restores state even if exception occurs"""
         mock_limit = Mock()
         mock_limit.enabled = True
@@ -695,7 +715,7 @@ class TestCustomExceptions:
 class TestUtilityFunctions:
     """Test utility functions"""
 
-    def test_check_budget_available_success(self):
+    def test_check_budget_available_success(self, test_db):
         """Test check_budget_available when budget is available"""
         mock_status = Mock()
         mock_status.is_blocked = False
@@ -714,7 +734,7 @@ class TestUtilityFunctions:
                 campaign_id=123,
             )
 
-    def test_check_budget_available_blocked(self):
+    def test_check_budget_available_blocked(self, test_db):
         """Test check_budget_available when budget is blocked"""
         mock_status = Mock()
         mock_status.is_blocked = True
@@ -727,7 +747,7 @@ class TestUtilityFunctions:
 
             assert result is False
 
-    def test_check_budget_available_circuit_breaker_open(self):
+    def test_check_budget_available_circuit_breaker_open(self, test_db):
         """Test check_budget_available when circuit breaker is open"""
         mock_status = Mock()
         mock_status.is_blocked = False
@@ -740,7 +760,7 @@ class TestUtilityFunctions:
 
             assert result is False
 
-    def test_check_budget_available_decimal_input(self):
+    def test_check_budget_available_decimal_input(self, test_db):
         """Test check_budget_available with Decimal input"""
         mock_status = Mock()
         mock_status.is_blocked = False
@@ -755,7 +775,7 @@ class TestUtilityFunctions:
             call_args = mock_manager.check_limits.call_args
             assert call_args[1]["estimated_cost"] == Decimal("15.50")
 
-    def test_get_remaining_budget_provider_limits(self):
+    def test_get_remaining_budget_provider_limits(self, test_db):
         """Test get_remaining_budget for provider limits"""
         mock_limit1 = Mock()
         mock_limit1.period.value = "daily"
@@ -788,7 +808,7 @@ class TestUtilityFunctions:
             assert result["provider1"] == Decimal("400.0")  # 1000 - 600
             assert result["provider2"] == Decimal("300.0")  # 500 - 200
 
-    def test_get_remaining_budget_specific_provider(self):
+    def test_get_remaining_budget_specific_provider(self, test_db):
         """Test get_remaining_budget for specific provider"""
         mock_limit1 = Mock()
         mock_limit1.period.value = "daily"
@@ -811,7 +831,7 @@ class TestUtilityFunctions:
             assert len(result) == 1
             assert result["target_provider"] == Decimal("700.0")  # 1000 - 300
 
-    def test_get_remaining_budget_overspent(self):
+    def test_get_remaining_budget_overspent(self, test_db):
         """Test get_remaining_budget when provider has overspent"""
         mock_limit = Mock()
         mock_limit.period.value = "daily"
@@ -827,7 +847,7 @@ class TestUtilityFunctions:
 
             assert result["overspent_provider"] == Decimal("0")  # Should not go negative
 
-    def test_get_remaining_budget_no_matching_limits(self):
+    def test_get_remaining_budget_no_matching_limits(self, test_db):
         """Test get_remaining_budget when no limits match criteria"""
         mock_limit = Mock()
         mock_limit.period.value = "monthly"  # Different period
@@ -841,7 +861,7 @@ class TestUtilityFunctions:
 
             assert result == {}
 
-    def test_get_remaining_budget_global_scope_excluded(self):
+    def test_get_remaining_budget_global_scope_excluded(self, test_db):
         """Test get_remaining_budget excludes global scope limits"""
         mock_limit = Mock()
         mock_limit.period.value = "daily"
@@ -886,7 +906,7 @@ class TestMiddlewareIntegration:
     """Integration tests for middleware components"""
 
     @pytest.mark.asyncio
-    async def test_complete_middleware_workflow(self):
+    async def test_complete_middleware_workflow(self, test_db):
         """Test complete middleware workflow from decorator to execution"""
 
         @enforce_cost_guardrails(estimate_cost=True, record_cost=True)
@@ -918,7 +938,7 @@ class TestMiddlewareIntegration:
             mock_manager.enforce_limits.assert_called_once()
             mock_rate_limiter.consume_tokens.assert_called_once()
 
-    def test_middleware_with_context_override(self):
+    def test_middleware_with_context_override(self, test_db):
         """Test middleware behavior with context override"""
 
         @enforce_cost_guardrails()
