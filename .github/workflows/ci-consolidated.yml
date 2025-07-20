@@ -105,13 +105,12 @@ jobs:
             -n auto \
             --dist=loadfile \
             --cov=core \
-            --cov=database \
+            --cov=d0_gateway \
             --cov-report=xml:/app/coverage/coverage.xml \
             --cov-fail-under=60 \
             --junitxml=/app/test-results/junit.xml \
             tests/unit/core/ \
-            tests/unit/database/ \
-            tests/unit/gateway/ \
+            tests/unit/d0_gateway/ \
           || {
           echo "::error::Core test suite failed"
           exit 1

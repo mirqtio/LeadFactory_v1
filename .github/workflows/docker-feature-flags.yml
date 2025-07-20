@@ -32,7 +32,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository_owner }}/leadfactory_v1
   
   # Feature flags (can be overridden by workflow_dispatch inputs)
   ENABLE_DOCKER_CACHING: ${{ github.event.inputs.enable_docker_caching || 'true' }}
@@ -93,8 +93,6 @@ jobs:
         target: test
         push: false
         tags: leadfactory-test:latest
-        cache-from: type=gha,scope=test
-        cache-to: type=gha,mode=max,scope=test
         load: true
     
     - name: Build test image without caching
