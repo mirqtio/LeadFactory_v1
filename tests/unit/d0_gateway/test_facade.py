@@ -1077,18 +1077,18 @@ class TestGatewayFacadeErrorHandling:
             await facade_instance.generate_website_insights("https://example.com")
 
     @pytest.mark.asyncio
-    async def test_generate_email_content_error(self, facade):
-        """Test generate_email_content error handling"""
+    async def test_generate_personalized_email_error(self, facade):
+        """Test generate_personalized_email error handling"""
         facade_instance, mock_factory = facade
 
         # Mock client that raises exception
         mock_client = AsyncMock()
-        mock_client.generate_email_content.side_effect = Exception("Email generation error")
+        mock_client.generate_personalized_content.side_effect = Exception("Email generation error")
         mock_factory.create_client.return_value = mock_client
 
         # Should raise exception
         with pytest.raises(Exception, match="Email generation error"):
-            await facade_instance.generate_email_content("test prompt")
+            await facade_instance.generate_personalized_email("test@example.com", "test subject", "test content")
 
     @pytest.mark.asyncio
     async def test_send_email_error(self, facade):
@@ -1102,7 +1102,7 @@ class TestGatewayFacadeErrorHandling:
 
         # Should raise exception
         with pytest.raises(Exception, match="Send error"):
-            await facade_instance.send_email("test@example.com", "Subject", "Body")
+            await facade_instance.send_email("test@example.com", "from@example.com", "Test From", "Subject", "Body")
 
     @pytest.mark.asyncio
     async def test_create_checkout_session_error(self, facade):
@@ -1119,18 +1119,18 @@ class TestGatewayFacadeErrorHandling:
             await facade_instance.create_checkout_session("price_123", "https://success.com", "https://cancel.com")
 
     @pytest.mark.asyncio
-    async def test_retrieve_checkout_session_error(self, facade):
-        """Test retrieve_checkout_session error handling"""
+    async def test_get_checkout_session_error(self, facade):
+        """Test get_checkout_session error handling"""
         facade_instance, mock_factory = facade
 
         # Mock client that raises exception
         mock_client = AsyncMock()
-        mock_client.retrieve_checkout_session.side_effect = Exception("Retrieve error")
+        mock_client.get_checkout_session.side_effect = Exception("Retrieve error")
         mock_factory.create_client.return_value = mock_client
 
         # Should raise exception
         with pytest.raises(Exception, match="Retrieve error"):
-            await facade_instance.retrieve_checkout_session("cs_123")
+            await facade_instance.get_checkout_session("cs_123")
 
     @pytest.mark.asyncio
     async def test_complete_business_analysis_partial_error(self, facade):
@@ -1159,7 +1159,7 @@ class TestGatewayFacadeErrorHandling:
 
         # Should handle partial failure gracefully
         result = await facade_instance.complete_business_analysis(
-            business_id="test-123", business_url="https://example.com", include_ai_insights=True
+            business_id="test-123", business_url="https://example.com", include_email_generation=True
         )
 
         # Should have website analysis but errors for AI
