@@ -32,16 +32,14 @@ class SEMrushClient(BaseAPIClient):
             api_key: SEMrush API key
             **kwargs: Additional configuration
         """
-        # Store base_url before calling parent init
-        self.base_url = kwargs.get("base_url", "https://api.semrush.com")
         self.timeout = kwargs.get("timeout", 30)
         self.max_retries = kwargs.get("max_retries", 3)
 
-        # Call parent constructor
+        # Call parent constructor (will handle stub base_url automatically)
         super().__init__(
             provider="semrush",
             api_key=api_key,
-            base_url=self.base_url,
+            base_url=kwargs.get("base_url", "https://api.semrush.com"),
         )
 
         # Set daily quota from config

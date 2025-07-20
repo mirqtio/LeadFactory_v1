@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-# Mark entire module as xfail for Phase 0.5
-pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)
+# Most Phase 0.5 rate limiter features have been implemented
+# Only specific tests that aren't ready are marked with xfail below
 
 from d0_gateway.rate_limiter import RateLimiter  # noqa: E402
 
@@ -31,6 +31,7 @@ class TestRateLimiter:
         assert rate_limiter.limits["burst_limit"] == 10
         assert rate_limiter.limits["window_seconds"] == 1
 
+    @pytest.mark.xfail(reason="Phase 0.5 feature - provider-specific limits")
     def test_provider_specific_limits(self):
         """Test that provider-specific limits work"""
         # Test Yelp limits
@@ -85,6 +86,7 @@ class TestRateLimiter:
         mock_redis.eval.assert_called_once()
         assert result == [1, 10, 1]
 
+    @pytest.mark.xfail(reason="Phase 0.5 feature - configurable limits per provider")
     @pytest.mark.asyncio
     async def test_configurable_limits_per_provider(self, rate_limiter):
         """Test configurable limits per provider"""
@@ -282,6 +284,7 @@ class TestRateLimiterFallbacks:
 
 
 class TestRateLimiterConfiguration:
+    @pytest.mark.xfail(reason="Phase 0.5 feature - complete provider limits configuration")
     def test_provider_limits_complete(self):
         """Test that all expected providers have limits configured"""
         expected_providers = ["yelp", "pagespeed", "openai", "sendgrid", "stripe"]
@@ -296,6 +299,7 @@ class TestRateLimiterConfiguration:
             assert limits["burst_limit"] > 0
             assert limits["window_seconds"] > 0
 
+    @pytest.mark.xfail(reason="Phase 0.5 feature - reasonable limit values validation")
     def test_reasonable_limit_values(self):
         """Test that limit values are reasonable"""
         for provider, limits in RateLimiter.PROVIDER_LIMITS.items():
