@@ -31,9 +31,14 @@ error() {
 }
 
 # Header
-echo -e "${BLUE}=================================${NC}"
-echo -e "${BLUE}   BPCI - Bulletproof CI Check   ${NC}"
-echo -e "${BLUE}=================================${NC}"
+echo -e "${BLUE}=======================================${NC}"
+echo -e "${BLUE}   BPCI - Bulletproof CI Check       ${NC}"
+echo -e "${BLUE}   Full Validation: SQLite + PostgreSQL ${NC}"
+echo -e "${BLUE}=======================================${NC}"
+echo ""
+info "Running comprehensive validation against both environments:"
+info "• SQLite (GitHub CI mirror)"
+info "• PostgreSQL (Production mirror)"
 echo ""
 
 # Function to clean up on exit
@@ -96,33 +101,46 @@ done
 echo ""
 success "Stub server is ready"
 
-# Step 4: Run tests
-info "Running comprehensive test suite..."
+# Step 4: Run SQLite tests (GitHub CI mirror)
+info "Phase 1: Running SQLite tests (GitHub CI mirror)..."
 echo ""
 
-# Run tests (with or without timeout command)
-if command -v timeout &> /dev/null; then
-    # Use timeout if available (Linux)
-    TEST_CMD="timeout 1200 docker compose -f docker-compose.test.yml run --rm test"
+SQLITE_RESULT=0
+if bash scripts/bpci-fast.sh; then
+    success "SQLite tests passed!"
 else
-    # Run without timeout on macOS
-    TEST_CMD="docker compose -f docker-compose.test.yml run --rm test"
+    SQLITE_RESULT=$?
+    error "SQLite tests failed with exit code: $SQLITE_RESULT"
 fi
 
-if $TEST_CMD; then
-    success "All tests passed!"
-    TEST_RESULT=0
+echo ""
+echo -e "${BLUE}================================================${NC}"
+echo ""
+
+# Step 5: Run PostgreSQL tests (Production mirror)
+info "Phase 2: Running PostgreSQL tests (Production mirror)..."
+echo ""
+
+POSTGRES_RESULT=0
+if bash scripts/bpci-prod.sh; then
+    success "PostgreSQL tests passed!"
 else
-    TEST_RESULT=$?
-    error "Tests failed with exit code: $TEST_RESULT"
-    
-    # Show logs on failure
-    warning "Showing recent test logs:"
-    docker compose -f docker-compose.test.yml logs test --tail=50
-    
-    # Show service status
-    warning "Service status:"
-    docker compose -f docker-compose.test.yml ps
+    POSTGRES_RESULT=$?
+    error "PostgreSQL tests failed with exit code: $POSTGRES_RESULT"
+fi
+
+# Determine overall result
+if [ $SQLITE_RESULT -eq 0 ] && [ $POSTGRES_RESULT -eq 0 ]; then
+    TEST_RESULT=0
+    success "Both SQLite and PostgreSQL validation passed!"
+else
+    TEST_RESULT=1
+    if [ $SQLITE_RESULT -ne 0 ]; then
+        error "SQLite validation failed - GitHub CI will fail"
+    fi
+    if [ $POSTGRES_RESULT -ne 0 ]; then
+        error "PostgreSQL validation failed - Production deployment at risk"
+    fi
 fi
 
 # Step 5: Check test results
@@ -155,14 +173,31 @@ fi
 
 # Summary
 echo ""
-echo -e "${BLUE}=================================${NC}"
+echo -e "${BLUE}================================================${NC}"
+echo -e "${BLUE}              FINAL RESULTS                     ${NC}"
+echo -e "${BLUE}================================================${NC}"
+
 if [ $TEST_RESULT -eq 0 ]; then
-    success "BPCI CHECK PASSED"
-    echo -e "${GREEN}Safe to push to GitHub!${NC}"
+    success "FULL BPCI VALIDATION PASSED"
+    echo -e "${GREEN}✅ SQLite (GitHub CI): PASS${NC}"
+    echo -e "${GREEN}✅ PostgreSQL (Production): PASS${NC}"
+    echo ""
+    echo -e "${GREEN}🚀 Safe to push and deploy!${NC}"
 else
-    error "BPCI CHECK FAILED"
-    echo -e "${RED}Fix the issues above before pushing${NC}"
+    error "BPCI VALIDATION FAILED"
+    if [ $SQLITE_RESULT -ne 0 ]; then
+        echo -e "${RED}❌ SQLite (GitHub CI): FAIL${NC}"
+    else
+        echo -e "${GREEN}✅ SQLite (GitHub CI): PASS${NC}"
+    fi
+    if [ $POSTGRES_RESULT -ne 0 ]; then
+        echo -e "${RED}❌ PostgreSQL (Production): FAIL${NC}"
+    else
+        echo -e "${GREEN}✅ PostgreSQL (Production): PASS${NC}"
+    fi
+    echo ""
+    echo -e "${RED}🚨 Fix issues before deployment${NC}"
 fi
-echo -e "${BLUE}=================================${NC}"
+echo -e "${BLUE}================================================${NC}"
 
 exit $TEST_RESULT

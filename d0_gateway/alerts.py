@@ -154,58 +154,58 @@ class AlertManager:
         <html>
         <head>
             <style>
-                body {{
+                body {{{{
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     line-height: 1.6;
                     color: #333;
                     max-width: 600px;
                     margin: 0 auto;
                     padding: 20px;
-                }}
-                .header {{
+                }}}}
+                .header {{{{
                     background-color: {colors.get(severity, '#000')};
                     color: white;
                     padding: 20px;
                     border-radius: 5px 5px 0 0;
                     text-align: center;
-                }}
-                .content {{
+                }}}}
+                .content {{{{
                     background-color: #f8f9fa;
                     padding: 30px;
                     border: 1px solid #dee2e6;
                     border-radius: 0 0 5px 5px;
-                }}
-                .metric {{
+                }}}}
+                .metric {{{{
                     display: flex;
                     justify-content: space-between;
                     padding: 10px 0;
                     border-bottom: 1px solid #dee2e6;
-                }}
-                .metric:last-child {{
+                }}}}
+                .metric:last-child {{{{
                     border-bottom: none;
-                }}
-                .metric-label {{
+                }}}}
+                .metric-label {{{{
                     font-weight: bold;
                     color: #6c757d;
-                }}
-                .metric-value {{
+                }}}}
+                .metric-value {{{{
                     font-weight: bold;
                     color: {colors.get(severity, '#000')};
-                }}
-                .action-box {{
+                }}}}
+                .action-box {{{{
                     background-color: #fff;
                     border: 2px solid {colors.get(severity, '#000')};
                     padding: 15px;
                     margin: 20px 0;
                     border-radius: 5px;
-                }}
-                .footer {{
+                }}}}
+                .footer {{{{
                     margin-top: 30px;
                     font-size: 12px;
                     color: #6c757d;
                     text-align: center;
-                }}
-                .button {{
+                }}}}
+                .button {{{{
                     display: inline-block;
                     padding: 10px 20px;
                     background-color: {colors.get(severity, '#000')};
@@ -213,7 +213,7 @@ class AlertManager:
                     text-decoration: none;
                     border-radius: 5px;
                     margin-top: 15px;
-                }}
+                }}}}
             </style>
         </head>
         <body>
@@ -391,7 +391,7 @@ class AlertManager:
             return True
 
         # Check history
-        key = f"{channel}:{violation.limit_name}"
+        key = f"{channel.value}:{violation.limit_name}"
         now = datetime.utcnow()
 
         if key in self._history:
@@ -414,7 +414,7 @@ class AlertManager:
 
     def _record_sent(self, channel: AlertChannel, violation: GuardrailViolation):
         """Record that an alert was sent"""
-        key = f"{channel}:{violation.limit_name}"
+        key = f"{channel.value}:{violation.limit_name}"
         now = datetime.utcnow()
 
         if key in self._history:
@@ -427,7 +427,7 @@ class AlertManager:
             history.last_sent = now
         else:
             self._history[key] = AlertHistory(
-                channel=channel,
+                channel=channel.value,
                 limit_name=violation.limit_name,
                 last_sent=now,
             )

@@ -103,26 +103,24 @@ class TestCostLedger:
         mock_session = MagicMock()
         mock_db.return_value.__enter__.return_value = mock_session
 
-        # Mock aggregate query result
-        mock_result = Mock()
-        mock_result.total_cost = Decimal("150.75")
-        mock_result.request_count = 100
-        mock_session.query.return_value.filter.return_value.first.return_value = mock_result
-
-        # Mock operation breakdown results
+        # Mock operation breakdown results - returns tuples (operation, cost, count)
         mock_op_results = [
-            Mock(operation="search", total_cost=Decimal("120.50"), request_count=80),
-            Mock(operation="match", total_cost=Decimal("30.25"), request_count=20),
+            ("search", Decimal("120.50"), 80),
+            ("match", Decimal("30.25"), 20),
         ]
         mock_session.query.return_value.filter.return_value.group_by.return_value.all.return_value = mock_op_results
 
         result = self.cost_ledger.get_provider_costs("dataaxle")
 
         assert result["provider"] == "dataaxle"
-        assert result["total_cost"] == float(mock_result.total_cost)
-        assert result["total_requests"] == mock_result.request_count
+        assert result["total_cost"] == 150.75  # 120.50 + 30.25
+        assert result["total_requests"] == 100  # 80 + 20
         assert "operations" in result
         assert len(result["operations"]) == 2
+        assert result["operations"]["search"]["cost"] == 120.50
+        assert result["operations"]["search"]["count"] == 80
+        assert result["operations"]["match"]["cost"] == 30.25
+        assert result["operations"]["match"]["count"] == 20
 
     @patch("d0_gateway.cost_ledger.get_db_sync")
     @patch("d0_gateway.cost_ledger.datetime")
@@ -133,8 +131,7 @@ class TestCostLedger:
         mock_session = MagicMock()
         mock_db.return_value.__enter__.return_value = mock_session
 
-        # Mock no results
-        mock_session.query.return_value.filter.return_value.first.return_value = None
+        # Mock no results - empty list for .all()
         mock_session.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
 
         result = self.cost_ledger.get_provider_costs("unknown_provider")
@@ -164,15 +161,11 @@ class TestCostLedger:
         mock_session = MagicMock()
         mock_db.return_value.__enter__.return_value = mock_session
 
-        # Mock aggregate query result
-        mock_result = Mock()
-        mock_result.total_cost = Decimal("250.00")
-        mock_session.query.return_value.filter.return_value.first.return_value = mock_result
-
-        # Mock provider breakdown
+        # Mock provider breakdown - returns tuples (provider, operation, cost, count)
         mock_provider_results = [
-            Mock(provider="dataaxle", total_cost=Decimal("150.00"), request_count=50),
-            Mock(provider="hunter", total_cost=Decimal("100.00"), request_count=25),
+            ("dataaxle", "search", Decimal("100.00"), 30),
+            ("dataaxle", "match", Decimal("50.00"), 20),
+            ("hunter", "find_email", Decimal("100.00"), 25),
         ]
         mock_session.query.return_value.filter.return_value.group_by.return_value.all.return_value = (
             mock_provider_results
@@ -181,9 +174,11 @@ class TestCostLedger:
         result = self.cost_ledger.get_campaign_costs(123)
 
         assert result["campaign_id"] == 123
-        assert result["total_cost"] == 250.0
+        assert result["total_cost"] == 250.0  # 100 + 50 + 100
         assert "providers" in result
         assert len(result["providers"]) == 2
+        assert result["providers"]["dataaxle"]["total_cost"] == 150.0
+        assert result["providers"]["hunter"]["total_cost"] == 100.0
 
     @patch("d0_gateway.cost_ledger.get_db_sync")
     def test_get_campaign_costs_no_data(self, mock_db):
@@ -206,25 +201,26 @@ class TestCostLedger:
         mock_session = MagicMock()
         mock_db.return_value.__enter__.return_value = mock_session
 
+        # Mock DailyCostAggregate objects with proper attributes
         mock_results = [
             Mock(
-                date="2025-01-15",
+                date=date(2025, 1, 15),
                 provider="dataaxle",
                 operation="search",
                 campaign_id=123,
-                total_cost=Decimal("25.50"),
+                total_cost_usd=Decimal("25.50"),
                 request_count=10,
             ),
             Mock(
-                date="2025-01-16",
+                date=date(2025, 1, 16),
                 provider="hunter",
                 operation="email",
                 campaign_id=124,
-                total_cost=Decimal("15.25"),
+                total_cost_usd=Decimal("15.25"),
                 request_count=5,
             ),
         ]
-        mock_session.query.return_value.filter.return_value.all.return_value = mock_results
+        mock_session.query.return_value.filter.return_value.order_by.return_value.all.return_value = mock_results
 
         start_date = date(2025, 1, 15)
         result = self.cost_ledger.get_daily_costs(start_date=start_date)
@@ -255,19 +251,24 @@ class TestCostLedger:
         mock_session = MagicMock()
         mock_db.return_value.__enter__.return_value = mock_session
 
-        # Mock cost records for aggregation
-        mock_costs = [
-            Mock(provider="dataaxle", operation="search", campaign_id=123, cost_usd=Decimal("10.00")),
-            Mock(provider="dataaxle", operation="search", campaign_id=123, cost_usd=Decimal("15.00")),
-            Mock(provider="hunter", operation="email", campaign_id=124, cost_usd=Decimal("5.00")),
+        # Mock aggregated data query results - returns tuples (provider, operation, campaign_id, total_cost, request_count)
+        mock_aggregate_results = [
+            ("dataaxle", "search", 123, Decimal("25.00"), 2),
+            ("hunter", "email", 124, Decimal("5.00"), 1),
         ]
-        mock_session.query.return_value.filter.return_value.all.return_value = mock_costs
+        mock_session.query.return_value.filter.return_value.group_by.return_value.all.return_value = (
+            mock_aggregate_results
+        )
+
+        # Mock existing aggregate check (no existing records)
+        mock_session.query.return_value.filter.return_value.first.return_value = None
 
         target_date = date(2025, 1, 15)
         result = self.cost_ledger.aggregate_daily_costs(target_date)
 
         # Should create 2 aggregates (one per provider/operation/campaign combo)
         assert len(result) == 2
+        mock_session.commit.assert_called_once()
 
     @patch("d0_gateway.cost_ledger.get_db_sync")
     def test_cleanup_old_records_success(self, mock_db):
@@ -275,7 +276,9 @@ class TestCostLedger:
         mock_session = MagicMock()
         mock_db.return_value.__enter__.return_value = mock_session
 
-        # Mock deleted count
+        # Mock count query for records to delete
+        mock_session.query.return_value.filter.return_value.count.return_value = 50
+        # Mock delete operation
         mock_session.query.return_value.filter.return_value.delete.return_value = 50
 
         result = self.cost_ledger.cleanup_old_records(90)

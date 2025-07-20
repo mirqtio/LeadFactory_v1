@@ -159,8 +159,8 @@ class TestAlertManager:
         assert "<!DOCTYPE html>" in html
         assert "#ff9900" in html  # Warning color
         assert "font-family" in html
-        assert "{{subject}}" in html
-        assert "{{provider}}" in html
+        assert "{subject}" in html
+        assert "{provider}" in html
 
         # Test critical template
         html = manager._get_email_html_template("critical")
@@ -204,7 +204,7 @@ class TestAlertManager:
         assert manager._get_alert_level(violation) == AlertLevel.WARNING
 
         # Test info level (default)
-        violation.severity = AlertSeverity.LOW
+        violation.severity = AlertSeverity.INFO
         assert manager._get_alert_level(violation) == AlertLevel.INFO
 
     def test_build_context(self):
@@ -367,10 +367,10 @@ class TestAlertManager:
         assert manager._should_send(AlertChannel.EMAIL, violation, AlertLevel.WARNING) is True
 
         # Add history
-        key = f"{AlertChannel.EMAIL}:test_limit"
+        key = f"{AlertChannel.EMAIL.value}:test_limit"
         now = datetime.utcnow()
         manager._history[key] = AlertHistory(
-            channel=AlertChannel.EMAIL,
+            channel=AlertChannel.EMAIL.value,
             limit_name="test_limit",
             last_sent=now - timedelta(minutes=1),  # 1 minute ago
             count_this_hour=1,
@@ -406,7 +406,7 @@ class TestAlertManager:
 
         # Test first record
         manager._record_sent(AlertChannel.EMAIL, violation)
-        key = f"{AlertChannel.EMAIL}:test_limit"
+        key = f"{AlertChannel.EMAIL.value}:test_limit"
         assert key in manager._history
         assert manager._history[key].count_this_hour == 1
 
@@ -862,13 +862,13 @@ class TestAlertsIntegration:
             current_spend=Decimal("1100.0"),
             limit_amount=Decimal("1000.0"),
             percentage_used=1.1,  # Over limit triggers HALT
-            action_taken=[GuardrailAction.HALT],
+            action_taken=[GuardrailAction.BLOCK],
         )
 
         # Set up existing history that would normally throttle
-        key = f"{AlertChannel.EMAIL}:halt_test"
+        key = f"{AlertChannel.EMAIL.value}:halt_test"
         manager._history[key] = AlertHistory(
-            channel=AlertChannel.EMAIL,
+            channel=AlertChannel.EMAIL.value,
             limit_name="halt_test",
             last_sent=datetime.utcnow() - timedelta(minutes=1),  # Recent
             count_this_hour=15,  # Over limit

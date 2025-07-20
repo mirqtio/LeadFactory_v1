@@ -4,11 +4,11 @@ Tests for RateLimiter, decorators, context managers, and utility functions
 """
 import asyncio
 import time
+from contextlib import contextmanager
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
-from contextlib import contextmanager
 
 from d0_gateway.guardrail_middleware import (
     GuardrailBlocked,
@@ -35,10 +35,11 @@ from d0_gateway.guardrails import (
 @pytest.fixture(autouse=True)
 def mock_db_session(monkeypatch, test_db):
     """Automatically mock all database sessions to use test SQLite fixture"""
+
     @contextmanager
     def mock_get_db_sync():
         yield test_db
-    
+
     # Patch the database session function used by guardrails
     monkeypatch.setattr("d0_gateway.guardrails.get_db_sync", mock_get_db_sync)
     monkeypatch.setattr("database.session.get_db_sync", mock_get_db_sync)

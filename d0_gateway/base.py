@@ -117,12 +117,14 @@ class BaseAPIClient(ABC):
 
         # Use the new cost enforcement middleware (skip in stub mode to avoid database calls)
         if not self.settings.use_stubs:
+            # Remove lead_id and campaign_id from kwargs to avoid duplicate args
+            enforcement_kwargs = {k: v for k, v in kwargs.items() if k not in ("lead_id", "campaign_id")}
             enforcement_result = await cost_enforcement.check_and_enforce(
                 provider=self.provider,
                 operation=operation_name,
                 campaign_id=campaign_id,
                 priority=priority or OperationPriority.NORMAL,
-                **kwargs,
+                **enforcement_kwargs,
             )
 
             if enforcement_result is not True:
@@ -186,7 +188,30 @@ class BaseAPIClient(ABC):
             await self.cache.set(cache_key, response_data)
 
             # Calculate and record cost
-            cost = self.calculate_cost(operation, **kwargs)
+            cost = self.calculate_cost(operation_name, **kwargs)
+
+            # Record cost in ledger (P1-050 requirement)
+            if not self.settings.use_stubs and self.settings.enable_cost_tracking:
+                try:
+                    from .cost_ledger import cost_ledger
+
+                    cost_ledger.record_cost(
+                        provider=self.provider,
+                        operation=operation_name,
+                        cost_usd=cost,
+                        lead_id=lead_id,
+                        campaign_id=campaign_id,
+                        request_id=str(response.headers.get("x-request-id", "")),
+                        metadata={
+                            "endpoint": endpoint,
+                            "method": method,
+                            "status_code": response.status_code,
+                            "response_time_ms": int((time.time() - start_time) * 1000),
+                        },
+                    )
+                except Exception as e:
+                    # Don't fail the request if cost tracking fails
+                    self.logger.warning(f"Failed to record cost to ledger: {e}")
 
             return response_data
 
@@ -212,8 +237,33 @@ class BaseAPIClient(ABC):
             )
 
             if not error:
-                cost = self.calculate_cost(operation, **kwargs)
+                cost = self.calculate_cost(operation_name, **kwargs)
                 self.metrics.record_cost(self.provider, endpoint, float(cost))
+            else:
+                # Record cost for failed requests too (P1-050 requirement)
+                if not self.settings.use_stubs and self.settings.enable_cost_tracking:
+                    try:
+                        cost = self.calculate_cost(operation_name, **kwargs)
+                        from .cost_ledger import cost_ledger
+
+                        cost_ledger.record_cost(
+                            provider=self.provider,
+                            operation=operation_name,
+                            cost_usd=cost,
+                            lead_id=lead_id,
+                            campaign_id=campaign_id,
+                            request_id=str(response.headers.get("x-request-id", "")) if response else "",
+                            metadata={
+                                "endpoint": endpoint,
+                                "method": method,
+                                "status_code": status_code,
+                                "response_time_ms": int(duration * 1000),
+                                "error": str(error),
+                            },
+                        )
+                    except Exception as e:
+                        # Don't fail the request if cost tracking fails
+                        self.logger.warning(f"Failed to record cost to ledger: {e}")
 
     async def _check_rate_limit(self, operation: str) -> None:
         """Check if request is within rate limits"""

@@ -156,7 +156,7 @@ class TestAlertManager:
             warning = templates["warning"]
             assert "{provider}" in warning.subject
             assert "{percentage" in warning.subject
-            assert "{current_spend}" in warning.body
+            assert "{current_spend" in warning.body
             assert warning.html_body is not None
 
             # Check critical template
@@ -776,8 +776,12 @@ class TestAlertsIntegration:
                 slack_message = slack_args[1]["json"]
                 assert slack_message["attachments"][0]["color"] == "#ff0000"  # Critical color
 
-                # No errors should be logged
-                mock_log_error.assert_not_called()
+                # Critical alert should be logged at error level
+                mock_log_error.assert_called_once()
+                logged_message = mock_log_error.call_args[0][0]
+                assert "COST ALERT [CRITICAL]" in logged_message
+                assert "openai" in logged_message
+                assert "95.0%" in logged_message
 
     @pytest.mark.asyncio
     async def test_mixed_success_failure_scenario(self, test_db):
@@ -819,10 +823,15 @@ class TestAlertsIntegration:
                 assert results[AlertChannel.EMAIL] is True
                 assert results[AlertChannel.SLACK] is False
 
-                # Error should be logged for Slack failure
-                mock_log_error.assert_called_once()
-                error_call = mock_log_error.call_args[0][0]
-                assert "Failed to send alert via slack" in error_call
+                # Two errors should be logged: HALT alert and Slack failure
+                assert mock_log_error.call_count == 2
+                error_calls = [call.args[0] for call in mock_log_error.call_args_list]
+                # Check that one call is for the HALT alert
+                halt_alert_logged = any("COST ALERT [HALT]" in call for call in error_calls)
+                assert halt_alert_logged
+                # Check that one call is for the Slack failure
+                slack_failure_logged = any("Failed to send Slack alert" in call for call in error_calls)
+                assert slack_failure_logged
 
     @pytest.mark.asyncio
     async def test_halt_alert_bypasses_throttling(self, test_db):

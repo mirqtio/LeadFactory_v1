@@ -1,7 +1,7 @@
 #!/bin/bash
-# BPCI-Fast - Mirrors the actual GitHub CI Primary Pipeline exactly
-# Purpose: Run the same tests as GitHub CI for accurate local validation
-# Uses Docker container exactly like GitHub CI
+# BPCI-Prod - Production Environment Mirror
+# Purpose: Test against PostgreSQL to catch production-specific issues
+# Uses the same PostgreSQL setup as production deployment
 
 set -e  # Exit on error
 set -o pipefail  # Exit on pipe failure
@@ -32,26 +32,27 @@ error() {
 
 # Header
 echo -e "${BLUE}======================================${NC}"
-echo -e "${BLUE}  BPCI-Fast - GitHub CI Mirror       ${NC}"
-echo -e "${BLUE}  Exactly matches Primary CI Pipeline ${NC}"
+echo -e "${BLUE}  BPCI-Prod - Production Mirror      ${NC}"
+echo -e "${BLUE}  PostgreSQL validation for prod     ${NC}"
 echo -e "${BLUE}======================================${NC}"
 echo ""
 
 # Function to clean up on exit
 cleanup() {
-    info "Cleaning up..."
-    docker rmi leadfactory-test:bpci-fast 2>/dev/null || true
+    info "Cleaning up Docker containers..."
+    docker compose -f docker-compose.test.yml down -v 2>/dev/null || true
+    docker rmi leadfactory-test:bpci-prod 2>/dev/null || true
 }
 
 # Set up trap to ensure cleanup happens
 trap cleanup EXIT
 
-# Step 1: Create necessary directories (same as GitHub CI)
+# Step 1: Create necessary directories
 info "Creating test directories..."
 mkdir -p coverage test-results tmp
 chmod 755 coverage test-results tmp
 
-# Step 2: Lint and format check (same as GitHub CI)
+# Step 2: Lint and format check (production should also pass linting)
 info "Running linting and format checks..."
 echo "🔍 Running linting and format checks..."
 
@@ -83,54 +84,69 @@ else
     exit 1
 fi
 
-# Step 3: Build test image (same as GitHub CI)
-info "Building test Docker image..."
-if docker build -f Dockerfile.test --target test -t leadfactory-test:bpci-fast .; then
+# Step 3: Build test image
+info "Building production test Docker image..."
+if docker build -f Dockerfile.test -t leadfactory-test:bpci-prod .; then
     success "Test image built successfully"
 else
     error "Failed to build test image"
     exit 1
 fi
 
-# Step 4: Run core test suite (exact same command as GitHub CI)
-info "Running core validation tests..."
-echo "🚀 Running core validation tests..."
+# Step 4: Start PostgreSQL service
+info "Starting PostgreSQL service..."
+docker compose -f docker-compose.test.yml up -d postgres
 
-TEST_CMD="docker run --rm \
-  -e ENVIRONMENT=test \
-  -e CI=true \
-  -e PYTHONPATH=/app \
-  -e DATABASE_URL=sqlite:///:memory: \
-  -v $(pwd)/coverage:/app/coverage \
-  -v $(pwd)/test-results:/app/test-results \
-  -w /app \
-  leadfactory-test:bpci-fast \
-  python -m pytest \
-    -x \
+# Wait for PostgreSQL
+info "Waiting for PostgreSQL to be ready..."
+TIMEOUT=60
+COUNTER=0
+until docker compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres 2>/dev/null; do
+    if [ $COUNTER -eq $TIMEOUT ]; then
+        error "PostgreSQL failed to start within ${TIMEOUT} seconds"
+        docker compose -f docker-compose.test.yml logs postgres
+        exit 1
+    fi
+    echo -n "."
+    sleep 1
+    COUNTER=$((COUNTER + 1))
+done
+echo ""
+success "PostgreSQL is ready"
+
+# Step 5: Run production-focused test suite
+info "Running production validation tests..."
+echo "🚀 Running PostgreSQL-based test suite..."
+
+TEST_CMD="docker compose -f docker-compose.test.yml run --rm test python -m pytest \
+    -v \
     --tb=short \
-    -q \
-    --disable-warnings \
-    --timeout=30 \
-    --timeout-method=signal \
-    -n auto \
-    --dist=loadfile \
+    -n 2 \
+    --dist worksteal \
+    -m 'not slow and not phase_future' \
     --cov=core \
     --cov=d0_gateway \
     --cov-report=xml:/app/coverage/coverage.xml \
+    --cov-report=term \
     --cov-fail-under=60 \
     --junitxml=/app/test-results/junit.xml \
     tests/unit/core/ \
-    tests/unit/d0_gateway/"
+    tests/unit/d0_gateway/ \
+    tests/integration/"
 
 if $TEST_CMD; then
-    success "Core validation tests passed!"
+    success "Production validation tests passed!"
     TEST_RESULT=0
 else
     TEST_RESULT=$?
-    error "Core validation tests failed with exit code: $TEST_RESULT"
+    error "Production validation tests failed with exit code: $TEST_RESULT"
+    
+    # Show logs on failure
+    warning "Showing recent test logs:"
+    docker compose -f docker-compose.test.yml logs test --tail=50
 fi
 
-# Step 5: Security scan (same as GitHub CI)
+# Step 6: Security scan
 info "Running security scan..."
 echo "🛡️ Running security scan..."
 pip install bandit 2>/dev/null || warning "Could not install bandit"
@@ -141,7 +157,7 @@ else
     warning "Security scan could not complete"
 fi
 
-# Step 6: Check test results
+# Step 7: Check test results
 info "Checking test results..."
 if [ -f "./coverage/coverage.xml" ]; then
     success "Coverage report generated"
@@ -175,13 +191,13 @@ fi
 echo ""
 echo -e "${BLUE}======================================${NC}"
 if [ $TEST_RESULT -eq 0 ]; then
-    success "BPCI-FAST CHECK PASSED"
-    echo -e "${GREEN}✅ Matches GitHub CI - Safe to push!${NC}"
-    echo -e "${GREEN}Primary CI Pipeline will pass${NC}"
+    success "BPCI-PROD CHECK PASSED"
+    echo -e "${GREEN}✅ PostgreSQL validation successful!${NC}"
+    echo -e "${GREEN}Code should work in production${NC}"
 else
-    error "BPCI-FAST CHECK FAILED"
-    echo -e "${RED}❌ Fix issues above before pushing${NC}"
-    echo -e "${RED}Primary CI Pipeline will fail${NC}"
+    error "BPCI-PROD CHECK FAILED"
+    echo -e "${RED}❌ PostgreSQL issues found!${NC}"
+    echo -e "${RED}Fix before deploying to production${NC}"
 fi
 echo -e "${BLUE}======================================${NC}"
 

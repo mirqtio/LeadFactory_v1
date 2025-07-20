@@ -226,23 +226,28 @@ Never delete or overwrite existing code unless explicitly instructed to or if pa
 - Use the GitHub token in .env when checking CI logs on GitHub
 
 🛠️ Development Tools
-- **BPCI (Bulletproof CI)**: The unified CI/CD validation system that runs EXACTLY what GitHub CI runs
-  - Located at `scripts/bpci.sh` - this is the single source of truth for CI validation
-  - Uses Docker Compose to create the same test environment as GitHub Actions
-  - Runs the complete test suite with PostgreSQL and stub server dependencies
-  - Generates coverage reports and JUnit test results
+- **BPCI (Bulletproof CI)**: Multi-tier validation system matching deployment environments
+  - **bpci-fast**: `scripts/bpci-fast.sh` - GitHub CI mirror using SQLite (<5 min)
+  - **bpci-prod**: `scripts/bpci-prod.sh` - Production mirror using PostgreSQL (~15 min)  
+  - **bpci**: `scripts/bpci.sh` - Full validation: both SQLite + PostgreSQL (~20 min)
+
+📊 **Testing Strategy - Environment Alignment**:
+- **GitHub CI**: SQLite in-memory (fast, catches most issues)
+- **Production**: PostgreSQL (real environment, SQL dialect differences)
+- **Problem**: CI passes but production fails due to PostgreSQL-specific issues
+- **Solution**: Multi-tier validation covering both environments
 
 🛡️ BULLETPROOF CI REQUIREMENTS (MANDATORY)
 🚨 BEFORE EVERY COMMIT: Claude Code MUST run validation commands:
 - FIRST: Run PRP completion validator (`.claude/prompts/prp_completion_validator.md`) on any completed PRPs
 - For quick commits: `make quick-check` (30 seconds)  
-- For significant changes: `make pre-push` (5-10 minutes)
-- For complete CI simulation: `make bpci` (full Docker-based CI validation)
+- For significant changes: `make pre-push` (<5 minutes - GitHub CI mirror)
+- For comprehensive testing: `make bpci` (20 minutes - full PostgreSQL suite)
 
 🚨 NEVER PUSH CODE WITHOUT LOCAL VALIDATION
 - These commands catch issues locally instead of breaking CI
-- BPCI runs the EXACT same Docker Compose setup as GitHub CI
-- If `make bpci` passes locally, GitHub CI will pass
+- BPCI-Fast runs the EXACT same test configuration as GitHub CI
+- If `make pre-push` (bpci-fast) passes locally, GitHub CI will pass
 
 🚨 VALIDATION FAILURE = STOP ALL WORK IMMEDIATELY
 - If `make quick-check` fails, fix issues before proceeding with ANY other work
@@ -255,12 +260,12 @@ Never delete or overwrite existing code unless explicitly instructed to or if pa
 - Only resume other work after validation passes completely
 
 Available validation commands:
-- `make quick-check` - Fast linting, formatting, basic unit tests
-- `make bpci` - Full Bulletproof CI validation using Docker (mirrors GitHub CI exactly)
-- `make pre-push` - Alias for `make bpci` for pre-push validation
+- `make quick-check` - Fast linting, formatting, basic unit tests (30s)
+- `make pre-push` - GitHub CI mirror using SQLite (<5 min) - RECOMMENDED for pushes
+- `make bpci-prod` - Production mirror using PostgreSQL (~15 min) - pre-deployment
+- `make bpci` - Full validation: SQLite + PostgreSQL (~20 min) - comprehensive
 - `make format` - Auto-fix code formatting (black + isort)
 - `make lint` - Check code quality with flake8
-- `make docker-test` - Run tests in Docker without full BPCI setup
 
 🤖 Multi-Agent Workflow Integration
 

@@ -28,11 +28,11 @@ help:
 	@echo "  make run          - Run development server"
 	@echo ""
 	@echo "CI Validation (Choose based on time available):"
-	@echo "  make bpci-ultrafast - Ultra-fast check (<3 min) - smoke tests only"
-	@echo "  make bpci-fast    - Fast validation (<5 min) - unit tests, no Docker"
-	@echo "  make bpci         - Full CI validation (~20 min) - complete mirror"
+	@echo "  make bpci-fast    - GitHub CI mirror (<5 min) - SQLite, exact CI match"
+	@echo "  make bpci-prod    - Production mirror (~15 min) - PostgreSQL validation"
+	@echo "  make bpci         - Full validation (~20 min) - Both SQLite + PostgreSQL"
 	@echo "  make quick-check  - Pre-commit validation (30 sec) - lint & format"
-	@echo "  make pre-push     - Full BPCI validation before git push"
+	@echo "  make pre-push     - GitHub CI validation before git push"
 	@echo ""
 	@echo "Production Testing:"
 	@echo "  make smoke        - Run smoke tests only"
@@ -168,18 +168,18 @@ ci-local:
 bpci:
 	bash scripts/bpci.sh
 
-# BPCI-Fast - Quick validation (<5 minutes) mirroring Fast CI Pipeline
+# BPCI-Fast - GitHub CI mirror (<5 minutes) using SQLite
 bpci-fast:
 	bash scripts/bpci-fast.sh
 
-# BPCI-UltraFast - Instant validation (<3 minutes) for immediate feedback
-bpci-ultrafast:
-	bash scripts/bpci-ultrafast.sh
+# BPCI-Prod - Production mirror (~15 minutes) using PostgreSQL
+bpci-prod:
+	bash scripts/bpci-prod.sh
 
-# Pre-push validation - runs ALL CI checks locally using BPCI
+# Pre-push validation - runs exact GitHub CI checks locally
 pre-push: clean
-	@echo "🔍 Pre-push validation using BPCI..."
-	$(MAKE) bpci
+	@echo "🔍 Pre-push validation using GitHub CI mirror..."
+	$(MAKE) bpci-fast
 
 # Quick validation - for frequent commits (with parallelization)
 quick-check:
