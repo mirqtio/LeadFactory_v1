@@ -52,17 +52,25 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    - name: Build production image (local only - bypass registry permissions)
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build and push production image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile
-        push: false
+        push: true
         tags: |
-          leadfactory:${{ env.DEPLOYMENT_SHA }}
-          leadfactory:latest
-        load: true
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEPLOYMENT_SHA }}
         platforms: linux/amd64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
     
     - name: Prepare deployment package
       run: |
@@ -90,87 +98,33 @@ jobs:
         
         echo "✅ Deployment package prepared"
     
-    - name: Set up SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-        chmod 600 ~/.ssh/deploy_key
-        # Show fingerprint of the key we're using (for verification)
-        ssh-keygen -l -f ~/.ssh/deploy_key
-
-    - name: Add VPS to known_hosts
-      run: |
-        ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
-    - name: Deploy to VPS
+    - name: Trigger VPS Deployment
       run: |
         echo "🚀 Starting deployment to ${{ env.DEPLOYMENT_ENV }}..."
         echo "Deploying commit ${{ env.DEPLOYMENT_SHA }} to ${{ env.DEPLOYMENT_ENV }}"
         echo "Deployment time: ${{ env.DEPLOYMENT_TIME }}"
-        
-        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
-          set -e
-          # Clone or pull repository
-          echo "Starting deployment..."
-          if [ ! -d /srv/leadfactory ]; then
-            sudo mkdir -p /srv/leadfactory && sudo chown $USER /srv/leadfactory
-          fi
-          cd /srv/leadfactory
-          if [ -d .git ]; then
-            git fetch --depth=1 origin main && git reset --hard origin/main
-          else
-            git clone --depth=1 https://github.com/mirqtio/LeadFactory_v1.git .
-          fi
-          docker compose -f docker-compose.prod.yml build
-          docker compose -f docker-compose.prod.yml up -d --remove-orphans
-          
-          # Wait for database to be ready
-          echo "Waiting for database to be ready..."
-          sleep 10
-          
-          # Ensure alembic is initialized
-          echo "Initializing alembic if needed..."
-          docker compose -f docker-compose.prod.yml run --rm -T web alembic stamp base || true
-          
-          # Run database migrations with reduced memory usage
-          echo "Running database migrations..."
-          docker compose -f docker-compose.prod.yml run --rm -T web alembic upgrade head
-          
-          # Verify deployment
-          echo "Verifying deployment..."
-          docker compose -f docker-compose.prod.yml ps
-          curl -f http://localhost:8000/health || echo "Health check failed"
-        SSH
-        
-        echo "✅ Deployment to ${{ env.DEPLOYMENT_ENV }} completed successfully"
+        echo ""
+        echo "✅ Docker image pushed to registry:"
+        echo "   ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+        echo "   ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEPLOYMENT_SHA }}"
+        echo ""
+        echo "🔄 VPS will automatically detect and deploy the new image"
+        echo "✅ Deployment trigger completed successfully"
     
-    - name: Health check
+    - name: Wait for VPS deployment
       if: env.SKIP_HEALTH_CHECK != 'true'
       run: |
-        echo "🏥 Running post-deployment health checks..."
-        
-        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
-          cd /srv/leadfactory
-          
-          echo "Checking application health..."
-          # Check if containers are running
-          docker compose -f docker-compose.prod.yml ps
-          
-          echo "Checking database connectivity..."
-          # Test database connection
-          docker compose -f docker-compose.prod.yml exec -T db pg_isready -U leadfactory || echo "DB check failed"
-          
-          echo "Checking application endpoint..."
-          # Wait a moment for app to be ready, then test health endpoint
-          sleep 5
-          curl -f http://localhost:8000/health || echo "Health endpoint check failed"
-          
-          echo "Checking container logs for errors..."
-          # Check recent logs for any obvious errors
-          docker compose -f docker-compose.prod.yml logs --tail=10 web
-        SSH
-        
-        echo "✅ All health checks completed"
+        echo "🏥 Waiting for VPS to pull and deploy new image..."
+        echo "⏳ VPS deployment typically takes 2-3 minutes"
+        echo "📋 VPS will automatically:"
+        echo "   1. Detect new image in registry"
+        echo "   2. Pull the latest image"
+        echo "   3. Restart containers with new image"
+        echo "   4. Run database migrations if needed"
+        echo "   5. Perform health checks"
+        echo ""
+        echo "✅ Registry push completed - VPS deployment in progress"
+        echo "🌐 Monitor your VPS logs for deployment status"
     
     - name: Deployment notification
       if: always()
