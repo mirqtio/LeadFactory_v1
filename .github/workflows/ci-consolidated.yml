@@ -69,36 +69,17 @@ jobs:
         mkdir -p ./coverage ./test-results ./tmp
         chmod 755 ./coverage ./test-results ./tmp
     
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Build optimized test image (with graceful cache handling)
+    - name: Build test image (local only - bypass registry permissions)
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile.test
         target: test
-        push: true
+        push: false
         tags: |
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/test-cache:latest
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/test-cache:${{ github.sha }}
           leadfactory-test:consolidated
-        # Note: cache-from will gracefully handle missing images
-        cache-from: |
-          type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/test-cache:latest
-          type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/deps-cache:latest
-        cache-to: |
-          type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/test-cache:latest,mode=max
-          type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/deps-cache:latest,mode=max,target=base
         load: true
         platforms: linux/amd64
-        # Enable BuildKit inline cache for better performance
-        build-args: |
-          BUILDKIT_INLINE_CACHE=1
     
     - name: Run core test suite
       run: |
