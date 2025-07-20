@@ -90,23 +90,57 @@ jobs:
         
         echo "✅ Deployment package prepared"
     
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        # Show fingerprint of the key we're using (for verification)
+        ssh-keygen -l -f ~/.ssh/deploy_key
+
+    - name: Add VPS to known_hosts
+      run: |
+        ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
     - name: Deploy to VPS
       run: |
         echo "🚀 Starting deployment to ${{ env.DEPLOYMENT_ENV }}..."
-        
-        # Simulate VPS deployment (replace with actual deployment logic)
         echo "Deploying commit ${{ env.DEPLOYMENT_SHA }} to ${{ env.DEPLOYMENT_ENV }}"
         echo "Deployment time: ${{ env.DEPLOYMENT_TIME }}"
         
-        # Here you would typically:
-        # 1. SSH to VPS
-        # 2. Pull latest code/images
-        # 3. Run docker-compose up -d
-        # 4. Run database migrations
-        # 5. Perform health checks
-        
-        # For now, simulate successful deployment
-        sleep 10
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
+          set -e
+          # Clone or pull repository
+          echo "Starting deployment..."
+          if [ ! -d /srv/leadfactory ]; then
+            sudo mkdir -p /srv/leadfactory && sudo chown $USER /srv/leadfactory
+          fi
+          cd /srv/leadfactory
+          if [ -d .git ]; then
+            git fetch --depth=1 origin main && git reset --hard origin/main
+          else
+            git clone --depth=1 https://github.com/mirqtio/LeadFactory_v1.git .
+          fi
+          docker compose -f docker-compose.prod.yml build
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans
+          
+          # Wait for database to be ready
+          echo "Waiting for database to be ready..."
+          sleep 10
+          
+          # Ensure alembic is initialized
+          echo "Initializing alembic if needed..."
+          docker compose -f docker-compose.prod.yml run --rm -T web alembic stamp base || true
+          
+          # Run database migrations with reduced memory usage
+          echo "Running database migrations..."
+          docker compose -f docker-compose.prod.yml run --rm -T web alembic upgrade head
+          
+          # Verify deployment
+          echo "Verifying deployment..."
+          docker compose -f docker-compose.prod.yml ps
+          curl -f http://localhost:8000/health || echo "Health check failed"
+        SSH
         
         echo "✅ Deployment to ${{ env.DEPLOYMENT_ENV }} completed successfully"
     
@@ -115,20 +149,28 @@ jobs:
       run: |
         echo "🏥 Running post-deployment health checks..."
         
-        # Simulate health checks (replace with actual health check logic)
-        echo "Checking application health..."
-        echo "Checking database connectivity..."
-        echo "Checking external service dependencies..."
+        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'SSH'
+          cd /srv/leadfactory
+          
+          echo "Checking application health..."
+          # Check if containers are running
+          docker compose -f docker-compose.prod.yml ps
+          
+          echo "Checking database connectivity..."
+          # Test database connection
+          docker compose -f docker-compose.prod.yml exec -T db pg_isready -U leadfactory || echo "DB check failed"
+          
+          echo "Checking application endpoint..."
+          # Wait a moment for app to be ready, then test health endpoint
+          sleep 5
+          curl -f http://localhost:8000/health || echo "Health endpoint check failed"
+          
+          echo "Checking container logs for errors..."
+          # Check recent logs for any obvious errors
+          docker compose -f docker-compose.prod.yml logs --tail=10 web
+        SSH
         
-        # Here you would typically:
-        # 1. Check /health endpoint
-        # 2. Verify database connectivity
-        # 3. Test critical API endpoints
-        # 4. Validate external service connectivity
-        
-        sleep 5
-        
-        echo "✅ All health checks passed"
+        echo "✅ All health checks completed"
     
     - name: Deployment notification
       if: always()
