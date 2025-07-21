@@ -189,6 +189,14 @@ quick-check:
 	pytest tests/unit/core/ -x --tb=no -n auto
 	@echo "✅ Quick check passed!"
 
+# Pre-commit validation - ultra-lightweight for sub-60s execution
+pre-commit-check:
+	@echo "⚡ Pre-commit validation (format + lint only)..."
+	black . --line-length=120 --exclude="(.venv|venv)" --check --quiet
+	isort . --profile=black --line-length=120 --skip=.venv --skip=venv --check-only --quiet
+	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+	@echo "✅ Pre-commit check passed!"
+
 # Production testing commands
 smoke:
 	@echo "Running smoke tests..."
