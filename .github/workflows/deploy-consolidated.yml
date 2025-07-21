@@ -121,8 +121,9 @@ jobs:
         echo "⏳ Waiting for containers to stabilize..."
         sleep 30
         
-        # Store SSH exit status properly
-        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'HEALTH_CHECK'
+        # Execute health check with proper error handling
+        set +e  # Disable immediate exit on error to capture SSH exit code
+        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s <<'HEALTH_CHECK_EOF'
           set -e
           echo "🔍 Checking container health status..."
           
@@ -152,14 +153,17 @@ jobs:
           echo "📋 Container logs:"
           docker compose -f /srv/leadfactory/docker-compose.prod.yml logs --tail=20
           exit 1
-        HEALTH_CHECK
+        HEALTH_CHECK_EOF
         
-        # Check SSH command exit status
+        # Capture the SSH exit code
         SSH_EXIT_CODE=$?
+        set -e  # Re-enable immediate exit on error
+        
         if [ $SSH_EXIT_CODE -eq 0 ]; then
           echo "✅ Health check completed successfully"
+          exit 0
         else
-          echo "❌ Health check failed with exit code $SSH_EXIT_CODE"
+          echo "❌ Health check failed with SSH exit code $SSH_EXIT_CODE"
           exit 1
         fi
     
