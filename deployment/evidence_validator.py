@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 class EvidenceConfig(BaseModel):
     """Configuration for evidence validation."""
 
-
     redis_url: str = Field(..., description="Redis connection URL")
     prp_id: str = Field(..., description="PRP identifier")
 
@@ -39,7 +38,6 @@ class EvidenceConfig(BaseModel):
 class EvidenceEntry(BaseModel):
     """Individual evidence entry."""
 
-
     key: str = Field(..., description="Evidence key")
     value: str = Field(..., description="Evidence value")
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -48,7 +46,6 @@ class EvidenceEntry(BaseModel):
 
 class ValidationResult(BaseModel):
     """Result of evidence validation."""
-
 
     success: bool = Field(..., description="Whether validation succeeded")
     evidence_collected: List[EvidenceEntry] = Field(default_factory=list)
