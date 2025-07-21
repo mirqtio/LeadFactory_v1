@@ -3,7 +3,7 @@ P2-040 Budget Alert API Enhancement
 Real-time budget monitoring API endpoints for dashboard integration
 """
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -275,7 +275,7 @@ async def health_check():
 
 
 # Unified system endpoints
-@router.get("/unified/status", response_model=Dict[str, any])
+@router.get("/unified/status", response_model=Dict[str, Any])
 async def get_unified_status(
     current_user: AccountUser = Depends(get_current_user_dependency),
 ):
@@ -290,7 +290,7 @@ async def get_unified_status(
         raise HTTPException(status_code=500, detail=f"Failed to get unified status: {str(e)}")
 
 
-@router.post("/unified/check", response_model=Dict[str, any])
+@router.post("/unified/check", response_model=Dict[str, Any])
 async def trigger_unified_check(
     current_user: AccountUser = Depends(get_current_user_dependency),
 ):
@@ -305,7 +305,7 @@ async def trigger_unified_check(
         raise HTTPException(status_code=500, detail=f"Failed to trigger unified check: {str(e)}")
 
 
-@router.post("/unified/check-operation", response_model=Dict[str, any])
+@router.post("/unified/check-operation", response_model=Dict[str, Any])
 async def check_unified_operation(
     provider: str,
     estimated_cost: float,
