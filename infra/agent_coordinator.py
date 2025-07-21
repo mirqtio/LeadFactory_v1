@@ -273,14 +273,16 @@ class AgentCoordinator:
             await self._send_agent_message(best_agent, assignment_message)
 
             # Ask-for-Questions handshake patch (PRP-1060 requirement)
-            question_payload = json.dumps({
-                "from": "orchestrator", 
-                "prp_id": prp_id,
-                "question": (
-                    "Please review the PRP and list ANY clarifying questions "
-                    "needed before you begin coding. Respond with numbered bullets."
-                )
-            })
+            question_payload = json.dumps(
+                {
+                    "from": "orchestrator",
+                    "prp_id": prp_id,
+                    "question": (
+                        "Please review the PRP and list ANY clarifying questions "
+                        "needed before you begin coding. Respond with numbered bullets."
+                    ),
+                }
+            )
             self.broker.redis.lpush("questions:orchestrator", question_payload)
 
             self.logger.info(f"Assigned PRP {prp_id} to agent {best_agent}")
