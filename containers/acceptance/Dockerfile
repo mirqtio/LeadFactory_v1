@@ -19,7 +19,7 @@ RUN useradd --create-home --shell /bin/bash acceptance
 WORKDIR /app
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
+COPY containers/acceptance/requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Stage 2: Runtime
@@ -61,7 +61,7 @@ WORKDIR /workspace
 COPY --chown=acceptance:acceptance . /app/
 
 # Copy entrypoint script
-COPY --chown=acceptance:acceptance entrypoint.sh /entrypoint.sh
+COPY --chown=acceptance:acceptance containers/acceptance/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Health check
