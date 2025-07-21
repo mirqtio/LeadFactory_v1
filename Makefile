@@ -1,4 +1,4 @@
-.PHONY: help install test test-unit test-integration test-e2e test-parallel lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test rollback bpci pre-push quick-check test-critical test-fast test-data-pipeline test-business-logic test-delivery test-full
+.PHONY: help install test test-unit test-integration test-e2e test-parallel lint format clean docker-build docker-test run-stubs smoke heartbeat prod-test rollback bpci pre-push quick-check test-critical test-fast test-data-pipeline test-business-logic test-delivery test-full quality-gate ruff-check
 
 # Default target
 help:
@@ -21,6 +21,8 @@ help:
 	@echo "  make test-business-logic - Test business logic domains"
 	@echo "  make test-delivery - Test delivery/orchestration domains"
 	@echo "  make test-full    - Run full test suite with coverage"
+	@echo "  make quality-gate - Run PRP-1061 quality gate (Ruff + coverage)"
+	@echo "  make ruff-check   - Run Ruff linting only"
 	@echo "  make lint         - Run linting"
 	@echo "  make format       - Format code"
 	@echo "  make clean        - Clean temporary files"
@@ -230,6 +232,17 @@ test-performance-monitoring:
 test-performance-full:
 	@echo "🧪 Running complete performance validation suite..."
 	pytest tests/performance/ -v -m performance --tb=short --cov=lead_explorer.audit --cov=orchestrator.budget_monitor --cov-report=term-missing
+
+# PRP-1061: Quality Gate with Ruff and Coverage enforcement
+quality-gate:
+	@echo "🚀 PRP-1061 Quality Gate: Ruff + Coverage enforcement"
+	python scripts/quality_gate.py
+
+# PRP-1061: Ruff linting only (fast execution)
+ruff-check:
+	@echo "🔍 PRP-1061 Ruff linting check"
+	ruff check . --fix
+	ruff format .
 
 # Environment validation
 check-env:
