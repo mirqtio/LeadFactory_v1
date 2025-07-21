@@ -1,0 +1,3 @@
+Testing deployment workflow script fix
+Commit: 65267b6 (SSH exit code handling improvement)
+Time: 2025-07-21T13:39:00Z
