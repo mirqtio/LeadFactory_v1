@@ -1,0 +1,119 @@
+# Research Context for PRP-1053 - Template Studio Polish
+
+## Key Findings
+
+### Monaco Editor Integration Best Practices (2024)
+- **Model Management**: Models are at the heart of Monaco editor, representing virtual files with unique URIs. Each model preserves view state, text selection, undo stack, and scroll position
+- **Resource Management**: Proper disposal of Monaco objects via `.dispose()` method is critical for memory management and freeing URIs
+- **Performance Optimization**: Lazy loading, code splitting, and dedicated worker threads prevent UI freezes
+- **Multi-Model Support**: Enables switching between multiple template files while preserving context and edit history
+
+### Email Template Management Best Practices (2024)
+- **Mobile-First Design**: 600-640px optimal width for cross-device compatibility
+- **Template Organization**: Master template system with shared design elements (fonts, headers, styling)
+- **Visual Balance**: Healthy balance of images, copy, white space, and single primary CTA focus
+- **Design System Approach**: Consistent branding across templates with customizable variables
+- **Template Versioning**: Exact variable syntax matching for mail merge functionality
+
+### Code Editor UI/UX Best Practices (2024)
+- **AI Integration**: Personalized experiences, predictive recommendations, and enhanced automation
+- **Cross-Platform Consistency**: Responsive design tested across devices, browsers, and screen sizes
+- **Collaborative Features**: Real-time editing capabilities similar to Google Drive
+- **Accessibility Focus**: WCAG compliance with keyboard navigation and screen reader support
+- **Emotionally Intelligent Design**: User-centered design addressing emotional aspects of interaction
+
+## Authoritative Sources
+
+### Official Documentation
+- Monaco Editor API: https://microsoft.github.io/monaco-editor/
+- Monaco Editor GitHub: https://github.com/microsoft/monaco-editor
+- Monaco React Integration: https://www.npmjs.com/package/@monaco-editor/react
+- VS Code Extension UX Guidelines: https://code.visualstudio.com/api/ux-guidelines/overview
+
+### Current Best Practices
+- Monaco Editor Integration Guide: https://blog.spectralcore.com/integrating-monaco-editor/
+- React Monaco Integration: https://codezup.com/build-live-code-editor-react-monaco-editor/
+- Template Management Systems: https://unlayer.com/ (embeddable email builder)
+- MJML Framework: https://mjml.io/ (responsive email framework)
+
+## Current Best Practices
+
+### Framework-Specific Patterns
+- **React Integration**: Use `@monaco-editor/react` wrapper for easy integration without webpack configuration
+- **Theme Management**: Centralized theme state for synchronizing Tailwind dark mode with Monaco themes
+- **Component Lifecycle**: Proper component mounting/unmounting with resource disposal
+- **Lazy Loading**: Load editor only when necessary to reduce initial bundle size
+
+### Testing Strategies
+- **Cross-Browser Testing**: Test across Chrome, Firefox, Safari, Edge
+- **Mobile Responsiveness**: Ensure editor works on tablets and mobile devices
+- **Performance Testing**: Monitor memory usage and bundle size impact
+- **Accessibility Testing**: Keyboard navigation and screen reader compatibility
+
+### Error Handling Approaches
+- **Model URI Conflicts**: Implement unique URI generation for multiple templates
+- **Resource Cleanup**: Dispose of models and editor instances on component unmount
+- **Theme Synchronization**: Handle theme switching failures gracefully
+- **File Operations**: Validate template syntax before saving
+
+## Common Pitfalls
+
+### Known Issues to Avoid
+- **Memory Leaks**: Forgetting to dispose Monaco objects leads to memory accumulation
+- **URI Collisions**: Multiple models with same URI cause conflicts
+- **Bundle Size**: Monaco can add ~150KB minimum to bundle size
+- **Mobile Performance**: Heavy editor features may cause performance issues on mobile
+
+### Performance Considerations
+- **Initial Load Time**: Monaco requires significant JavaScript parsing on first load
+- **Memory Footprint**: Multiple editor instances consume substantial memory
+- **Theme Switching**: Frequent theme changes can cause UI flickers
+- **Large Templates**: Very large template files may cause editor slowdown
+
+### Security Vulnerabilities
+- **Template Injection**: Validate all template variables and user input
+- **XSS Prevention**: Sanitize template content before rendering
+- **File Access**: Restrict template file access to authorized directories only
+- **Version Control**: Ensure template history doesn't expose sensitive data
+
+## Recent Updates
+
+### Monaco Editor 2024 Features
+- **Improved Performance**: Dedicated worker threads prevent UI blocking
+- **Enhanced Accessibility**: Better keyboard navigation and screen reader support
+- **Modern Theming**: Support for CSS custom properties and design tokens
+- **Mobile Support**: Improved touch and gesture support for mobile devices
+
+### UI/UX Trends 2024
+- **AI-Powered Features**: Predictive text, auto-completion, and smart suggestions
+- **3D Elements**: Subtle depth and realism in interface design
+- **Bold Typography**: Large, bold, capitalized text for attention-grabbing headers
+- **Collaborative Editing**: Real-time multi-user editing capabilities
+
+### Email Template Standards
+- **MJML Framework**: Modern responsive email framework gaining adoption
+- **Design Tokens**: Consistent design system variables across templates
+- **Dark Mode Support**: Email templates supporting both light and dark themes
+- **Accessibility Standards**: WCAG 2.1 AA compliance for email templates
+
+## Implementation Recommendations
+
+### Specific Approach Based on Research
+1. **Monaco Integration**: Use `@monaco-editor/react` with proper resource management
+2. **Template Organization**: Implement virtual file system with unique URIs per template
+3. **Theme System**: Centralized theme provider supporting both light and dark modes
+4. **Performance**: Lazy load editor with code splitting and worker threads
+5. **Collaboration**: Consider real-time editing features for multi-user scenarios
+
+### Integration Patterns to Follow
+- **Model Lifecycle**: Create/dispose models as users switch between templates
+- **State Persistence**: Save editor state (position, selection) between sessions
+- **Error Boundaries**: Wrap Monaco components in React error boundaries
+- **Progressive Enhancement**: Basic textarea fallback for unsupported browsers
+
+### Tools and Libraries to Use
+- **Core**: `@monaco-editor/react` for React integration
+- **Theming**: CSS custom properties for theme management
+- **Validation**: Template syntax validation before save operations
+- **Storage**: IndexedDB for client-side template caching
+- **Accessibility**: Focus management and ARIA labels for screen readers

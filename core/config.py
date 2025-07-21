@@ -103,6 +103,13 @@ class Settings(BaseSettings):
     enable_email_tracking: bool = Field(default=True)
     enable_experiments: bool = Field(default=False)
 
+    # PRP-1058 - Agent coordination mode feature flag
+    agent_coordination_mode: str = Field(
+        default="tmux",
+        description="Agent coordination mode: 'tmux' for legacy tmux messaging, 'redis' for reliable queue-based messaging",
+    )
+    redis_queue_enabled: bool = Field(default=False, description="Enable Redis queue broker for agent coordination")
+
     # Phase 0.5 - Feature flags
     providers_data_axle_enabled: bool = Field(default=True)
     providers_hunter_enabled: bool = Field(default=False)
@@ -154,6 +161,15 @@ class Settings(BaseSettings):
         allowed = ["development", "test", "staging", "production"]
         if v not in allowed:
             raise ValueError(f"Environment must be one of: {allowed}")
+        return v
+
+    @field_validator("agent_coordination_mode")
+    @classmethod
+    def validate_agent_coordination_mode(cls, v):
+        """Validate agent coordination mode"""
+        allowed = ["tmux", "redis"]
+        if v not in allowed:
+            raise ValueError(f"Agent coordination mode must be one of: {allowed}")
         return v
 
     @field_validator("database_url")

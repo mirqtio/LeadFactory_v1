@@ -1,10 +1,7 @@
 metadata:
-  version: '2.0'
-  last_updated: '2025-07-20T21:08:12.943101Z'
+  version: '1.0'
+  last_updated: '2025-07-19T02:47:32.278033Z'
   tracking_started: '2025-07-16T14:00:00Z'
-  migration_completed: '2025-07-20T21:08:12.943106Z'
-  stable_id_system: true
-  corrected_priorities: true
 prp_tracking:
   P0-001:
     title: Fix D4 Coordinator
@@ -14,10 +11,6 @@ prp_tracking:
     completed_at: '2025-07-10T16:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1001
-    corrected_priority: P0
-    legacy_id: P0-001
-    migrated_at: '2025-07-20T21:08:12.943109Z'
   P0-002:
     title: Wire Prefect Full Pipeline
     status: complete
@@ -26,10 +19,6 @@ prp_tracking:
     completed_at: '2025-07-10T17:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1002
-    corrected_priority: P0
-    legacy_id: P0-002
-    migrated_at: '2025-07-20T21:08:12.943110Z'
   P0-003:
     title: Dockerize CI
     status: complete
@@ -38,10 +27,6 @@ prp_tracking:
     completed_at: '2025-07-10T18:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1003
-    corrected_priority: P0
-    legacy_id: P0-003
-    migrated_at: '2025-07-20T21:08:12.943111Z'
   P0-004:
     title: Database Migrations Current
     status: complete
@@ -50,10 +35,6 @@ prp_tracking:
     completed_at: '2025-07-10T19:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1004
-    corrected_priority: P0
-    legacy_id: P0-004
-    migrated_at: '2025-07-20T21:08:12.943112Z'
   P0-005:
     title: Environment & Stub Wiring
     status: complete
@@ -62,10 +43,6 @@ prp_tracking:
     completed_at: '2025-07-10T20:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1005
-    corrected_priority: P0
-    legacy_id: P0-005
-    migrated_at: '2025-07-20T21:08:12.943113Z'
   P0-006:
     title: Green KEEP Test Suite
     status: complete
@@ -74,10 +51,6 @@ prp_tracking:
     completed_at: '2025-07-10T21:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1006
-    corrected_priority: P0
-    legacy_id: P0-006
-    migrated_at: '2025-07-20T21:08:12.943114Z'
   P0-007:
     title: Health Endpoint
     status: complete
@@ -86,10 +59,6 @@ prp_tracking:
     completed_at: '2025-07-10T22:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1007
-    corrected_priority: P0
-    legacy_id: P0-007
-    migrated_at: '2025-07-20T21:08:12.943114Z'
   P0-008:
     title: Test Infrastructure Cleanup
     status: complete
@@ -98,10 +67,6 @@ prp_tracking:
     completed_at: '2025-07-10T23:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1008
-    corrected_priority: P0
-    legacy_id: P0-008
-    migrated_at: '2025-07-20T21:08:12.943118Z'
   P0-009:
     title: Remove Yelp Remnants
     status: complete
@@ -110,10 +75,6 @@ prp_tracking:
     completed_at: '2025-07-11T00:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1009
-    corrected_priority: P0
-    legacy_id: P0-009
-    migrated_at: '2025-07-20T21:08:12.943119Z'
   P0-010:
     title: Fix Missing Dependencies
     status: complete
@@ -122,10 +83,6 @@ prp_tracking:
     completed_at: '2025-07-11T01:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1010
-    corrected_priority: P0
-    legacy_id: P0-010
-    migrated_at: '2025-07-20T21:08:12.943120Z'
   P0-011:
     title: Deploy to VPS
     status: complete
@@ -134,10 +91,6 @@ prp_tracking:
     completed_at: '2025-07-11T02:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1011
-    corrected_priority: P0
-    legacy_id: P0-011
-    migrated_at: '2025-07-20T21:08:12.943121Z'
   P0-012:
     title: Postgres on VPS Container
     status: complete
@@ -146,10 +99,6 @@ prp_tracking:
     completed_at: '2025-07-11T03:00:00Z'
     github_commit: 322579d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1012
-    corrected_priority: P0
-    legacy_id: P0-012
-    migrated_at: '2025-07-20T21:08:12.943122Z'
   P1-010:
     title: SEMrush Client & Metrics
     status: complete
@@ -158,10 +107,6 @@ prp_tracking:
     completed_at: '2025-07-15T16:00:00Z'
     github_commit: 2e8846d
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    stable_id: PRP-1021
-    corrected_priority: P1
-    legacy_id: P1-010
-    migrated_at: '2025-07-20T21:08:12.943123Z'
   P1-020:
     title: Lighthouse headless audit
     status: complete
@@ -171,10 +116,6 @@ prp_tracking:
     github_commit: 58215c9
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Implementation complete, committed with PRP tracking system
-    stable_id: PRP-1022
-    corrected_priority: P1
-    legacy_id: P1-020
-    migrated_at: '2025-07-20T21:08:12.943124Z'
   P1-030:
     title: Visual Rubric analyzer
     status: complete
@@ -184,10 +125,6 @@ prp_tracking:
     github_commit: 58215c9
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Implementation complete, committed with PRP tracking system
-    stable_id: PRP-1023
-    corrected_priority: P1
-    legacy_id: P1-030
-    migrated_at: '2025-07-20T21:08:12.943125Z'
   P1-040:
     title: LLM Heuristic audit
     status: complete
@@ -197,10 +134,6 @@ prp_tracking:
     github_commit: 58215c9
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Implementation complete, committed with PRP tracking system
-    stable_id: PRP-1024
-    corrected_priority: P1
-    legacy_id: P1-040
-    migrated_at: '2025-07-20T21:08:12.943126Z'
   P1-050:
     title: Gateway cost ledger
     status: complete
@@ -210,10 +143,6 @@ prp_tracking:
     github_commit: 58215c9
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Implementation complete, committed with PRP tracking system
-    stable_id: PRP-1025
-    corrected_priority: P1
-    legacy_id: P1-050
-    migrated_at: '2025-07-20T21:08:12.943126Z'
   P1-060:
     title: Cost guardrails
     status: complete
@@ -223,10 +152,6 @@ prp_tracking:
     github_commit: 58215c9
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Implementation complete, committed with PRP tracking system
-    stable_id: PRP-1026
-    corrected_priority: P1
-    legacy_id: P1-060
-    migrated_at: '2025-07-20T21:08:12.943127Z'
   P1-070:
     title: DataAxle Client
     status: complete
@@ -236,10 +161,6 @@ prp_tracking:
     github_commit: 58215c9
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Implementation complete, committed with PRP tracking system
-    stable_id: PRP-1027
-    corrected_priority: P1
-    legacy_id: P1-070
-    migrated_at: '2025-07-20T21:08:12.943128Z'
   P1-080:
     title: Bucket enrichment flow
     status: complete
@@ -249,10 +170,6 @@ prp_tracking:
     github_commit: 58215c9
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Implementation complete, committed with PRP tracking system
-    stable_id: PRP-1028
-    corrected_priority: P1
-    legacy_id: P1-080
-    migrated_at: '2025-07-20T21:08:12.943129Z'
   P2-000:
     title: Account Management Module
     status: complete
@@ -262,10 +179,6 @@ prp_tracking:
     github_commit: 58215c9
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Implementation complete, committed with PRP tracking system
-    stable_id: PRP-1029
-    corrected_priority: P2
-    legacy_id: P2-000
-    migrated_at: '2025-07-20T21:08:12.943130Z'
   P2-010:
     title: Unit Economics Views
     status: complete
@@ -274,12 +187,9 @@ prp_tracking:
     completed_at: '2025-07-18T15:45:00Z'
     github_commit: 3c12bd4
     ci_run_url: https://github.com/mirqtio/LeadFactory_v1/actions
-    notes: Completed database schema fixes for fct_api_cost table - Changed lead_id from Integer to String(100) type, created
-      migration with proper dependency chain, validated with CI
-    stable_id: PRP-1030
-    corrected_priority: P2
-    legacy_id: P2-010
-    migrated_at: '2025-07-20T21:08:12.943130Z'
+    notes: Completed database schema fixes for fct_api_cost table - Changed lead_id
+      from Integer to String(100) type, created migration with proper dependency chain,
+      validated with CI
   P2-020:
     title: Unit Economics PDF Section
     status: complete
@@ -289,10 +199,6 @@ prp_tracking:
     github_commit: 5df5cbd
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Completed - Unit Economics PDF with cost insights and visualizations
-    stable_id: PRP-1031
-    corrected_priority: P2
-    legacy_id: P2-020
-    migrated_at: '2025-07-20T21:08:12.943131Z'
   P2-030:
     title: Email Personalization V2
     status: in_progress
@@ -302,10 +208,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PM-3 assigned Recommendation Engine
-    stable_id: PRP-1041
-    corrected_priority: P1
-    legacy_id: P2-030
-    migrated_at: '2025-07-20T21:08:12.943132Z'
   P2-040:
     title: Dynamic Report Designer
     status: validated
@@ -315,10 +217,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Ready for execution
-    stable_id: PRP-1047
-    corrected_priority: P2
-    legacy_id: P2-040
-    migrated_at: '2025-07-20T21:08:12.943133Z'
   P2-050:
     title: Report Performance Tuning
     status: validated
@@ -328,10 +226,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Ready for execution
-    stable_id: PRP-1048
-    corrected_priority: P2
-    legacy_id: P2-050
-    migrated_at: '2025-07-20T21:08:12.943134Z'
   P2-060:
     title: Full Text Search
     status: validated
@@ -341,10 +235,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Ready for execution
-    stable_id: PRP-1049
-    corrected_priority: P2
-    legacy_id: P2-060
-    migrated_at: '2025-07-20T21:08:12.943134Z'
   P2-070:
     title: Lead Explorer UI
     status: validated
@@ -354,13 +244,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Ready for execution
-    stable_id: PRP-1050
-    corrected_priority: P2
-    legacy_id: P2-070
-    migrated_at: '2025-07-20T21:08:12.943135Z'
-    deprecated: true
-    superseded_by: PRP-1042
-    reason: Superseded by P0-029 Lead Explorer UI (Wave D UI Consolidation)
   P2-080:
     title: Advanced Filters
     status: validated
@@ -370,10 +253,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Ready for execution
-    stable_id: PRP-1051
-    corrected_priority: P2
-    legacy_id: P2-080
-    migrated_at: '2025-07-20T21:08:12.943136Z'
   P2-090:
     title: Lead Tracking
     status: validated
@@ -383,10 +262,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Ready for execution
-    stable_id: PRP-1052
-    corrected_priority: P2
-    legacy_id: P2-090
-    migrated_at: '2025-07-20T21:08:12.943137Z'
   P0-000:
     title: Prerequisites Check
     status: validated
@@ -396,10 +271,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1033
-    corrected_priority: P0
-    legacy_id: P0-000
-    migrated_at: '2025-07-20T21:08:12.943138Z'
   P0-013:
     title: CI/CD Pipeline Stabilization
     status: validated
@@ -409,10 +280,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1034
-    corrected_priority: P0
-    legacy_id: P0-013
-    migrated_at: '2025-07-20T21:08:12.943139Z'
   P0-014:
     title: Test Suite Re-Enablement and Coverage Plan
     status: validated
@@ -422,10 +289,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1035
-    corrected_priority: P0
-    legacy_id: P0-014
-    migrated_at: '2025-07-20T21:08:12.943140Z'
   P0-015:
     title: Test Coverage Enhancement to 80%
     status: validated
@@ -435,10 +298,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1036
-    corrected_priority: P0
-    legacy_id: P0-015
-    migrated_at: '2025-07-20T21:08:12.943140Z'
   P0-016:
     title: Test Suite Stabilization and Performance Optimization
     status: complete
@@ -447,11 +306,8 @@ prp_tracking:
     completed_at: '2025-07-18T10:28:00Z'
     github_commit: fbab19e
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    notes: Orchestrator completed - Test suite stabilized, 60/60 tests passing, performance optimized
-    stable_id: PRP-1013
-    corrected_priority: P0
-    legacy_id: P0-016
-    migrated_at: '2025-07-20T21:08:12.943141Z'
+    notes: Orchestrator completed - Test suite stabilized, 60/60 tests passing, performance
+      optimized
   P0-020:
     title: Design System Token Extraction
     status: complete
@@ -461,10 +317,6 @@ prp_tracking:
     github_commit: 04c4f9a
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Completed - Design system tokens extracted and implemented
-    stable_id: PRP-1014
-    corrected_priority: P0
-    legacy_id: P0-020
-    migrated_at: '2025-07-20T21:08:12.943142Z'
   P0-021:
     title: Lead Explorer
     status: complete
@@ -474,10 +326,6 @@ prp_tracking:
     github_commit: 3320525
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Orchestrator force-completed to unblock queue
-    stable_id: PRP-1015
-    corrected_priority: P0
-    legacy_id: P0-021
-    migrated_at: '2025-07-20T21:08:12.943142Z'
   P0-022:
     title: Batch Report Runner
     status: complete
@@ -486,11 +334,7 @@ prp_tracking:
     completed_at: '2025-07-19T13:15:00Z'
     github_commit: e80ef90
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions/runs/451
-    notes: Integration Agent override - VPS deployment successful (run
-    stable_id: PRP-1016
-    corrected_priority: P0
-    legacy_id: P0-022
-    migrated_at: '2025-07-20T21:08:12.943143Z'
+    notes: Integration Agent override - VPS deployment successful (run #451), CI green, batch report runner operational
   P0-023:
     title: Lineage Panel
     status: complete
@@ -500,10 +344,6 @@ prp_tracking:
     github_commit: b05a0dd84dfc
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Ground truth verification - Full implementation found with API, DB migration, and tests
-    stable_id: PRP-1017
-    corrected_priority: P0
-    legacy_id: P0-023
-    migrated_at: '2025-07-20T21:08:12.943144Z'
   P0-024:
     title: Template Studio
     status: complete
@@ -513,10 +353,6 @@ prp_tracking:
     github_commit: template_studio_impl
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Ground truth verification - Full implementation found with GitHub integration, Monaco editor, and tests
-    stable_id: PRP-1018
-    corrected_priority: P0
-    legacy_id: P0-024
-    migrated_at: '2025-07-20T21:08:12.943145Z'
   P0-025:
     title: Scoring Playground
     status: complete
@@ -525,12 +361,8 @@ prp_tracking:
     completed_at: '2025-07-18T00:20:00Z'
     github_commit: 27e7220
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    notes: Orchestrator completed - Full implementation verified, 59/62 tests pass, feature flag enabled, properly integrated
-      in main.py
-    stable_id: PRP-1019
-    corrected_priority: P0
-    legacy_id: P0-025
-    migrated_at: '2025-07-20T21:08:12.943146Z'
+    notes: Orchestrator completed - Full implementation verified, 59/62 tests pass,
+      feature flag enabled, properly integrated in main.py
   P0-026:
     title: Governance
     status: complete
@@ -540,10 +372,6 @@ prp_tracking:
     github_commit: rbac_governance_impl
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
     notes: Ground truth verification - RBAC system and audit trails integrated across lead_explorer and other modules
-    stable_id: PRP-1020
-    corrected_priority: P0
-    legacy_id: P0-026
-    migrated_at: '2025-07-20T21:08:12.943146Z'
   P0-027:
     title: Global Navigation Shell
     status: validated
@@ -553,10 +381,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1037
-    corrected_priority: P0
-    legacy_id: P0-027
-    migrated_at: '2025-07-20T21:08:12.943147Z'
   P0-028:
     title: Design-System UI Foundations
     status: new
@@ -566,10 +390,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Wave D UI Consolidation - needs PRP
-    stable_id: PRP-1038
-    corrected_priority: P0
-    legacy_id: P0-028
-    migrated_at: '2025-07-20T21:08:12.943148Z'
   P0-029:
     title: Lead Explorer UI
     status: new
@@ -579,10 +399,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Wave D UI Consolidation - needs PRP
-    stable_id: PRP-1042
-    corrected_priority: P1
-    legacy_id: P0-029
-    migrated_at: '2025-07-20T21:08:12.943149Z'
   P0-030:
     title: Lineage Panel UI
     status: new
@@ -592,10 +408,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Wave D UI Consolidation - needs PRP
-    stable_id: PRP-1043
-    corrected_priority: P1
-    legacy_id: P0-030
-    migrated_at: '2025-07-20T21:08:12.943149Z'
   P0-031:
     title: Batch Report Runner UI
     status: new
@@ -605,10 +417,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Wave D UI Consolidation - needs PRP
-    stable_id: PRP-1044
-    corrected_priority: P1
-    legacy_id: P0-031
-    migrated_at: '2025-07-20T21:08:12.943150Z'
   P0-032:
     title: Template Studio Polish
     status: new
@@ -618,10 +426,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Wave D UI Consolidation - needs PRP
-    stable_id: PRP-1053
-    corrected_priority: P2
-    legacy_id: P0-032
-    migrated_at: '2025-07-20T21:08:12.943151Z'
   P0-033:
     title: Scoring Playground Integration
     status: new
@@ -631,10 +435,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Wave D UI Consolidation - needs PRP
-    stable_id: PRP-1054
-    corrected_priority: P2
-    legacy_id: P0-033
-    migrated_at: '2025-07-20T21:08:12.943152Z'
   P0-034:
     title: Governance Console Polish
     status: new
@@ -644,10 +444,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: Wave D UI Consolidation - needs PRP
-    stable_id: PRP-1055
-    corrected_priority: P3
-    legacy_id: P0-034
-    migrated_at: '2025-07-20T21:08:12.943152Z'
   P3-001:
     title: Fix RBAC for All API Endpoints
     status: in_progress
@@ -657,10 +453,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PM-2 assigned RBAC security fixes
-    stable_id: PRP-1039
-    corrected_priority: P0
-    legacy_id: P3-001
-    migrated_at: '2025-07-20T21:08:12.943153Z'
   P3-002:
     title: Complete Lineage Integration
     status: validated
@@ -670,10 +462,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1045
-    corrected_priority: P1
-    legacy_id: P3-002
-    migrated_at: '2025-07-20T21:08:12.943154Z'
   P3-003:
     title: Fix Lead Explorer Audit Trail
     status: complete
@@ -682,12 +470,7 @@ prp_tracking:
     completed_at: '2025-07-19T13:25:00Z'
     github_commit: fad6503
     ci_run_url: https://github.com/anthropics/LeadFactory_v1_Final/actions
-    notes: Integration Agent deployment complete - Session-level event listeners, 80.33% coverage, SHA-256 checksums, production
-      ready
-    stable_id: PRP-1032
-    corrected_priority: P3
-    legacy_id: P3-003
-    migrated_at: '2025-07-20T21:08:12.943155Z'
+    notes: Integration Agent deployment complete - Session-level event listeners, 80.33% coverage, SHA-256 checksums, production ready
   P3-004:
     title: Create Batch Runner UI
     status: validated
@@ -697,13 +480,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1056
-    corrected_priority: P3
-    legacy_id: P3-004
-    migrated_at: '2025-07-20T21:08:12.943156Z'
-    deprecated: true
-    superseded_by: PRP-1044
-    reason: Superseded by P0-031 Batch Report Runner UI (Wave D UI Consolidation)
   P3-005:
     title: Complete Test Coverage
     status: validated
@@ -713,10 +489,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1046
-    corrected_priority: P1
-    legacy_id: P3-005
-    migrated_at: '2025-07-20T21:08:12.943156Z'
   P3-006:
     title: Replace Mock Integrations
     status: validated
@@ -726,10 +498,6 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1057
-    corrected_priority: P3
-    legacy_id: P3-006
-    migrated_at: '2025-07-20T21:08:12.943157Z'
   P3-007:
     title: Fix CI Docker Test Execution
     status: validated
@@ -739,27 +507,10 @@ prp_tracking:
     github_commit: null
     ci_run_url: null
     notes: PRP exists, marking as validated
-    stable_id: PRP-1040
-    corrected_priority: P0
-    legacy_id: P3-007
-    migrated_at: '2025-07-20T21:08:12.943158Z'
 stats:
   total_prps: 57
-  active_prps: 55
-  deprecated_prps: 2
-  priority_distribution:
-    P0: 28
-    P1: 14
-    P2: 10
-    P3: 3
-  status_distribution:
-    complete: 32
-    in_progress: 2
-    validated: 14
-    new: 7
-  completion_rate: 0.582
-  moscow_distribution:
-    must_have_p0: 28 (51%)
-    should_have_p1: 14 (25%)
-    could_have_p2: 10 (18%)
-    wont_have_p3: 3 (5%)
+  new: 7
+  validated: 18
+  in_progress: 2
+  complete: 32
+  completion_rate: 0.56

@@ -1,0 +1,131 @@
+# Research Context for PRP-1042 - Lead Explorer UI
+
+## Key Findings
+
+### React Data Grid Components for CRUD Operations (2024)
+- **AG Grid**: Industry leader with comprehensive CRUD features, virtual rendering for performance
+- **Material React Table**: MIT licensed, built on Material UI V6, full CRUD support with advanced features
+- **Syncfusion React DataGrid**: Enterprise-grade with batch operations and Excel-like navigation
+- **React Data Grid**: Lightweight, feature-rich, and highly customizable
+
+### FastAPI React Integration Patterns
+- Modern stack uses Vite for React development with FastAPI async backend
+- Async CRUD operations leverage SQLAlchemy async patterns for high performance
+- CORS configuration essential for localhost development (frontend:5173, backend:8000)
+- Pydantic models for data validation and serialization
+- Motor driver for async MongoDB operations when needed
+
+### Accessibility Standards (WCAG 2.1 AA)
+- ARIA labels fully supported in JSX with hyphen-cased attributes
+- Data grids must follow W3C WCAG standards with relevant ARIA tags
+- Screen reader compatibility requires proper table structure and navigation
+- Keyboard navigation and focus management are critical requirements
+- Modern React grids are compliant with WCAG 2.2 AA and Section 508
+
+### Design Token Implementation
+- Single source of truth for colors, typography, spacing, shadows, borders
+- CSS-in-JS integration with Styled Components or theme providers
+- Component tokens inherit from semantic tokens for consistency
+- 50% development time reduction reported by teams using design tokens
+- Major libraries (MUI, Ant Design, Mantine) provide comprehensive token support
+
+## Authoritative Sources
+
+### Official Documentation
+- React Accessibility Guide: https://legacy.reactjs.org/docs/accessibility.html
+- React Aria Accessibility: https://react-spectrum.adobe.com/react-aria/accessibility.html
+- AG Grid Accessibility: https://www.ag-grid.com/react-data-grid/accessibility/
+- Material React Table CRUD: https://www.material-react-table.com/docs/examples/editing-crud
+- MDN ARIA Reference: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA
+
+### Security Guidelines
+- WCAG 2.1 AA Compliance Standards
+- OWASP security practices for API endpoints
+- ARIA labeling best practices for screen readers
+
+### Performance References
+- FastAPI async patterns documentation
+- React virtual rendering optimization guides
+- Database connection pooling with SQLAlchemy
+
+## Current Best Practices
+
+### Framework-Specific Patterns
+- **FastAPI**: Async SQLAlchemy with Pydantic validation, proper CORS configuration
+- **React**: Component composition with hooks, virtual rendering for large datasets
+- **Accessibility**: ARIA labels with semantic meaning, keyboard navigation support
+- **Design Tokens**: CSS custom properties with theme provider integration
+
+### Testing Strategies
+- Unit tests for CRUD operations and component behavior
+- Integration tests for API endpoints and database operations
+- Visual regression testing for UI consistency
+- Accessibility testing with screen readers and keyboard navigation
+
+### Error Handling Approaches
+- Async/await patterns with proper error boundaries
+- API error responses with meaningful status codes
+- User-friendly error messages with accessibility considerations
+- Graceful degradation for network failures
+
+## Common Pitfalls
+
+### Known Issues to Avoid
+- Missing primary key configuration for CRUD operations
+- Improper CORS setup causing API call failures
+- ARIA label misuse that fails WCAG 2.5.3 Label in Name
+- Hard-coded design values instead of design tokens
+- Non-async database operations causing performance bottlenecks
+
+### Performance Considerations
+- Virtual rendering essential for datasets >1000 rows
+- Lazy loading for improved initial page load
+- Debounced search and filter operations
+- Efficient pagination strategies
+
+### Security Vulnerabilities
+- SQL injection through improper query parameterization
+- XSS attacks via unsanitized user input rendering
+- Missing authentication on CRUD endpoints
+- Overly permissive CORS configuration
+
+## Recent Updates
+
+### Breaking Changes in Dependencies
+- Material UI V6 migration patterns and compatibility
+- React 18 concurrent features affecting data grids
+- SQLAlchemy 2.0 async patterns and session management
+- FastAPI dependency updates and security patches
+
+### New Features to Leverage
+- React Server Components for improved performance
+- FastAPI dependency injection improvements
+- Enhanced ARIA support in modern browsers
+- Design token automation tools and workflows
+
+### Deprecated Patterns to Avoid
+- Class-based React components for new development
+- Synchronous database operations in FastAPI
+- Inline styles instead of design token system
+- Non-semantic HTML in data table structures
+
+## Implementation Recommendations
+
+### Specific Approach Based on Research
+1. **Component Selection**: Use Material React Table for Material UI integration or AG Grid for enterprise features
+2. **Data Architecture**: Implement async FastAPI endpoints with Pydantic validation
+3. **Accessibility**: Follow WCAG 2.1 AA standards with proper ARIA labeling
+4. **Design System**: Implement design tokens for consistent theming
+
+### Integration Patterns to Follow
+- Component composition over inheritance
+- Async state management with React hooks
+- Centralized error handling and user feedback
+- Progressive enhancement for accessibility
+
+### Tools and Libraries to Use
+- **Frontend**: React 18+, Material React Table/AG Grid, React Hook Form
+- **Backend**: FastAPI, SQLAlchemy async, Pydantic
+- **Testing**: Jest, React Testing Library, Playwright for E2E
+- **Accessibility**: axe-core, react-axe for automated testing
+- **Design**: Design tokens with CSS custom properties, theme provider

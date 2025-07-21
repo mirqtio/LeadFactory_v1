@@ -358,6 +358,11 @@ class MetricsCollector:
 metrics = MetricsCollector()
 
 
+def get_metrics_collector() -> MetricsCollector:
+    """Get the global metrics collector instance"""
+    return metrics
+
+
 def track_time(metric_name: str = None):
     """Decorator to track execution time of functions"""
 

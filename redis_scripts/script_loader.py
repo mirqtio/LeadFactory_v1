@@ -8,9 +8,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import redis
+from redis.exceptions import NoScriptError, RedisError
+
 from core.config import get_settings
 from core.logging import get_logger
-from redis.exceptions import NoScriptError, RedisError
 
 
 class ScriptLoader:
@@ -24,19 +25,19 @@ class ScriptLoader:
     - Connection pooling integration with existing Redis patterns
     """
 
-    def __init__(self, redis_client: Optional[redis.Redis] = None):
+    def __init__(self, redis_instance: Optional[redis.Redis] = None):
         """
         Initialize script loader.
 
         Args:
-            redis_client: Optional Redis client (uses default connection if None)
+            redis_instance: Optional Redis client (uses default connection if None)
         """
         self.settings = get_settings()
         self.logger = get_logger("script_loader", domain="redis")
 
         # Use provided client or create new one following d0_gateway patterns
-        if redis_client:
-            self.redis = redis_client
+        if redis_instance:
+            self.redis = redis_instance
         else:
             redis_url = getattr(self.settings, "redis_url", "redis://localhost:6379/0")
             self.redis = redis.from_url(redis_url, decode_responses=True)
@@ -205,7 +206,7 @@ class ScriptLoader:
             exists = self.redis.script_exists(sha)[0]
             return exists == 1
 
-        except RedisError:
+        except Exception:
             return False
 
     def flush_scripts(self) -> None:

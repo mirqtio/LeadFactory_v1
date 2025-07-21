@@ -1,0 +1,194 @@
+# SuperClaude Acceptance Profile Configuration
+# PRP-1060: Acceptance + Deploy Runner Persona
+
+name: "acceptance"
+description: "Containerized acceptance testing and SSH deployment automation"
+version: "1.0.0"
+command: "/acceptance"
+
+# Profile activation triggers
+triggers:
+  - command_patterns: ["/acceptance", "acceptance", "deploy"]
+  - context_keywords: ["acceptance test", "deployment", "production ready"]
+  - prp_states: ["validated", "ready_for_acceptance"]
+
+# Core workflow configuration
+workflow:
+  type: "containerized"
+  container_image: "ghcr.io/leadfactory/acceptance-runner:latest"
+  timeout_minutes: 10
+  performance_target:
+    p95_completion_time_minutes: 3
+  
+  # Workflow steps
+  steps:
+    - name: "setup"
+      description: "Initialize acceptance testing environment"
+      actions:
+        - "clone_repository"
+        - "setup_dependencies"
+        - "validate_environment"
+    
+    - name: "test_execution"
+      description: "Run acceptance test suite"
+      actions:
+        - "pytest tests/acceptance/ -q --tb=short"
+        - "validate_test_results"
+        - "collect_evidence"
+    
+    - name: "evidence_validation"
+      description: "Write evidence to Redis for promotion"
+      actions:
+        - "write_acceptance_passed_flag"
+        - "store_test_logs"
+        - "update_prp_evidence"
+    
+    - name: "deployment"
+      description: "SSH deployment to VPS (if tests pass)"
+      actions:
+        - "ssh_deploy_to_vps"
+        - "run_health_checks"
+        - "write_deploy_ok_flag"
+
+# Environment configuration
+environment:
+  variables:
+    - REDIS_URL: "${REDIS_URL}"
+    - VPS_SSH_HOST: "${VPS_SSH_HOST}"
+    - VPS_SSH_USER: "${VPS_SSH_USER}"
+    - VPS_SSH_KEY: "${VPS_SSH_KEY}"
+    - GITHUB_TOKEN: "${GITHUB_TOKEN}"
+    - PRP_ID: "${PRP_ID}"
+  
+  required_secrets:
+    - "VPS_SSH_KEY"
+    - "GITHUB_TOKEN"
+    - "REDIS_URL"
+
+# Evidence collection configuration
+evidence:
+  redis_keys:
+    acceptance_passed: "prp:${PRP_ID}:acceptance_passed"
+    deploy_ok: "prp:${PRP_ID}:deploy_ok"
+    acceptance_log: "prp:${PRP_ID}:acceptance_log"
+    deployment_log: "prp:${PRP_ID}:deployment_log"
+  
+  success_criteria:
+    - "All acceptance tests pass"
+    - "No critical security vulnerabilities"
+    - "Health checks pass post-deployment"
+    - "Performance targets met"
+
+# Container configuration
+container:
+  build_context: "./containers/acceptance/"
+  dockerfile: "Dockerfile"
+  registry: "ghcr.io/leadfactory"
+  tag_strategy: "commit_sha"
+  
+  resources:
+    memory_limit: "512Mi"
+    cpu_limit: "500m"
+    
+  volumes:
+    - "ssh_keys:/root/.ssh:ro"
+    - "workspace:/workspace"
+
+# SSH deployment configuration
+deployment:
+  target_host: "${VPS_SSH_HOST}"
+  user: "${VPS_SSH_USER}"
+  key_path: "${VPS_SSH_KEY}"
+  
+  scripts:
+    deploy: "~/bin/deploy.sh"
+    health_check: "~/bin/health_check.sh"
+    rollback: "~/bin/rollback.sh"
+  
+  health_checks:
+    - url: "https://${VPS_SSH_HOST}/health"
+      timeout_seconds: 30
+      expected_status: 200
+    - service: "docker compose ps"
+      expected_output: "running"
+
+# Error handling and rollback
+error_handling:
+  max_retries: 2
+  retry_delay_seconds: 30
+  
+  rollback_triggers:
+    - "container_build_failure"
+    - "ssh_connection_failure"
+    - "health_check_failure"
+    - "performance_degradation"
+  
+  rollback_actions:
+    - "disable_acceptance_profile"
+    - "execute_vps_rollback_script"
+    - "clear_failed_evidence"
+    - "notify_operations_team"
+
+# Integration with PRP-1059 promotion system
+promotion:
+  lua_script: "redis/promote.lua"
+  evidence_requirements:
+    - key: "acceptance_passed"
+      value: "true"
+      required: true
+    - key: "deploy_ok"
+      value: "true"
+      required: true
+  
+  retry_policy:
+    max_attempts: 3
+    backoff_multiplier: 2
+    initial_delay_seconds: 5
+
+# Monitoring and observability
+monitoring:
+  metrics:
+    - "acceptance_test_duration"
+    - "deployment_duration"
+    - "success_rate"
+    - "error_rate"
+  
+  alerts:
+    - condition: "success_rate < 90%"
+      severity: "warning"
+    - condition: "p95_completion_time > 5 minutes"
+      severity: "critical"
+    - condition: "consecutive_failures >= 3"
+      severity: "critical"
+
+# Security configuration
+security:
+  ssh_key_rotation: true
+  container_security_scanning: true
+  secret_management: "environment_variables"
+  
+  access_controls:
+    - "read_only_filesystem"
+    - "non_privileged_user"
+    - "minimal_attack_surface"
+
+# Testing and validation
+testing:
+  unit_tests: "tests/unit/acceptance/"
+  integration_tests: "tests/integration/acceptance/"
+  performance_tests: "tests/performance/acceptance/"
+  
+  coverage_requirements:
+    minimum_percentage: 80
+    critical_paths: 100
+
+# Documentation and compliance
+documentation:
+  profile_docs: "docs/profiles/acceptance.md"
+  workflow_diagram: "docs/diagrams/acceptance_workflow.png"
+  troubleshooting_guide: "docs/troubleshooting/acceptance.md"
+  
+  compliance:
+    security_review: true
+    performance_validation: true
+    disaster_recovery_tested: true

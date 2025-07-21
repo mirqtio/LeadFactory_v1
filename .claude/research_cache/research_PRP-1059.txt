@@ -1,0 +1,103 @@
+# Research Context for PRP-1059
+
+## Key Findings
+
+### Atomicity with Lua Scripts
+- Redis Lua scripts are executed atomically - no other script or command will run while a script is running
+- This provides the same transactional semantics as MULTI/EXEC, making them ideal for queue promotion operations
+- Since Redis scripts are executed as a single command, they ensure that no other commands are run in the middle of execution
+
+### EVALSHA Performance and Caching
+- EVALSHA works exactly like EVAL but uses the SHA1 digest of a script instead of the full script text
+- The default ScriptExecutor uses EVALSHA using the SHA1 of the script and falling back to EVAL if the script has not yet been loaded into the cache
+- Redis caches Lua scripts that are frequently used, so use EVALSHA command to execute cached scripts instead of redefining and reuploading the script each time
+- This approach avoids bandwidth penalties and improves performance
+
+### Queue Promotion Patterns
+- Reliable queue implementation involves moving elements between different queue states atomically
+- Common pattern: Get element from tail of list, put same element on head with processing state marker and timestamp
+- Alternative pattern: Use list for new elements and sorted set for processing elements scored by unix time
+- Promotion operations benefit from Lua scripts because they require multiple Redis operations to be atomic
+
+## Authoritative Sources
+
+- Official Redis Documentation: https://redis.io/docs/latest/commands/evalsha/
+- Redis Lua Scripting Guide: https://redis.io/learn/develop/java/spring/rate-limiting/fixed-window/reactive-lua
+- Redis Reliable Queues Pattern: http://oldblog.antirez.com/post/250
+- Spring Data Redis Lua Scripting: Official Spring documentation with script caching support
+
+## Current Best Practices
+
+### Script Design
+- Keep scripts short - shorter scripts are easier to maintain and debug
+- Avoid long-running scripts to prevent blocking other operations (Stop-The-World operation)
+- Don't perform complex computations in Lua - limit to Redis calls and small computations
+- Provide keys as KEYS array and other arguments as ARGV array (good practice)
+
+### Error Handling and Reliability
+- Implement robust error handling with assert() or error() within scripts
+- Handle NOSCRIPT errors when using EVALSHA - automatic fallback to EVAL
+- The documented pattern: "Run optimistically uses EVALSHA to run the script. If script does not exist it is retried using EVAL"
+- Library should detect NOSCRIPT error internally and flush local cache of known-good scripts
+
+### Performance Optimization
+- Use EVALSHA for cached script execution instead of redefining scripts each time
+- Minimize network roundtrips by combining multiple operations into a single Lua script
+- Avoid unnecessary string manipulation operations in Lua scripts
+- Only use Lua scripts when you can prove better performance - run benchmarks first
+
+## Common Pitfalls
+
+### Blocking Operations
+- Lua execution blocks a Redis instance - it's a Stop-The-World operation
+- Avoid very big, complex, or time-consuming Lua scripts because while running Lua, no one can access that server
+- Scripts should implement things that execute as fast as possible to maintain Redis performance
+
+### Pipeline Context Issues
+- Care should be taken when executing EVALSHA in pipelined requests
+- Pipeline execution can fail with "NOSCRIPT No matching script" without automatic fallback
+- Order of execution must be guaranteed in pipelines - can't reissue commands later
+
+### Cross-Shard Limitations
+- Can only use keys which belong to a particular shard
+- Cross-shard keys can't be used in Lua scripts
+
+### Cache Invalidation
+- Instance migrations and configuration changes can flush the Lua script cache
+- Client must be able to handle NOSCRIPT errors and implement fallback logic
+- Library should self-heal by automatically issuing SCRIPT LOAD when needed
+
+## Recent Updates
+
+### 2024 Best Practices
+- Emphasis on keeping scripts efficient and leveraging EVALSHA for cached execution
+- Robust error handling remains critical for production environments
+- Spring Data Redis continues to support Lua scripting via RedisScript class with intelligent cache usage
+- Performance monitoring and benchmarking recommended before implementing Lua solutions
+
+### Error Handling Patterns
+- Modern Redis libraries implement automatic EVALSHA to EVAL fallback
+- Self-healing mechanisms flush local script caches on NOSCRIPT errors
+- Pipeline execution requires special consideration for error handling
+
+## Implementation Recommendations
+
+### For Queue Promotion Script
+- Use atomic Lua script to move items between queue states (pending -> processing -> complete)
+- Implement EVALSHA with automatic EVAL fallback for performance
+- Include timestamp and metadata in promotion operations
+- Design script to handle multiple queue operations atomically
+- Include proper error handling with assert() for unexpected conditions
+
+### Integration Patterns
+- Use Spring Data Redis RedisScript class for script management
+- Implement script caching with SHA1 digest lookup
+- Design fallback mechanism for NOSCRIPT errors
+- Test thoroughly under various queue load conditions
+- Monitor script execution time to prevent blocking
+
+### Tools and Libraries
+- Spring Data Redis for script execution and caching
+- Redis CLI for script development and testing
+- Benchmark tools to validate performance improvements
+- Monitoring tools to track script execution times

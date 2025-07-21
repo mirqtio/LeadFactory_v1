@@ -1,0 +1,81 @@
+# Research Context for PRP-1061 - Coverage / Lint Bot
+
+## Key Findings
+- Ruff is the modern, fast Python linter that can replace multiple tools (Flake8, Black, isort, pyupgrade, etc.)
+- pytest-cov supports fail-under thresholds for automated coverage enforcement
+- Pre-commit hooks provide instant feedback and can be integrated with CI/CD for quality gates
+- Coverage badges can be automated using GitHub Actions without third-party services
+- SuperClaude profiles should focus on automation and quality enforcement
+
+## Authoritative Sources
+- Ruff Official Documentation: https://docs.astral.sh/ruff/
+- pytest-cov Configuration: https://pytest-cov.readthedocs.io/en/latest/config.html
+- Pre-commit Official Site: https://pre-commit.com/hooks.html
+- GitHub Actions Marketplace: Coverage Badge Actions
+- Real Python Ruff Guide: https://realpython.com/ruff-python/
+
+## Current Best Practices for 2024
+
+### Ruff Configuration
+- Use pyproject.toml or ruff.toml for configuration under [tool.ruff]
+- Default line length of 88 characters aligns with Black formatting
+- Enable E/W (Pylint errors/warnings) and F (Pyflakes) rules as baseline
+- Target Python 3.12+ for modern feature compatibility
+- Exclude common directories: .git, __pycache__, build, dist
+- Use per-file rules for different code sections (tests, __init__.py)
+- Enable unsafe fixes only when explicitly needed
+
+### Coverage Enforcement
+- Use --cov-fail-under=80 or fail_under in .coveragerc for automated thresholds
+- Generate XML reports for CI/CD integration: --cov-report=xml
+- Use .coveragerc to omit test files and virtual environments
+- Integrate with coverage gates in CI/CD pipelines
+- Support for precision control with --cov-precision option
+
+### Pre-commit Hooks Integration
+- Define hooks in .pre-commit-config.yaml
+- Common Python tools: Ruff, Black, mypy, isort
+- Security tools: GitLeaks for secret detection, Vulture for dead code
+- Run pre-commit install to set up Git hooks
+- Integrate with GitHub Actions for CI enforcement
+- Focus on auto-fixing rather than just failing
+
+### Coverage Badge Automation
+- Use tj-actions/coverage-badge-py for self-hosted badges
+- Generate SVG badges without third-party dependencies
+- Store coverage data in GitHub Gist for shields.io integration
+- Support for PR comments with coverage tables
+- Integration with GitHub Pages for custom badge hosting
+
+## Common Pitfalls
+- Ruff speed advantages can be lost with misconfigured rules
+- Coverage thresholds can't be set per-package in pytest-cov
+- Pre-commit hooks can be bypassed with --no-verify flag
+- Badge generation requires proper permissions for repository updates
+- Complex rule configurations can slow down development velocity
+- Unsafe fixes in Ruff can introduce breaking changes
+
+## Recent Updates (2024)
+- Ruff has become the preferred Python linter, replacing multiple tools
+- pytest-cov version 6.2.1+ includes improved CI/CD integration
+- Pre-commit hooks now support more granular configuration
+- GitHub Actions coverage badges no longer require third-party services
+- Modern Python tooling emphasizes speed and comprehensive coverage
+
+## Implementation Recommendations
+- Start with Ruff as primary linter/formatter to replace multiple tools
+- Configure coverage thresholds at 80%+ with fail-under enforcement
+- Use pre-commit hooks for immediate feedback during development
+- Implement coverage badges with GitHub Actions for visibility
+- Create SuperClaude profiles for automated quality enforcement
+- Focus on automation over manual quality checks
+- Use pyproject.toml for centralized tool configuration
+- Implement progressive quality improvements rather than strict gates initially
+
+## Evidence Keys for Quality Bot
+- Coverage percentage tracking with trend analysis
+- Linting error counts by category and severity
+- Pre-commit hook success/failure rates
+- Badge update frequency and accuracy
+- Quality gate enforcement statistics
+- Developer feedback on automation effectiveness

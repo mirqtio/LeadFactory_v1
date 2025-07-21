@@ -27,9 +27,8 @@ def redis_mock():
 @pytest.fixture
 def script_loader(redis_mock):
     """Script loader with mocked Redis"""
-    with patch("lua_scripts.script_loader.aioredis.from_url", return_value=redis_mock):
-        loader = ScriptLoader(redis_mock)
-        return loader
+    loader = ScriptLoader(redis_mock)
+    return loader
 
 
 @pytest.fixture
@@ -51,91 +50,91 @@ def valid_evidence():
 class TestScriptLoader:
     """Test script loading and caching functionality"""
 
-    @pytest.mark.asyncio
-    async def test_load_script_success(self, script_loader, redis_mock):
+    def test_load_script_success(self, script_loader, redis_mock):
         """Test successful script loading"""
-        script_path = Path(__file__).parent.parent.parent.parent / "lua_scripts" / "promote.lua"
+        script_path = Path(__file__).parent.parent.parent.parent / "redis_scripts" / "promote.lua"
 
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                sha_hash = await script_loader.load_script("promote", script_path)
+                sha_hash = script_loader.load_script("promote")
 
                 assert sha_hash == "test_sha_hash"
                 assert script_loader.get_script_sha("promote") == "test_sha_hash"
                 redis_mock.script_load.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_load_script_file_not_found(self, script_loader):
+    def test_load_script_file_not_found(self, script_loader):
         """Test script loading with missing file"""
         with pytest.raises(FileNotFoundError):
-            await script_loader.load_script("nonexistent", Path("/fake/path.lua"))
+            script_loader.load_script("nonexistent")
 
-    @pytest.mark.asyncio
-    async def test_execute_script_evalsha_success(self, script_loader, redis_mock):
+    def test_execute_script_evalsha_success(self, script_loader, redis_mock):
         """Test successful script execution with EVALSHA"""
         # Load script first
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         # Mock successful EVALSHA
         redis_mock.evalsha.return_value = [1, "development", "evidence:test:123"]
 
-        result = await script_loader.execute_script("promote", ["key1", "key2"], ["arg1", "arg2"])
+        result = script_loader.execute_script("promote", ["key1", "key2"], ["arg1", "arg2"])
 
         assert result == [1, "development", "evidence:test:123"]
         redis_mock.evalsha.assert_called_once_with("test_sha_hash", 2, "key1", "key2", "arg1", "arg2")
 
-    @pytest.mark.asyncio
-    async def test_execute_script_evalsha_fallback(self, script_loader, redis_mock):
+    def test_execute_script_evalsha_fallback(self, script_loader, redis_mock):
         """Test EVALSHA fallback to EVAL on NOSCRIPT error"""
         # Load script first
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         # Mock NOSCRIPT error, then successful EVAL
-        redis_mock.evalsha.side_effect = pyredis.ResponseError("NOSCRIPT No matching script")
+        redis_mock.evalsha.side_effect = pyredis.exceptions.NoScriptError("NOSCRIPT No matching script")
         redis_mock.eval.return_value = [1, "development", "evidence:test:123"]
 
-        result = await script_loader.execute_script("promote", ["key1"], ["arg1"])
+        result = script_loader.execute_script("promote", ["key1"], ["arg1"])
 
         assert result == [1, "development", "evidence:test:123"]
-        redis_mock.evalsha.assert_called_once()
+        # Should have tried EVALSHA twice (initial + after reload) then EVAL
+        assert redis_mock.evalsha.call_count == 2
         redis_mock.eval.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_script_exists_check(self, script_loader, redis_mock):
+    def test_script_exists_check(self, script_loader, redis_mock):
         """Test script existence checking"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         redis_mock.script_exists.return_value = [1]
-        exists = await script_loader.script_exists("promote")
+        exists = script_loader.script_exists("promote")
 
         assert exists is True
         redis_mock.script_exists.assert_called_once_with("test_sha_hash")
 
-    def test_calculate_source_hash(self, script_loader):
-        """Test source code hash calculation"""
-        script_loader._script_source["test"] = "return 1"
+    def test_cached_script_retrieval(self, script_loader, redis_mock):
+        """Test cached script SHA retrieval"""
+        script_loader._script_shas["test"] = "cached_sha_hash"
 
-        hash_value = script_loader.calculate_source_hash("test")
+        sha = script_loader.get_script_sha("test")
 
-        assert hash_value is not None
-        assert len(hash_value) == 40  # SHA1 hash length
+        assert sha == "cached_sha_hash"
+
+    def test_script_not_in_cache(self, script_loader):
+        """Test behavior when script not in cache"""
+        sha = script_loader.get_script_sha("nonexistent")
+
+        assert sha is None
 
 
 class TestPromotionScript:
     """Test promotion script logic through mocked Redis calls"""
 
-    @pytest.mark.asyncio
-    async def test_single_prp_promotion_success(self, script_loader, redis_mock, valid_evidence):
+    def test_single_prp_promotion_success(self, script_loader, redis_mock, valid_evidence):
         """Test successful single PRP promotion"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         # Mock successful promotion
         redis_mock.evalsha.return_value = [1, "development", "evidence:PRP-1059:1642774800"]
@@ -153,18 +152,17 @@ class TestPromotionScript:
             "1642774800",  # timestamp
         ]
 
-        result = await script_loader.execute_script("promote", keys, args)
+        result = script_loader.execute_script("promote", keys, args)
 
         assert result[0] == 1  # success
         assert result[1] == "development"  # new state
         assert "evidence:PRP-1059" in result[2]  # evidence key
 
-    @pytest.mark.asyncio
-    async def test_batch_promotion_success(self, script_loader, redis_mock, valid_evidence):
+    def test_batch_promotion_success(self, script_loader, redis_mock, valid_evidence):
         """Test successful batch PRP promotion"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         # Mock successful batch promotion
         redis_mock.evalsha.return_value = [2, []]  # 2 promoted, 0 failed
@@ -181,17 +179,16 @@ class TestPromotionScript:
             "PRP-1060",
         ]
 
-        result = await script_loader.execute_script("promote", keys, args)
+        result = script_loader.execute_script("promote", keys, args)
 
         assert result[0] == 2  # 2 PRPs promoted
         assert result[1] == []  # no failures
 
-    @pytest.mark.asyncio
-    async def test_prp_status_check(self, script_loader, redis_mock):
+    def test_prp_status_check(self, script_loader, redis_mock):
         """Test PRP status checking"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         # Mock status response
         redis_mock.evalsha.return_value = ["development", "1642774800", "pending_to_development", 2]
@@ -199,19 +196,18 @@ class TestPromotionScript:
         keys = ["prp:PRP-1059:metadata"]
         args = ["status", "PRP-1059"]
 
-        result = await script_loader.execute_script("promote", keys, args)
+        result = script_loader.execute_script("promote", keys, args)
 
         assert result[0] == "development"
         assert result[1] == "1642774800"  # last transition
         assert result[2] == "pending_to_development"  # transition type
         assert result[3] == 2  # queue position
 
-    @pytest.mark.asyncio
-    async def test_evidence_history_retrieval(self, script_loader, redis_mock, valid_evidence):
+    def test_evidence_history_retrieval(self, script_loader, redis_mock, valid_evidence):
         """Test evidence history retrieval"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         # Mock evidence history
         evidence_entry = {
@@ -225,7 +221,7 @@ class TestPromotionScript:
         keys = []
         args = ["evidence", "PRP-1059", "5"]  # limit to 5 entries
 
-        result = await script_loader.execute_script("promote", keys, args)
+        result = script_loader.execute_script("promote", keys, args)
 
         assert len(result) == 1
         assert result[0]["key"] == "evidence:PRP-1059:1642774800"
@@ -235,12 +231,11 @@ class TestPromotionScript:
 class TestEvidenceValidation:
     """Test evidence validation logic through error responses"""
 
-    @pytest.mark.asyncio
-    async def test_missing_evidence_error(self, script_loader, redis_mock):
+    def test_missing_evidence_error(self, script_loader, redis_mock):
         """Test error when evidence is missing"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         # Mock Lua error for missing evidence
         redis_mock.evalsha.side_effect = pyredis.ResponseError("Evidence required for PRP promotion")
@@ -249,14 +244,13 @@ class TestEvidenceValidation:
         args = ["promote", "PRP-1059", "", "pending_to_development", "1642774800"]
 
         with pytest.raises(pyredis.ResponseError, match="Evidence required"):
-            await script_loader.execute_script("promote", keys, args)
+            script_loader.execute_script("promote", keys, args)
 
-    @pytest.mark.asyncio
-    async def test_invalid_transition_type_error(self, script_loader, redis_mock):
+    def test_invalid_transition_type_error(self, script_loader, redis_mock):
         """Test error for invalid transition type"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         invalid_evidence = {"timestamp": "2025-07-21T10:00:00Z", "agent_id": "pm-1", "transition_type": "wrong_type"}
 
@@ -266,14 +260,13 @@ class TestEvidenceValidation:
         args = ["promote", "PRP-1059", json.dumps(invalid_evidence), "pending_to_development", "1642774800"]
 
         with pytest.raises(pyredis.ResponseError, match="transition_type must match"):
-            await script_loader.execute_script("promote", keys, args)
+            script_loader.execute_script("promote", keys, args)
 
-    @pytest.mark.asyncio
-    async def test_missing_required_fields_error(self, script_loader, redis_mock):
+    def test_missing_required_fields_error(self, script_loader, redis_mock):
         """Test error for missing required evidence fields"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
 
         incomplete_evidence = {
             "timestamp": "2025-07-21T10:00:00Z",
@@ -288,53 +281,66 @@ class TestEvidenceValidation:
         args = ["promote", "PRP-1059", json.dumps(incomplete_evidence), "pending_to_development", "1642774800"]
 
         with pytest.raises(pyredis.ResponseError, match="requires requirements_analysis"):
-            await script_loader.execute_script("promote", keys, args)
+            script_loader.execute_script("promote", keys, args)
 
 
 class TestPerformanceMetrics:
     """Test performance-related aspects of the script loader"""
 
-    @pytest.mark.asyncio
-    async def test_script_caching_efficiency(self, script_loader, redis_mock):
+    def test_script_caching_efficiency(self, script_loader, redis_mock):
         """Test that scripts are cached and not reloaded unnecessarily"""
         # Load script once
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                script_loader.load_script("promote")
         initial_calls = redis_mock.script_load.call_count
 
         # Subsequent loads should use cache
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                sha1 = await script_loader.load_script("promote")
+                sha1 = script_loader.load_script("promote")
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                sha2 = await script_loader.load_script("promote")
+                sha2 = script_loader.load_script("promote")
 
         assert sha1 == sha2 == "test_sha_hash"
         assert redis_mock.script_load.call_count == initial_calls  # No additional calls
 
-    @pytest.mark.asyncio
-    async def test_bulk_script_reloading(self, script_loader, redis_mock):
-        """Test bulk script reloading functionality"""
+    def test_script_reload_forced(self, script_loader, redis_mock):
+        """Test forced script reloading"""
         with patch("pathlib.Path.exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="-- Test Lua script")):
-                await script_loader.load_script("promote")
+                # Load script first time
+                sha1 = script_loader.load_script("promote")
 
-        # Mock reloading with new SHA
-        redis_mock.script_load.return_value = "new_test_sha_hash"
+                # Mock reloading with new SHA
+                redis_mock.script_load.return_value = "new_test_sha_hash"
 
-        reloaded = await script_loader.reload_all_scripts()
+                # Force reload
+                sha2 = script_loader.load_script("promote", reload=True)
 
-        assert reloaded["promote"] == "new_test_sha_hash"
+        assert sha1 == "test_sha_hash"
+        assert sha2 == "new_test_sha_hash"
         assert script_loader.get_script_sha("promote") == "new_test_sha_hash"
 
-    def test_get_loaded_scripts_list(self, script_loader):
-        """Test getting list of loaded scripts"""
-        script_loader._script_cache = {"promote": "sha1", "test_script": "sha2"}
+    def test_health_check_healthy(self, script_loader, redis_mock):
+        """Test health check when system is healthy"""
+        redis_mock.ping.return_value = True
+        script_loader._script_shas = {"promote": "sha1", "test_script": "sha2"}
+        redis_mock.script_exists.return_value = [1]
 
-        loaded = script_loader.get_loaded_scripts()
+        health = script_loader.health_check()
 
-        assert "promote" in loaded
-        assert "test_script" in loaded
-        assert len(loaded) == 2
+        assert health["status"] == "healthy"
+        assert health["loaded_scripts"] == 2
+        assert health["redis_connected"] is True
+
+    def test_health_check_unhealthy(self, script_loader, redis_mock):
+        """Test health check when Redis is down"""
+        redis_mock.ping.side_effect = Exception("Connection failed")
+
+        health = script_loader.health_check()
+
+        assert health["status"] == "unhealthy"
+        assert "error" in health
+        assert health["redis_connected"] is False

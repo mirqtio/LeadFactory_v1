@@ -1,0 +1,73 @@
+# Acceptance Runner Container Dependencies
+# PRP-1060: Containerized acceptance testing and SSH deployment automation
+
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-docker>=0.12.0
+pytest-cov>=4.1.0
+pytest-timeout>=2.1.0
+
+# SSH deployment automation
+paramiko>=3.3.0
+fabric>=3.2.0
+
+# Container management
+docker>=6.1.0
+
+# Configuration and validation
+pydantic>=2.3.0
+PyYAML>=6.0.1
+
+# Redis client for evidence storage
+redis>=4.6.0
+hiredis>=2.2.3
+
+# HTTP client for health checks
+httpx>=0.24.0
+requests>=2.31.0
+
+# Async support
+asyncio-extras>=1.3.2
+aiofiles>=23.1.0
+
+# Web framework for health endpoints
+fastapi>=0.103.0
+uvicorn>=0.23.0
+
+# Logging and monitoring
+structlog>=23.1.0
+prometheus-client>=0.17.0
+
+# Security and secrets management
+cryptography>=41.0.0
+python-dotenv>=1.0.0
+
+# Git operations
+GitPython>=3.1.32
+
+# Performance and optimization
+uvloop>=0.17.0
+
+# Development and debugging (conditionally included)
+ipdb>=0.13.13
+rich>=13.5.0
+
+# File system operations
+watchdog>=3.0.0
+
+# Time and date utilities
+python-dateutil>=2.8.2
+
+# Process management
+psutil>=5.9.0
+
+# JSON and data processing
+orjson>=3.9.0
+
+# Command line interface
+click>=8.1.0
+typer>=0.9.0
+
+# Environment variable management
+python-decouple>=3.8
