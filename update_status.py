@@ -5,10 +5,7 @@ Updates the status dashboard with current agent and system status
 """
 
 import datetime
-import json
-import os
 import subprocess
-import sys
 
 
 def get_tmux_output(window):

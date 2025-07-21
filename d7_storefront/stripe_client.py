@@ -17,7 +17,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import stripe
 
@@ -70,13 +70,13 @@ class StripeCheckoutSession:
 
     def __init__(
         self,
-        line_items: List[Dict[str, Any]],
+        line_items: list[dict[str, Any]],
         success_url: str,
         cancel_url: str,
-        customer_email: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        customer_email: str | None = None,
+        metadata: dict[str, str] | None = None,
         mode: str = "payment",
-        payment_method_types: Optional[List[str]] = None,
+        payment_method_types: list[str] | None = None,
     ):
         self.line_items = line_items
         self.success_url = success_url
@@ -86,7 +86,7 @@ class StripeCheckoutSession:
         self.mode = mode
         self.payment_method_types = payment_method_types or ["card"]
 
-    def to_stripe_params(self, config: StripeConfig) -> Dict[str, Any]:
+    def to_stripe_params(self, config: StripeConfig) -> dict[str, Any]:
         """Convert to Stripe API parameters"""
         params = {
             "line_items": self.line_items,
@@ -119,8 +119,8 @@ class StripeError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        error_type: Optional[str] = None,
+        error_code: str | None = None,
+        error_type: str | None = None,
     ):
         super().__init__(message)
         self.error_code = error_code
@@ -139,7 +139,7 @@ class StripeClient:
     - Success/cancel URLs ✓
     """
 
-    def __init__(self, config: Optional[StripeConfig] = None):
+    def __init__(self, config: StripeConfig | None = None):
         self.config = config or StripeConfig(test_mode=True)
         self.gateway = get_gateway_facade()
         self._executor = ThreadPoolExecutor(max_workers=1)
@@ -164,7 +164,7 @@ class StripeClient:
             # No event loop running, create one
             return asyncio.run(coro)
 
-    def create_checkout_session(self, session_config: StripeCheckoutSession) -> Dict[str, Any]:
+    def create_checkout_session(self, session_config: StripeCheckoutSession) -> dict[str, Any]:
         """
         Create a Stripe checkout session
 
@@ -213,7 +213,7 @@ class StripeClient:
             logger.error(f"Error creating checkout session: {e}")
             raise StripeError(f"Failed to create checkout session: {str(e)}")
 
-    def retrieve_checkout_session(self, session_id: str) -> Dict[str, Any]:
+    def retrieve_checkout_session(self, session_id: str) -> dict[str, Any]:
         """Retrieve a checkout session by ID"""
         try:
             result = self._run_async(self.gateway.get_checkout_session(session_id))
@@ -237,9 +237,9 @@ class StripeClient:
     def create_customer(
         self,
         email: str,
-        name: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        name: str | None = None,
+        metadata: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """Create a Stripe customer"""
         try:
             result = self._run_async(self.gateway.create_customer(email=email, name=name, metadata=metadata))
@@ -259,9 +259,9 @@ class StripeClient:
     def create_product(
         self,
         name: str,
-        description: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        description: str | None = None,
+        metadata: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """Create a Stripe product"""
         try:
             result = self._run_async(self.gateway.create_product(name=name, description=description, metadata=metadata))
@@ -283,8 +283,8 @@ class StripeClient:
         product_id: str,
         amount_cents: int,
         currency: str = "usd",
-        recurring: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        recurring: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """Create a Stripe price"""
         try:
             result = self._run_async(
@@ -324,7 +324,7 @@ class StripeClient:
             logger.warning(f"Invalid webhook signature: {e}")
             return False
 
-    def construct_webhook_event(self, payload: bytes, signature: str) -> Dict[str, Any]:
+    def construct_webhook_event(self, payload: bytes, signature: str) -> dict[str, Any]:
         """Construct and validate webhook event"""
         try:
             result = self._run_async(
@@ -348,7 +348,7 @@ class StripeClient:
             logger.error(f"Error constructing webhook event: {e}")
             raise StripeError(f"Failed to construct event: {str(e)}")
 
-    def get_test_clock(self) -> Optional[str]:
+    def get_test_clock(self) -> str | None:
         """Get test clock ID for test mode (for testing time-based features)"""
         if not self.config.test_mode:
             return None
@@ -365,7 +365,7 @@ class StripeClient:
         """Get Stripe API version"""
         return "2023-10-16"  # Default API version used by Gateway
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get client status for monitoring"""
         return {
             "test_mode": self.config.test_mode,
@@ -378,14 +378,14 @@ class StripeClient:
 
 
 # Utility functions for common operations
-def create_line_item(price_id: str, quantity: int = 1) -> Dict[str, Any]:
+def create_line_item(price_id: str, quantity: int = 1) -> dict[str, Any]:
     """Create a line item for checkout session"""
     return {"price": price_id, "quantity": quantity}
 
 
 def create_one_time_line_item(
     product_name: str, amount_cents: int, quantity: int = 1, currency: str = "usd"
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a one-time payment line item"""
     return {
         "price_data": {

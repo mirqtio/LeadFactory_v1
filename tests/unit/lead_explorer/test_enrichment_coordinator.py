@@ -1,6 +1,7 @@
 """
 Test Lead Explorer enrichment coordinator
 """
+
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 

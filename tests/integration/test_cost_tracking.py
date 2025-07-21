@@ -2,6 +2,7 @@
 Integration tests for gateway cost tracking across different APIs
 P1-050: Gateway Cost Ledger implementation
 """
+
 import asyncio
 
 import pytest

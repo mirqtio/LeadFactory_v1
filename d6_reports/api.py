@@ -4,13 +4,11 @@ FastAPI endpoints for D6 Reports Domain
 Provides REST API for report generation, status tracking,
 and report retrieval.
 """
-from typing import Dict, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from core.exceptions import LeadFactoryError
 from core.logging import get_logger
 from database.session import get_db
 
@@ -28,7 +26,7 @@ class GenerateReportRequest(BaseModel):
 
 
 @router.post("/generate")
-async def generate_report(request: GenerateReportRequest, db: Session = Depends(get_db)) -> Dict:
+async def generate_report(request: GenerateReportRequest, db: Session = Depends(get_db)) -> dict:
     """Generate a new report for an assessment."""
     try:
         # For now, return a mock response
@@ -48,7 +46,7 @@ async def generate_report(request: GenerateReportRequest, db: Session = Depends(
 
 
 @router.get("/{report_id}/status")
-async def get_report_status(report_id: str, db: Session = Depends(get_db)) -> Dict:
+async def get_report_status(report_id: str, db: Session = Depends(get_db)) -> dict:
     """Get the status of a report generation."""
     try:
         # In a real implementation, this would query the database
@@ -65,7 +63,7 @@ async def get_report_status(report_id: str, db: Session = Depends(get_db)) -> Di
 
 
 @router.get("/{report_id}")
-async def get_report_metadata(report_id: str, db: Session = Depends(get_db)) -> Dict:
+async def get_report_metadata(report_id: str, db: Session = Depends(get_db)) -> dict:
     """Get report metadata."""
     try:
         # In a real implementation, this would query the database

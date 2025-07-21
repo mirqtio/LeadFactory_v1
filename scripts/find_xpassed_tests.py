@@ -2,6 +2,7 @@
 """
 Script to find all xpassed tests in the test suite.
 """
+
 import re
 import subprocess
 import sys
@@ -99,7 +100,7 @@ def main():
 
     # Save to file for reference
     with open("xpassed_tests_report.txt", "w") as f:
-        f.write(f"Xpassed Tests Report\n")
+        f.write("Xpassed Tests Report\n")
         f.write(f"{'=' * 80}\n\n")
         f.write(f"Total xpassed tests: {len(xpassed_tests)}\n\n")
 

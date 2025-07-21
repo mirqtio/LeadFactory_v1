@@ -2,6 +2,7 @@
 Unit tests for d0_gateway.api module
 Tests gateway API router configuration and health endpoint
 """
+
 from unittest.mock import patch
 
 import pytest

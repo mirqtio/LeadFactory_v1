@@ -4,13 +4,11 @@ Redis-Enhanced PRP State Manager
 Extends the existing PRP state manager with Redis coordination while maintaining YAML as backup
 """
 
-import asyncio
 import os
 import sys
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple
+from datetime import UTC, datetime
 
-from prp_state_manager import PRPEntry, PRPStateManager, PRPStatus
+from prp_state_manager import PRPStateManager, PRPStatus
 
 # Add parent directory to path to import redis_cli
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -107,7 +105,9 @@ class RedisEnhancedStateManager(PRPStateManager):
             if prp:
                 # Store PRP state in Redis
                 await prp_redis.set_prp_state(
-                    prp_id=prp_id, state=prp.status.value, owner=None  # Could be enhanced to track current PM
+                    prp_id=prp_id,
+                    state=prp.status.value,
+                    owner=None,  # Could be enhanced to track current PM
                 )
 
                 # Store additional metadata
@@ -119,7 +119,7 @@ class RedisEnhancedStateManager(PRPStateManager):
                     "github_commit": prp.github_commit,
                     "ci_run_url": prp.ci_run_url,
                     "notes": prp.notes,
-                    "last_synced": datetime.now(timezone.utc).isoformat(),
+                    "last_synced": datetime.now(UTC).isoformat(),
                 }
                 await prp_redis.set(f"{prp_id}:metadata", prp_metadata)
 
@@ -139,7 +139,7 @@ class RedisEnhancedStateManager(PRPStateManager):
                 prp_state_data = {
                     "state": prp.status.value,
                     "owner": None,
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(UTC).isoformat(),
                 }
                 sync_redis.set(f"prp:{prp_id}:state", prp_state_data)
 
@@ -152,7 +152,7 @@ class RedisEnhancedStateManager(PRPStateManager):
                     "github_commit": prp.github_commit,
                     "ci_run_url": prp.ci_run_url,
                     "notes": prp.notes,
-                    "last_synced": datetime.now(timezone.utc).isoformat(),
+                    "last_synced": datetime.now(UTC).isoformat(),
                 }
                 sync_redis.set(f"prp:{prp_id}:metadata", prp_metadata)
 
@@ -169,7 +169,7 @@ class RedisEnhancedStateManager(PRPStateManager):
                 "prp_id": prp_id,
                 "old_status": old_status,
                 "new_status": new_status,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "event_type": "status_change",
             }
 
@@ -181,7 +181,7 @@ class RedisEnhancedStateManager(PRPStateManager):
 
     def transition_prp(
         self, prp_id: str, new_status: PRPStatus, commit_hash: str = None, notes: str = None
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Enhanced transition with Redis coordination"""
 
         # Get current status for event publishing
@@ -218,7 +218,7 @@ class RedisEnhancedStateManager(PRPStateManager):
                         "prp_id": prp_id,
                         "old_status": old_status,
                         "new_status": new_status.value,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                         "event_type": "status_change",
                     }
                     sync_redis.lpush("leadfactory:events:status_changes", event)
@@ -229,7 +229,7 @@ class RedisEnhancedStateManager(PRPStateManager):
 
     async def async_transition_prp(
         self, prp_id: str, new_status: PRPStatus, commit_hash: str = None, notes: str = None
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Async version of transition with full Redis integration"""
 
         # Get current status for event publishing
@@ -270,14 +270,14 @@ class RedisEnhancedStateManager(PRPStateManager):
 
         return success, message
 
-    async def get_redis_prp_state(self, prp_id: str) -> Optional[Dict]:
+    async def get_redis_prp_state(self, prp_id: str) -> dict | None:
         """Get PRP state from Redis"""
         if not self._redis_enabled:
             return None
 
         return await prp_redis.get_prp_state(prp_id)
 
-    async def get_integration_queue(self) -> List[str]:
+    async def get_integration_queue(self) -> list[str]:
         """Get current integration queue from Redis"""
         if not self._redis_enabled:
             return []
@@ -289,14 +289,14 @@ class RedisEnhancedStateManager(PRPStateManager):
         except Exception:
             return []
 
-    async def get_merge_lock_status(self) -> Optional[str]:
+    async def get_merge_lock_status(self) -> str | None:
         """Get current merge lock owner"""
         if not self._redis_enabled:
             return None
 
         return await prp_redis.get_merge_lock_owner()
 
-    def get_redis_stats(self) -> Dict:
+    def get_redis_stats(self) -> dict:
         """Get Redis connection and usage statistics"""
         stats = {
             "redis_enabled": self._redis_enabled,
@@ -314,7 +314,7 @@ class RedisEnhancedStateManager(PRPStateManager):
 
         return stats
 
-    def sync_all_to_redis(self) -> Dict:
+    def sync_all_to_redis(self) -> dict:
         """Sync all PRPs from YAML to Redis"""
         if not self._redis_enabled:
             return {"error": "Redis not available"}
@@ -333,7 +333,7 @@ class RedisEnhancedStateManager(PRPStateManager):
                     print(f"Error syncing PRP {prp.prp_id}: {e}")
 
             # Update sync timestamp
-            sync_redis.set("last_full_sync", datetime.now(timezone.utc).isoformat())
+            sync_redis.set("last_full_sync", datetime.now(UTC).isoformat())
             sync_redis.set("prp_keys_count", results["synced"])
 
         except Exception as e:

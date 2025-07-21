@@ -2,10 +2,10 @@
 Unified Redis helper for agent coordination and state management
 Based on GPT o3's recommendation for simple Redis helper with get/set/blpop functionality
 """
+
 import json
-import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from datetime import UTC, datetime
+from typing import Any
 
 import redis.asyncio as aioredis
 
@@ -25,7 +25,7 @@ class RedisCoordinator:
         self.logger = get_logger(f"redis.{namespace}", domain="coordination")
 
         # Redis connection
-        self._redis: Optional[aioredis.Redis] = None
+        self._redis: aioredis.Redis | None = None
 
     async def _get_redis(self) -> aioredis.Redis:
         """Get Redis connection"""
@@ -37,7 +37,7 @@ class RedisCoordinator:
         """Add namespace prefix to key"""
         return f"{self.namespace}:{key}"
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """
         Set a key-value pair in Redis
 
@@ -65,7 +65,7 @@ class RedisCoordinator:
             self.logger.error(f"Redis set error for key {key}: {e}")
             return False
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """
         Get a value from Redis
 
@@ -108,7 +108,7 @@ class RedisCoordinator:
             self.logger.error(f"Redis delete error for key {key}: {e}")
             return False
 
-    async def blpop(self, key: str, timeout: int = 0) -> Optional[Any]:
+    async def blpop(self, key: str, timeout: int = 0) -> Any | None:
         """
         Blocking left pop from Redis list
 
@@ -157,7 +157,7 @@ class RedisCoordinator:
             self.logger.error(f"Redis lpush error for key {key}: {e}")
             return 0
 
-    async def setnx(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def setnx(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """
         Set key if not exists (distributed lock pattern)
 
@@ -188,7 +188,7 @@ class RedisCoordinator:
             self.logger.error(f"Redis setnx error for key {key}: {e}")
             return False
 
-    async def keys(self, pattern: str) -> List[str]:
+    async def keys(self, pattern: str) -> list[str]:
         """
         Get keys matching pattern
 
@@ -281,11 +281,11 @@ class PRPStateRedis(RedisCoordinator):
 
     async def set_prp_state(self, prp_id: str, state: str, owner: str = None) -> bool:
         """Set PRP state and owner"""
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         prp_data = {"state": state, "owner": owner, "updated_at": timestamp}
         return await self.set(f"{prp_id}:state", prp_data)
 
-    async def get_prp_state(self, prp_id: str) -> Optional[Dict[str, Any]]:
+    async def get_prp_state(self, prp_id: str) -> dict[str, Any] | None:
         """Get PRP state data"""
         return await self.get(f"{prp_id}:state")
 
@@ -293,7 +293,7 @@ class PRPStateRedis(RedisCoordinator):
         """Add PRP to integration queue"""
         return await self.lpush("integration:queue", prp_id)
 
-    async def get_next_for_integration(self, timeout: int = 0) -> Optional[str]:
+    async def get_next_for_integration(self, timeout: int = 0) -> str | None:
         """Get next PRP from integration queue (blocking)"""
         return await self.blpop("integration:queue", timeout)
 
@@ -305,7 +305,7 @@ class PRPStateRedis(RedisCoordinator):
         """Release merge lock"""
         return await self.delete("merge:lock")
 
-    async def get_merge_lock_owner(self) -> Optional[str]:
+    async def get_merge_lock_owner(self) -> str | None:
         """Get current merge lock owner"""
         return await self.get("merge:lock")
 
@@ -318,20 +318,20 @@ class AgentStateRedis(RedisCoordinator):
 
     async def set_agent_status(self, agent_id: str, status: str, current_prp: str = None) -> bool:
         """Set agent status and current PRP"""
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         agent_data = {"status": status, "current_prp": current_prp, "updated_at": timestamp}
         return await self.set(f"{agent_id}:status", agent_data)
 
-    async def get_agent_status(self, agent_id: str) -> Optional[Dict[str, Any]]:
+    async def get_agent_status(self, agent_id: str) -> dict[str, Any] | None:
         """Get agent status data"""
         return await self.get(f"{agent_id}:status")
 
     async def heartbeat(self, agent_id: str) -> bool:
         """Send agent heartbeat"""
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         return await self.set(f"{agent_id}:heartbeat", timestamp, ttl=300)  # 5 min TTL
 
-    async def get_all_agents(self) -> List[Dict[str, Any]]:
+    async def get_all_agents(self) -> list[dict[str, Any]]:
         """Get status of all agents"""
         agent_keys = await self.keys("*:status")
         agents = []
@@ -375,7 +375,7 @@ class SyncRedisHelper:
         """Add namespace prefix to key"""
         return f"{self.namespace}:{key}"
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Set key-value pair"""
         try:
             redis = self._get_redis()
@@ -390,7 +390,7 @@ class SyncRedisHelper:
         except Exception:
             return False
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from Redis"""
         try:
             redis = self._get_redis()
@@ -403,7 +403,7 @@ class SyncRedisHelper:
         except Exception:
             return None
 
-    def blpop(self, key: str, timeout: int = 0) -> Optional[Any]:
+    def blpop(self, key: str, timeout: int = 0) -> Any | None:
         """Blocking left pop"""
         try:
             redis = self._get_redis()
@@ -426,7 +426,7 @@ class SyncRedisHelper:
         except Exception:
             return 0
 
-    def setnx(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    def setnx(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Set if not exists"""
         try:
             redis = self._get_redis()

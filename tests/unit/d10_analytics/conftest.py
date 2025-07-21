@@ -1,6 +1,7 @@
 """
 Shared test configuration for D10 Analytics tests
 """
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker

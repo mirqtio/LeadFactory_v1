@@ -1,7 +1,8 @@
 """
 Unit tests for authentication service
 """
-from datetime import datetime, timedelta, timezone
+
+from datetime import UTC, datetime, timedelta, timezone
 
 import jwt
 import pytest
@@ -96,8 +97,8 @@ class TestAuthService:
     def test_decode_expired_token(self):
         """Test decoding expired token"""
         # Create expired token
-        expire = datetime.now(timezone.utc) - timedelta(minutes=1)
-        payload = {"sub": "test-user-id", "exp": expire, "iat": datetime.now(timezone.utc)}
+        expire = datetime.now(UTC) - timedelta(minutes=1)
+        payload = {"sub": "test-user-id", "exp": expire, "iat": datetime.now(UTC)}
         token = jwt.encode(payload, AuthService.JWT_SECRET_KEY, algorithm=AuthService.JWT_ALGORITHM)
 
         with pytest.raises(jwt.ExpiredSignatureError):
@@ -194,7 +195,7 @@ class TestAuthService:
             email="test@example.com",
             password_hash=AuthService.hash_password("password"),
             status=UserStatus.ACTIVE,
-            locked_until=datetime.now(timezone.utc) + timedelta(hours=1),
+            locked_until=datetime.now(UTC) + timedelta(hours=1),
         )
         db.add(user)
         db.commit()
@@ -347,7 +348,7 @@ class TestAuthService:
             user,
             "Test API Key",
             ["read:leads", "write:leads"],
-            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+            expires_at=datetime.now(UTC) + timedelta(days=30),
         )
 
         assert raw_key.startswith("lf_")
@@ -396,7 +397,7 @@ class TestAuthService:
 
         # Create expired API key
         raw_key, api_key = AuthService.create_api_key(
-            db, user, "Expired Key", [], expires_at=datetime.now(timezone.utc) - timedelta(days=1)
+            db, user, "Expired Key", [], expires_at=datetime.now(UTC) - timedelta(days=1)
         )
 
         # Try to validate

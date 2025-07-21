@@ -2,6 +2,7 @@
 """
 Validate production readiness without complex dependencies
 """
+
 import sys
 from pathlib import Path
 
@@ -11,15 +12,14 @@ def check_file_exists(filepath, description):
     if Path(filepath).exists():
         print(f"✅ {description}: {filepath}")
         return True
-    else:
-        print(f"❌ {description}: {filepath} NOT FOUND")
-        return False
+    print(f"❌ {description}: {filepath} NOT FOUND")
+    return False
 
 
 def check_config_keys():
     """Check if all required config keys are defined"""
     try:
-        with open("core/config.py", "r") as f:
+        with open("core/config.py") as f:
             config_content = f.read()
 
         # Check for the field names in the Settings class
@@ -44,9 +44,8 @@ def check_config_keys():
         if missing:
             print(f"❌ Missing config keys: {', '.join(missing)}")
             return False
-        else:
-            print(f"✅ All {len(required_keys)} required config keys present")
-            return True
+        print(f"✅ All {len(required_keys)} required config keys present")
+        return True
     except Exception as e:
         print(f"❌ Error checking config: {e}")
         return False
@@ -82,9 +81,8 @@ def check_database_migrations():
     if migration_count >= 4:  # Initial + analytics + cost tracking + buckets
         print(f"✅ Database migrations: {migration_count} migrations found")
         return True
-    else:
-        print(f"❌ Database migrations: Only {migration_count} found (expected at least 4)")
-        return False
+    print(f"❌ Database migrations: Only {migration_count} found (expected at least 4)")
+    return False
 
 
 def check_phase_05_implementation():
@@ -116,7 +114,7 @@ def check_phase_05_implementation():
 
     # Check for cost tracking in config
     if Path("core/config.py").exists():
-        with open("core/config.py", "r") as f:
+        with open("core/config.py") as f:
             if "cost_budget_usd" in f.read():
                 print("✅ Cost tracking: cost_budget_usd in config")
             else:
@@ -127,7 +125,7 @@ def check_phase_05_implementation():
     migrations_dir = Path("alembic/versions")
     bucket_migration_found = False
     for migration in migrations_dir.glob("*.py"):
-        with open(migration, "r") as f:
+        with open(migration) as f:
             if "bucket" in f.read().lower():
                 print(f"✅ Bucket columns migration: {migration.name}")
                 bucket_migration_found = True
@@ -150,7 +148,7 @@ def check_phase_05_implementation():
 def check_critical_endpoints():
     """Check if critical API endpoints are registered"""
     try:
-        with open("main.py", "r") as f:
+        with open("main.py") as f:
             main_content = f.read()
 
         endpoints = [
@@ -169,9 +167,8 @@ def check_critical_endpoints():
         if missing:
             print(f"❌ Missing API routers: {', '.join(missing)}")
             return False
-        else:
-            print(f"✅ All {len(endpoints)} critical API routers registered")
-            return True
+        print(f"✅ All {len(endpoints)} critical API routers registered")
+        return True
     except Exception as e:
         print(f"❌ Error checking endpoints: {e}")
         return False
@@ -203,9 +200,8 @@ def check_test_coverage():
     if missing_tests:
         print(f"❌ Missing tests for: {', '.join(missing_tests)}")
         return False
-    else:
-        print(f"✅ Test coverage: All {len(test_domains)} domains have tests")
-        return True
+    print(f"✅ Test coverage: All {len(test_domains)} domains have tests")
+    return True
 
 
 def main():
@@ -248,10 +244,9 @@ def main():
         print("\n🎉 All validation checks PASSED!")
         print("The system is ready for production deployment.")
         return 0
-    else:
-        print(f"\n❌ {total - passed} validation checks FAILED.")
-        print("Please fix these issues before deploying to production.")
-        return 1
+    print(f"\n❌ {total - passed} validation checks FAILED.")
+    print("Please fix these issues before deploying to production.")
+    return 1
 
 
 if __name__ == "__main__":

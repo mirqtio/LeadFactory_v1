@@ -1,6 +1,7 @@
 """
 Integration tests for Batch Runner module
 """
+
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
 

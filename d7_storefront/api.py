@@ -13,7 +13,7 @@ Acceptance Criteria:
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -72,9 +72,9 @@ def get_stripe_client() -> StripeClient:
 def create_error_response(
     error_message: str,
     error_type: str = "APIError",
-    error_code: Optional[str] = None,
+    error_code: str | None = None,
     status_code: int = 400,
-    details: Optional[Dict[str, Any]] = None,
+    details: dict[str, Any] | None = None,
 ) -> JSONResponse:
     """Create standardized error response - Acceptance Criteria: Error handling proper"""
     error_response = ErrorResponse(
@@ -157,13 +157,12 @@ async def initiate_checkout(
         if result["success"]:
             logger.info(f"Successfully initiated checkout for {request.customer_email}: {result['purchase_id']}")
             return CheckoutInitiationResponse(**result)
-        else:
-            logger.error(f"Checkout initiation failed for {request.customer_email}: {result.get('error')}")
-            return CheckoutInitiationResponse(
-                success=False,
-                error=result.get("error", "Unknown error"),
-                error_type=result.get("error_type", "CheckoutError"),
-            )
+        logger.error(f"Checkout initiation failed for {request.customer_email}: {result.get('error')}")
+        return CheckoutInitiationResponse(
+            success=False,
+            error=result.get("error", "Unknown error"),
+            error_type=result.get("error_type", "CheckoutError"),
+        )
 
     except ValidationError as e:
         logger.error(f"Validation error during checkout initiation: {e}")
@@ -228,9 +227,8 @@ async def stripe_webhook(
                 processing_status=result.get("status"),
                 data=result.get("data", {}),
             )
-        else:
-            logger.error(f"Webhook processing failed: {result.get('error')}")
-            return WebhookEventResponse(success=False, error=result.get("error", "Webhook processing failed"))
+        logger.error(f"Webhook processing failed: {result.get('error')}")
+        return WebhookEventResponse(success=False, error=result.get("error", "Webhook processing failed"))
 
     except HTTPException:
         raise
@@ -268,12 +266,11 @@ async def get_session_status(
 
         if result["success"]:
             return CheckoutSessionStatusResponse(**result)
-        else:
-            return CheckoutSessionStatusResponse(
-                success=False,
-                error=result.get("error", "Unknown error"),
-                error_type=result.get("error_type", "StripeError"),
-            )
+        return CheckoutSessionStatusResponse(
+            success=False,
+            error=result.get("error", "Unknown error"),
+            error_type=result.get("error_type", "StripeError"),
+        )
 
     except StripeError as e:
         logger.error(f"Stripe error retrieving session status: {e}")
@@ -292,7 +289,7 @@ async def get_session_status(
 )
 async def payment_success(
     session_id: str,
-    purchase_id: Optional[str] = None,
+    purchase_id: str | None = None,
     manager: CheckoutManager = Depends(get_checkout_manager),
     current_user: AccountUser = Depends(get_current_user_dependency),
     organization_id: str = Depends(require_organization_access),
@@ -368,14 +365,13 @@ async def payment_success(
                 report_status=report_status,
                 estimated_delivery=estimated_delivery,
             )
-        else:
-            logger.warning(f"Payment not completed for session {session_id}: status={payment_status}")
-            return SuccessPageResponse(
-                success=False,
-                session_id=session_id,
-                payment_status=payment_status,
-                error=f"Payment not completed. Status: {payment_status}",
-            )
+        logger.warning(f"Payment not completed for session {session_id}: status={payment_status}")
+        return SuccessPageResponse(
+            success=False,
+            session_id=session_id,
+            payment_status=payment_status,
+            error=f"Payment not completed. Status: {payment_status}",
+        )
 
     except Exception as e:
         logger.error(f"Error processing success page: {e}")
@@ -416,12 +412,11 @@ async def create_audit_report_checkout(
 
         if result["success"]:
             return CheckoutInitiationResponse(**result)
-        else:
-            return CheckoutInitiationResponse(
-                success=False,
-                error=result.get("error", "Unknown error"),
-                error_type=result.get("error_type", "CheckoutError"),
-            )
+        return CheckoutInitiationResponse(
+            success=False,
+            error=result.get("error", "Unknown error"),
+            error_type=result.get("error_type", "CheckoutError"),
+        )
 
     except Exception as e:
         logger.error(f"Error creating audit report checkout: {e}")
@@ -458,12 +453,11 @@ async def create_bulk_reports_checkout(
 
         if result["success"]:
             return CheckoutInitiationResponse(**result)
-        else:
-            return CheckoutInitiationResponse(
-                success=False,
-                error=result.get("error", "Unknown error"),
-                error_type=result.get("error_type", "CheckoutError"),
-            )
+        return CheckoutInitiationResponse(
+            success=False,
+            error=result.get("error", "Unknown error"),
+            error_type=result.get("error_type", "CheckoutError"),
+        )
 
     except Exception as e:
         logger.error(f"Error creating bulk reports checkout: {e}")
@@ -544,7 +538,7 @@ async def webhook_exception_handler(request: Request, exc: WebhookError):
 
 
 # Utility functions for background tasks
-async def post_payment_processing(payment_data: Dict[str, Any]) -> None:
+async def post_payment_processing(payment_data: dict[str, Any]) -> None:
     """Background task for post-payment processing"""
     try:
         purchase_id = payment_data.get("purchase_id")

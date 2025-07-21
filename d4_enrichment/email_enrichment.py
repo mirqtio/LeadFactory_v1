@@ -2,7 +2,8 @@
 Email enrichment logic for PRD v1.2
 Implements Hunter-first, Data Axle fallback pattern
 """
-from typing import Any, Dict, List, Optional, Tuple
+
+from typing import Any
 from urllib.parse import urlparse
 
 from core.config import settings
@@ -26,7 +27,7 @@ class EmailEnricher:
         self._hunter_client = None
         self._dataaxle_client = None
 
-    async def _get_hunter_client(self) -> Optional[HunterClient]:
+    async def _get_hunter_client(self) -> HunterClient | None:
         """Get Hunter client if available"""
         if not self._hunter_client and settings.hunter_api_key:
             try:
@@ -35,7 +36,7 @@ class EmailEnricher:
                 logger.error(f"Failed to initialize Hunter client: {e}")
         return self._hunter_client
 
-    async def _get_dataaxle_client(self) -> Optional[DataAxleClient]:
+    async def _get_dataaxle_client(self) -> DataAxleClient | None:
         """Get Data Axle client if available"""
         if not self._dataaxle_client and settings.data_axle_api_key:
             try:
@@ -44,7 +45,7 @@ class EmailEnricher:
                 logger.error(f"Failed to initialize Data Axle client: {e}")
         return self._dataaxle_client
 
-    async def enrich_email(self, business: Dict[str, Any]) -> Tuple[Optional[str], str]:
+    async def enrich_email(self, business: dict[str, Any]) -> tuple[str | None, str]:
         """
         Enrich business with email following PRD v1.2 logic
 
@@ -72,10 +73,10 @@ class EmailEnricher:
 
                 # PRD v1.2: Use if confidence >= 0.75
                 if email and confidence >= 0.75:
-                    logger.info(f"Found email via Hunter for {domain}: {email} " f"(confidence: {confidence:.2f})")
+                    logger.info(f"Found email via Hunter for {domain}: {email} (confidence: {confidence:.2f})")
                     return email, "hunter"
-                elif email:
-                    logger.info(f"Hunter email confidence too low for {domain}: " f"{confidence:.2f} < 0.75")
+                if email:
+                    logger.info(f"Hunter email confidence too low for {domain}: {confidence:.2f} < 0.75")
 
             except Exception as e:
                 logger.error(f"Hunter search failed for {domain}: {e}")
@@ -98,7 +99,7 @@ class EmailEnricher:
         logger.info(f"No email found for {domain}")
         return None, None
 
-    def _extract_domain(self, business: Dict[str, Any]) -> Optional[str]:
+    def _extract_domain(self, business: dict[str, Any]) -> str | None:
         """Extract domain from business data"""
         # Try website field first
         website = business.get("website")
@@ -137,7 +138,7 @@ class EmailEnricher:
 
         return None
 
-    async def enrich_batch(self, businesses: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    async def enrich_batch(self, businesses: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         """
         Enrich multiple businesses with emails
 

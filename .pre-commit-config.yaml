@@ -18,6 +18,16 @@ repos:
       - id: debug-statements
       - id: mixed-line-ending
 
+  # PRP-1061: Ruff linting and formatting integration
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
+    hooks:
+      # Run the linter with auto-fix
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      # Run the formatter
+      - id: ruff-format
+
   # Code formatting and linting moved to local hook for performance
 
   # Security scanning moved to pre-push (via BPCI)

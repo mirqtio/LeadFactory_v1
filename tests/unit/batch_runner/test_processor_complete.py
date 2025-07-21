@@ -2,6 +2,7 @@
 Complete test coverage for batch processor P0-022
 Focus on missing lines to achieve ≥80% coverage requirement
 """
+
 import asyncio
 import uuid
 from datetime import datetime
@@ -19,13 +20,13 @@ class TestBatchProcessorComplete:
     @pytest.fixture
     def processor(self):
         """Create processor with mocked dependencies"""
-        with patch("batch_runner.processor.get_settings") as mock_settings, patch(
-            "batch_runner.processor.get_connection_manager"
-        ) as mock_conn, patch("batch_runner.processor.get_cost_calculator") as mock_cost, patch(
-            "batch_runner.processor.ReportGenerator"
-        ) as mock_report, patch(
-            "batch_runner.processor.ThreadPoolExecutor"
-        ) as mock_thread:
+        with (
+            patch("batch_runner.processor.get_settings") as mock_settings,
+            patch("batch_runner.processor.get_connection_manager") as mock_conn,
+            patch("batch_runner.processor.get_cost_calculator") as mock_cost,
+            patch("batch_runner.processor.ReportGenerator") as mock_report,
+            patch("batch_runner.processor.ThreadPoolExecutor") as mock_thread,
+        ):
             # Setup settings
             settings = Mock()
             settings.BATCH_MAX_CONCURRENT_LEADS = 3
@@ -76,9 +77,11 @@ class TestBatchProcessorComplete:
             mock_db.query.return_value.filter_by.return_value.first.return_value = mock_batch
 
             # Mock the async methods that will be called
-            with patch.object(processor, "_get_batch_leads", return_value=mock_leads) as mock_get_leads, patch.object(
-                processor, "_process_leads_concurrently"
-            ) as mock_process_leads, patch.object(processor, "_complete_batch") as mock_complete:
+            with (
+                patch.object(processor, "_get_batch_leads", return_value=mock_leads) as mock_get_leads,
+                patch.object(processor, "_process_leads_concurrently") as mock_process_leads,
+                patch.object(processor, "_complete_batch") as mock_complete,
+            ):
                 # Setup lead processing results
                 results = [
                     LeadProcessingResult(lead_id=lead1_id, success=True, actual_cost=2.5),
@@ -125,9 +128,10 @@ class TestBatchProcessorComplete:
             mock_process.side_effect = [mock_task_1(), mock_task_2()]
 
             # Mock progress update methods
-            with patch.object(processor, "_update_batch_progress") as mock_progress, patch.object(
-                processor.connection_manager, "broadcast_progress"
-            ) as mock_broadcast:
+            with (
+                patch.object(processor, "_update_batch_progress") as mock_progress,
+                patch.object(processor.connection_manager, "broadcast_progress") as mock_broadcast,
+            ):
                 # Test
                 results = await processor._process_leads_concurrently(batch_id, leads)
 
@@ -164,13 +168,13 @@ class TestBatchProcessorComplete:
         mock_lead.is_retryable = True
 
         # Mock all the internal methods
-        with patch.object(processor, "_update_lead_status") as mock_status, patch.object(
-            processor, "_get_lead_data"
-        ) as mock_get_data, patch.object(processor, "_generate_report_for_lead") as mock_report, patch.object(
-            processor, "_calculate_actual_cost"
-        ) as mock_cost, patch.object(
-            processor, "_update_lead_completion"
-        ) as mock_completion:
+        with (
+            patch.object(processor, "_update_lead_status") as mock_status,
+            patch.object(processor, "_get_lead_data") as mock_get_data,
+            patch.object(processor, "_generate_report_for_lead") as mock_report,
+            patch.object(processor, "_calculate_actual_cost") as mock_cost,
+            patch.object(processor, "_update_lead_completion") as mock_completion,
+        ):
             # Setup return values
             mock_get_data.return_value = {"id": lead_id, "email": "test@example.com"}
             mock_report.return_value = {"report_url": "http://example.com/report.pdf", "quality_score": 0.85}
@@ -203,9 +207,11 @@ class TestBatchProcessorComplete:
         mock_lead.lead_id = lead_id
         mock_lead.is_retryable = False
 
-        with patch.object(processor, "_update_lead_status") as mock_status, patch.object(
-            processor, "_get_lead_data", return_value=None
-        ), patch.object(processor, "_update_lead_failure") as mock_failure:
+        with (
+            patch.object(processor, "_update_lead_status") as mock_status,
+            patch.object(processor, "_get_lead_data", return_value=None),
+            patch.object(processor, "_update_lead_failure") as mock_failure,
+        ):
             # Test
             result = await processor._process_single_lead(batch_id, mock_lead)
 
@@ -228,9 +234,11 @@ class TestBatchProcessorComplete:
         mock_lead.lead_id = lead_id
         mock_lead.is_retryable = True
 
-        with patch.object(processor, "_update_lead_status"), patch.object(
-            processor, "_get_lead_data", side_effect=Exception("Processing error")
-        ), patch.object(processor, "_schedule_retry") as mock_retry:
+        with (
+            patch.object(processor, "_update_lead_status"),
+            patch.object(processor, "_get_lead_data", side_effect=Exception("Processing error")),
+            patch.object(processor, "_schedule_retry") as mock_retry,
+        ):
             # Test
             result = await processor._process_single_lead(batch_id, mock_lead)
 
@@ -391,13 +399,13 @@ class TestBatchProcessorComplete:
 
     def test_processor_initialization_complete(self):
         """Test complete processor initialization"""
-        with patch("batch_runner.processor.get_settings") as mock_settings, patch(
-            "batch_runner.processor.get_connection_manager"
-        ) as mock_conn, patch("batch_runner.processor.get_cost_calculator") as mock_cost, patch(
-            "batch_runner.processor.ReportGenerator"
-        ) as mock_report, patch(
-            "batch_runner.processor.ThreadPoolExecutor"
-        ) as mock_thread:
+        with (
+            patch("batch_runner.processor.get_settings") as mock_settings,
+            patch("batch_runner.processor.get_connection_manager") as mock_conn,
+            patch("batch_runner.processor.get_cost_calculator") as mock_cost,
+            patch("batch_runner.processor.ReportGenerator") as mock_report,
+            patch("batch_runner.processor.ThreadPoolExecutor") as mock_thread,
+        ):
             # Setup settings
             settings = Mock()
             settings.BATCH_MAX_CONCURRENT_LEADS = 7

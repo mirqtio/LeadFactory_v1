@@ -6,7 +6,7 @@ and output generation (both HTML and PDF) within 30-second timeout.
 
 Acceptance Criteria:
 - Data loading complete ✓
-- Template rendering works ✓ 
+- Template rendering works ✓
 - HTML and PDF generated ✓
 - 30-second timeout ✓
 """

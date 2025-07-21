@@ -6,12 +6,12 @@ time series data, and dashboard metrics with efficient indexing.
 
 Acceptance Criteria Tests:
 - Funnel event model ✓
-- Metrics aggregation ✓  
+- Metrics aggregation ✓
 - Time series support ✓
 - Efficient indexing ✓
 """
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime, timezone
 from decimal import Decimal
 
 import pytest
@@ -65,7 +65,7 @@ class TestAnalyticsModels:
             duration_ms=1500,
             cost_cents=25,
             success=True,
-            occurred_at=datetime.now(timezone.utc),
+            occurred_at=datetime.now(UTC),
             source="targeting_service",
             version="1.0.0",
             environment="test",
@@ -82,8 +82,8 @@ class TestAnalyticsModels:
             business_vertical="restaurant",
             geography="san_francisco",
             period_type=AggregationPeriod.DAILY,
-            period_start=datetime(2025, 6, 9, 0, 0, 0, tzinfo=timezone.utc),
-            period_end=datetime(2025, 6, 9, 23, 59, 59, tzinfo=timezone.utc),
+            period_start=datetime(2025, 6, 9, 0, 0, 0, tzinfo=UTC),
+            period_end=datetime(2025, 6, 9, 23, 59, 59, tzinfo=UTC),
             period_date=date(2025, 6, 9),
             value=Decimal("0.75"),
             count=100,
@@ -93,7 +93,7 @@ class TestAnalyticsModels:
             max=Decimal("1.0"),
             data_points=100,
             calculation_method="simple_average",
-            calculated_at=datetime.now(timezone.utc),
+            calculated_at=datetime.now(UTC),
             confidence_score=0.95,
         )
 
@@ -125,7 +125,7 @@ class TestAnalyticsModels:
                 funnel_stage=stage,
                 event_type=EventType.ENTRY,
                 event_name=f"test_{stage.value}",
-                occurred_at=datetime.now(timezone.utc),
+                occurred_at=datetime.now(UTC),
             )
             db_session.add(event)
 
@@ -135,7 +135,7 @@ class TestAnalyticsModels:
                 funnel_stage=FunnelStage.TARGETING,
                 event_type=event_type,
                 event_name=f"test_{event_type.value}",
-                occurred_at=datetime.now(timezone.utc),
+                occurred_at=datetime.now(UTC),
             )
             db_session.add(event)
 
@@ -175,7 +175,7 @@ class TestAnalyticsModels:
         """Test different metric types and aggregation periods"""
         # Test all metric types
         for metric_type in MetricType:
-            period_start = datetime.now(timezone.utc)
+            period_start = datetime.now(UTC)
             period_end = datetime(
                 period_start.year,
                 period_start.month,
@@ -183,7 +183,7 @@ class TestAnalyticsModels:
                 23,
                 59,
                 59,
-                tzinfo=timezone.utc,
+                tzinfo=UTC,
             )
 
             snapshot = MetricSnapshot(
@@ -196,13 +196,13 @@ class TestAnalyticsModels:
                 value=Decimal("100.0"),
                 count=10,
                 data_points=10,
-                calculated_at=datetime.now(timezone.utc),
+                calculated_at=datetime.now(UTC),
             )
             db_session.add(snapshot)
 
         # Test all aggregation periods
         for period in AggregationPeriod:
-            period_start = datetime.now(timezone.utc)
+            period_start = datetime.now(UTC)
             period_end = datetime(
                 period_start.year,
                 period_start.month,
@@ -210,7 +210,7 @@ class TestAnalyticsModels:
                 23,
                 59,
                 59,
-                tzinfo=timezone.utc,
+                tzinfo=UTC,
             )
 
             snapshot = MetricSnapshot(
@@ -223,7 +223,7 @@ class TestAnalyticsModels:
                 value=Decimal("50.0"),
                 count=5,
                 data_points=5,
-                calculated_at=datetime.now(timezone.utc),
+                calculated_at=datetime.now(UTC),
             )
             db_session.add(snapshot)
 
@@ -240,15 +240,15 @@ class TestAnalyticsModels:
         """Test time series support - Time series support"""
         # Create time series data points
         timestamps = [
-            datetime(2025, 6, 9, 12, 0, 0, tzinfo=timezone.utc),
-            datetime(2025, 6, 9, 12, 5, 0, tzinfo=timezone.utc),
-            datetime(2025, 6, 9, 12, 10, 0, tzinfo=timezone.utc),
-            datetime(2025, 6, 9, 12, 15, 0, tzinfo=timezone.utc),
+            datetime(2025, 6, 9, 12, 0, 0, tzinfo=UTC),
+            datetime(2025, 6, 9, 12, 5, 0, tzinfo=UTC),
+            datetime(2025, 6, 9, 12, 10, 0, tzinfo=UTC),
+            datetime(2025, 6, 9, 12, 15, 0, tzinfo=UTC),
         ]
 
         values = [Decimal("100.0"), Decimal("105.5"), Decimal("98.2"), Decimal("110.7")]
 
-        for i, (timestamp, value) in enumerate(zip(timestamps, values)):
+        for i, (timestamp, value) in enumerate(zip(timestamps, values, strict=False)):
             ts_data = TimeSeriesData(
                 metric_name="response_time_ms",
                 series_name="api_response_time",
@@ -302,7 +302,7 @@ class TestAnalyticsModels:
             threshold_warning=Decimal("100.0"),
             threshold_critical=Decimal("50.0"),
             time_period="today",
-            last_calculated=datetime.now(timezone.utc),
+            last_calculated=datetime.now(UTC),
             cache_ttl_seconds=300,
             config={"refresh_interval": 60, "chart_type": "line"},
         )
@@ -368,7 +368,7 @@ class TestAnalyticsModels:
                 business_id=f"business_{i % 3}",
                 campaign_id=f"campaign_{i % 2}",
                 event_name=f"test_event_{i}",
-                occurred_at=datetime.now(timezone.utc),
+                occurred_at=datetime.now(UTC),
                 success=i % 4 != 0,  # Mix of success/failure
             )
             events.append(event)
@@ -412,7 +412,7 @@ class TestAnalyticsModels:
                 funnel_stage=FunnelStage.TARGETING,
                 event_type=EventType.ENTRY,
                 event_name="test_invalid",
-                occurred_at=datetime.now(timezone.utc),
+                occurred_at=datetime.now(UTC),
                 duration_ms=-100,  # Invalid negative duration
             )
             db_session.add(invalid_event)
@@ -426,7 +426,7 @@ class TestAnalyticsModels:
                 funnel_stage=FunnelStage.TARGETING,
                 event_type=EventType.ENTRY,
                 event_name="test_invalid",
-                occurred_at=datetime.now(timezone.utc),
+                occurred_at=datetime.now(UTC),
                 cost_cents=-50,  # Invalid negative cost
             )
             db_session.add(invalid_event)
@@ -471,7 +471,7 @@ class TestAnalyticsModels:
 
     def test_time_series_uniqueness(self, db_session):
         """Test time series uniqueness constraint"""
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         # First time series point
         ts1 = TimeSeriesData(
@@ -500,7 +500,7 @@ class TestAnalyticsModels:
 
     def test_metric_snapshot_uniqueness(self, db_session):
         """Test metric snapshot uniqueness constraint"""
-        period_start = datetime.now(timezone.utc)
+        period_start = datetime.now(UTC)
         period_end = datetime(
             period_start.year,
             period_start.month,
@@ -508,7 +508,7 @@ class TestAnalyticsModels:
             23,
             59,
             59,
-            tzinfo=timezone.utc,
+            tzinfo=UTC,
         )
 
         # First snapshot
@@ -526,7 +526,7 @@ class TestAnalyticsModels:
             value=Decimal("100.0"),
             count=10,
             data_points=10,
-            calculated_at=datetime.now(timezone.utc),
+            calculated_at=datetime.now(UTC),
         )
         db_session.add(snapshot1)
         db_session.commit()
@@ -547,7 +547,7 @@ class TestAnalyticsModels:
                 value=Decimal("200.0"),  # Different value but same dimensions
                 count=20,
                 data_points=20,
-                calculated_at=datetime.now(timezone.utc),
+                calculated_at=datetime.now(UTC),
             )
             db_session.add(snapshot2)
             db_session.commit()

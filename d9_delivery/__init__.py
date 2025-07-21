@@ -6,7 +6,7 @@ for the LeadFactory pipeline.
 
 Key Components:
 - Email delivery models with tracking
-- Bounce and suppression management  
+- Bounce and suppression management
 - SendGrid client integration
 - Compliance and webhook handling
 """

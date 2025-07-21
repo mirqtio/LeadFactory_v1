@@ -2,6 +2,7 @@
 Phase-0 Integration Tests
 Validates the complete Config-as-Data & Prompt-Ops implementation
 """
+
 import asyncio
 import os
 import tempfile
@@ -278,7 +279,7 @@ async def run_all_tests():
             print(f"❌ {test_name} failed: {e}")
             failed += 1
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"Tests completed: {len(tests) - failed}/{len(tests)} passed")
 
     if failed == 0:

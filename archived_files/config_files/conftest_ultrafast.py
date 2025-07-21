@@ -2,6 +2,7 @@
 Ultra-fast conftest for CI performance optimization.
 Bypasses all expensive setup for maximum speed.
 """
+
 import os
 
 import pytest

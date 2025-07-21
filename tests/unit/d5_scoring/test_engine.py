@@ -186,7 +186,7 @@ class TestTask046AcceptanceCriteria:
         # Test data with missing fields
         incomplete_data = {
             "id": "test_fallback_001",
-            "company_name": "Incomplete Corp"
+            "company_name": "Incomplete Corp",
             # Missing: industry, website, phone, email, etc.
         }
 
@@ -269,7 +269,7 @@ class TestTask046AcceptanceCriteria:
         # 4. Fallback values used - test with missing data
         incomplete_data = {
             "id": "comprehensive_test_002",
-            "company_name": "Incomplete Corp"
+            "company_name": "Incomplete Corp",
             # Most fields missing - should use fallbacks
         }
 

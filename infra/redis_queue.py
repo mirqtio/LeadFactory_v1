@@ -5,15 +5,15 @@ Implements enterprise-grade Redis queue infrastructure using modern BLMOVE opera
 to replace tmux messaging with fault-tolerant message delivery, persistent queue
 management, and scalable communication infrastructure for multi-agent orchestration.
 
-Redis 7.2.x LTS compatibility with crash-safety via appendonly and 
+Redis 7.2.x LTS compatibility with crash-safety via appendonly and
 optional key-expiry notifications for automatic retry on timeout.
 """
+
 import json
-import logging
 import socket
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Any
 from uuid import uuid4
 
 import redis
@@ -29,13 +29,13 @@ class QueueMessage(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     queue_name: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     priority: int = Field(default=0, description="Higher priority = processed first")
     retry_count: int = Field(default=0)
     max_retries: int = Field(default=3)
     timeout_seconds: int = Field(default=300)  # 5 minutes default
-    created_by: Optional[str] = Field(default=None)
-    tags: List[str] = Field(default_factory=list)
+    created_by: str | None = Field(default=None)
+    tags: list[str] = Field(default_factory=list)
 
 
 class QueueStats(BaseModel):
@@ -47,7 +47,7 @@ class QueueStats(BaseModel):
     dlq_count: int
     processed_total: int
     failed_total: int
-    last_activity: Optional[datetime] = None
+    last_activity: datetime | None = None
 
 
 class RedisQueueBroker:
@@ -62,7 +62,7 @@ class RedisQueueBroker:
     - Integration with existing Redis pub/sub system
     """
 
-    def __init__(self, redis_url: Optional[str] = None, worker_id: Optional[str] = None):
+    def __init__(self, redis_url: str | None = None, worker_id: str | None = None):
         """
         Initialize Redis queue broker.
 
@@ -86,7 +86,7 @@ class RedisQueueBroker:
         self.dlq_suffix = ":dlq"
 
         # Statistics tracking
-        self._stats: Dict[str, QueueStats] = {}
+        self._stats: dict[str, QueueStats] = {}
 
         self.logger.info(f"Redis queue broker initialized for worker {self.worker_id}")
 
@@ -110,11 +110,11 @@ class RedisQueueBroker:
     def enqueue(
         self,
         queue_name: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         priority: int = 0,
         max_retries: int = 3,
         timeout_seconds: int = 300,
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
     ) -> str:
         """
         Enqueue message with priority support.
@@ -156,7 +156,7 @@ class RedisQueueBroker:
             self.logger.error(f"Failed to enqueue to {queue_name}: {e}")
             raise
 
-    def dequeue(self, queue_names: List[str], timeout: float = 10.0) -> Optional[Tuple[str, QueueMessage]]:
+    def dequeue(self, queue_names: list[str], timeout: float = 10.0) -> tuple[str, QueueMessage] | None:
         """
         Dequeue message using BLMOVE for reliable pattern.
 
@@ -229,9 +229,8 @@ class RedisQueueBroker:
                 self._update_stats(queue_name, "acknowledged")
                 self.logger.debug(f"Acknowledged message {message.id} from {queue_name}")
                 return True
-            else:
-                self.logger.warning(f"Message {message.id} not found in inflight queue")
-                return False
+            self.logger.warning(f"Message {message.id} not found in inflight queue")
+            return False
 
         except Exception as e:
             self.logger.error(f"Failed to acknowledge message {message.id}: {e}")
@@ -374,7 +373,7 @@ class RedisQueueBroker:
         self.logger.info(f"Purged queue {queue_name}: {total_removed} keys removed")
         return total_removed
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Check broker health"""
         try:
             # Test Redis connection
@@ -397,7 +396,7 @@ class RedisQueueBroker:
 
 
 # Global broker instance (lazy initialization)
-_broker_instance: Optional[RedisQueueBroker] = None
+_broker_instance: RedisQueueBroker | None = None
 
 
 def get_queue_broker() -> RedisQueueBroker:

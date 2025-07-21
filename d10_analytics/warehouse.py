@@ -6,16 +6,16 @@ with daily metrics, funnel calculations, cost analysis, and segment breakdowns.
 
 Acceptance Criteria:
 - Daily metrics built ✓
-- Funnel calculations ✓  
+- Funnel calculations ✓
 - Cost analysis works ✓
 - Segment breakdowns ✓
 """
 
 import logging
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import func
 
@@ -69,9 +69,9 @@ class WarehouseJobResult:
     metrics_processed: int
     duration_seconds: float
     start_time: datetime
-    end_time: Optional[datetime] = None
-    error_message: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    end_time: datetime | None = None
+    error_message: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 @dataclass
@@ -95,7 +95,7 @@ class MetricsWarehouse:
     and segment breakdowns for comprehensive analytics.
     """
 
-    def __init__(self, config: Optional[MetricsWarehouseConfig] = None):
+    def __init__(self, config: MetricsWarehouseConfig | None = None):
         """Initialize metrics warehouse"""
         self.config = config or MetricsWarehouseConfig()
 
@@ -115,7 +115,7 @@ class MetricsWarehouse:
         conversion rates, cost analysis, and segment breakdowns.
         """
         job_id = generate_uuid()
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             logger.info(f"Starting daily metrics build for {target_date}")
@@ -142,7 +142,7 @@ class MetricsWarehouse:
                             metrics_processed=existing_metrics,
                             duration_seconds=0.0,
                             start_time=start_time,
-                            end_time=datetime.now(timezone.utc),
+                            end_time=datetime.now(UTC),
                             metadata={"reason": "already_exists"},
                         )
 
@@ -166,7 +166,7 @@ class MetricsWarehouse:
 
                 session.commit()
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             logger.info(f"Daily metrics build completed for {target_date}: {metrics_processed} metrics")
@@ -183,7 +183,7 @@ class MetricsWarehouse:
 
         except Exception as e:
             logger.error(f"Daily metrics build failed for {target_date}: {e}")
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             return WarehouseJobResult(
@@ -204,7 +204,7 @@ class MetricsWarehouse:
         across the entire funnel for the specified date range.
         """
         job_id = generate_uuid()
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             logger.info(f"Starting funnel calculations for {start_date} to {end_date}")
@@ -226,7 +226,7 @@ class MetricsWarehouse:
 
                 session.commit()
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             logger.info(f"Funnel calculations completed: {total_metrics} metrics")
@@ -250,7 +250,7 @@ class MetricsWarehouse:
 
         except Exception as e:
             logger.error(f"Funnel calculations failed: {e}")
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             return WarehouseJobResult(
@@ -271,7 +271,7 @@ class MetricsWarehouse:
         cost-per-acquisition, and ROI calculations.
         """
         job_id = generate_uuid()
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             logger.info(f"Starting cost analysis for {start_date} to {end_date}")
@@ -295,7 +295,7 @@ class MetricsWarehouse:
 
                 session.commit()
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             logger.info(f"Cost analysis completed: {total_metrics} metrics")
@@ -319,7 +319,7 @@ class MetricsWarehouse:
 
         except Exception as e:
             logger.error(f"Cost analysis failed: {e}")
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             return WarehouseJobResult(
@@ -333,7 +333,7 @@ class MetricsWarehouse:
             )
 
     async def build_segment_breakdowns(
-        self, start_date: date, end_date: date, segments: Optional[List[str]] = None
+        self, start_date: date, end_date: date, segments: list[str] | None = None
     ) -> WarehouseJobResult:
         """
         Build segment breakdowns for metrics - Segment breakdowns
@@ -342,7 +342,7 @@ class MetricsWarehouse:
         geography, business vertical, campaign, and custom dimensions.
         """
         job_id = generate_uuid()
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             logger.info(f"Starting segment breakdowns for {start_date} to {end_date}")
@@ -388,7 +388,7 @@ class MetricsWarehouse:
 
                 session.commit()
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             logger.info(f"Segment breakdowns completed: {total_metrics} metrics")
@@ -409,7 +409,7 @@ class MetricsWarehouse:
 
         except Exception as e:
             logger.error(f"Segment breakdowns failed: {e}")
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             return WarehouseJobResult(
@@ -422,7 +422,7 @@ class MetricsWarehouse:
                 error_message=str(e),
             )
 
-    async def backfill_metrics(self, start_date: date, end_date: Optional[date] = None) -> List[WarehouseJobResult]:
+    async def backfill_metrics(self, start_date: date, end_date: date | None = None) -> list[WarehouseJobResult]:
         """
         Backfill metrics for a date range
 
@@ -451,7 +451,7 @@ class MetricsWarehouse:
 
         return results
 
-    async def run_full_warehouse_build(self, target_date: Optional[date] = None) -> Dict[str, WarehouseJobResult]:
+    async def run_full_warehouse_build(self, target_date: date | None = None) -> dict[str, WarehouseJobResult]:
         """
         Run complete warehouse build for a date
 
@@ -485,7 +485,7 @@ class MetricsWarehouse:
                     status=WarehouseJobStatus.FAILED,
                     metrics_processed=0,
                     duration_seconds=0.0,
-                    start_time=datetime.now(timezone.utc),
+                    start_time=datetime.now(UTC),
                     error_message=str(e),
                 )
 
@@ -500,7 +500,7 @@ class MetricsWarehouse:
 
         return results
 
-    def get_metrics_summary(self, start_date: date, end_date: Optional[date] = None) -> Dict[str, Any]:
+    def get_metrics_summary(self, start_date: date, end_date: date | None = None) -> dict[str, Any]:
         """
         Get summary of metrics in the warehouse
 
@@ -556,7 +556,7 @@ class MetricsWarehouse:
                 "metrics_by_type": {str(metric_type): count for metric_type, count in metric_counts},
                 "events_by_stage": {str(stage): count for stage, count in event_counts},
                 "total_conversions": conversion_count,
-                "summary_generated_at": datetime.now(timezone.utc).isoformat(),
+                "summary_generated_at": datetime.now(UTC).isoformat(),
             }
 
 
@@ -569,14 +569,14 @@ async def build_daily_metrics_for_date(target_date: date) -> WarehouseJobResult:
     return await warehouse.build_daily_metrics(target_date)
 
 
-async def backfill_recent_metrics(days: int = 7) -> List[WarehouseJobResult]:
+async def backfill_recent_metrics(days: int = 7) -> list[WarehouseJobResult]:
     """Utility function to backfill metrics for recent days"""
     warehouse = MetricsWarehouse()
     start_date = date.today() - timedelta(days=days)
     return await warehouse.backfill_metrics(start_date)
 
 
-def get_warehouse_health_check() -> Dict[str, Any]:
+def get_warehouse_health_check() -> dict[str, Any]:
     """Get health check information for the metrics warehouse"""
     warehouse = MetricsWarehouse()
 
@@ -594,7 +594,7 @@ def get_warehouse_health_check() -> Dict[str, Any]:
         "metrics_available": has_recent_metrics,
         "events_available": has_recent_events,
         "summary": summary,
-        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "checked_at": datetime.now(UTC).isoformat(),
     }
 
 

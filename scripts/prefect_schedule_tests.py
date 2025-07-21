@@ -7,6 +7,7 @@ Sets up:
 - Heartbeat checks every 2 hours
 - Cleanup jobs
 """
+
 import asyncio
 import sys
 from pathlib import Path
@@ -54,9 +55,7 @@ async def cleanup_flow():
         """,
     )
 
-    logger.info(
-        f"Cleanup complete: " f"smoke={deleted_smoke}, " f"heartbeat={deleted_heartbeat}, " f"orphans={deleted_orphans}"
-    )
+    logger.info(f"Cleanup complete: smoke={deleted_smoke}, heartbeat={deleted_heartbeat}, orphans={deleted_orphans}")
 
     return {
         "deleted_smoke": deleted_smoke,

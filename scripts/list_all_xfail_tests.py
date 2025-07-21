@@ -2,6 +2,7 @@
 """
 List all tests with xfail markers using AST parsing.
 """
+
 import ast
 import re
 from pathlib import Path
@@ -10,7 +11,7 @@ from pathlib import Path
 def find_xfail_tests_in_file(file_path):
     """Find all tests with xfail markers in a file."""
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         # Check for module-level xfail
@@ -119,7 +120,7 @@ def main():
                 f.write(f"  - {test}\n")
             f.write("\n")
 
-    print(f"\nResults saved to all_xfail_tests.txt")
+    print("\nResults saved to all_xfail_tests.txt")
 
     # Group by directory
     print("\n" + "=" * 80)

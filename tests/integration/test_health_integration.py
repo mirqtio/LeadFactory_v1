@@ -3,6 +3,7 @@ Integration tests for health endpoint - P0-007
 
 Tests health endpoint with real database and Redis connections.
 """
+
 import asyncio
 import time
 from unittest.mock import patch

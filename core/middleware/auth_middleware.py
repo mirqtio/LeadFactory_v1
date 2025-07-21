@@ -2,17 +2,15 @@
 Authentication middleware for FastAPI with RBAC support
 Implements organization-scoped data access and request logging
 """
-import logging
+
 import time
-from typing import Optional
 from uuid import uuid4
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from account_management.auth_service import AuthService
-from account_management.models import AccountUser, UserStatus
+from account_management.models import UserStatus
 from core.auth import get_current_user_from_api_key, get_current_user_from_token
 from core.logging import get_logger
 from database.session import get_db
@@ -31,7 +29,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
     - Rate limiting and security headers
     """
 
-    def __init__(self, app, exempt_paths: Optional[list] = None):
+    def __init__(self, app, exempt_paths: list | None = None):
         super().__init__(app)
         self.exempt_paths = exempt_paths or [
             "/health",
@@ -94,9 +92,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             duration = time.time() - start_time
-            logger.error(
-                f"Request failed: {request.method} {request.url.path} " f"error={str(e)} duration={duration:.3f}s"
-            )
+            logger.error(f"Request failed: {request.method} {request.url.path} error={str(e)} duration={duration:.3f}s")
 
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -165,6 +161,6 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def create_auth_middleware(exempt_paths: Optional[list] = None) -> AuthenticationMiddleware:
+def create_auth_middleware(exempt_paths: list | None = None) -> AuthenticationMiddleware:
     """Factory function to create authentication middleware"""
     return AuthenticationMiddleware(None, exempt_paths)

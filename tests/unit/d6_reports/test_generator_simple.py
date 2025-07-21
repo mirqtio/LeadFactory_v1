@@ -6,7 +6,7 @@ and output generation (both HTML and PDF) within 30-second timeout.
 
 Acceptance Criteria:
 - Data loading complete ✓
-- Template rendering works ✓ 
+- Template rendering works ✓
 - HTML and PDF generated ✓
 - 30-second timeout ✓
 """
@@ -188,12 +188,11 @@ def test_impact_calculation():
         """Calculate impact score from performance savings in milliseconds"""
         if savings_ms >= 1000:  # 1+ seconds
             return 9  # High impact
-        elif savings_ms >= 500:  # 500ms+
+        if savings_ms >= 500:  # 500ms+
             return 6  # Medium impact
-        elif savings_ms >= 100:  # 100ms+
+        if savings_ms >= 100:  # 100ms+
             return 3  # Low impact
-        else:
-            return 1  # Minimal impact
+        return 1  # Minimal impact
 
     # Test different impact levels
     assert calculate_impact_from_savings(1500) == 9  # High impact

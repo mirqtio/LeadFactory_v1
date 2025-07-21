@@ -42,17 +42,17 @@ class AssessmentProfile:
     """Profile defining assessment characteristics for generation"""
 
     scenario: str
-    performance_range: Tuple[int, int]
-    accessibility_range: Tuple[int, int]
-    best_practices_range: Tuple[int, int]
-    seo_range: Tuple[int, int]
-    mobile_score_range: Tuple[int, int]
-    desktop_score_range: Tuple[int, int]
-    common_technologies: List[str]
-    typical_issues: List[str]
-    load_time_range: Tuple[float, float]
-    page_size_range: Tuple[int, int]  # KB
-    status_weights: Dict[str, float]
+    performance_range: tuple[int, int]
+    accessibility_range: tuple[int, int]
+    best_practices_range: tuple[int, int]
+    seo_range: tuple[int, int]
+    mobile_score_range: tuple[int, int]
+    desktop_score_range: tuple[int, int]
+    common_technologies: list[str]
+    typical_issues: list[str]
+    load_time_range: tuple[float, float]
+    page_size_range: tuple[int, int]  # KB
+    status_weights: dict[str, float]
 
 
 class AssessmentGenerator:
@@ -402,7 +402,7 @@ class AssessmentGenerator:
             ],
         }
 
-    def generate_scores(self, scenario: AssessmentScenario) -> Dict[str, int]:
+    def generate_scores(self, scenario: AssessmentScenario) -> dict[str, int]:
         """Generate realistic assessment scores for given scenario"""
         profile = self.profiles[scenario]
 
@@ -430,7 +430,7 @@ class AssessmentGenerator:
             "desktop_score": desktop_score,
         }
 
-    def generate_pagespeed_data(self, scenario: AssessmentScenario, scores: Dict[str, int]) -> Dict[str, Any]:
+    def generate_pagespeed_data(self, scenario: AssessmentScenario, scores: dict[str, int]) -> dict[str, Any]:
         """Generate realistic PageSpeed Insights data"""
         profile = self.profiles[scenario]
 
@@ -474,7 +474,7 @@ class AssessmentGenerator:
 
         return pagespeed_data
 
-    def generate_tech_stack_data(self, scenario: AssessmentScenario) -> Dict[str, Any]:
+    def generate_tech_stack_data(self, scenario: AssessmentScenario) -> dict[str, Any]:
         """Generate realistic technology stack detection data"""
         profile = self.profiles[scenario]
 
@@ -532,7 +532,7 @@ class AssessmentGenerator:
 
         return tech_stack_data
 
-    def generate_ai_insights_data(self, scenario: AssessmentScenario, scores: Dict[str, int]) -> Dict[str, Any]:
+    def generate_ai_insights_data(self, scenario: AssessmentScenario, scores: dict[str, int]) -> dict[str, Any]:
         """Generate realistic AI insights data"""
         profile = self.profiles[scenario]
 
@@ -636,7 +636,7 @@ class AssessmentGenerator:
         self,
         business: Business,
         scenario: AssessmentScenario,
-        assessment_id: Optional[str] = None,
+        assessment_id: str | None = None,
     ) -> AssessmentResult:
         """Generate a complete realistic assessment for given business and scenario"""
         profile = self.profiles[scenario]
@@ -655,9 +655,7 @@ class AssessmentGenerator:
 
         # Determine assessment type based on scenario
         assessment_type = AssessmentType.FULL_AUDIT
-        if scenario in [AssessmentScenario.MOBILE_OPTIMIZED]:
-            assessment_type = AssessmentType.PAGESPEED
-        elif scenario in [
+        if scenario in [AssessmentScenario.MOBILE_OPTIMIZED] or scenario in [
             AssessmentScenario.HIGH_PERFORMANCE,
             AssessmentScenario.POOR_PERFORMANCE,
         ]:
@@ -702,9 +700,9 @@ class AssessmentGenerator:
 
     def generate_assessments(
         self,
-        businesses: List[Business],
-        scenarios: Optional[List[AssessmentScenario]] = None,
-    ) -> List[AssessmentResult]:
+        businesses: list[Business],
+        scenarios: list[AssessmentScenario] | None = None,
+    ) -> list[AssessmentResult]:
         """Generate assessments for multiple businesses"""
         if scenarios is None:
             scenarios = list(AssessmentScenario)
@@ -717,7 +715,7 @@ class AssessmentGenerator:
 
         return assessments
 
-    def generate_performance_dataset(self, businesses: List[Business], size: str = "small") -> List[AssessmentResult]:
+    def generate_performance_dataset(self, businesses: list[Business], size: str = "small") -> list[AssessmentResult]:
         """Generate large assessment datasets for performance testing"""
         sizes = {
             "small": len(businesses),
@@ -761,25 +759,25 @@ class AssessmentGenerator:
         }
         return categories.get(tech, "Other")
 
-    def detect_cms(self) -> Optional[str]:
+    def detect_cms(self) -> str | None:
         """Detect CMS with weighted probability"""
         cms_options = list(self.technologies["cms"].keys())
         weights = [self.technologies["cms"][cms]["market_share"] for cms in cms_options]
         return self.random.choices(cms_options, weights=weights)[0]
 
-    def detect_js_framework(self) -> Optional[str]:
+    def detect_js_framework(self) -> str | None:
         """Detect JavaScript framework"""
         js_options = list(self.technologies["javascript_frameworks"].keys())
         weights = [self.technologies["javascript_frameworks"][js]["popularity"] for js in js_options]
         return self.random.choices(js_options, weights=weights)[0]
 
-    def detect_css_framework(self) -> Optional[str]:
+    def detect_css_framework(self) -> str | None:
         """Detect CSS framework"""
         css_options = list(self.technologies["css_frameworks"].keys())
         weights = [self.technologies["css_frameworks"][css]["usage"] for css in css_options]
         return self.random.choices(css_options, weights=weights)[0]
 
-    def detect_analytics(self) -> List[str]:
+    def detect_analytics(self) -> list[str]:
         """Detect analytics tools"""
         tools = []
         for tool, data in self.technologies["analytics"].items():
@@ -787,7 +785,7 @@ class AssessmentGenerator:
                 tools.append(tool)
         return tools if tools else ["None"]
 
-    def generate_security_features(self) -> Dict[str, bool]:
+    def generate_security_features(self) -> dict[str, bool]:
         """Generate security feature detection"""
         return {
             "https": self.random.random() > 0.2,  # 80% have HTTPS
@@ -796,7 +794,7 @@ class AssessmentGenerator:
             "content_security_policy": self.random.random() > 0.7,  # 30% have CSP
         }
 
-    def generate_hosting_info(self) -> Dict[str, str]:
+    def generate_hosting_info(self) -> dict[str, str]:
         """Generate hosting information"""
         providers = [
             "AWS",
@@ -817,16 +815,15 @@ class AssessmentGenerator:
         """Categorize recommendation by type"""
         if "image" in rec.lower():
             return "Images"
-        elif "seo" in rec.lower() or "meta" in rec.lower():
+        if "seo" in rec.lower() or "meta" in rec.lower():
             return "SEO"
-        elif "accessibility" in rec.lower() or "alt" in rec.lower():
+        if "accessibility" in rec.lower() or "alt" in rec.lower():
             return "Accessibility"
-        elif "performance" in rec.lower() or "speed" in rec.lower():
+        if "performance" in rec.lower() or "speed" in rec.lower():
             return "Performance"
-        else:
-            return "General"
+        return "General"
 
-    def generate_competitor_analysis(self) -> Dict[str, Any]:
+    def generate_competitor_analysis(self) -> dict[str, Any]:
         """Generate competitor analysis data"""
         return {
             "average_performance": self.random.randint(60, 80),
@@ -837,7 +834,7 @@ class AssessmentGenerator:
             "market_position": self.random.choice(["above_average", "average", "below_average"]),
         }
 
-    def generate_industry_benchmarks(self, scores: Dict[str, int]) -> Dict[str, Any]:
+    def generate_industry_benchmarks(self, scores: dict[str, int]) -> dict[str, Any]:
         """Generate industry benchmark data"""
         return {
             "industry_average_performance": self.random.randint(55, 75),
@@ -850,7 +847,7 @@ class AssessmentGenerator:
             },
         }
 
-    def calculate_improvement_potential(self, scores: Dict[str, int]) -> Dict[str, Any]:
+    def calculate_improvement_potential(self, scores: dict[str, int]) -> dict[str, Any]:
         """Calculate improvement potential"""
         avg_score = sum(scores.values()) / len(scores)
         potential = max(0, 90 - avg_score)  # Potential improvement to reach 90

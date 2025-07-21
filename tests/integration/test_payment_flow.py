@@ -73,7 +73,7 @@ class TestPaymentFlowIntegration:
             )
         ]
 
-    def create_mock_stripe_session(self) -> Dict[str, Any]:
+    def create_mock_stripe_session(self) -> dict[str, Any]:
         """Create mock Stripe session response for testing"""
         return {
             "id": "cs_integration_test_123456",
@@ -96,7 +96,7 @@ class TestPaymentFlowIntegration:
             "cancel_url": f"https://leadfactory.com/cancel?purchase_id={self.test_purchase_id}&session_id={{CHECKOUT_SESSION_ID}}",
         }
 
-    def create_mock_webhook_event(self, event_type: str = "checkout.session.completed") -> Dict[str, Any]:
+    def create_mock_webhook_event(self, event_type: str = "checkout.session.completed") -> dict[str, Any]:
         """Create mock webhook event for testing"""
         session_data = self.create_mock_stripe_session()
         session_data["payment_status"] = "paid"  # For completed events
@@ -547,7 +547,7 @@ class TestAcceptanceCriteria:
 
 
 # Utility functions for integration testing
-def create_test_attribution_data() -> Dict[str, str]:
+def create_test_attribution_data() -> dict[str, str]:
     """Create test attribution data for integration tests"""
     return {
         "utm_source": "integration_test",
@@ -560,7 +560,7 @@ def create_test_attribution_data() -> Dict[str, str]:
     }
 
 
-def create_test_business_data() -> Dict[str, Any]:
+def create_test_business_data() -> dict[str, Any]:
     """Create test business data for integration tests"""
     return {
         "business_url": "https://integration-test-business.com",

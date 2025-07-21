@@ -4,10 +4,10 @@ Service Discovery Framework for P3-006 Mock Integration Replacement
 Intelligent routing system that automatically switches between mock and production APIs
 based on configuration, availability, and validation status.
 """
-import asyncio
+
 import os
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import aiohttp
 from pydantic import BaseModel, Field
@@ -36,8 +36,8 @@ class ServiceEndpoint(BaseModel):
     production_url: str
     health_check_path: str = "/health"
     timeout_seconds: int = 5
-    required_env_vars: List[str] = Field(default_factory=list)
-    api_key_header: Optional[str] = None
+    required_env_vars: list[str] = Field(default_factory=list)
+    api_key_header: str | None = None
 
 
 class ServiceDiscoveryConfig(BaseModel):
@@ -47,7 +47,7 @@ class ServiceDiscoveryConfig(BaseModel):
     enable_fallback: bool = True
     health_check_interval: int = 60
     max_retries: int = 3
-    endpoints: Dict[str, ServiceEndpoint] = Field(default_factory=dict)
+    endpoints: dict[str, ServiceEndpoint] = Field(default_factory=dict)
 
 
 class ServiceRouter:
@@ -61,12 +61,12 @@ class ServiceRouter:
     - Configuration-driven routing decisions
     """
 
-    def __init__(self, config: Optional[ServiceDiscoveryConfig] = None):
+    def __init__(self, config: ServiceDiscoveryConfig | None = None):
         self.settings = get_settings()
         self.config = config or self._get_default_config()
-        self.service_status: Dict[str, ServiceStatus] = {}
-        self.last_health_check: Dict[str, float] = {}
-        self._session: Optional[aiohttp.ClientSession] = None
+        self.service_status: dict[str, ServiceStatus] = {}
+        self.last_health_check: dict[str, float] = {}
+        self._session: aiohttp.ClientSession | None = None
 
     def _get_default_config(self) -> ServiceDiscoveryConfig:
         """Get default service discovery configuration"""
@@ -171,7 +171,7 @@ class ServiceRouter:
 
     async def check_service_health(
         self, service_name: str, endpoint: ServiceEndpoint, use_production: bool = True
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Check health of a specific service endpoint
 
@@ -205,15 +205,14 @@ class ServiceRouter:
             async with session.get(url, headers=headers) as response:
                 if response.status < 500:  # Accept 4xx as "service is up"
                     return True, f"Service healthy (status: {response.status})"
-                else:
-                    return False, f"Service unhealthy (status: {response.status})"
+                return False, f"Service unhealthy (status: {response.status})"
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return False, "Health check timeout"
         except Exception as e:
             return False, f"Health check failed: {str(e)}"
 
-    def _get_api_key(self, service_name: str, endpoint: ServiceEndpoint) -> Optional[str]:
+    def _get_api_key(self, service_name: str, endpoint: ServiceEndpoint) -> str | None:
         """Get API key for service from environment variables"""
         for env_var in endpoint.required_env_vars:
             value = os.getenv(env_var)
@@ -256,19 +255,17 @@ class ServiceRouter:
 
         if prod_healthy:
             return ServiceStatus.PRODUCTION
-        elif self.config.enable_fallback:
+        if self.config.enable_fallback:
             # Fallback to mock if production fails
             mock_healthy, mock_msg = await self.check_service_health(service_name, endpoint, use_production=False)
             if mock_healthy:
                 logger.warning(f"Production {service_name} unhealthy ({prod_msg}), falling back to mock ({mock_msg})")
                 return ServiceStatus.HYBRID
-            else:
-                logger.error(f"Both production and mock {service_name} unhealthy")
-                return ServiceStatus.OFFLINE
-        else:
+            logger.error(f"Both production and mock {service_name} unhealthy")
             return ServiceStatus.OFFLINE
+        return ServiceStatus.OFFLINE
 
-    async def get_service_url(self, service_name: str, force_status: Optional[ServiceStatus] = None) -> Optional[str]:
+    async def get_service_url(self, service_name: str, force_status: ServiceStatus | None = None) -> str | None:
         """
         Get the appropriate URL for a service based on its status
 
@@ -289,12 +286,11 @@ class ServiceRouter:
 
         if status == ServiceStatus.PRODUCTION:
             return endpoint.production_url
-        elif status in [ServiceStatus.MOCK, ServiceStatus.HYBRID]:
+        if status in [ServiceStatus.MOCK, ServiceStatus.HYBRID]:
             return endpoint.mock_url
-        else:
-            return None
+        return None
 
-    async def get_all_service_statuses(self) -> Dict[str, Dict[str, Any]]:
+    async def get_all_service_statuses(self) -> dict[str, dict[str, Any]]:
         """
         Get status information for all configured services
 
@@ -323,7 +319,7 @@ class ServiceRouter:
 
         return statuses
 
-    async def validate_production_readiness(self) -> Dict[str, Any]:
+    async def validate_production_readiness(self) -> dict[str, Any]:
         """
         Comprehensive production readiness validation
 
@@ -378,7 +374,7 @@ class ServiceRouter:
             "next_steps": self._generate_next_steps(service_statuses, issues),
         }
 
-    def _generate_next_steps(self, service_statuses: Dict, issues: List[str]) -> List[str]:
+    def _generate_next_steps(self, service_statuses: dict, issues: list[str]) -> list[str]:
         """Generate prioritized next steps for production readiness"""
         steps = []
 
@@ -410,7 +406,7 @@ class ServiceRouter:
 service_router = ServiceRouter()
 
 
-async def get_service_url(service_name: str) -> Optional[str]:
+async def get_service_url(service_name: str) -> str | None:
     """
     Convenience function to get service URL
 
@@ -423,7 +419,7 @@ async def get_service_url(service_name: str) -> Optional[str]:
     return await service_router.get_service_url(service_name)
 
 
-async def validate_all_services() -> Dict[str, Any]:
+async def validate_all_services() -> dict[str, Any]:
     """
     Convenience function to validate all services
 

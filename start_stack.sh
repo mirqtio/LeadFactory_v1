@@ -25,7 +25,7 @@ check_dependencies() {
     
     command -v tmux >/dev/null 2>&1 || error "tmux is required but not installed"
     command -v redis-cli >/dev/null 2>&1 || error "redis-cli is required but not installed"
-    command -v claude-code >/dev/null 2>&1 || error "claude-code is required but not installed"
+    command -v claude >/dev/null 2>&1 || error "claude is required but not installed"
     
     success "All dependencies available"
 }
@@ -250,9 +250,9 @@ start_agent() {
     
     log "Starting $persona agent in window: $window"
     
-    # Start claude-code with persona
+    # Start claude with persona
     tmux send-keys -t "${STACK_SESSION}:${window}" \
-        "claude-code --model=$model --persona $persona" Enter
+        "claude --model=$model" Enter
     
     # Wait for Claude to start
     sleep 3

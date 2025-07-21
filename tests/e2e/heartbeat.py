@@ -9,6 +9,7 @@ Checks:
 - SendGrid authentication
 - Redis cache
 """
+
 import asyncio
 import time
 from datetime import datetime
@@ -42,7 +43,7 @@ class ServiceHealthCheck:
         self.status = "pending"
         self.error = None
 
-    async def check(self) -> Dict[str, Any]:
+    async def check(self) -> dict[str, Any]:
         """Run health check and return results"""
         self.start_time = time.time()
 
@@ -65,7 +66,7 @@ class ServiceHealthCheck:
         """Override to implement specific health check"""
         raise NotImplementedError
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for reporting"""
         return {
             "service": self.name,
@@ -237,7 +238,7 @@ class PageSpeedHealthCheck(ServiceHealthCheck):
 
 
 @task(name="run_health_checks", timeout_seconds=30)
-async def run_health_checks(checks: List[ServiceHealthCheck]) -> List[Dict[str, Any]]:
+async def run_health_checks(checks: list[ServiceHealthCheck]) -> list[dict[str, Any]]:
     """Run all health checks concurrently"""
     results = await asyncio.gather(*[check.check() for check in checks], return_exceptions=True)
 
@@ -269,7 +270,7 @@ async def run_health_checks(checks: List[ServiceHealthCheck]) -> List[Dict[str, 
 
 
 @flow(name="leadfactory-heartbeat", retries=0, timeout_seconds=HEARTBEAT_TIMEOUT)
-async def heartbeat_flow() -> Dict[str, Any]:
+async def heartbeat_flow() -> dict[str, Any]:
     """Main heartbeat flow - checks all critical services"""
     logger.info("Starting heartbeat health check")
 
@@ -322,7 +323,7 @@ async def heartbeat_flow() -> Dict[str, Any]:
 
     # Log summary
     logger.info(
-        f"Heartbeat complete: {summary['overall_status']} " f"({summary['healthy']}/{summary['total_checks']} healthy)"
+        f"Heartbeat complete: {summary['overall_status']} ({summary['healthy']}/{summary['total_checks']} healthy)"
     )
 
     # Record overall metrics
@@ -342,7 +343,7 @@ async def heartbeat_flow() -> Dict[str, Any]:
     return summary
 
 
-async def send_heartbeat_alert(level: str, details: Dict[str, Any]):
+async def send_heartbeat_alert(level: str, details: dict[str, Any]):
     """Send heartbeat alerts"""
 
     if level == "critical":
@@ -361,7 +362,7 @@ async def send_heartbeat_alert(level: str, details: Dict[str, Any]):
 
 
 # Quick health check endpoint for load balancers
-async def quick_health_check() -> Dict[str, Any]:
+async def quick_health_check() -> dict[str, Any]:
     """Minimal health check for load balancers (< 1 second)"""
     try:
         # Just check database

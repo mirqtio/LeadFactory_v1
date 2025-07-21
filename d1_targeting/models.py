@@ -1,6 +1,7 @@
 """
 Database models for targeting domain
 """
+
 import uuid
 from datetime import datetime
 

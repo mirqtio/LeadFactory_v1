@@ -1,6 +1,7 @@
 """
 Integration tests for LLM Heuristic Assessor with coordinator - P1-040
 """
+
 from unittest.mock import AsyncMock, patch
 
 import pytest

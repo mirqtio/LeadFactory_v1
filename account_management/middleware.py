@@ -2,14 +2,13 @@
 Authentication Middleware for Account Management
 Provides authentication and authorization middleware
 """
-from typing import Optional
 
 from fastapi import HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 
 from account_management.auth_service import AuthService
-from account_management.models import AccountAuditLog, AccountUser, APIKey, PermissionAction, ResourceType, UserStatus
+from account_management.models import AccountAuditLog, AccountUser, PermissionAction, ResourceType, UserStatus
 from core.logging import get_logger
 from database.base import get_db
 
@@ -23,7 +22,7 @@ class AuthMiddleware:
     """Authentication middleware for request processing"""
 
     @staticmethod
-    async def get_current_user_from_token(token: str, db: Session) -> Optional[AccountUser]:
+    async def get_current_user_from_token(token: str, db: Session) -> AccountUser | None:
         """Extract current user from JWT token"""
         try:
             payload = AuthService.decode_token(token)
@@ -46,7 +45,7 @@ class AuthMiddleware:
             return None
 
     @staticmethod
-    async def get_current_user_from_api_key(api_key: str, db: Session) -> Optional[AccountUser]:
+    async def get_current_user_from_api_key(api_key: str, db: Session) -> AccountUser | None:
         """Extract current user from API key"""
         key = AuthService.validate_api_key(db, api_key)
 
@@ -60,7 +59,7 @@ class AuthMiddleware:
         return user
 
     @staticmethod
-    async def authenticate_request(request: Request, db: Session) -> Optional[AccountUser]:
+    async def authenticate_request(request: Request, db: Session) -> AccountUser | None:
         """
         Authenticate request using either JWT token or API key
 
@@ -208,8 +207,8 @@ class AuditLogger:
         user: AccountUser,
         action: str,
         resource_type: str,
-        resource_id: Optional[str] = None,
-        details: Optional[dict] = None,
+        resource_id: str | None = None,
+        details: dict | None = None,
         db: Session = next(get_db()),
     ):
         """
@@ -240,7 +239,7 @@ class AuditLogger:
 
 
 # Dependency injection helpers
-async def get_optional_user(request: Request, db: Session = next(get_db())) -> Optional[AccountUser]:
+async def get_optional_user(request: Request, db: Session = next(get_db())) -> AccountUser | None:
     """Get current user if authenticated, None otherwise"""
     return await AuthMiddleware.authenticate_request(request, db)
 

@@ -49,9 +49,8 @@ def check_github_ci_status():
             print(f"  ✅ {task}")
 
         return True
-    else:
-        print("\n❌ CI checks not green - tasks cannot be marked complete")
-        return False
+    print("\n❌ CI checks not green - tasks cannot be marked complete")
+    return False
 
 
 def update_final_status():
@@ -233,7 +232,7 @@ def update_final_status():
         
         <div style="text-align: center; margin-top: 40px; color: white;">
             <div class="completion-badge">CLAUDE.MD CRITERIA: 100% SATISFIED</div><br>
-            <em>Task completion verified: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC</em>
+            <em>Task completion verified: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC</em>
         </div>
     </div>
 </body>

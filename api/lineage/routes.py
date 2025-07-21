@@ -3,7 +3,6 @@ Lineage API routes
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
@@ -21,11 +20,11 @@ router = APIRouter(prefix="/api/lineage", tags=["lineage"])
 
 @router.get("/search", response_model=list[LineageResponse])
 def search_lineage(
-    lead_id: Optional[str] = Query(None, description="Filter by lead ID"),
-    pipeline_run_id: Optional[str] = Query(None, description="Filter by pipeline run ID"),
-    template_version_id: Optional[str] = Query(None, description="Filter by template version ID"),
-    start_date: Optional[str] = Query(None, description="Filter by start date (ISO format)"),
-    end_date: Optional[str] = Query(None, description="Filter by end date (ISO format)"),
+    lead_id: str | None = Query(None, description="Filter by lead ID"),
+    pipeline_run_id: str | None = Query(None, description="Filter by pipeline run ID"),
+    template_version_id: str | None = Query(None, description="Filter by template version ID"),
+    start_date: str | None = Query(None, description="Filter by start date (ISO format)"),
+    end_date: str | None = Query(None, description="Filter by end date (ISO format)"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum results"),
     db: Session = Depends(get_db),
 ):
@@ -80,7 +79,7 @@ def get_lineage_by_report(
     report_id: str,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: Optional[str] = Depends(get_current_user_optional),
+    current_user: str | None = Depends(get_current_user_optional),
 ):
     """
     Retrieve lineage data for a specific report generation
@@ -121,7 +120,7 @@ def view_lineage_logs(
     lineage_id: str,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: Optional[str] = Depends(get_current_user_optional),
+    current_user: str | None = Depends(get_current_user_optional),
 ):
     """
     View JSON logs and raw inputs for a lineage record
@@ -183,7 +182,7 @@ def download_raw_inputs(
     lineage_id: str,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: Optional[str] = Depends(get_current_user_optional),
+    current_user: str | None = Depends(get_current_user_optional),
 ):
     """
     Download compressed raw inputs (≤2MB with gzip)
@@ -218,9 +217,8 @@ def download_raw_inputs(
                 "Content-Length": str(len(lineage.raw_inputs_compressed)),
             },
         )
-    else:
-        # No data available
-        raise HTTPException(status_code=404, detail="No raw inputs available for this lineage")
+    # No data available
+    raise HTTPException(status_code=404, detail="No raw inputs available for this lineage")
 
 
 @router.get("/panel/stats", response_model=PanelStatsResponse)
@@ -269,7 +267,7 @@ def get_panel_stats(
 def delete_lineage(
     lineage_id: str,
     db: Session = Depends(get_db),
-    current_user: Optional[str] = Depends(get_current_user_optional),
+    current_user: str | None = Depends(get_current_user_optional),
 ):
     """
     Delete a lineage record

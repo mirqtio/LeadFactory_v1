@@ -1,6 +1,7 @@
 """
 Core unit tests for Batch Runner module focusing on high coverage
 """
+
 from datetime import datetime
 from unittest.mock import patch
 

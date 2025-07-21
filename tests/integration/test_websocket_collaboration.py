@@ -4,6 +4,7 @@ WebSocket integration tests for P2-010 Collaborative Buckets.
 Tests real-time collaboration features including WebSocket connections,
 message broadcasting, and real-time updates.
 """
+
 import asyncio
 import json
 import secrets

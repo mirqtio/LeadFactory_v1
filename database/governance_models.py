@@ -3,11 +3,11 @@ Governance models for RBAC and audit logging (P0-026)
 
 Provides role-based access control and immutable audit trail
 """
+
 import enum
 import hashlib
 import json
 import uuid
-from typing import Optional
 
 from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Index, Integer, String, Text
 from sqlalchemy.sql import func
@@ -115,7 +115,7 @@ class AuditLog(Base):
         content_str = json.dumps(content, sort_keys=True, default=str)
         return hashlib.sha256(content_str.encode()).hexdigest()
 
-    def calculate_checksum(self, previous_checksum: Optional[str] = None) -> str:
+    def calculate_checksum(self, previous_checksum: str | None = None) -> str:
         """Calculate chained checksum including previous entry"""
         if previous_checksum:
             combined = f"{previous_checksum}:{self.content_hash}"

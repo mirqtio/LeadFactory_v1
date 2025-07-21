@@ -5,14 +5,9 @@ Integrates containerized acceptance testing into the core validation workflow,
 providing seamless integration with existing integration_validator system.
 """
 
-import asyncio
-import json
-import logging
 import os
-import subprocess
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import redis
 from pydantic import BaseModel
@@ -35,8 +30,8 @@ class AcceptanceConfig(BaseModel):
     vps_ssh_host: str
     vps_ssh_user: str
     vps_ssh_key_path: str = "/tmp/vps_ssh_key"
-    github_repo: Optional[str] = None
-    github_token: Optional[str] = None
+    github_repo: str | None = None
+    github_token: str | None = None
     timeout_seconds: int = 1800  # 30 minutes
     evidence_timeout: int = 600  # 10 minutes
 
@@ -49,7 +44,7 @@ class AcceptanceIntegrator:
     and the existing integration validation framework.
     """
 
-    def __init__(self, config: Optional[AcceptanceConfig] = None):
+    def __init__(self, config: AcceptanceConfig | None = None):
         self.config = config or self._load_config()
         self.docker_client = docker.from_env()
         self.evidence_validator = EvidenceValidator(
@@ -133,7 +128,7 @@ class AcceptanceIntegrator:
                 details={"error_type": type(e).__name__, "prp_id": self.config.prp_id},
             )
 
-    def _prepare_container_environment(self) -> Dict[str, str]:
+    def _prepare_container_environment(self) -> dict[str, str]:
         """Prepare environment variables for acceptance container."""
         return {
             "REDIS_URL": self.config.redis_url,
@@ -167,7 +162,7 @@ class AcceptanceIntegrator:
             logger.warning(f"Failed to pull container image: {e}")
             # Continue with existing image if pull fails
 
-    async def _run_acceptance_container(self, env_vars: Dict[str, str]) -> Dict[str, Any]:
+    async def _run_acceptance_container(self, env_vars: dict[str, str]) -> dict[str, Any]:
         """
         Run the acceptance container with proper configuration.
 
@@ -256,7 +251,7 @@ class AcceptanceIntegrator:
         container_result["duration_seconds"] = round(time.time() - start_time, 2)
         return container_result
 
-    async def _validate_evidence_collection(self) -> Dict[str, Any]:
+    async def _validate_evidence_collection(self) -> dict[str, Any]:
         """
         Validate that evidence was properly collected in Redis.
 
@@ -295,7 +290,7 @@ class AcceptanceIntegrator:
                 "error": str(e),
             }
 
-    def _format_error_message(self, container_result: Dict, evidence_status: Dict) -> str:
+    def _format_error_message(self, container_result: dict, evidence_status: dict) -> str:
         """Format a comprehensive error message for failed acceptance tests."""
         errors = []
 
@@ -316,7 +311,7 @@ class AcceptanceIntegrator:
 
         return "; ".join(errors) if errors else "Unknown error"
 
-    async def validate_acceptance_readiness(self) -> Dict[str, Any]:
+    async def validate_acceptance_readiness(self) -> dict[str, Any]:
         """
         Validate that the system is ready for acceptance testing.
 
@@ -405,7 +400,7 @@ async def run_acceptance_validation(prp_id: str) -> ValidationResult:
     return await acceptance_integrator.run_acceptance_tests()
 
 
-async def validate_acceptance_readiness() -> Dict[str, Any]:
+async def validate_acceptance_readiness() -> dict[str, Any]:
     """
     Convenience function to validate acceptance testing readiness.
 
@@ -416,7 +411,7 @@ async def validate_acceptance_readiness() -> Dict[str, Any]:
 
 
 # Integration with existing validation framework
-async def extended_integration_validation() -> Dict[str, Any]:
+async def extended_integration_validation() -> dict[str, Any]:
     """
     Extended integration validation that includes acceptance testing.
 

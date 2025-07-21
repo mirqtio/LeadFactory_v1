@@ -1,7 +1,8 @@
 """
 Unit tests for account management models
 """
-from datetime import datetime, timedelta, timezone
+
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -346,8 +347,8 @@ class TestUserSessionModel:
             refresh_token_hash="refresh_hash",
             ip_address="192.168.1.1",
             user_agent="Mozilla/5.0",
-            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
-            refresh_expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
+            refresh_expires_at=datetime.now(UTC) + timedelta(days=30),
         )
 
         db.add(session)
@@ -365,10 +366,10 @@ class TestUserSessionModel:
         db.flush()
 
         session1 = UserSession(
-            user_id=user.id, session_token_hash="same_token", expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+            user_id=user.id, session_token_hash="same_token", expires_at=datetime.now(UTC) + timedelta(hours=1)
         )
         session2 = UserSession(
-            user_id=user.id, session_token_hash="same_token", expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+            user_id=user.id, session_token_hash="same_token", expires_at=datetime.now(UTC) + timedelta(hours=1)
         )
 
         db.add(session1)
@@ -438,7 +439,7 @@ class TestTokenModels:
             user_id=user.id,
             email=user.email,
             token_hash="verification_hash",
-            expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+            expires_at=datetime.now(UTC) + timedelta(hours=24),
         )
 
         db.add(token)
@@ -455,7 +456,7 @@ class TestTokenModels:
         db.flush()
 
         token = PasswordResetToken(
-            user_id=user.id, token_hash="reset_hash", expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+            user_id=user.id, token_hash="reset_hash", expires_at=datetime.now(UTC) + timedelta(hours=1)
         )
 
         db.add(token)

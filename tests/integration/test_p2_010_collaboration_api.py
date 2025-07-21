@@ -2,6 +2,7 @@
 Integration tests for P2-010: Collaborative Bucket API
 Tests the full end-to-end functionality of the collaborative bucket system.
 """
+
 import asyncio
 import json
 from datetime import datetime, timedelta

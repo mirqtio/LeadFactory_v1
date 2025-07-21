@@ -318,7 +318,7 @@ class TestDesignTokenExtractor:
         assert output_path.exists()
 
         # Verify file contents
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             saved_tokens = json.load(f)
 
         assert saved_tokens == tokens
@@ -335,7 +335,7 @@ class TestDesignTokenExtractor:
         extractor.save_tokens(str(output_path), minify=False)
 
         # Verify file was created and is formatted
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             content = f.read()
 
         # Unminified should have newlines and indentation

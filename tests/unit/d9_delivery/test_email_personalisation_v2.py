@@ -169,7 +169,7 @@ class TestPersonalizedEmailBuilding:
         ab_variants = []
 
         for i, (subject, body) in enumerate(
-            zip(sample_personalized_content.subject_lines, sample_personalized_content.body_variants)
+            zip(sample_personalized_content.subject_lines, sample_personalized_content.body_variants, strict=False)
         ):
             variant = {
                 "variant_id": f"p2030_variant_{chr(65 + i)}",  # A, B, C

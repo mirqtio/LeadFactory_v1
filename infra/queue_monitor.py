@@ -5,15 +5,14 @@ Provides real-time health visibility, performance metrics, alerting thresholds,
 queue health dashboards, and integration with existing core/metrics.py and
 d0_gateway/alerts.py systems for comprehensive monitoring.
 """
+
 import asyncio
-import json
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-from core.config import get_settings
 from core.logging import get_logger
 from core.metrics import get_metrics_collector
 from infra.redis_queue import QueueStats, RedisQueueBroker
@@ -30,7 +29,7 @@ class QueueHealthStatus(BaseModel):
     processing_rate: float  # messages per minute
     avg_processing_time: float  # seconds
     error_rate: float  # percentage
-    last_activity: Optional[datetime] = None
+    last_activity: datetime | None = None
     health_score: float = Field(ge=0.0, le=1.0)  # 0.0 = critical, 1.0 = perfect
 
 
@@ -121,14 +120,14 @@ class QueueMonitor:
         self.metrics_collector = get_metrics_collector()
 
         # Alert thresholds by queue
-        self.alert_thresholds: Dict[str, QueueAlertThresholds] = {}
+        self.alert_thresholds: dict[str, QueueAlertThresholds] = {}
 
         # Historical metrics storage (in-memory for now, could be moved to Redis)
-        self.metrics_history: Dict[str, List[QueueMetrics]] = {}
+        self.metrics_history: dict[str, list[QueueMetrics]] = {}
         self.max_history_size = 1440  # 24 hours at 1-minute intervals
 
         # Processing time tracking
-        self.processing_times: Dict[str, List[float]] = {}
+        self.processing_times: dict[str, list[float]] = {}
         self.max_processing_times = 100  # Keep last 100 processing times
 
         self.logger.info("Queue monitor initialized")
@@ -193,7 +192,7 @@ class QueueMonitor:
             self.logger.error(f"Failed to collect metrics for queue {queue_name}: {e}")
             raise
 
-    async def _calculate_processing_rates(self, queue_name: str) -> Dict[str, float]:
+    async def _calculate_processing_rates(self, queue_name: str) -> dict[str, float]:
         """Calculate processing rates for different time windows"""
         current_time = time.time()
         rates = {"1min": 0.0, "5min": 0.0, "15min": 0.0}
@@ -204,7 +203,9 @@ class QueueMonitor:
         try:
             # Get recent processing timestamps
             timestamps = await self.broker.redis.zrangebyscore(
-                processing_key, current_time - 900, current_time  # Last 15 minutes
+                processing_key,
+                current_time - 900,
+                current_time,  # Last 15 minutes
             )
 
             if timestamps:
@@ -220,7 +221,7 @@ class QueueMonitor:
 
         return rates
 
-    def _calculate_timing_metrics(self, queue_name: str) -> Dict[str, float]:
+    def _calculate_timing_metrics(self, queue_name: str) -> dict[str, float]:
         """Calculate timing metrics from recent processing times"""
         processing_times = self.processing_times.get(queue_name, [])
 
@@ -358,7 +359,7 @@ class QueueMonitor:
                 health_score=0.0,
             )
 
-    def _calculate_health_score(self, metrics: QueueMetrics, thresholds: QueueAlertThresholds) -> Tuple[float, str]:
+    def _calculate_health_score(self, metrics: QueueMetrics, thresholds: QueueAlertThresholds) -> tuple[float, str]:
         """Calculate health score and status"""
         score = 1.0  # Start with perfect score
         status = "healthy"
@@ -410,7 +411,7 @@ class QueueMonitor:
 
         return max(0.0, score), status
 
-    async def _get_last_activity(self, queue_name: str) -> Optional[datetime]:
+    async def _get_last_activity(self, queue_name: str) -> datetime | None:
         """Get last activity timestamp for queue"""
         try:
             activity_key = f"queue_stats:{queue_name}:last_activity"
@@ -428,7 +429,6 @@ class QueueMonitor:
         try:
             if health_status.status in ["warning", "critical"]:
                 # Import alerts system
-                from d0_gateway.alerts import send_cost_alert
 
                 # Create alert data
                 alert_data = {
@@ -479,7 +479,7 @@ class QueueMonitor:
         except Exception as e:
             self.logger.error(f"Failed to record processing timestamp: {e}")
 
-    async def get_queue_dashboard_data(self, queue_names: List[str]) -> Dict[str, Any]:
+    async def get_queue_dashboard_data(self, queue_names: list[str]) -> dict[str, Any]:
         """Get dashboard data for multiple queues"""
         dashboard_data = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -537,7 +537,7 @@ class QueueMonitor:
 
         return dashboard_data
 
-    async def get_queue_trends(self, queue_name: str, hours: int = 24) -> Dict[str, List[Tuple[datetime, float]]]:
+    async def get_queue_trends(self, queue_name: str, hours: int = 24) -> dict[str, list[tuple[datetime, float]]]:
         """Get trend data for a queue over specified time period"""
         trends = {"pending_count": [], "processing_rate": [], "error_rate": [], "health_score": []}
 
@@ -559,10 +559,10 @@ class QueueMonitor:
 
 
 # Global monitor instance (lazy initialization)
-_monitor_instance: Optional[QueueMonitor] = None
+_monitor_instance: QueueMonitor | None = None
 
 
-def get_queue_monitor(broker: Optional[RedisQueueBroker] = None) -> QueueMonitor:
+def get_queue_monitor(broker: RedisQueueBroker | None = None) -> QueueMonitor:
     """Get global queue monitor instance"""
     global _monitor_instance
     if _monitor_instance is None:

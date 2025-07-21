@@ -1,4 +1,5 @@
 """Authentication utilities for FastAPI routes with RBAC support"""
+
 import os
 from typing import TYPE_CHECKING, Optional
 
@@ -8,8 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from account_management.auth_service import AuthService
-from account_management.models import AccountUser, APIKey, UserStatus
-from core.config import settings
+from account_management.models import AccountUser, UserStatus
 from core.logging import get_logger
 from database.session import get_db
 
@@ -70,8 +70,8 @@ def get_current_user_dependency(
 
 
 def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security), db: Session = Depends(get_db)
-) -> Optional[AccountUser]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security), db: Session = Depends(get_db)
+) -> AccountUser | None:
     """FastAPI dependency to get current authenticated user (optional)
 
     Args:
@@ -127,7 +127,7 @@ def verify_internal_token(token: str) -> bool:
     return token == expected_token
 
 
-def get_current_user_from_token(token: str, db: Session) -> Optional[AccountUser]:
+def get_current_user_from_token(token: str, db: Session) -> AccountUser | None:
     """Get current authenticated user from JWT token
 
     Args:
@@ -166,7 +166,7 @@ def get_current_user_from_token(token: str, db: Session) -> Optional[AccountUser
         return None
 
 
-def get_current_user_from_api_key(api_key: str, db: Session) -> Optional[AccountUser]:
+def get_current_user_from_api_key(api_key: str, db: Session) -> AccountUser | None:
     """Get current authenticated user from API key
 
     Args:
@@ -202,7 +202,7 @@ def get_current_user_from_api_key(api_key: str, db: Session) -> Optional[Account
         return None
 
 
-def get_current_user() -> Optional[str]:
+def get_current_user() -> str | None:
     """Get current authenticated user (legacy method)
 
     Returns:

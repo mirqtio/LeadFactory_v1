@@ -6,9 +6,10 @@ Timeout: 5s
 Cost: Free (no external API)
 Output: bsoup_json column
 """
+
 import asyncio
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 import aiohttp
@@ -33,7 +34,7 @@ class BeautifulSoupAssessor(BaseAssessor):
     def assessment_type(self) -> AssessmentType:
         return AssessmentType.CONTENT_ANALYSIS
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Extract page content and structure
 
@@ -87,13 +88,13 @@ class BeautifulSoupAssessor(BaseAssessor):
                 },
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise AssessmentTimeoutError(f"BeautifulSoup extraction timed out after {self.timeout}s")
         except Exception as e:
             logger.error(f"BeautifulSoup assessment failed for {url}: {e}")
             raise AssessmentError(f"BeautifulSoup extraction failed: {str(e)}")
 
-    async def _fetch_page(self, url: str) -> Optional[str]:
+    async def _fetch_page(self, url: str) -> str | None:
         """Fetch page content with timeout"""
         try:
             async with aiohttp.ClientSession() as session:
@@ -121,7 +122,7 @@ class BeautifulSoupAssessor(BaseAssessor):
             return meta["content"].strip()
         return ""
 
-    def _extract_headings(self, soup: BeautifulSoup) -> Dict[str, List[str]]:
+    def _extract_headings(self, soup: BeautifulSoup) -> dict[str, list[str]]:
         """Extract all headings by level"""
         headings = {}
         for i in range(1, 7):
@@ -130,7 +131,7 @@ class BeautifulSoupAssessor(BaseAssessor):
                 headings[f"h{i}"] = [tag.text.strip() for tag in h_tags if tag.text.strip()]
         return headings
 
-    def _extract_images(self, soup: BeautifulSoup, base_url: str) -> List[Dict[str, str]]:
+    def _extract_images(self, soup: BeautifulSoup, base_url: str) -> list[dict[str, str]]:
         """Extract image information"""
         images = []
         for img in soup.find_all("img")[:20]:  # Limit to 20 images
@@ -143,7 +144,7 @@ class BeautifulSoupAssessor(BaseAssessor):
                 images.append(img_data)
         return images
 
-    def _extract_links(self, soup: BeautifulSoup, base_url: str) -> Dict[str, List[str]]:
+    def _extract_links(self, soup: BeautifulSoup, base_url: str) -> dict[str, list[str]]:
         """Extract and categorize links"""
         internal_links = []
         external_links = []
@@ -162,7 +163,7 @@ class BeautifulSoupAssessor(BaseAssessor):
             "external": list(set(external_links))[:10],
         }
 
-    def _extract_structured_data(self, soup: BeautifulSoup) -> List[Dict]:
+    def _extract_structured_data(self, soup: BeautifulSoup) -> list[dict]:
         """Extract JSON-LD structured data"""
         structured_data = []
         for script in soup.find_all("script", type="application/ld+json"):
@@ -173,7 +174,7 @@ class BeautifulSoupAssessor(BaseAssessor):
                 pass
         return structured_data[:5]  # Limit to 5 items
 
-    def _extract_contact_info(self, soup: BeautifulSoup) -> Dict[str, Any]:
+    def _extract_contact_info(self, soup: BeautifulSoup) -> dict[str, Any]:
         """Extract contact information from page"""
         contact = {}
 
@@ -197,7 +198,7 @@ class BeautifulSoupAssessor(BaseAssessor):
 
         return contact
 
-    def _extract_social_links(self, soup: BeautifulSoup) -> Dict[str, str]:
+    def _extract_social_links(self, soup: BeautifulSoup) -> dict[str, str]:
         """Extract social media links"""
         social_patterns = {
             "facebook": "facebook.com",
@@ -215,7 +216,7 @@ class BeautifulSoupAssessor(BaseAssessor):
 
         return social_links
 
-    def _calculate_text_stats(self, soup: BeautifulSoup) -> Dict[str, int]:
+    def _calculate_text_stats(self, soup: BeautifulSoup) -> dict[str, int]:
         """Calculate text statistics"""
         # Remove script and style elements
         for script in soup(["script", "style"]):
@@ -231,7 +232,7 @@ class BeautifulSoupAssessor(BaseAssessor):
             "lists": len(soup.find_all(["ul", "ol"])),
         }
 
-    def _extract_forms(self, soup: BeautifulSoup) -> List[Dict[str, Any]]:
+    def _extract_forms(self, soup: BeautifulSoup) -> list[dict[str, Any]]:
         """Extract form information"""
         forms = []
         for form in soup.find_all("form")[:5]:  # Limit to 5 forms
@@ -256,7 +257,7 @@ class BeautifulSoupAssessor(BaseAssessor):
 
         return forms
 
-    def _analyze_page_structure(self, soup: BeautifulSoup) -> Dict[str, Any]:
+    def _analyze_page_structure(self, soup: BeautifulSoup) -> dict[str, Any]:
         """Analyze overall page structure"""
         return {
             "has_header": bool(soup.find(["header", "nav"])),

@@ -34,7 +34,7 @@ def test_redis_helpers():
     """Test our Redis helpers"""
     print("🔍 Testing Redis helpers...")
     try:
-        from redis_cli import prp_redis, sync_redis
+        from redis_cli import sync_redis
 
         # Test sync helper
         result = sync_redis.set("test_helper", "works", ttl=10)
@@ -42,7 +42,7 @@ def test_redis_helpers():
         print(f"   ✅ Sync helper: set={result}, get={value}")
 
         # Test PRP helper (basic test)
-        print(f"   ✅ PRP helper imported successfully")
+        print("   ✅ PRP helper imported successfully")
         return True
     except Exception as e:
         print(f"   ❌ Redis helpers failed: {e}")
@@ -62,9 +62,8 @@ def test_prp_state_manager():
         if status["connected"] and status["enabled"]:
             print("   ✅ PRP state manager Redis integration operational")
             return True
-        else:
-            print("   ❌ PRP state manager Redis not connected")
-            return False
+        print("   ❌ PRP state manager Redis not connected")
+        return False
     except Exception as e:
         print(f"   ❌ PRP state manager test failed: {e}")
         return False
@@ -117,10 +116,9 @@ def main():
         print("   ✅ PRP state management with Redis")
         print("   ✅ Ready for PM hierarchy deployment")
         return True
-    else:
-        print(f"⚠️  Redis Integration: {(passed/total)*100:.0f}% complete")
-        print("   Some functionality needs fixing")
-        return False
+    print(f"⚠️  Redis Integration: {(passed / total) * 100:.0f}% complete")
+    print("   Some functionality needs fixing")
+    return False
 
 
 if __name__ == "__main__":

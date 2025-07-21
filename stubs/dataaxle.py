@@ -1,6 +1,7 @@
 """
 Data Axle API stub endpoints
 """
+
 import random
 from typing import Any, Dict
 

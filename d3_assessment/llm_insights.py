@@ -11,12 +11,13 @@ Acceptance Criteria:
 - Cost tracking works
 - Structured output parsing
 """
+
 import json
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Use Humanloop for all LLM operations
 from d0_gateway.providers.humanloop import HumanloopClient
@@ -34,14 +35,14 @@ class LLMInsightResult:
     assessment_id: str
     business_id: str
     industry: str
-    insight_types: List[InsightType]
-    insights: Dict[str, Any]
+    insight_types: list[InsightType]
+    insights: dict[str, Any]
     total_cost_usd: Decimal
     generated_at: datetime
     completed_at: datetime
     model_version: str
     processing_time_ms: int
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class LLMInsightGenerator:
@@ -52,7 +53,7 @@ class LLMInsightGenerator:
     and strategic analysis using advanced language models.
     """
 
-    def __init__(self, llm_client: Optional[HumanloopClient] = None):
+    def __init__(self, llm_client: HumanloopClient | None = None):
         """
         Initialize LLM insight generator
 
@@ -66,7 +67,7 @@ class LLMInsightGenerator:
         self,
         assessment: AssessmentResult,
         industry: str = "default",
-        insight_types: List[InsightType] = None,
+        insight_types: list[InsightType] = None,
     ) -> LLMInsightResult:
         """
         Generate comprehensive insights for website assessment
@@ -160,8 +161,8 @@ class LLMInsightGenerator:
             )
 
     async def _generate_recommendations(
-        self, assessment_data: Dict[str, Any], industry: str, insight_id: str
-    ) -> tuple[Dict[str, Any], Decimal]:
+        self, assessment_data: dict[str, Any], industry: str, insight_id: str
+    ) -> tuple[dict[str, Any], Decimal]:
         """
         Generate 3 actionable recommendations
 
@@ -194,8 +195,8 @@ class LLMInsightGenerator:
             return self._extract_recommendations_fallback(response.get("output", "")), cost
 
     async def _generate_technical_analysis(
-        self, assessment_data: Dict[str, Any], insight_id: str
-    ) -> tuple[Dict[str, Any], Decimal]:
+        self, assessment_data: dict[str, Any], insight_id: str
+    ) -> tuple[dict[str, Any], Decimal]:
         """Generate technical performance analysis"""
         prompt_vars = self.prompts.get_prompt_variables(assessment_data)
 
@@ -215,8 +216,8 @@ class LLMInsightGenerator:
             return self._extract_technical_analysis_fallback(response.get("output", "")), cost
 
     async def _generate_industry_benchmark(
-        self, assessment_data: Dict[str, Any], industry: str, insight_id: str
-    ) -> tuple[Dict[str, Any], Decimal]:
+        self, assessment_data: dict[str, Any], industry: str, insight_id: str
+    ) -> tuple[dict[str, Any], Decimal]:
         """
         Generate industry-specific benchmarking analysis
 
@@ -240,8 +241,8 @@ class LLMInsightGenerator:
             return self._extract_benchmark_analysis_fallback(response.get("output", "")), cost
 
     async def _generate_quick_wins(
-        self, assessment_data: Dict[str, Any], insight_id: str
-    ) -> tuple[Dict[str, Any], Decimal]:
+        self, assessment_data: dict[str, Any], insight_id: str
+    ) -> tuple[dict[str, Any], Decimal]:
         """Generate quick win recommendations"""
         prompt_vars = self.prompts.get_prompt_variables(assessment_data)
 
@@ -258,7 +259,7 @@ class LLMInsightGenerator:
         except json.JSONDecodeError:
             return self._extract_quick_wins_fallback(response.get("output", "")), cost
 
-    def _prepare_assessment_data(self, assessment: AssessmentResult) -> Dict[str, Any]:
+    def _prepare_assessment_data(self, assessment: AssessmentResult) -> dict[str, Any]:
         """Prepare assessment data for LLM analysis"""
         return {
             "url": assessment.url,
@@ -279,7 +280,7 @@ class LLMInsightGenerator:
             "mobile_performance_score": self._extract_mobile_score(assessment),
         }
 
-    def _extract_tech_stack(self, assessment: AssessmentResult) -> List[Dict[str, Any]]:
+    def _extract_tech_stack(self, assessment: AssessmentResult) -> list[dict[str, Any]]:
         """Extract technology stack from assessment data"""
         # This would integrate with the tech stack detector results
         tech_data = getattr(assessment, "tech_stack_data", {})
@@ -287,7 +288,7 @@ class LLMInsightGenerator:
             return tech_data.get("technologies", [])
         return []
 
-    def _extract_performance_issues(self, assessment: AssessmentResult) -> List[Dict[str, Any]]:
+    def _extract_performance_issues(self, assessment: AssessmentResult) -> list[dict[str, Any]]:
         """Extract performance issues from PageSpeed data"""
         pagespeed_data = getattr(assessment, "pagespeed_data", {})
         if isinstance(pagespeed_data, dict):
@@ -320,23 +321,22 @@ class LLMInsightGenerator:
             return int(perf_score * 100) if perf_score else 0
         return assessment.performance_score
 
-    def _categorize_audit_impact(self, audit: Dict[str, Any]) -> str:
+    def _categorize_audit_impact(self, audit: dict[str, Any]) -> str:
         """Categorize audit impact level"""
         savings_ms = audit.get("details", {}).get("overallSavingsMs", 0) or 0
         score = audit.get("score", 1) or 1
 
         if savings_ms >= 1000 or score < 0.5:
             return "high"
-        elif savings_ms >= 500 or score < 0.75:
+        if savings_ms >= 500 or score < 0.75:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     async def _track_llm_cost(
         self,
         insight_id: str,
         insight_type: str,
-        usage: Dict[str, Any],
+        usage: dict[str, Any],
         description: str,
     ) -> Decimal:
         """
@@ -388,7 +388,7 @@ class LLMInsightGenerator:
                 required_fields = ["title", "description", "priority", "effort"]
                 for field in required_fields:
                     if field not in rec:
-                        raise ValueError(f"Recommendation {i+1} missing required field: {field}")
+                        raise ValueError(f"Recommendation {i + 1} missing required field: {field}")
 
         # Validate industry insights if present
         if "industry_benchmark" in insights:
@@ -400,7 +400,7 @@ class LLMInsightGenerator:
         if not insights:
             raise ValueError("No insights generated - structured output parsing failed")
 
-    def _extract_recommendations_fallback(self, content: str) -> Dict[str, Any]:
+    def _extract_recommendations_fallback(self, content: str) -> dict[str, Any]:
         """
         Fallback recommendation extraction from unstructured content
 
@@ -460,7 +460,7 @@ class LLMInsightGenerator:
             },
         }
 
-    def _extract_technical_analysis_fallback(self, content: str) -> Dict[str, Any]:
+    def _extract_technical_analysis_fallback(self, content: str) -> dict[str, Any]:
         """Fallback technical analysis extraction"""
         return {
             "technical_recommendations": [
@@ -479,7 +479,7 @@ class LLMInsightGenerator:
             },
         }
 
-    def _extract_benchmark_analysis_fallback(self, content: str) -> Dict[str, Any]:
+    def _extract_benchmark_analysis_fallback(self, content: str) -> dict[str, Any]:
         """Fallback benchmark analysis extraction"""
         return {
             "benchmark_analysis": {
@@ -504,7 +504,7 @@ class LLMInsightGenerator:
             }
         }
 
-    def _extract_quick_wins_fallback(self, content: str) -> Dict[str, Any]:
+    def _extract_quick_wins_fallback(self, content: str) -> dict[str, Any]:
         """Fallback quick wins extraction"""
         return {
             "quick_wins": [
@@ -532,16 +532,16 @@ class LLMInsightBatchGenerator:
     and cost optimization.
     """
 
-    def __init__(self, generator: Optional[LLMInsightGenerator] = None):
+    def __init__(self, generator: LLMInsightGenerator | None = None):
         """Initialize batch generator"""
         self.generator = generator or LLMInsightGenerator()
 
     async def generate_batch_insights(
         self,
-        assessments: List[AssessmentResult],
-        industry_mapping: Dict[str, str] = None,
+        assessments: list[AssessmentResult],
+        industry_mapping: dict[str, str] = None,
         max_concurrent: int = 3,
-    ) -> List[LLMInsightResult]:
+    ) -> list[LLMInsightResult]:
         """
         Generate insights for multiple assessments efficiently
 
@@ -568,8 +568,8 @@ class LLMInsightBatchGenerator:
 
     async def calculate_batch_cost(
         self,
-        assessments: List[AssessmentResult],
-        insight_types: List[InsightType] = None,
+        assessments: list[AssessmentResult],
+        insight_types: list[InsightType] = None,
     ) -> Decimal:
         """Calculate estimated cost for batch insight generation"""
         base_cost_per_assessment = Decimal("0.50")  # Estimated $0.50 per assessment

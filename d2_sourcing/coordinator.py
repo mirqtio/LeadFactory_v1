@@ -10,13 +10,14 @@ Acceptance Criteria:
 - Error handling complete
 - Metrics tracked
 """
+
 import asyncio
 import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -64,14 +65,14 @@ class SourcingBatch:
 
     id: str
     location: str
-    search_terms: List[str]
-    categories: List[str]
+    search_terms: list[str]
+    categories: list[str]
     max_results: int
     status: BatchStatus
     created_at: datetime
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    error_message: Optional[str] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    error_message: str | None = None
 
     # Progress tracking
     total_expected: int = 0
@@ -100,7 +101,7 @@ class CoordinatorMetrics:
 
     session_id: str
     start_time: datetime
-    end_time: Optional[datetime] = None
+    end_time: datetime | None = None
 
     # Batch metrics
     total_batches: int = 0
@@ -139,7 +140,7 @@ class SourcingCoordinator:
     monitoring, error handling, and metrics tracking.
     """
 
-    def __init__(self, session: Optional[Session] = None):
+    def __init__(self, session: Session | None = None):
         """Initialize the sourcing coordinator"""
         self.settings = get_settings()
         self.logger = get_logger("sourcing_coordinator", domain="d2")
@@ -186,8 +187,8 @@ class SourcingCoordinator:
     def create_batch(
         self,
         location: str,
-        search_terms: Optional[List[str]] = None,
-        categories: Optional[List[str]] = None,
+        search_terms: list[str] | None = None,
+        categories: list[str] | None = None,
         max_results: int = 1000,
     ) -> str:
         """
@@ -284,7 +285,7 @@ class SourcingCoordinator:
             batch.scraped_count = 0
             batch.total_expected = 0
 
-            self.logger.info("Scraping phase skipped - Yelp provider removed. " "DataAxle integration pending.")
+            self.logger.info("Scraping phase skipped - Yelp provider removed. DataAxle integration pending.")
 
             batch.scraping_time = time.time() - phase_start
 
@@ -425,7 +426,7 @@ class SourcingCoordinator:
 
         return True
 
-    def _get_batch(self, batch_id: str) -> Optional[SourcingBatch]:
+    def _get_batch(self, batch_id: str) -> SourcingBatch | None:
         """Get batch by ID from any queue"""
         # Check active batches
         if batch_id in self.active_batches:
@@ -480,7 +481,7 @@ class SourcingCoordinator:
         if validated_total > 0:
             self.metrics.validation_pass_rate = self.metrics.total_businesses_validated / validated_total
 
-    def get_batch_status(self, batch_id: str) -> Dict[str, Any]:
+    def get_batch_status(self, batch_id: str) -> dict[str, Any]:
         """
         Get detailed status of a batch
 
@@ -530,7 +531,7 @@ class SourcingCoordinator:
             },
         }
 
-    def get_coordinator_status(self) -> Dict[str, Any]:
+    def get_coordinator_status(self) -> dict[str, Any]:
         """
         Get comprehensive coordinator status
 
@@ -570,7 +571,7 @@ class SourcingCoordinator:
             },
         }
 
-    async def process_multiple_batches(self, batch_configs: List[Dict[str, Any]]) -> List[str]:
+    async def process_multiple_batches(self, batch_configs: list[dict[str, Any]]) -> list[str]:
         """
         Process multiple batches with concurrency control
 
@@ -668,8 +669,8 @@ class SourcingCoordinator:
 
 
 async def process_location_batch(
-    location: str, categories: Optional[List[str]] = None, max_results: int = 1000
-) -> Dict[str, Any]:
+    location: str, categories: list[str] | None = None, max_results: int = 1000
+) -> dict[str, Any]:
     """
     Convenience function to process a single location batch
 
@@ -689,10 +690,10 @@ async def process_location_batch(
 
 
 async def process_multiple_locations(
-    locations: List[str],
-    categories: Optional[List[str]] = None,
+    locations: list[str],
+    categories: list[str] | None = None,
     max_results_per_location: int = 500,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Convenience function to process multiple locations concurrently
 

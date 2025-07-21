@@ -6,20 +6,19 @@ Implements deterministic test mode and integrates with existing email personaliz
 
 Integration Points:
 - Subject line generation via LLM (5 variants)
-- Body copy generation via LLM (3 variants) 
+- Body copy generation via LLM (3 variants)
 - Deterministic test mode using USE_STUBS flag
 - Template system integration
 - A/B testing capabilities
 """
 
-import hashlib
 import json
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from core.logging import get_logger
 from d0_gateway.providers.humanloop import HumanloopClient
@@ -52,7 +51,7 @@ class GenerationOptions:
     subject_line_count: int = 5  # P2-030 requirement
     body_variant_count: int = 3  # P2-030 requirement
     include_assessment_context: bool = True
-    deterministic_seed: Optional[str] = None  # For testing
+    deterministic_seed: str | None = None  # For testing
     max_subject_length: int = 60
     max_body_words: int = 150
     temperature: float = 0.7
@@ -65,7 +64,7 @@ class GeneratedSubjectLine:
     text: str
     approach: str  # direct, question, benefit, curiosity, urgency
     length: int
-    personalization_tokens: List[str] = field(default_factory=list)
+    personalization_tokens: list[str] = field(default_factory=list)
     spam_risk_score: float = 0.0
     quality_score: float = 0.0
 
@@ -78,7 +77,7 @@ class GeneratedBodyContent:
     variant: str  # direct, consultative, value-first
     approach: str
     word_count: int
-    personalization_tokens: List[str] = field(default_factory=list)
+    personalization_tokens: list[str] = field(default_factory=list)
     readability_score: float = 0.0
 
 
@@ -86,14 +85,14 @@ class GeneratedBodyContent:
 class EmailGenerationResult:
     """Complete email generation result"""
 
-    subject_lines: List[GeneratedSubjectLine]
-    body_variants: List[GeneratedBodyContent]
+    subject_lines: list[GeneratedSubjectLine]
+    body_variants: list[GeneratedBodyContent]
     generation_mode: GenerationMode
     business_id: str
     generated_at: datetime
     total_cost: Decimal = Decimal("0.00")
     generation_time_ms: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class EmailPersonalizationGenerator:
@@ -104,7 +103,7 @@ class EmailPersonalizationGenerator:
     Generates 5 subject line variants and 3 body copy variants as specified.
     """
 
-    def __init__(self, use_stubs: bool = None, humanloop_client: Optional[HumanloopClient] = None):
+    def __init__(self, use_stubs: bool = None, humanloop_client: HumanloopClient | None = None):
         """
         Initialize the email personalization generator
 
@@ -148,10 +147,10 @@ class EmailPersonalizationGenerator:
     async def generate_email_content(
         self,
         business_id: str,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]] = None,
-        assessment_data: Optional[Dict[str, Any]] = None,
-        options: Optional[GenerationOptions] = None,
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None = None,
+        assessment_data: dict[str, Any] | None = None,
+        options: GenerationOptions | None = None,
     ) -> EmailGenerationResult:
         """
         Generate personalized email content (P2-030 main functionality)
@@ -219,12 +218,12 @@ class EmailPersonalizationGenerator:
 
     async def _generate_subject_lines(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        assessment_data: Optional[Dict[str, Any]],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        assessment_data: dict[str, Any] | None,
         options: GenerationOptions,
         mode: GenerationMode,
-    ) -> List[GeneratedSubjectLine]:
+    ) -> list[GeneratedSubjectLine]:
         """Generate 5 subject line variants"""
 
         if mode == GenerationMode.DETERMINISTIC:
@@ -268,12 +267,12 @@ class EmailPersonalizationGenerator:
 
     async def _generate_body_content(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        assessment_data: Optional[Dict[str, Any]],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        assessment_data: dict[str, Any] | None,
         options: GenerationOptions,
         mode: GenerationMode,
-    ) -> List[GeneratedBodyContent]:
+    ) -> list[GeneratedBodyContent]:
         """Generate 3 body content variants"""
 
         if mode == GenerationMode.DETERMINISTIC:
@@ -316,7 +315,7 @@ class EmailPersonalizationGenerator:
             logger.warning(f"LLM body generation failed, falling back to deterministic: {e}")
             return self._generate_deterministic_bodies(business_data, contact_data)
 
-    def _generate_deterministic_subjects(self, business_data: Dict[str, Any]) -> List[GeneratedSubjectLine]:
+    def _generate_deterministic_subjects(self, business_data: dict[str, Any]) -> list[GeneratedSubjectLine]:
         """Generate deterministic subject lines for testing"""
         subjects = []
         for item in self._deterministic_subjects:
@@ -333,8 +332,8 @@ class EmailPersonalizationGenerator:
         return subjects
 
     def _generate_deterministic_bodies(
-        self, business_data: Dict[str, Any], contact_data: Optional[Dict[str, Any]]
-    ) -> List[GeneratedBodyContent]:
+        self, business_data: dict[str, Any], contact_data: dict[str, Any] | None
+    ) -> list[GeneratedBodyContent]:
         """Generate deterministic body content for testing"""
         bodies = []
         for item in self._deterministic_bodies:
@@ -352,11 +351,11 @@ class EmailPersonalizationGenerator:
 
     def _prepare_generation_context(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        assessment_data: Optional[Dict[str, Any]],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        assessment_data: dict[str, Any] | None,
         options: GenerationOptions,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Prepare context dictionary for LLM prompts"""
 
         # Basic business context
@@ -387,7 +386,7 @@ class EmailPersonalizationGenerator:
 
         return context
 
-    def _format_location(self, business_data: Dict[str, Any]) -> str:
+    def _format_location(self, business_data: dict[str, Any]) -> str:
         """Format business location from data"""
         location_data = business_data.get("location", {})
         if isinstance(location_data, dict):
@@ -395,19 +394,19 @@ class EmailPersonalizationGenerator:
             state = location_data.get("state", "")
             if city and state:
                 return f"{city}, {state}"
-            elif city:
+            if city:
                 return city
         elif isinstance(location_data, str):
             return location_data
         return business_data.get("city", "")
 
-    def _get_contact_name(self, contact_data: Optional[Dict[str, Any]]) -> str:
+    def _get_contact_name(self, contact_data: dict[str, Any] | None) -> str:
         """Extract contact name from data"""
         if not contact_data:
             return "there"
         return contact_data.get("first_name") or contact_data.get("name") or contact_data.get("contact_name") or "there"
 
-    def _format_assessment_context(self, assessment_data: Dict[str, Any]) -> str:
+    def _format_assessment_context(self, assessment_data: dict[str, Any]) -> str:
         """Format assessment data for prompt context"""
         context_parts = []
 
@@ -425,7 +424,7 @@ class EmailPersonalizationGenerator:
 
         return "\n".join(context_parts) if context_parts else ""
 
-    def _format_issues_summary(self, assessment_data: Dict[str, Any]) -> str:
+    def _format_issues_summary(self, assessment_data: dict[str, Any]) -> str:
         """Format issues summary for prompts"""
         issues = []
 
@@ -452,7 +451,7 @@ class EmailPersonalizationGenerator:
 
         return ", ".join(issues) if issues else "performance optimization opportunities"
 
-    def _format_findings_detail(self, assessment_data: Dict[str, Any]) -> str:
+    def _format_findings_detail(self, assessment_data: dict[str, Any]) -> str:
         """Format detailed findings for body content"""
         findings = []
 
@@ -471,7 +470,7 @@ class EmailPersonalizationGenerator:
 
         return ". ".join(findings) if findings else "Several optimization opportunities identified"
 
-    def _personalize_text(self, text: str, business_data: Dict[str, Any], contact_data: Dict[str, Any]) -> str:
+    def _personalize_text(self, text: str, business_data: dict[str, Any], contact_data: dict[str, Any]) -> str:
         """Replace personalization tokens in text"""
         personalized = text
 
@@ -493,14 +492,14 @@ class EmailPersonalizationGenerator:
 
         return personalized
 
-    def _extract_tokens(self, text: str) -> List[str]:
+    def _extract_tokens(self, text: str) -> list[str]:
         """Extract personalization tokens from text"""
         import re
 
         token_pattern = r"\{([^}]+)\}"
         return re.findall(token_pattern, text)
 
-    def _parse_llm_json_response(self, response_text: str) -> Dict[str, Any]:
+    def _parse_llm_json_response(self, response_text: str) -> dict[str, Any]:
         """Parse JSON response from LLM, handling potential formatting issues"""
         try:
             # Try direct JSON parse first
@@ -586,8 +585,8 @@ class EmailPersonalizationGenerator:
 
 # Convenience functions for backward compatibility and easy testing
 async def generate_subject_lines(
-    business_id: str, business_data: Dict[str, Any], **kwargs
-) -> List[GeneratedSubjectLine]:
+    business_id: str, business_data: dict[str, Any], **kwargs
+) -> list[GeneratedSubjectLine]:
     """Generate 5 subject line variants"""
     generator = EmailPersonalizationGenerator()
     result = await generator.generate_email_content(business_id, business_data, **kwargs)
@@ -595,8 +594,8 @@ async def generate_subject_lines(
 
 
 async def generate_body_variants(
-    business_id: str, business_data: Dict[str, Any], **kwargs
-) -> List[GeneratedBodyContent]:
+    business_id: str, business_data: dict[str, Any], **kwargs
+) -> list[GeneratedBodyContent]:
     """Generate 3 body content variants"""
     generator = EmailPersonalizationGenerator()
     result = await generator.generate_email_content(business_id, business_data, **kwargs)
@@ -604,7 +603,7 @@ async def generate_body_variants(
 
 
 async def generate_full_email_content(
-    business_id: str, business_data: Dict[str, Any], **kwargs
+    business_id: str, business_data: dict[str, Any], **kwargs
 ) -> EmailGenerationResult:
     """Generate complete email content (subjects + bodies)"""
     generator = EmailPersonalizationGenerator()

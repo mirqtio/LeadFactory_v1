@@ -10,10 +10,10 @@ import sys
 
 def run_command(cmd, description):
     """Run a command and report results"""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"🔧 {description}")
     print(f"Command: {cmd}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
@@ -104,9 +104,8 @@ except Exception as e:
     if all_passed:
         print("✅ All tests passed!")
         return 0
-    else:
-        print("❌ Some tests failed. Check the output above for details.")
-        return 1
+    print("❌ Some tests failed. Check the output above for details.")
+    return 1
 
 
 if __name__ == "__main__":

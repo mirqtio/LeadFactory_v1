@@ -8,6 +8,7 @@ Tests all acceptance criteria:
 - Cache invalidation logic
 - Hit rate tracking
 """
+
 import asyncio
 import sys
 import uuid

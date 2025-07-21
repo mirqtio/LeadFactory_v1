@@ -2,10 +2,11 @@
 Structured logging configuration
 Supports both JSON and text formats for different environments
 """
+
 import logging
 import sys
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pythonjsonlogger import jsonlogger
 
@@ -17,9 +18,9 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
 
     def add_fields(
         self,
-        log_record: Dict[str, Any],
+        log_record: dict[str, Any],
         record: logging.LogRecord,
-        message_dict: Dict[str, Any],
+        message_dict: dict[str, Any],
     ) -> None:
         super().add_fields(log_record, record, message_dict)
 
@@ -74,10 +75,10 @@ def setup_logging() -> None:
 class LoggerAdapter(logging.LoggerAdapter):
     """Logger adapter to add context to all log messages"""
 
-    def __init__(self, logger: logging.Logger, extra: Optional[Dict[str, Any]] = None):
+    def __init__(self, logger: logging.Logger, extra: dict[str, Any] | None = None):
         super().__init__(logger, extra or {})
 
-    def process(self, msg: str, kwargs: Dict[str, Any]) -> tuple:
+    def process(self, msg: str, kwargs: dict[str, Any]) -> tuple:
         """Add context to log messages"""
         # Merge extra context
         extra = kwargs.get("extra", {})

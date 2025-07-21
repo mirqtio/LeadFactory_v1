@@ -4,9 +4,10 @@ Scoring engine that reads configuration from YAML.
 This module implements the ScoringEngine class that replaces hard-coded
 scoring weights with YAML-based configuration.
 """
+
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from prometheus_client import Gauge
 
@@ -26,7 +27,7 @@ scoring_rules_default_used = Gauge(
 class ScoringEngine:
     """Engine for calculating scores based on YAML configuration."""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str | None = None):
         """
         Initialize the scoring engine.
 
@@ -34,11 +35,11 @@ class ScoringEngine:
             config_path: Path to scoring rules YAML. If None, uses env var or default.
         """
         self.config_path = self._resolve_config_path(config_path)
-        self._schema: Optional[ScoringRulesSchema] = None
+        self._schema: ScoringRulesSchema | None = None
         self._using_defaults = False
         self.reload_config()
 
-    def _resolve_config_path(self, config_path: Optional[str]) -> Path:
+    def _resolve_config_path(self, config_path: str | None) -> Path:
         """Resolve the configuration file path."""
         if config_path:
             return Path(config_path)
@@ -59,7 +60,7 @@ class ScoringEngine:
 
                 # For local dev/tests, use defaults
                 logger.warning(
-                    f"Scoring rules file not found: {self.config_path}. " "Using default configuration for development."
+                    f"Scoring rules file not found: {self.config_path}. Using default configuration for development."
                 )
                 self._load_defaults()
                 self._using_defaults = True
@@ -84,7 +85,7 @@ class ScoringEngine:
         # For now, we'll just set the flag
         logger.info("Loading default scoring configuration")
 
-    def calculate_score(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def calculate_score(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Calculate score based on input data and configuration.
 
@@ -135,7 +136,7 @@ class ScoringEngine:
             "config_version": self._schema.version,
         }
 
-    def _calculate_component_score(self, data: Dict[str, Any], config: Any, comp_name: str) -> float:
+    def _calculate_component_score(self, data: dict[str, Any], config: Any, comp_name: str) -> float:
         """Calculate score for a single component."""
         if hasattr(config, "factors"):
             # New style with factors
@@ -147,18 +148,17 @@ class ScoringEngine:
                     if data[factor_name]:
                         factor_score += factor_config.weight
             return factor_score * 100  # Convert to 0-100 scale
-        else:
-            # Legacy style with rules
-            total_points = 0.0
-            for rule in config.rules:
-                # Evaluate rule condition
-                # This is a simplified version - real implementation would
-                # need proper expression evaluation
-                if self._evaluate_rule(rule.condition, data):
-                    total_points += rule.points
-            return total_points
+        # Legacy style with rules
+        total_points = 0.0
+        for rule in config.rules:
+            # Evaluate rule condition
+            # This is a simplified version - real implementation would
+            # need proper expression evaluation
+            if self._evaluate_rule(rule.condition, data):
+                total_points += rule.points
+        return total_points
 
-    def _evaluate_rule(self, condition: str, data: Dict[str, Any]) -> bool:
+    def _evaluate_rule(self, condition: str, data: dict[str, Any]) -> bool:
         """Evaluate a rule condition against data."""
         # Simplified evaluation - real implementation would use
         # a proper expression evaluator
@@ -183,7 +183,7 @@ class ScoringEngine:
 
         return "D"  # Default to lowest tier
 
-    def get_tier_thresholds(self) -> Dict[str, float]:
+    def get_tier_thresholds(self) -> dict[str, float]:
         """Get current tier thresholds."""
         if not self._schema or not self._schema.tiers:
             return {}

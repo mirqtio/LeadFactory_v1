@@ -1,20 +1,20 @@
 """
 Anthrasite Design System
 
-This module provides access to design tokens extracted from the Anthrasite Design 
+This module provides access to design tokens extracted from the Anthrasite Design
 System style guide. Tokens include colors, typography, spacing, animation timings,
 and responsive breakpoints.
 
 Usage:
     from design import tokens, colors, typography, spacing
-    
+
     # Access color values
     primary_blue = colors.primary.synthesis_blue
     success_color = colors.status.success
-    
+
     # Use typography scale
     heading_style = typography.scale.h1
-    
+
     # Access spacing values
     small_padding = spacing.scale.sm
 """
@@ -26,16 +26,16 @@ from typing import Any, Dict, NamedTuple, Optional
 # Load design tokens from JSON file
 _TOKENS_PATH = Path(__file__).parent / "design_tokens.json"
 
-with open(_TOKENS_PATH, "r", encoding="utf-8") as f:
-    tokens: Dict[str, Any] = json.load(f)
+with open(_TOKENS_PATH, encoding="utf-8") as f:
+    tokens: dict[str, Any] = json.load(f)
 
 
 class ColorToken(NamedTuple):
     """Represents a color token with value and optional metadata."""
 
     value: str
-    usage: Optional[str] = None
-    contrast: Optional[Dict[str, str]] = None
+    usage: str | None = None
+    contrast: dict[str, str] | None = None
 
 
 class TypographyToken(NamedTuple):
@@ -49,7 +49,7 @@ class TypographyToken(NamedTuple):
 class ColorCategory:
     """Container for color tokens in a category."""
 
-    def __init__(self, color_data: Dict[str, Any]):
+    def __init__(self, color_data: dict[str, Any]):
         for name, data in color_data.items():
             # Convert hyphens to underscores for valid Python attributes
             attr_name = name.replace("-", "_")
@@ -67,7 +67,7 @@ class ColorCategory:
 class TypographyScale:
     """Container for typography scale tokens."""
 
-    def __init__(self, scale_data: Dict[str, Dict[str, str]]):
+    def __init__(self, scale_data: dict[str, dict[str, str]]):
         for name, data in scale_data.items():
             # Convert hyphens to underscores for valid Python attributes
             attr_name = name.replace("-", "_")
@@ -81,7 +81,7 @@ class TypographyScale:
 class SpacingScale:
     """Container for spacing scale tokens."""
 
-    def __init__(self, scale_data: Dict[str, str]):
+    def __init__(self, scale_data: dict[str, str]):
         for name, value in scale_data.items():
             # Convert special names for valid Python attributes
             attr_name = name.replace("-", "_").replace("2xl", "xxl").replace("3xl", "xxxl")
@@ -91,7 +91,7 @@ class SpacingScale:
 class AnimationTokens:
     """Container for animation tokens."""
 
-    def __init__(self, animation_data: Dict[str, Dict[str, str]]):
+    def __init__(self, animation_data: dict[str, dict[str, str]]):
         self.duration = type("Duration", (), animation_data["duration"])()
         # Convert hyphenated keys to underscored attributes
         easing_attrs = {}
@@ -104,7 +104,7 @@ class AnimationTokens:
 class BreakpointTokens:
     """Container for responsive breakpoint tokens."""
 
-    def __init__(self, breakpoint_data: Dict[str, str]):
+    def __init__(self, breakpoint_data: dict[str, str]):
         for name, value in breakpoint_data.items():
             setattr(self, name, value)
 
@@ -190,7 +190,7 @@ def validate_tokens() -> bool:
     Raises:
         ValueError: If validation fails with details.
     """
-    required_structure: Dict[str, Any] = {
+    required_structure: dict[str, Any] = {
         "colors": {
             "primary": 3,  # Expected number of primary colors
             "status": 3,  # Expected number of status colors

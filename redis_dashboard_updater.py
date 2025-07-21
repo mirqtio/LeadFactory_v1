@@ -6,10 +6,8 @@ Following GPT o3's recommendation for Redis-backed dashboard
 """
 
 import json
-import os
 import sys
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
 
 # Add current directory to path
 sys.path.insert(0, ".")
@@ -48,7 +46,7 @@ class RedisDashboardUpdater:
         else:
             self.prp_manager = None
 
-    def get_redis_metrics(self) -> Dict:
+    def get_redis_metrics(self) -> dict:
         """Get Redis coordination metrics"""
         if not self.redis_available:
             return {"redis_status": "unavailable", "merge_lock_owner": None, "agent_count": 0, "events_count": 0}
@@ -68,7 +66,7 @@ class RedisDashboardUpdater:
                 "merge_lock_owner": merge_lock_owner,
                 "agent_count": agent_keys,
                 "events_count": events_count,
-                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "last_updated": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -80,7 +78,7 @@ class RedisDashboardUpdater:
                 "events_count": 0,
             }
 
-    def get_prp_metrics(self) -> Dict:
+    def get_prp_metrics(self) -> dict:
         """Get PRP status metrics"""
         if not self.prp_manager:
             return {"total_prps": 0, "completion_rate": 0, "status_breakdown": {}, "current_prp": None}
@@ -113,7 +111,7 @@ class RedisDashboardUpdater:
         except Exception as e:
             return {"error": str(e), "total_prps": 0, "completion_rate": 0, "status_breakdown": {}, "current_prp": None}
 
-    def get_pm_status(self) -> List[Dict]:
+    def get_pm_status(self) -> list[dict]:
         """Get PM agent status"""
         pm_agents = [
             {"id": "PM-1", "session": "PM-1:0", "domain": "Core/UI"},
@@ -147,9 +145,9 @@ class RedisDashboardUpdater:
                 pm.update({"status": "error", "error": str(e), "current_prp": None, "last_heartbeat": None})
             return pm_agents
 
-    def generate_dashboard_data(self) -> Dict:
+    def generate_dashboard_data(self) -> dict:
         """Generate complete dashboard data"""
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         return {
             "timestamp": timestamp.isoformat(),
@@ -171,7 +169,7 @@ class RedisDashboardUpdater:
             data = self.generate_dashboard_data()
 
             # Read template
-            with open(template_path, "r") as f:
+            with open(template_path) as f:
                 template = f.read()
 
             # Replace data placeholders (simple template system)

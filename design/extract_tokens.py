@@ -2,14 +2,14 @@
 """
 Design Token Extraction Script
 
-Extracts machine-readable design tokens from the Anthrasite Design System HTML 
-style guide for automated UI component validation and consistent design 
+Extracts machine-readable design tokens from the Anthrasite Design System HTML
+style guide for automated UI component validation and consistent design
 implementation across the application.
 
 This script uses BeautifulSoup4 to parse the HTML and extract:
 - CSS custom properties from the :root declaration
 - Color values from .color-swatch elements
-- Typography values from .type-example elements  
+- Typography values from .type-example elements
 - Spacing values from tables and demos
 - Animation timings from the motion table
 - Contrast ratios from the accessibility table
@@ -20,7 +20,7 @@ Follows W3C Design Tokens Community Group recommendations.
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from bs4 import BeautifulSoup
 
@@ -36,18 +36,18 @@ class DesignTokenExtractor:
             html_path (str): Path to the styleguide HTML file.
         """
         self.html_path = Path(html_path)
-        with open(self.html_path, "r", encoding="utf-8") as f:
+        with open(self.html_path, encoding="utf-8") as f:
             self.soup = BeautifulSoup(f.read(), "html.parser")
-        self.tokens: Dict[str, Any] = {}
+        self.tokens: dict[str, Any] = {}
 
-    def extract_colors(self) -> Dict[str, Any]:
+    def extract_colors(self) -> dict[str, Any]:
         """
         Extract color tokens from color swatches and CSS custom properties.
 
         Returns:
             dict: Color tokens organized by category (primary, status, functional).
         """
-        colors: Dict[str, Dict[str, Any]] = {"primary": {}, "status": {}, "functional": {}}
+        colors: dict[str, dict[str, Any]] = {"primary": {}, "status": {}, "functional": {}}
 
         # Extract from color swatches
         color_swatches = self.soup.find_all("div", class_="color-swatch")
@@ -96,14 +96,14 @@ class DesignTokenExtractor:
 
         return colors
 
-    def extract_contrast_ratios(self) -> Dict[str, Dict[str, str]]:
+    def extract_contrast_ratios(self) -> dict[str, dict[str, str]]:
         """
         Extract WCAG contrast ratios from accessibility table.
 
         Returns:
             dict: Contrast ratios for color combinations.
         """
-        contrast_data: Dict[str, Dict[str, str]] = {}
+        contrast_data: dict[str, dict[str, str]] = {}
 
         # Find the accessibility table
         accessibility_section = self.soup.find("h2", string="Accessibility")
@@ -137,7 +137,7 @@ class DesignTokenExtractor:
 
         return contrast_data
 
-    def extract_typography(self) -> Dict[str, Any]:
+    def extract_typography(self) -> dict[str, Any]:
         """
         Extract typography tokens from type examples and CSS.
 
@@ -162,7 +162,7 @@ class DesignTokenExtractor:
         typography["scale"] = type_scale
         return typography
 
-    def extract_spacing(self) -> Dict[str, Any]:
+    def extract_spacing(self) -> dict[str, Any]:
         """
         Extract spacing tokens following 8px base unit system.
 
@@ -182,7 +182,7 @@ class DesignTokenExtractor:
             },
         }
 
-    def extract_animation(self) -> Dict[str, Any]:
+    def extract_animation(self) -> dict[str, Any]:
         """
         Extract animation tokens including duration and easing functions.
 
@@ -194,7 +194,7 @@ class DesignTokenExtractor:
             "easing": {"out": "ease-out", "in-out": "ease-in-out"},
         }
 
-    def extract_breakpoints(self) -> Dict[str, str]:
+    def extract_breakpoints(self) -> dict[str, str]:
         """
         Extract responsive breakpoint definitions.
 
@@ -230,7 +230,7 @@ class DesignTokenExtractor:
 
         return name_map.get(normalized, normalized)
 
-    def extract_all_tokens(self) -> Dict[str, Any]:
+    def extract_all_tokens(self) -> dict[str, Any]:
         """
         Extract all design tokens from the HTML styleguide.
 

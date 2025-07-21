@@ -2,6 +2,7 @@
 """
 Run full pipeline with assessments and report generation for test URLs
 """
+
 import asyncio
 import json
 import os
@@ -89,7 +90,7 @@ STATUS_ENDPOINT = f"{API_BASE_URL}/api/v1/assessments"
 REPORT_ENDPOINT = f"{API_BASE_URL}/api/v1/reports/generate"
 
 
-async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]) -> str:
+async def trigger_assessment(client: httpx.AsyncClient, business: dict[str, Any]) -> str:
     """Trigger assessment for a business URL"""
     print(f"\n📊 Triggering assessment for {business['business_name']}...")
 
@@ -112,14 +113,14 @@ async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]
     return session_id
 
 
-async def check_assessment_status(client: httpx.AsyncClient, session_id: str) -> Dict[str, Any]:
+async def check_assessment_status(client: httpx.AsyncClient, session_id: str) -> dict[str, Any]:
     """Check assessment status"""
     url = f"{STATUS_ENDPOINT}/{session_id}/status"
     response = await client.get(url)
     return response.json()
 
 
-async def get_assessment_results(client: httpx.AsyncClient, session_id: str) -> Dict[str, Any]:
+async def get_assessment_results(client: httpx.AsyncClient, session_id: str) -> dict[str, Any]:
     """Get assessment results"""
     url = f"{STATUS_ENDPOINT}/{session_id}/results"
     response = await client.get(url)
@@ -138,14 +139,14 @@ async def wait_for_completion(client: httpx.AsyncClient, session_id: str, busine
             print(f"✅ Assessment {status['status']} for {business_name}")
             return True
 
-        print(f"   Progress: {status.get('progress', 'Processing...')} ({attempt+1}/{max_attempts})")
+        print(f"   Progress: {status.get('progress', 'Processing...')} ({attempt + 1}/{max_attempts})")
         await asyncio.sleep(5)  # Check every 5 seconds
 
     print(f"❌ Assessment timed out for {business_name}")
     return False
 
 
-async def generate_report(business: Dict[str, Any], assessment_results: Dict[str, Any], output_dir: Path):
+async def generate_report(business: dict[str, Any], assessment_results: dict[str, Any], output_dir: Path):
     """Generate HTML and PDF reports using the report generator"""
     print(f"\n📝 Generating reports for {business['business_name']}...")
 
@@ -197,7 +198,7 @@ async def generate_report(business: Dict[str, Any], assessment_results: Dict[str
         traceback.print_exc()
 
 
-async def save_assessment_data(session_id: str, business: Dict[str, Any], results: Dict[str, Any], output_dir: Path):
+async def save_assessment_data(session_id: str, business: dict[str, Any], results: dict[str, Any], output_dir: Path):
     """Save assessment results to JSON file"""
     filename = output_dir / f"assessment_{business['business_id']}_{session_id}.json"
 
@@ -214,13 +215,13 @@ async def save_assessment_data(session_id: str, business: Dict[str, Any], result
     print(f"💾 Assessment data saved to {filename}")
 
 
-async def run_pipeline_for_business(client: httpx.AsyncClient, business: Dict[str, Any], output_dir: Path):
+async def run_pipeline_for_business(client: httpx.AsyncClient, business: dict[str, Any], output_dir: Path):
     """Run complete pipeline for a single business"""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"🏢 Processing: {business['business_name']}")
     print(f"🌐 URL: {business['url']}")
     print(f"📊 Industry: {business['vertical']}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Step 1: Trigger assessment
     session_id = await trigger_assessment(client, business)
@@ -296,10 +297,10 @@ async def main():
             # Small delay between businesses
             await asyncio.sleep(2)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("✅ Full pipeline completed!")
     print(f"📁 All results saved in: {output_dir.absolute()}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # List generated files
     print("\n📋 Generated files:")

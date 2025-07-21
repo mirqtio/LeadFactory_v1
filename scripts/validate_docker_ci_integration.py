@@ -26,7 +26,7 @@ class DockerCIValidator:
             "docker_integration_status": "unknown",
         }
 
-    def run_validation(self) -> Dict:
+    def run_validation(self) -> dict:
         """Run complete Docker CI integration validation"""
         print("🔍 Starting Docker CI Integration Validation...")
         print("=" * 60)

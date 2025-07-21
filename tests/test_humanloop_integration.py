@@ -1,6 +1,7 @@
 """
 Test Humanloop integration and prompt loading
 """
+
 import pytest
 
 # Mark entire module as integration test, slow for CI optimization and xfail for Phase 0.5

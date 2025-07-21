@@ -309,10 +309,10 @@ def generate_dashboard_html(git_status, completed_tasks, local_only_tasks):
             </ol>
         </div>
         
-        {'<div class="success-note"><strong>✅ Good News:</strong> All commits are pushed to GitHub! No unpushed commits detected.</div>' if git_status['unpushed_commits'] == 0 else f'<div class="warning-note"><strong>⚠️ Warning:</strong> {git_status["unpushed_commits"]} unpushed commits detected!</div>'}
+        {'<div class="success-note"><strong>✅ Good News:</strong> All commits are pushed to GitHub! No unpushed commits detected.</div>' if git_status["unpushed_commits"] == 0 else f'<div class="warning-note"><strong>⚠️ Warning:</strong> {git_status["unpushed_commits"]} unpushed commits detected!</div>'}
         
         <div class="warning-note">
-            <strong>⚠️ Current Status:</strong> {git_status['uncommitted_files']} uncommitted files. Last commit: "{git_status.get('last_commit_message', 'unknown')}" ({time_str})
+            <strong>⚠️ Current Status:</strong> {git_status["uncommitted_files"]} uncommitted files. Last commit: "{git_status.get("last_commit_message", "unknown")}" ({time_str})
         </div>
         
         <div class="metrics">
@@ -345,7 +345,7 @@ def generate_dashboard_html(git_status, completed_tasks, local_only_tasks):
             <div class="status-card">
                 <h3 class="uncommitted">⚠️ Local Work (Not Committed)</h3>
                 <ul class="task-list">
-                    {local_html if local_html else '<li>No uncommitted P0 task files detected</li>'}
+                    {local_html if local_html else "<li>No uncommitted P0 task files detected</li>"}
                 </ul>
             </div>
             
@@ -368,16 +368,16 @@ def generate_dashboard_html(git_status, completed_tasks, local_only_tasks):
         <div class="status-card">
             <h3>📈 Git Repository Status</h3>
             <ul class="task-list">
-                <li><strong>Branch:</strong> {git_status['current_branch']}</li>
-                <li><strong>Uncommitted files:</strong> {git_status['uncommitted_files']}</li>
-                <li><strong>Unpushed commits:</strong> {git_status['unpushed_commits']}</li>
-                <li><strong>Last commit:</strong> {git_status.get('last_commit_message', 'unknown')}</li>
-                <li><strong>Commit time:</strong> {git_status.get('last_commit_time', 'unknown')}</li>
+                <li><strong>Branch:</strong> {git_status["current_branch"]}</li>
+                <li><strong>Uncommitted files:</strong> {git_status["uncommitted_files"]}</li>
+                <li><strong>Unpushed commits:</strong> {git_status["unpushed_commits"]}</li>
+                <li><strong>Last commit:</strong> {git_status.get("last_commit_message", "unknown")}</li>
+                <li><strong>Commit time:</strong> {git_status.get("last_commit_time", "unknown")}</li>
             </ul>
         </div>
         
         <div class="last-updated">
-            Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Auto-refresh: 30s | 
+            Last updated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | Auto-refresh: 30s | 
             <button onclick="refreshPage()">Manual Refresh</button>
         </div>
     </div>

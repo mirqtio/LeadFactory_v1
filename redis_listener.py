@@ -3,10 +3,10 @@
 Redis Listener for Orchestrator Agent Coordination
 Real-time monitoring of agent status updates and coordination events
 """
-import json
+
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import redis
 
@@ -28,9 +28,9 @@ class OrchestratorRedisListener:
             print(f"❌ Redis connection failed: {e}")
             return False
 
-    def update_agent_status(self, agent_id: str, status_data: Dict[str, Any]) -> None:
+    def update_agent_status(self, agent_id: str, status_data: dict[str, Any]) -> None:
         """Update agent status in Redis using universal format."""
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
         # Store in universal format
         status_key = f"agent:status:{agent_id}"
@@ -56,7 +56,7 @@ class OrchestratorRedisListener:
             print(f"❌ Failed to update {agent_id} status: {e}")
             return False
 
-    def get_agent_status(self, agent_id: str) -> Optional[str]:
+    def get_agent_status(self, agent_id: str) -> str | None:
         """Get current agent status from Redis."""
         try:
             status_key = f"agent:status:{agent_id}"
@@ -66,7 +66,7 @@ class OrchestratorRedisListener:
             print(f"❌ Failed to get {agent_id} status: {e}")
             return None
 
-    def get_all_agent_status(self) -> Dict[str, str]:
+    def get_all_agent_status(self) -> dict[str, str]:
         """Get all agent statuses from Redis."""
         agents = {}
         try:
@@ -84,11 +84,11 @@ class OrchestratorRedisListener:
             print(f"❌ Failed to get all agent statuses: {e}")
             return {}
 
-    def check_agent_health(self) -> Dict[str, Any]:
+    def check_agent_health(self) -> dict[str, Any]:
         """Check agent health based on last heartbeat."""
         health_report = {"healthy": [], "stale": [], "missing": []}
 
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
         stale_threshold = 30 * 60  # 30 minutes in seconds
 
         try:

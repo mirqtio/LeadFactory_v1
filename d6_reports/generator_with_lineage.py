@@ -3,7 +3,6 @@ Report generator with lineage integration
 """
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,14 +16,14 @@ class ReportGeneratorWithLineage(ReportGenerator):
     Extended report generator that captures lineage information
     """
 
-    def __init__(self, session: Optional[AsyncSession] = None, **kwargs):
+    def __init__(self, session: AsyncSession | None = None, **kwargs):
         super().__init__(**kwargs)
         self.session = session
         self._pipeline_run_id = None
         self._lineage_capture = None
         self._report_generation_id = None
 
-    async def generate_report(self, business_id: str, options: Optional[GenerationOptions] = None) -> GenerationResult:
+    async def generate_report(self, business_id: str, options: GenerationOptions | None = None) -> GenerationResult:
         """
         Generate report with lineage tracking
         """
@@ -142,7 +141,7 @@ class ReportGeneratorWithLineage(ReportGenerator):
 async def generate_report_with_lineage(
     session: AsyncSession,
     business_id: str,
-    options: Optional[GenerationOptions] = None,
+    options: GenerationOptions | None = None,
 ) -> tuple[GenerationResult, str]:
     """
     Generate a report with full lineage tracking

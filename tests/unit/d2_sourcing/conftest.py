@@ -3,6 +3,7 @@ Shared test configuration for D2 Sourcing tests
 
 Uses centralized fixtures from tests.fixtures package.
 """
+
 import pytest
 
 # Import centralized database fixture

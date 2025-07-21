@@ -1,7 +1,7 @@
 """Google Business Profile adapter for trust signal assessment."""
+
 import logging
 import os
-from typing import Dict, Optional
 
 from d0_gateway.factory import create_client
 from d0_gateway.providers.google_places import GooglePlacesClient
@@ -18,7 +18,7 @@ class GBPAdapter:
     Performs Place ID lookup then details call to get rating and review count.
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize GBP adapter."""
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
@@ -36,9 +36,9 @@ class GBPAdapter:
     async def fetch_business_profile(
         self,
         business_name: str,
-        address: Optional[str] = None,
-        website: Optional[str] = None,
-    ) -> Optional[Dict]:
+        address: str | None = None,
+        website: str | None = None,
+    ) -> dict | None:
         """
         Fetch Google Business Profile data.
 
@@ -87,7 +87,7 @@ class GBPAdapter:
             logger.error(f"GBP fetch failed for {business_name}: {e}")
             return None
 
-    def create_trust_finding(self, gbp_data: Optional[Dict]) -> Optional[AuditFinding]:
+    def create_trust_finding(self, gbp_data: dict | None) -> AuditFinding | None:
         """
         Create an AuditFinding for trust signals based on GBP data.
 

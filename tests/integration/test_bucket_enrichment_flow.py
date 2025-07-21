@@ -2,6 +2,7 @@
 Integration tests for P1-080 Bucket Enrichment Flow
 Tests the complete bucket enrichment flow with database and enrichment components
 """
+
 import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
@@ -345,7 +346,7 @@ class TestBucketEnrichmentFlowIntegration:
 class TestBucketLoaderIntegration:
     """Test integration with bucket loader"""
 
-    @pytest.mark.skipif(not hasattr(get_bucket_loader, "__call__"), reason="Bucket loader not available")
+    @pytest.mark.skipif(not callable(get_bucket_loader), reason="Bucket loader not available")
     def test_bucket_loader_integration(self):
         """Test that bucket loader can be initialized"""
         try:

@@ -8,6 +8,7 @@ Tests cover:
 - FastAPI dependency integration
 - Security audit logging
 """
+
 from unittest.mock import Mock, patch
 
 import pytest

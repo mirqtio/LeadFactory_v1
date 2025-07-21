@@ -1,6 +1,7 @@
 """
 Test stub server endpoints
 """
+
 import json
 
 import pytest

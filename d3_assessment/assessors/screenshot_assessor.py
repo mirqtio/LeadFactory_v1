@@ -6,7 +6,8 @@ Timeout: 8s
 Cost: $0.010 per screenshot
 Output: screenshot_url and screenshot_thumb_url columns
 """
-from typing import Any, Dict
+
+from typing import Any
 
 from core.config import settings
 from core.logging import get_logger
@@ -37,7 +38,7 @@ class ScreenshotAssessor(BaseAssessor):
             self._client = create_client("screenshotone")
         return self._client
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Capture screenshots of the website
 

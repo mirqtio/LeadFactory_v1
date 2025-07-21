@@ -1,6 +1,7 @@
 """
 Test D0 Gateway metrics implementation
 """
+
 import time
 from unittest.mock import Mock, patch
 

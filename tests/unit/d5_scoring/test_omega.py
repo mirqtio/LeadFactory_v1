@@ -1,4 +1,5 @@
 """Unit tests for omega (online dependence) calculator."""
+
 from d5_scoring.omega import calculate_omega, evaluate_condition
 
 

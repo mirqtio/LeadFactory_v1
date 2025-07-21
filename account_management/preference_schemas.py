@@ -2,8 +2,9 @@
 User Preferences API Schemas
 Pydantic schemas for user preferences and saved searches API endpoints
 """
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -15,10 +16,10 @@ class UserPreferenceRequest(BaseModel):
 
     category: PreferenceCategory = Field(..., description="Preference category")
     key: str = Field(..., min_length=1, max_length=255, description="Preference key")
-    value: Dict[str, Any] = Field(..., description="Preference value as JSON")
-    description: Optional[str] = Field(None, description="Optional description")
-    organization_id: Optional[str] = Field(None, description="Organization scope")
-    team_id: Optional[str] = Field(None, description="Team scope")
+    value: dict[str, Any] = Field(..., description="Preference value as JSON")
+    description: str | None = Field(None, description="Optional description")
+    organization_id: str | None = Field(None, description="Organization scope")
+    team_id: str | None = Field(None, description="Team scope")
 
 
 class UserPreferenceResponse(BaseModel):
@@ -28,11 +29,11 @@ class UserPreferenceResponse(BaseModel):
     user_id: str
     category: PreferenceCategory
     key: str
-    value: Dict[str, Any]
+    value: dict[str, Any]
     is_default: bool
-    description: Optional[str]
-    organization_id: Optional[str]
-    team_id: Optional[str]
+    description: str | None
+    organization_id: str | None
+    team_id: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -44,27 +45,27 @@ class SavedSearchRequest(BaseModel):
     """Request schema for creating/updating saved searches"""
 
     name: str = Field(..., min_length=1, max_length=255, description="Search name")
-    description: Optional[str] = Field(None, description="Search description")
+    description: str | None = Field(None, description="Search description")
     search_type: SearchType = Field(..., description="Type of search")
-    query_params: Dict[str, Any] = Field(..., description="Search parameters")
-    sort_config: Optional[Dict[str, Any]] = Field(None, description="Sort configuration")
-    display_config: Optional[Dict[str, Any]] = Field(None, description="Display configuration")
+    query_params: dict[str, Any] = Field(..., description="Search parameters")
+    sort_config: dict[str, Any] | None = Field(None, description="Sort configuration")
+    display_config: dict[str, Any] | None = Field(None, description="Display configuration")
     is_public: bool = Field(False, description="Whether search is public")
     is_default: bool = Field(False, description="Whether search is default")
-    organization_id: Optional[str] = Field(None, description="Organization scope")
-    team_id: Optional[str] = Field(None, description="Team scope")
+    organization_id: str | None = Field(None, description="Organization scope")
+    team_id: str | None = Field(None, description="Team scope")
 
 
 class SavedSearchUpdate(BaseModel):
     """Schema for updating saved searches"""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    query_params: Optional[Dict[str, Any]] = None
-    sort_config: Optional[Dict[str, Any]] = None
-    display_config: Optional[Dict[str, Any]] = None
-    is_public: Optional[bool] = None
-    is_default: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    query_params: dict[str, Any] | None = None
+    sort_config: dict[str, Any] | None = None
+    display_config: dict[str, Any] | None = None
+    is_public: bool | None = None
+    is_default: bool | None = None
 
 
 class SavedSearchResponse(BaseModel):
@@ -73,17 +74,17 @@ class SavedSearchResponse(BaseModel):
     id: str
     user_id: str
     name: str
-    description: Optional[str]
+    description: str | None
     search_type: SearchType
-    query_params: Dict[str, Any]
-    sort_config: Optional[Dict[str, Any]]
-    display_config: Optional[Dict[str, Any]]
+    query_params: dict[str, Any]
+    sort_config: dict[str, Any] | None
+    display_config: dict[str, Any] | None
     is_public: bool
     is_default: bool
-    organization_id: Optional[str]
-    team_id: Optional[str]
+    organization_id: str | None
+    team_id: str | None
     usage_count: int
-    last_used_at: Optional[datetime]
+    last_used_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -95,10 +96,10 @@ class DashboardLayoutRequest(BaseModel):
     """Request schema for dashboard layouts"""
 
     name: str = Field(..., min_length=1, max_length=255, description="Layout name")
-    layout_config: Dict[str, Any] = Field(..., description="Layout configuration")
-    widget_config: Dict[str, Any] = Field(..., description="Widget configuration")
+    layout_config: dict[str, Any] = Field(..., description="Layout configuration")
+    widget_config: dict[str, Any] = Field(..., description="Widget configuration")
     is_default: bool = Field(False, description="Whether layout is default")
-    organization_id: Optional[str] = Field(None, description="Organization scope")
+    organization_id: str | None = Field(None, description="Organization scope")
 
 
 class DashboardLayoutResponse(BaseModel):
@@ -107,10 +108,10 @@ class DashboardLayoutResponse(BaseModel):
     id: str
     user_id: str
     name: str
-    layout_config: Dict[str, Any]
-    widget_config: Dict[str, Any]
+    layout_config: dict[str, Any]
+    widget_config: dict[str, Any]
     is_default: bool
-    organization_id: Optional[str]
+    organization_id: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -127,9 +128,9 @@ class NotificationPreferenceRequest(BaseModel):
     sms_enabled: bool = Field(False, description="SMS notifications enabled")
     push_enabled: bool = Field(False, description="Push notifications enabled")
     frequency: str = Field("immediate", description="Notification frequency")
-    quiet_hours_start: Optional[str] = Field(None, description="Quiet hours start (HH:MM)")
-    quiet_hours_end: Optional[str] = Field(None, description="Quiet hours end (HH:MM)")
-    config: Optional[Dict[str, Any]] = Field(None, description="Additional configuration")
+    quiet_hours_start: str | None = Field(None, description="Quiet hours start (HH:MM)")
+    quiet_hours_end: str | None = Field(None, description="Quiet hours end (HH:MM)")
+    config: dict[str, Any] | None = Field(None, description="Additional configuration")
 
     @field_validator("frequency")
     @classmethod
@@ -161,9 +162,9 @@ class NotificationPreferenceResponse(BaseModel):
     sms_enabled: bool
     push_enabled: bool
     frequency: str
-    quiet_hours_start: Optional[str]
-    quiet_hours_end: Optional[str]
-    config: Optional[Dict[str, Any]]
+    quiet_hours_start: str | None
+    quiet_hours_end: str | None
+    config: dict[str, Any] | None
     created_at: datetime
     updated_at: datetime
 
@@ -178,9 +179,9 @@ class RecentActivityResponse(BaseModel):
     user_id: str
     activity_type: str
     resource_type: str
-    resource_id: Optional[str]
-    activity_metadata: Optional[Dict[str, Any]]
-    context: Optional[Dict[str, Any]]
+    resource_id: str | None
+    activity_metadata: dict[str, Any] | None
+    context: dict[str, Any] | None
     access_count: int
     first_accessed_at: datetime
     last_accessed_at: datetime
@@ -192,14 +193,14 @@ class RecentActivityResponse(BaseModel):
 class PreferencesListResponse(BaseModel):
     """Response schema for listing user preferences"""
 
-    preferences: List[UserPreferenceResponse]
+    preferences: list[UserPreferenceResponse]
     total: int
-    categories: List[PreferenceCategory]
+    categories: list[PreferenceCategory]
 
 
 class SavedSearchesListResponse(BaseModel):
     """Response schema for listing saved searches"""
 
-    searches: List[SavedSearchResponse]
+    searches: list[SavedSearchResponse]
     total: int
-    by_type: Dict[SearchType, int]
+    by_type: dict[SearchType, int]

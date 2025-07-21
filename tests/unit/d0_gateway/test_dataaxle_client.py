@@ -1,6 +1,7 @@
 """
 Tests for Data Axle client - Phase 0.5 Task GW-02
 """
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -26,14 +27,14 @@ def mock_settings():
 @pytest.fixture
 def dataaxle_client(mock_settings):
     """Create Data Axle client for testing"""
-    with patch("core.config.settings", mock_settings), patch(
-        "core.config.get_settings", return_value=mock_settings
-    ), patch("d0_gateway.base.get_settings", return_value=mock_settings), patch("d0_gateway.base.RateLimiter"), patch(
-        "d0_gateway.base.CircuitBreaker"
-    ), patch(
-        "d0_gateway.base.ResponseCache"
-    ), patch(
-        "d0_gateway.base.GatewayMetrics"
+    with (
+        patch("core.config.settings", mock_settings),
+        patch("core.config.get_settings", return_value=mock_settings),
+        patch("d0_gateway.base.get_settings", return_value=mock_settings),
+        patch("d0_gateway.base.RateLimiter"),
+        patch("d0_gateway.base.CircuitBreaker"),
+        patch("d0_gateway.base.ResponseCache"),
+        patch("d0_gateway.base.GatewayMetrics"),
     ):
         return DataAxleClient(api_key="test-key")
 
@@ -49,16 +50,14 @@ class TestDataAxleClient:
 
     def test_initialization(self, mock_settings):
         """Test client initialization"""
-        with patch("core.config.settings", mock_settings), patch(
-            "core.config.get_settings", return_value=mock_settings
-        ), patch("d0_gateway.base.get_settings", return_value=mock_settings), patch(
-            "d0_gateway.base.RateLimiter"
-        ), patch(
-            "d0_gateway.base.CircuitBreaker"
-        ), patch(
-            "d0_gateway.base.ResponseCache"
-        ), patch(
-            "d0_gateway.base.GatewayMetrics"
+        with (
+            patch("core.config.settings", mock_settings),
+            patch("core.config.get_settings", return_value=mock_settings),
+            patch("d0_gateway.base.get_settings", return_value=mock_settings),
+            patch("d0_gateway.base.RateLimiter"),
+            patch("d0_gateway.base.CircuitBreaker"),
+            patch("d0_gateway.base.ResponseCache"),
+            patch("d0_gateway.base.GatewayMetrics"),
         ):
             client = DataAxleClient(api_key="test-key", base_url="https://test.com")
 
@@ -69,16 +68,14 @@ class TestDataAxleClient:
 
     def test_initialization_with_defaults(self, mock_settings):
         """Test client initialization with default values"""
-        with patch("core.config.settings", mock_settings), patch(
-            "core.config.get_settings", return_value=mock_settings
-        ), patch("d0_gateway.base.get_settings", return_value=mock_settings), patch(
-            "d0_gateway.base.RateLimiter"
-        ), patch(
-            "d0_gateway.base.CircuitBreaker"
-        ), patch(
-            "d0_gateway.base.ResponseCache"
-        ), patch(
-            "d0_gateway.base.GatewayMetrics"
+        with (
+            patch("core.config.settings", mock_settings),
+            patch("core.config.get_settings", return_value=mock_settings),
+            patch("d0_gateway.base.get_settings", return_value=mock_settings),
+            patch("d0_gateway.base.RateLimiter"),
+            patch("d0_gateway.base.CircuitBreaker"),
+            patch("d0_gateway.base.ResponseCache"),
+            patch("d0_gateway.base.GatewayMetrics"),
         ):
             client = DataAxleClient(api_key="test-key")
 

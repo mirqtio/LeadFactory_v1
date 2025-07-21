@@ -2,6 +2,7 @@
 Unit tests for d5_scoring formula evaluator module.
 Coverage target: 80%+ for Excel formula evaluation logic.
 """
+
 from unittest.mock import MagicMock, call, patch
 
 import pytest

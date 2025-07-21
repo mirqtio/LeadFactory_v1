@@ -8,13 +8,13 @@ with enterprise security governance for LeadFactory P3 domain.
 Usage:
     # Weekly security review
     python p3_security_automation.py --review weekly
-    
-    # Monthly deep security assessment  
+
+    # Monthly deep security assessment
     python p3_security_automation.py --review monthly
-    
+
     # Quarterly enterprise security review
     python p3_security_automation.py --review quarterly
-    
+
     # Continuous monitoring
     python p3_security_automation.py --monitor
 """
@@ -23,11 +23,9 @@ import argparse
 import json
 import logging
 import os
-import subprocess
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
 import yaml
 from pydantic import BaseModel, Field
@@ -79,11 +77,11 @@ class SecurityFinding(BaseModel):
     risk_level: SecurityRiskLevel
     impact: str
     remediation: str
-    affected_systems: List[str] = Field(default_factory=list)
+    affected_systems: list[str] = Field(default_factory=list)
     discovered_date: datetime = Field(default_factory=datetime.utcnow)
     status: str = "open"
-    assigned_to: Optional[str] = None
-    due_date: Optional[datetime] = None
+    assigned_to: str | None = None
+    due_date: datetime | None = None
 
 
 class SecurityMetrics(BaseModel):
@@ -92,7 +90,7 @@ class SecurityMetrics(BaseModel):
     mean_time_to_detection: float  # minutes
     mean_time_to_response: float  # minutes
     security_incident_rate: float  # incidents per month
-    vulnerability_remediation_time: Dict[str, float]  # hours by risk level
+    vulnerability_remediation_time: dict[str, float]  # hours by risk level
     compliance_score: float  # percentage
     security_training_completion: float  # percentage
     security_control_effectiveness: float  # percentage
@@ -104,10 +102,10 @@ class SecurityReviewResult(BaseModel):
     review_type: SecurityReviewType
     review_date: datetime = Field(default_factory=datetime.utcnow)
     reviewer: str
-    findings: List[SecurityFinding] = Field(default_factory=list)
-    metrics: Optional[SecurityMetrics] = None
-    recommendations: List[str] = Field(default_factory=list)
-    next_actions: List[str] = Field(default_factory=list)
+    findings: list[SecurityFinding] = Field(default_factory=list)
+    metrics: SecurityMetrics | None = None
+    recommendations: list[str] = Field(default_factory=list)
+    next_actions: list[str] = Field(default_factory=list)
     overall_score: float = 0.0
     status: str = "draft"
 
@@ -120,7 +118,7 @@ class SuperClaudeSecurityFramework:
         self.analysis_flags = "--ultrathink --validate --safe-mode"
         self.wave_orchestration = "--wave-mode auto"
 
-    def analyze_security_posture(self, scope: str = "system") -> Dict:
+    def analyze_security_posture(self, scope: str = "system") -> dict:
         """Analyze security posture using SuperClaude"""
         command = f"/analyze {self.security_persona} {self.analysis_flags} --scope {scope} --focus security"
 
@@ -148,7 +146,7 @@ class SuperClaudeSecurityFramework:
             ],
         }
 
-    def implement_security_controls(self, controls: List[str]) -> Dict:
+    def implement_security_controls(self, controls: list[str]) -> dict:
         """Implement security controls using SuperClaude"""
         command = f"/implement {self.security_persona} {self.wave_orchestration} --validate --safe-mode"
 
@@ -163,7 +161,7 @@ class SuperClaudeSecurityFramework:
             "status": "completed",
         }
 
-    def generate_security_report(self, findings: List[SecurityFinding]) -> Dict:
+    def generate_security_report(self, findings: list[SecurityFinding]) -> dict:
         """Generate security report using SuperClaude"""
         command = f"/document {self.security_persona} --focus security --format executive-summary"
 
@@ -208,7 +206,7 @@ class P3SecurityAutomation:
 
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, "r") as f:
+                with open(self.config_path) as f:
                     self.config = yaml.safe_load(f)
                 logger.info(f"Loaded security configuration from {self.config_path}")
             except Exception as e:
@@ -517,7 +515,7 @@ class P3SecurityAutomation:
 
                 time.sleep(60)  # Wait before retry
 
-    def run_vulnerability_scan(self) -> Dict:
+    def run_vulnerability_scan(self) -> dict:
         """Run vulnerability scan"""
         logger.info("Running vulnerability scan")
 
@@ -538,7 +536,7 @@ class P3SecurityAutomation:
             ],
         }
 
-    def audit_authentication_system(self) -> Dict:
+    def audit_authentication_system(self) -> dict:
         """Audit authentication system"""
         logger.info("Auditing authentication system")
 
@@ -552,7 +550,7 @@ class P3SecurityAutomation:
             ],
         }
 
-    def monitor_security_performance(self) -> Dict:
+    def monitor_security_performance(self) -> dict:
         """Monitor security performance metrics"""
         logger.info("Monitoring security performance")
 
@@ -566,7 +564,7 @@ class P3SecurityAutomation:
             "control_effectiveness": 94.8,  # Security control effectiveness
         }
 
-    def review_user_access(self) -> Dict:
+    def review_user_access(self) -> dict:
         """Review user access permissions"""
         logger.info("Reviewing user access permissions")
 
@@ -577,7 +575,7 @@ class P3SecurityAutomation:
             "findings": [{"user_count": 25, "admin_count": 3, "inactive_users": 2, "overprovisioned_users": 1}],
         }
 
-    def run_penetration_test(self) -> Dict:
+    def run_penetration_test(self) -> dict:
         """Run penetration testing"""
         logger.info("Running penetration test")
 
@@ -598,7 +596,7 @@ class P3SecurityAutomation:
             ],
         }
 
-    def review_security_architecture(self) -> Dict:
+    def review_security_architecture(self) -> dict:
         """Review security architecture"""
         logger.info("Reviewing security architecture")
 
@@ -619,7 +617,7 @@ class P3SecurityAutomation:
             ],
         }
 
-    def analyze_incident_response(self) -> Dict:
+    def analyze_incident_response(self) -> dict:
         """Analyze incident response capability"""
         logger.info("Analyzing incident response capability")
 
@@ -640,7 +638,7 @@ class P3SecurityAutomation:
             ],
         }
 
-    def assess_compliance(self) -> Dict:
+    def assess_compliance(self) -> dict:
         """Assess compliance status"""
         logger.info("Assessing compliance status")
 
@@ -661,7 +659,7 @@ class P3SecurityAutomation:
             ],
         }
 
-    def review_security_strategy(self) -> Dict:
+    def review_security_strategy(self) -> dict:
         """Review security strategy"""
         logger.info("Reviewing security strategy")
 
@@ -682,7 +680,7 @@ class P3SecurityAutomation:
             ],
         }
 
-    def assess_third_party_risks(self) -> Dict:
+    def assess_third_party_risks(self) -> dict:
         """Assess third-party security risks"""
         logger.info("Assessing third-party security risks")
 
@@ -703,7 +701,7 @@ class P3SecurityAutomation:
             ],
         }
 
-    def generate_executive_metrics(self) -> Dict:
+    def generate_executive_metrics(self) -> dict:
         """Generate executive-level security metrics"""
         logger.info("Generating executive security metrics")
 
@@ -740,7 +738,7 @@ class P3SecurityAutomation:
         # Mock compliance monitoring
         logger.debug("Monitoring compliance status")
 
-    def calculate_security_score(self, findings: List[SecurityFinding], metrics: SecurityMetrics) -> float:
+    def calculate_security_score(self, findings: list[SecurityFinding], metrics: SecurityMetrics) -> float:
         """Calculate overall security score"""
         base_score = 100.0
 
@@ -798,7 +796,7 @@ class P3SecurityAutomation:
 
         logger.info("Security dashboard generated: security_dashboard.html")
 
-    def load_recent_results(self) -> List[SecurityReviewResult]:
+    def load_recent_results(self) -> list[SecurityReviewResult]:
         """Load recent security review results"""
         results = []
 
@@ -809,7 +807,7 @@ class P3SecurityAutomation:
             for filename in os.listdir(self.results_path):
                 if filename.endswith(".json"):
                     filepath = os.path.join(self.results_path, filename)
-                    with open(filepath, "r") as f:
+                    with open(filepath) as f:
                         data = json.load(f)
                         # Convert back to SecurityReviewResult
                         result = SecurityReviewResult(**data)
@@ -822,7 +820,7 @@ class P3SecurityAutomation:
 
         return results[:10]  # Return last 10 results
 
-    def create_dashboard_html(self, results: List[SecurityReviewResult]) -> str:
+    def create_dashboard_html(self, results: list[SecurityReviewResult]) -> str:
         """Create security dashboard HTML"""
         html = f"""
         <!DOCTYPE html>
@@ -844,7 +842,7 @@ class P3SecurityAutomation:
         <body>
             <div class="header">
                 <h1>P3 Enterprise Security Dashboard</h1>
-                <p>Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+                <p>Generated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")}</p>
             </div>
             
             <h2>Security Metrics</h2>
@@ -882,7 +880,7 @@ class P3SecurityAutomation:
         for result in results:
             html += f"""
             <div class="review">
-                <h3>{result.review_type.value.title()} Review - {result.review_date.strftime('%Y-%m-%d')}</h3>
+                <h3>{result.review_type.value.title()} Review - {result.review_date.strftime("%Y-%m-%d")}</h3>
                 <p>Score: {result.overall_score:.1f}/100</p>
                 <p>Findings: {len(result.findings)}</p>
                 

@@ -8,12 +8,10 @@ compatibility with existing tmux-based agent communication during transition per
 DEPRECATION NOTICE: tmux helper methods will be marked @deprecated after P0-100 merges.
 Use infra.redis_queue for new reliable queue-based messaging.
 """
+
 import json
 import os
-import threading
-import time
 from datetime import datetime
-from typing import Callable, Dict, List, Optional
 
 import redis
 
@@ -105,8 +103,7 @@ from infra.agent_coordinator import get_agent_coordinator, AgentType
 coordinator = get_agent_coordinator()
 await coordinator.register_agent("{agent_id}", AgentType.PM)  # or appropriate type
 """
-        else:
-            return f"""
+        return f"""
 # Legacy pub/sub subscription for {agent_id} (DEPRECATED):
 redis-cli PSUBSCRIBE agent:{agent_id.lower()} agent:broadcast | while read line; do
     echo "📨 Redis Message: $line"
@@ -130,7 +127,7 @@ done &
                 return None
         return self._queue_broker
 
-    def _send_via_queue(self, agent_id: str, message_data: Dict):
+    def _send_via_queue(self, agent_id: str, message_data: dict):
         """Send message via reliable queue system"""
         try:
             broker = self._get_queue_broker()
@@ -163,8 +160,8 @@ done &
         Use infra.agent_coordinator.register_agent() and queue-based messaging instead.
         This method is maintained for backward compatibility only.
         """
-        print(f"⚠️  DEPRECATED: send_tmux_keystroke will be removed after P0-100")
-        print(f"⚠️  Use AGENT_COORDINATION_MODE=redis and infra.agent_coordinator instead")
+        print("⚠️  DEPRECATED: send_tmux_keystroke will be removed after P0-100")
+        print("⚠️  Use AGENT_COORDINATION_MODE=redis and infra.agent_coordinator instead")
 
         import subprocess
 

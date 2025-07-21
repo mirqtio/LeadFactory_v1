@@ -1,6 +1,7 @@
 """
 Hunter.io API stub endpoints
 """
+
 import random
 from typing import Optional
 

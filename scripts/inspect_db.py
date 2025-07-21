@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Inspect database tables."""
+
 import sqlite3
 
 db_path = "/tmp/leadfactory.db"

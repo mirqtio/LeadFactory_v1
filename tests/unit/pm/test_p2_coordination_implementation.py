@@ -1,6 +1,7 @@
 """
 Tests for P2 Domain Coordination Framework Implementation
 """
+
 from datetime import datetime, timedelta
 
 import pytest

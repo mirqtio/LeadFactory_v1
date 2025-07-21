@@ -19,7 +19,7 @@ def validate_migration():
     yaml_path = Path(".claude/prp_tracking/prp_status.yaml")
 
     # Load migrated YAML
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         data = yaml.safe_load(f)
 
     # Validation checks
@@ -125,9 +125,8 @@ def validate_migration():
         print("   - 2 duplicate PRPs properly deprecated")
         print("   - All tracking systems synchronized")
         return True
-    else:
-        print("\n⚠️  Migration validation failed - manual review required")
-        return False
+    print("\n⚠️  Migration validation failed - manual review required")
+    return False
 
 
 def validate_stable_id_references():

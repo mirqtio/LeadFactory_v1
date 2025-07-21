@@ -14,6 +14,7 @@ Coverage includes:
 - Integration with assessment models
 - Mock Humanloop and ScreenshotOne clients
 """
+
 import json
 from typing import Any, Dict
 from unittest.mock import AsyncMock, MagicMock, patch

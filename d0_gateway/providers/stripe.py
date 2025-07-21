@@ -1,8 +1,9 @@
 """
 Stripe API client implementation for payment processing
 """
+
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..base import BaseAPIClient
 
@@ -10,21 +11,21 @@ from ..base import BaseAPIClient
 class StripeClient(BaseAPIClient):
     """Stripe API client for payment processing"""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         super().__init__(provider="stripe", api_key=api_key)
 
     def _get_base_url(self) -> str:
         """Get Stripe API base URL"""
         return "https://api.stripe.com"
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get Stripe API headers"""
         return {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/x-www-form-urlencoded",
         }
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get Stripe rate limit configuration"""
         return {
             "daily_limit": 50000,  # Very high for payment processing
@@ -45,9 +46,8 @@ class StripeClient(BaseAPIClient):
             # Payment processing fee would be calculated on the charge amount
             # For API cost tracking, we consider the API call free
             return Decimal("0.000")
-        else:
-            # All other API operations are free
-            return Decimal("0.000")
+        # All other API operations are free
+        return Decimal("0.000")
 
     async def create_checkout_session(
         self,
@@ -55,11 +55,11 @@ class StripeClient(BaseAPIClient):
         success_url: str,
         cancel_url: str,
         quantity: int = 1,
-        customer_email: Optional[str] = None,
-        client_reference_id: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        customer_email: str | None = None,
+        client_reference_id: str | None = None,
+        metadata: dict[str, str] | None = None,
         mode: str = "payment",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a Stripe Checkout session with a single price ID
 
@@ -100,18 +100,18 @@ class StripeClient(BaseAPIClient):
 
     async def create_checkout_session_with_line_items(
         self,
-        line_items: List[Dict[str, Any]],
+        line_items: list[dict[str, Any]],
         success_url: str,
         cancel_url: str,
-        customer_email: Optional[str] = None,
-        client_reference_id: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        customer_email: str | None = None,
+        client_reference_id: str | None = None,
+        metadata: dict[str, str] | None = None,
         mode: str = "payment",
-        expires_at: Optional[int] = None,
-        payment_method_types: Optional[List[str]] = None,
-        billing_address_collection: Optional[str] = None,
-        allow_promotion_codes: Optional[bool] = None,
-    ) -> Dict[str, Any]:
+        expires_at: int | None = None,
+        payment_method_types: list[str] | None = None,
+        billing_address_collection: str | None = None,
+        allow_promotion_codes: bool | None = None,
+    ) -> dict[str, Any]:
         """
         Create a Stripe Checkout session with line items (supports dynamic pricing)
 
@@ -189,11 +189,11 @@ class StripeClient(BaseAPIClient):
         self,
         amount: int,
         currency: str = "usd",
-        customer_id: Optional[str] = None,
-        description: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
-        receipt_email: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        customer_id: str | None = None,
+        description: str | None = None,
+        metadata: dict[str, str] | None = None,
+        receipt_email: str | None = None,
+    ) -> dict[str, Any]:
         """
         Create a payment intent
 
@@ -226,7 +226,7 @@ class StripeClient(BaseAPIClient):
 
         return await self.make_request("POST", "/v1/payment_intents", data=payload)
 
-    async def get_checkout_session(self, session_id: str) -> Dict[str, Any]:
+    async def get_checkout_session(self, session_id: str) -> dict[str, Any]:
         """
         Retrieve a checkout session
 
@@ -238,7 +238,7 @@ class StripeClient(BaseAPIClient):
         """
         return await self.make_request("GET", f"/v1/checkout/sessions/{session_id}")
 
-    async def get_payment_intent(self, payment_intent_id: str) -> Dict[str, Any]:
+    async def get_payment_intent(self, payment_intent_id: str) -> dict[str, Any]:
         """
         Retrieve a payment intent
 
@@ -253,10 +253,10 @@ class StripeClient(BaseAPIClient):
     async def create_customer(
         self,
         email: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        name: str | None = None,
+        description: str | None = None,
+        metadata: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """
         Create a customer
 
@@ -281,7 +281,7 @@ class StripeClient(BaseAPIClient):
 
         return await self.make_request("POST", "/v1/customers", data=payload)
 
-    async def get_customer(self, customer_id: str) -> Dict[str, Any]:
+    async def get_customer(self, customer_id: str) -> dict[str, Any]:
         """
         Retrieve a customer
 
@@ -296,10 +296,10 @@ class StripeClient(BaseAPIClient):
     async def create_product(
         self,
         name: str,
-        description: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        description: str | None = None,
+        metadata: dict[str, str] | None = None,
         active: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a product
 
@@ -324,10 +324,10 @@ class StripeClient(BaseAPIClient):
 
     async def list_charges(
         self,
-        customer_id: Optional[str] = None,
+        customer_id: str | None = None,
         limit: int = 10,
-        starting_after: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        starting_after: str | None = None,
+    ) -> dict[str, Any]:
         """
         List charges
 
@@ -352,10 +352,10 @@ class StripeClient(BaseAPIClient):
         self,
         amount: int,
         currency: str = "usd",
-        product_id: Optional[str] = None,
-        product_data: Optional[Dict[str, str]] = None,
-        recurring: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        product_id: str | None = None,
+        product_data: dict[str, str] | None = None,
+        recurring: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Create a price
 
@@ -384,8 +384,8 @@ class StripeClient(BaseAPIClient):
         return await self.make_request("POST", "/v1/prices", data=payload)
 
     async def create_webhook_endpoint(
-        self, url: str, enabled_events: List[str], description: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, url: str, enabled_events: list[str], description: str | None = None
+    ) -> dict[str, Any]:
         """
         Create a webhook endpoint
 
@@ -407,7 +407,7 @@ class StripeClient(BaseAPIClient):
 
         return await self.make_request("POST", "/v1/webhook_endpoints", data=payload)
 
-    async def construct_webhook_event(self, payload: str, signature: str, endpoint_secret: str) -> Dict[str, Any]:
+    async def construct_webhook_event(self, payload: str, signature: str, endpoint_secret: str) -> dict[str, Any]:
         """
         Verify and construct webhook event (simplified version)
 
@@ -434,7 +434,7 @@ class StripeClient(BaseAPIClient):
 
     def format_checkout_session_for_report(
         self, business_name: str, business_id: str, customer_email: str, report_url: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Format checkout session data for website report purchase
 

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-def find_test_directories() -> List[Path]:
+def find_test_directories() -> list[Path]:
     """Find all test directories containing Python test files."""
     test_root = Path(__file__).parent.parent / "tests"
     test_dirs = []
@@ -26,7 +26,7 @@ def find_test_directories() -> List[Path]:
     return sorted(test_dirs)
 
 
-def profile_directory(test_dir: Path, num_durations: int = 20) -> List[Tuple[str, float]]:
+def profile_directory(test_dir: Path, num_durations: int = 20) -> list[tuple[str, float]]:
     """Profile a single test directory and return slow tests."""
     print(f"\nProfiling {test_dir.relative_to(test_dir.parent.parent)}...")
 
@@ -88,7 +88,7 @@ def main():
     print(f"Found {len(test_dirs)} test directories to profile")
 
     # Collect all slow tests
-    all_slow_tests: Dict[str, List[Tuple[str, float]]] = {}
+    all_slow_tests: dict[str, list[tuple[str, float]]] = {}
 
     for test_dir in test_dirs:
         durations = profile_directory(test_dir, args.top)
@@ -100,9 +100,9 @@ def main():
             all_slow_tests[str(test_dir)] = slow_tests
 
     # Generate report
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"SLOW TEST SUMMARY (threshold: {args.threshold}s)")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     if not all_slow_tests:
         print("No slow tests found!")
@@ -134,9 +134,9 @@ def main():
         print(f"{i:2}. {dur:6.2f}s  {test}")
 
     # Files to update
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("FILES REQUIRING @pytest.mark.slow")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     files_to_update = set()
     for tests in all_slow_tests.values():

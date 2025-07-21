@@ -4,8 +4,8 @@ Production Configuration Service - P3-006 Mock Integration Replacement
 Service to help transition from mock integrations to production APIs by providing
 configuration validation, API key checking, and integration readiness assessment.
 """
-import os
-from typing import Any, Dict, List, Optional, Tuple
+
+from typing import Any
 
 from core.config import get_settings
 from core.logging import get_logger
@@ -24,7 +24,7 @@ class ProductionConfigService:
         self.settings = get_settings()
         self.logger = logger
 
-    def get_integration_readiness(self) -> Dict[str, Dict[str, Any]]:
+    def get_integration_readiness(self) -> dict[str, dict[str, Any]]:
         """
         Assess readiness for each API integration
 
@@ -45,7 +45,7 @@ class ProductionConfigService:
 
         return integrations
 
-    def get_production_config_recommendations(self) -> List[str]:
+    def get_production_config_recommendations(self) -> list[str]:
         """
         Get recommendations for production configuration
 
@@ -78,7 +78,7 @@ class ProductionConfigService:
 
         return recommendations
 
-    def validate_production_readiness(self) -> Tuple[bool, List[str]]:
+    def validate_production_readiness(self) -> tuple[bool, list[str]]:
         """
         Validate if the system is ready for production deployment
 
@@ -110,7 +110,7 @@ class ProductionConfigService:
 
         return is_ready, issues
 
-    def get_environment_transition_plan(self) -> Dict[str, Any]:
+    def get_environment_transition_plan(self) -> dict[str, Any]:
         """
         Get a plan for transitioning from development/staging to production
 
@@ -141,7 +141,7 @@ class ProductionConfigService:
             "next_steps": self._get_next_steps(readiness, issues),
         }
 
-    def _get_next_steps(self, readiness: Dict, issues: List[str]) -> List[str]:
+    def _get_next_steps(self, readiness: dict, issues: list[str]) -> list[str]:
         """Generate prioritized next steps"""
         steps = []
 
@@ -175,7 +175,7 @@ class ProductionConfigService:
 
         return steps
 
-    def _check_google_places_readiness(self) -> Dict[str, Any]:
+    def _check_google_places_readiness(self) -> dict[str, Any]:
         """Check Google Places API readiness"""
         has_key = bool(self.settings.google_api_key)
         enabled = self.settings.enable_gbp and not self.settings.use_stubs
@@ -189,7 +189,7 @@ class ProductionConfigService:
             "cost_per_request": "$0.002",
         }
 
-    def _check_pagespeed_readiness(self) -> Dict[str, Any]:
+    def _check_pagespeed_readiness(self) -> dict[str, Any]:
         """Check PageSpeed Insights API readiness"""
         has_key = bool(self.settings.google_api_key)  # Same key as Places
         enabled = self.settings.enable_pagespeed and not self.settings.use_stubs
@@ -203,7 +203,7 @@ class ProductionConfigService:
             "cost_per_request": "Free (with quota limits)",
         }
 
-    def _check_openai_readiness(self) -> Dict[str, Any]:
+    def _check_openai_readiness(self) -> dict[str, Any]:
         """Check OpenAI API readiness"""
         has_key = bool(self.settings.openai_api_key)
         enabled = self.settings.enable_openai and not self.settings.use_stubs
@@ -217,7 +217,7 @@ class ProductionConfigService:
             "cost_per_request": "Variable (based on tokens)",
         }
 
-    def _check_sendgrid_readiness(self) -> Dict[str, Any]:
+    def _check_sendgrid_readiness(self) -> dict[str, Any]:
         """Check SendGrid API readiness"""
         has_key = bool(self.settings.sendgrid_api_key)
         enabled = self.settings.enable_sendgrid and not self.settings.use_stubs
@@ -231,7 +231,7 @@ class ProductionConfigService:
             "cost_per_request": "$0.0006 per email",
         }
 
-    def _check_stripe_readiness(self) -> Dict[str, Any]:
+    def _check_stripe_readiness(self) -> dict[str, Any]:
         """Check Stripe API readiness"""
         has_secret = bool(self.settings.stripe_secret_key)
         has_webhook_secret = bool(self.settings.stripe_webhook_secret)
@@ -249,7 +249,7 @@ class ProductionConfigService:
             "cost_per_request": "2.9% + $0.30 per transaction",
         }
 
-    def _check_data_axle_readiness(self) -> Dict[str, Any]:
+    def _check_data_axle_readiness(self) -> dict[str, Any]:
         """Check Data Axle API readiness"""
         has_key = bool(self.settings.data_axle_api_key)
         enabled = self.settings.providers_data_axle_enabled and not self.settings.use_stubs
@@ -263,7 +263,7 @@ class ProductionConfigService:
             "cost_per_request": "Variable (trial available)",
         }
 
-    def _check_hunter_readiness(self) -> Dict[str, Any]:
+    def _check_hunter_readiness(self) -> dict[str, Any]:
         """Check Hunter.io API readiness"""
         has_key = bool(self.settings.hunter_api_key)
         enabled = self.settings.providers_hunter_enabled and not self.settings.use_stubs
@@ -277,7 +277,7 @@ class ProductionConfigService:
             "cost_per_request": "Variable (based on plan)",
         }
 
-    def _check_semrush_readiness(self) -> Dict[str, Any]:
+    def _check_semrush_readiness(self) -> dict[str, Any]:
         """Check SEMrush API readiness"""
         has_key = bool(self.settings.semrush_api_key)
         enabled = self.settings.enable_semrush and not self.settings.use_stubs
@@ -291,7 +291,7 @@ class ProductionConfigService:
             "cost_per_request": "Based on daily quota",
         }
 
-    def _check_screenshotone_readiness(self) -> Dict[str, Any]:
+    def _check_screenshotone_readiness(self) -> dict[str, Any]:
         """Check ScreenshotOne API readiness"""
         has_key = bool(self.settings.screenshotone_key)
         has_secret = bool(self.settings.screenshotone_secret)

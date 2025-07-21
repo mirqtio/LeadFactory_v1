@@ -4,8 +4,9 @@ Repository pattern for Lead database operations.
 Provides async database operations with proper error handling,
 pagination, and filtering capabilities.
 """
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from sqlalchemy import asc, desc, or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -34,13 +35,13 @@ class LeadRepository:
 
     def create_lead(
         self,
-        email: Optional[str] = None,
-        domain: Optional[str] = None,
-        company_name: Optional[str] = None,
-        contact_name: Optional[str] = None,
+        email: str | None = None,
+        domain: str | None = None,
+        company_name: str | None = None,
+        contact_name: str | None = None,
         is_manual: bool = False,
-        source: Optional[str] = None,
-        created_by: Optional[str] = None,
+        source: str | None = None,
+        created_by: str | None = None,
     ) -> Lead:
         """Create a new lead"""
         try:
@@ -71,11 +72,11 @@ class LeadRepository:
             logger.error(f"Database error creating lead: {e}")
             raise
 
-    def get_lead_by_id(self, lead_id: str) -> Optional[Lead]:
+    def get_lead_by_id(self, lead_id: str) -> Lead | None:
         """Get lead by ID"""
         return self.db.query(Lead).filter(Lead.id == lead_id, Lead.is_deleted.is_(False)).first()
 
-    def get_leads_by_ids(self, lead_ids: List[str]) -> List[Lead]:
+    def get_leads_by_ids(self, lead_ids: list[str]) -> list[Lead]:
         """
         Get multiple leads by IDs in a single query (bulk operation)
 
@@ -90,11 +91,11 @@ class LeadRepository:
 
         return self.db.query(Lead).filter(Lead.id.in_(lead_ids), Lead.is_deleted.is_(False)).all()
 
-    def get_lead_by_email(self, email: str) -> Optional[Lead]:
+    def get_lead_by_email(self, email: str) -> Lead | None:
         """Get lead by email"""
         return self.db.query(Lead).filter(Lead.email == email.lower(), Lead.is_deleted.is_(False)).first()
 
-    def get_lead_by_domain(self, domain: str) -> Optional[Lead]:
+    def get_lead_by_domain(self, domain: str) -> Lead | None:
         """Get lead by domain"""
         return self.db.query(Lead).filter(Lead.domain == domain.lower(), Lead.is_deleted.is_(False)).first()
 
@@ -102,17 +103,17 @@ class LeadRepository:
         self,
         skip: int = 0,
         limit: int = 100,
-        is_manual: Optional[bool] = None,
-        enrichment_status: Optional[EnrichmentStatus] = None,
-        search: Optional[str] = None,
+        is_manual: bool | None = None,
+        enrichment_status: EnrichmentStatus | None = None,
+        search: str | None = None,
         sort_by: str = "created_at",
         sort_order: str = "desc",
         # P0-021: Badge-based filtering parameters
-        badge_ids: Optional[List[str]] = None,
-        badge_types: Optional[List[str]] = None,
-        has_badges: Optional[bool] = None,
-        exclude_badge_ids: Optional[List[str]] = None,
-    ) -> Tuple[List[Lead], int]:
+        badge_ids: list[str] | None = None,
+        badge_types: list[str] | None = None,
+        has_badges: bool | None = None,
+        exclude_badge_ids: list[str] | None = None,
+    ) -> tuple[list[Lead], int]:
         """List leads with filtering and pagination"""
 
         query = self.db.query(Lead).filter(Lead.is_deleted.is_(False))
@@ -179,7 +180,7 @@ class LeadRepository:
 
         return leads, total_count
 
-    def update_lead(self, lead_id: str, updates: Dict[str, Any], updated_by: Optional[str] = None) -> Optional[Lead]:
+    def update_lead(self, lead_id: str, updates: dict[str, Any], updated_by: str | None = None) -> Lead | None:
         """Update lead with change tracking"""
         lead = self.get_lead_by_id(lead_id)
         if not lead:
@@ -209,7 +210,7 @@ class LeadRepository:
             logger.error(f"Error updating lead {lead_id}: {e}")
             raise
 
-    def soft_delete_lead(self, lead_id: str, deleted_by: Optional[str] = None) -> bool:
+    def soft_delete_lead(self, lead_id: str, deleted_by: str | None = None) -> bool:
         """Soft delete a lead"""
         lead = self.get_lead_by_id(lead_id)
         if not lead:
@@ -231,7 +232,7 @@ class LeadRepository:
             raise
 
     def update_enrichment_status(
-        self, lead_id: str, status: EnrichmentStatus, task_id: Optional[str] = None, error: Optional[str] = None
+        self, lead_id: str, status: EnrichmentStatus, task_id: str | None = None, error: str | None = None
     ) -> bool:
         """Update enrichment status and task tracking"""
         lead = self.get_lead_by_id(lead_id)
@@ -266,11 +267,11 @@ class AuditRepository:
         self,
         lead_id: str,
         action: AuditAction,
-        user_id: Optional[str] = None,
-        user_ip: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        old_values: Optional[Dict[str, Any]] = None,
-        new_values: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        user_ip: str | None = None,
+        user_agent: str | None = None,
+        old_values: dict[str, Any] | None = None,
+        new_values: dict[str, Any] | None = None,
     ) -> AuditLogLead:
         """Create audit log entry"""
         import hashlib
@@ -312,7 +313,7 @@ class AuditRepository:
             logger.error(f"Error creating audit log: {e}")
             raise
 
-    def get_audit_trail(self, lead_id: str, limit: int = 50) -> List[AuditLogLead]:
+    def get_audit_trail(self, lead_id: str, limit: int = 50) -> list[AuditLogLead]:
         """Get audit trail for a lead"""
         return (
             self.db.query(AuditLogLead)
@@ -356,13 +357,13 @@ class BadgeRepository:
     def create_badge(
         self,
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         badge_type: str = "custom",
         color: str = "#007bff",
-        icon: Optional[str] = None,
+        icon: str | None = None,
         is_system: bool = False,
         is_active: bool = True,
-        created_by: Optional[str] = None,
+        created_by: str | None = None,
     ) -> Badge:
         """Create a new badge"""
         try:
@@ -393,7 +394,7 @@ class BadgeRepository:
             logger.error(f"Database error creating badge: {e}")
             raise
 
-    def get_badge_by_id(self, badge_id: str) -> Optional[Badge]:
+    def get_badge_by_id(self, badge_id: str) -> Badge | None:
         """Get a badge by ID"""
         try:
             return self.db.query(Badge).filter(Badge.id == badge_id, Badge.is_active == True).first()
@@ -405,13 +406,13 @@ class BadgeRepository:
         self,
         skip: int = 0,
         limit: int = 20,
-        badge_type: Optional[str] = None,
-        is_system: Optional[bool] = None,
-        is_active: Optional[bool] = None,
-        search: Optional[str] = None,
+        badge_type: str | None = None,
+        is_system: bool | None = None,
+        is_active: bool | None = None,
+        search: str | None = None,
         sort_by: str = "name",
         sort_order: str = "asc",
-    ) -> Tuple[List[Badge], int]:
+    ) -> tuple[list[Badge], int]:
         """List badges with filtering and pagination"""
         try:
             query = self.db.query(Badge)
@@ -463,9 +464,9 @@ class BadgeRepository:
     def update_badge(
         self,
         badge_id: str,
-        updates: Dict[str, Any],
-        updated_by: Optional[str] = None,
-    ) -> Optional[Badge]:
+        updates: dict[str, Any],
+        updated_by: str | None = None,
+    ) -> Badge | None:
         """Update a badge"""
         try:
             badge = self.get_badge_by_id(badge_id)
@@ -493,7 +494,7 @@ class BadgeRepository:
             logger.error(f"Database error updating badge {badge_id}: {e}")
             raise
 
-    def delete_badge(self, badge_id: str, deleted_by: Optional[str] = None) -> bool:
+    def delete_badge(self, badge_id: str, deleted_by: str | None = None) -> bool:
         """Soft delete a badge"""
         try:
             badge = self.get_badge_by_id(badge_id)
@@ -517,9 +518,9 @@ class BadgeRepository:
         self,
         lead_id: str,
         badge_id: str,
-        assigned_by: Optional[str] = None,
-        notes: Optional[str] = None,
-        expires_at: Optional[datetime] = None,
+        assigned_by: str | None = None,
+        notes: str | None = None,
+        expires_at: datetime | None = None,
     ) -> LeadBadge:
         """Assign a badge to a lead with audit logging"""
         try:
@@ -582,9 +583,9 @@ class BadgeRepository:
         self,
         lead_id: str,
         badge_id: str,
-        removed_by: Optional[str] = None,
-        removal_reason: Optional[str] = None,
-    ) -> Optional[LeadBadge]:
+        removed_by: str | None = None,
+        removal_reason: str | None = None,
+    ) -> LeadBadge | None:
         """Remove a badge from a lead with audit logging"""
         try:
             lead_badge = (
@@ -638,7 +639,7 @@ class BadgeRepository:
         self,
         lead_id: str,
         include_inactive: bool = False,
-    ) -> List[LeadBadge]:
+    ) -> list[LeadBadge]:
         """Get all badges assigned to a lead"""
         try:
             query = self.db.query(LeadBadge).filter(LeadBadge.lead_id == lead_id)
@@ -656,7 +657,7 @@ class BadgeRepository:
         self,
         lead_id: str,
         limit: int = 50,
-    ) -> List[BadgeAuditLog]:
+    ) -> list[BadgeAuditLog]:
         """Get badge audit trail for a lead"""
         try:
             return (
@@ -675,12 +676,12 @@ class BadgeRepository:
         self,
         lead_id: str,
         badge_id: str,
-        lead_badge_id: Optional[str],
+        lead_badge_id: str | None,
         action: str,
-        user_id: Optional[str] = None,
-        old_values: Optional[Dict] = None,
-        new_values: Optional[Dict] = None,
-        notes: Optional[str] = None,
+        user_id: str | None = None,
+        old_values: dict | None = None,
+        new_values: dict | None = None,
+        notes: str | None = None,
     ) -> BadgeAuditLog:
         """Create a badge audit log entry"""
         try:

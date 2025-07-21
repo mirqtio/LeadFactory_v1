@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class SpamRiskLevel(str, Enum):
@@ -49,7 +49,7 @@ class SpamRule:
     description: str
     pattern: str
     weight: float
-    threshold: Optional[float] = None
+    threshold: float | None = None
     enabled: bool = True
     category: str = "general"
 
@@ -60,16 +60,16 @@ class SpamCheckResult:
 
     overall_score: float
     risk_level: SpamRiskLevel
-    triggered_rules: List[Dict[str, Any]]
-    suggestions: List[str]
-    category_scores: Dict[str, float]
-    analysis_details: Dict[str, Any]
+    triggered_rules: list[dict[str, Any]]
+    suggestions: list[str]
+    category_scores: dict[str, float]
+    analysis_details: dict[str, Any]
 
 
 class SpamScoreChecker:
     """Main spam score checker with rule-based analysis - Acceptance Criteria"""
 
-    def __init__(self, rules_file: Optional[str] = None):
+    def __init__(self, rules_file: str | None = None):
         """Initialize spam checker with rules"""
         self.rules_file = rules_file or self._get_default_rules_path()
         self.rules = self._load_spam_rules()
@@ -80,10 +80,10 @@ class SpamScoreChecker:
         current_dir = os.path.dirname(__file__)
         return os.path.join(current_dir, "spam_rules.json")
 
-    def _load_spam_rules(self) -> List[SpamRule]:
+    def _load_spam_rules(self) -> list[SpamRule]:
         """Load spam rules from JSON file"""
         try:
-            with open(self.rules_file, "r") as file:
+            with open(self.rules_file) as file:
                 rules_data = json.load(file)
 
             rules = []
@@ -106,7 +106,7 @@ class SpamScoreChecker:
             # Fallback to default rules
             return self._get_fallback_rules()
 
-    def _get_fallback_rules(self) -> List[SpamRule]:
+    def _get_fallback_rules(self) -> list[SpamRule]:
         """Fallback spam rules when JSON file not available"""
         return [
             SpamRule(
@@ -212,7 +212,7 @@ class SpamScoreChecker:
             analysis_details=analysis_details,
         )
 
-    def _apply_rule(self, rule: SpamRule, subject: str, content: str, full_text: str) -> Tuple[float, List[str]]:
+    def _apply_rule(self, rule: SpamRule, subject: str, content: str, full_text: str) -> tuple[float, list[str]]:
         """Apply individual spam rule - Rule-based checks"""
 
         matches = []
@@ -242,12 +242,12 @@ class SpamScoreChecker:
 
         return score, matches
 
-    def _check_keyword_rule(self, rule: SpamRule, text: str) -> List[str]:
+    def _check_keyword_rule(self, rule: SpamRule, text: str) -> list[str]:
         """Check for keyword-based spam patterns - Common patterns caught"""
         matches = re.findall(rule.pattern, text, re.IGNORECASE)
         return matches
 
-    def _check_pattern_rule(self, rule: SpamRule, text: str) -> List[str]:
+    def _check_pattern_rule(self, rule: SpamRule, text: str) -> list[str]:
         """Check for pattern-based spam indicators - Common patterns caught"""
         matches = re.findall(rule.pattern, text)
         return matches
@@ -264,7 +264,7 @@ class SpamScoreChecker:
 
         return 0.0
 
-    def _check_frequency_rule(self, rule: SpamRule, text: str) -> Tuple[float, List[str]]:
+    def _check_frequency_rule(self, rule: SpamRule, text: str) -> tuple[float, list[str]]:
         """Check frequency-based rules"""
         matches = re.findall(rule.pattern, text, re.IGNORECASE)
         frequency = len(matches)
@@ -274,7 +274,7 @@ class SpamScoreChecker:
 
         return 0.0, []
 
-    def _check_formatting_rule(self, rule: SpamRule, text: str) -> Tuple[float, List[str]]:
+    def _check_formatting_rule(self, rule: SpamRule, text: str) -> tuple[float, list[str]]:
         """Check formatting-based rules"""
         matches = re.findall(rule.pattern, text)
 
@@ -283,7 +283,7 @@ class SpamScoreChecker:
 
         return 0.0, []
 
-    def _check_structure_rule(self, rule: SpamRule, subject: str, content: str) -> Tuple[float, List[str]]:
+    def _check_structure_rule(self, rule: SpamRule, subject: str, content: str) -> tuple[float, list[str]]:
         """Check structural rules"""
         score = 0.0
         issues = []
@@ -318,16 +318,15 @@ class SpamScoreChecker:
         """Calculate risk level from spam score"""
         if score < 25:
             return SpamRiskLevel.LOW
-        elif score < 50:
+        if score < 50:
             return SpamRiskLevel.MEDIUM
-        elif score < 75:
+        if score < 75:
             return SpamRiskLevel.HIGH
-        else:
-            return SpamRiskLevel.CRITICAL
+        return SpamRiskLevel.CRITICAL
 
     def _generate_suggestions(
-        self, triggered_rules: List[Dict[str, Any]], analysis_details: Dict[str, Any]
-    ) -> List[str]:
+        self, triggered_rules: list[dict[str, Any]], analysis_details: dict[str, Any]
+    ) -> list[str]:
         """Generate improvement suggestions - Score reduction logic"""
         suggestions = []
 
@@ -372,7 +371,7 @@ class SpamScoreChecker:
 
         return suggestions[:5]  # Limit to top 5 suggestions
 
-    def reduce_spam_score(self, original_content: str, suggestions: List[str]) -> Dict[str, str]:
+    def reduce_spam_score(self, original_content: str, suggestions: list[str]) -> dict[str, str]:
         """Apply automatic score reduction improvements - Score reduction logic"""
 
         improved_content = original_content
@@ -417,7 +416,7 @@ class SpamScoreChecker:
             "improved_length": len(improved_content),
         }
 
-    def batch_check_emails(self, emails: List[Dict[str, str]]) -> List[SpamCheckResult]:
+    def batch_check_emails(self, emails: list[dict[str, str]]) -> list[SpamCheckResult]:
         """Check multiple emails for spam scores"""
         results = []
 
@@ -431,7 +430,7 @@ class SpamScoreChecker:
 
         return results
 
-    def get_rule_statistics(self) -> Dict[str, Any]:
+    def get_rule_statistics(self) -> dict[str, Any]:
         """Get statistics about loaded rules"""
         enabled_rules = [r for r in self.rules if r.enabled]
 
@@ -478,7 +477,7 @@ def is_likely_spam(subject: str, content: str, threshold: float = 50.0) -> bool:
     return score >= threshold
 
 
-def improve_email_deliverability(subject: str, content: str) -> Dict[str, Any]:
+def improve_email_deliverability(subject: str, content: str) -> dict[str, Any]:
     """Get suggestions to improve email deliverability"""
     checker = SpamScoreChecker()
     result = checker.check_spam_score(subject, content)

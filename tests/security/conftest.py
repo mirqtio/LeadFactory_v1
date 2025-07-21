@@ -4,7 +4,7 @@ Security test configuration and fixtures - Task 086
 Provides test environment setup and fixtures for security and compliance testing.
 """
 
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
@@ -61,9 +61,12 @@ def test_db_session() -> Generator:
 @pytest.fixture(scope="function")
 def mock_security_services():
     """Mock security-related services for testing"""
-    with patch("core.security.verify_token") as mock_verify, patch("core.security.hash_email") as mock_hash, patch(
-        "core.security.encrypt_data"
-    ) as mock_encrypt, patch("d7_storefront.stripe_client.stripe") as mock_stripe:
+    with (
+        patch("core.security.verify_token") as mock_verify,
+        patch("core.security.hash_email") as mock_hash,
+        patch("core.security.encrypt_data") as mock_encrypt,
+        patch("d7_storefront.stripe_client.stripe") as mock_stripe,
+    ):
         # Configure mock security responses
         mock_verify.return_value = {
             "valid": True,

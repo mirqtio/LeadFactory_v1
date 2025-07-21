@@ -5,7 +5,6 @@ Tests basic script loading and validation without requiring Redis connection
 """
 
 import json
-import os
 from pathlib import Path
 
 

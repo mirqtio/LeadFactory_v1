@@ -1,6 +1,7 @@
 """
 Gateway API endpoints including cost tracking
 """
+
 from fastapi import APIRouter
 
 from .cost_api import router as cost_router

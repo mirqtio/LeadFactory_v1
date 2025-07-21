@@ -2,6 +2,7 @@
 Run all PRD v1.2 smoke tests
 Verifies all external APIs are working before running full pipeline
 """
+
 import asyncio
 import sys
 from pathlib import Path
@@ -138,10 +139,9 @@ async def run_all_smoke_tests():
         print(f"❌ FAILED: {len(failed_required)} required API(s) failed")
         print(f"   Failed APIs: {', '.join(failed_required)}")
         return False
-    else:
-        passed = sum(1 for r in results.values() if r.startswith("✓"))
-        print(f"✅ PASSED: All required APIs working ({passed} APIs tested)")
-        return True
+    passed = sum(1 for r in results.values() if r.startswith("✓"))
+    print(f"✅ PASSED: All required APIs working ({passed} APIs tested)")
+    return True
 
 
 def check_environment():

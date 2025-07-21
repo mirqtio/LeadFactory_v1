@@ -1,6 +1,7 @@
 """
 Test metrics endpoint integration
 """
+
 import os
 import sys
 

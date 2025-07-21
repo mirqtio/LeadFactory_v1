@@ -8,6 +8,7 @@ Tests all acceptance criteria:
 - Cost tracking accurate
 - Success/failure rates
 """
+
 import asyncio
 import sys
 import time
@@ -121,7 +122,7 @@ class TestTask037AcceptanceCriteria:
         steps = ["fetch_html", "parse_dom", "calculate_metrics"]
         step_durations = [0.1, 0.3, 0.5]
 
-        for step, duration in zip(steps, step_durations):
+        for step, duration in zip(steps, step_durations, strict=False):
             assessment_metrics.track_processing_step(assessment_type, step, duration)
 
         # Test context manager for duration tracking

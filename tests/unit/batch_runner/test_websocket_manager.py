@@ -2,6 +2,7 @@
 Test suite for batch_runner WebSocket manager
 Focus on achieving ≥80% total coverage for P0-022
 """
+
 import asyncio
 import json
 from unittest.mock import AsyncMock, Mock, patch

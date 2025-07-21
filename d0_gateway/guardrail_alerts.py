@@ -2,12 +2,11 @@
 Alert system for cost guardrail violations in P1-060
 Handles notifications via multiple channels (email, Slack, webhooks)
 """
+
 import asyncio
-import json
 from datetime import datetime, timedelta
-from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field, HttpUrl
@@ -38,14 +37,14 @@ class AlertConfig(BaseModel):
     enabled: bool = True
 
     # Channel-specific settings
-    email_addresses: Optional[List[str]] = None
-    slack_webhook_url: Optional[HttpUrl] = None
-    webhook_url: Optional[HttpUrl] = None
-    webhook_headers: Optional[Dict[str, str]] = None
+    email_addresses: list[str] | None = None
+    slack_webhook_url: HttpUrl | None = None
+    webhook_url: HttpUrl | None = None
+    webhook_headers: dict[str, str] | None = None
 
     # Filtering
     min_severity: AlertSeverity = AlertSeverity.WARNING
-    providers: Optional[List[str]] = None  # None means all providers
+    providers: list[str] | None = None  # None means all providers
 
     # Rate limiting
     max_alerts_per_hour: int = 10
@@ -59,10 +58,10 @@ class AlertMessage(BaseModel):
     message: str
     severity: AlertSeverity
     violation: GuardrailViolation
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
-    def to_slack_blocks(self) -> List[Dict]:
+    def to_slack_blocks(self) -> list[dict]:
         """Format as Slack blocks"""
         color_map = {
             AlertSeverity.INFO: "#36a64f",
@@ -171,12 +170,12 @@ class AlertMessage(BaseModel):
                     </div>
                     <div class="metric">
                         <span class="metric-label">Provider:</span>
-                        <span class="metric-value">{self.violation.provider or 'All Providers'}</span>
+                        <span class="metric-value">{self.violation.provider or "All Providers"}</span>
                     </div>
                 </div>
                 
                 <div class="footer">
-                    Alert generated at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}
+                    Alert generated at {self.timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")}
                 </div>
             </div>
         </body>
@@ -189,8 +188,8 @@ class AlertManager:
 
     def __init__(self):
         self.logger = logger
-        self._configs: List[AlertConfig] = []
-        self._alert_history: Dict[str, List[datetime]] = {}
+        self._configs: list[AlertConfig] = []
+        self._alert_history: dict[str, list[datetime]] = {}
         self._load_default_configs()
 
     def _load_default_configs(self):

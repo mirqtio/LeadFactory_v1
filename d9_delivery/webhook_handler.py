@@ -18,9 +18,9 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -59,16 +59,16 @@ class WebhookEvent:
     email: str
     timestamp: datetime
     message_id: str
-    event_id: Optional[str] = None
-    reason: Optional[str] = None
-    bounce_type: Optional[str] = None
-    url: Optional[str] = None
-    user_agent: Optional[str] = None
-    ip: Optional[str] = None
-    category: Optional[List[str]] = None
-    asm_group_id: Optional[int] = None
-    custom_args: Optional[Dict[str, Any]] = None
-    raw_event: Optional[Dict[str, Any]] = None
+    event_id: str | None = None
+    reason: str | None = None
+    bounce_type: str | None = None
+    url: str | None = None
+    user_agent: str | None = None
+    ip: str | None = None
+    category: list[str] | None = None
+    asm_group_id: int | None = None
+    custom_args: dict[str, Any] | None = None
+    raw_event: dict[str, Any] | None = None
 
 
 class WebhookHandler:
@@ -79,7 +79,7 @@ class WebhookHandler:
     status, bounce tracking, and compliance records accordingly.
     """
 
-    def __init__(self, config: Optional[Any] = None):
+    def __init__(self, config: Any | None = None):
         """Initialize webhook handler"""
         self.config = config or get_settings()
         self.webhook_secret = os.getenv("SENDGRID_WEBHOOK_SECRET")
@@ -122,7 +122,7 @@ class WebhookHandler:
             logger.error(f"Error verifying webhook signature: {e}")
             return False
 
-    def parse_events(self, payload: str) -> List[WebhookEvent]:
+    def parse_events(self, payload: str) -> list[WebhookEvent]:
         """
         Parse SendGrid webhook payload into structured events
 
@@ -157,7 +157,7 @@ class WebhookHandler:
             logger.error(f"Error parsing webhook events: {e}")
             raise
 
-    def _parse_single_event(self, event_data: Dict[str, Any]) -> Optional[WebhookEvent]:
+    def _parse_single_event(self, event_data: dict[str, Any]) -> WebhookEvent | None:
         """Parse a single event from the webhook payload"""
         try:
             # Required fields
@@ -178,12 +178,12 @@ class WebhookHandler:
 
             # Parse timestamp
             if isinstance(timestamp, (int, float)):
-                parsed_timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+                parsed_timestamp = datetime.fromtimestamp(timestamp, tz=UTC)
             else:
                 try:
                     parsed_timestamp = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
                 except Exception:
-                    parsed_timestamp = datetime.now(timezone.utc)
+                    parsed_timestamp = datetime.now(UTC)
 
             # Extract optional fields
             message_id = event_data.get("sg_message_id", event_data.get("message_id"))
@@ -224,7 +224,7 @@ class WebhookHandler:
             logger.error(f"Error parsing single event: {e}")
             return None
 
-    def process_events(self, events: List[WebhookEvent]) -> Dict[str, Any]:
+    def process_events(self, events: list[WebhookEvent]) -> dict[str, Any]:
         """
         Process list of webhook events
 
@@ -306,27 +306,26 @@ class WebhookHandler:
         try:
             if event.event_type == SendGridEventType.DELIVERED:
                 return self._handle_delivered_event(event)
-            elif event.event_type == SendGridEventType.BOUNCE:
+            if event.event_type == SendGridEventType.BOUNCE:
                 return self._handle_bounce_event(event)
-            elif event.event_type == SendGridEventType.SPAM_REPORT:
+            if event.event_type == SendGridEventType.SPAM_REPORT:
                 return self._handle_spam_report_event(event)
-            elif event.event_type == SendGridEventType.CLICK:
+            if event.event_type == SendGridEventType.CLICK:
                 return self._handle_click_event(event)
-            elif event.event_type == SendGridEventType.OPEN:
+            if event.event_type == SendGridEventType.OPEN:
                 return self._handle_open_event(event)
-            elif event.event_type == SendGridEventType.UNSUBSCRIBE:
+            if event.event_type == SendGridEventType.UNSUBSCRIBE:
                 return self._handle_unsubscribe_event(event)
-            elif event.event_type == SendGridEventType.DROPPED:
+            if event.event_type == SendGridEventType.DROPPED:
                 return self._handle_dropped_event(event)
-            elif event.event_type == SendGridEventType.DEFERRED:
+            if event.event_type == SendGridEventType.DEFERRED:
                 return self._handle_deferred_event(event)
-            elif event.event_type == SendGridEventType.PROCESSED:
+            if event.event_type == SendGridEventType.PROCESSED:
                 return self._handle_processed_event(event)
-            elif event.event_type == SendGridEventType.BLOCKED:
+            if event.event_type == SendGridEventType.BLOCKED:
                 return self._handle_blocked_event(event)
-            else:
-                logger.warning(f"Unhandled event type: {event.event_type.value}")
-                return self._handle_generic_event(event)
+            logger.warning(f"Unhandled event type: {event.event_type.value}")
+            return self._handle_generic_event(event)
 
         except Exception as e:
             logger.error(f"Error processing {event.event_type.value} event: {e}")
@@ -811,7 +810,7 @@ class WebhookHandler:
             logger.error(f"Error handling generic event: {e}")
             return False
 
-    def _find_delivery_by_message_id(self, session: Session, message_id: str) -> Optional[EmailDelivery]:
+    def _find_delivery_by_message_id(self, session: Session, message_id: str) -> EmailDelivery | None:
         """Find delivery record by SendGrid message ID"""
         if not message_id:
             return None
@@ -822,7 +821,7 @@ class WebhookHandler:
             logger.error(f"Error finding delivery by message ID {message_id}: {e}")
             return None
 
-    def get_webhook_stats(self, hours: int = 24) -> Dict[str, Any]:
+    def get_webhook_stats(self, hours: int = 24) -> dict[str, Any]:
         """
         Get webhook processing statistics
 
@@ -835,7 +834,7 @@ class WebhookHandler:
         try:
             from datetime import timedelta
 
-            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+            cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
             with SessionLocal() as session:
                 # Total events
@@ -865,21 +864,21 @@ class WebhookHandler:
                     "total_events": total_events,
                     "events_by_type": events_by_type,
                     "total_bounces": bounces,
-                    "last_updated": datetime.now(timezone.utc).isoformat(),
+                    "last_updated": datetime.now(UTC).isoformat(),
                 }
 
         except Exception as e:
             logger.error(f"Error getting webhook stats: {e}")
             return {
                 "error": str(e),
-                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "last_updated": datetime.now(UTC).isoformat(),
             }
 
 
 # Utility functions
 
 
-def process_sendgrid_webhook(payload: str, signature: str = None) -> Dict[str, Any]:
+def process_sendgrid_webhook(payload: str, signature: str = None) -> dict[str, Any]:
     """
     Utility function to process SendGrid webhook payload
 
@@ -903,7 +902,7 @@ def process_sendgrid_webhook(payload: str, signature: str = None) -> Dict[str, A
     return results
 
 
-def create_test_webhook_event(event_type: str, email: str, message_id: str, **kwargs) -> Dict[str, Any]:
+def create_test_webhook_event(event_type: str, email: str, message_id: str, **kwargs) -> dict[str, Any]:
     """
     Create a test webhook event for testing purposes
 

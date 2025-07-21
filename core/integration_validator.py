@@ -4,12 +4,12 @@ Integration Validation Framework for P3-006 Mock Integration Replacement
 Comprehensive validation system for API integrations, production readiness,
 and service health monitoring with automated testing capabilities.
 """
-import asyncio
+
 import json
 import os
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import aiohttp
 from pydantic import BaseModel, Field
@@ -28,10 +28,10 @@ class ValidationResult(BaseModel):
     service_name: str
     test_name: str
     passed: bool
-    response_time_ms: Optional[int] = None
-    status_code: Optional[int] = None
-    error_message: Optional[str] = None
-    details: Dict[str, Any] = Field(default_factory=dict)
+    response_time_ms: int | None = None
+    status_code: int | None = None
+    error_message: str | None = None
+    details: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -46,9 +46,9 @@ class IntegrationReport(BaseModel):
     production_ready_services: int
     mock_only_services: int
     offline_services: int
-    validation_results: List[ValidationResult] = Field(default_factory=list)
-    service_summary: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
-    recommendations: List[str] = Field(default_factory=list)
+    validation_results: list[ValidationResult] = Field(default_factory=list)
+    service_summary: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    recommendations: list[str] = Field(default_factory=list)
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -66,14 +66,14 @@ class IntegrationValidator:
 
     def __init__(self):
         self.settings = get_settings()
-        self.validation_results: List[ValidationResult] = []
+        self.validation_results: list[ValidationResult] = []
 
     async def validate_service_endpoint(
         self,
         service_name: str,
         endpoint_path: str,
         method: str = "GET",
-        payload: Optional[Dict] = None,
+        payload: dict | None = None,
         expected_status: int = 200,
         timeout: int = 10,
     ) -> ValidationResult:
@@ -145,7 +145,7 @@ class IntegrationValidator:
                         },
                     )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return ValidationResult(
                 service_name=service_name,
                 test_name=test_name,
@@ -162,7 +162,7 @@ class IntegrationValidator:
                 error_message=f"Request failed: {str(e)}",
             )
 
-    def _get_service_api_key(self, service_name: str) -> Optional[str]:
+    def _get_service_api_key(self, service_name: str) -> str | None:
         """Get API key for service from environment"""
         key_mapping = {
             "google_places": "GOOGLE_API_KEY",
@@ -179,18 +179,15 @@ class IntegrationValidator:
         env_var = key_mapping.get(service_name)
         return os.getenv(env_var) if env_var else None
 
-    def _get_auth_headers(self, service_name: str, api_key: str) -> Dict[str, str]:
+    def _get_auth_headers(self, service_name: str, api_key: str) -> dict[str, str]:
         """Get authentication headers for service"""
         if service_name in ["google_places", "pagespeed", "semrush"]:
             return {}  # API key goes in query params
-        elif service_name in ["openai", "sendgrid", "stripe", "data_axle", "hunter"]:
+        if service_name in ["openai", "sendgrid", "stripe", "data_axle", "hunter"] or service_name == "screenshotone":
             return {"Authorization": f"Bearer {api_key}"}
-        elif service_name == "screenshotone":
-            return {"Authorization": f"Bearer {api_key}"}
-        else:
-            return {}
+        return {}
 
-    async def validate_google_places(self) -> List[ValidationResult]:
+    async def validate_google_places(self) -> list[ValidationResult]:
         """Validate Google Places API endpoints"""
         results = []
 
@@ -212,7 +209,7 @@ class IntegrationValidator:
 
         return results
 
-    async def validate_pagespeed(self) -> List[ValidationResult]:
+    async def validate_pagespeed(self) -> list[ValidationResult]:
         """Validate PageSpeed Insights API"""
         results = []
 
@@ -225,7 +222,7 @@ class IntegrationValidator:
 
         return results
 
-    async def validate_openai(self) -> List[ValidationResult]:
+    async def validate_openai(self) -> list[ValidationResult]:
         """Validate OpenAI API endpoints"""
         results = []
 
@@ -243,7 +240,7 @@ class IntegrationValidator:
 
         return results
 
-    async def validate_sendgrid(self) -> List[ValidationResult]:
+    async def validate_sendgrid(self) -> list[ValidationResult]:
         """Validate SendGrid API endpoints"""
         results = []
 
@@ -262,7 +259,7 @@ class IntegrationValidator:
 
         return results
 
-    async def validate_stripe(self) -> List[ValidationResult]:
+    async def validate_stripe(self) -> list[ValidationResult]:
         """Validate Stripe API endpoints"""
         results = []
 
@@ -369,14 +366,14 @@ class IntegrationValidator:
             recommendations=recommendations,
         )
 
-    def _calculate_avg_response_time(self, results: List[ValidationResult]) -> Optional[float]:
+    def _calculate_avg_response_time(self, results: list[ValidationResult]) -> float | None:
         """Calculate average response time for a set of results"""
         response_times = [r.response_time_ms for r in results if r.response_time_ms is not None]
         return sum(response_times) / len(response_times) if response_times else None
 
     def _generate_recommendations(
-        self, results: List[ValidationResult], service_statuses: Dict, service_summary: Dict
-    ) -> List[str]:
+        self, results: list[ValidationResult], service_statuses: dict, service_summary: dict
+    ) -> list[str]:
         """Generate actionable recommendations based on validation results"""
         recommendations = []
 
@@ -435,13 +432,12 @@ class IntegrationValidator:
                     passed=True,
                     details={"failover_working": True, "original_status": original_status},
                 )
-            else:
-                return ValidationResult(
-                    service_name=service_name,
-                    test_name="Failover Test",
-                    passed=True,
-                    details={"failover_not_needed": True, "status": original_status},
-                )
+            return ValidationResult(
+                service_name=service_name,
+                test_name="Failover Test",
+                passed=True,
+                details={"failover_not_needed": True, "status": original_status},
+            )
 
         except Exception as e:
             return ValidationResult(
@@ -466,7 +462,7 @@ async def validate_all_integrations() -> IntegrationReport:
     return await integration_validator.validate_all_services()
 
 
-async def validate_production_transition() -> Dict[str, Any]:
+async def validate_production_transition() -> dict[str, Any]:
     """
     Comprehensive production transition validation
 

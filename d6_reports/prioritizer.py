@@ -13,7 +13,7 @@ Acceptance Criteria:
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Handle imports for different environments
 try:
@@ -36,12 +36,12 @@ logger = logging.getLogger(__name__)
 class PrioritizationResult:
     """Result of finding prioritization process"""
 
-    top_issues: List[FindingScore]
-    quick_wins: List[FindingScore]
-    all_findings: List[FindingScore]
-    summary: Dict[str, Any]
+    top_issues: list[FindingScore]
+    quick_wins: list[FindingScore]
+    all_findings: list[FindingScore]
+    summary: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {
             "top_issues": [finding.to_dict() for finding in self.top_issues],
@@ -74,8 +74,8 @@ class FindingPrioritizer:
 
     def prioritize_findings(
         self,
-        assessment_results: Dict[str, Any],
-        business_context: Optional[Dict[str, Any]] = None,
+        assessment_results: dict[str, Any],
+        business_context: dict[str, Any] | None = None,
     ) -> PrioritizationResult:
         """
         Prioritize findings from assessment results
@@ -138,13 +138,11 @@ class FindingPrioritizer:
             summary=summary,
         )
 
-        logger.info(
-            f"Prioritization complete: {len(top_issues)} top issues, " f"{len(quick_wins)} quick wins identified"
-        )
+        logger.info(f"Prioritization complete: {len(top_issues)} top issues, {len(quick_wins)} quick wins identified")
 
         return result
 
-    def _extract_findings(self, assessment_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_findings(self, assessment_results: dict[str, Any]) -> list[dict[str, Any]]:
         """Extract findings from various assessment result formats"""
         findings = []
 
@@ -170,7 +168,7 @@ class FindingPrioritizer:
 
         return findings
 
-    def _extract_pagespeed_findings(self, pagespeed_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_pagespeed_findings(self, pagespeed_data: dict[str, Any]) -> list[dict[str, Any]]:
         """Extract findings from PageSpeed Insights data"""
         findings = []
 
@@ -195,7 +193,7 @@ class FindingPrioritizer:
 
         return findings
 
-    def _extract_ai_insights_findings(self, ai_insights: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_ai_insights_findings(self, ai_insights: dict[str, Any]) -> list[dict[str, Any]]:
         """Extract findings from AI insights data"""
         findings = []
 
@@ -203,7 +201,7 @@ class FindingPrioritizer:
         for i, insight in enumerate(insights):
             finding = {
                 "id": f"ai_insight_{i}",
-                "title": insight.get("title", f"AI Insight {i+1}"),
+                "title": insight.get("title", f"AI Insight {i + 1}"),
                 "category": insight.get("category", "general"),
                 "severity": insight.get("severity", "medium"),
                 "fix_type": insight.get("fix_type", "css_changes"),
@@ -216,7 +214,7 @@ class FindingPrioritizer:
 
         return findings
 
-    def _extract_tech_stack_findings(self, tech_stack: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_tech_stack_findings(self, tech_stack: dict[str, Any]) -> list[dict[str, Any]]:
         """Extract findings from tech stack analysis"""
         findings = []
 
@@ -255,8 +253,8 @@ class FindingPrioritizer:
         return findings
 
     def _apply_business_context(
-        self, findings: List[Dict[str, Any]], business_context: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, findings: list[dict[str, Any]], business_context: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Apply business context to adjust finding priorities"""
         business_type = business_context.get("business_type", "general")
         business_context.get("industry", "general")
@@ -287,7 +285,7 @@ class FindingPrioritizer:
 
         return findings
 
-    def _select_top_issues(self, scored_findings: List[FindingScore]) -> List[FindingScore]:
+    def _select_top_issues(self, scored_findings: list[FindingScore]) -> list[FindingScore]:
         """
         Select top issues based on priority score
 
@@ -320,7 +318,7 @@ class FindingPrioritizer:
 
         return top_issues[: self.top_issues_count]
 
-    def _identify_quick_wins(self, scored_findings: List[FindingScore]) -> List[FindingScore]:
+    def _identify_quick_wins(self, scored_findings: list[FindingScore]) -> list[FindingScore]:
         """
         Identify quick wins based on high impact and low effort
 
@@ -335,10 +333,10 @@ class FindingPrioritizer:
 
     def _generate_summary(
         self,
-        all_findings: List[FindingScore],
-        top_issues: List[FindingScore],
-        quick_wins: List[FindingScore],
-    ) -> Dict[str, Any]:
+        all_findings: list[FindingScore],
+        top_issues: list[FindingScore],
+        quick_wins: list[FindingScore],
+    ) -> dict[str, Any]:
         """Generate summary statistics"""
         if not all_findings:
             return {"total_findings": 0}
@@ -405,25 +403,23 @@ class FindingPrioritizer:
 
         if audit_id in performance_audits:
             return "performance"
-        elif audit_id in accessibility_audits:
+        if audit_id in accessibility_audits:
             return "accessibility"
-        elif audit_id in best_practices_audits:
+        if audit_id in best_practices_audits:
             return "best_practices"
-        elif audit_id in seo_audits:
+        if audit_id in seo_audits:
             return "seo"
-        else:
-            return "general"
+        return "general"
 
     def _pagespeed_score_to_severity(self, score: float) -> str:
         """Convert PageSpeed score to severity level"""
         if score < 0.5:
             return "critical"
-        elif score < 0.7:
+        if score < 0.7:
             return "high"
-        elif score < 0.9:
+        if score < 0.9:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _pagespeed_audit_to_fix_type(self, audit_id: str) -> str:
         """Determine fix type from PageSpeed audit ID"""
@@ -434,16 +430,15 @@ class FindingPrioritizer:
 
         if audit_id in image_audits:
             return "image_optimization"
-        elif audit_id in css_audits:
+        if audit_id in css_audits:
             return "css_changes"
-        elif audit_id in js_audits:
+        if audit_id in js_audits:
             return "javascript_fixes"
-        elif audit_id in server_audits:
+        if audit_id in server_audits:
             return "server_config"
-        else:
-            return "html_structure"
+        return "html_structure"
 
-    def _get_pagespeed_impact_factors(self, audit_id: str, audit_data: Dict) -> Dict[str, bool]:
+    def _get_pagespeed_impact_factors(self, audit_id: str, audit_data: dict) -> dict[str, bool]:
         """Get impact factors for PageSpeed audit"""
         core_vitals = [
             "first-contentful-paint",
@@ -459,7 +454,7 @@ class FindingPrioritizer:
             "affects_forms": audit_id in ["color-contrast", "label", "button-name"],
         }
 
-    def _get_pagespeed_effort_factors(self, audit_id: str, audit_data: Dict) -> Dict[str, Any]:
+    def _get_pagespeed_effort_factors(self, audit_id: str, audit_data: dict) -> dict[str, Any]:
         """Get effort factors for PageSpeed audit"""
         easy_fixes = ["image-alt", "meta-description", "document-title"]
         automated_fixes = ["uses-optimized-images", "uses-webp-images"]
@@ -472,7 +467,7 @@ class FindingPrioritizer:
             "requires_third_party": False,
         }
 
-    def _get_pagespeed_conversion_factors(self, audit_id: str, audit_data: Dict) -> Dict[str, bool]:
+    def _get_pagespeed_conversion_factors(self, audit_id: str, audit_data: dict) -> dict[str, bool]:
         """Get conversion factors for PageSpeed audit"""
         performance_critical = [
             "first-contentful-paint",

@@ -2,6 +2,7 @@
 """
 Find xpassed tests efficiently by checking files with xfail markers.
 """
+
 import re
 import subprocess
 import sys
@@ -10,7 +11,7 @@ from pathlib import Path
 
 def has_xfail_marker(file_path):
     """Check if file has xfail markers."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         return "@pytest.mark.xfail" in f.read()
 
 
@@ -78,7 +79,7 @@ def main():
         for file_path, count in sorted(files_with_xpassed, key=lambda x: x[1], reverse=True):
             print(f"  {file_path}: {count} xpassed")
 
-    print(f"\nProgress: Fixed 17 tests so far")
+    print("\nProgress: Fixed 17 tests so far")
     print(f"Remaining: ~{200 - 17} xpassed tests to find and fix")
 
 

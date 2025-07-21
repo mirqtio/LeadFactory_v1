@@ -6,13 +6,13 @@ with performance optimization and scheduled refresh capabilities.
 
 Acceptance Criteria Tests:
 - Funnel view created ✓
-- Cohort retention view ✓  
+- Cohort retention view ✓
 - Performance optimized ✓
 - Refresh scheduled ✓
 """
 
 import os
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime, timezone
 
 import pytest
 from sqlalchemy import create_engine, text
@@ -53,7 +53,7 @@ class TestMaterializedViews:
                 session_id=session_id,
                 business_id=f"business_{i}",
                 campaign_id="test_campaign",
-                timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=UTC),
                 event_metadata={
                     "event_name": "targeting_entry",
                     "duration_ms": 1000,
@@ -72,7 +72,7 @@ class TestMaterializedViews:
                     session_id=session_id,
                     business_id=f"business_{i}",
                     campaign_id="test_campaign",
-                    timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                    timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=UTC),
                     event_metadata={
                         "event_name": "assessment_entry",
                         "duration_ms": 2000,
@@ -91,7 +91,7 @@ class TestMaterializedViews:
                         session_id=session_id,
                         business_id=f"business_{i}",
                         campaign_id="test_campaign",
-                        timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                        timestamp=datetime.combine(base_date, datetime.min.time()).replace(tzinfo=UTC),
                         event_metadata={"event_name": "conversion"},
                     )
                     events.append(event)
@@ -245,7 +245,7 @@ class TestMaterializedViews:
             return {
                 "view_name": "funnel_analysis_mv",
                 "status": "success",
-                "refresh_time": datetime.now(timezone.utc),
+                "refresh_time": datetime.now(UTC),
                 "rows_affected": 1000,
             }
 
@@ -254,7 +254,7 @@ class TestMaterializedViews:
             return {
                 "view_name": "cohort_retention_mv",
                 "status": "success",
-                "refresh_time": datetime.now(timezone.utc),
+                "refresh_time": datetime.now(UTC),
                 "rows_affected": 500,
             }
 
@@ -326,7 +326,7 @@ class TestMaterializedViews:
             """Mock refresh logging function"""
             log_entry = {
                 "view_name": view_name,
-                "refresh_started_at": datetime.now(timezone.utc),
+                "refresh_started_at": datetime.now(UTC),
                 "status": status,
                 "error_message": error_message,
             }
@@ -361,14 +361,14 @@ class TestMaterializedViews:
                     "view_name": "funnel_analysis_mv",
                     "size_mb": 15.2,
                     "row_count": 10000,
-                    "last_refresh": datetime.now(timezone.utc),
+                    "last_refresh": datetime.now(UTC),
                     "is_populated": True,
                 },
                 {
                     "view_name": "cohort_retention_mv",
                     "size_mb": 8.7,
                     "row_count": 5000,
-                    "last_refresh": datetime.now(timezone.utc),
+                    "last_refresh": datetime.now(UTC),
                     "is_populated": True,
                 },
             ]
@@ -380,13 +380,13 @@ class TestMaterializedViews:
                     "view_name": "funnel_analysis_mv",
                     "refresh_duration_seconds": 45.2,
                     "status": "success",
-                    "refresh_time": datetime.now(timezone.utc),
+                    "refresh_time": datetime.now(UTC),
                 },
                 {
                     "view_name": "cohort_retention_mv",
                     "refresh_duration_seconds": 23.8,
                     "status": "success",
-                    "refresh_time": datetime.now(timezone.utc),
+                    "refresh_time": datetime.now(UTC),
                 },
             ]
 

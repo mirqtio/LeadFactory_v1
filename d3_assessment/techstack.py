@@ -11,12 +11,13 @@ Acceptance Criteria:
 - Analytics tools found
 - Pattern matching efficient
 """
+
 import asyncio
 import json
 import re
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import aiohttp
 
@@ -37,23 +38,23 @@ class TechStackDetector:
         self.patterns = self._load_patterns()
         self.timeout = aiohttp.ClientTimeout(total=30)
 
-    def _load_patterns(self) -> Dict[str, Any]:
+    def _load_patterns(self) -> dict[str, Any]:
         """
         Load technology detection patterns from patterns.json
 
         Acceptance Criteria: Pattern matching efficient
         """
         patterns_file = Path(__file__).parent / "patterns.json"
-        with open(patterns_file, "r") as f:
+        with open(patterns_file) as f:
             return json.load(f)
 
     async def detect_technologies(
         self,
         assessment_id: str,
         url: str,
-        html_content: Optional[str] = None,
+        html_content: str | None = None,
         fetch_content: bool = True,
-    ) -> List[TechStackDetection]:
+    ) -> list[TechStackDetection]:
         """
         Detect all technologies used on a website
 
@@ -96,9 +97,9 @@ class TechStackDetector:
         url: str,
         category: TechCategory,
         tech_name: str,
-        tech_data: Dict[str, Any],
+        tech_data: dict[str, Any],
         content: str,
-    ) -> Optional[TechStackDetection]:
+    ) -> TechStackDetection | None:
         """
         Analyze if a specific technology is present
 
@@ -162,11 +163,11 @@ class TechStackDetector:
             # If regex is invalid, fall back to simple string matching
             return pattern.lower() in content.lower()
 
-    def _extract_version(self, content: str, tech_name: str) -> Optional[str]:
+    def _extract_version(self, content: str, tech_name: str) -> str | None:
         """Extract version number if possible"""
         version_patterns = [
-            r"{0}[\s\-_/]?v?(\d+\.\d+\.\d+)".format(tech_name),
-            r"{0}[\s\-_/]?v?(\d+\.\d+)".format(tech_name),
+            rf"{tech_name}[\s\-_/]?v?(\d+\.\d+\.\d+)",
+            rf"{tech_name}[\s\-_/]?v?(\d+\.\d+)",
             r"version[\s\-_:=]?(\d+\.\d+\.\d+)",
             r"ver[\s\-_:=]?(\d+\.\d+)",
         ]
@@ -202,7 +203,7 @@ class TechStackDetector:
         }
         return mapping.get(category_name, TechCategory.OTHER)
 
-    async def _fetch_website_content(self, url: str) -> Optional[str]:
+    async def _fetch_website_content(self, url: str) -> str | None:
         """
         Fetch website content for analysis
 
@@ -220,7 +221,7 @@ class TechStackDetector:
         except Exception:
             return None
 
-    async def analyze_cms_specifically(self, assessment_id: str, url: str, content: str) -> List[TechStackDetection]:
+    async def analyze_cms_specifically(self, assessment_id: str, url: str, content: str) -> list[TechStackDetection]:
         """
         Focused CMS detection with higher accuracy
 
@@ -240,7 +241,7 @@ class TechStackDetector:
 
     async def analyze_frameworks_specifically(
         self, assessment_id: str, url: str, content: str
-    ) -> List[TechStackDetection]:
+    ) -> list[TechStackDetection]:
         """
         Focused framework detection
 
@@ -265,7 +266,7 @@ class TechStackDetector:
 
     async def analyze_analytics_specifically(
         self, assessment_id: str, url: str, content: str
-    ) -> List[TechStackDetection]:
+    ) -> list[TechStackDetection]:
         """
         Focused analytics tools detection
 
@@ -288,7 +289,7 @@ class TechStackDetector:
 
         return analytics_detections
 
-    def get_technology_summary(self, detections: List[TechStackDetection]) -> Dict[str, Any]:
+    def get_technology_summary(self, detections: list[TechStackDetection]) -> dict[str, Any]:
         """
         Generate summary of detected technologies
 
@@ -366,9 +367,9 @@ class TechStackBatchDetector:
 
     async def detect_multiple_websites(
         self,
-        websites: List[Dict[str, str]],  # [{"assessment_id": "...", "url": "..."}]
+        websites: list[dict[str, str]],  # [{"assessment_id": "...", "url": "..."}]
         include_content_fetch: bool = True,
-    ) -> Dict[str, List[TechStackDetection]]:
+    ) -> dict[str, list[TechStackDetection]]:
         """
         Detect technologies for multiple websites efficiently
 
@@ -381,7 +382,7 @@ class TechStackBatchDetector:
         """
         semaphore = asyncio.Semaphore(self.max_concurrent)
 
-        async def detect_single(website_data: Dict[str, str]) -> tuple:
+        async def detect_single(website_data: dict[str, str]) -> tuple:
             async with semaphore:
                 try:
                     detections = await self.detector.detect_technologies(
@@ -407,7 +408,7 @@ class TechStackBatchDetector:
         return detection_results
 
     async def calculate_detection_cost(
-        self, assessment_id: str, url: str, detections: List[TechStackDetection]
+        self, assessment_id: str, url: str, detections: list[TechStackDetection]
     ) -> Decimal:
         """Calculate cost for technology detection"""
         # Base cost for content fetching and analysis
@@ -445,7 +446,7 @@ class TechStackAnalyzer:
     def __init__(self):
         self.detector = TechStackDetector()
 
-    def analyze_technology_trends(self, detections_list: List[List[TechStackDetection]]) -> Dict[str, Any]:
+    def analyze_technology_trends(self, detections_list: list[list[TechStackDetection]]) -> dict[str, Any]:
         """Analyze technology trends across multiple websites"""
         tech_counts = {}
         category_counts = {}
@@ -475,8 +476,8 @@ class TechStackAnalyzer:
         }
 
     def generate_technology_recommendations(
-        self, current_stack: List[TechStackDetection], industry_trends: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, current_stack: list[TechStackDetection], industry_trends: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Generate technology recommendations based on current stack and trends"""
         recommendations = []
 
@@ -516,7 +517,7 @@ class TechStackAnalyzer:
 
         return recommendations
 
-    def assess_technology_compatibility(self, detections: List[TechStackDetection]) -> Dict[str, Any]:
+    def assess_technology_compatibility(self, detections: list[TechStackDetection]) -> dict[str, Any]:
         """Assess compatibility and potential conflicts between technologies"""
         compatibility_report = {
             "potential_conflicts": [],

@@ -3,6 +3,7 @@ Configuration for integration tests
 
 Uses centralized fixtures from tests.fixtures package.
 """
+
 import pytest
 
 from d6_reports.models import ReportGeneration, ReportTemplate, ReportType, TemplateFormat

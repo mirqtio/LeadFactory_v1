@@ -2,6 +2,7 @@
 Smoke test for ScreenshotOne API
 PRD v1.2 - Verify screenshot capture functionality
 """
+
 import asyncio
 import os
 from datetime import datetime

@@ -1,4 +1,5 @@
 """Extended tests for core.config to increase coverage."""
+
 import os
 from unittest import mock
 

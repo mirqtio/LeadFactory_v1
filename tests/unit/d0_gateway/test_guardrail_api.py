@@ -2,6 +2,7 @@
 Unit tests for guardrail_api.py - Cost guardrail management endpoints
 Tests for all API endpoints, request/response models, and error handling
 """
+
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import List
@@ -43,9 +44,10 @@ def mock_guardrail_database():
     """Mock all database access in guardrail manager for all tests"""
     from decimal import Decimal
 
-    with patch("d0_gateway.guardrails.get_db_sync") as mock_get_db, patch(
-        "d0_gateway.guardrails.GuardrailManager._get_current_spend"
-    ) as mock_get_spend:
+    with (
+        patch("d0_gateway.guardrails.get_db_sync") as mock_get_db,
+        patch("d0_gateway.guardrails.GuardrailManager._get_current_spend") as mock_get_spend,
+    ):
         mock_session = MagicMock()
         mock_get_db.return_value.__enter__.return_value = mock_session
         # Mock database queries to return 0 costs by default (as Decimal for math operations)
@@ -656,9 +658,10 @@ class TestGuardrailApiEndpoints:
         mock_limit = MagicMock()
         mock_limit.limit_usd = Decimal("1000.0")
 
-        with patch("d0_gateway.guardrail_api.guardrail_manager") as mock_manager, patch(
-            "d0_gateway.guardrail_api.logger"
-        ) as mock_logger:
+        with (
+            patch("d0_gateway.guardrail_api.guardrail_manager") as mock_manager,
+            patch("d0_gateway.guardrail_api.logger") as mock_logger,
+        ):
             mock_manager._limits = {"test_limit": mock_limit}
 
             result = await acknowledge_alert(ack)

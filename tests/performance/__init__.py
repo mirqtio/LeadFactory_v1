@@ -6,7 +6,7 @@ focusing on processing throughput, response times, and resource utilization.
 
 Acceptance Criteria:
 - 5k businesses processed ✓
-- Response times measured ✓  
+- Response times measured ✓
 - Bottlenecks identified ✓
 - Resource usage tracked ✓
 """

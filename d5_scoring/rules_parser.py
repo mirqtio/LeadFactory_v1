@@ -13,7 +13,7 @@ Acceptance Criteria:
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import yaml
 
@@ -29,7 +29,7 @@ class ScoringRule:
     description: str
     weight: float = 1.0
 
-    def evaluate(self, data: Dict[str, Any]) -> float:
+    def evaluate(self, data: dict[str, Any]) -> float:
         """
         Evaluate rule condition against data
 
@@ -45,7 +45,7 @@ class ScoringRule:
             logger.warning(f"Rule evaluation failed for '{self.condition}': {e}")
             return 0.0
 
-    def _evaluate_condition(self, condition: str, data: Dict[str, Any]) -> bool:
+    def _evaluate_condition(self, condition: str, data: dict[str, Any]) -> bool:
         """
         Safely evaluate condition string against data
 
@@ -95,9 +95,9 @@ class ComponentRules:
     name: str
     weight: float
     description: str
-    rules: List[ScoringRule] = field(default_factory=list)
+    rules: list[ScoringRule] = field(default_factory=list)
 
-    def calculate_score(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def calculate_score(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Calculate component score by evaluating all rules
 
@@ -154,9 +154,9 @@ class QualityControlRules:
 
     min_data_completeness: float = 0.3
     confidence_threshold: float = 0.6
-    manual_review_triggers: List[str] = field(default_factory=list)
+    manual_review_triggers: list[str] = field(default_factory=list)
 
-    def requires_manual_review(self, data: Dict[str, Any], score_result: Dict[str, Any]) -> bool:
+    def requires_manual_review(self, data: dict[str, Any], score_result: dict[str, Any]) -> bool:
         """
         Check if scoring result requires manual review
 
@@ -173,7 +173,7 @@ class QualityControlRules:
 
         return False
 
-    def _evaluate_trigger(self, trigger: str, data: Dict[str, Any], score_result: Dict[str, Any]) -> bool:
+    def _evaluate_trigger(self, trigger: str, data: dict[str, Any], score_result: dict[str, Any]) -> bool:
         """Evaluate manual review trigger condition"""
         # Combine data and score_result for evaluation
         evaluation_data = {**data, **score_result}
@@ -201,7 +201,7 @@ class ScoringRulesParser:
     Acceptance Criteria: YAML rules loading
     """
 
-    def __init__(self, rules_file: Optional[str] = None):
+    def __init__(self, rules_file: str | None = None):
         """
         Initialize parser with rules file path
 
@@ -234,7 +234,7 @@ class ScoringRulesParser:
                 logger.error(f"Rules file not found: {self.rules_file}")
                 return False
 
-            with open(rules_path, "r", encoding="utf-8") as f:
+            with open(rules_path, encoding="utf-8") as f:
                 self.config = yaml.safe_load(f)
 
             # Parse configuration sections
@@ -321,9 +321,7 @@ class ScoringRulesParser:
             manual_review_triggers=qc_config.get("manual_review_triggers", []),
         )
 
-    def get_component_rules(
-        self, component_name: Optional[str] = None
-    ) -> Union[ComponentRules, Dict[str, ComponentRules]]:
+    def get_component_rules(self, component_name: str | None = None) -> ComponentRules | dict[str, ComponentRules]:
         """
         Get component rules by name or all components
 
@@ -337,7 +335,7 @@ class ScoringRulesParser:
             return self.component_rules.get(component_name)
         return self.component_rules
 
-    def get_tier_for_score(self, score: float) -> Optional[TierRule]:
+    def get_tier_for_score(self, score: float) -> TierRule | None:
         """
         Get tier rule that matches the given score
 
@@ -352,7 +350,7 @@ class ScoringRulesParser:
                 return tier_rule
         return None
 
-    def apply_fallbacks(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def apply_fallbacks(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Apply fallback values for missing data
 
@@ -376,7 +374,7 @@ class ScoringRulesParser:
 
         return result
 
-    def validate_rules(self) -> List[str]:
+    def validate_rules(self) -> list[str]:
         """
         Validate loaded rules for consistency and correctness
 
@@ -423,7 +421,7 @@ class ScoringRulesParser:
 
         return errors
 
-    def get_rules_summary(self) -> Dict[str, Any]:
+    def get_rules_summary(self) -> dict[str, Any]:
         """
         Get summary of loaded rules for debugging/monitoring
 

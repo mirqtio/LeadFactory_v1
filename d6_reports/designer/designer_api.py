@@ -17,23 +17,20 @@ Features:
 import json
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path, Query
-from fastapi.responses import JSONResponse, Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
 from account_management.models import AccountUser
 from core.auth import get_current_user_dependency, require_organization_access
 from core.logging import get_logger
-from database.session import get_db
 
 from .component_library import ComponentConfig, ComponentType, component_library
-from .designer_core import DesignerConfig, DesignerResult, DesignerSession, report_designer
-from .preview_engine import PreviewOptions, PreviewResult, preview_engine
-from .template_engine import TemplateConfig, template_engine
-from .validation_engine import ValidationResult, validation_engine
+from .designer_core import DesignerResult, DesignerSession, report_designer
+from .preview_engine import PreviewOptions, preview_engine
+from .template_engine import template_engine
 
 logger = get_logger("designer_api", domain="d6_reports")
 
@@ -48,9 +45,9 @@ class CreateTemplateRequest(BaseModel):
     """Request to create a new template"""
 
     name: str = Field(..., min_length=1, max_length=100, description="Template name")
-    description: Optional[str] = Field(None, max_length=500, description="Template description")
-    template_id: Optional[str] = Field(None, description="Custom template ID")
-    base_template: Optional[str] = Field(None, description="Base template to clone from")
+    description: str | None = Field(None, max_length=500, description="Template description")
+    template_id: str | None = Field(None, description="Custom template ID")
+    base_template: str | None = Field(None, description="Base template to clone from")
 
 
 class AddComponentRequest(BaseModel):
@@ -58,64 +55,64 @@ class AddComponentRequest(BaseModel):
 
     component_type: ComponentType = Field(..., description="Component type")
     title: str = Field(..., min_length=1, max_length=100, description="Component title")
-    description: Optional[str] = Field(None, max_length=200, description="Component description")
+    description: str | None = Field(None, max_length=200, description="Component description")
     position: int = Field(default=-1, description="Position in template (-1 for end)")
 
     # Layout properties
-    width: Optional[Union[int, str]] = Field("100%", description="Component width")
-    height: Optional[Union[int, str]] = Field("auto", description="Component height")
-    margin: Optional[str] = Field("0", description="Component margin")
-    padding: Optional[str] = Field("0", description="Component padding")
+    width: int | str | None = Field("100%", description="Component width")
+    height: int | str | None = Field("auto", description="Component height")
+    margin: str | None = Field("0", description="Component margin")
+    padding: str | None = Field("0", description="Component padding")
 
     # Data properties
-    data_source: Optional[str] = Field(None, description="Data source identifier")
-    data_filters: Optional[Dict[str, Any]] = Field(None, description="Data filters")
+    data_source: str | None = Field(None, description="Data source identifier")
+    data_filters: dict[str, Any] | None = Field(None, description="Data filters")
 
     # Custom properties
-    custom_props: Optional[Dict[str, Any]] = Field(None, description="Custom properties")
+    custom_props: dict[str, Any] | None = Field(None, description="Custom properties")
 
 
 class UpdateComponentRequest(BaseModel):
     """Request to update a component"""
 
-    title: Optional[str] = Field(None, min_length=1, max_length=100, description="Component title")
-    description: Optional[str] = Field(None, max_length=200, description="Component description")
+    title: str | None = Field(None, min_length=1, max_length=100, description="Component title")
+    description: str | None = Field(None, max_length=200, description="Component description")
 
     # Layout properties
-    width: Optional[Union[int, str]] = Field(None, description="Component width")
-    height: Optional[Union[int, str]] = Field(None, description="Component height")
-    margin: Optional[str] = Field(None, description="Component margin")
-    padding: Optional[str] = Field(None, description="Component padding")
+    width: int | str | None = Field(None, description="Component width")
+    height: int | str | None = Field(None, description="Component height")
+    margin: str | None = Field(None, description="Component margin")
+    padding: str | None = Field(None, description="Component padding")
 
     # Styling properties
-    background_color: Optional[str] = Field(None, description="Background color")
-    border: Optional[str] = Field(None, description="Border style")
-    border_radius: Optional[str] = Field(None, description="Border radius")
+    background_color: str | None = Field(None, description="Background color")
+    border: str | None = Field(None, description="Border style")
+    border_radius: str | None = Field(None, description="Border radius")
 
     # Data properties
-    data_source: Optional[str] = Field(None, description="Data source identifier")
-    data_filters: Optional[Dict[str, Any]] = Field(None, description="Data filters")
+    data_source: str | None = Field(None, description="Data source identifier")
+    data_filters: dict[str, Any] | None = Field(None, description="Data filters")
 
     # Custom properties
-    custom_props: Optional[Dict[str, Any]] = Field(None, description="Custom properties")
+    custom_props: dict[str, Any] | None = Field(None, description="Custom properties")
 
 
 class PreviewRequest(BaseModel):
     """Request to generate preview"""
 
     # Viewport settings
-    viewport_width: Optional[int] = Field(None, ge=320, le=3840, description="Viewport width")
-    viewport_height: Optional[int] = Field(None, ge=240, le=2160, description="Viewport height")
-    device_type: Optional[str] = Field(None, description="Device type")
+    viewport_width: int | None = Field(None, ge=320, le=3840, description="Viewport width")
+    viewport_height: int | None = Field(None, ge=240, le=2160, description="Viewport height")
+    device_type: str | None = Field(None, description="Device type")
 
     # Content settings
-    sample_data: Optional[Dict[str, Any]] = Field(None, description="Sample data")
-    format: Optional[str] = Field(None, description="Preview format")
+    sample_data: dict[str, Any] | None = Field(None, description="Sample data")
+    format: str | None = Field(None, description="Preview format")
 
     # Edit mode settings
-    enable_edit_mode: Optional[bool] = Field(None, description="Enable edit mode")
-    show_component_bounds: Optional[bool] = Field(None, description="Show component bounds")
-    show_grid: Optional[bool] = Field(None, description="Show grid")
+    enable_edit_mode: bool | None = Field(None, description="Enable edit mode")
+    show_component_bounds: bool | None = Field(None, description="Show component bounds")
+    show_grid: bool | None = Field(None, description="Show grid")
 
 
 class TemplateResponse(BaseModel):
@@ -123,14 +120,14 @@ class TemplateResponse(BaseModel):
 
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     version: str
     component_count: int
-    data_sources: List[str]
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    created_by: Optional[str] = None
-    tags: List[str]
+    data_sources: list[str]
+    created_at: str | None = None
+    updated_at: str | None = None
+    created_by: str | None = None
+    tags: list[str]
 
 
 class ComponentResponse(BaseModel):
@@ -139,24 +136,24 @@ class ComponentResponse(BaseModel):
     id: str
     type: str
     title: str
-    description: Optional[str] = None
-    width: Optional[Union[int, str]] = None
-    height: Optional[Union[int, str]] = None
-    data_source: Optional[str] = None
-    custom_props: Optional[Dict[str, Any]] = None
+    description: str | None = None
+    width: int | str | None = None
+    height: int | str | None = None
+    data_source: str | None = None
+    custom_props: dict[str, Any] | None = None
 
 
 class SessionResponse(BaseModel):
     """Response containing session data"""
 
     session_id: str
-    user_id: Optional[str] = None
-    template_id: Optional[str] = None
+    user_id: str | None = None
+    template_id: str | None = None
     started_at: str
     last_activity: str
     is_active: bool
     unsaved_changes: bool
-    template_name: Optional[str] = None
+    template_name: str | None = None
 
 
 # Helper functions
@@ -174,7 +171,7 @@ def get_designer_session(session_id: str, user_id: str = None) -> DesignerSessio
     return session
 
 
-def handle_designer_result(result: DesignerResult) -> Dict[str, Any]:
+def handle_designer_result(result: DesignerResult) -> dict[str, Any]:
     """Handle designer operation result"""
     if not result.success:
         raise HTTPException(
@@ -196,7 +193,7 @@ def handle_designer_result(result: DesignerResult) -> Dict[str, Any]:
 
 @router.post("/sessions", response_model=SessionResponse)
 async def create_session(
-    template_id: Optional[str] = Query(None, description="Template ID to load"),
+    template_id: str | None = Query(None, description="Template ID to load"),
     current_user: AccountUser = Depends(get_current_user_dependency),
     organization_id: str = Depends(require_organization_access),
 ):
@@ -274,7 +271,7 @@ async def create_template(
     return handle_designer_result(result)
 
 
-@router.get("/templates", response_model=List[TemplateResponse])
+@router.get("/templates", response_model=list[TemplateResponse])
 async def list_templates(current_user: AccountUser = Depends(get_current_user_dependency)):
     """List available templates"""
     templates = template_engine.list_templates()
@@ -385,7 +382,7 @@ async def remove_component(
     return handle_designer_result(result)
 
 
-@router.get("/sessions/{session_id}/components", response_model=List[ComponentResponse])
+@router.get("/sessions/{session_id}/components", response_model=list[ComponentResponse])
 async def list_components(
     session_id: str = Path(..., description="Session ID"),
     current_user: AccountUser = Depends(get_current_user_dependency),
@@ -521,7 +518,7 @@ async def get_template_history(
 async def clone_template(
     template_id: str = Path(..., description="Template ID"),
     new_name: str = Query(..., description="New template name"),
-    new_id: Optional[str] = Query(None, description="New template ID"),
+    new_id: str | None = Query(None, description="New template ID"),
     current_user: AccountUser = Depends(get_current_user_dependency),
 ):
     """Clone a template"""
@@ -582,14 +579,13 @@ async def export_template(
             media_type="text/html",
             headers={"Content-Disposition": f'attachment; filename="{session.current_template.name}.html"'},
         )
-    elif format == "json":
+    if format == "json":
         return Response(
             content=json.dumps(result.preview_data["json_structure"], indent=2),
             media_type="application/json",
             headers={"Content-Disposition": f'attachment; filename="{session.current_template.name}.json"'},
         )
-    else:
-        raise HTTPException(status_code=400, detail=f"Unsupported export format: {format}")
+    raise HTTPException(status_code=400, detail=f"Unsupported export format: {format}")
 
 
 @router.get("/health")

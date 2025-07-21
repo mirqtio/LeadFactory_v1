@@ -11,7 +11,7 @@ needed by the Prefect pipeline orchestration system.
 import asyncio
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from prefect.logging import get_run_logger
@@ -77,10 +77,9 @@ except ImportError:
         async def assign_tier(self, business_score, business_data):
             if business_score >= 80:
                 return "premium"
-            elif business_score >= 60:
+            if business_score >= 60:
                 return "standard"
-            else:
-                return "basic"
+            return "basic"
 
 
 try:
@@ -115,14 +114,13 @@ class BaseTask(ABC):
     logging, metrics collection, and error handling patterns.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         self.metrics = metrics_collector or MetricsCollector()
         self.logger = get_run_logger()
 
     @abstractmethod
-    async def execute(self, **kwargs) -> Dict[str, Any]:
+    async def execute(self, **kwargs) -> dict[str, Any]:
         """Execute the task with given parameters"""
-        pass
 
     async def _record_task_metrics(
         self,
@@ -130,7 +128,7 @@ class BaseTask(ABC):
         duration_seconds: float,
         status: str,
         count: int = 0,
-        error: Optional[str] = None,
+        error: str | None = None,
     ) -> None:
         """Record task execution metrics"""
 
@@ -151,11 +149,11 @@ class TargetingTask(BaseTask):
     based on specified criteria and quotas.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         super().__init__(metrics_collector)
         self.targeting_api = TargetingAPI()
 
-    async def execute(self, execution_date: datetime, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def execute(self, execution_date: datetime, config: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute business targeting stage"""
 
         start_time = datetime.utcnow()
@@ -218,16 +216,16 @@ class SourcingTask(BaseTask):
     with additional information from external sources.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         super().__init__(metrics_collector)
         self.sourcing_coordinator = SourcingCoordinator()
 
     async def execute(
         self,
-        businesses: List[Dict[str, Any]],
+        businesses: list[dict[str, Any]],
         execution_date: datetime,
-        config: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        config: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Execute business data sourcing stage"""
 
         start_time = datetime.utcnow()
@@ -243,7 +241,7 @@ class SourcingTask(BaseTask):
             for i in range(0, len(businesses), batch_size):
                 batch = businesses[i : i + batch_size]
 
-                self.logger.info(f"Processing batch {i//batch_size + 1}")
+                self.logger.info(f"Processing batch {i // batch_size + 1}")
 
                 # Enrich each business in the batch
                 for business in batch:
@@ -298,7 +296,7 @@ class AssessmentTask(BaseTask):
     and generate comprehensive assessment reports.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         super().__init__(metrics_collector)
         # Use new PRD v1.2 coordinator
         self.assessment_coordinator = AssessmentCoordinatorV2()
@@ -306,10 +304,10 @@ class AssessmentTask(BaseTask):
 
     async def execute(
         self,
-        businesses: List[Dict[str, Any]],
+        businesses: list[dict[str, Any]],
         execution_date: datetime,
-        config: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        config: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Execute website assessment stage"""
 
         start_time = datetime.utcnow()
@@ -325,7 +323,7 @@ class AssessmentTask(BaseTask):
             # Create semaphore for concurrency control
             semaphore = asyncio.Semaphore(max_concurrent)
 
-            async def assess_business(business: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            async def assess_business(business: dict[str, Any]) -> dict[str, Any] | None:
                 async with semaphore:
                     try:
                         # PRD v1.2: Enrich email first
@@ -399,16 +397,16 @@ class ScoringTask(BaseTask):
     and assign appropriate tiers based on assessment results.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         super().__init__(metrics_collector)
         self.tier_system = TierAssignmentSystem()
 
     async def execute(
         self,
-        assessments: List[Dict[str, Any]],
+        assessments: list[dict[str, Any]],
         execution_date: datetime,
-        config: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        config: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Execute business scoring and tier assignment stage"""
 
         start_time = datetime.utcnow()
@@ -497,16 +495,16 @@ class PersonalizationTask(BaseTask):
     email content and reports for each business.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         super().__init__(metrics_collector)
         self.personalizer = EmailPersonalizer()
 
     async def execute(
         self,
-        scored_businesses: List[Dict[str, Any]],
+        scored_businesses: list[dict[str, Any]],
         execution_date: datetime,
-        config: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        config: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Execute email personalization stage"""
 
         start_time = datetime.utcnow()
@@ -521,7 +519,7 @@ class PersonalizationTask(BaseTask):
             max_concurrent = task_config.get("max_concurrent_personalization", 5)
             semaphore = asyncio.Semaphore(max_concurrent)
 
-            async def personalize_business(scored_business: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            async def personalize_business(scored_business: dict[str, Any]) -> dict[str, Any] | None:
                 async with semaphore:
                     try:
                         report = await self.personalizer.create_personalized_report(
@@ -594,16 +592,16 @@ class DeliveryTask(BaseTask):
     to business contacts via email or other channels.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         super().__init__(metrics_collector)
         self.delivery_manager = DeliveryManager()
 
     async def execute(
         self,
-        personalized_reports: List[Dict[str, Any]],
+        personalized_reports: list[dict[str, Any]],
         execution_date: datetime,
-        config: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        config: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Execute report delivery stage"""
 
         start_time = datetime.utcnow()
@@ -619,7 +617,7 @@ class DeliveryTask(BaseTask):
             max_concurrent = task_config.get("max_concurrent_deliveries", 3)
             semaphore = asyncio.Semaphore(max_concurrent)
 
-            async def deliver_report(report_data: Dict[str, Any]) -> bool:
+            async def deliver_report(report_data: dict[str, Any]) -> bool:
                 async with semaphore:
                     try:
                         success = await self.delivery_manager.deliver_report(

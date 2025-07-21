@@ -4,6 +4,7 @@ Test D4 Enrichment GBP Enricher Coverage Expansion
 Targeted unit tests to improve gbp_enricher.py coverage from 77.48% to 85%+.
 Focuses on edge cases, error handling, property methods, and uncovered branches.
 """
+
 import asyncio
 import hashlib
 from datetime import datetime, timedelta

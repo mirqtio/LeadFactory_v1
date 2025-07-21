@@ -7,12 +7,11 @@ Provides comprehensive security enforcement at the middleware level:
 - Security audit logging
 - Endpoint classification and risk assessment
 """
+
 import re
 import time
-from typing import Dict, List, Optional, Set
-from urllib.parse import urlparse
 
-from fastapi import HTTPException, Request, Response, status
+from fastapi import HTTPException, Request, status
 from fastapi.security.utils import get_authorization_scheme_param
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -35,7 +34,7 @@ class RBACSecurityMiddleware(BaseHTTPMiddleware):
     """
 
     # Public endpoints that don't require authentication
-    PUBLIC_ENDPOINTS: Set[str] = {
+    PUBLIC_ENDPOINTS: set[str] = {
         "/",
         "/docs",
         "/redoc",
@@ -57,7 +56,7 @@ class RBACSecurityMiddleware(BaseHTTPMiddleware):
     }
 
     # Patterns for public endpoint matching
-    PUBLIC_PATTERNS: List[str] = [
+    PUBLIC_PATTERNS: list[str] = [
         r"^/static/.*",
         r"^/favicon\.ico$",
         r"^/robots\.txt$",
@@ -65,24 +64,24 @@ class RBACSecurityMiddleware(BaseHTTPMiddleware):
     ]
 
     # Internal endpoints that use internal token authentication
-    INTERNAL_ENDPOINTS: Set[str] = {
+    INTERNAL_ENDPOINTS: set[str] = {
         "/api/internal",
     }
 
-    INTERNAL_PATTERNS: List[str] = [
+    INTERNAL_PATTERNS: list[str] = [
         r"^/api/internal/.*",
         r"^/admin/.*",
     ]
 
     # High-risk endpoints that require special attention
-    HIGH_RISK_ENDPOINTS: Set[str] = {
+    HIGH_RISK_ENDPOINTS: set[str] = {
         "/api/v1/users",
         "/api/v1/organizations",
         "/api/v1/costs",
         "/api/v1/admin",
     }
 
-    HIGH_RISK_PATTERNS: List[str] = [
+    HIGH_RISK_PATTERNS: list[str] = [
         r"^/api/v1/users/.*",
         r"^/api/v1/organizations/.*",
         r"^/api/v1/admin/.*",

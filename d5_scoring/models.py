@@ -14,7 +14,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -135,7 +135,7 @@ class D5ScoringResult(Base):
         else:
             self.tier = "D"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API responses"""
         return {
             "id": self.id,
@@ -207,7 +207,7 @@ class ScoreBreakdown(Base):
             return 0.0
         return round(float(self.component_score / self.max_possible_score * 100), 2)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return {
             "id": self.id,
@@ -278,7 +278,7 @@ class ScoreHistory(Base):
         """Whether this represents a score improvement"""
         return self.score_change and self.score_change > 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return {
             "id": self.id,
@@ -305,7 +305,7 @@ class ScoringEngine:
     """
 
     version: ScoringVersion = field(default_factory=ScoringVersion.current)
-    weights: Dict[ScoreComponent, float] = field(default_factory=dict)
+    weights: dict[ScoreComponent, float] = field(default_factory=dict)
     min_data_quality: float = 0.5
 
     def __post_init__(self):
@@ -313,7 +313,7 @@ class ScoringEngine:
         if not self.weights:
             self.weights = {component: component.max_points for component in ScoreComponent}
 
-    def calculate_score(self, business_data: Dict[str, Any]) -> D5ScoringResult:
+    def calculate_score(self, business_data: dict[str, Any]) -> D5ScoringResult:
         """
         Calculate overall score for a business
 
@@ -365,7 +365,7 @@ class ScoringEngine:
 
         return scoring_result
 
-    def _calculate_component_score(self, component: ScoreComponent, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _calculate_component_score(self, component: ScoreComponent, data: dict[str, Any]) -> dict[str, Any]:
         """Calculate score for individual component"""
         # This is a simplified scoring algorithm
         # In practice, each component would have sophisticated logic
@@ -384,7 +384,7 @@ class ScoringEngine:
             "confidence": min(1.0, normalized_score / max_points) if max_points > 0 else 0.0,
         }
 
-    def _extract_component_data(self, component: ScoreComponent, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_component_data(self, component: ScoreComponent, data: dict[str, Any]) -> dict[str, Any]:
         """Extract relevant data for scoring component"""
         # Map components to data fields
         field_mappings = {
@@ -418,7 +418,7 @@ class ScoringEngine:
 
         return component_data
 
-    def _score_component_data(self, component: ScoreComponent, component_data: Dict[str, Any]) -> float:
+    def _score_component_data(self, component: ScoreComponent, component_data: dict[str, Any]) -> float:
         """Score the extracted component data"""
         # Simplified scoring logic - in practice this would be much more sophisticated
         if not component_data:
@@ -446,7 +446,7 @@ class ScoringEngine:
 
         return base_score + quality_bonus
 
-    def _calculate_confidence(self, data: Dict[str, Any], component_scores: Dict[ScoreComponent, Dict]) -> float:
+    def _calculate_confidence(self, data: dict[str, Any], component_scores: dict[ScoreComponent, dict]) -> float:
         """Calculate overall confidence in the score"""
         # Base confidence on data quality and component confidence
         component_confidences = [info["confidence"] for info in component_scores.values()]
@@ -459,7 +459,7 @@ class ScoringEngine:
         confidence = (avg_component_confidence * 0.7) + (data_completeness * 0.3)
         return min(1.0, max(0.0, confidence))
 
-    def _calculate_data_completeness(self, data: Dict[str, Any]) -> float:
+    def _calculate_data_completeness(self, data: dict[str, Any]) -> float:
         """Calculate how complete the input data is"""
         # Key fields we expect for good scoring
         key_fields = [
@@ -476,7 +476,7 @@ class ScoringEngine:
         filled_fields = sum(1 for field in key_fields if data.get(field))
         return filled_fields / len(key_fields)
 
-    def get_scoring_summary(self, scoring_result: D5ScoringResult) -> Dict[str, Any]:
+    def get_scoring_summary(self, scoring_result: D5ScoringResult) -> dict[str, Any]:
         """Get human-readable scoring summary"""
         return {
             "business_id": scoring_result.business_id,

@@ -6,29 +6,17 @@ This module creates a seamless integration between:
 - d11_orchestration.cost_guardrails (PM-1's comprehensive monitoring)
 - orchestrator.real_time_budget_alerts (PM-2's alert enhancements)
 """
+
 import asyncio
 from datetime import datetime
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
 
-from d0_gateway.guardrail_alerts import send_cost_alert
-from d0_gateway.guardrails import AlertSeverity, GuardrailAction, GuardrailViolation, LimitScope
 from d11_orchestration.cost_guardrails import (
-    BudgetExceededException,
-    budget_circuit_breaker,
-    check_monthly_budget_limit,
     check_monthly_budget_threshold,
-    get_budget_status_for_api,
-    get_monthly_costs,
     monthly_budget_monitor_flow,
     real_time_cost_check,
 )
-from orchestrator.budget_monitor import BudgetMonitor, BudgetStatus
-from orchestrator.real_time_budget_alerts import (
-    RealTimeBudgetAlertManager,
-    real_time_alert_manager,
-    threshold_integrator,
-)
+from orchestrator.real_time_budget_alerts import real_time_alert_manager, threshold_integrator
 
 
 class UnifiedBudgetSystem:
@@ -86,7 +74,7 @@ class UnifiedBudgetSystem:
         # Configure PM-1 to use PM-2's enhanced alerting
         self.pm1_integration.register_pm2_alerts(self.pm2_integration)
 
-    async def check_unified_budget_status(self) -> Dict[str, any]:
+    async def check_unified_budget_status(self) -> dict[str, any]:
         """Get comprehensive budget status from both systems"""
         # Get PM-1 status
         pm1_status = await self.pm1_integration.get_status()
@@ -115,7 +103,7 @@ class UnifiedBudgetSystem:
 
         return unified_status
 
-    async def trigger_unified_budget_check(self) -> Dict[str, any]:
+    async def trigger_unified_budget_check(self) -> dict[str, any]:
         """Trigger coordinated budget check across both systems"""
         results = {}
 
@@ -139,7 +127,7 @@ class UnifiedBudgetSystem:
 
         return results
 
-    async def _coordinate_check_results(self, results: Dict) -> Dict[str, any]:
+    async def _coordinate_check_results(self, results: dict) -> dict[str, any]:
         """Coordinate and analyze results from both systems"""
         coordination = {
             "overall_status": "ok",
@@ -184,7 +172,7 @@ class PM1CoreIntegration:
         self.flows_initialized = True
         print("✅ PM-1 core monitoring integration ready")
 
-    async def get_budget_configuration(self) -> Dict[str, any]:
+    async def get_budget_configuration(self) -> dict[str, any]:
         """Get PM-1's budget configuration"""
         from core.config import get_settings
 
@@ -205,7 +193,7 @@ class PM1CoreIntegration:
             "stop_threshold": 0.95,
         }
 
-    async def get_status(self) -> Dict[str, any]:
+    async def get_status(self) -> dict[str, any]:
         """Get PM-1 system status"""
         # Use PM-1's existing functions
         is_over, percentage_used, alert_level, current_spend, monthly_limit = check_monthly_budget_threshold()
@@ -221,7 +209,7 @@ class PM1CoreIntegration:
             "circuit_breaker_active": percentage_used >= 1.0,
         }
 
-    async def trigger_monthly_monitor(self) -> Dict[str, any]:
+    async def trigger_monthly_monitor(self) -> dict[str, any]:
         """Trigger PM-1's monthly budget monitoring flow"""
         try:
             # Call PM-1's monthly monitoring flow
@@ -258,7 +246,7 @@ class PM2AlertIntegration:
         await initialize_p2040_enhancements()
         print("✅ PM-2 real-time alerts integration ready")
 
-    async def sync_with_pm1_config(self, pm1_config: Dict[str, any]):
+    async def sync_with_pm1_config(self, pm1_config: dict[str, any]):
         """Sync PM-2 monitors with PM-1 configuration"""
         # Update global monitor
         if "global" in self.alert_manager.monitors:
@@ -275,7 +263,7 @@ class PM2AlertIntegration:
 
         print("🔄 PM-2 monitors synced with PM-1 configuration")
 
-    async def get_status(self) -> Dict[str, any]:
+    async def get_status(self) -> dict[str, any]:
         """Get PM-2 system status"""
         current_spending = await self.threshold_integrator.get_current_spending()
         monitors = []
@@ -302,7 +290,7 @@ class PM2AlertIntegration:
             "alert_cooldown_minutes": self.alert_manager.alert_cooldown_minutes,
         }
 
-    async def trigger_realtime_check(self) -> Dict[str, any]:
+    async def trigger_realtime_check(self) -> dict[str, any]:
         """Trigger PM-2's real-time budget checks"""
         try:
             current_spending = await self.threshold_integrator.get_current_spending()
@@ -345,7 +333,7 @@ async def initialize_unified_p2040_system():
     return unified_budget_system
 
 
-async def get_unified_budget_status() -> Dict[str, any]:
+async def get_unified_budget_status() -> dict[str, any]:
     """Get unified budget status from both PM-1 and PM-2 systems"""
     if not unified_budget_system.is_initialized:
         await unified_budget_system.initialize()
@@ -353,7 +341,7 @@ async def get_unified_budget_status() -> Dict[str, any]:
     return await unified_budget_system.check_unified_budget_status()
 
 
-async def trigger_unified_budget_check() -> Dict[str, any]:
+async def trigger_unified_budget_check() -> dict[str, any]:
     """Trigger coordinated budget check across both systems"""
     if not unified_budget_system.is_initialized:
         await unified_budget_system.initialize()
@@ -362,7 +350,7 @@ async def trigger_unified_budget_check() -> Dict[str, any]:
 
 
 # Enhanced integration functions
-async def check_unified_operation_budget(provider: str, estimated_cost: float) -> Dict[str, any]:
+async def check_unified_operation_budget(provider: str, estimated_cost: float) -> dict[str, any]:
     """
     Check operation budget using unified PM-1 and PM-2 systems
 

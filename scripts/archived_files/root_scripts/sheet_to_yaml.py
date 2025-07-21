@@ -5,6 +5,7 @@ Convert Google Sheets scoring configuration to YAML format.
 This script reads scoring rules from a Google Sheet and converts them
 to the canonical YAML format while preserving comments and structure.
 """
+
 import argparse
 import json
 import os
@@ -25,7 +26,7 @@ COMPONENT_RANGE = "A10:E50"  # Component weights and factors
 class SheetToYamlConverter:
     """Convert Google Sheets data to scoring rules YAML."""
 
-    def __init__(self, credentials_json: Optional[str] = None):
+    def __init__(self, credentials_json: str | None = None):
         """
         Initialize converter with Google Sheets API credentials.
 
@@ -37,7 +38,7 @@ class SheetToYamlConverter:
         self.yaml.default_flow_style = False
         self.service = self._init_sheets_service(credentials_json)
 
-    def _init_sheets_service(self, credentials_json: Optional[str]):
+    def _init_sheets_service(self, credentials_json: str | None):
         """Initialize Google Sheets API service."""
         if credentials_json:
             creds_data = json.loads(credentials_json)
@@ -46,7 +47,7 @@ class SheetToYamlConverter:
             creds_json_env = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
             if not creds_json_env:
                 raise ValueError(
-                    "No Google Sheets credentials provided. " "Set GOOGLE_SHEETS_CREDENTIALS environment variable."
+                    "No Google Sheets credentials provided. Set GOOGLE_SHEETS_CREDENTIALS environment variable."
                 )
             creds_data = json.loads(creds_json_env)
 
@@ -56,7 +57,7 @@ class SheetToYamlConverter:
 
         return build("sheets", "v4", credentials=credentials)
 
-    def fetch_sheet_data(self, sheet_id: str, tab: str) -> Dict[str, Any]:
+    def fetch_sheet_data(self, sheet_id: str, tab: str) -> dict[str, Any]:
         """
         Fetch data from Google Sheet.
 
@@ -94,7 +95,7 @@ class SheetToYamlConverter:
             print(f"An error occurred: {error}")
             raise
 
-    def _parse_tiers(self, values: List[List[str]]) -> Dict[str, Dict]:
+    def _parse_tiers(self, values: list[list[str]]) -> dict[str, dict]:
         """Parse tier configuration from sheet values."""
         tiers = {}
 
@@ -111,7 +112,7 @@ class SheetToYamlConverter:
 
         return tiers
 
-    def _parse_components(self, values: List[List[str]]) -> Dict[str, Dict]:
+    def _parse_components(self, values: list[list[str]]) -> dict[str, dict]:
         """Parse component configuration from sheet values."""
         components = {}
         current_component = None
@@ -142,7 +143,7 @@ class SheetToYamlConverter:
 
         return components
 
-    def validate_structure(self, data: Dict[str, Any]) -> List[str]:
+    def validate_structure(self, data: dict[str, Any]) -> list[str]:
         """
         Validate sheet structure before conversion.
 
@@ -173,12 +174,12 @@ class SheetToYamlConverter:
                 factor_total = sum(f["weight"] for f in comp_data["factors"].values())
                 if abs(factor_total - 1.0) > 0.05:
                     errors.append(
-                        f"Component '{comp_name}' factor weights sum to {factor_total:.3f}, " f"must be 1.0 ± 0.05"
+                        f"Component '{comp_name}' factor weights sum to {factor_total:.3f}, must be 1.0 ± 0.05"
                     )
 
         return errors
 
-    def convert_to_yaml(self, sheet_data: Dict[str, Any]) -> str:
+    def convert_to_yaml(self, sheet_data: dict[str, Any]) -> str:
         """
         Convert sheet data to YAML format with comments preserved.
 
@@ -209,14 +210,14 @@ class SheetToYamlConverter:
         stream.write("# Edit weights and thresholds here. Changes will be live after PR merge.\n")
 
         # Write version
-        stream.write(f"version: \"{yaml_data['version']}\"\n\n")
+        stream.write(f'version: "{yaml_data["version"]}"\n\n')
 
         # Write tiers with comments
         stream.write("# Tier thresholds - used for analytics only in Phase 0\n")
         stream.write("# Comment: Tier used for analytics only until Phase 0.5. Do not branch on tier.\n")
         stream.write("tiers:\n")
         for tier_key, tier_data in yaml_data["tiers"].items():
-            stream.write(f"  {tier_key}: {{min: {tier_data['min']}, label: \"{tier_data['label']}\"}}\n")
+            stream.write(f'  {tier_key}: {{min: {tier_data["min"]}, label: "{tier_data["label"]}"}}\n')
 
         # Write components with comments
         stream.write("\n# Component weights must sum to 1.0 (±0.005 tolerance)\n")

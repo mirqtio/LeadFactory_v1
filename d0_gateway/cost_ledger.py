@@ -2,18 +2,15 @@
 Cost ledger utilities for tracking and aggregating API costs
 P1-050: Gateway Cost Ledger implementation
 """
-import asyncio
+
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import and_, func
-from sqlalchemy.orm import Session
 
 from core.config import get_settings
 from core.logging import get_logger
-from d0_gateway.guardrail_alerts import send_cost_alert
-from d0_gateway.guardrails import AlertSeverity, GuardrailViolation
 from database.models import APICost, DailyCostAggregate
 from database.session import get_db_sync
 
@@ -34,11 +31,11 @@ class CostLedger:
         provider: str,
         operation: str,
         cost_usd: Decimal,
-        lead_id: Optional[int] = None,
-        campaign_id: Optional[int] = None,
-        request_id: Optional[str] = None,
-        metadata: Optional[Dict] = None,
-    ) -> Optional[APICost]:
+        lead_id: int | None = None,
+        campaign_id: int | None = None,
+        request_id: str | None = None,
+        metadata: dict | None = None,
+    ) -> APICost | None:
         """
         Record a single API cost entry
 
@@ -83,9 +80,9 @@ class CostLedger:
     def get_provider_costs(
         self,
         provider: str,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> Dict[str, Any]:
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> dict[str, Any]:
         """
         Get aggregated costs for a specific provider
 
@@ -146,7 +143,7 @@ class CostLedger:
                 "operations": operations,
             }
 
-    def get_campaign_costs(self, campaign_id: int) -> Dict[str, Any]:
+    def get_campaign_costs(self, campaign_id: int) -> dict[str, Any]:
         """
         Get total costs for a specific campaign
 
@@ -193,7 +190,7 @@ class CostLedger:
                 "providers": providers,
             }
 
-    def aggregate_daily_costs(self, target_date: Optional[date] = None) -> List[DailyCostAggregate]:
+    def aggregate_daily_costs(self, target_date: date | None = None) -> list[DailyCostAggregate]:
         """
         Aggregate costs for a specific day into DailyCostAggregate records
 
@@ -274,10 +271,10 @@ class CostLedger:
     def get_daily_costs(
         self,
         start_date: date,
-        end_date: Optional[date] = None,
-        provider: Optional[str] = None,
-        campaign_id: Optional[int] = None,
-    ) -> List[Dict]:
+        end_date: date | None = None,
+        provider: str | None = None,
+        campaign_id: int | None = None,
+    ) -> list[dict]:
         """
         Get daily cost aggregates with optional filtering
 
@@ -368,7 +365,7 @@ def record_api_cost(provider: str, operation: str, cost_usd: float, **kwargs) ->
     return cost_ledger.record_cost(provider=provider, operation=operation, cost_usd=Decimal(str(cost_usd)), **kwargs)
 
 
-def get_provider_costs(provider: str, days: int = 30) -> Dict:
+def get_provider_costs(provider: str, days: int = 30) -> dict:
     """
     Get cost summary for a provider over the last N days
 
@@ -383,7 +380,7 @@ def get_provider_costs(provider: str, days: int = 30) -> Dict:
     return cost_ledger.get_provider_costs(provider, start_date=start_date)
 
 
-def get_campaign_costs(campaign_id: int) -> Dict:
+def get_campaign_costs(campaign_id: int) -> dict:
     """
     Get total costs for a campaign
 

@@ -30,7 +30,7 @@ import requests
 class HealthChecker:
     """Comprehensive health checking for LeadFactory"""
 
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] = None):
         """
         Initialize health checker
 
@@ -71,13 +71,12 @@ class HealthChecker:
                 }
                 print(f"✅ {service} is healthy (response time: {response.elapsed.total_seconds():.3f}s)")
                 return True
-            else:
-                self.results[service] = {
-                    "status": "unhealthy",
-                    "error": f"HTTP {response.status_code}",
-                }
-                self.errors.append(f"{service} returned HTTP {response.status_code}")
-                return False
+            self.results[service] = {
+                "status": "unhealthy",
+                "error": f"HTTP {response.status_code}",
+            }
+            self.errors.append(f"{service} returned HTTP {response.status_code}")
+            return False
 
         except requests.exceptions.ConnectionError:
             self.results[service] = {
@@ -89,7 +88,7 @@ class HealthChecker:
         except requests.exceptions.Timeout:
             self.results[service] = {
                 "status": "timeout",
-                "error": f'Timeout after {self.config["timeout"]}s',
+                "error": f"Timeout after {self.config['timeout']}s",
             }
             self.errors.append(f"{service} health check timed out")
             return False
@@ -277,9 +276,8 @@ class HealthChecker:
                 print(f"✅ {service} is healthy (response time: {response_time:.3f}s)")
                 print(f"   Monitoring {num_targets} targets")
                 return True
-            else:
-                self.warnings.append(f"{service} metrics endpoint issues")
-                return False
+            self.warnings.append(f"{service} metrics endpoint issues")
+            return False
 
         except requests.exceptions.ConnectionError:
             self.results[service] = {
@@ -319,13 +317,12 @@ class HealthChecker:
                 print(f"✅ {service} is healthy (response time: {response_time:.3f}s)")
                 print(f"   Version: {data.get('version', 'unknown')}")
                 return True
-            else:
-                self.results[service] = {
-                    "status": "unhealthy",
-                    "error": f"HTTP {response.status_code}",
-                }
-                self.errors.append(f"{service} returned HTTP {response.status_code}")
-                return False
+            self.results[service] = {
+                "status": "unhealthy",
+                "error": f"HTTP {response.status_code}",
+            }
+            self.errors.append(f"{service} returned HTTP {response.status_code}")
+            return False
 
         except requests.exceptions.ConnectionError:
             self.results[service] = {
@@ -391,10 +388,9 @@ class HealthChecker:
 
                 return running_services == total_services
 
-            else:
-                self.results[service] = {"status": "error", "error": result.stderr}
-                self.errors.append(f"Docker services check failed: {result.stderr}")
-                return False
+            self.results[service] = {"status": "error", "error": result.stderr}
+            self.errors.append(f"Docker services check failed: {result.stderr}")
+            return False
 
         except subprocess.TimeoutExpired:
             self.results[service] = {
@@ -408,7 +404,7 @@ class HealthChecker:
             self.errors.append(f"{service} check failed: {e}")
             return False
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate comprehensive health report"""
         healthy_services = sum(1 for result in self.results.values() if result.get("status") == "healthy")
         total_services = len(self.results)
@@ -430,7 +426,7 @@ class HealthChecker:
 
         return report
 
-    def run_all_checks(self, services: List[str] = None) -> bool:
+    def run_all_checks(self, services: list[str] = None) -> bool:
         """Run all health checks"""
         print("🚀 Starting LeadFactory Health Check")
         print("=" * 60)

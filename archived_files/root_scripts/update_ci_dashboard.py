@@ -180,7 +180,7 @@ def create_updated_dashboard():
         </div>
         
         <div style="text-align: center; margin-top: 40px; color: var(--text-secondary);">
-            Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC<br>
+            Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC<br>
             <strong>Status: CI fixes applied, awaiting verification</strong>
         </div>
     </div>

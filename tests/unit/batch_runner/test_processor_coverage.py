@@ -2,6 +2,7 @@
 Additional tests for batch processor to achieve ≥80% coverage
 P0-022 requirement: comprehensive test coverage on all batch_runner modules
 """
+
 import asyncio
 import uuid
 from datetime import datetime, timedelta
@@ -21,13 +22,13 @@ class TestBatchProcessorCoverage:
     @pytest.fixture
     def mock_batch_processor(self):
         """Create a mock batch processor with all dependencies mocked"""
-        with patch("batch_runner.processor.get_settings") as mock_settings, patch(
-            "batch_runner.processor.get_connection_manager"
-        ) as mock_conn, patch("batch_runner.processor.get_cost_calculator") as mock_cost, patch(
-            "batch_runner.processor.ReportGenerator"
-        ) as mock_report, patch(
-            "batch_runner.processor.ThreadPoolExecutor"
-        ) as mock_thread:
+        with (
+            patch("batch_runner.processor.get_settings") as mock_settings,
+            patch("batch_runner.processor.get_connection_manager") as mock_conn,
+            patch("batch_runner.processor.get_cost_calculator") as mock_cost,
+            patch("batch_runner.processor.ReportGenerator") as mock_report,
+            patch("batch_runner.processor.ThreadPoolExecutor") as mock_thread,
+        ):
             # Setup mock settings
             mock_settings_obj = MagicMock()
             mock_settings_obj.BATCH_MAX_CONCURRENT_LEADS = 5

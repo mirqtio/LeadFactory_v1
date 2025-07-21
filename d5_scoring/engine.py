@@ -15,7 +15,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .models import D5ScoringResult, ScoreBreakdown
 from .rules_parser import ScoringRulesParser
@@ -30,8 +30,8 @@ class ScoringMetrics:
 
     total_evaluations: int = 0
     total_execution_time: float = 0.0
-    rule_execution_times: Dict[str, float] = field(default_factory=dict)
-    tier_distribution: Dict[str, int] = field(default_factory=dict)
+    rule_execution_times: dict[str, float] = field(default_factory=dict)
+    tier_distribution: dict[str, int] = field(default_factory=dict)
     manual_review_rate: float = 0.0
     average_confidence: float = 0.0
 
@@ -71,7 +71,7 @@ class ConfigurableScoringEngine:
     - Fallback values used ✓
     """
 
-    def __init__(self, rules_file: Optional[str] = None, enable_metrics: bool = True):
+    def __init__(self, rules_file: str | None = None, enable_metrics: bool = True):
         """
         Initialize scoring engine with rules configuration
 
@@ -107,17 +107,14 @@ class ConfigurableScoringEngine:
                 self.loaded = True
                 logger.info("Scoring rules loaded and validated successfully")
                 return True
-            else:
-                logger.error("Failed to load scoring rules")
-                return False
+            logger.error("Failed to load scoring rules")
+            return False
 
         except Exception as e:
             logger.error(f"Error reloading rules: {e}")
             return False
 
-    def calculate_score(
-        self, business_data: Dict[str, Any], version: Optional[ScoringVersion] = None
-    ) -> D5ScoringResult:
+    def calculate_score(self, business_data: dict[str, Any], version: ScoringVersion | None = None) -> D5ScoringResult:
         """
         Calculate comprehensive score for a business using configured rules
 
@@ -265,7 +262,7 @@ class ConfigurableScoringEngine:
             logger.error(f"Error calculating score for business {business_data.get('id', 'unknown')}: {e}")
             raise
 
-    def calculate_detailed_score(self, business_data: Dict[str, Any]) -> Tuple[D5ScoringResult, List[ScoreBreakdown]]:
+    def calculate_detailed_score(self, business_data: dict[str, Any]) -> tuple[D5ScoringResult, list[ScoreBreakdown]]:
         """
         Calculate score with detailed component breakdowns
 
@@ -303,7 +300,7 @@ class ConfigurableScoringEngine:
 
         return scoring_result, breakdowns
 
-    def _calculate_confidence(self, data: Dict[str, Any], component_results: Dict[str, Any]) -> float:
+    def _calculate_confidence(self, data: dict[str, Any], component_results: dict[str, Any]) -> float:
         """
         Calculate overall confidence in the scoring result
 
@@ -329,7 +326,7 @@ class ConfigurableScoringEngine:
 
         return min(1.0, max(0.0, confidence))
 
-    def _calculate_data_completeness(self, data: Dict[str, Any]) -> float:
+    def _calculate_data_completeness(self, data: dict[str, Any]) -> float:
         """
         Calculate completeness of input data
 
@@ -371,7 +368,7 @@ class ConfigurableScoringEngine:
 
         return filled_fields / len(expected_fields)
 
-    def _assess_component_data_quality(self, data: Dict[str, Any], component_name: str) -> str:
+    def _assess_component_data_quality(self, data: dict[str, Any], component_name: str) -> str:
         """
         Assess data quality for a specific component
 
@@ -419,20 +416,19 @@ class ConfigurableScoringEngine:
 
         if availability_ratio >= 0.9:
             return "excellent"
-        elif availability_ratio >= 0.7:
+        if availability_ratio >= 0.7:
             return "good"
-        elif availability_ratio >= 0.5:
+        if availability_ratio >= 0.5:
             return "fair"
-        else:
-            return "poor"
+        return "poor"
 
-    def get_tier_distribution(self) -> Dict[str, int]:
+    def get_tier_distribution(self) -> dict[str, int]:
         """Get distribution of scores across tiers"""
         if self.metrics:
             return self.metrics.tier_distribution.copy()
         return {}
 
-    def get_performance_metrics(self) -> Dict[str, Any]:
+    def get_performance_metrics(self) -> dict[str, Any]:
         """
         Get performance metrics for monitoring
 
@@ -451,7 +447,7 @@ class ConfigurableScoringEngine:
             "average_confidence": self.metrics.average_confidence,
         }
 
-    def test_rules_on_sample_data(self, sample_data_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def test_rules_on_sample_data(self, sample_data_list: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Test rules against sample data for validation
 
@@ -502,7 +498,7 @@ class ConfigurableScoringEngine:
             "results": results,
         }
 
-    def get_rules_summary(self) -> Dict[str, Any]:
+    def get_rules_summary(self) -> dict[str, Any]:
         """Get summary of loaded rules for debugging"""
         if not self.loaded:
             return {"loaded": False}
@@ -513,7 +509,7 @@ class ConfigurableScoringEngine:
             "performance_metrics": self.get_performance_metrics(),
         }
 
-    def explain_score(self, business_data: Dict[str, Any]) -> Dict[str, Any]:
+    def explain_score(self, business_data: dict[str, Any]) -> dict[str, Any]:
         """
         Provide detailed explanation of how a score was calculated
 

@@ -34,7 +34,7 @@ class FlakyTestDetector:
         self.async_warnings = defaultdict(int)
         self.timing_issues = defaultdict(int)
 
-    def run_tests(self, test_filter: str = None) -> Tuple[bool, str, float]:
+    def run_tests(self, test_filter: str = None) -> tuple[bool, str, float]:
         """Run pytest and capture results."""
         cmd = [
             "python",
@@ -58,7 +58,10 @@ class FlakyTestDetector:
         start_time = time.time()
         try:
             result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=600  # 10 minute timeout for entire test run
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=600,  # 10 minute timeout for entire test run
             )
             duration = time.time() - start_time
 
@@ -127,7 +130,7 @@ class FlakyTestDetector:
         if re.search(r"(http|request|api|stub|mock|external)", error_text, re.I):
             self.failure_patterns[test_id].append("external_service")
 
-    def detect_flaky_tests(self) -> Dict:
+    def detect_flaky_tests(self) -> dict:
         """Run tests multiple times and identify flaky ones."""
         print(f"Running tests {self.iterations} times to detect flaky behavior...")
 
@@ -171,7 +174,7 @@ class FlakyTestDetector:
             "patterns": self._analyze_patterns(),
         }
 
-    def _extract_test_results(self, output: str) -> Dict[str, str]:
+    def _extract_test_results(self, output: str) -> dict[str, str]:
         """Extract individual test results from pytest output."""
         results = {}
 
@@ -185,7 +188,7 @@ class FlakyTestDetector:
 
         return results
 
-    def _analyze_flakiness(self, all_test_names: Set[str]) -> List[Dict]:
+    def _analyze_flakiness(self, all_test_names: set[str]) -> list[dict]:
         """Analyze which tests are flaky based on inconsistent results."""
         flaky_tests = []
 
@@ -231,7 +234,7 @@ class FlakyTestDetector:
 
         return flaky_tests
 
-    def _analyze_patterns(self) -> Dict:
+    def _analyze_patterns(self) -> dict:
         """Analyze common patterns across all flaky tests."""
         patterns = {
             "port_conflicts": sum(self.port_conflicts.values()),
@@ -246,7 +249,7 @@ class FlakyTestDetector:
 
         return patterns
 
-    def _generate_summary(self, flaky_tests: List[Dict]) -> Dict:
+    def _generate_summary(self, flaky_tests: list[dict]) -> dict:
         """Generate summary statistics."""
         total_tests = len(self.test_results)
         flaky_count = len(flaky_tests)
@@ -259,12 +262,12 @@ class FlakyTestDetector:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def generate_report(self, results: Dict, output_file: str = "flaky_tests_report.md"):
+    def generate_report(self, results: dict, output_file: str = "flaky_tests_report.md"):
         """Generate a markdown report of findings."""
         report = []
         report.append("# Flaky Test Detection Report")
         report.append(f"\nGenerated: {results['summary']['timestamp']}")
-        report.append(f"\n## Summary")
+        report.append("\n## Summary")
         report.append(f"- Total tests analyzed: {results['summary']['total_tests_analyzed']}")
         report.append(f"- Flaky tests found: {results['summary']['flaky_tests_found']}")
         report.append(f"- Flakiness rate: {results['summary']['flakiness_rate']:.1%}")
@@ -272,7 +275,7 @@ class FlakyTestDetector:
 
         # Pattern analysis
         if results["patterns"]["pattern_distribution"]:
-            report.append(f"\n## Common Failure Patterns")
+            report.append("\n## Common Failure Patterns")
             for pattern, count in sorted(
                 results["patterns"]["pattern_distribution"].items(), key=lambda x: x[1], reverse=True
             ):
@@ -280,7 +283,7 @@ class FlakyTestDetector:
 
         # Flaky tests details
         if results["flaky_tests"]:
-            report.append(f"\n## Flaky Tests (Sorted by Failure Rate)")
+            report.append("\n## Flaky Tests (Sorted by Failure Rate)")
             report.append("\n### High Priority (>50% failure rate)")
             high_priority = [t for t in results["flaky_tests"] if t["failure_rate"] > 0.5]
             self._add_test_details(report, high_priority)
@@ -309,7 +312,7 @@ class FlakyTestDetector:
             json.dump(results, f, indent=2)
         print(f"JSON data written to {json_file}")
 
-    def _add_test_details(self, report: List[str], tests: List[Dict]):
+    def _add_test_details(self, report: list[str], tests: list[dict]):
         """Add test details to report."""
         for test in tests:
             report.append(f"\n#### `{test['test_name']}`")
@@ -328,7 +331,7 @@ class FlakyTestDetector:
             if test["async_warnings"] > 0:
                 report.append(f"- Async warnings: {test['async_warnings']} times")
 
-    def _add_recommendations(self, report: List[str], results: Dict):
+    def _add_recommendations(self, report: list[str], results: dict):
         """Add recommendations based on findings."""
         patterns = results["patterns"]["pattern_distribution"]
 

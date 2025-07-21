@@ -2,6 +2,7 @@
 Integration performance tests for P3-003 and P2-040 system interaction
 Validates performance when audit logging and budget monitoring work together
 """
+
 import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -158,16 +159,15 @@ class TestIntegratedSystemPerformance:
 
                     # Circuit breaker should stop further processing
                     break
-                else:
-                    # Normal processing with audit
-                    create_audit_log(
-                        session=db_session,
-                        lead_id=lead.id,
-                        action="process_with_budget_check",
-                        old_values=None,
-                        new_values={"spend": current_spend, "status": budget_status.value},
-                        user_context=mock_context.get_context.return_value,
-                    )
+                # Normal processing with audit
+                create_audit_log(
+                    session=db_session,
+                    lead_id=lead.id,
+                    action="process_with_budget_check",
+                    old_values=None,
+                    new_values={"spend": current_spend, "status": budget_status.value},
+                    user_context=mock_context.get_context.return_value,
+                )
 
             end_time = time.time()
             circuit_breaker_times.append((end_time - start_time) * 1000)

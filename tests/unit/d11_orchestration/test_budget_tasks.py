@@ -2,6 +2,7 @@
 Unit tests for P2-040 budget monitoring task functions
 Tests for task functions like get_daily_costs, check_budget_threshold, etc.
 """
+
 from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -29,9 +30,10 @@ class TestBudgetTasks:
         ]
         mock_total_result = MagicMock(total=425.0)
 
-        with patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             mock_db = MagicMock()
             mock_session_local.return_value.__enter__.return_value = mock_db
             mock_db.execute.return_value.fetchall.return_value = mock_results
@@ -50,9 +52,10 @@ class TestBudgetTasks:
 
     def test_get_daily_costs_no_data(self):
         """Test get_daily_costs task with no database data"""
-        with patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             mock_db = MagicMock()
             mock_session_local.return_value.__enter__.return_value = mock_db
             mock_db.execute.return_value.fetchall.return_value = []
@@ -141,9 +144,10 @@ class TestBudgetTasks:
             total_purchases=20,
         )
 
-        with patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             mock_db = MagicMock()
             mock_session_local.return_value.__enter__.return_value = mock_db
             mock_db.execute.return_value.fetchone.return_value = mock_result
@@ -163,9 +167,10 @@ class TestBudgetTasks:
 
     def test_get_profit_metrics_no_data(self):
         """Test get_profit_metrics task with no database data"""
-        with patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             mock_db = MagicMock()
             mock_session_local.return_value.__enter__.return_value = mock_db
             mock_db.execute.return_value.fetchone.return_value = None

@@ -1,6 +1,7 @@
 """
 Integration tests for P2-040 Budget Alert Enhancement
 """
+
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch
 

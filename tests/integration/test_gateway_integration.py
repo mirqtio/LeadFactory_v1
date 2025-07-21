@@ -2,6 +2,7 @@
 Integration tests for D0 Gateway
 Tests the complete gateway integration with all providers, stubs, rate limiting, circuit breaker, and caching
 """
+
 import pytest
 
 # Mark problematic tests as xfail
@@ -162,9 +163,7 @@ class TestRateLimitingIntegration:
                 if "rate limit" in str(e).lower():
                     assert "exceeded" in str(e).lower() or "limit" in str(e).lower()
                     break
-                else:
-                    # Other errors are acceptable in test environment
-                    pass
+                # Other errors are acceptable in test environment
 
         # Should complete at least one request
         assert len(results) >= 1 or (last_error and "rate limit" in str(last_error).lower())

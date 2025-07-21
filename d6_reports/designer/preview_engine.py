@@ -16,13 +16,13 @@ Features:
 import asyncio
 import json
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .template_engine import RenderContext, TemplateConfig, TemplateEngine, TemplateResult, template_engine
+from .template_engine import RenderContext, TemplateConfig, TemplateEngine
 
 
 class PreviewOptions(BaseModel):
@@ -48,8 +48,8 @@ class PreviewOptions(BaseModel):
     cache_duration_seconds: int = Field(default=300, description="Cache duration in seconds")
 
     # Content settings
-    sample_data: Optional[Dict[str, Any]] = Field(default=None, description="Sample data for preview")
-    data_source_overrides: Optional[Dict[str, str]] = Field(default=None, description="Data source overrides")
+    sample_data: dict[str, Any] | None = Field(default=None, description="Sample data for preview")
+    data_source_overrides: dict[str, str] | None = Field(default=None, description="Data source overrides")
 
 
 class PreviewResult(BaseModel):
@@ -60,9 +60,9 @@ class PreviewResult(BaseModel):
     template_id: str = Field(..., description="Template identifier")
 
     # Content
-    html_content: Optional[str] = None
-    css_content: Optional[str] = None
-    javascript_content: Optional[str] = None
+    html_content: str | None = None
+    css_content: str | None = None
+    javascript_content: str | None = None
 
     # Metadata
     render_time_ms: int = 0
@@ -72,12 +72,12 @@ class PreviewResult(BaseModel):
     device_type: str = "desktop"
 
     # Errors and warnings
-    error_message: Optional[str] = None
-    warnings: List[str] = Field(default=[])
+    error_message: str | None = None
+    warnings: list[str] = Field(default=[])
 
     # Edit mode data
-    edit_mode_data: Optional[Dict[str, Any]] = None
-    component_metadata: Optional[Dict[str, Any]] = None
+    edit_mode_data: dict[str, Any] | None = None
+    component_metadata: dict[str, Any] | None = None
 
 
 @dataclass
@@ -108,9 +108,9 @@ class PreviewEngine:
         from .template_engine import template_engine as default_template_engine
 
         self.template_engine = template_engine or default_template_engine
-        self.cache: Dict[str, PreviewCache] = {}
+        self.cache: dict[str, PreviewCache] = {}
         self.cache_cleanup_interval = 300  # 5 minutes
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._cleanup_task: asyncio.Task | None = None
 
         # Device presets
         self.device_presets = {
@@ -171,7 +171,7 @@ class PreviewEngine:
         timestamp = int(time.time())
         return f"preview_{template_id}_{options_hash}_{timestamp}"
 
-    def _get_device_settings(self, device_type: str) -> Dict[str, Any]:
+    def _get_device_settings(self, device_type: str) -> dict[str, Any]:
         """Get device-specific settings"""
         return self.device_presets.get(device_type, self.device_presets["desktop"])
 
@@ -287,7 +287,7 @@ class PreviewEngine:
                 error_message=f"Preview generation error: {str(e)}",
             )
 
-    def _get_cached_preview(self, cache_key: str) -> Optional[PreviewResult]:
+    def _get_cached_preview(self, cache_key: str) -> PreviewResult | None:
         """Get cached preview result"""
         if cache_key not in self.cache:
             return None
@@ -316,7 +316,7 @@ class PreviewEngine:
 
         self.cache[cache_key] = cache_entry
 
-    def _generate_sample_data(self, template: TemplateConfig) -> Dict[str, Any]:
+    def _generate_sample_data(self, template: TemplateConfig) -> dict[str, Any]:
         """Generate sample data for template"""
         sample_data = {}
 
@@ -469,10 +469,9 @@ class PreviewEngine:
         """Get appropriate font size for device"""
         if device_type == "mobile":
             return "14px"
-        elif device_type == "tablet":
+        if device_type == "tablet":
             return "15px"
-        else:
-            return "16px"
+        return "16px"
 
     def _generate_preview_javascript(self, options: PreviewOptions, template: TemplateConfig) -> str:
         """Generate JavaScript for preview functionality"""
@@ -702,7 +701,7 @@ class PreviewEngine:
         </div>
         """
 
-    def _generate_edit_mode_data(self, template: TemplateConfig, options: PreviewOptions) -> Dict[str, Any]:
+    def _generate_edit_mode_data(self, template: TemplateConfig, options: PreviewOptions) -> dict[str, Any]:
         """Generate edit mode data"""
         return {
             "enabled": options.enable_edit_mode,
@@ -721,7 +720,7 @@ class PreviewEngine:
             ],
         }
 
-    def _generate_component_metadata(self, template: TemplateConfig) -> Dict[str, Any]:
+    def _generate_component_metadata(self, template: TemplateConfig) -> dict[str, Any]:
         """Generate component metadata for editor"""
         metadata = {}
 
@@ -738,7 +737,7 @@ class PreviewEngine:
 
         return metadata
 
-    def get_device_presets(self) -> Dict[str, Dict[str, Any]]:
+    def get_device_presets(self) -> dict[str, dict[str, Any]]:
         """Get available device presets"""
         return self.device_presets.copy()
 
@@ -746,7 +745,7 @@ class PreviewEngine:
         """Clear preview cache"""
         self.cache.clear()
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics"""
         total_entries = len(self.cache)
         expired_entries = sum(1 for entry in self.cache.values() if entry.is_expired())

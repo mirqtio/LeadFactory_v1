@@ -9,11 +9,9 @@ Includes monthly budget circuit breaker to prevent exceeding planned spend.
 """
 
 import asyncio
-from calendar import monthrange
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import wraps
-from typing import Dict, List, Optional, Tuple
 
 try:
     from prefect import flow, task
@@ -69,7 +67,7 @@ from sqlalchemy import text
 
 from core.config import get_settings
 from d0_gateway.guardrail_alerts import send_cost_alert
-from d0_gateway.guardrails import AlertSeverity, GuardrailAction, GuardrailViolation, LimitScope, guardrail_manager
+from d0_gateway.guardrails import AlertSeverity, GuardrailAction, GuardrailViolation, LimitScope
 from database.session import SessionLocal
 
 
@@ -241,7 +239,7 @@ def budget_circuit_breaker(flow_func):
     retries=2,
     retry_delay_seconds=60,
 )
-def get_daily_costs() -> Dict[str, float]:
+def get_daily_costs() -> dict[str, float]:
     """Get today's costs aggregated by provider"""
     logger = get_run_logger()
 
@@ -287,8 +285,8 @@ def get_daily_costs() -> Dict[str, float]:
     retry_delay_seconds=30,
 )
 def check_budget_threshold(
-    daily_costs: Dict[str, float], daily_budget: float, warning_threshold: float = 0.8
-) -> Tuple[bool, float, str]:
+    daily_costs: dict[str, float], daily_budget: float, warning_threshold: float = 0.8
+) -> tuple[bool, float, str]:
     """
     Check if spending is approaching budget limit
 
@@ -322,7 +320,7 @@ def check_budget_threshold(
     retries=1,
     retry_delay_seconds=30,
 )
-def pause_expensive_operations(providers_to_pause: List[str]) -> Dict[str, bool]:
+def pause_expensive_operations(providers_to_pause: list[str]) -> dict[str, bool]:
     """
     Pause operations for expensive providers
 
@@ -349,7 +347,7 @@ def pause_expensive_operations(providers_to_pause: List[str]) -> Dict[str, bool]
     retries=2,
     retry_delay_seconds=60,
 )
-def get_profit_metrics(lookback_days: int = 7) -> Dict[str, float]:
+def get_profit_metrics(lookback_days: int = 7) -> dict[str, float]:
     """Get profit metrics for the specified period"""
     logger = get_run_logger()
 
@@ -403,25 +401,25 @@ def get_profit_metrics(lookback_days: int = 7) -> Dict[str, float]:
     description="Create markdown report of profitability",
     retries=1,
 )
-def create_profit_report(metrics: Dict[str, float], bucket_performance: List[Dict], period_days: int) -> str:
+def create_profit_report(metrics: dict[str, float], bucket_performance: list[dict], period_days: int) -> str:
     """Create a markdown report of profitability metrics"""
     get_run_logger()
 
     report = f"""# Profit Snapshot Report
 
 **Period**: Last {period_days} days  
-**Generated**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+**Generated**: {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}
 
 ## Summary Metrics
 
 | Metric | Value |
 |--------|-------|
-| Total Revenue | ${metrics['total_revenue']:,.2f} |
-| Total Cost | ${metrics['total_cost']:,.2f} |
-| Total Profit | ${metrics['total_profit']:,.2f} |
-| Average ROI | {metrics['avg_roi']:.1%} |
-| Avg Cost per Acquisition | ${metrics['avg_cpa']:.2f} |
-| Total Purchases | {metrics['total_purchases']:,} |
+| Total Revenue | ${metrics["total_revenue"]:,.2f} |
+| Total Cost | ${metrics["total_cost"]:,.2f} |
+| Total Profit | ${metrics["total_profit"]:,.2f} |
+| Average ROI | {metrics["avg_roi"]:.1%} |
+| Avg Cost per Acquisition | ${metrics["avg_cpa"]:.2f} |
+| Total Purchases | {metrics["total_purchases"]:,} |
 
 ## Top Performing Buckets
 
@@ -446,7 +444,7 @@ def create_profit_report(metrics: Dict[str, float], bucket_performance: List[Dic
     retries=2,
     retry_delay_seconds=300,
 )
-def monthly_budget_monitor_flow(warning_threshold: float = 0.8) -> Dict[str, any]:
+def monthly_budget_monitor_flow(warning_threshold: float = 0.8) -> dict[str, any]:
     """
     P2-040: Monthly Budget Monitoring - Proactive threshold checking
 
@@ -533,13 +531,13 @@ def monthly_budget_monitor_flow(warning_threshold: float = 0.8) -> Dict[str, any
 **Status**: {alert_level.upper()}
 **Budget Used**: {percentage_used:.1%} (${current_spend:.2f} / ${monthly_limit:.2f})
 **Alert Level**: {alert_level}
-**Time**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+**Time**: {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}
 
 ## Threshold Status
-- ✅ 70% Threshold: {'⚠️ TRIGGERED' if percentage_used >= 0.7 else '✅ OK'}
-- ✅ 80% Threshold: {'⚠️ TRIGGERED' if percentage_used >= 0.8 else '✅ OK'}  
-- ✅ 90% Threshold: {'🚨 TRIGGERED' if percentage_used >= 0.9 else '✅ OK'}
-- ✅ 100% Limit: {'🔴 EXCEEDED' if percentage_used >= 1.0 else '✅ OK'}
+- ✅ 70% Threshold: {"⚠️ TRIGGERED" if percentage_used >= 0.7 else "✅ OK"}
+- ✅ 80% Threshold: {"⚠️ TRIGGERED" if percentage_used >= 0.8 else "✅ OK"}  
+- ✅ 90% Threshold: {"🚨 TRIGGERED" if percentage_used >= 0.9 else "✅ OK"}
+- ✅ 100% Limit: {"🔴 EXCEEDED" if percentage_used >= 1.0 else "✅ OK"}
 
 ## Projections
 - **Days in Month**: {datetime.utcnow().day}
@@ -559,10 +557,10 @@ def monthly_budget_monitor_flow(warning_threshold: float = 0.8) -> Dict[str, any
     retry_delay_seconds=300,
 )
 def cost_guardrail_flow(
-    daily_budget_override: Optional[float] = None,
+    daily_budget_override: float | None = None,
     warning_threshold: float = 0.8,
-    expensive_providers: List[str] = ["openai", "dataaxle", "hunter"],
-) -> Dict[str, any]:
+    expensive_providers: list[str] = ["openai", "dataaxle", "hunter"],
+) -> dict[str, any]:
     """
     Cost guardrail flow to monitor and control spending
 
@@ -603,8 +601,8 @@ def cost_guardrail_flow(
         artifact_markdown = f"""# Cost Guardrail Alert
 
 **Status**: {alert_level.upper()}  
-**Budget Used**: {percentage_used:.1%} (${daily_costs.get('total', 0):.2f} / ${daily_budget:.2f})  
-**Time**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+**Budget Used**: {percentage_used:.1%} (${daily_costs.get("total", 0):.2f} / ${daily_budget:.2f})  
+**Time**: {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}
 
 ## Provider Breakdown
 """
@@ -629,7 +627,7 @@ def cost_guardrail_flow(
     retries=2,
     retry_delay_seconds=300,
 )
-def profit_snapshot_flow(lookback_days: int = 7, top_buckets_count: int = 5) -> Dict[str, any]:
+def profit_snapshot_flow(lookback_days: int = 7, top_buckets_count: int = 5) -> dict[str, any]:
     """
     Generate profit snapshot report
 
@@ -751,7 +749,7 @@ def create_monthly_budget_monitor_deployment() -> Deployment:
     retries=1,
     retry_delay_seconds=30,
 )
-def real_time_cost_check(operation_cost: float, provider: str = "unknown") -> Dict[str, any]:
+def real_time_cost_check(operation_cost: float, provider: str = "unknown") -> dict[str, any]:
     """
     P2-040: Real-time API cost monitoring - Check budget impact before operation
 
@@ -816,7 +814,7 @@ def real_time_cost_check(operation_cost: float, provider: str = "unknown") -> Di
     return result
 
 
-def get_budget_status_for_api() -> Dict[str, any]:
+def get_budget_status_for_api() -> dict[str, any]:
     """
     P2-040: API endpoint for real-time budget status
 
@@ -844,19 +842,19 @@ def get_budget_status_for_api() -> Dict[str, any]:
 
 
 # Manual triggers for testing
-async def check_costs_now() -> Dict[str, any]:
+async def check_costs_now() -> dict[str, any]:
     """Manually trigger cost guardrail check"""
     result = cost_guardrail_flow()
     return result
 
 
-async def monitor_monthly_budget_now() -> Dict[str, any]:
+async def monitor_monthly_budget_now() -> dict[str, any]:
     """Manually trigger P2-040 monthly budget monitoring"""
     result = monthly_budget_monitor_flow()
     return result
 
 
-async def generate_profit_report_now(days: int = 7) -> Dict[str, any]:
+async def generate_profit_report_now(days: int = 7) -> dict[str, any]:
     """Manually generate profit report"""
     result = profit_snapshot_flow(lookback_days=days)
     return result

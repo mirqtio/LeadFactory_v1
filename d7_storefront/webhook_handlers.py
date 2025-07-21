@@ -14,7 +14,7 @@ Acceptance Criteria:
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .stripe_client import StripeClient
 from .webhooks import WebhookStatus
@@ -37,18 +37,18 @@ class BaseWebhookHandler:
     def __init__(self, stripe_client: StripeClient):
         self.stripe_client = stripe_client
 
-    def _extract_purchase_id(self, metadata: Dict[str, Any]) -> Optional[str]:
+    def _extract_purchase_id(self, metadata: dict[str, Any]) -> str | None:
         """Extract purchase ID from metadata"""
         return metadata.get("purchase_id")
 
-    def _extract_customer_email(self, event_data: Dict[str, Any]) -> Optional[str]:
+    def _extract_customer_email(self, event_data: dict[str, Any]) -> str | None:
         """Extract customer email from event data"""
         obj = event_data.get("object", {})
         return obj.get("customer_email") or obj.get("receipt_email")
 
     def _trigger_report_generation(
-        self, purchase_id: str, customer_email: str, metadata: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, purchase_id: str, customer_email: str, metadata: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Trigger report generation - Acceptance Criteria: Report generation triggered
         """
@@ -113,7 +113,7 @@ class BaseWebhookHandler:
 class CheckoutSessionHandler(BaseWebhookHandler):
     """Handler for checkout session events"""
 
-    def handle_session_completed(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
+    def handle_session_completed(self, event_data: dict[str, Any], event_id: str) -> dict[str, Any]:
         """
         Handle checkout.session.completed event - Acceptance Criteria: Report generation triggered
         """
@@ -162,18 +162,17 @@ class CheckoutSessionHandler(BaseWebhookHandler):
                     },
                 }
 
-            else:
-                logger.warning(f"Session {session_id} completed but payment status is {payment_status}")
-                return {
-                    "success": True,
-                    "status": WebhookStatus.COMPLETED.value,
-                    "data": {
-                        "purchase_id": purchase_id,
-                        "session_id": session_id,
-                        "payment_status": payment_status,
-                        "note": "Session completed but payment not yet processed",
-                    },
-                }
+            logger.warning(f"Session {session_id} completed but payment status is {payment_status}")
+            return {
+                "success": True,
+                "status": WebhookStatus.COMPLETED.value,
+                "data": {
+                    "purchase_id": purchase_id,
+                    "session_id": session_id,
+                    "payment_status": payment_status,
+                    "note": "Session completed but payment not yet processed",
+                },
+            }
 
         except Exception as e:
             logger.error(f"Error handling checkout session completed: {e}")
@@ -183,7 +182,7 @@ class CheckoutSessionHandler(BaseWebhookHandler):
                 "error": str(e),
             }
 
-    def handle_session_expired(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
+    def handle_session_expired(self, event_data: dict[str, Any], event_id: str) -> dict[str, Any]:
         """Handle checkout.session.expired event"""
         try:
             session = event_data.get("object", {})
@@ -220,7 +219,7 @@ class CheckoutSessionHandler(BaseWebhookHandler):
 class PaymentIntentHandler(BaseWebhookHandler):
     """Handler for payment intent events"""
 
-    def handle_payment_succeeded(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
+    def handle_payment_succeeded(self, event_data: dict[str, Any], event_id: str) -> dict[str, Any]:
         """Handle payment_intent.succeeded event"""
         try:
             payment_intent = event_data.get("object", {})
@@ -272,7 +271,7 @@ class PaymentIntentHandler(BaseWebhookHandler):
                 "error": str(e),
             }
 
-    def handle_payment_failed(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
+    def handle_payment_failed(self, event_data: dict[str, Any], event_id: str) -> dict[str, Any]:
         """Handle payment_intent.payment_failed event"""
         try:
             payment_intent = event_data.get("object", {})
@@ -309,7 +308,7 @@ class PaymentIntentHandler(BaseWebhookHandler):
 class CustomerHandler(BaseWebhookHandler):
     """Handler for customer events"""
 
-    def handle_customer_created(self, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
+    def handle_customer_created(self, event_data: dict[str, Any], event_id: str) -> dict[str, Any]:
         """Handle customer.created event"""
         try:
             customer = event_data.get("object", {})
@@ -347,7 +346,7 @@ class CustomerHandler(BaseWebhookHandler):
 class InvoiceHandler(BaseWebhookHandler):
     """Handler for invoice events"""
 
-    def handle_invoice_event(self, event_type: str, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
+    def handle_invoice_event(self, event_type: str, event_data: dict[str, Any], event_id: str) -> dict[str, Any]:
         """Handle invoice payment events"""
         try:
             invoice = event_data.get("object", {})
@@ -407,13 +406,13 @@ class InvoiceHandler(BaseWebhookHandler):
 
 
 # Utility functions for webhook handlers
-def extract_business_info_from_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
+def extract_business_info_from_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
     """Extract business information from checkout metadata"""
     business_info = {"urls": [], "names": [], "ids": []}
 
     # Look for individual item metadata
     item_indices = set()
-    for key in metadata.keys():
+    for key in metadata:
         if key.startswith("item_") and "_" in key:
             try:
                 index = int(key.split("_")[1])
@@ -440,7 +439,7 @@ def extract_business_info_from_metadata(metadata: Dict[str, Any]) -> Dict[str, A
     return business_info
 
 
-def determine_report_priority(metadata: Dict[str, Any]) -> str:
+def determine_report_priority(metadata: dict[str, Any]) -> str:
     """Determine priority for report generation based on metadata"""
     # Check for priority hints in metadata
     if metadata.get("priority"):
@@ -459,9 +458,9 @@ def determine_report_priority(metadata: Dict[str, Any]) -> str:
 def format_report_generation_request(
     purchase_id: str,
     customer_email: str,
-    business_info: Dict[str, Any],
-    metadata: Dict[str, Any],
-) -> Dict[str, Any]:
+    business_info: dict[str, Any],
+    metadata: dict[str, Any],
+) -> dict[str, Any]:
     """Format request for report generation system"""
     return {
         "purchase_id": purchase_id,

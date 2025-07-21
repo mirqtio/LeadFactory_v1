@@ -2,6 +2,7 @@
 """
 Run assessments on test URLs to generate reports
 """
+
 import asyncio
 import json
 from datetime import datetime
@@ -91,7 +92,7 @@ ASSESSMENT_ENDPOINT = f"{API_BASE_URL}/api/v1/assessments/trigger"
 STATUS_ENDPOINT = f"{API_BASE_URL}/api/v1/assessments"
 
 
-async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]) -> str:
+async def trigger_assessment(client: httpx.AsyncClient, business: dict[str, Any]) -> str:
     """Trigger assessment for a business URL"""
     print(f"\n📊 Triggering assessment for {business['business_name']}...")
 
@@ -122,14 +123,14 @@ async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]
     return session_id
 
 
-async def check_assessment_status(client: httpx.AsyncClient, session_id: str) -> Dict[str, Any]:
+async def check_assessment_status(client: httpx.AsyncClient, session_id: str) -> dict[str, Any]:
     """Check assessment status"""
     url = f"{STATUS_ENDPOINT}/{session_id}/status"
     response = await client.get(url)
     return response.json()
 
 
-async def get_assessment_results(client: httpx.AsyncClient, session_id: str) -> Dict[str, Any]:
+async def get_assessment_results(client: httpx.AsyncClient, session_id: str) -> dict[str, Any]:
     """Get assessment results"""
     url = f"{STATUS_ENDPOINT}/{session_id}/results"
     response = await client.get(url)
@@ -148,14 +149,14 @@ async def wait_for_completion(client: httpx.AsyncClient, session_id: str, busine
             print(f"✅ Assessment {status['status']} for {business_name}")
             return True
 
-        print(f"   Progress: {status.get('progress', 'Processing...')} ({attempt+1}/{max_attempts})")
+        print(f"   Progress: {status.get('progress', 'Processing...')} ({attempt + 1}/{max_attempts})")
         await asyncio.sleep(5)  # Check every 5 seconds
 
     print(f"❌ Assessment timed out for {business_name}")
     return False
 
 
-async def save_results(session_id: str, business: Dict[str, Any], results: Dict[str, Any]):
+async def save_results(session_id: str, business: dict[str, Any], results: dict[str, Any]):
     """Save assessment results to file"""
     filename = f"assessment_{business['business_id']}_{session_id}.json"
 

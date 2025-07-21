@@ -4,6 +4,7 @@ Test D4 Enrichment Coordinator Coverage Expansion
 Comprehensive unit tests to improve coordinator.py coverage from 79.45% to 90%+.
 Focuses on edge cases, error paths, and property methods not covered by existing tests.
 """
+
 import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -193,7 +194,7 @@ class TestEnrichmentCoordinatorErrorPaths:
 
         business = {
             "id": "test-skip-001",
-            "name": "Test Business"
+            "name": "Test Business",
             # No last_enriched_at field
         }
 

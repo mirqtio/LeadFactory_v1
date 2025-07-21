@@ -4,6 +4,7 @@ Marker validation utilities for pytest.
 This module provides utilities for validating and enforcing marker usage
 across the test suite.
 """
+
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
@@ -53,10 +54,10 @@ class MarkerValidator:
     """Validates marker usage on test items."""
 
     def __init__(self):
-        self.validation_errors: List[str] = []
-        self.validation_warnings: List[str] = []
+        self.validation_errors: list[str] = []
+        self.validation_warnings: list[str] = []
 
-    def validate_item(self, item: pytest.Item) -> Tuple[List[str], List[str]]:
+    def validate_item(self, item: pytest.Item) -> tuple[list[str], list[str]]:
         """
         Validate markers on a test item.
 
@@ -94,7 +95,7 @@ class MarkerValidator:
 
         return errors, warnings
 
-    def get_expected_markers(self, item: pytest.Item) -> Set[str]:
+    def get_expected_markers(self, item: pytest.Item) -> set[str]:
         """
         Get the expected markers for a test item based on its location.
 
@@ -124,7 +125,7 @@ class MarkerValidator:
 
         return expected
 
-    def suggest_markers(self, item: pytest.Item) -> List[str]:
+    def suggest_markers(self, item: pytest.Item) -> list[str]:
         """
         Suggest markers that should be applied to a test item.
 
@@ -174,7 +175,7 @@ def apply_auto_markers(item: pytest.Item) -> None:
             item.add_marker(getattr(pytest.mark, domain))
 
 
-def get_marker_statistics(items: List[pytest.Item]) -> Dict[str, int]:
+def get_marker_statistics(items: list[pytest.Item]) -> dict[str, int]:
     """
     Get statistics about marker usage across test items.
 
@@ -193,7 +194,7 @@ def get_marker_statistics(items: List[pytest.Item]) -> Dict[str, int]:
     return stats
 
 
-def generate_marker_report(items: List[pytest.Item]) -> str:
+def generate_marker_report(items: list[pytest.Item]) -> str:
     """
     Generate a report about marker usage and validation issues.
 

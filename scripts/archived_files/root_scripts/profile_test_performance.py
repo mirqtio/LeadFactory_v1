@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-def run_test_with_timing(test_path: str) -> Tuple[str, float, bool]:
+def run_test_with_timing(test_path: str) -> tuple[str, float, bool]:
     """Run a single test and measure its execution time."""
     start_time = time.time()
 
@@ -36,7 +36,7 @@ def run_test_with_timing(test_path: str) -> Tuple[str, float, bool]:
         return test_path, 999.0, False
 
 
-def find_fast_tests() -> List[Dict]:
+def find_fast_tests() -> list[dict]:
     """Find the fastest unit tests for ultra-fast CI."""
     # Fast test candidates based on analysis
     fast_test_paths = [
@@ -69,7 +69,7 @@ def find_fast_tests() -> List[Dict]:
     return results
 
 
-def generate_performance_report(results: List[Dict]) -> Dict:
+def generate_performance_report(results: list[dict]) -> dict:
     """Generate performance analysis report."""
     successful_tests = [r for r in results if r["success"]]
     failed_tests = [r for r in results if not r["success"]]
@@ -121,7 +121,7 @@ def main():
     for i, test in enumerate(report["fastest_tests"], 1):
         print(f"{i}. {test['path']} - {test['duration']:.2f}s")
 
-    print(f"\n🎯 Recommended Ultra-Fast CI Tests:")
+    print("\n🎯 Recommended Ultra-Fast CI Tests:")
     for test_path in report["recommendations"]["ultra_fast_ci_tests"]:
         print(f"  - {test_path}")
 
@@ -131,7 +131,7 @@ def main():
     with open("test_performance_report.json", "w") as f:
         json.dump(report, f, indent=2)
 
-    print(f"\n📄 Detailed report saved to: test_performance_report.json")
+    print("\n📄 Detailed report saved to: test_performance_report.json")
 
     return 0
 

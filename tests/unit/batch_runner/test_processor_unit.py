@@ -2,6 +2,7 @@
 Unit tests for Batch Processor module
 Tests the core batch processing engine without database dependencies
 """
+
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import AsyncMock, MagicMock, patch

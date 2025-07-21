@@ -3,6 +3,7 @@
 Script to mark slow tests based on pytest duration reports.
 Part of PRP-014: Strategic CI Test Re-enablement
 """
+
 import os
 import re
 import subprocess
@@ -64,7 +65,7 @@ def is_critical_test(test_path):
 
 def mark_test_in_file(file_path, test_name, marker):
     """Add pytest marker to a test in a file."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Find the test function/method

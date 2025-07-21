@@ -1,6 +1,7 @@
 """
 Test targeting domain models - simplified version
 """
+
 import uuid
 
 import pytest

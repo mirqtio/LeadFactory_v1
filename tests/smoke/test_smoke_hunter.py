@@ -2,6 +2,7 @@
 Smoke test for Hunter.io API
 PRD v1.2 - Verify Hunter.io domain search with confidence threshold
 """
+
 import asyncio
 import os
 from decimal import Decimal

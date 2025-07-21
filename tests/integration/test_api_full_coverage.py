@@ -2,6 +2,7 @@
 Comprehensive API integration tests for maximum coverage
 Tests all major endpoints to achieve 80%+ coverage
 """
+
 import os
 from unittest.mock import patch
 

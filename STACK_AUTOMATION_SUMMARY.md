@@ -26,7 +26,7 @@
 ### 2. Environment Configuration
 - **Enhanced .env** with all required multi-agent variables
 - **VPS SSH credentials** pre-configured (96.30.197.121)
-- **Claude model assignments** (Opus for orchestrator, Sonnet for workers)
+- **Claude model assignments** (Opus 4 for orchestrator, Sonnet 4 for workers)
 - **Redis coordination mode** enabled
 - **Comprehensive variable validation** during startup
 
@@ -76,13 +76,13 @@
 ```
 ┌─────────────────┬─────────────────┬─────────────────┐
 │   orchestrator  │     dev-1       │     dev-2       │
-│   (Opus Model)  │ (Sonnet Model)  │ (Sonnet Model)  │
+│   (Opus 4)      │   (Sonnet 4)    │   (Sonnet 4)    │
 │                 │                 │                 │
 │ Strategic       │ Development     │ Parallel Dev    │
 │ Coordination    │ Implementation  │ Implementation  │
 ├─────────────────┼─────────────────┼─────────────────┤
 │    validator    │   integrator    │     logs        │
-│ (Sonnet Model)  │ (Sonnet Model)  │                 │
+│   (Sonnet 4)    │   (Sonnet 4)    │                 │
 │                 │                 │ Real-time       │
 │ Quality         │ VPS Deployment  │ Monitoring      │
 │ Assurance       │ & SSH Ops       │ Dashboard       │

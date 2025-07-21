@@ -43,12 +43,11 @@ OUTCOME_CRITERIA = {
         "cache key collisions across businesses impossible (property-based test)."
     ),
     "P0-002": (
-        "`smoke/test_full_pipeline_flow.py` generates PDF + email + DB rows for a sample URL " "within 90 s runtime."
+        "`smoke/test_full_pipeline_flow.py` generates PDF + email + DB rows for a sample URL within 90 s runtime."
     ),
     "P0-003": "GitHub Actions logs show image build, KEEP suite green, coverage ≥ 80%, image pushed to GHCR.",
     "P0-004": (
-        "`alembic upgrade head` + autogen diff both return no changes on CI; downgrade path tested "
-        "for latest revision."
+        "`alembic upgrade head` + autogen diff both return no changes on CI; downgrade path tested for latest revision."
     ),
     "P0-005": (
         "Running tests with `USE_STUBS=true` yields 0 external calls (network mocked); "
@@ -64,9 +63,7 @@ OUTCOME_CRITERIA = {
         "`git grep -i yelp` finds only comments/docs; migration drops last Yelp columns; "
         "stub server has no `/yelp/*` routes."
     ),
-    "P0-010": (
-        "`pip install -r requirements.txt` succeeds in clean venv; `pip check` green; version pins " "documented."
-    ),
+    "P0-010": ("`pip install -r requirements.txt` succeeds in clean venv; `pip check` green; version pins documented."),
     "P0-011": (
         "GH Actions deploy job completes; container responds 200 on `/health`; restart policy is "
         "`always`; SSH key auth works."
@@ -80,11 +77,9 @@ OUTCOME_CRITERIA = {
         'section "SEO Snapshot".'
     ),
     "P1-020": (
-        "Headless run completes ≤ 30 s; returns 5 scores; cached 7 days; results populate assessment " "row and PDF."
+        "Headless run completes ≤ 30 s; returns 5 scores; cached 7 days; results populate assessment row and PDF."
     ),
-    "P1-030": (
-        "Screenshot captured; 9 rubric scores (0-100) persisted; PDF shows coloured bar chart " "per dimension."
-    ),
+    "P1-030": ("Screenshot captured; 9 rubric scores (0-100) persisted; PDF shows coloured bar chart per dimension."),
     "P1-040": "For a given URL stub, audit returns 7 structured fields; JSON matches schema; costs logged in ledger.",
     "P1-050": (
         "Every external API request inserts a ledger row with `cost_usd`; daily aggregation view "

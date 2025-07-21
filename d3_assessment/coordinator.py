@@ -10,13 +10,14 @@ Acceptance Criteria:
 - Partial results saved
 - Error recovery implemented
 """
+
 import asyncio
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from core.logging import get_logger
 from d4_enrichment.email_enrichment import get_email_enricher
@@ -33,8 +34,6 @@ logger = get_logger(__name__, domain="d3")
 
 class CoordinatorError(Exception):
     """Custom exception for coordinator errors"""
-
-    pass
 
 
 class AssessmentPriority(Enum):
@@ -55,7 +54,7 @@ class AssessmentRequest:
     priority: AssessmentPriority = AssessmentPriority.MEDIUM
     timeout_seconds: int = 300  # 5 minutes default
     retry_count: int = 2
-    custom_config: Optional[Dict[str, Any]] = None
+    custom_config: dict[str, Any] | None = None
 
 
 @dataclass
@@ -67,8 +66,8 @@ class CoordinatorResult:
     total_assessments: int
     completed_assessments: int
     failed_assessments: int
-    partial_results: Dict[AssessmentType, AssessmentResult]
-    errors: Dict[AssessmentType, str]
+    partial_results: dict[AssessmentType, AssessmentResult]
+    errors: dict[AssessmentType, str]
     total_cost_usd: Decimal
     execution_time_ms: int
     started_at: datetime
@@ -117,10 +116,10 @@ class AssessmentCoordinator:
         self,
         business_id: str,
         url: str,
-        assessment_types: List[AssessmentType] = None,
+        assessment_types: list[AssessmentType] = None,
         industry: str = "default",
-        session_config: Optional[Dict[str, Any]] = None,
-        business_data: Optional[Dict[str, Any]] = None,
+        session_config: dict[str, Any] | None = None,
+        business_data: dict[str, Any] | None = None,
     ) -> CoordinatorResult:
         """
         Execute comprehensive assessment with multiple types
@@ -250,10 +249,10 @@ class AssessmentCoordinator:
         self,
         business_id: str,
         session_id: str,
-        requests: List[AssessmentRequest],
+        requests: list[AssessmentRequest],
         industry: str,
-        business_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[AssessmentType, Optional[AssessmentResult]]:
+        business_data: dict[str, Any] | None = None,
+    ) -> dict[AssessmentType, AssessmentResult | None]:
         """
         Execute multiple assessments in parallel with timeout and error handling
 
@@ -287,32 +286,30 @@ class AssessmentCoordinator:
 
                         return assessment_type, result
 
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         if attempt < request.retry_count:
                             # Retry with exponential backoff
                             await asyncio.sleep(2**attempt)
                             continue
-                        else:
-                            # Final timeout - create failed result
-                            failed_result = self._create_failed_result(
-                                business_id,
-                                session_id,
-                                request,
-                                f"Assessment timed out after {request.timeout_seconds}s",
-                            )
-                            await self._save_partial_result(failed_result)
-                            return assessment_type, failed_result
+                        # Final timeout - create failed result
+                        failed_result = self._create_failed_result(
+                            business_id,
+                            session_id,
+                            request,
+                            f"Assessment timed out after {request.timeout_seconds}s",
+                        )
+                        await self._save_partial_result(failed_result)
+                        return assessment_type, failed_result
 
                     except Exception as e:
                         if attempt < request.retry_count:
                             # Retry on error
                             await asyncio.sleep(2**attempt)
                             continue
-                        else:
-                            # Final error - create failed result
-                            failed_result = self._create_failed_result(business_id, session_id, request, str(e))
-                            await self._save_partial_result(failed_result)
-                            return assessment_type, failed_result
+                        # Final error - create failed result
+                        failed_result = self._create_failed_result(business_id, session_id, request, str(e))
+                        await self._save_partial_result(failed_result)
+                        return assessment_type, failed_result
 
                 # Should never reach here
                 return assessment_type, None
@@ -338,7 +335,7 @@ class AssessmentCoordinator:
         session_id: str,
         request: AssessmentRequest,
         industry: str,
-        business_data: Optional[Dict[str, Any]] = None,
+        business_data: dict[str, Any] | None = None,
     ) -> AssessmentResult:
         """Run a specific assessment type"""
         assessment_type = request.assessment_type
@@ -380,7 +377,7 @@ class AssessmentCoordinator:
                 total_cost_usd=Decimal(str(result.cost)),
             )
 
-        elif assessment_type == AssessmentType.TECH_STACK:
+        if assessment_type == AssessmentType.TECH_STACK:
             # For tech stack, we need to adapt the interface
             detections = await self.techstack_detector.detect_technologies(assessment_id=str(uuid.uuid4()), url=url)
 
@@ -411,7 +408,7 @@ class AssessmentCoordinator:
             )
             return result
 
-        elif assessment_type == AssessmentType.AI_INSIGHTS:
+        if assessment_type == AssessmentType.AI_INSIGHTS:
             # For LLM insights, we need a base assessment
             base_assessment = AssessmentResult(
                 id=str(uuid.uuid4()),
@@ -442,7 +439,7 @@ class AssessmentCoordinator:
 
             return base_assessment
 
-        elif assessment_type == AssessmentType.BUSINESS_INFO:
+        if assessment_type == AssessmentType.BUSINESS_INFO:
             # Use GBP assessor from registry
             if "gbp_profile" in self.assessors:
                 try:
@@ -629,8 +626,8 @@ class AssessmentCoordinator:
         return urlparse(url).netloc.replace("www.", "")
 
     async def execute_batch_assessments(
-        self, assessment_configs: List[Dict[str, Any]], max_concurrent_sessions: int = 3
-    ) -> List[CoordinatorResult]:
+        self, assessment_configs: list[dict[str, Any]], max_concurrent_sessions: int = 3
+    ) -> list[CoordinatorResult]:
         """
         Execute assessments for multiple websites in batch
 
@@ -643,7 +640,7 @@ class AssessmentCoordinator:
         """
         semaphore = asyncio.Semaphore(max_concurrent_sessions)
 
-        async def execute_single_config(config: Dict[str, Any]) -> CoordinatorResult:
+        async def execute_single_config(config: dict[str, Any]) -> CoordinatorResult:
             async with semaphore:
                 return await self.execute_comprehensive_assessment(
                     business_id=config["business_id"],
@@ -677,7 +674,7 @@ class AssessmentCoordinator:
 
         raise NotImplementedError("Session resumption requires database integration")
 
-    def get_assessment_status(self, session_id: str) -> Dict[str, Any]:
+    def get_assessment_status(self, session_id: str) -> dict[str, Any]:
         """
         Get current status of an assessment session
 
@@ -723,15 +720,15 @@ class AssessmentScheduler:
         """Initialize scheduler with coordinator"""
         self.coordinator = coordinator
         self.priority_queue = asyncio.PriorityQueue()
-        self.running_sessions: Set[str] = set()
+        self.running_sessions: set[str] = set()
 
     async def schedule_assessment(
         self,
         business_id: str,
         url: str,
         priority: AssessmentPriority = AssessmentPriority.MEDIUM,
-        scheduled_time: Optional[datetime] = None,
-        assessment_types: Optional[List[AssessmentType]] = None,
+        scheduled_time: datetime | None = None,
+        assessment_types: list[AssessmentType] | None = None,
     ) -> str:
         """
         Schedule an assessment for execution
@@ -822,4 +819,3 @@ class AssessmentScheduler:
         # - Send notifications
         # - Update business dashboards
         # - Trigger downstream processes
-        pass

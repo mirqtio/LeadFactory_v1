@@ -8,7 +8,6 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
 
 
 @dataclass
@@ -18,13 +17,13 @@ class TaskResult:
     success: bool
     output: str
     duration: float
-    errors: List[str]
+    errors: list[str]
 
 
 class SmartAnalyzer:
     """AI-enhanced code analysis inspired by SuperClaude."""
 
-    def analyze_ci_failures(self, max_errors: int = 20) -> Dict[str, any]:
+    def analyze_ci_failures(self, max_errors: int = 20) -> dict[str, any]:
         """Smart analysis of CI failures with prioritized fixes."""
         print("🔍 Smart CI Failure Analysis...")
 
@@ -72,7 +71,7 @@ class SmartAnalyzer:
 
         return analysis
 
-    def suggest_parallel_tasks(self) -> List[Dict[str, str]]:
+    def suggest_parallel_tasks(self) -> list[dict[str, str]]:
         """Suggest tasks that can be run in parallel."""
         return [
             {
@@ -103,7 +102,7 @@ class TaskOrchestrator:
         self.active_tasks = []
         self.completed_tasks = []
 
-    def execute_parallel_fixes(self, tasks: List[Dict[str, str]]) -> List[TaskResult]:
+    def execute_parallel_fixes(self, tasks: list[dict[str, str]]) -> list[TaskResult]:
         """Execute multiple linting fixes in parallel."""
         print("🚀 Executing parallel fixes...")
         results = []
@@ -137,7 +136,7 @@ class TaskOrchestrator:
 
         return results
 
-    def smart_test_selection(self) -> List[str]:
+    def smart_test_selection(self) -> list[str]:
         """Select tests that are most likely to pass first."""
         # Prioritize tests that are known to work
         priority_tests = [
@@ -156,7 +155,7 @@ class ProgressTracker:
         self.start_time = time.time()
         self.milestones = []
 
-    def log_milestone(self, description: str, metric: Optional[str] = None):
+    def log_milestone(self, description: str, metric: str | None = None):
         """Log a development milestone."""
         elapsed = time.time() - self.start_time
         milestone = {
@@ -170,7 +169,7 @@ class ProgressTracker:
         metric_str = f" ({metric})" if metric else ""
         print(f"🎯 [{milestone['timestamp']}] {description}{metric_str}")
 
-    def get_velocity_report(self) -> Dict[str, any]:
+    def get_velocity_report(self) -> dict[str, any]:
         """Get development velocity insights."""
         if len(self.milestones) < 2:
             return {"status": "insufficient_data"}
@@ -187,13 +186,13 @@ class ProgressTracker:
 
 
 # Utility functions inspired by SuperClaude
-def sc_analyze() -> Dict[str, any]:
+def sc_analyze() -> dict[str, any]:
     """Smart analysis of current codebase state."""
     analyzer = SmartAnalyzer()
     return analyzer.analyze_ci_failures()
 
 
-def sc_fix_parallel() -> List[TaskResult]:
+def sc_fix_parallel() -> list[TaskResult]:
     """Execute parallel fixes for common issues."""
     analyzer = SmartAnalyzer()
     orchestrator = TaskOrchestrator()

@@ -5,17 +5,16 @@ Implements battle-tested Redis queue patterns with per-worker backup queues,
 atomic operations, and reliable message delivery guarantees. Replaces deprecated
 BRPOPLPUSH with BLMOVE for Redis 7.2.x LTS compatibility.
 """
-import asyncio
+
 import json
 import logging
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
+from typing import Any
 
 import redis.asyncio as redis
-from pydantic import BaseModel
 
-from core.config import get_settings
 from core.logging import get_logger
 from infra.redis_queue import QueueMessage, RedisQueueBroker
 
@@ -29,7 +28,7 @@ class ReliableQueuePattern:
     pattern for worker isolation and automatic cleanup.
     """
 
-    def __init__(self, broker: RedisQueueBroker, worker_id: Optional[str] = None):
+    def __init__(self, broker: RedisQueueBroker, worker_id: str | None = None):
         """
         Initialize reliable queue pattern.
 
@@ -46,7 +45,7 @@ class ReliableQueuePattern:
 
     async def atomic_dequeue_with_backup(
         self, source_queue: str, backup_queue: str, timeout: float = 10.0
-    ) -> Optional[QueueMessage]:
+    ) -> QueueMessage | None:
         """
         Atomically move message from source to backup queue using BLMOVE.
 
@@ -138,7 +137,7 @@ class ReliableQueuePattern:
 
         return processed
 
-    async def cleanup_worker_queues(self, worker_id: Optional[str] = None) -> int:
+    async def cleanup_worker_queues(self, worker_id: str | None = None) -> int:
         """
         Cleanup queues for a specific worker (useful for graceful shutdown).
 
@@ -176,7 +175,7 @@ class ReliableQueuePattern:
 
         return moved_count
 
-    async def get_worker_backup_stats(self) -> Dict[str, int]:
+    async def get_worker_backup_stats(self) -> dict[str, int]:
         """Get statistics for all backup queues for this worker"""
         pattern = f"{self.broker.queue_prefix}*{self.broker.inflight_suffix}:{self.worker_id}"
         backup_keys = await self.async_redis.keys(pattern)
@@ -215,7 +214,7 @@ class BatchQueuePattern:
         # Async Redis connection
         self.async_redis = redis.from_url(broker.redis_url, decode_responses=True)
 
-    async def dequeue_batch(self, queue_name: str, batch_size: Optional[int] = None) -> List[QueueMessage]:
+    async def dequeue_batch(self, queue_name: str, batch_size: int | None = None) -> list[QueueMessage]:
         """
         Dequeue multiple messages in a batch.
 
@@ -257,7 +256,7 @@ class BatchQueuePattern:
 
         await self.async_redis.lpush(dlq_key, json.dumps(dlq_entry))
 
-    async def acknowledge_batch(self, queue_name: str, messages: List[QueueMessage]) -> int:
+    async def acknowledge_batch(self, queue_name: str, messages: list[QueueMessage]) -> int:
         """
         Acknowledge a batch of messages.
 
@@ -333,7 +332,7 @@ class PriorityQueuePattern:
             self.logger.error(f"Failed to enqueue priority message: {e}")
             return False
 
-    async def dequeue_by_priority(self, queue_name: str, count: int = 1) -> List[QueueMessage]:
+    async def dequeue_by_priority(self, queue_name: str, count: int = 1) -> list[QueueMessage]:
         """
         Dequeue highest priority messages.
 
@@ -380,7 +379,7 @@ class PriorityQueuePattern:
 
         await self.async_redis.lpush(dlq_key, json.dumps(dlq_entry))
 
-    async def get_priority_stats(self, queue_name: str) -> Dict[str, Any]:
+    async def get_priority_stats(self, queue_name: str) -> dict[str, Any]:
         """Get priority queue statistics"""
         priority_key = f"{self.broker._get_queue_key(queue_name)}:priority"
 

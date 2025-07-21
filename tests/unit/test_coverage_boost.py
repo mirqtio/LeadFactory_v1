@@ -1,6 +1,7 @@
 """
 Simplified coverage boost tests that exercise key modules
 """
+
 from unittest.mock import patch
 
 

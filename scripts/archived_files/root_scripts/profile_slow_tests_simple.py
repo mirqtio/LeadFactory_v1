@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-def run_tests_with_json_report(test_path: str = "tests") -> Dict:
+def run_tests_with_json_report(test_path: str = "tests") -> dict:
     """Run pytest with JSON report output."""
     print(f"Running pytest on {test_path} to collect timing information...")
 
@@ -39,7 +39,7 @@ def run_tests_with_json_report(test_path: str = "tests") -> Dict:
 
         # Read the JSON report
         if report_file.exists():
-            with open(report_file, "r") as f:
+            with open(report_file) as f:
                 return json.load(f)
         else:
             print("No JSON report file generated")
@@ -54,7 +54,7 @@ def run_tests_with_json_report(test_path: str = "tests") -> Dict:
             report_file.unlink()
 
 
-def analyze_test_durations(report: Dict, threshold: float = 1.0) -> Dict[str, List[Tuple[str, float]]]:
+def analyze_test_durations(report: dict, threshold: float = 1.0) -> dict[str, list[tuple[str, float]]]:
     """Analyze test durations from JSON report."""
     slow_tests = defaultdict(list)
 
@@ -77,12 +77,12 @@ def analyze_test_durations(report: Dict, threshold: float = 1.0) -> Dict[str, Li
     return slow_tests
 
 
-def generate_report(slow_tests: Dict[str, List[Tuple[str, float]]], threshold: float) -> str:
+def generate_report(slow_tests: dict[str, list[tuple[str, float]]], threshold: float) -> str:
     """Generate a report of slow tests."""
     lines = []
-    lines.append(f"\n{'='*80}")
+    lines.append(f"\n{'=' * 80}")
     lines.append(f"SLOW TEST REPORT (threshold: {threshold}s)")
-    lines.append(f"{'='*80}\n")
+    lines.append(f"{'=' * 80}\n")
 
     total_slow_tests = sum(len(tests) for tests in slow_tests.values())
     lines.append(f"Total slow tests found: {total_slow_tests}")
@@ -112,12 +112,12 @@ def generate_report(slow_tests: Dict[str, List[Tuple[str, float]]], threshold: f
     return "\n".join(lines)
 
 
-def generate_marker_commands(slow_tests: Dict[str, List[Tuple[str, float]]]) -> str:
+def generate_marker_commands(slow_tests: dict[str, list[tuple[str, float]]]) -> str:
     """Generate commands to add @pytest.mark.slow markers."""
     lines = []
-    lines.append(f"\n{'='*80}")
+    lines.append(f"\n{'=' * 80}")
     lines.append("FILES TO UPDATE WITH @pytest.mark.slow")
-    lines.append(f"{'='*80}\n")
+    lines.append(f"{'=' * 80}\n")
 
     for file_path in sorted(slow_tests.keys()):
         lines.append(f"\n# File: {file_path}")
@@ -136,7 +136,7 @@ def generate_marker_commands(slow_tests: Dict[str, List[Tuple[str, float]]]) -> 
     return "\n".join(lines)
 
 
-def save_detailed_results(slow_tests: Dict[str, List[Tuple[str, float]]], threshold: float) -> None:
+def save_detailed_results(slow_tests: dict[str, list[tuple[str, float]]], threshold: float) -> None:
     """Save detailed results to a JSON file."""
     results = {"threshold": threshold, "slow_tests": []}
 
@@ -190,9 +190,9 @@ def main():
         # Save detailed results
         save_detailed_results(slow_tests, args.threshold)
 
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print("NEXT STEPS:")
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
         print("1. Review the slow tests identified above")
         print("2. Add @pytest.mark.slow decorator to each slow test")
         print("3. Run 'pytest -m \"not slow\"' to exclude slow tests in quick runs")

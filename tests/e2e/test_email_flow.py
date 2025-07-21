@@ -6,7 +6,7 @@ delivery, ensuring all components work together correctly.
 
 Acceptance Criteria:
 - Personalization works ✓
-- SendGrid integration ✓  
+- SendGrid integration ✓
 - Compliance verified ✓
 - Tracking confirmed ✓
 """

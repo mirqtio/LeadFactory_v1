@@ -6,11 +6,12 @@ Endpoint: POST /take
 Cost: $0.010 per screenshot
 Rate limit: 2/sec
 """
+
 import asyncio
 import base64
 import hashlib
 import hmac
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 from core.logging import get_logger
@@ -49,14 +50,14 @@ class ScreenshotOneClient(BaseAPIClient):
         """Get the base URL for ScreenshotOne API"""
         return self.base_url
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get headers for ScreenshotOne API"""
         return {
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get rate limit configuration"""
         return {
             "requests_per_second": 2,
@@ -78,9 +79,9 @@ class ScreenshotOneClient(BaseAPIClient):
         viewport_height: int = 1080,
         device_scale_factor: int = 1,
         format: str = "png",
-        quality: Optional[int] = None,
-        lead_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        quality: int | None = None,
+        lead_id: str | None = None,
+    ) -> dict[str, Any]:
         """
         Take a screenshot of a website
 
@@ -152,7 +153,7 @@ class ScreenshotOneClient(BaseAPIClient):
             logger.error(f"Screenshot generation failed for {url}: {e}")
             raise APIProviderError("screenshotone", str(e))
 
-    def _generate_screenshot_url(self, params: Dict[str, Any]) -> str:
+    def _generate_screenshot_url(self, params: dict[str, Any]) -> str:
         """
         Generate a signed screenshot URL
 
@@ -173,9 +174,8 @@ class ScreenshotOneClient(BaseAPIClient):
             # Generate signature
             signature = self._sign_request(query_string)
             return f"{self.base_url}/take?{query_string}&signature={signature}"
-        else:
-            # Unsigned URL (less secure)
-            return f"{self.base_url}/take?{query_string}"
+        # Unsigned URL (less secure)
+        return f"{self.base_url}/take?{query_string}"
 
     def _sign_request(self, query_string: str) -> str:
         """

@@ -6,7 +6,7 @@ Tests for purchase tracking models with Stripe integration, attribution tracking
 Acceptance Criteria:
 - Purchase tracking model ✓
 - Stripe ID fields ✓
-- Attribution tracking ✓ 
+- Attribution tracking ✓
 - Status management ✓
 """
 

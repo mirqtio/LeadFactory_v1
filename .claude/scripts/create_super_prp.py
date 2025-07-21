@@ -6,7 +6,7 @@ from pathlib import Path
 
 def extract_prp_content(prp_path):
     """Extract key content from a PRP, excluding the repetitive context sections."""
-    with open(prp_path, "r") as f:
+    with open(prp_path) as f:
         content = f.read()
 
     # Find where the Critical Context section starts
@@ -24,7 +24,7 @@ def create_super_prp():
     super_prp_path = prp_dir / "SUPER-PRP-ALL-TASKS.md"
 
     # Read existing header
-    with open(super_prp_path, "r") as f:
+    with open(super_prp_path) as f:
         header = f.read()
 
     # Collect all PRPs
@@ -51,7 +51,7 @@ def create_super_prp():
             if line.startswith("# PRP:"):
                 continue
             # Demote headers by one level for better hierarchy
-            elif line.startswith("## "):
+            if line.startswith("## "):
                 adjusted_lines.append("### " + line[3:])
             elif line.startswith("### "):
                 adjusted_lines.append("#### " + line[4:])
@@ -115,7 +115,7 @@ redundancy. These documents should be reviewed separately and apply to all tasks
     print(f"  Location: {super_prp_path}")
 
     # Count lines
-    with open(super_prp_path, "r") as f:
+    with open(super_prp_path) as f:
         line_count = len(f.readlines())
     print(f"  Total lines: {line_count:,}")
 

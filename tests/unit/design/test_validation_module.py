@@ -264,10 +264,12 @@ class TestMainFunction:
             },
             "typography": {
                 "fontFamily": "Arial",
-                "scale": {f"scale{i}": {"size": f"{10+i*2}px", "weight": "400", "lineHeight": "1.0"} for i in range(9)},
+                "scale": {
+                    f"scale{i}": {"size": f"{10 + i * 2}px", "weight": "400", "lineHeight": "1.0"} for i in range(9)
+                },
             },
-            "spacing": {"base": "8px", "scale": {f"s{i}": f"{8*(i+1)}px" for i in range(7)}},
-            "animation": {"duration": {f"d{i}": f"{100+i*50}ms" for i in range(4)}, "easing": {"out": "ease-out"}},
+            "spacing": {"base": "8px", "scale": {f"s{i}": f"{8 * (i + 1)}px" for i in range(7)}},
+            "animation": {"duration": {f"d{i}": f"{100 + i * 50}ms" for i in range(4)}, "easing": {"out": "ease-out"}},
             "breakpoints": {"mobile": "640px", "tablet": "1024px", "desktop": "1200px"},
         }
 

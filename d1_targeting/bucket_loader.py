@@ -2,10 +2,10 @@
 Bucket feature loader for Phase 0.5
 Task TG-06: Load CSV seed data for bucket assignment
 """
+
 import csv
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class BucketFeatureLoader:
     """Load and manage bucket features from CSV seed files"""
 
-    def __init__(self, seed_dir: Optional[Path] = None):
+    def __init__(self, seed_dir: Path | None = None):
         """
         Initialize bucket feature loader
 
@@ -25,8 +25,8 @@ class BucketFeatureLoader:
             seed_dir = Path(__file__).parent.parent / "data" / "seed"
 
         self.seed_dir = Path(seed_dir)
-        self.geo_features: Dict[str, Dict[str, str]] = {}
-        self.vertical_features: Dict[str, Dict[str, str]] = {}
+        self.geo_features: dict[str, dict[str, str]] = {}
+        self.vertical_features: dict[str, dict[str, str]] = {}
 
         # Load features on initialization
         self._load_geo_features()
@@ -41,7 +41,7 @@ class BucketFeatureLoader:
             return
 
         try:
-            with open(geo_file, "r") as f:
+            with open(geo_file) as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     zip_code = row["zip_code"]
@@ -67,7 +67,7 @@ class BucketFeatureLoader:
             return
 
         try:
-            with open(vert_file, "r") as f:
+            with open(vert_file) as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     category = row["business_category"]
@@ -83,7 +83,7 @@ class BucketFeatureLoader:
         except Exception as e:
             logger.error(f"Failed to load vertical features: {e}")
 
-    def get_geo_bucket(self, zip_code: str) -> Optional[str]:
+    def get_geo_bucket(self, zip_code: str) -> str | None:
         """
         Get geo bucket for a ZIP code
 
@@ -99,7 +99,7 @@ class BucketFeatureLoader:
 
         return f"{features['affluence']}-{features['agency_density']}-{features['broadband_quality']}"
 
-    def get_vertical_bucket(self, categories: List[str]) -> Optional[str]:
+    def get_vertical_bucket(self, categories: list[str]) -> str | None:
         """
         Get vertical bucket for a list of Yelp categories
 
@@ -118,7 +118,7 @@ class BucketFeatureLoader:
 
         return None
 
-    def get_business_buckets(self, zip_code: str, categories: List[str]) -> Tuple[Optional[str], Optional[str]]:
+    def get_business_buckets(self, zip_code: str, categories: list[str]) -> tuple[str | None, str | None]:
         """
         Get both geo and vertical buckets for a business
 
@@ -134,7 +134,7 @@ class BucketFeatureLoader:
 
         return geo_bucket, vert_bucket
 
-    def enrich_business(self, business: Dict) -> Dict:
+    def enrich_business(self, business: dict) -> dict:
         """
         Add bucket fields to a business dictionary
 
@@ -158,7 +158,7 @@ class BucketFeatureLoader:
 
         return business
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         """Get statistics about loaded features"""
         # Count unique buckets
         unique_geo_buckets = set()
@@ -182,7 +182,7 @@ class BucketFeatureLoader:
 
 
 # Singleton instance
-_bucket_loader: Optional[BucketFeatureLoader] = None
+_bucket_loader: BucketFeatureLoader | None = None
 
 
 def get_bucket_loader() -> BucketFeatureLoader:

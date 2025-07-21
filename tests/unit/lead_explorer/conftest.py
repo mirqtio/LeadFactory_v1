@@ -1,6 +1,7 @@
 """
 Shared test configuration for Lead Explorer tests
 """
+
 import uuid
 
 import pytest

@@ -2,14 +2,13 @@
 Alert system and notifications for P1-060 Cost guardrails
 Provides unified interface for multi-channel alerting with throttling
 """
-import asyncio
+
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional
 
 import httpx
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
 from core.config import get_settings
 from core.logging import get_logger
@@ -42,8 +41,8 @@ class AlertTemplate(BaseModel):
 
     subject: str
     body: str
-    html_body: Optional[str] = None
-    slack_blocks: Optional[List[Dict]] = None
+    html_body: str | None = None
+    slack_blocks: list[dict] | None = None
 
 
 class AlertContext(BaseModel):
@@ -53,15 +52,15 @@ class AlertContext(BaseModel):
     current_spend: Decimal
     limit: Decimal
     percentage: float
-    provider: Optional[str] = None
-    operation: Optional[str] = None
-    campaign_id: Optional[int] = None
+    provider: str | None = None
+    operation: str | None = None
+    campaign_id: int | None = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
     # Additional context
-    spend_rate_per_hour: Optional[float] = None
-    time_to_limit: Optional[str] = None
-    recommended_action: Optional[str] = None
+    spend_rate_per_hour: float | None = None
+    time_to_limit: str | None = None
+    recommended_action: str | None = None
 
 
 class AlertThrottle(BaseModel):
@@ -83,7 +82,7 @@ class AlertHistory(BaseModel):
     limit_name: str
     last_sent: datetime
     count_this_hour: int = 1
-    aggregated_violations: List[GuardrailViolation] = []
+    aggregated_violations: list[GuardrailViolation] = []
 
 
 class AlertManager:
@@ -95,11 +94,11 @@ class AlertManager:
     def __init__(self):
         self.logger = logger
         self.settings = get_settings()
-        self._history: Dict[str, AlertHistory] = {}
+        self._history: dict[str, AlertHistory] = {}
         self._templates = self._load_templates()
         self._sendgrid = None
 
-    def _load_templates(self) -> Dict[str, AlertTemplate]:
+    def _load_templates(self) -> dict[str, AlertTemplate]:
         """Load notification templates"""
         return {
             "warning": AlertTemplate(
@@ -163,7 +162,7 @@ class AlertManager:
                     padding: 20px;
                 }}}}
                 .header {{{{
-                    background-color: {colors.get(severity, '#000')};
+                    background-color: {colors.get(severity, "#000")};
                     color: white;
                     padding: 20px;
                     border-radius: 5px 5px 0 0;
@@ -190,11 +189,11 @@ class AlertManager:
                 }}}}
                 .metric-value {{{{
                     font-weight: bold;
-                    color: {colors.get(severity, '#000')};
+                    color: {colors.get(severity, "#000")};
                 }}}}
                 .action-box {{{{
                     background-color: #fff;
-                    border: 2px solid {colors.get(severity, '#000')};
+                    border: 2px solid {colors.get(severity, "#000")};
                     padding: 15px;
                     margin: 20px 0;
                     border-radius: 5px;
@@ -208,7 +207,7 @@ class AlertManager:
                 .button {{{{
                     display: inline-block;
                     padding: 10px 20px;
-                    background-color: {colors.get(severity, '#000')};
+                    background-color: {colors.get(severity, "#000")};
                     color: white;
                     text-decoration: none;
                     border-radius: 5px;
@@ -266,8 +265,8 @@ class AlertManager:
     async def send_alert(
         self,
         violation: GuardrailViolation,
-        channels: Optional[List[AlertChannel]] = None,
-    ) -> Dict[str, bool]:
+        channels: list[AlertChannel] | None = None,
+    ) -> dict[str, bool]:
         """
         Send alert through specified channels
 
@@ -311,14 +310,11 @@ class AlertManager:
         """Map violation severity to alert level"""
         if violation.percentage_used >= 1.0:
             return AlertLevel.HALT
-        elif violation.severity == AlertSeverity.EMERGENCY:
+        if violation.severity == AlertSeverity.EMERGENCY or violation.severity == AlertSeverity.CRITICAL:
             return AlertLevel.CRITICAL
-        elif violation.severity == AlertSeverity.CRITICAL:
-            return AlertLevel.CRITICAL
-        elif violation.severity == AlertSeverity.WARNING:
+        if violation.severity == AlertSeverity.WARNING:
             return AlertLevel.WARNING
-        else:
-            return AlertLevel.INFO
+        return AlertLevel.INFO
 
     def _build_context(self, violation: GuardrailViolation) -> AlertContext:
         """Build context for alert templating"""
@@ -367,7 +363,7 @@ class AlertManager:
         # In production, would query actual spending history
         return float(violation.current_spend) * 0.1  # Placeholder
 
-    def _get_configured_channels(self) -> List[AlertChannel]:
+    def _get_configured_channels(self) -> list[AlertChannel]:
         """Get list of configured alert channels"""
         channels = [AlertChannel.LOG]  # Always log
 
@@ -441,14 +437,13 @@ class AlertManager:
         """Send alert to specific channel"""
         if channel == AlertChannel.LOG:
             return self._send_log_alert(context, level)
-        elif channel == AlertChannel.EMAIL:
+        if channel == AlertChannel.EMAIL:
             return await self._send_email_alert(context, level)
-        elif channel == AlertChannel.SLACK:
+        if channel == AlertChannel.SLACK:
             return await self._send_slack_alert(context, level)
-        elif channel == AlertChannel.WEBHOOK:
+        if channel == AlertChannel.WEBHOOK:
             return await self._send_webhook_alert(context, level)
-        else:
-            return False
+        return False
 
     def _send_log_alert(self, context: AlertContext, level: AlertLevel) -> bool:
         """Send alert to logs"""
@@ -571,7 +566,7 @@ alert_manager = AlertManager()
 
 
 # Convenience functions
-async def send_cost_alert(violation: GuardrailViolation, channels: Optional[List[str]] = None):
+async def send_cost_alert(violation: GuardrailViolation, channels: list[str] | None = None):
     """Send cost alert through configured channels"""
     channel_enums = None
     if channels:

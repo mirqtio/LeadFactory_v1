@@ -4,10 +4,10 @@ Hot reload mechanism for scoring rules configuration.
 This module provides file watching and automatic reloading of scoring
 rules when the YAML configuration changes.
 """
+
 import threading
 import time
 from pathlib import Path
-from typing import Optional
 
 from watchdog.events import FileModifiedEvent, FileSystemEventHandler
 from watchdog.observers import Observer
@@ -34,7 +34,7 @@ class ScoringRulesFileHandler(FileSystemEventHandler):
         """
         self.engine = engine
         self.debounce_seconds = debounce_seconds
-        self._reload_timer: Optional[threading.Timer] = None
+        self._reload_timer: threading.Timer | None = None
         self._lock = threading.Lock()
 
     def on_modified(self, event):
@@ -106,7 +106,7 @@ class ScoringRulesWatcher:
     """Watches scoring rules file for changes and triggers reload."""
 
     def __init__(
-        self, engine: ConfigurableScoringEngine, config_path: Optional[str] = None, debounce_seconds: float = 2.0
+        self, engine: ConfigurableScoringEngine, config_path: str | None = None, debounce_seconds: float = 2.0
     ):
         """
         Initialize the watcher.
@@ -161,7 +161,7 @@ class ScoringRulesWatcher:
 
 
 # Singleton watcher instance
-_watcher_instance: Optional[ScoringRulesWatcher] = None
+_watcher_instance: ScoringRulesWatcher | None = None
 _watcher_lock = threading.Lock()
 
 

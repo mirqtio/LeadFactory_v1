@@ -6,7 +6,7 @@ across all domains and workflows.
 
 Acceptance Criteria:
 - Test environment setup ✓
-- Data seeding works ✓  
+- Data seeding works ✓
 - Cleanup automated ✓
 - Parallel test support ✓
 """

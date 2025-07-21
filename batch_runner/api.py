@@ -4,8 +4,8 @@ FastAPI endpoints for Batch Report Runner
 Provides REST API for batch processing with cost preview, progress tracking,
 and WebSocket real-time updates.
 """
+
 from datetime import datetime
-from typing import Dict, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, WebSocket
 from pydantic import ValidationError
@@ -44,7 +44,7 @@ router = APIRouter()
 # Using global get_db dependency from database.session
 
 
-def get_user_context(request) -> Dict[str, Optional[str]]:
+def get_user_context(request) -> dict[str, str | None]:
     """Extract user context from request headers"""
     return {
         "user_id": getattr(request, "headers", {}).get("X-User-ID"),

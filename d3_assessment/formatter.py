@@ -6,7 +6,7 @@ JSON export capabilities, and Markdown formatting for lead generation reports.
 
 Acceptance Criteria:
 - Human-readable summaries ✓
-- JSON export works ✓  
+- JSON export works ✓
 - Issue prioritization ✓
 - Markdown formatting ✓
 """
@@ -14,9 +14,9 @@ Acceptance Criteria:
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from d3_assessment.models import AssessmentResult
 from d3_assessment.types import IssueSeverity, IssueType
@@ -53,9 +53,9 @@ class FormattedIssue:
     impact_score: float
     recommendation: str
     category: str
-    technical_details: Optional[Dict[str, Any]] = None
+    technical_details: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation"""
         return {
             "title": self.title,
@@ -78,13 +78,13 @@ class FormattedReport:
     assessment_date: datetime
     overall_score: float
     summary: str
-    top_issues: List[FormattedIssue]
-    all_issues: List[FormattedIssue]
-    recommendations: List[str]
-    technical_summary: Dict[str, Any]
-    metadata: Dict[str, Any]
+    top_issues: list[FormattedIssue]
+    all_issues: list[FormattedIssue]
+    recommendations: list[str]
+    technical_summary: dict[str, Any]
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation - JSON export works"""
         return {
             "business_name": self.business_name,
@@ -134,7 +134,7 @@ class AssessmentFormatter:
         format_type: ReportFormat = ReportFormat.MARKDOWN,
         include_technical: bool = True,
         max_issues: int = 10,
-    ) -> Union[str, Dict[str, Any]]:
+    ) -> str | dict[str, Any]:
         """
         Format assessment result into specified format
 
@@ -154,14 +154,13 @@ class AssessmentFormatter:
             # Format according to type
             if format_type == ReportFormat.JSON:
                 return formatted_report.to_dict()
-            elif format_type == ReportFormat.MARKDOWN:
+            if format_type == ReportFormat.MARKDOWN:
                 return self._format_as_markdown(formatted_report)
-            elif format_type == ReportFormat.HTML:
+            if format_type == ReportFormat.HTML:
                 return self._format_as_html(formatted_report)
-            elif format_type == ReportFormat.TEXT:
+            if format_type == ReportFormat.TEXT:
                 return self._format_as_text(formatted_report)
-            else:
-                raise ValueError(f"Unsupported format type: {format_type}")
+            raise ValueError(f"Unsupported format type: {format_type}")
 
         except Exception as e:
             logger.error(f"Error formatting assessment: {e}")
@@ -203,11 +202,11 @@ class AssessmentFormatter:
                 "total_issues": len(all_issues),
                 "critical_issues": len([i for i in all_issues if i.priority == IssuePriority.CRITICAL]),
                 "high_issues": len([i for i in all_issues if i.priority == IssuePriority.HIGH]),
-                "formatted_at": datetime.now(timezone.utc).isoformat(),
+                "formatted_at": datetime.now(UTC).isoformat(),
             },
         )
 
-    def _extract_and_prioritize_issues(self, assessment: AssessmentResult) -> List[FormattedIssue]:
+    def _extract_and_prioritize_issues(self, assessment: AssessmentResult) -> list[FormattedIssue]:
         """Extract and prioritize issues from assessment - Issue prioritization"""
         issues = []
 
@@ -242,7 +241,7 @@ class AssessmentFormatter:
 
         return issues
 
-    def _extract_pagespeed_issues(self, pagespeed_data: Dict[str, Any]) -> List[FormattedIssue]:
+    def _extract_pagespeed_issues(self, pagespeed_data: dict[str, Any]) -> list[FormattedIssue]:
         """Extract issues from PageSpeed data"""
         issues = []
 
@@ -324,7 +323,7 @@ class AssessmentFormatter:
 
         return issues
 
-    def _extract_tech_stack_issues(self, tech_data: Dict[str, Any]) -> List[FormattedIssue]:
+    def _extract_tech_stack_issues(self, tech_data: dict[str, Any]) -> list[FormattedIssue]:
         """Extract issues from tech stack analysis"""
         issues = []
 
@@ -376,7 +375,7 @@ class AssessmentFormatter:
 
         return issues
 
-    def _extract_llm_issues(self, llm_insights: Dict[str, Any]) -> List[FormattedIssue]:
+    def _extract_llm_issues(self, llm_insights: dict[str, Any]) -> list[FormattedIssue]:
         """Extract issues from LLM analysis"""
         issues = []
 
@@ -395,7 +394,7 @@ class AssessmentFormatter:
 
             issues.append(
                 FormattedIssue(
-                    title=insight.get("title", f"AI Insight #{i+1}"),
+                    title=insight.get("title", f"AI Insight #{i + 1}"),
                     description=insight.get("description", "AI-identified improvement opportunity"),
                     severity=severity,
                     priority=priority,
@@ -418,14 +417,13 @@ class AssessmentFormatter:
         """Determine priority based on impact score"""
         if issue.impact_score >= 12.0:
             return IssuePriority.CRITICAL
-        elif issue.impact_score >= 8.0:
+        if issue.impact_score >= 8.0:
             return IssuePriority.HIGH
-        elif issue.impact_score >= 4.0:
+        if issue.impact_score >= 4.0:
             return IssuePriority.MEDIUM
-        else:
-            return IssuePriority.LOW
+        return IssuePriority.LOW
 
-    def _generate_summary(self, assessment: AssessmentResult, top_issues: List[FormattedIssue]) -> str:
+    def _generate_summary(self, assessment: AssessmentResult, top_issues: list[FormattedIssue]) -> str:
         """Generate human-readable summary - Human-readable summaries"""
 
         if not top_issues:
@@ -467,7 +465,7 @@ class AssessmentFormatter:
 
         return " ".join(summary_parts)
 
-    def _generate_recommendations(self, top_issues: List[FormattedIssue]) -> List[str]:
+    def _generate_recommendations(self, top_issues: list[FormattedIssue]) -> list[str]:
         """Generate prioritized recommendations"""
         recommendations = []
 
@@ -505,7 +503,7 @@ class AssessmentFormatter:
 
         return recommendations[:5]  # Limit to 5 recommendations
 
-    def _create_technical_summary(self, assessment: AssessmentResult) -> Dict[str, Any]:
+    def _create_technical_summary(self, assessment: AssessmentResult) -> dict[str, Any]:
         """Create technical summary for detailed analysis"""
         summary = {
             "assessment_id": assessment.assessment_id,
@@ -544,7 +542,7 @@ class AssessmentFormatter:
 
         return summary
 
-    def _calculate_overall_score(self, assessment: AssessmentResult, issues: List[FormattedIssue]) -> float:
+    def _calculate_overall_score(self, assessment: AssessmentResult, issues: list[FormattedIssue]) -> float:
         """Calculate overall assessment score"""
         if not issues:
             return 95.0  # Great score if no issues
@@ -763,7 +761,7 @@ class AssessmentFormatter:
             logger.error(f"Error exporting to Markdown: {e}")
             return False
 
-    def get_priority_summary(self, assessment: AssessmentResult) -> Dict[str, Any]:
+    def get_priority_summary(self, assessment: AssessmentResult) -> dict[str, Any]:
         """Get summary of issue priorities for quick overview"""
         issues = self._extract_and_prioritize_issues(assessment)
 
@@ -796,7 +794,7 @@ def format_assessment_report(
     assessment: AssessmentResult,
     format_type: str = "markdown",
     include_technical: bool = True,
-) -> Union[str, Dict[str, Any]]:
+) -> str | dict[str, Any]:
     """
     Utility function to format assessment report
 
@@ -813,7 +811,7 @@ def format_assessment_report(
     return formatter.format_assessment(assessment, format_enum, include_technical)
 
 
-def get_issue_summary(assessment: AssessmentResult) -> Dict[str, Any]:
+def get_issue_summary(assessment: AssessmentResult) -> dict[str, Any]:
     """
     Get quick summary of assessment issues
 

@@ -21,7 +21,7 @@ class TestProfiler:
 
     def __init__(self, threshold: float = 1.0):
         self.threshold = threshold
-        self.slow_tests: Dict[str, List[Tuple[str, float]]] = defaultdict(list)
+        self.slow_tests: dict[str, list[tuple[str, float]]] = defaultdict(list)
 
     def run_tests_with_timing(self) -> str:
         """Run pytest with timing information."""
@@ -44,7 +44,7 @@ class TestProfiler:
             print(f"Error running pytest: {e}")
             return ""
 
-    def parse_test_durations(self, output: str) -> Dict[str, float]:
+    def parse_test_durations(self, output: str) -> dict[str, float]:
         """Parse test durations from pytest output."""
         durations = {}
 
@@ -59,7 +59,7 @@ class TestProfiler:
 
         return durations
 
-    def categorize_slow_tests(self, durations: Dict[str, float]) -> None:
+    def categorize_slow_tests(self, durations: dict[str, float]) -> None:
         """Categorize tests by module and identify slow ones."""
         for test_path, duration in durations.items():
             if duration >= self.threshold:
@@ -74,9 +74,9 @@ class TestProfiler:
     def generate_report(self) -> str:
         """Generate a report of slow tests."""
         report = []
-        report.append(f"\n{'='*80}")
+        report.append(f"\n{'=' * 80}")
         report.append(f"SLOW TEST REPORT (threshold: {self.threshold}s)")
-        report.append(f"{'='*80}\n")
+        report.append(f"{'=' * 80}\n")
 
         total_slow_tests = sum(len(tests) for tests in self.slow_tests.values())
         report.append(f"Total slow tests found: {total_slow_tests}")
@@ -104,9 +104,9 @@ class TestProfiler:
     def generate_marker_commands(self) -> str:
         """Generate commands to add @pytest.mark.slow markers."""
         commands = []
-        commands.append(f"\n{'='*80}")
+        commands.append(f"\n{'=' * 80}")
         commands.append("COMMANDS TO ADD SLOW MARKERS")
-        commands.append(f"{'='*80}\n")
+        commands.append(f"{'=' * 80}\n")
 
         # Group tests by file
         file_tests = defaultdict(list)
@@ -124,11 +124,11 @@ class TestProfiler:
             tests = sorted(file_tests[file_path], key=lambda x: x[1], reverse=True)
             for test_id, duration in tests:
                 commands.append(f"# {test_id} ({duration:.2f}s)")
-            commands.append(f"# Add @pytest.mark.slow decorator to the above tests")
+            commands.append("# Add @pytest.mark.slow decorator to the above tests")
 
         return "\n".join(commands)
 
-    def save_results(self, durations: Dict[str, float]) -> None:
+    def save_results(self, durations: dict[str, float]) -> None:
         """Save detailed results to a JSON file."""
         results = {"threshold": self.threshold, "total_tests": len(durations), "slow_tests": []}
 
@@ -195,9 +195,9 @@ def main():
     # Summary
     total_slow = sum(len(tests) for tests in profiler.slow_tests.values())
     if total_slow > 0:
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print(f"SUMMARY: Found {total_slow} tests slower than {args.threshold}s")
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
         print("\nNext steps:")
         print("1. Review the slow tests identified above")
         print("2. Add @pytest.mark.slow to each slow test")

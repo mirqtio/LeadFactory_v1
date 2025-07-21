@@ -51,10 +51,10 @@ class TestMarker:
             "yaml",
         }
 
-    def analyze_test_file(self, file_path: Path) -> Dict[str, List[str]]:
+    def analyze_test_file(self, file_path: Path) -> dict[str, list[str]]:
         """Analyze test file for performance characteristics."""
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 content = f.read()
         except Exception:
             return {"markers": [], "reasons": []}
@@ -104,7 +104,7 @@ class TestMarker:
 
         return {"markers": markers, "reasons": reasons}
 
-    def generate_marker_recommendations(self) -> Dict[str, List[str]]:
+    def generate_marker_recommendations(self) -> dict[str, list[str]]:
         """Generate test marker recommendations for all test files."""
         test_files = list(Path("tests").rglob("test_*.py"))
         recommendations = {}
@@ -115,7 +115,7 @@ class TestMarker:
 
         return recommendations
 
-    def create_performance_test_groups(self) -> Dict[str, List[str]]:
+    def create_performance_test_groups(self) -> dict[str, list[str]]:
         """Create optimized test groups for different CI scenarios."""
         recommendations = self.generate_marker_recommendations()
 
@@ -205,7 +205,7 @@ def main():
     with open("test_performance_analysis.json", "w") as f:
         json.dump({"recommendations": recommendations, "groups": groups, "pytest_config": pytest_config}, f, indent=2)
 
-    print(f"\n💾 Analysis saved to: test_performance_analysis.json")
+    print("\n💾 Analysis saved to: test_performance_analysis.json")
 
     # Output CI configuration recommendations
     print("\n🚀 CI Pipeline Recommendations:")

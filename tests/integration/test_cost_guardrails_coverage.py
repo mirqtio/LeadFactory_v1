@@ -2,6 +2,7 @@
 Comprehensive test coverage for P2-040 cost_guardrails module
 Ensures ≥80% coverage for validation requirements
 """
+
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -124,9 +125,10 @@ class TestBudgetCircuitBreakerFunctions:
 
     def test_check_monthly_budget_limit_under_budget(self):
         """Test check_monthly_budget_limit when under budget"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             mock_costs.return_value = Decimal("2000.0")
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
 
@@ -140,9 +142,10 @@ class TestBudgetCircuitBreakerFunctions:
 
     def test_check_monthly_budget_limit_over_budget(self):
         """Test check_monthly_budget_limit when over budget"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             mock_costs.return_value = Decimal("3500.0")
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
 
@@ -185,9 +188,11 @@ class TestBudgetCircuitBreakerFunctions:
 
     def test_budget_circuit_breaker_blocks_execution(self):
         """Test budget circuit breaker blocks execution when over budget"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert, patch("d11_orchestration.cost_guardrails.asyncio.run") as mock_asyncio:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+            patch("d11_orchestration.cost_guardrails.asyncio.run") as mock_asyncio,
+        ):
             mock_check.return_value = (True, Decimal("3500.0"), Decimal("3000.0"))
 
             from d11_orchestration.cost_guardrails import BudgetExceededException, budget_circuit_breaker
@@ -209,12 +214,12 @@ class TestBudgetCircuitBreakerFunctions:
 
     def test_budget_circuit_breaker_alert_failure_handling(self):
         """Test budget circuit breaker handles alert failures gracefully"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert", side_effect=Exception("Alert failed")
-        ), patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True
-        ), patch(
-            "d11_orchestration.cost_guardrails.asyncio.run"
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert", side_effect=Exception("Alert failed")),
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True),
+            patch("d11_orchestration.cost_guardrails.asyncio.run"),
         ):
             mock_check.return_value = (True, Decimal("3500.0"), Decimal("3000.0"))
             mock_logger_instance = MagicMock()
@@ -235,10 +240,11 @@ class TestBudgetCircuitBreakerFunctions:
 
     def test_budget_circuit_breaker_no_logger_when_prefect_unavailable(self):
         """Test budget circuit breaker when Prefect unavailable and alert fails"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert", side_effect=Exception("Alert failed")
-        ), patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False), patch(
-            "d11_orchestration.cost_guardrails.asyncio.run"
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert", side_effect=Exception("Alert failed")),
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
+            patch("d11_orchestration.cost_guardrails.asyncio.run"),
         ):
             mock_check.return_value = (True, Decimal("3500.0"), Decimal("3000.0"))
 
@@ -254,13 +260,12 @@ class TestBudgetCircuitBreakerFunctions:
 
     def test_budget_circuit_breaker_asyncio_runtime_error(self):
         """Test budget circuit breaker handles asyncio RuntimeError"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert, patch(
-            "d11_orchestration.cost_guardrails.asyncio.get_event_loop", side_effect=RuntimeError
-        ), patch(
-            "d11_orchestration.cost_guardrails.asyncio.run"
-        ) as mock_asyncio_run:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+            patch("d11_orchestration.cost_guardrails.asyncio.get_event_loop", side_effect=RuntimeError),
+            patch("d11_orchestration.cost_guardrails.asyncio.run") as mock_asyncio_run,
+        ):
             mock_check.return_value = (True, Decimal("3100.0"), Decimal("3000.0"))
 
             from d11_orchestration.cost_guardrails import BudgetExceededException, budget_circuit_breaker
@@ -277,9 +282,11 @@ class TestBudgetCircuitBreakerFunctions:
 
     def test_budget_circuit_breaker_successful_event_loop(self):
         """Test budget circuit breaker with successful event loop"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert, patch("d11_orchestration.cost_guardrails.asyncio.get_event_loop") as mock_get_loop:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+            patch("d11_orchestration.cost_guardrails.asyncio.get_event_loop") as mock_get_loop,
+        ):
             mock_check.return_value = (True, Decimal("3200.0"), Decimal("3000.0"))
             mock_loop = MagicMock()
             mock_get_loop.return_value = mock_loop
@@ -298,9 +305,11 @@ class TestBudgetCircuitBreakerFunctions:
 
     def test_budget_circuit_breaker_guardrail_violation_creation(self):
         """Test budget circuit breaker creates proper GuardrailViolation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert, patch("d11_orchestration.cost_guardrails.asyncio.run"):
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+            patch("d11_orchestration.cost_guardrails.asyncio.run"),
+        ):
             mock_check.return_value = (True, Decimal("3400.0"), Decimal("3000.0"))
 
             from d11_orchestration.cost_guardrails import BudgetExceededException, budget_circuit_breaker
@@ -329,9 +338,10 @@ class TestDailyCostsFunctions:
 
     def test_get_daily_costs_with_data(self):
         """Test get_daily_costs returns provider breakdown"""
-        with patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             # Mock database response
             mock_db = MagicMock()
             mock_session.return_value.__enter__.return_value = mock_db
@@ -356,8 +366,9 @@ class TestDailyCostsFunctions:
 
     def test_get_daily_costs_no_data(self):
         """Test get_daily_costs with empty database"""
-        with patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
+        with (
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+            patch("d11_orchestration.cost_guardrails.get_run_logger"),
         ):
             mock_db = MagicMock()
             mock_session.return_value.__enter__.return_value = mock_db
@@ -426,8 +437,9 @@ class TestProfitMetricsFunctions:
 
     def test_get_profit_metrics_with_data(self):
         """Test profit metrics calculation"""
-        with patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
+        with (
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+            patch("d11_orchestration.cost_guardrails.get_run_logger"),
         ):
             mock_db = MagicMock()
             mock_session.return_value.__enter__.return_value = mock_db
@@ -454,8 +466,9 @@ class TestProfitMetricsFunctions:
 
     def test_get_profit_metrics_no_data(self):
         """Test profit metrics with empty database"""
-        with patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
+        with (
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+            patch("d11_orchestration.cost_guardrails.get_run_logger"),
         ):
             mock_db = MagicMock()
             mock_session.return_value.__enter__.return_value = mock_db
@@ -505,12 +518,12 @@ class TestFlowFunctions:
     @patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False)
     def test_cost_guardrail_flow_normal(self):
         """Test cost guardrail flow under normal conditions"""
-        with patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings, patch(
-            "d11_orchestration.cost_guardrails.get_daily_costs"
-        ) as mock_costs, patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.create_markdown_artifact"
+        with (
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+            patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.create_markdown_artifact"),
         ):
             mock_settings.return_value.cost_budget_usd = 100.0
             mock_costs.return_value = {"total": 50.0}
@@ -528,14 +541,13 @@ class TestFlowFunctions:
     @patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False)
     def test_cost_guardrail_flow_critical(self):
         """Test cost guardrail flow in critical state"""
-        with patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings, patch(
-            "d11_orchestration.cost_guardrails.get_daily_costs"
-        ) as mock_costs, patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.pause_expensive_operations"
-        ) as mock_pause, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.create_markdown_artifact"
+        with (
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+            patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.pause_expensive_operations") as mock_pause,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.create_markdown_artifact"),
         ):
             mock_settings.return_value.cost_budget_usd = 100.0
             mock_costs.return_value = {"total": 110.0}
@@ -554,12 +566,12 @@ class TestFlowFunctions:
     @patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False)
     def test_profit_snapshot_flow(self):
         """Test profit snapshot flow"""
-        with patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics, patch(
-            "d11_orchestration.cost_guardrails.SessionLocal"
-        ) as mock_session, patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.create_markdown_artifact"
+        with (
+            patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics,
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+            patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.create_markdown_artifact"),
         ):
             mock_metrics.return_value = {"total_profit": 400.0, "avg_roi": 0.67}
             mock_logger.return_value = MagicMock()
@@ -582,13 +594,13 @@ class TestFlowFunctions:
     @patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True)
     def test_cost_guardrail_flow_with_prefect_artifact(self):
         """Test cost guardrail flow with Prefect artifact creation"""
-        with patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings, patch(
-            "d11_orchestration.cost_guardrails.get_daily_costs"
-        ) as mock_costs, patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.create_markdown_artifact"
-        ) as mock_artifact:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+            patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+        ):
             mock_settings.return_value.cost_budget_usd = 100.0
             mock_costs.return_value = {"total": 50.0, "openai": 30.0, "dataaxle": 20.0}
             mock_threshold.return_value = (False, 0.5, "ok")
@@ -610,13 +622,13 @@ class TestFlowFunctions:
     @patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True)
     def test_profit_snapshot_flow_with_prefect_artifact(self):
         """Test profit snapshot flow with Prefect artifact creation"""
-        with patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics, patch(
-            "d11_orchestration.cost_guardrails.SessionLocal"
-        ) as mock_session, patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.create_markdown_artifact"
-        ) as mock_artifact:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics,
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+            patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+        ):
             mock_metrics.return_value = {"total_profit": 400.0, "avg_roi": 0.67}
             mock_logger.return_value = MagicMock()
 

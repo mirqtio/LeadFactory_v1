@@ -12,7 +12,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 try:
     from prefect import flow, task
@@ -50,7 +50,7 @@ from d9_delivery.delivery_manager import DeliveryManager
 
 
 @task(name="target_business", retries=2, retry_delay_seconds=60, timeout_seconds=300)
-async def target_business(url: str) -> Dict[str, Any]:
+async def target_business(url: str) -> dict[str, Any]:
     """
     Target a business by URL
 
@@ -84,7 +84,7 @@ async def target_business(url: str) -> Dict[str, Any]:
 
 
 @task(name="source_business_data", retries=3, retry_delay_seconds=120, timeout_seconds=600)
-async def source_business_data(business_data: Dict[str, Any]) -> Dict[str, Any]:
+async def source_business_data(business_data: dict[str, Any]) -> dict[str, Any]:
     """
     Source comprehensive business data
 
@@ -132,7 +132,7 @@ async def source_business_data(business_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @task(name="assess_website", retries=2, retry_delay_seconds=180, timeout_seconds=900)
-async def assess_website(business_data: Dict[str, Any]) -> Dict[str, Any]:
+async def assess_website(business_data: dict[str, Any]) -> dict[str, Any]:
     """
     Perform comprehensive website assessment
 
@@ -173,7 +173,7 @@ async def assess_website(business_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @task(name="calculate_score", retries=1, retry_delay_seconds=30, timeout_seconds=300)
-def calculate_score(business_data: Dict[str, Any]) -> Dict[str, Any]:
+def calculate_score(business_data: dict[str, Any]) -> dict[str, Any]:
     """
     Calculate business quality score
 
@@ -253,7 +253,7 @@ def calculate_score(business_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @task(name="generate_report", retries=2, retry_delay_seconds=120, timeout_seconds=600)
-async def generate_report(business_data: Dict[str, Any]) -> Dict[str, Any]:
+async def generate_report(business_data: dict[str, Any]) -> dict[str, Any]:
     """
     Generate comprehensive PDF report
 
@@ -301,7 +301,7 @@ async def generate_report(business_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @task(name="send_email", retries=3, retry_delay_seconds=300, timeout_seconds=300)
-async def send_email(business_data: Dict[str, Any]) -> Dict[str, Any]:
+async def send_email(business_data: dict[str, Any]) -> dict[str, Any]:
     """
     Send assessment report via email
 
@@ -369,7 +369,7 @@ async def send_email(business_data: Dict[str, Any]) -> Dict[str, Any]:
     retry_delay_seconds=0,
     timeout_seconds=1800,  # 30 minutes total
 )
-async def full_pipeline_flow(url: str) -> Dict[str, Any]:
+async def full_pipeline_flow(url: str) -> dict[str, Any]:
     """
     Execute the complete LeadFactory pipeline for a single business URL
 
@@ -468,7 +468,7 @@ async def full_pipeline_flow(url: str) -> Dict[str, Any]:
 
 
 # Convenience function for running the pipeline
-async def run_pipeline(url: str) -> Dict[str, Any]:
+async def run_pipeline(url: str) -> dict[str, Any]:
     """
     Convenience function to run the full pipeline
 

@@ -1,6 +1,7 @@
 """
 Tests for D0 Gateway base client functionality
 """
+
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 

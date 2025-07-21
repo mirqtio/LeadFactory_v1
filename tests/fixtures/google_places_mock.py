@@ -3,6 +3,7 @@ Google Places API Mock Factory
 
 Provides realistic mock responses for Google Places API testing.
 """
+
 from typing import Any, Dict
 
 from tests.fixtures.mock_factory import MockFactory
@@ -12,7 +13,7 @@ class GooglePlacesMockFactory(MockFactory):
     """Mock factory for Google Places API responses."""
 
     @classmethod
-    def create_success_response(cls, **overrides) -> Dict[str, Any]:
+    def create_success_response(cls, **overrides) -> dict[str, Any]:
         """
         Create a successful place search response.
 
@@ -61,7 +62,7 @@ class GooglePlacesMockFactory(MockFactory):
         return base_response
 
     @classmethod
-    def create_error_response(cls, error_type: str, **overrides) -> Dict[str, Any]:
+    def create_error_response(cls, error_type: str, **overrides) -> dict[str, Any]:
         """
         Create an error response for various Google Places API errors.
 
@@ -96,7 +97,7 @@ class GooglePlacesMockFactory(MockFactory):
         return response
 
     @classmethod
-    def create_place_details_response(cls, place_id: str, **overrides) -> Dict[str, Any]:
+    def create_place_details_response(cls, place_id: str, **overrides) -> dict[str, Any]:
         """Create a place details API response."""
         base_response = {
             "result": {
@@ -134,7 +135,7 @@ class GooglePlacesMockFactory(MockFactory):
         return base_response
 
     @classmethod
-    def create_multiple_results(cls, count: int = 3, **overrides) -> Dict[str, Any]:
+    def create_multiple_results(cls, count: int = 3, **overrides) -> dict[str, Any]:
         """Create a response with multiple place results."""
         results = []
         for i in range(count):
@@ -153,7 +154,7 @@ class GooglePlacesMockFactory(MockFactory):
         return cls.create_success_response(results=results, **overrides)
 
     @classmethod
-    def create_nearby_search_response(cls, lat: float, lng: float, radius: int = 1000, **overrides) -> Dict[str, Any]:
+    def create_nearby_search_response(cls, lat: float, lng: float, radius: int = 1000, **overrides) -> dict[str, Any]:
         """Create a nearby search response."""
         # Generate places within radius
         results = []
@@ -173,7 +174,7 @@ class GooglePlacesMockFactory(MockFactory):
         return cls.create_success_response(results=results, **overrides)
 
     @classmethod
-    def create_text_search_response(cls, query: str, **overrides) -> Dict[str, Any]:
+    def create_text_search_response(cls, query: str, **overrides) -> dict[str, Any]:
         """Create a text search response based on query."""
         # Simulate finding businesses based on query
         words = query.lower().split()

@@ -256,21 +256,21 @@ def create_truthful_dashboard():
             <div class="status-card">
                 <h3 class="completed">✅ Actually Complete (Pushed + CI Green)</h3>
                 <ul class="task-list">
-                    {"".join(f'<li>{task}</li>' for task in completed_tasks)}
+                    {"".join(f"<li>{task}</li>" for task in completed_tasks)}
                 </ul>
             </div>
             
             <div class="status-card">
                 <h3 class="uncommitted">⚠️ Local Work (Not Committed/Pushed)</h3>
                 <ul class="task-list">
-                    {"".join(f'<li>{task}</li>' for task in uncommitted_work)}
+                    {"".join(f"<li>{task}</li>" for task in uncommitted_work)}
                 </ul>
             </div>
             
             <div class="status-card">
                 <h3 class="pending">📋 Ready for Implementation</h3>
                 <ul class="task-list">
-                    {"".join(f'<li>{task}</li>' for task in ready_for_implementation[:8])}
+                    {"".join(f"<li>{task}</li>" for task in ready_for_implementation[:8])}
                     <li><em>...and {len(ready_for_implementation) - 8} more</em></li>
                 </ul>
             </div>
@@ -287,7 +287,7 @@ def create_truthful_dashboard():
         </div>
         
         <div class="last-updated">
-            Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC | Auto-refresh: 30s | 
+            Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC | Auto-refresh: 30s | 
             <button onclick="refreshPage()">Manual Refresh</button>
         </div>
     </div>

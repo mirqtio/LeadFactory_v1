@@ -8,6 +8,7 @@ Tests all acceptance criteria:
 - Partial results saved
 - Error recovery implemented
 """
+
 import asyncio
 import sys
 import uuid
@@ -271,18 +272,17 @@ class TestTask034AcceptanceCriteria:
             call_count += 1
             if call_count == 1:
                 raise Exception("Temporary network error")
-            else:
-                # Return successful result on retry
-                return AssessmentResult(
-                    id=str(uuid.uuid4()),
-                    business_id="test-business",
-                    session_id="test-session",
-                    assessment_type=AssessmentType.PAGESPEED,
-                    status=AssessmentStatus.COMPLETED,
-                    url="https://example.com",
-                    domain="example.com",
-                    performance_score=85,
-                )
+            # Return successful result on retry
+            return AssessmentResult(
+                id=str(uuid.uuid4()),
+                business_id="test-business",
+                session_id="test-session",
+                assessment_type=AssessmentType.PAGESPEED,
+                status=AssessmentStatus.COMPLETED,
+                url="https://example.com",
+                domain="example.com",
+                performance_score=85,
+            )
 
         coordinator.pagespeed_assessor.assess_website = AsyncMock(side_effect=failing_then_succeeding)
 
@@ -349,7 +349,7 @@ class TestTask034AcceptanceCriteria:
         assert len(results) == 3
         for i, result in enumerate(results):
             if not isinstance(result, Exception):
-                assert result.business_id == f"business-{i+1}"
+                assert result.business_id == f"business-{i + 1}"
                 assert result.total_assessments == 1
                 assert result.completed_assessments == 1
 

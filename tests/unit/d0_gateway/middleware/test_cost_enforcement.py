@@ -1,6 +1,7 @@
 """
 Unit tests for cost enforcement middleware
 """
+
 import asyncio
 from datetime import datetime, timedelta
 from decimal import Decimal

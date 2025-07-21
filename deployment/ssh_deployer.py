@@ -8,9 +8,8 @@ error handling, retry logic, and rollback capabilities.
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from datetime import UTC, datetime
+from typing import Any
 
 import paramiko
 from pydantic import BaseModel, Field
@@ -34,7 +33,7 @@ class DeploymentConfig(BaseModel):
     rollback_script: str = Field(default="~/bin/rollback.sh", description="Path to rollback script")
 
     # Additional environment variables to pass
-    environment: Dict[str, str] = Field(default_factory=dict, description="Environment variables for deployment")
+    environment: dict[str, str] = Field(default_factory=dict, description="Environment variables for deployment")
 
 
 class DeploymentResult(BaseModel):
@@ -42,16 +41,16 @@ class DeploymentResult(BaseModel):
 
     status: str = Field(..., description="Deployment status: success, failed, timeout, error")
     start_time: datetime = Field(..., description="Deployment start timestamp")
-    end_time: Optional[datetime] = Field(None, description="Deployment end timestamp")
+    end_time: datetime | None = Field(None, description="Deployment end timestamp")
     duration_seconds: float = Field(default=0.0, description="Total deployment duration")
 
     # Script execution results
-    deploy_exit_code: Optional[int] = Field(None, description="Deploy script exit code")
+    deploy_exit_code: int | None = Field(None, description="Deploy script exit code")
     deploy_output: str = Field(default="", description="Deploy script stdout")
     deploy_error: str = Field(default="", description="Deploy script stderr")
 
     # Health check results
-    health_checks: List[Dict[str, Any]] = Field(default_factory=list, description="Health check results")
+    health_checks: list[dict[str, Any]] = Field(default_factory=list, description="Health check results")
 
     # Error information
     error: str = Field(default="", description="Error message if deployment failed")
@@ -63,7 +62,7 @@ class SSHConnection:
 
     def __init__(self, config: DeploymentConfig):
         self.config = config
-        self.client: Optional[paramiko.SSHClient] = None
+        self.client: paramiko.SSHClient | None = None
         self.connected = False
 
     async def connect(self) -> bool:
@@ -96,7 +95,7 @@ class SSHConnection:
                 self.client = None
             return False
 
-    async def execute_command(self, command: str, timeout: int = 60) -> Dict[str, Any]:
+    async def execute_command(self, command: str, timeout: int = 60) -> dict[str, Any]:
         """Execute command over SSH."""
         if not self.connected or not self.client:
             raise RuntimeError("SSH connection not established")
@@ -151,7 +150,7 @@ class SSHDeployer:
         """Execute deployment to VPS."""
         logger.info(f"Starting deployment to {self.config.host}")
 
-        result = DeploymentResult(status="failed", start_time=datetime.now(timezone.utc))
+        result = DeploymentResult(status="failed", start_time=datetime.now(UTC))
 
         start_time = time.time()
 
@@ -177,7 +176,7 @@ class SSHDeployer:
                     logger.error("All deployment attempts failed")
                     result.status = "failed"
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             result.status = "timeout"
             result.error = f"Deployment timed out after {self.config.timeout} seconds"
             logger.error("Deployment timed out")
@@ -189,7 +188,7 @@ class SSHDeployer:
 
         finally:
             end_time = time.time()
-            result.end_time = datetime.now(timezone.utc)
+            result.end_time = datetime.now(UTC)
             result.duration_seconds = round(end_time - start_time, 2)
 
             # Close connection
@@ -261,9 +260,8 @@ class SSHDeployer:
             if health_result["success"]:
                 logger.info("Health checks passed")
                 return True
-            else:
-                logger.error(f"Health checks failed: {health_result['error']}")
-                return False
+            logger.error(f"Health checks failed: {health_result['error']}")
+            return False
 
         except Exception as e:
             logger.error(f"Health check execution failed: {e}")
@@ -321,12 +319,10 @@ class SSHDeployer:
                 if health_passed:
                     logger.info("Health checks passed after rollback")
                     return True
-                else:
-                    logger.error("Health checks failed after rollback")
-                    return False
-            else:
-                logger.error(f"Rollback script failed: {rollback_result['error']}")
+                logger.error("Health checks failed after rollback")
                 return False
+            logger.error(f"Rollback script failed: {rollback_result['error']}")
+            return False
 
         except Exception as e:
             logger.error(f"Rollback failed: {e}")
@@ -335,11 +331,11 @@ class SSHDeployer:
         finally:
             self.connection.close()
 
-    async def get_deployment_status(self) -> Dict[str, Any]:
+    async def get_deployment_status(self) -> dict[str, Any]:
         """Get current deployment status from VPS."""
         logger.info("Checking deployment status")
 
-        status = {"connected": False, "services": {}, "health": {}, "timestamp": datetime.now(timezone.utc).isoformat()}
+        status = {"connected": False, "services": {}, "health": {}, "timestamp": datetime.now(UTC).isoformat()}
 
         try:
             # Connect to VPS

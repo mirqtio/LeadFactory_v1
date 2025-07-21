@@ -1,6 +1,7 @@
 """
 Unit tests for the health check endpoint - P0-007
 """
+
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -139,7 +140,6 @@ class TestHealthEndpoint:
         """Test performance warning when response time exceeds 100ms"""
         # This test is skipped because mocking time.time() interferes with Sentry
         # Performance is validated in other tests (test_health_endpoint_performance_requirement)
-        pass
 
     @patch("api.health.check_database_health")
     @patch("api.health.check_redis_health")
@@ -329,9 +329,11 @@ class TestHealthEndpointEdgeCases:
 
     def test_health_endpoint_multiple_failures(self):
         """Test health check with multiple system failures"""
-        with patch("api.health.check_database_health") as mock_db_check, patch(
-            "api.health.check_redis_health"
-        ) as mock_redis_check, patch("core.config.settings.redis_url", "redis://test:6379/0"):
+        with (
+            patch("api.health.check_database_health") as mock_db_check,
+            patch("api.health.check_redis_health") as mock_redis_check,
+            patch("core.config.settings.redis_url", "redis://test:6379/0"),
+        ):
             mock_db_check.return_value = {"status": "error", "error": "Database connection failed"}
             mock_redis_check.return_value = {"status": "error", "error": "Redis connection failed"}
 

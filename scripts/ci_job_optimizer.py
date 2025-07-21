@@ -23,7 +23,7 @@ class TestInfo:
     """Information about a test file"""
 
     path: str
-    markers: Set[str] = field(default_factory=set)
+    markers: set[str] = field(default_factory=set)
     module_domain: str = ""
     estimated_runtime: float = 0.0
     line_count: int = 0
@@ -37,9 +37,9 @@ class JobConfig:
     name: str
     description: str
     pytest_command: str
-    included_markers: List[str] = field(default_factory=list)
-    excluded_markers: List[str] = field(default_factory=list)
-    test_patterns: List[str] = field(default_factory=list)
+    included_markers: list[str] = field(default_factory=list)
+    excluded_markers: list[str] = field(default_factory=list)
+    test_patterns: list[str] = field(default_factory=list)
     estimated_runtime: float = 0.0
     test_count: int = 0
     parallel_workers: int = 4
@@ -50,9 +50,9 @@ class CIJobOptimizer:
 
     def __init__(self, test_root: str = "tests"):
         self.test_root = Path(test_root)
-        self.test_files: List[TestInfo] = []
-        self.marker_stats: Dict[str, int] = defaultdict(int)
-        self.domain_stats: Dict[str, int] = defaultdict(int)
+        self.test_files: list[TestInfo] = []
+        self.marker_stats: dict[str, int] = defaultdict(int)
+        self.domain_stats: dict[str, int] = defaultdict(int)
 
     def analyze_tests(self):
         """Scan and analyze all test files"""
@@ -126,7 +126,7 @@ class CIJobOptimizer:
 
         return base_time
 
-    def generate_job_configs(self) -> List[JobConfig]:
+    def generate_job_configs(self) -> list[JobConfig]:
         """Generate recommended CI job configurations"""
         jobs = []
 
@@ -187,7 +187,7 @@ class CIJobOptimizer:
 
         return jobs
 
-    def _generate_domain_jobs(self) -> List[JobConfig]:
+    def _generate_domain_jobs(self) -> list[JobConfig]:
         """Generate domain-specific test jobs"""
         domain_jobs = []
 
@@ -214,7 +214,7 @@ class CIJobOptimizer:
 
         return domain_jobs
 
-    def _calculate_job_runtimes(self, jobs: List[JobConfig]):
+    def _calculate_job_runtimes(self, jobs: list[JobConfig]):
         """Calculate estimated runtime for each job"""
         for job in jobs:
             total_runtime = 0
@@ -265,7 +265,7 @@ class CIJobOptimizer:
         for domain, count in sorted(self.domain_stats.items(), key=lambda x: x[1], reverse=True):
             print(f"  {domain:20} {count:4} files")
 
-    def print_job_recommendations(self, jobs: List[JobConfig]):
+    def print_job_recommendations(self, jobs: list[JobConfig]):
         """Print job configuration recommendations"""
         print("\n🚀 Recommended CI Job Configuration")
         print("=" * 50)
@@ -278,7 +278,7 @@ class CIJobOptimizer:
             print(f"   Test Count: ~{job.test_count} tests")
             print(f"   Parallel Workers: {job.parallel_workers}")
 
-    def generate_github_actions_yaml(self, jobs: List[JobConfig]) -> str:
+    def generate_github_actions_yaml(self, jobs: list[JobConfig]) -> str:
         """Generate GitHub Actions job definitions"""
         yaml_content = """
 # Optimized CI Job Structure
@@ -303,7 +303,7 @@ jobs:
 
         return yaml_content
 
-    def generate_makefile_targets(self, jobs: List[JobConfig]) -> str:
+    def generate_makefile_targets(self, jobs: list[JobConfig]) -> str:
         """Generate Makefile targets for local testing"""
         makefile_content = """
 # CI Job Test Targets

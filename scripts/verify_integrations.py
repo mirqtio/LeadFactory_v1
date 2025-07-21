@@ -8,7 +8,7 @@ required for LeadFactory production deployment.
 Acceptance Criteria:
 - External APIs connected ✓
 - SendGrid verified ✓
-- Stripe test mode ✓  
+- Stripe test mode ✓
 - All APIs responsive ✓
 """
 
@@ -112,14 +112,13 @@ class IntegrationVerifier:
                     print(f"   Test analysis completed, performance score: {performance_score:.1f}/100")
 
                 return True
-            else:
-                error_detail = response.text[:200] if response.text else "No error details"
-                self.results[service] = {
-                    "status": "error",
-                    "error": f"HTTP {response.status_code}: {error_detail}",
-                }
-                self.errors.append(f"Google PageSpeed API returned HTTP {response.status_code}")
-                return False
+            error_detail = response.text[:200] if response.text else "No error details"
+            self.results[service] = {
+                "status": "error",
+                "error": f"HTTP {response.status_code}: {error_detail}",
+            }
+            self.errors.append(f"Google PageSpeed API returned HTTP {response.status_code}")
+            return False
 
         except requests.exceptions.Timeout:
             self.results[service] = {
@@ -181,14 +180,13 @@ class IntegrationVerifier:
                 print(f"   Model: {payload['model']}, Tokens used: {usage.get('total_tokens', 0)}")
 
                 return True
-            else:
-                error_detail = response.text[:200] if response.text else "No error details"
-                self.results[service] = {
-                    "status": "error",
-                    "error": f"HTTP {response.status_code}: {error_detail}",
-                }
-                self.errors.append(f"OpenAI API returned HTTP {response.status_code}")
-                return False
+            error_detail = response.text[:200] if response.text else "No error details"
+            self.results[service] = {
+                "status": "error",
+                "error": f"HTTP {response.status_code}: {error_detail}",
+            }
+            self.errors.append(f"OpenAI API returned HTTP {response.status_code}")
+            return False
 
         except Exception as e:
             self.results[service] = {"status": "error", "error": str(e)}
@@ -314,13 +312,12 @@ class IntegrationVerifier:
                     self.warnings.append(f"SendGrid reputation is low: {reputation}%")
 
                 return True
-            else:
-                self.results[service] = {
-                    "status": "error",
-                    "error": f"HTTP {response.status_code}",
-                }
-                self.errors.append(f"SendGrid API returned HTTP {response.status_code}")
-                return False
+            self.results[service] = {
+                "status": "error",
+                "error": f"HTTP {response.status_code}",
+            }
+            self.errors.append(f"SendGrid API returned HTTP {response.status_code}")
+            return False
 
         except Exception as e:
             self.results[service] = {"status": "error", "error": str(e)}
@@ -339,14 +336,13 @@ class IntegrationVerifier:
             if response.status_code == 200:
                 print("✅ Stub server is available")
                 return True
-            else:
-                self.warnings.append(f"Stub server returned HTTP {response.status_code}")
-                return False
+            self.warnings.append(f"Stub server returned HTTP {response.status_code}")
+            return False
         except Exception as e:
             self.warnings.append(f"Stub server not available: {e}")
             return False
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate integration verification report"""
         connected_services = sum(1 for result in self.results.values() if result.get("status") == "connected")
         total_services = len(self.results)
@@ -369,7 +365,7 @@ class IntegrationVerifier:
 
         return report
 
-    def run_all_verifications(self, services: List[str] = None) -> bool:
+    def run_all_verifications(self, services: list[str] = None) -> bool:
         """Run all integration verifications"""
         print("🚀 Starting External Integration Verification")
         print("=" * 60)

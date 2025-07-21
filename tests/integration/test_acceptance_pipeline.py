@@ -382,9 +382,11 @@ class TestEndToEndIntegration:
     @pytest.mark.asyncio
     async def test_acceptance_readiness_validation(self, acceptance_integrator):
         """Test complete acceptance readiness validation."""
-        with patch("redis.from_url") as mock_redis, patch("os.path.exists", return_value=True), patch(
-            "os.getenv"
-        ) as mock_getenv:
+        with (
+            patch("redis.from_url") as mock_redis,
+            patch("os.path.exists", return_value=True),
+            patch("os.getenv") as mock_getenv,
+        ):
             # Mock Redis connection
             mock_redis.return_value.ping.return_value = True
 
@@ -421,11 +423,10 @@ class TestEndToEndIntegration:
         acceptance_integrator.docker_client.images.pull.return_value = None
 
         # Mock evidence validation
-        with patch.object(
-            acceptance_integrator.evidence_validator, "check_evidence_completeness"
-        ) as mock_evidence, patch.object(
-            acceptance_integrator.evidence_validator, "get_evidence_summary"
-        ) as mock_summary:
+        with (
+            patch.object(acceptance_integrator.evidence_validator, "check_evidence_completeness") as mock_evidence,
+            patch.object(acceptance_integrator.evidence_validator, "get_evidence_summary") as mock_summary,
+        ):
             mock_evidence.return_value = {
                 "complete": True,
                 "valid": True,

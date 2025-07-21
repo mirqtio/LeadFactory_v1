@@ -8,6 +8,7 @@ Tests all acceptance criteria:
 - Analytics tools found
 - Pattern matching efficient
 """
+
 import sys
 from decimal import Decimal
 from unittest.mock import AsyncMock, mock_open, patch

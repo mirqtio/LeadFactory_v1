@@ -13,7 +13,7 @@ Acceptance Criteria Tests:
 
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -481,21 +481,21 @@ class TestDeliveryIntegration:
                     event_type=EventType.DELIVERED.value,
                     sendgrid_message_id="stats_msg_004",
                     sendgrid_event_id="stats_delivered_001",
-                    event_timestamp=datetime.now(timezone.utc),
+                    event_timestamp=datetime.now(UTC),
                 ),
                 DeliveryEvent(
                     email_delivery_id=delivery_id,
                     event_type=EventType.OPENED.value,
                     sendgrid_message_id="stats_msg_004",
                     sendgrid_event_id="stats_opened_002",
-                    event_timestamp=datetime.now(timezone.utc),
+                    event_timestamp=datetime.now(UTC),
                 ),
                 DeliveryEvent(
                     email_delivery_id=delivery_id,
                     event_type=EventType.CLICKED.value,
                     sendgrid_message_id="stats_msg_004",
                     sendgrid_event_id="stats_clicked_003",
-                    event_timestamp=datetime.now(timezone.utc),
+                    event_timestamp=datetime.now(UTC),
                 ),
             ]
             session.add_all(events)

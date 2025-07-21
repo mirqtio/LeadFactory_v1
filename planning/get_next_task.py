@@ -2,11 +2,11 @@
 """
 Get next task to work on based on dependencies and current progress
 """
+
 import argparse
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 
 class TaskManager:
@@ -16,18 +16,18 @@ class TaskManager:
         self.status_file = self.base_dir / "planning" / "task_status.json"
 
         # Load task plan
-        with open(self.plan_file, "r") as f:
+        with open(self.plan_file) as f:
             self.plan = json.load(f)
 
         # Load or initialize task status
         if self.status_file.exists():
-            with open(self.status_file, "r") as f:
+            with open(self.status_file) as f:
                 self.status = json.load(f)
         else:
             self.status = self._initialize_status()
             self._save_status()
 
-    def _initialize_status(self) -> Dict:
+    def _initialize_status(self) -> dict:
         """Initialize task status from plan"""
         status = {"last_updated": datetime.now().isoformat(), "tasks": {}}
 
@@ -48,7 +48,7 @@ class TaskManager:
         with open(self.status_file, "w") as f:
             json.dump(self.status, f, indent=2)
 
-    def get_task_by_id(self, task_id: str) -> Optional[Dict]:
+    def get_task_by_id(self, task_id: str) -> dict | None:
         """Get task details by ID"""
         for phase in self.plan["phases"]:
             for task in phase["tasks"]:
@@ -83,7 +83,7 @@ class TaskManager:
         self._save_status()
         print(f"Updated task {task_id}: {old_status} -> {status}")
 
-    def check_dependencies_met(self, task: Dict) -> bool:
+    def check_dependencies_met(self, task: dict) -> bool:
         """Check if all dependencies for a task are completed"""
         deps = task.get("dependencies", [])
         for dep_id in deps:
@@ -91,7 +91,7 @@ class TaskManager:
                 return False
         return True
 
-    def get_next_tasks(self, limit: int = 5) -> List[Dict]:
+    def get_next_tasks(self, limit: int = 5) -> list[dict]:
         """Get next tasks that can be worked on"""
         ready_tasks = []
         in_progress_tasks = []
@@ -109,7 +109,7 @@ class TaskManager:
         # Return in-progress tasks first, then ready tasks
         return in_progress_tasks + ready_tasks[:limit]
 
-    def get_progress_stats(self) -> Dict:
+    def get_progress_stats(self) -> dict:
         """Get overall progress statistics"""
         stats = {
             "total": 0,
@@ -156,7 +156,7 @@ class TaskManager:
 
         return stats
 
-    def verify_dependencies(self) -> List[str]:
+    def verify_dependencies(self) -> list[str]:
         """Verify all dependencies are valid"""
         issues = []
         all_task_ids = set()
@@ -239,7 +239,7 @@ def main():
     elif args.progress:
         stats = manager.get_progress_stats()
         print(
-            f"\nLeadFactory Progress: {stats['completed']}/{stats['total']} tasks completed ({stats['completed']/stats['total']*100:.1f}%)"
+            f"\nLeadFactory Progress: {stats['completed']}/{stats['total']} tasks completed ({stats['completed'] / stats['total'] * 100:.1f}%)"
         )
         print(f"In Progress: {stats['in_progress']}")
         print(f"Ready to Start: {stats['ready']}")

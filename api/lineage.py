@@ -4,9 +4,10 @@ FastAPI endpoints for Report Lineage Panel
 Provides REST API for viewing report generation lineage,
 including pipeline logs and raw input downloads.
 """
+
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import or_, text
@@ -23,15 +24,15 @@ router = APIRouter(prefix="/api/lineage", tags=["lineage"])
 
 
 # Specific routes first (before path parameter routes)
-@router.get("/search", response_model=List[Dict[str, Any]])
+@router.get("/search", response_model=list[dict[str, Any]])
 def search_lineage(
-    lead_id: Optional[str] = Query(None),
-    pipeline_run_id: Optional[str] = Query(None),
-    template_version_id: Optional[str] = Query(None),
+    lead_id: str | None = Query(None),
+    pipeline_run_id: str | None = Query(None),
+    template_version_id: str | None = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Search lineage records with filtering.
     """
@@ -71,7 +72,7 @@ def search_lineage(
 
 
 @router.get("/panel/stats")
-def get_lineage_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
+def get_lineage_stats(db: Session = Depends(get_db)) -> dict[str, Any]:
     """
     Get statistics for the lineage panel dashboard.
     """
@@ -125,7 +126,7 @@ def get_lineage_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
 # Path parameter routes (must come after specific routes)
 @router.get("/{report_id}")
-def get_lineage_by_report_id(report_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def get_lineage_by_report_id(report_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     """
     Get lineage information for a specific report ID.
 
@@ -156,7 +157,7 @@ def get_lineage_by_report_id(report_id: str, db: Session = Depends(get_db)) -> D
 
 
 @router.get("/{lineage_id}/logs")
-def get_pipeline_logs(lineage_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def get_pipeline_logs(lineage_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     """
     View JSON logs for a specific lineage record.
 
@@ -215,7 +216,7 @@ def download_raw_inputs(lineage_id: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/{lineage_id}")
-def delete_lineage(lineage_id: str, db: Session = Depends(get_db)) -> Dict[str, str]:
+def delete_lineage(lineage_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
     """
     Delete a lineage record (admin only).
     """

@@ -2,6 +2,7 @@
 """
 Generate HTML reports from assessment JSON results
 """
+
 import json
 import os
 import sys
@@ -17,7 +18,7 @@ from d6_reports.template_engine import TemplateData
 
 def load_assessment_results(json_file):
     """Load assessment results from JSON file"""
-    with open(json_file, "r") as f:
+    with open(json_file) as f:
         data = json.load(f)
     return data
 
@@ -55,7 +56,9 @@ def generate_report_for_assessment(json_file, output_dir="reports"):
     # Generate report
     generator = ReportGenerator()
     options = GenerationOptions(
-        include_pdf=False, include_tech_details=True, include_recommendations=True  # Just HTML for now
+        include_pdf=False,
+        include_tech_details=True,
+        include_recommendations=True,  # Just HTML for now
     )
 
     try:
@@ -82,7 +85,7 @@ def main():
     print("🚀 Starting HTML Report Generation")
 
     # Find all assessment JSON files
-    json_files = list(Path(".").glob("assessment_test_*.json"))
+    json_files = list(Path().glob("assessment_test_*.json"))
 
     if not json_files:
         print("❌ No assessment JSON files found")

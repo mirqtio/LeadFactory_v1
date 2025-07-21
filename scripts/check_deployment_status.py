@@ -2,6 +2,7 @@
 """
 Check deployment configuration and status for LeadFactory CI/CD pipeline.
 """
+
 import os
 import subprocess
 
@@ -17,7 +18,7 @@ def check_local_env():
     for env_file in env_files:
         if os.path.exists(env_file):
             print(f"✓ Found {env_file}")
-            with open(env_file, "r") as f:
+            with open(env_file) as f:
                 content = f.read()
                 for var in deployment_vars:
                     if var in content:
@@ -42,7 +43,7 @@ def check_workflow_config():
         print(f"✗ {workflow_file} not found")
         return False
 
-    with open(workflow_file, "r") as f:
+    with open(workflow_file) as f:
         content = f.read()
 
     # Check for deployment job

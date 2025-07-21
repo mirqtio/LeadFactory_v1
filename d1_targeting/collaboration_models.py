@@ -4,9 +4,8 @@ P2-010: Collaborative Bucket Models
 Database models for multi-user bucket collaboration including
 ownership, permissions, activity tracking, and version control.
 """
+
 import enum
-from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import JSON, Boolean, Column, DateTime
 from sqlalchemy import Enum as SQLEnum

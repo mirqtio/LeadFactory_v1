@@ -16,7 +16,7 @@ class P0011Validator:
         if not self.prp_path.exists():
             raise FileNotFoundError(f"PRP not found: {prp_path}")
 
-        with open(self.prp_path, "r") as f:
+        with open(self.prp_path) as f:
             self.content = f.read()
 
         # Extract basic info
@@ -78,7 +78,7 @@ class P0011Validator:
             return False, "Progress file not found"
 
         try:
-            with open(progress_path, "r") as f:
+            with open(progress_path) as f:
                 progress = json.load(f)
 
             p0_010_status = progress.get("P0-010", {}).get("status", "unknown")
@@ -184,9 +184,9 @@ class P0011Validator:
 
     def run_validation(self) -> bool:
         """Run all six gates."""
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Six-Gate Validation for: P0-011 - {self.title}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         gates = [
             ("Schema", self.validate_gate_1_schema),
@@ -212,7 +212,7 @@ class P0011Validator:
                 print(f"     {message}")
                 all_passed = False
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         if all_passed:
             print("🎉 All six validation gates PASSED!")
             print("\nValidation Summary:")
@@ -224,7 +224,7 @@ class P0011Validator:
             for gate_name, passed, message in results:
                 status = "✅" if passed else "❌"
                 print(f"  • {gate_name}: {status} {message}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         return all_passed
 

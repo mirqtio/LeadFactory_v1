@@ -1,4 +1,5 @@
 """Unit tests for SEMrush adapter."""
+
 # Mark entire module as xfail for Phase 0.5
 # Phase 0.5 feature is now implemented - removing xfail
 # pytestmark = pytest.mark.xfail(reason="Phase 0.5 feature", strict=False)

@@ -13,7 +13,7 @@ Acceptance Criteria:
 
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from core.exceptions import ValidationError
 
@@ -105,7 +105,7 @@ class VariantAssigner:
         hasher.update(combined_string.encode("utf-8"))
         return hasher.hexdigest()
 
-    def get_variant_weights(self, variants: List[ExperimentVariant]) -> Dict[str, float]:
+    def get_variant_weights(self, variants: list[ExperimentVariant]) -> dict[str, float]:
         """
         Weight distribution - Calculate normalized variant weights
 
@@ -203,7 +203,7 @@ class VariantAssigner:
         weights = self.get_variant_weights(experiment.variants)
         return weights.get(variant_key, 0.0)
 
-    def validate_variant_distribution(self, variants: List[ExperimentVariant]) -> bool:
+    def validate_variant_distribution(self, variants: list[ExperimentVariant]) -> bool:
         """
         Validate that variant distribution is valid
 
@@ -249,7 +249,7 @@ class VariantAssigner:
 
         return True
 
-    def simulate_assignment_distribution(self, experiment: Experiment, sample_size: int = 10000) -> Dict[str, float]:
+    def simulate_assignment_distribution(self, experiment: Experiment, sample_size: int = 10000) -> dict[str, float]:
         """
         Simulate variant assignment distribution for testing
 
@@ -284,7 +284,7 @@ class VariantAssigner:
 
         return actual_distribution
 
-    def _select_variant_by_weight(self, variants: List[ExperimentVariant], assignment_hash: str) -> ExperimentVariant:
+    def _select_variant_by_weight(self, variants: list[ExperimentVariant], assignment_hash: str) -> ExperimentVariant:
         """
         Weight distribution - Select variant based on weights and hash
 
@@ -322,7 +322,7 @@ class VariantAssigner:
         # Fallback to last variant (handles floating point precision issues)
         return weighted_variants[-1].variant
 
-    def get_deterministic_assignment_info(self, experiment: Experiment, assignment_unit: str) -> Dict[str, Any]:
+    def get_deterministic_assignment_info(self, experiment: Experiment, assignment_unit: str) -> dict[str, Any]:
         """
         Get detailed information about deterministic assignment
 

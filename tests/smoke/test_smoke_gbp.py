@@ -2,6 +2,7 @@
 Smoke test for Google Business Profile (Places) API
 PRD v1.2 - Verify GBP API for business profile data
 """
+
 import asyncio
 import os
 

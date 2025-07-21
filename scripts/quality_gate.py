@@ -24,7 +24,7 @@ class QualityGateConfig(BaseModel):
 
     # Redis configuration
     redis_url: str = "redis://localhost:6379"
-    prp_id: Optional[str] = None
+    prp_id: str | None = None
 
     # Quality thresholds
     coverage_threshold: int = 80
@@ -48,18 +48,18 @@ class QualityResults(BaseModel):
 
     # Ruff results
     ruff_clean: bool
-    ruff_errors: List[str] = []
-    ruff_warnings: List[str] = []
+    ruff_errors: list[str] = []
+    ruff_warnings: list[str] = []
     ruff_fixes_applied: int = 0
 
     # Coverage results
     coverage_percentage: float
     coverage_passed: bool
     coverage_report: str = ""
-    missing_lines: Dict[str, List[int]] = {}
+    missing_lines: dict[str, list[int]] = {}
 
     # Evidence keys
-    evidence_keys: Dict[str, str] = {}
+    evidence_keys: dict[str, str] = {}
 
     # PRP promotion readiness
     promotion_ready: bool = False
@@ -73,7 +73,7 @@ class QualityGate:
         self.redis_client = self._setup_redis()
         self.start_time = time.time()
 
-    def _setup_redis(self) -> Optional[redis.Redis]:
+    def _setup_redis(self) -> redis.Redis | None:
         """Initialize Redis connection with fallback handling."""
         try:
             client = redis.from_url(self.config.redis_url, decode_responses=True)
@@ -142,7 +142,7 @@ class QualityGate:
             results.execution_time_seconds = time.time() - self.start_time
             return results
 
-    def _run_ruff_linting(self) -> Tuple[bool, Dict]:
+    def _run_ruff_linting(self) -> tuple[bool, dict]:
         """Execute Ruff linting with zero-tolerance rule enforcement."""
         ruff_data = {"errors": [], "warnings": [], "fixes_applied": 0}
 
@@ -190,7 +190,7 @@ class QualityGate:
             ruff_data["errors"].append(f"Ruff execution failed: {e}")
             return False, ruff_data
 
-    def _check_zero_tolerance_rules(self) -> List[str]:
+    def _check_zero_tolerance_rules(self) -> list[str]:
         """Check for zero-tolerance rule violations using ruff check."""
         violations = []
 
@@ -214,7 +214,7 @@ class QualityGate:
         except Exception as e:
             return [f"Failed to check zero-tolerance rules: {e}"]
 
-    def _run_coverage_analysis(self) -> Tuple[bool, Dict]:
+    def _run_coverage_analysis(self) -> tuple[bool, dict]:
         """Execute pytest with coverage analysis and threshold enforcement."""
         coverage_data = {"percentage": 0.0, "report": "", "missing_lines": {}}
 
@@ -244,9 +244,8 @@ class QualityGate:
             if coverage_percentage >= self.config.coverage_threshold:
                 print(f"  ✅ Coverage: {coverage_percentage}% (threshold: {self.config.coverage_threshold}%)")
                 return True, coverage_data
-            else:
-                print(f"  ❌ Coverage: {coverage_percentage}% (below threshold: {self.config.coverage_threshold}%)")
-                return False, coverage_data
+            print(f"  ❌ Coverage: {coverage_percentage}% (below threshold: {self.config.coverage_threshold}%)")
+            return False, coverage_data
 
         except subprocess.TimeoutExpired:
             coverage_data["report"] = "Coverage analysis timed out"
@@ -285,7 +284,7 @@ class QualityGate:
             print(f"  ⚠️  Failed to parse coverage percentage: {e}")
             return 0.0
 
-    def _write_evidence_to_redis(self, results: QualityResults) -> Dict[str, str]:
+    def _write_evidence_to_redis(self, results: QualityResults) -> dict[str, str]:
         """Write evidence keys to Redis for PRP promotion system."""
         evidence_keys = {}
 
@@ -321,7 +320,7 @@ class QualityGate:
             self.redis_client.set(report_key, json.dumps(report_data), ex=86400)
             evidence_keys["quality_report"] = report_key
 
-            print(f"  ✅ Evidence written to Redis:")
+            print("  ✅ Evidence written to Redis:")
             print(f"    • {lint_key} = {lint_value}")
             print(f"    • {coverage_key} = {coverage_value}")
             print(f"    • {report_key} = <report_data>")
@@ -387,11 +386,10 @@ class QualityGate:
             if is_valid:
                 print("  ✅ PRP promotion evidence validation passed")
                 return True
-            else:
-                missing_fields = json.loads(missing_fields_json) if missing_fields_json != "{}" else []
-                print(f"  ❌ PRP promotion evidence validation failed")
-                print(f"    Missing fields: {missing_fields}")
-                return False
+            missing_fields = json.loads(missing_fields_json) if missing_fields_json != "{}" else []
+            print("  ❌ PRP promotion evidence validation failed")
+            print(f"    Missing fields: {missing_fields}")
+            return False
 
         except Exception as e:
             print(f"  ❌ PRP promotion validation error: {e}")
@@ -492,7 +490,7 @@ class QualityGate:
             promotion_status = "✅ READY" if results.promotion_ready else "❌ NOT READY"
             print(f"  Status: {promotion_status}")
             if results.promotion_ready:
-                print(f"  Integration: PRP-1059 Lua script validation passed")
+                print("  Integration: PRP-1059 Lua script validation passed")
                 print(f"  Evidence: lint_clean=true, coverage_pct>={self.config.coverage_threshold}")
 
         print("=" * 60)

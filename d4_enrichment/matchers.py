@@ -10,12 +10,13 @@ Acceptance Criteria:
 - Address similarity scoring
 - Weighted combination logic
 """
+
 import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .similarity import (
     AddressSimilarity,
@@ -58,9 +59,9 @@ class MatchResult:
     overall_score: float
     confidence: MatchConfidence
     match_type: MatchType
-    component_scores: Dict[str, float]
-    similarity_details: Dict[str, SimilarityResult]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    component_scores: dict[str, float]
+    similarity_details: dict[str, SimilarityResult]
+    metadata: dict[str, Any] = field(default_factory=dict)
     match_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     matched_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -70,7 +71,7 @@ class MatchConfig:
     """Configuration for matching behavior"""
 
     # Weights for different components
-    weights: Dict[str, float] = field(
+    weights: dict[str, float] = field(
         default_factory=lambda: {
             "business_name": 0.40,
             "phone": 0.25,
@@ -110,10 +111,10 @@ class BusinessMatcher:
     - Weighted combination logic
     """
 
-    def __init__(self, config: Optional[MatchConfig] = None):
+    def __init__(self, config: MatchConfig | None = None):
         """Initialize matcher with configuration"""
         self.config = config or MatchConfig()
-        self.match_cache: Dict[str, MatchResult] = {}
+        self.match_cache: dict[str, MatchResult] = {}
         self.stats = {
             "total_matches": 0,
             "exact_matches": 0,
@@ -125,10 +126,10 @@ class BusinessMatcher:
 
     def match_records(
         self,
-        record1: Dict[str, Any],
-        record2: Dict[str, Any],
-        record1_id: Optional[str] = None,
-        record2_id: Optional[str] = None,
+        record1: dict[str, Any],
+        record2: dict[str, Any],
+        record1_id: str | None = None,
+        record2_id: str | None = None,
     ) -> MatchResult:
         """
         Match two business records
@@ -201,12 +202,12 @@ class BusinessMatcher:
 
     def find_best_matches(
         self,
-        target_record: Dict[str, Any],
-        candidate_records: List[Dict[str, Any]],
-        target_id: Optional[str] = None,
+        target_record: dict[str, Any],
+        candidate_records: list[dict[str, Any]],
+        target_id: str | None = None,
         min_score: float = 0.5,
         max_results: int = 10,
-    ) -> List[MatchResult]:
+    ) -> list[MatchResult]:
         """
         Find best matching records from a list of candidates
 
@@ -346,9 +347,9 @@ class BusinessMatcher:
     def _apply_scoring_adjustments(
         self,
         base_score: float,
-        component_scores: Dict[str, float],
-        record1: Dict[str, Any],
-        record2: Dict[str, Any],
+        component_scores: dict[str, float],
+        record1: dict[str, Any],
+        record2: dict[str, Any],
     ) -> float:
         """Apply bonuses and penalties to base score"""
         adjusted_score = base_score
@@ -371,32 +372,29 @@ class BusinessMatcher:
         """Determine confidence level from score"""
         if score >= self.config.exact_threshold:
             return MatchConfidence.EXACT
-        elif score >= self.config.high_threshold:
+        if score >= self.config.high_threshold:
             return MatchConfidence.HIGH
-        elif score >= self.config.medium_threshold:
+        if score >= self.config.medium_threshold:
             return MatchConfidence.MEDIUM
-        elif score >= self.config.low_threshold:
+        if score >= self.config.low_threshold:
             return MatchConfidence.LOW
-        else:
-            return MatchConfidence.UNCERTAIN
+        return MatchConfidence.UNCERTAIN
 
-    def _determine_match_type(self, overall_score: float, component_scores: Dict[str, float]) -> MatchType:
+    def _determine_match_type(self, overall_score: float, component_scores: dict[str, float]) -> MatchType:
         """Determine match type from scores"""
         if overall_score >= self.config.exact_threshold:
             return MatchType.EXACT_MATCH
-        elif overall_score >= self.config.medium_threshold:
+        if overall_score >= self.config.medium_threshold:
             # Check if it's a fuzzy match or partial match
             high_components = sum(1 for score in component_scores.values() if score >= 0.8)
             if high_components >= 2:
                 return MatchType.FUZZY_MATCH
-            else:
-                return MatchType.PARTIAL_MATCH
-        elif overall_score >= self.config.low_threshold:
+            return MatchType.PARTIAL_MATCH
+        if overall_score >= self.config.low_threshold:
             return MatchType.POTENTIAL_MATCH
-        else:
-            return MatchType.NO_MATCH
+        return MatchType.NO_MATCH
 
-    def _validate_match_requirements(self, component_scores: Dict[str, float]) -> bool:
+    def _validate_match_requirements(self, component_scores: dict[str, float]) -> bool:
         """Validate that match meets minimum requirements"""
         # Check minimum number of components
         valid_components = sum(1 for score in component_scores.values() if score > 0)
@@ -418,7 +416,7 @@ class BusinessMatcher:
 
         return True
 
-    def _create_record_snippet(self, record: Dict[str, Any]) -> Dict[str, str]:
+    def _create_record_snippet(self, record: dict[str, Any]) -> dict[str, str]:
         """Create a snippet of record for debugging"""
         snippet = {}
         fields_to_include = [
@@ -451,7 +449,7 @@ class BusinessMatcher:
         else:
             self.stats["no_matches"] += 1
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get matching statistics"""
         total = self.stats["total_matches"]
         if total == 0:
@@ -468,16 +466,16 @@ class BusinessMatcher:
         """Clear the match cache"""
         self.match_cache.clear()
 
-    def configure_weights(self, weights: Dict[str, float]):
+    def configure_weights(self, weights: dict[str, float]):
         """Update component weights"""
         self.config.weights.update(weights)
 
     def configure_thresholds(
         self,
-        exact: Optional[float] = None,
-        high: Optional[float] = None,
-        medium: Optional[float] = None,
-        low: Optional[float] = None,
+        exact: float | None = None,
+        high: float | None = None,
+        medium: float | None = None,
+        low: float | None = None,
     ):
         """Update confidence thresholds"""
         if exact is not None:
@@ -498,10 +496,10 @@ class BatchMatcher:
 
     def match_datasets(
         self,
-        dataset1: List[Dict[str, Any]],
-        dataset2: List[Dict[str, Any]],
+        dataset1: list[dict[str, Any]],
+        dataset2: list[dict[str, Any]],
         min_score: float = 0.7,
-    ) -> List[MatchResult]:
+    ) -> list[MatchResult]:
         """Match all records in dataset1 against dataset2"""
         all_matches = []
 
@@ -515,8 +513,8 @@ class BatchMatcher:
         return all_matches
 
     def deduplicate_dataset(
-        self, dataset: List[Dict[str, Any]], min_score: float = 0.8
-    ) -> Tuple[List[Dict[str, Any]], List[MatchResult]]:
+        self, dataset: list[dict[str, Any]], min_score: float = 0.8
+    ) -> tuple[list[dict[str, Any]], list[MatchResult]]:
         """Find and remove duplicates within a dataset"""
         unique_records = []
         duplicates = []

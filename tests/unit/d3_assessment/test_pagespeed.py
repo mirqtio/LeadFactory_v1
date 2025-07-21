@@ -8,6 +8,7 @@ Tests all acceptance criteria:
 - Issue extraction works
 - Mobile-first approach
 """
+
 import sys
 from decimal import Decimal
 from unittest.mock import AsyncMock, patch
@@ -34,7 +35,7 @@ class TestTask031AcceptanceCriteria:
         return {
             "lighthouseResult": {
                 "lighthouseVersion": "10.0.0",
-                "userAgent": ("Mozilla/5.0 (Linux; Android 11; Pixel 4) " "AppleWebKit/537.36"),
+                "userAgent": ("Mozilla/5.0 (Linux; Android 11; Pixel 4) AppleWebKit/537.36"),
                 "categories": {
                     "performance": {"score": 0.85},
                     "accessibility": {"score": 0.92},
@@ -48,7 +49,7 @@ class TestTask031AcceptanceCriteria:
                         "numericValue": 2500,
                         "displayValue": "2.5 s",
                         "description": (
-                            "Largest Contentful Paint marks the time at " "which the largest text or image is painted."
+                            "Largest Contentful Paint marks the time at which the largest text or image is painted."
                         ),
                     },
                     "max-potential-fid": {
@@ -62,7 +63,7 @@ class TestTask031AcceptanceCriteria:
                         "numericValue": 0.1,
                         "displayValue": "0.1",
                         "description": (
-                            "Cumulative Layout Shift measures the movement " "of visible elements within the viewport."
+                            "Cumulative Layout Shift measures the movement of visible elements within the viewport."
                         ),
                     },
                     "first-contentful-paint": {
@@ -70,16 +71,14 @@ class TestTask031AcceptanceCriteria:
                         "numericValue": 1200,
                         "displayValue": "1.2 s",
                         "description": (
-                            "First Contentful Paint marks the time at " "which the first text or image is painted."
+                            "First Contentful Paint marks the time at which the first text or image is painted."
                         ),
                     },
                     "speed-index": {
                         "score": 0.8,
                         "numericValue": 3200,
                         "displayValue": "3.2 s",
-                        "description": (
-                            "Speed Index shows how quickly the contents " "of a page are visibly populated."
-                        ),
+                        "description": ("Speed Index shows how quickly the contents of a page are visibly populated."),
                     },
                     "interactive": {
                         "score": 0.75,
@@ -94,7 +93,7 @@ class TestTask031AcceptanceCriteria:
                         "score": 0.7,
                         "numericValue": 150,
                         "displayValue": "150 ms",
-                        "description": ("Sum of all time periods between FCP and " "Time to Interactive."),
+                        "description": ("Sum of all time periods between FCP and Time to Interactive."),
                     },
                     "unused-css-rules": {
                         "score": 0.5,
@@ -105,13 +104,13 @@ class TestTask031AcceptanceCriteria:
                     "render-blocking-resources": {
                         "score": 0.3,
                         "title": "Eliminate render-blocking resources",
-                        "description": ("Resources are blocking the first paint " "of your page."),
+                        "description": ("Resources are blocking the first paint of your page."),
                         "details": {"overallSavingsMs": 800},
                     },
                     "uses-text-compression": {
                         "score": 0.8,
                         "title": "Enable text compression",
-                        "description": ("Text-based resources should be served " "with compression."),
+                        "description": ("Text-based resources should be served with compression."),
                         "details": {},
                     },
                 },

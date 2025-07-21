@@ -4,8 +4,9 @@ PRD v1.2 - Get business hours and additional metadata
 
 Cost: $0.002 per place details call
 """
+
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..base import BaseAPIClient
 
@@ -13,7 +14,7 @@ from ..base import BaseAPIClient
 class GooglePlacesClient(BaseAPIClient):
     """Google Places API client for business data"""
 
-    def __init__(self, api_key: Optional[str] = None, allow_test_mode: bool = False):
+    def __init__(self, api_key: str | None = None, allow_test_mode: bool = False):
         from core.config import get_settings
 
         settings = get_settings()
@@ -38,13 +39,13 @@ class GooglePlacesClient(BaseAPIClient):
         """Get Google Places API base URL"""
         return self.base_url
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Google Places uses API key in URL params, not headers"""
         return {
             "Accept": "application/json",
         }
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get Google Places rate limit configuration"""
         return {
             "daily_limit": 25000,  # Standard quota
@@ -62,12 +63,11 @@ class GooglePlacesClient(BaseAPIClient):
         """
         if "details" in operation or "details/json" in operation:
             return Decimal("0.002")
-        elif "findplacefromtext" in operation:
+        if "findplacefromtext" in operation:
             return Decimal("0.017")
-        else:
-            return Decimal("0.000")
+        return Decimal("0.000")
 
-    async def find_place(self, query: str, fields: Optional[list] = None) -> Optional[Dict[str, Any]]:
+    async def find_place(self, query: str, fields: list | None = None) -> dict[str, Any] | None:
         """
         Find a place by text query
 
@@ -94,7 +94,7 @@ class GooglePlacesClient(BaseAPIClient):
             return response["candidates"][0]
         return None
 
-    async def get_place_details(self, place_id: str, fields: Optional[list] = None) -> Optional[Dict[str, Any]]:
+    async def get_place_details(self, place_id: str, fields: list | None = None) -> dict[str, Any] | None:
         """
         Get detailed information about a place
 
@@ -137,8 +137,8 @@ class GooglePlacesClient(BaseAPIClient):
         return None
 
     async def search_business(
-        self, name: str, address: Optional[str] = None, phone: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, name: str, address: str | None = None, phone: str | None = None
+    ) -> dict[str, Any] | None:
         """
         Search for a business and get its details
 

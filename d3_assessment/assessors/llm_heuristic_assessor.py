@@ -7,7 +7,7 @@ key conversion factors.
 
 PRP P1-040 Requirements:
 - UVP Clarity Score (0-100)
-- Contact Info Completeness (0-100) 
+- Contact Info Completeness (0-100)
 - CTA Clarity Score (0-100)
 - Social Proof Presence (0-100)
 - Readability Score (0-100)
@@ -17,8 +17,9 @@ PRP P1-040 Requirements:
 - Timeout handling
 - Structured output with insights and recommendations
 """
+
 import json
-from typing import Any, Dict
+from typing import Any
 
 from core.config import settings
 from core.logging import get_logger
@@ -60,7 +61,7 @@ class LLMHeuristicAssessor(BaseAssessor):
             self._client = create_client("humanloop")
         return self._client
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Perform LLM heuristic assessment of website
 
@@ -207,7 +208,7 @@ class LLMHeuristicAssessor(BaseAssessor):
                 cost=0.0,
             )
 
-    def _extract_website_content(self, business_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_website_content(self, business_data: dict[str, Any]) -> dict[str, Any]:
         """Extract website content from business data or assessments"""
         content = {}
 
@@ -263,7 +264,7 @@ class LLMHeuristicAssessor(BaseAssessor):
 
         return content
 
-    def _extract_performance_data(self, business_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_performance_data(self, business_data: dict[str, Any]) -> dict[str, Any]:
         """Extract performance data from assessments"""
         performance = {}
 
@@ -291,7 +292,7 @@ class LLMHeuristicAssessor(BaseAssessor):
 
         return performance
 
-    def _validate_heuristic_scores(self, scores: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_heuristic_scores(self, scores: dict[str, Any]) -> dict[str, Any]:
         """Validate and clamp heuristic scores to expected ranges"""
         validated = {}
 
@@ -318,7 +319,7 @@ class LLMHeuristicAssessor(BaseAssessor):
 
         return validated
 
-    def _get_default_scores(self) -> Dict[str, Any]:
+    def _get_default_scores(self) -> dict[str, Any]:
         """Get default scores when analysis fails"""
         return {
             "uvp_clarity_score": 0,
@@ -330,7 +331,7 @@ class LLMHeuristicAssessor(BaseAssessor):
             "intrusive_popup_detection": False,
         }
 
-    def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
+    def _extract_json_from_text(self, text: str) -> dict[str, Any]:
         """Try to extract JSON from text response"""
         import re
 
@@ -364,7 +365,7 @@ class LLMHeuristicAssessor(BaseAssessor):
             },
         }
 
-    def _calculate_actual_cost(self, usage: Dict[str, Any]) -> float:
+    def _calculate_actual_cost(self, usage: dict[str, Any]) -> float:
         """Calculate actual cost based on token usage"""
         # GPT-4o-mini pricing (as of 2024)
         input_tokens = usage.get("prompt_tokens", 800)  # Default estimate

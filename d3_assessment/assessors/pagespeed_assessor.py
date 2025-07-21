@@ -6,8 +6,9 @@ Timeout: 30s per device
 Cost: $0.00 (free API)
 Output: pagespeed_json column
 """
+
 import asyncio
-from typing import Any, Dict
+from typing import Any
 
 from core.logging import get_logger
 from d0_gateway.providers.pagespeed import PageSpeedClient
@@ -37,7 +38,7 @@ class PageSpeedAssessor(BaseAssessor):
             self._client = PageSpeedClient()
         return self._client
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Assess website performance using PageSpeed Insights
 
@@ -67,7 +68,7 @@ class PageSpeedAssessor(BaseAssessor):
                     ),
                     timeout=self.timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 raise AssessmentTimeoutError(f"PageSpeed mobile analysis timed out after {self.timeout}s")
 
             # Extract key metrics

@@ -131,13 +131,13 @@ class TestQualityGate:
     def test_run_success_flow(self, quality_gate):
         """Test successful quality gate execution flow."""
         # Mock all subprocess calls
-        with patch.object(quality_gate, "_run_ruff_linting") as mock_ruff, patch.object(
-            quality_gate, "_run_coverage_analysis"
-        ) as mock_coverage, patch.object(quality_gate, "_write_evidence_to_redis") as mock_evidence, patch.object(
-            quality_gate, "_validate_prp_promotion_readiness"
-        ) as mock_promotion, patch.object(
-            quality_gate, "_generate_coverage_badge"
-        ) as mock_badge:
+        with (
+            patch.object(quality_gate, "_run_ruff_linting") as mock_ruff,
+            patch.object(quality_gate, "_run_coverage_analysis") as mock_coverage,
+            patch.object(quality_gate, "_write_evidence_to_redis") as mock_evidence,
+            patch.object(quality_gate, "_validate_prp_promotion_readiness") as mock_promotion,
+            patch.object(quality_gate, "_generate_coverage_badge") as mock_badge,
+        ):
             # Setup mocks
             mock_ruff.return_value = (True, {"errors": [], "warnings": [], "fixes_applied": 0})
             mock_coverage.return_value = (True, {"percentage": 85.5, "report": "Test report"})
@@ -164,9 +164,10 @@ class TestQualityGate:
 
     def test_run_ruff_failure(self, quality_gate):
         """Test quality gate execution with Ruff failures."""
-        with patch.object(quality_gate, "_run_ruff_linting") as mock_ruff, patch.object(
-            quality_gate, "_run_coverage_analysis"
-        ) as mock_coverage:
+        with (
+            patch.object(quality_gate, "_run_ruff_linting") as mock_ruff,
+            patch.object(quality_gate, "_run_coverage_analysis") as mock_coverage,
+        ):
             # Setup failing Ruff
             mock_ruff.return_value = (False, {"errors": ["E501: line too long"], "warnings": []})
             mock_coverage.return_value = (True, {"percentage": 85.5})
@@ -181,9 +182,10 @@ class TestQualityGate:
 
     def test_run_coverage_failure(self, quality_gate):
         """Test quality gate execution with coverage failures."""
-        with patch.object(quality_gate, "_run_ruff_linting") as mock_ruff, patch.object(
-            quality_gate, "_run_coverage_analysis"
-        ) as mock_coverage:
+        with (
+            patch.object(quality_gate, "_run_ruff_linting") as mock_ruff,
+            patch.object(quality_gate, "_run_coverage_analysis") as mock_coverage,
+        ):
             # Setup failing coverage
             mock_ruff.return_value = (True, {"errors": [], "warnings": []})
             mock_coverage.return_value = (False, {"percentage": 75.0})  # Below threshold
@@ -425,15 +427,18 @@ class TestQualityGateIntegration:
     def test_end_to_end_with_fake_redis(self):
         """Test end-to-end execution with fake Redis."""
         config = QualityGateConfig(
-            prp_id="P1-061-test", coverage_threshold=75, enable_ruff_enforcement=False  # Lower threshold for test
+            prp_id="P1-061-test",
+            coverage_threshold=75,
+            enable_ruff_enforcement=False,  # Lower threshold for test
         )
 
         # Use fake Redis for integration test
         fake_redis = fakeredis.FakeRedis(decode_responses=True)
 
-        with patch("quality_gate.redis.from_url") as mock_from_url, patch(
-            "quality_gate.subprocess.run"
-        ) as mock_subprocess:
+        with (
+            patch("quality_gate.redis.from_url") as mock_from_url,
+            patch("quality_gate.subprocess.run") as mock_subprocess,
+        ):
             mock_from_url.return_value = fake_redis
 
             # Mock successful subprocess calls
@@ -445,9 +450,11 @@ class TestQualityGateIntegration:
 
             gate = QualityGate(config)
 
-            with patch.object(gate, "_check_zero_tolerance_rules") as mock_zero_tolerance, patch.object(
-                gate, "_generate_coverage_badge"
-            ) as mock_badge, patch("quality_gate.Path") as mock_path:
+            with (
+                patch.object(gate, "_check_zero_tolerance_rules") as mock_zero_tolerance,
+                patch.object(gate, "_generate_coverage_badge") as mock_badge,
+                patch("quality_gate.Path") as mock_path,
+            ):
                 mock_zero_tolerance.return_value = []  # No violations
                 mock_path.return_value.exists.return_value = True
                 mock_path.return_value.read_text.return_value = "-- Mock Lua script"

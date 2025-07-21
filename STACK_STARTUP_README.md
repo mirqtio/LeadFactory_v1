@@ -31,8 +31,8 @@ REDIS_URL=redis://localhost:6379/0
 VPS_SSH_HOST=96.30.197.121
 VPS_SSH_USER=deploy
 VPS_SSH_KEY=/Users/yourname/.ssh/leadfactory_deploy
-CLAUDE_ORCH_MODEL=claude-3-opus-20240229
-CLAUDE_DEV_MODEL=claude-3-5-sonnet-20241022
+CLAUDE_ORCH_MODEL=claude-3-5-opus-4-20250101
+CLAUDE_DEV_MODEL=claude-3-5-sonnet-4-20250101
 
 # Optional Variables
 GITHUB_TOKEN=your_github_token
@@ -54,11 +54,11 @@ AGENT_COORDINATION_MODE=redis
 ## 🏗️ System Architecture
 
 ### Agent Windows
-- **orchestrator** - Opus model, strategic coordination
-- **dev-1** - Sonnet model, development work
-- **dev-2** - Sonnet model, parallel development
-- **validator** - Sonnet model, quality assurance
-- **integrator** - Sonnet model, deployment coordination
+- **orchestrator** - Opus 4 model, strategic coordination
+- **dev-1** - Sonnet 4 model, development work
+- **dev-2** - Sonnet 4 model, parallel development
+- **validator** - Sonnet 4 model, quality assurance
+- **integrator** - Sonnet 4 model, deployment coordination
 - **logs** - Real-time monitoring dashboard
 
 ### Redis Queues

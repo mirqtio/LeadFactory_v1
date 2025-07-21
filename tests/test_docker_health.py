@@ -2,6 +2,7 @@
 Simple health check test to verify Docker test environment
 This test should always pass if the environment is set up correctly
 """
+
 import os
 import sys
 

@@ -9,8 +9,6 @@ and data sourcing error handling.
 class SourcingException(Exception):
     """Base exception for all sourcing-related errors"""
 
-    pass
-
 
 # Yelp exceptions removed per P0-009 - Yelp provider no longer supported
 

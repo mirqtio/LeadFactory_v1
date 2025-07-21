@@ -298,7 +298,7 @@ class TestTask044AcceptanceCriteria:
             # Step 2: Test merge with incomplete original data
             incomplete_data = {
                 "id": "merge_test_002",
-                "name": "Incomplete Company"
+                "name": "Incomplete Company",
                 # Missing phone, address, website
             }
 

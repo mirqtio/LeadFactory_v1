@@ -1,4 +1,5 @@
 """Company size utility functions for enrichment."""
+
 from functools import lru_cache
 from pathlib import Path
 

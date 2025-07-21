@@ -1,6 +1,7 @@
 """
 Test PageSpeed API client implementation
 """
+
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -477,7 +478,7 @@ class TestPageSpeedClientDataExtraction:
                 "audits": {
                     "largest-contentful-paint": {
                         "score": 0.7,
-                        "numericValue": 3000
+                        "numericValue": 3000,
                         # Missing displayValue
                     }
                     # Missing other audits

@@ -6,6 +6,7 @@ Acceptance Criteria:
 - API endpoints work
 - Database state correct
 """
+
 import sys
 from unittest.mock import Mock, patch
 
@@ -182,8 +183,10 @@ class TestTargetingIntegrationTask024Simple:
         ]
 
         for endpoint in endpoints_to_test:
-            with patch("d1_targeting.api.BatchScheduler"), patch("d1_targeting.api.QuotaTracker"), patch(
-                "d1_targeting.api.TargetUniverseManager"
+            with (
+                patch("d1_targeting.api.BatchScheduler"),
+                patch("d1_targeting.api.QuotaTracker"),
+                patch("d1_targeting.api.TargetUniverseManager"),
             ):
                 response = client.get(endpoint)
                 assert response.status_code in [200, 422, 500], f"GET {endpoint} failed"

@@ -16,7 +16,7 @@ import argparse
 import hashlib
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -57,10 +57,10 @@ class ExperimentLoader:
         else:
             self.experiment_manager = None
 
-    def load_config_file(self, file_path: Path) -> Optional[Dict[str, Any]]:
+    def load_config_file(self, file_path: Path) -> dict[str, Any] | None:
         """Load and parse a YAML configuration file"""
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 config = yaml.safe_load(f)
 
             print(f"✅ Loaded configuration: {file_path}")
@@ -76,7 +76,7 @@ class ExperimentLoader:
             self.validation_errors.append(f"Error loading {file_path}: {e}")
             return None
 
-    def validate_experiment_config(self, config: Dict[str, Any]) -> bool:
+    def validate_experiment_config(self, config: dict[str, Any]) -> bool:
         """Validate experiment configuration structure and values"""
         print("🔍 Validating experiment configuration...")
 
@@ -112,7 +112,7 @@ class ExperimentLoader:
 
         return is_valid
 
-    def validate_single_experiment(self, exp_id: str, exp_config: Dict[str, Any]) -> bool:
+    def validate_single_experiment(self, exp_id: str, exp_config: dict[str, Any]) -> bool:
         """Validate a single experiment configuration"""
         is_valid = True
 
@@ -153,7 +153,7 @@ class ExperimentLoader:
 
         return is_valid
 
-    def validate_assignment_rule(self, rule_id: str, rule_config: Dict[str, Any]) -> bool:
+    def validate_assignment_rule(self, rule_id: str, rule_config: dict[str, Any]) -> bool:
         """Validate an assignment rule configuration"""
         is_valid = True
 
@@ -200,7 +200,7 @@ class ExperimentLoader:
 
         return is_valid
 
-    def validate_traffic_allocations(self, experiments: Dict[str, Any]) -> bool:
+    def validate_traffic_allocations(self, experiments: dict[str, Any]) -> bool:
         """Validate that traffic allocations are correctly configured"""
         is_valid = True
 
@@ -219,7 +219,7 @@ class ExperimentLoader:
 
         return is_valid
 
-    def check_acceptance_criteria(self, config: Dict[str, Any]) -> Dict[str, bool]:
+    def check_acceptance_criteria(self, config: dict[str, Any]) -> dict[str, bool]:
         """Check if all acceptance criteria are met"""
         criteria = {
             "subject_line_test_configured": False,
@@ -268,7 +268,7 @@ class ExperimentLoader:
 
         return criteria
 
-    def load_experiments_to_system(self, config: Dict[str, Any]) -> bool:
+    def load_experiments_to_system(self, config: dict[str, Any]) -> bool:
         """Load experiments into the experiment management system"""
         if self.dry_run:
             print("🔍 DRY RUN: Would load experiments to system")
@@ -310,7 +310,7 @@ class ExperimentLoader:
             self.validation_errors.append(f"Error loading experiments to system: {e}")
             return False
 
-    def generate_hash_assignment(self, input_string: str, experiment_config: Dict[str, Any]) -> str:
+    def generate_hash_assignment(self, input_string: str, experiment_config: dict[str, Any]) -> str:
         """Generate hash-based variant assignment for testing"""
         hash_seed = experiment_config.get("hash_seed", "leadfactory_2025")
         hash_input = f"{hash_seed}:{input_string}"
@@ -328,7 +328,7 @@ class ExperimentLoader:
 
         return "control"  # Default fallback
 
-    def test_experiment_assignment(self, config: Dict[str, Any]) -> None:
+    def test_experiment_assignment(self, config: dict[str, Any]) -> None:
         """Test experiment assignment distribution"""
         print("🧪 Testing experiment assignment distribution...")
 
@@ -355,10 +355,10 @@ class ExperimentLoader:
                 percentage = (count / total_assignments) * 100
                 print(f"   {variant}: {count}/{total_assignments} ({percentage:.1f}%)")
 
-    def generate_report(self, config: Dict[str, Any], criteria: Dict[str, bool]) -> Dict[str, Any]:
+    def generate_report(self, config: dict[str, Any], criteria: dict[str, bool]) -> dict[str, Any]:
         """Generate experiment loading report"""
         report = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "config_file": str(self.config_dir / "initial.yaml"),
             "dry_run": self.dry_run,
             "validation": {

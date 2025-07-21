@@ -6,7 +6,7 @@ through assessment and scoring, ensuring all components work together correctly.
 
 Acceptance Criteria:
 - Sourcing → Assessment flow ✓
-- Scoring applied correctly ✓  
+- Scoring applied correctly ✓
 - Data consistency verified ✓
 - Performance benchmarked ✓
 """
@@ -76,9 +76,11 @@ async def test_yelp_to_assessment_flow(
     test_db_session.refresh(test_business)
 
     # Step 2: Test assessment flow
-    with patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed, patch(
-        "d3_assessment.techstack.TechStackDetector.detect"
-    ) as mock_techstack, patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm:
+    with (
+        patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed,
+        patch("d3_assessment.techstack.TechStackDetector.detect") as mock_techstack,
+        patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm,
+    ):
         # Mock assessment responses
         mock_pagespeed.return_value = {
             "performance_score": 85,
@@ -264,9 +266,11 @@ async def test_data_consistency_verified(
     assert test_business.name == "Consistency Test Business"
 
     # Step 2: Run assessment
-    with patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed, patch(
-        "d3_assessment.techstack.TechStackDetector.detect"
-    ) as mock_techstack, patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm:
+    with (
+        patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed,
+        patch("d3_assessment.techstack.TechStackDetector.detect") as mock_techstack,
+        patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm,
+    ):
         mock_pagespeed.return_value = {"performance_score": 80}
         mock_techstack.return_value = {"cms": "Custom"}
         mock_llm.return_value = {"lead_quality_score": 0.75}
@@ -372,9 +376,11 @@ async def test_performance_benchmarked(
     assessment_start = time.time()
     assessments = []
 
-    with patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed, patch(
-        "d3_assessment.techstack.TechStackDetector.detect"
-    ) as mock_techstack, patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm:
+    with (
+        patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed,
+        patch("d3_assessment.techstack.TechStackDetector.detect") as mock_techstack,
+        patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm,
+    ):
         # Mock consistent responses for performance testing
         mock_pagespeed.return_value = {"performance_score": 85}
         mock_techstack.return_value = {"cms": "WordPress"}
@@ -428,7 +434,7 @@ async def test_performance_benchmarked(
     print(f"Scoring: {scoring_time:.2f}s ({len(scoring_results)} scores)")
     print(f"Total Pipeline: {pipeline_total_time:.2f}s")
     print(f"Memory Usage: +{memory_increase:.1f}MB")
-    print(f"Throughput: {len(businesses)/pipeline_total_time:.2f} businesses/second")
+    print(f"Throughput: {len(businesses) / pipeline_total_time:.2f} businesses/second")
 
     # Cleanup
     await sourcing_coordinator.shutdown()
@@ -476,9 +482,11 @@ async def test_complete_sourcing_to_scoring_integration(
     test_db_session.refresh(business)
 
     # 2. Assess business
-    with patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed, patch(
-        "d3_assessment.techstack.TechStackDetector.detect"
-    ) as mock_techstack, patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm:
+    with (
+        patch("d3_assessment.pagespeed.PageSpeedAnalyzer.analyze") as mock_pagespeed,
+        patch("d3_assessment.techstack.TechStackDetector.detect") as mock_techstack,
+        patch("d3_assessment.llm_insights.LLMInsightGenerator.generate_insights") as mock_llm,
+    ):
         mock_pagespeed.return_value = {
             "performance_score": 92,
             "accessibility_score": 88,

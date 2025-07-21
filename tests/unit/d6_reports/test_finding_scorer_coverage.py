@@ -4,6 +4,7 @@ Test D6 Reports Finding Scorer Coverage Expansion
 Targeted unit tests to improve finding_scorer.py coverage from 33.05% to 65%+.
 Focuses on edge cases, scoring algorithms, and business logic validation.
 """
+
 import pytest
 
 from d6_reports.finding_scorer import EffortLevel, FindingScore, FindingScorer, ImpactLevel

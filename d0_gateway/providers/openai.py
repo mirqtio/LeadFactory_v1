@@ -2,9 +2,10 @@
 OpenAI API client implementation for LLM-powered insights
 DEPRECATED: Use HumanloopClient instead for all LLM operations
 """
+
 import json
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..base import BaseAPIClient
 from ..middleware.cost_enforcement import OperationPriority, enforce_cost_limits
@@ -13,7 +14,7 @@ from ..middleware.cost_enforcement import OperationPriority, enforce_cost_limits
 class OpenAIClient(BaseAPIClient):
     """OpenAI API client for GPT-4o-mini"""
 
-    def __init__(self, api_key: Optional[str] = None, allow_test_mode: bool = False):
+    def __init__(self, api_key: str | None = None, allow_test_mode: bool = False):
         from core.config import get_settings
 
         settings = get_settings()
@@ -32,14 +33,14 @@ class OpenAIClient(BaseAPIClient):
         """Get OpenAI API base URL"""
         return "https://api.openai.com"
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get OpenAI API headers"""
         return {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get OpenAI rate limit configuration"""
         return {
             "daily_limit": 10000,
@@ -67,18 +68,17 @@ class OpenAIClient(BaseAPIClient):
             output_cost = (Decimal(estimated_output_tokens) / Decimal("1000000")) * Decimal("0.60")
 
             return input_cost + output_cost
-        else:
-            # Other operations
-            return Decimal("0.001")
+        # Other operations
+        return Decimal("0.001")
 
     async def chat_completion(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         model: str = "gpt-4o-mini",
         temperature: float = 0.3,
-        max_tokens: Optional[int] = None,
-        response_format: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        max_tokens: int | None = None,
+        response_format: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """
         Create a chat completion
 
@@ -105,9 +105,9 @@ class OpenAIClient(BaseAPIClient):
     @enforce_cost_limits(priority=OperationPriority.NORMAL, operation_param="analyze_performance")
     async def analyze_website_performance(
         self,
-        pagespeed_data: Dict[str, Any],
-        business_context: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        pagespeed_data: dict[str, Any],
+        business_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Generate AI insights from PageSpeed data
 
@@ -153,14 +153,14 @@ Each recommendation should have:
 Return only valid JSON array with exactly 3 recommendations."""
 
         user_prompt = f"""Website Performance Data:
-URL: {context['url']}
-Performance Score: {context['performance_score']:.2f}
-SEO Score: {context['seo_score']:.2f}
-Accessibility Score: {context['accessibility_score']:.2f}
-Best Practices Score: {context['best_practices_score']:.2f}
+URL: {context["url"]}
+Performance Score: {context["performance_score"]:.2f}
+SEO Score: {context["seo_score"]:.2f}
+Accessibility Score: {context["accessibility_score"]:.2f}
+Best Practices Score: {context["best_practices_score"]:.2f}
 
-{f"LCP: {context.get('lcp_value', 'N/A')} (Score: {context.get('lcp_score', 0):.2f})" if 'lcp_score' in context else ""}
-{f"CLS: {context.get('cls_value', 'N/A')} (Score: {context.get('cls_score', 0):.2f})" if 'cls_score' in context else ""}
+{f"LCP: {context.get('lcp_value', 'N/A')} (Score: {context.get('lcp_score', 0):.2f})" if "lcp_score" in context else ""}
+{f"CLS: {context.get('cls_value', 'N/A')} (Score: {context.get('cls_score', 0):.2f})" if "cls_score" in context else ""}
 
 {f"Business Context: {business_context}" if business_context else ""}
 
@@ -211,9 +211,9 @@ Generate 3 specific recommendations to improve this website's performance and us
     async def generate_email_content(
         self,
         business_name: str,
-        website_issues: List[Dict[str, Any]],
-        recipient_name: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        website_issues: list[dict[str, Any]],
+        recipient_name: str | None = None,
+    ) -> dict[str, Any]:
         """
         Generate personalized email content for outreach
 
@@ -286,7 +286,7 @@ Write a personalized email offering to help improve their website performance.""
                 "fallback_body": f"Hi{f' {recipient_name}' if recipient_name else ''},\n\nI noticed some opportunities to improve {business_name}'s website performance. Would you be interested in a free analysis?\n\nBest regards",
             }
 
-    def _get_fallback_recommendations(self, context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _get_fallback_recommendations(self, context: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate fallback recommendations when AI fails"""
         recommendations = []
 

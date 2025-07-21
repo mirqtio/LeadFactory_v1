@@ -105,9 +105,10 @@ class TestPhase05Integration:
         }
 
         # Mock both make_request and emit_cost to avoid database access
-        with patch.object(client, "make_request", return_value=dataaxle_response), patch.object(
-            client, "emit_cost"
-        ) as mock_emit_cost:
+        with (
+            patch.object(client, "make_request", return_value=dataaxle_response),
+            patch.object(client, "emit_cost") as mock_emit_cost,
+        ):
             # Test business matching
             result = await client.match_business(test_business_data)
 

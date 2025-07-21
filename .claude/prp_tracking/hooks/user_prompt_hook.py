@@ -7,7 +7,6 @@ Intercepts and validates PRP status change requests from user prompts
 import os
 import re
 import sys
-from typing import Dict, List, Optional, Tuple
 
 # Add parent directory to path to import our modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -33,7 +32,7 @@ class PRPUserPromptHook:
             "plan",
         ]
 
-    def _extract_prp_references(self, prompt: str) -> List[str]:
+    def _extract_prp_references(self, prompt: str) -> list[str]:
         """Extract PRP IDs from user prompt"""
         # Look for PRP patterns
         patterns = [
@@ -51,7 +50,7 @@ class PRPUserPromptHook:
 
         return prp_ids
 
-    def _detect_status_change_intent(self, prompt: str) -> Optional[str]:
+    def _detect_status_change_intent(self, prompt: str) -> str | None:
         """Detect if user is requesting a status change"""
         prompt_lower = prompt.lower()
 
@@ -110,7 +109,7 @@ class PRPUserPromptHook:
 
         return None
 
-    def _validate_prp_start_request(self, prp_id: str) -> Tuple[bool, str]:
+    def _validate_prp_start_request(self, prp_id: str) -> tuple[bool, str]:
         """Validate request to start a PRP"""
         prp = self.prp_manager.get_prp(prp_id)
         if not prp:
@@ -134,7 +133,7 @@ class PRPUserPromptHook:
 
         return True, f"PRP {prp_id} can be started"
 
-    def _validate_prp_complete_request(self, prp_id: str) -> Tuple[bool, str]:
+    def _validate_prp_complete_request(self, prp_id: str) -> tuple[bool, str]:
         """Validate request to complete a PRP"""
         prp = self.prp_manager.get_prp(prp_id)
         if not prp:
@@ -153,7 +152,7 @@ class PRPUserPromptHook:
 
         return True, f"PRP {prp_id} can be completed"
 
-    def _get_allowed_transitions(self, current_status: PRPStatus) -> List[str]:
+    def _get_allowed_transitions(self, current_status: PRPStatus) -> list[str]:
         """Get allowed transitions from current status"""
         transitions = {
             PRPStatus.NEW: ["validated"],
@@ -163,7 +162,7 @@ class PRPUserPromptHook:
         }
         return transitions.get(current_status, [])
 
-    def _generate_status_response(self, prp_ids: List[str]) -> str:
+    def _generate_status_response(self, prp_ids: list[str]) -> str:
         """Generate status response for requested PRPs"""
         response_parts = []
 
@@ -193,7 +192,7 @@ class PRPUserPromptHook:
         # Remove the keyword requirement as it's too restrictive
         return has_prp_id and has_status_intent
 
-    def process_prompt(self, prompt: str) -> Tuple[bool, str]:
+    def process_prompt(self, prompt: str) -> tuple[bool, str]:
         """Process user prompt for PRP management"""
         # Debug: Check components
         prp_ids = self._extract_prp_references(prompt)

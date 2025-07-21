@@ -5,21 +5,18 @@ Executive-grade PDF reports for unit economics with charts and professional form
 
 Acceptance Criteria:
 - PDF export from unit economics endpoint
-- Executive-grade charts and formatting  
+- Executive-grade charts and formatting
 - Multi-page reports with comprehensive metrics
 - Professional branding and layout
 """
 
 import base64
-import io
 import logging
 import time
-from datetime import date, datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime
 
-import plotly.express as px
 import plotly.graph_objects as go
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 from plotly.subplots import make_subplots
 
 logger = logging.getLogger(__name__)
@@ -34,9 +31,9 @@ class UnitEconomicsPDFService:
 
     async def generate_unit_economics_pdf(
         self,
-        unit_econ_data: List[Dict],
-        summary: Dict,
-        date_range: Dict[str, str],
+        unit_econ_data: list[dict],
+        summary: dict,
+        date_range: dict[str, str],
         request_id: str,
         include_charts: bool = True,
         include_detailed_analysis: bool = True,
@@ -126,7 +123,7 @@ class UnitEconomicsPDFService:
             logger.error(f"Error generating PDF for request {request_id}: {str(e)}")
             raise
 
-    async def _generate_charts(self, daily_data: List[Dict], summary: Dict) -> Dict[str, str]:
+    async def _generate_charts(self, daily_data: list[dict], summary: dict) -> dict[str, str]:
         """Generate base64-encoded charts for PDF inclusion"""
         charts = {}
 
@@ -339,7 +336,7 @@ class UnitEconomicsPDFService:
             logger.error(f"Error converting figure to base64: {str(e)}")
             return ""
 
-    def _generate_insights(self, daily_data: List[Dict], summary: Dict) -> List[str]:
+    def _generate_insights(self, daily_data: list[dict], summary: dict) -> list[str]:
         """Generate key insights based on unit economics data"""
         insights = []
 
@@ -398,7 +395,7 @@ class UnitEconomicsPDFService:
 
         return insights[:5]  # Limit to top 5 insights
 
-    def _generate_recommendations(self, summary: Dict) -> List[str]:
+    def _generate_recommendations(self, summary: dict) -> list[str]:
         """Generate actionable recommendations based on unit economics"""
         recommendations = []
 
@@ -436,7 +433,7 @@ class UnitEconomicsPDFService:
 
         return recommendations[:6]  # Limit to top 6 recommendations
 
-    def _calculate_data_freshness(self, unit_econ_data: List[Dict], date_range: Dict[str, str]) -> Dict:
+    def _calculate_data_freshness(self, unit_econ_data: list[dict], date_range: dict[str, str]) -> dict:
         """Calculate data freshness indicators for the report"""
         try:
             now = datetime.utcnow()

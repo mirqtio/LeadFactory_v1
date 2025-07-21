@@ -15,9 +15,9 @@ Features:
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -53,11 +53,11 @@ class ValidationIssue:
     level: ValidationLevel
     category: ValidationCategory
     message: str
-    component_id: Optional[str] = None
-    component_type: Optional[ComponentType] = None
-    field: Optional[str] = None
-    suggestion: Optional[str] = None
-    code: Optional[str] = None
+    component_id: str | None = None
+    component_type: ComponentType | None = None
+    field: str | None = None
+    suggestion: str | None = None
+    code: str | None = None
 
 
 class ValidationResult(BaseModel):
@@ -65,10 +65,10 @@ class ValidationResult(BaseModel):
 
     is_valid: bool
     score: float = Field(ge=0, le=100, description="Validation score (0-100)")
-    issues: List[ValidationIssue] = Field(default=[])
-    errors: List[str] = Field(default=[])
-    warnings: List[str] = Field(default=[])
-    suggestions: List[str] = Field(default=[])
+    issues: list[ValidationIssue] = Field(default=[])
+    errors: list[str] = Field(default=[])
+    warnings: list[str] = Field(default=[])
+    suggestions: list[str] = Field(default=[])
 
     # Category scores
     structure_score: float = Field(default=100)
@@ -79,7 +79,7 @@ class ValidationResult(BaseModel):
     best_practices_score: float = Field(default=100)
 
     # Metadata
-    template_id: Optional[str] = None
+    template_id: str | None = None
     component_count: int = 0
     data_source_count: int = 0
     validation_time_ms: int = 0
@@ -152,16 +152,15 @@ class ValidationRule(ABC):
         self.category = category
 
     @abstractmethod
-    def validate(self, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate(self, template: TemplateConfig) -> list[ValidationIssue]:
         """Validate template and return issues"""
-        pass
 
 
 class ComponentValidationRule(ValidationRule):
     """Base class for component validation rules"""
 
     def __init__(
-        self, name: str, description: str, category: ValidationCategory, component_types: List[ComponentType] = None
+        self, name: str, description: str, category: ValidationCategory, component_types: list[ComponentType] = None
     ):
         super().__init__(name, description, category)
         self.component_types = component_types or []
@@ -171,11 +170,10 @@ class ComponentValidationRule(ValidationRule):
         return not self.component_types or component.type in self.component_types
 
     @abstractmethod
-    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> list[ValidationIssue]:
         """Validate component and return issues"""
-        pass
 
-    def validate(self, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate(self, template: TemplateConfig) -> list[ValidationIssue]:
         """Validate template components"""
         issues = []
 
@@ -200,7 +198,7 @@ class RequiredFieldsRule(ComponentValidationRule):
             category=ValidationCategory.STRUCTURE,
         )
 
-    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> list[ValidationIssue]:
         issues = []
 
         # Check required fields
@@ -244,7 +242,7 @@ class DataSourceValidationRule(ComponentValidationRule):
             component_types=[ComponentType.TABLE, ComponentType.CHART, ComponentType.METRIC],
         )
 
-    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> list[ValidationIssue]:
         issues = []
 
         # Check data source requirement
@@ -288,7 +286,7 @@ class LayoutValidationRule(ComponentValidationRule):
             name="layout_validation", description="Check layout properties", category=ValidationCategory.LAYOUT
         )
 
-    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> list[ValidationIssue]:
         issues = []
 
         # Check width values
@@ -335,7 +333,7 @@ class AccessibilityValidationRule(ComponentValidationRule):
             category=ValidationCategory.ACCESSIBILITY,
         )
 
-    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate_component(self, component: ComponentConfig, template: TemplateConfig) -> list[ValidationIssue]:
         issues = []
 
         # Check for descriptive titles
@@ -381,7 +379,7 @@ class PerformanceValidationRule(ValidationRule):
             category=ValidationCategory.PERFORMANCE,
         )
 
-    def validate(self, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate(self, template: TemplateConfig) -> list[ValidationIssue]:
         issues = []
 
         # Check component count
@@ -419,7 +417,7 @@ class BestPracticesRule(ValidationRule):
             name="best_practices", description="Check best practices", category=ValidationCategory.BEST_PRACTICES
         )
 
-    def validate(self, template: TemplateConfig) -> List[ValidationIssue]:
+    def validate(self, template: TemplateConfig) -> list[ValidationIssue]:
         issues = []
 
         # Check for header component
@@ -467,7 +465,7 @@ class ValidationEngine:
     """Main validation engine"""
 
     def __init__(self):
-        self.rules: List[ValidationRule] = []
+        self.rules: list[ValidationRule] = []
         self._register_default_rules()
 
     def _register_default_rules(self):
@@ -563,7 +561,7 @@ class ValidationEngine:
 
         return result
 
-    def get_validation_report(self, template: TemplateConfig) -> Dict[str, Any]:
+    def get_validation_report(self, template: TemplateConfig) -> dict[str, Any]:
         """Get detailed validation report"""
         result = self.validate_template(template)
 
@@ -605,7 +603,7 @@ class ValidationEngine:
             "recommendations": self._generate_recommendations(result),
         }
 
-    def _generate_recommendations(self, result: ValidationResult) -> List[str]:
+    def _generate_recommendations(self, result: ValidationResult) -> list[str]:
         """Generate recommendations based on validation results"""
         recommendations = []
 

@@ -1,4 +1,5 @@
 """Unit tests for Google Business Profile adapter."""
+
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest

@@ -1,4 +1,5 @@
 """Tests for Excel formula evaluator."""
+
 import time
 
 import pytest

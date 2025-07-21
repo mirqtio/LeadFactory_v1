@@ -130,7 +130,7 @@ class TestComponentLibrary:
         config = ComponentConfig(
             id="table-1",
             type=ComponentType.TABLE,
-            title="Test Table"
+            title="Test Table",
             # Missing data_source
         )
 
@@ -168,7 +168,7 @@ class TestComponentLibrary:
         invalid_config = ComponentConfig(
             id="invalid-table",
             type=ComponentType.TABLE,
-            title="Invalid Table"
+            title="Invalid Table",
             # Missing data_source
         )
 

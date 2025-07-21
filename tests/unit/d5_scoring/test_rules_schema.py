@@ -4,6 +4,7 @@ Test D5 Scoring Rules Schema module
 Comprehensive unit tests for the scoring rules schema validation,
 Pydantic models, and YAML configuration processing.
 """
+
 import tempfile
 from pathlib import Path
 from unittest.mock import patch

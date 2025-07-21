@@ -4,6 +4,7 @@ Unit tests for acceptance profile configuration.
 Tests profile loading, validation, and configuration structure
 for PRP-1060 acceptance testing and deployment automation.
 """
+
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
@@ -153,14 +154,14 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_valid_yaml(self, acceptance_profile_path):
         """Test that acceptance profile is valid YAML."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         assert isinstance(config, dict), "Profile configuration must be a dictionary"
 
     def test_acceptance_profile_required_fields(self, acceptance_profile_path):
         """Test that acceptance profile has all required fields."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         required_fields = ["name", "description", "command", "workflow"]
@@ -170,7 +171,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_name(self, acceptance_profile_path):
         """Test acceptance profile name field."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         assert config["name"] == "acceptance"
@@ -179,14 +180,14 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_command(self, acceptance_profile_path):
         """Test acceptance profile command field."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         assert config["command"] == "/acceptance"
 
     def test_acceptance_profile_workflow(self, acceptance_profile_path):
         """Test acceptance profile workflow configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         workflow = config["workflow"]
@@ -199,7 +200,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_workflow_steps(self, acceptance_profile_path):
         """Test acceptance profile workflow steps."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         steps = config["workflow"]["steps"]
@@ -213,7 +214,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_environment(self, acceptance_profile_path):
         """Test acceptance profile environment configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "environment" in config:
@@ -227,7 +228,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_evidence(self, acceptance_profile_path):
         """Test acceptance profile evidence configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "evidence" in config:
@@ -240,7 +241,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_container(self, acceptance_profile_path):
         """Test acceptance profile container configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "container" in config:
@@ -251,7 +252,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_deployment(self, acceptance_profile_path):
         """Test acceptance profile deployment configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "deployment" in config:
@@ -263,7 +264,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_error_handling(self, acceptance_profile_path):
         """Test acceptance profile error handling configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "error_handling" in config:
@@ -277,7 +278,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_promotion_integration(self, acceptance_profile_path):
         """Test acceptance profile integration with PRP-1059 promotion system."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "promotion" in config:
@@ -297,7 +298,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_monitoring(self, acceptance_profile_path):
         """Test acceptance profile monitoring configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "monitoring" in config:
@@ -311,7 +312,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_security(self, acceptance_profile_path):
         """Test acceptance profile security configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "security" in config:
@@ -326,7 +327,7 @@ class TestAcceptanceProfileConfiguration:
 
     def test_acceptance_profile_testing_config(self, acceptance_profile_path):
         """Test acceptance profile testing configuration."""
-        with open(acceptance_profile_path, "r") as f:
+        with open(acceptance_profile_path) as f:
             config = yaml.safe_load(f)
 
         if "testing" in config:

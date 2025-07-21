@@ -2,9 +2,10 @@
 Data Axle enricher for business data
 Phase 0.5 - Task EN-05
 """
+
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 from d0_gateway.providers.dataaxle import DataAxleClient
 
@@ -17,16 +18,16 @@ class EnrichmentResult:
 
     business_id: str
     source: EnrichmentSource
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    website: Optional[str] = None
-    employee_count: Optional[int] = None
-    annual_revenue: Optional[float] = None
-    years_in_business: Optional[int] = None
-    contact_name: Optional[str] = None
-    contact_title: Optional[str] = None
+    email: str | None = None
+    phone: str | None = None
+    website: str | None = None
+    employee_count: int | None = None
+    annual_revenue: float | None = None
+    years_in_business: int | None = None
+    contact_name: str | None = None
+    contact_title: str | None = None
     confidence_score: float = 0.0
-    raw_data: Optional[Dict[str, Any]] = None
+    raw_data: dict[str, Any] | None = None
     match_confidence: str = "high"  # For coordinator compatibility
 
 
@@ -36,11 +37,11 @@ logger = logging.getLogger(__name__)
 class DataAxleEnricher:
     """Enricher that uses Data Axle API for business matching and enrichment"""
 
-    def __init__(self, client: Optional[DataAxleClient] = None):
+    def __init__(self, client: DataAxleClient | None = None):
         self.client = client or DataAxleClient()
         self.source = EnrichmentSource.DATA_AXLE
 
-    async def enrich_business(self, business_data: Dict[str, Any], business_id: str) -> Optional[EnrichmentResult]:
+    async def enrich_business(self, business_data: dict[str, Any], business_id: str) -> EnrichmentResult | None:
         """
         Enrich business data using Data Axle API
 
@@ -98,7 +99,7 @@ class DataAxleEnricher:
                 },
             )
 
-            logger.info(f"Successfully enriched business {business_id} via Data Axle " f"(confidence: {confidence})")
+            logger.info(f"Successfully enriched business {business_id} via Data Axle (confidence: {confidence})")
 
             return enrichment
 

@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 try:
     from d0_gateway.providers.openai import OpenAIClient
@@ -53,7 +53,7 @@ class ExtractedIssue:
     effort: str
     improvement: str
     score: float
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 
 
 @dataclass
@@ -61,15 +61,15 @@ class PersonalizationRequest:
     """Request for email personalization"""
 
     business_id: str
-    business_data: Dict[str, Any]
-    assessment_data: Dict[str, Any]
-    contact_data: Optional[Dict[str, Any]] = None
-    campaign_context: Optional[Dict[str, Any]] = None
+    business_data: dict[str, Any]
+    assessment_data: dict[str, Any]
+    contact_data: dict[str, Any] | None = None
+    campaign_context: dict[str, Any] | None = None
     content_type: EmailContentType = EmailContentType.COLD_OUTREACH
     personalization_strategy: PersonalizationStrategy = PersonalizationStrategy.WEBSITE_ISSUES
     content_strategy: ContentStrategy = ContentStrategy.PROBLEM_AGITATION
     format_preference: EmailFormat = EmailFormat.BOTH
-    template_id: Optional[str] = None
+    template_id: str | None = None
     max_issues: int = 3
 
 
@@ -82,12 +82,12 @@ class PersonalizedEmail:
     html_content: str
     text_content: str
     preview_text: str
-    extracted_issues: List[ExtractedIssue]
-    personalization_data: Dict[str, Any]
+    extracted_issues: list[ExtractedIssue]
+    personalization_data: dict[str, Any]
     spam_score: float
     spam_risk_level: str
-    quality_metrics: Dict[str, float]
-    generation_metadata: Dict[str, Any]
+    quality_metrics: dict[str, float]
+    generation_metadata: dict[str, Any]
 
 
 class IssueExtractor:
@@ -119,10 +119,10 @@ class IssueExtractor:
 
     def extract_issues_from_assessment(
         self,
-        assessment_data: Dict[str, Any],
-        business_data: Dict[str, Any],
+        assessment_data: dict[str, Any],
+        business_data: dict[str, Any],
         max_issues: int = 3,
-    ) -> List[ExtractedIssue]:
+    ) -> list[ExtractedIssue]:
         """Extract top website issues from assessment data - Acceptance Criteria"""
         issues = []
 
@@ -147,8 +147,8 @@ class IssueExtractor:
         return issues[:max_issues]
 
     def _extract_pagespeed_issues(
-        self, pagespeed_data: Dict[str, Any], business_data: Dict[str, Any]
-    ) -> List[ExtractedIssue]:
+        self, pagespeed_data: dict[str, Any], business_data: dict[str, Any]
+    ) -> list[ExtractedIssue]:
         """Extract issues from PageSpeed Insights data"""
         issues = []
 
@@ -207,7 +207,7 @@ class IssueExtractor:
 
         return issues
 
-    def _extract_core_web_vitals_issues(self, cwv_data: Dict[str, Any]) -> List[ExtractedIssue]:
+    def _extract_core_web_vitals_issues(self, cwv_data: dict[str, Any]) -> list[ExtractedIssue]:
         """Extract issues from Core Web Vitals data"""
         issues = []
 
@@ -244,8 +244,8 @@ class IssueExtractor:
         return issues
 
     def _extract_techstack_issues(
-        self, techstack_data: Dict[str, Any], business_data: Dict[str, Any]
-    ) -> List[ExtractedIssue]:
+        self, techstack_data: dict[str, Any], business_data: dict[str, Any]
+    ) -> list[ExtractedIssue]:
         """Extract issues from technical stack analysis"""
         issues = []
 
@@ -284,8 +284,8 @@ class IssueExtractor:
         return issues
 
     def _extract_general_issues(
-        self, issues_data: Dict[str, Any], business_data: Dict[str, Any]
-    ) -> List[ExtractedIssue]:
+        self, issues_data: dict[str, Any], business_data: dict[str, Any]
+    ) -> list[ExtractedIssue]:
         """Extract issues from general issues list"""
         issues = []
 
@@ -298,7 +298,7 @@ class IssueExtractor:
 
         return issues
 
-    def _map_general_issue(self, issue_name: str, business_data: Dict[str, Any]) -> Optional[ExtractedIssue]:
+    def _map_general_issue(self, issue_name: str, business_data: dict[str, Any]) -> ExtractedIssue | None:
         """Map general issue names to ExtractedIssue objects"""
         issue_mappings = {
             "slow_loading": ExtractedIssue(
@@ -419,7 +419,7 @@ class SpamChecker:
 
     def calculate_spam_score(
         self, subject_line: str, content: str, format_type: str = "html"
-    ) -> Tuple[float, Dict[str, Any]]:
+    ) -> tuple[float, dict[str, Any]]:
         """Calculate spam score for email content - Acceptance Criteria"""
 
         # Clean content for analysis
@@ -476,7 +476,7 @@ class SpamChecker:
             return clean.strip()
         return content.strip()
 
-    def _check_spam_words(self, text: str) -> Tuple[float, List[str]]:
+    def _check_spam_words(self, text: str) -> tuple[float, list[str]]:
         """Check for spam words in content"""
         text_lower = text.lower()
         found_words = []
@@ -489,7 +489,7 @@ class SpamChecker:
 
         return score, found_words
 
-    def _check_patterns(self, text: str) -> Tuple[float, List[str]]:
+    def _check_patterns(self, text: str) -> tuple[float, list[str]]:
         """Check for high-risk patterns"""
         matches = []
         score = 0.0
@@ -502,7 +502,7 @@ class SpamChecker:
 
         return score, matches
 
-    def _check_subject_line(self, subject: str) -> Tuple[float, List[str]]:
+    def _check_subject_line(self, subject: str) -> tuple[float, list[str]]:
         """Check subject line for spam indicators"""
         issues = []
         score = 0.0
@@ -526,7 +526,7 @@ class SpamChecker:
 
         return score, issues
 
-    def _check_formatting(self, content: str, format_type: str) -> Tuple[float, List[str]]:
+    def _check_formatting(self, content: str, format_type: str) -> tuple[float, list[str]]:
         """Check for formatting-related spam indicators"""
         issues = []
         score = 0.0
@@ -553,7 +553,7 @@ class SpamChecker:
 
         return score, issues
 
-    def _check_content_structure(self, content: str) -> Tuple[float, List[str]]:
+    def _check_content_structure(self, content: str) -> tuple[float, list[str]]:
         """Check content structure for spam indicators"""
         issues = []
         score = 0.0
@@ -644,7 +644,7 @@ class EmailPersonalizer:
             generation_metadata=generation_metadata,
         )
 
-    async def _generate_subject_line(self, request: PersonalizationRequest, issues: List[ExtractedIssue]) -> str:
+    async def _generate_subject_line(self, request: PersonalizationRequest, issues: list[ExtractedIssue]) -> str:
         """Generate subject line using the subject line generator"""
         subject_request = SubjectLineRequest(
             business_id=request.business_id,
@@ -660,17 +660,16 @@ class EmailPersonalizer:
 
         if results:
             return results[0].text
-        else:
-            # Fallback subject line
-            business_name = request.business_data.get("name", "your business")
-            return f"Quick question about {business_name}"
+        # Fallback subject line
+        business_name = request.business_data.get("name", "your business")
+        return f"Quick question about {business_name}"
 
     async def _generate_email_content(
         self,
         request: PersonalizationRequest,
-        issues: List[ExtractedIssue],
+        issues: list[ExtractedIssue],
         subject_line: str,
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Generate email content using LLM integration - Acceptance Criteria"""
 
         # Prepare business context
@@ -709,9 +708,8 @@ class EmailPersonalizer:
                 text_content = self._generate_text_content(ai_body, business_name, contact_name, issues)
 
                 return html_content, text_content
-            else:
-                # No OpenAI client available, use fallback
-                return self._generate_fallback_content(request, issues, business_name, contact_name)
+            # No OpenAI client available, use fallback
+            return self._generate_fallback_content(request, issues, business_name, contact_name)
 
         except Exception:
             # Fallback content generation
@@ -721,8 +719,8 @@ class EmailPersonalizer:
         self,
         ai_body: str,
         business_name: str,
-        contact_name: Optional[str],
-        issues: List[ExtractedIssue],
+        contact_name: str | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Generate HTML email content - Acceptance Criteria"""
 
@@ -761,7 +759,7 @@ class EmailPersonalizer:
                 <p>{greeting}</p>
                 <p>{ai_body}</p>
                 
-                {f'<h3 style="color: #34495e;">Key Issues Found:</h3>{issues_html}' if issues else ''}
+                {f'<h3 style="color: #34495e;">Key Issues Found:</h3>{issues_html}' if issues else ""}
                 
                 <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <p style="margin: 0;"><strong>Next Steps:</strong></p>
@@ -769,7 +767,7 @@ class EmailPersonalizer:
                 </div>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="mailto:hello@example.com?subject=Website%20Consultation%20for%20{business_name.replace(' ', '%20')}" 
+                    <a href="mailto:hello@example.com?subject=Website%20Consultation%20for%20{business_name.replace(" ", "%20")}" 
                        style="background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
                         Schedule Free Consultation
                     </a>
@@ -790,8 +788,8 @@ class EmailPersonalizer:
         self,
         ai_body: str,
         business_name: str,
-        contact_name: Optional[str],
-        issues: List[ExtractedIssue],
+        contact_name: str | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Generate plain text email content - Acceptance Criteria"""
 
@@ -831,10 +829,10 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
     def _generate_fallback_content(
         self,
         request: PersonalizationRequest,
-        issues: List[ExtractedIssue],
+        issues: list[ExtractedIssue],
         business_name: str,
-        contact_name: Optional[str],
-    ) -> Tuple[str, str]:
+        contact_name: str | None,
+    ) -> tuple[str, str]:
         """Generate fallback content when LLM fails"""
 
         fallback_body = f"""I noticed some opportunities to improve {business_name}'s website performance. 
@@ -865,8 +863,8 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
         subject_line: str,
         html_content: str,
         text_content: str,
-        issues: List[ExtractedIssue],
-    ) -> Dict[str, float]:
+        issues: list[ExtractedIssue],
+    ) -> dict[str, float]:
         """Calculate content quality metrics"""
 
         # Content length score
@@ -909,9 +907,9 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
     def _build_personalization_data(
         self,
         request: PersonalizationRequest,
-        issues: List[ExtractedIssue],
-        spam_details: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        issues: list[ExtractedIssue],
+        spam_details: dict[str, Any],
+    ) -> dict[str, Any]:
         """Build comprehensive personalization data"""
 
         return {
@@ -938,7 +936,7 @@ If you'd prefer not to receive these insights, please reply with "unsubscribe".
             },
         }
 
-    def generate_content(self, business_data: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+    def generate_content(self, business_data: dict[str, Any], **kwargs) -> dict[str, Any]:
         """
         Generate personalized content for backward compatibility with tests.
 

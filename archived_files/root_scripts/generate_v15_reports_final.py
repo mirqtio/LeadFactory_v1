@@ -7,12 +7,13 @@ Generate production-ready v1.5 compliant HTML reports with all blockers fixed
 - Clean tech stack deduplication
 - GBP integration ready
 """
+
 import json
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import yaml
 from jinja2 import Template
@@ -46,18 +47,18 @@ class V15ReportGeneratorFinal:
         self.confidence_sources = self._load_yaml("config/confidence_sources.yaml")
         self.online_dependence = self._load_yaml("config/online_dependence.yaml")
 
-    def _load_yaml(self, path: str) -> Dict:
+    def _load_yaml(self, path: str) -> dict:
         """Load YAML configuration file"""
-        with open(path, "r") as f:
+        with open(path) as f:
             return yaml.safe_load(f)
 
-    def _load_severity_rubric(self) -> Dict[str, Dict[int, List[str]]]:
+    def _load_severity_rubric(self) -> dict[str, dict[int, list[str]]]:
         """Parse severity rubric markdown into structured data"""
         rubric = {}
         current_category = None
         current_severity = None
 
-        with open("config/severity_rubric.md", "r") as f:
+        with open("config/severity_rubric.md") as f:
             for line in f:
                 line = line.strip()
                 if line.startswith("## ") and "Issues" in line:
@@ -72,7 +73,7 @@ class V15ReportGeneratorFinal:
 
         return rubric
 
-    def _calculate_confidence(self, sources: List[str], has_tech_stack: bool = False) -> float:
+    def _calculate_confidence(self, sources: list[str], has_tech_stack: bool = False) -> float:
         """Calculate real confidence score based on data sources"""
         if not sources:
             return 0.3  # Low confidence if no data
@@ -112,7 +113,7 @@ class V15ReportGeneratorFinal:
 
         return min(base_confidence * source_multiplier, 0.95)  # Cap at 95%
 
-    def _extract_real_web_vitals(self, pagespeed_data: Dict[str, Any]) -> Dict[str, float]:
+    def _extract_real_web_vitals(self, pagespeed_data: dict[str, Any]) -> dict[str, float]:
         """Extract real Web Vitals from PageSpeed data"""
         vitals = {"lcp": 0.0, "cls": 0.0, "fid": 0.0, "fcp": 0.0, "tti": 0.0, "si": 0.0}
 
@@ -203,35 +204,31 @@ class V15ReportGeneratorFinal:
         if category == "performance":
             if score >= 90:
                 return 1
-            elif score >= 70:
+            if score >= 70:
                 return 2
-            elif score >= 50:
+            if score >= 50:
                 return 3
-            else:
-                return 4
-        elif category == "seo":
+            return 4
+        if category == "seo":
             if score >= 90:
                 return 1
-            elif score >= 75:
+            if score >= 75:
                 return 2
-            elif score >= 50:
+            if score >= 50:
                 return 3
-            else:
-                return 4
-        else:
-            # Default mapping
-            if score >= 80:
-                return 1
-            elif score >= 60:
-                return 2
-            elif score >= 40:
-                return 3
-            else:
-                return 4
+            return 4
+        # Default mapping
+        if score >= 80:
+            return 1
+        if score >= 60:
+            return 2
+        if score >= 40:
+            return 3
+        return 4
 
     def _extract_findings(
-        self, assessment_data: Dict[str, Any], web_vitals: Dict[str, float], gbp_data: Dict[str, Any]
-    ) -> Tuple[List[Dict[str, Any]], List[str]]:
+        self, assessment_data: dict[str, Any], web_vitals: dict[str, float], gbp_data: dict[str, Any]
+    ) -> tuple[list[dict[str, Any]], list[str]]:
         """Extract findings with severity and impact calculations"""
         findings = []
         sources_used = []
@@ -376,8 +373,8 @@ class V15ReportGeneratorFinal:
         return findings, sources_used
 
     def _calculate_revenue_impact(
-        self, finding: Dict[str, Any], base_revenue: float, confidence: float
-    ) -> Tuple[float, float, float]:
+        self, finding: dict[str, Any], base_revenue: float, confidence: float
+    ) -> tuple[float, float, float]:
         """Calculate revenue impact range for a finding"""
         category = finding["category"]
         severity = finding["severity"]
@@ -398,10 +395,10 @@ class V15ReportGeneratorFinal:
 
     def _prioritize_opportunities(
         self,
-        findings: List[Dict[str, Any]],
-        revenue_impacts: Dict[str, Tuple[float, float, float]],
+        findings: list[dict[str, Any]],
+        revenue_impacts: dict[str, tuple[float, float, float]],
         total_impact_mid: float,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Create priority opportunities list with validated dollar impacts"""
         opportunities = []
 
@@ -473,7 +470,7 @@ class V15ReportGeneratorFinal:
 
         return "United States"
 
-    def _get_gbp_data(self, business_name: str, url: str, assessment_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _get_gbp_data(self, business_name: str, url: str, assessment_data: dict[str, Any]) -> dict[str, Any]:
         """Get Google Business Profile data from assessment results"""
         # Check for GBP data in assessment results
         gbp_results = assessment_data.get("gbp_results")
@@ -520,18 +517,17 @@ class V15ReportGeneratorFinal:
                     "maps_url": profile_data.get("maps_url"),
                     "place_id": profile_data.get("place_id"),
                 }
-            else:
-                # Profile not found
-                return {
-                    "available": False,
-                    "rating": None,
-                    "review_count": None,
-                    "claimed": False,
-                    "verified": False,
-                    "message": "No Google Business Profile found",
-                    "free_fix_value": 1500,  # Higher value for creating new profile
-                    "error": profile_data.get("error", "Profile not found"),
-                }
+            # Profile not found
+            return {
+                "available": False,
+                "rating": None,
+                "review_count": None,
+                "claimed": False,
+                "verified": False,
+                "message": "No Google Business Profile found",
+                "free_fix_value": 1500,  # Higher value for creating new profile
+                "error": profile_data.get("error", "Profile not found"),
+            }
 
         # Fallback if no GBP data in assessment
         return {
@@ -544,7 +540,7 @@ class V15ReportGeneratorFinal:
             "free_fix_value": 1200,
         }
 
-    def _clean_tech_stack(self, tech_stack: List[Any]) -> List[str]:
+    def _clean_tech_stack(self, tech_stack: list[Any]) -> list[str]:
         """Clean and properly deduplicate tech stack"""
         if not tech_stack:
             return []
@@ -611,7 +607,7 @@ class V15ReportGeneratorFinal:
 
         return clean_techs
 
-    def _calculate_overall_score(self, findings: List[Dict[str, Any]]) -> int:
+    def _calculate_overall_score(self, findings: list[dict[str, Any]]) -> int:
         """Calculate weighted overall score"""
         if not findings:
             return 75
@@ -632,18 +628,17 @@ class V15ReportGeneratorFinal:
 
         return int(total_score / total_weight) if total_weight > 0 else 75
 
-    def _get_tier_from_score(self, score: int) -> Tuple[str, str]:
+    def _get_tier_from_score(self, score: int) -> tuple[str, str]:
         """Get tier letter and CSS class from score"""
         if score >= 90:
             return "A", "tier-a"
-        elif score >= 75:
+        if score >= 75:
             return "B", "tier-b"
-        elif score >= 60:
+        if score >= 60:
             return "C", "tier-c"
-        else:
-            return "D", "tier-d"
+        return "D", "tier-d"
 
-    def generate_report(self, assessment_data: Dict[str, Any], business: Dict[str, Any], output_path: Path) -> str:
+    def generate_report(self, assessment_data: dict[str, Any], business: dict[str, Any], output_path: Path) -> str:
         """Generate production-ready v1.5 compliant HTML report"""
 
         # Extract and enrich business data
@@ -756,8 +751,8 @@ class V15ReportGeneratorFinal:
         business_name: str,
         overall_score: int,
         total_impact: float,
-        opportunities: List[Dict],
-        gbp_data: Dict[str, Any],
+        opportunities: list[dict],
+        gbp_data: dict[str, Any],
     ) -> str:
         """Generate email summary paragraph with GBP free fix if applicable"""
         top_opp = opportunities[0] if opportunities else None
@@ -1432,7 +1427,7 @@ def main():
     print("🚀 Starting v1.5 Final Report Generation")
 
     # Find existing assessment JSON files
-    assessment_files = list(Path(".").glob("pipeline_results_*/assessment_*.json"))
+    assessment_files = list(Path().glob("pipeline_results_*/assessment_*.json"))
 
     if not assessment_files:
         print("❌ No assessment files found")
@@ -1441,7 +1436,7 @@ def main():
     # Remove duplicates based on business_id
     unique_assessments = {}
     for file in assessment_files:
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
         business_id = data["business"]["business_id"]
         # Keep the newest one based on filename
@@ -1467,7 +1462,7 @@ def main():
 
         try:
             # Load assessment data
-            with open(assessment_file, "r") as f:
+            with open(assessment_file) as f:
                 data = json.load(f)
 
             assessment_results = data["results"]

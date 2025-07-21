@@ -7,7 +7,7 @@ including response times, throughput, and resource utilization.
 Acceptance Criteria:
 - 5k businesses processed ✓
 - Response times measured ✓
-- Bottlenecks identified ✓  
+- Bottlenecks identified ✓
 - Resource usage tracked ✓
 """
 
@@ -102,7 +102,7 @@ class BusinessProcessor:
             "delivery": [],
         }
 
-    def process_business_batch(self, businesses: List[Business]) -> Dict[str, Any]:
+    def process_business_batch(self, businesses: list[Business]) -> dict[str, Any]:
         """Process a batch of businesses through the pipeline"""
         start_time = time.time()
 
@@ -128,7 +128,7 @@ class BusinessProcessor:
             "throughput": len(businesses) / total_time if total_time > 0 else 0,
         }
 
-    def _simulate_sourcing(self, businesses: List[Business]) -> float:
+    def _simulate_sourcing(self, businesses: list[Business]) -> float:
         """Simulate D2 sourcing stage"""
         start_time = time.time()
 
@@ -152,7 +152,7 @@ class BusinessProcessor:
         self.response_times["sourcing"].append(elapsed)
         return elapsed
 
-    def _simulate_assessment(self, businesses: List[Business]) -> float:
+    def _simulate_assessment(self, businesses: list[Business]) -> float:
         """Simulate D3 assessment stage"""
         start_time = time.time()
 
@@ -175,7 +175,7 @@ class BusinessProcessor:
         self.response_times["assessment"].append(elapsed)
         return elapsed
 
-    def _simulate_scoring(self, businesses: List[Business]) -> float:
+    def _simulate_scoring(self, businesses: list[Business]) -> float:
         """Simulate D5 scoring stage"""
         start_time = time.time()
 
@@ -199,7 +199,7 @@ class BusinessProcessor:
         self.response_times["scoring"].append(elapsed)
         return elapsed
 
-    def _simulate_personalization(self, businesses: List[Business]) -> float:
+    def _simulate_personalization(self, businesses: list[Business]) -> float:
         """Simulate D8 personalization stage"""
         start_time = time.time()
 
@@ -233,7 +233,7 @@ class BusinessProcessor:
         self.response_times["personalization"].append(elapsed)
         return elapsed
 
-    def _simulate_delivery(self, businesses: List[Business]) -> float:
+    def _simulate_delivery(self, businesses: list[Business]) -> float:
         """Simulate D9 delivery stage"""
         start_time = time.time()
 
@@ -301,10 +301,10 @@ def test_5k_business_processing_load(test_db_session, mock_external_services):
     for i in range(5000):
         business = Business(
             id=f"load_test_business_{i:05d}",
-            name=f"Load Test Restaurant {i+1}",
+            name=f"Load Test Restaurant {i + 1}",
             phone=f"555-{i:04d}",
-            website=f"https://restaurant{i+1}.example.com",
-            address=f"{i+1} Load Test Ave",
+            website=f"https://restaurant{i + 1}.example.com",
+            address=f"{i + 1} Load Test Ave",
             city="Load Test City",
             state="CA",
             zip_code=f"9{i:04d}",
@@ -318,7 +318,7 @@ def test_5k_business_processing_load(test_db_session, mock_external_services):
         # Commit in batches for performance
         if (i + 1) % 500 == 0:
             test_db_session.commit()
-            print(f"Created {i+1} businesses...")
+            print(f"Created {i + 1} businesses...")
 
     test_db_session.commit()
     business_creation_time = time.time() - business_creation_start
@@ -416,9 +416,9 @@ def test_response_time_measurement(test_db_session, mock_external_services):
     for i in range(100):
         business = Business(
             id=f"response_test_business_{i:03d}",
-            name=f"Response Test Business {i+1}",
+            name=f"Response Test Business {i + 1}",
             phone=f"555-9{i:03d}",
-            website=f"https://resptest{i+1}.example.com",
+            website=f"https://resptest{i + 1}.example.com",
             city="Response City",
             state="CA",
             vertical="restaurants",
@@ -538,7 +538,7 @@ def test_bottleneck_identification(test_db_session, mock_external_services):
     for i in range(500):
         business = Business(
             id=f"bottleneck_test_business_{i:03d}",
-            name=f"Bottleneck Test Business {i+1}",
+            name=f"Bottleneck Test Business {i + 1}",
             city="Bottleneck City",
             state="CA",
             vertical="restaurants",
@@ -691,7 +691,7 @@ def test_resource_usage_tracking(test_db_session, mock_external_services):
     for i in range(1000):
         business = Business(
             id=f"resource_test_business_{i:04d}",
-            name=f"Resource Test Business {i+1}",
+            name=f"Resource Test Business {i + 1}",
             city="Resource City",
             state="CA",
             vertical="restaurants",

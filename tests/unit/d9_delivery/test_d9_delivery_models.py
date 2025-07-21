@@ -6,12 +6,12 @@ and event tracking models for compliance and monitoring.
 
 Acceptance Criteria Tests:
 - Email send tracking ✓
-- Bounce tracking model ✓ 
+- Bounce tracking model ✓
 - Suppression list ✓
 - Event timestamps ✓
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy import create_engine
@@ -137,8 +137,8 @@ class TestEmailDelivery:
 
         # Update to delivered with timestamp
         delivery.status = DeliveryStatus.DELIVERED.value
-        delivery.sent_at = datetime.now(timezone.utc)
-        delivery.delivered_at = datetime.now(timezone.utc)
+        delivery.sent_at = datetime.now(UTC)
+        delivery.delivered_at = datetime.now(UTC)
         db_session.commit()
 
         # Verify timestamps are set
@@ -327,7 +327,7 @@ class TestSuppressionList:
             suppression_data={
                 "unsubscribe_source": "email_link",
                 "campaign_id": "camp_123",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             created_by="system",
         )
@@ -415,7 +415,7 @@ class TestSuppressionList:
             email="expired@example.com",
             reason=SuppressionReason.BOUNCE.value,
             is_active=True,
-            expires_at=datetime.now(timezone.utc) - timedelta(days=1),
+            expires_at=datetime.now(UTC) - timedelta(days=1),
         )
         db_session.add(expired_suppression)
 
@@ -424,7 +424,7 @@ class TestSuppressionList:
             email="future@example.com",
             reason=SuppressionReason.BOUNCE.value,
             is_active=True,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+            expires_at=datetime.now(UTC) + timedelta(days=30),
         )
         db_session.add(future_suppression)
 
@@ -457,7 +457,7 @@ class TestDeliveryEvent:
             },
             sendgrid_event_id="event_12345",
             sendgrid_message_id="msg_12345",
-            event_timestamp=datetime.now(timezone.utc),
+            event_timestamp=datetime.now(UTC),
             user_agent="Mozilla/5.0 (compatible; test)",
             ip_address="192.168.1.1",
         )
@@ -522,7 +522,7 @@ class TestDeliveryEvent:
                 email_delivery_id=sample_email_delivery.id,
                 event_type=scenario["type"],
                 event_data=scenario["data"],
-                event_timestamp=datetime.now(timezone.utc) + timedelta(seconds=i),
+                event_timestamp=datetime.now(UTC) + timedelta(seconds=i),
                 url=scenario.get("url"),
             )
             db_session.add(event)
@@ -551,7 +551,7 @@ class TestDeliveryEvent:
     def test_event_uniqueness_constraint(self, sample_email_delivery, db_session):
         """Test unique constraint on delivery events"""
 
-        event_time = datetime.now(timezone.utc)
+        event_time = datetime.now(UTC)
 
         # Create first event
         event1 = DeliveryEvent(
@@ -602,7 +602,7 @@ class TestModelIntegration:
         sent_event = DeliveryEvent(
             email_delivery_id=delivery.id,
             event_type=EventType.SENT.value,
-            event_timestamp=datetime.now(timezone.utc),
+            event_timestamp=datetime.now(UTC),
             event_data={"event": "sent"},
         )
         db_session.add(sent_event)
@@ -611,20 +611,20 @@ class TestModelIntegration:
         delivered_event = DeliveryEvent(
             email_delivery_id=delivery.id,
             event_type=EventType.DELIVERED.value,
-            event_timestamp=datetime.now(timezone.utc) + timedelta(seconds=30),
+            event_timestamp=datetime.now(UTC) + timedelta(seconds=30),
             event_data={"event": "delivered"},
         )
         db_session.add(delivered_event)
 
         # 4. Update delivery status
         delivery.status = DeliveryStatus.DELIVERED.value
-        delivery.delivered_at = datetime.now(timezone.utc)
+        delivery.delivered_at = datetime.now(UTC)
 
         # 5. Add open event
         open_event = DeliveryEvent(
             email_delivery_id=delivery.id,
             event_type=EventType.OPENED.value,
-            event_timestamp=datetime.now(timezone.utc) + timedelta(minutes=5),
+            event_timestamp=datetime.now(UTC) + timedelta(minutes=5),
             event_data={"event": "open"},
         )
         db_session.add(open_event)
@@ -672,7 +672,7 @@ class TestModelIntegration:
         bounce_event = DeliveryEvent(
             email_delivery_id=delivery.id,
             event_type=EventType.BOUNCED.value,
-            event_timestamp=datetime.now(timezone.utc),
+            event_timestamp=datetime.now(UTC),
             event_data={"event": "bounce", "reason": "User unknown", "type": "hard"},
         )
         db_session.add(bounce_event)
@@ -736,12 +736,12 @@ def test_model_integration():
             DeliveryEvent(
                 email_delivery_id=delivery.id,
                 event_type=EventType.SENT.value,
-                event_timestamp=datetime.now(timezone.utc),
+                event_timestamp=datetime.now(UTC),
             ),
             DeliveryEvent(
                 email_delivery_id=delivery.id,
                 event_type=EventType.DELIVERED.value,
-                event_timestamp=datetime.now(timezone.utc) + timedelta(seconds=30),
+                event_timestamp=datetime.now(UTC) + timedelta(seconds=30),
             ),
         ]
 

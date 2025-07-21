@@ -2,6 +2,7 @@
 Unit tests for Google Places provider using mock factory pattern.
 Part of P0-015 coverage enhancement - targeting golden paths.
 """
+
 from decimal import Decimal
 from unittest.mock import AsyncMock, patch
 

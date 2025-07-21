@@ -14,7 +14,7 @@ import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from jinja2 import BaseLoader, Environment, StrictUndefined, TemplateError, Undefined
 from jinja2.sandbox import SandboxedEnvironment
@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 class TemplateData:
     """Container for template rendering data"""
 
-    business: Dict[str, Any]
-    assessment: Dict[str, Any]
-    findings: List[Dict[str, Any]]
-    top_issues: List[Dict[str, Any]]
-    quick_wins: List[Dict[str, Any]]
-    metadata: Dict[str, Any]
+    business: dict[str, Any]
+    assessment: dict[str, Any]
+    findings: list[dict[str, Any]]
+    top_issues: list[dict[str, Any]]
+    quick_wins: list[dict[str, Any]]
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for template rendering"""
         return {
             "business": self.business,
@@ -48,7 +48,7 @@ class TemplateData:
 class TemplateLoader(BaseLoader):
     """Custom template loader for different template sources"""
 
-    def __init__(self, templates: Optional[Dict[str, str]] = None):
+    def __init__(self, templates: dict[str, str] | None = None):
         """
         Initialize template loader
 
@@ -69,7 +69,7 @@ class TemplateLoader(BaseLoader):
         """Add a template to the loader"""
         self.templates[name] = content
 
-    def list_templates(self) -> List[str]:
+    def list_templates(self) -> list[str]:
         """List available templates"""
         return list(self.templates.keys())
 
@@ -124,31 +124,30 @@ class TemplateEngine:
     def _add_custom_filters(self) -> None:
         """Add custom Jinja2 filters for report generation"""
 
-        def format_score(score: Union[int, float], suffix: str = "") -> str:
+        def format_score(score: int | float, suffix: str = "") -> str:
             """Format score with optional suffix"""
             if score is None:
                 return "N/A"
             return f"{score:.0f}{suffix}"
 
-        def format_percentage(value: Union[int, float]) -> str:
+        def format_percentage(value: int | float) -> str:
             """Format value as percentage"""
             if value is None:
                 return "N/A"
             return f"{value:.1f}%"
 
-        def format_time(milliseconds: Union[int, float]) -> str:
+        def format_time(milliseconds: int | float) -> str:
             """Format time in milliseconds to readable format"""
             if milliseconds is None:
                 return "N/A"
 
             if milliseconds < 1000:
                 return f"{milliseconds:.0f}ms"
-            elif milliseconds < 60000:
-                return f"{milliseconds/1000:.1f}s"
-            else:
-                return f"{milliseconds/60000:.1f}m"
+            if milliseconds < 60000:
+                return f"{milliseconds / 1000:.1f}s"
+            return f"{milliseconds / 60000:.1f}m"
 
-        def format_size(bytes_size: Union[int, float]) -> str:
+        def format_size(bytes_size: int | float) -> str:
             """Format file size in bytes to readable format"""
             if bytes_size is None:
                 return "N/A"
@@ -159,31 +158,29 @@ class TemplateEngine:
                 bytes_size /= 1024
             return f"{bytes_size:.1f}TB"
 
-        def priority_class(score: Union[int, float]) -> str:
+        def priority_class(score: int | float) -> str:
             """Get CSS class based on priority score"""
             if score is None:
                 return "priority-unknown"
-            elif score >= 8:
+            if score >= 8:
                 return "priority-critical"
-            elif score >= 6:
+            if score >= 6:
                 return "priority-high"
-            elif score >= 4:
+            if score >= 4:
                 return "priority-medium"
-            else:
-                return "priority-low"
+            return "priority-low"
 
-        def impact_level(score: Union[int, float]) -> str:
+        def impact_level(score: int | float) -> str:
             """Get impact level text from score"""
             if score is None:
                 return "Unknown"
-            elif score >= 8:
+            if score >= 8:
                 return "Critical"
-            elif score >= 6:
+            if score >= 6:
                 return "High"
-            elif score >= 4:
+            if score >= 4:
                 return "Medium"
-            else:
-                return "Low"
+            return "Low"
 
         def truncate_text(text: str, length: int = 100) -> str:
             """Truncate text to specified length"""
@@ -193,7 +190,7 @@ class TemplateEngine:
                 return text
             return text[:length].rsplit(" ", 1)[0] + "..."
 
-        def format_number(value: Union[int, float]) -> str:
+        def format_number(value: int | float) -> str:
             """Format number with thousands separator"""
             if value is None:
                 return "0"
@@ -202,7 +199,7 @@ class TemplateEngine:
             except (ValueError, TypeError):
                 return "0"
 
-        def format_date(date_obj: Union[str, datetime], format_str: str = "%B %d, %Y") -> str:
+        def format_date(date_obj: str | datetime, format_str: str = "%B %d, %Y") -> str:
             """Format date object or string"""
             if not date_obj:
                 return "N/A"
@@ -537,7 +534,7 @@ class TemplateEngine:
             logger.error(f"String template rendering failed: {e}")
             raise TemplateError(f"String template rendering failed: {e}")
 
-    def validate_template(self, template_content: str) -> tuple[bool, Optional[str]]:
+    def validate_template(self, template_content: str) -> tuple[bool, str | None]:
         """
         Validate template syntax
 
@@ -553,7 +550,7 @@ class TemplateEngine:
         except Exception as e:
             return False, str(e)
 
-    def get_template_variables(self, template_content: str) -> List[str]:
+    def get_template_variables(self, template_content: str) -> list[str]:
         """
         Extract variables used in a template
 
@@ -578,18 +575,18 @@ class TemplateEngine:
             logger.error(f"Error extracting template variables: {e}")
             return []
 
-    def list_templates(self) -> List[str]:
+    def list_templates(self) -> list[str]:
         """List available template names"""
         return self.loader.list_templates()
 
     def create_template_data(
         self,
-        business: Dict[str, Any],
-        assessment: Dict[str, Any],
-        findings: List[Dict[str, Any]] = None,
-        top_issues: List[Dict[str, Any]] = None,
-        quick_wins: List[Dict[str, Any]] = None,
-        metadata: Dict[str, Any] = None,
+        business: dict[str, Any],
+        assessment: dict[str, Any],
+        findings: list[dict[str, Any]] = None,
+        top_issues: list[dict[str, Any]] = None,
+        quick_wins: list[dict[str, Any]] = None,
+        metadata: dict[str, Any] = None,
     ) -> TemplateData:
         """
         Create template data container

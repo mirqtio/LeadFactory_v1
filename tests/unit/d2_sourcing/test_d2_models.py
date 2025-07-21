@@ -1,6 +1,7 @@
 """
 Test d2_sourcing domain models
 """
+
 import uuid
 
 import pytest

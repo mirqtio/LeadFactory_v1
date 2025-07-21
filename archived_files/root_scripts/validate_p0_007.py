@@ -260,9 +260,8 @@ def main():
         print("  ✓ Includes proper error handling")
         print("  ✓ Provides detailed health information")
         return 0
-    else:
-        print(f"\n{RED}✗ Some validation tests failed{RESET}")
-        return 1
+    print(f"\n{RED}✗ Some validation tests failed{RESET}")
+    return 1
 
 
 if __name__ == "__main__":

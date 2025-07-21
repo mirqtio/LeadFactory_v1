@@ -2,9 +2,9 @@
 Configuration management using Pydantic Settings
 Handles environment variables and validation
 """
+
 import os
 from functools import lru_cache
-from typing import Dict, Optional
 
 from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings
@@ -44,35 +44,35 @@ class Settings(BaseSettings):
     enable_openai: bool = Field(default=True, description="Enable OpenAI API calls")
 
     # API Keys (only needed when USE_STUBS=false) - use SecretStr for sensitive data
-    google_api_key: Optional[SecretStr] = Field(default=None)
-    stripe_secret_key: Optional[SecretStr] = Field(default=None)
-    stripe_publishable_key: Optional[str] = Field(default=None)
-    stripe_webhook_secret: Optional[SecretStr] = Field(default=None)
-    stripe_price_id: Optional[str] = Field(default=None)
-    sendgrid_api_key: Optional[SecretStr] = Field(default=None)
-    openai_api_key: Optional[SecretStr] = Field(default=None)
+    google_api_key: SecretStr | None = Field(default=None)
+    stripe_secret_key: SecretStr | None = Field(default=None)
+    stripe_publishable_key: str | None = Field(default=None)
+    stripe_webhook_secret: SecretStr | None = Field(default=None)
+    stripe_price_id: str | None = Field(default=None)
+    sendgrid_api_key: SecretStr | None = Field(default=None)
+    openai_api_key: SecretStr | None = Field(default=None)
     openai_model: str = Field(default="gpt-4o-mini")
 
     # PRD v1.2 - Data Axle (trial)
-    data_axle_api_key: Optional[SecretStr] = Field(default=None)
+    data_axle_api_key: SecretStr | None = Field(default=None)
     data_axle_base_url: str = Field(default="https://api.data-axle.com/v2")
     data_axle_rate_limit_per_min: int = Field(default=50)  # 3000/hour = 50/min
 
     # PRD v1.2 - Hunter.io
-    hunter_api_key: Optional[SecretStr] = Field(default=None)
+    hunter_api_key: SecretStr | None = Field(default=None)
     hunter_rate_limit_per_min: int = Field(default=30)
 
     # PRD v1.2 - SEMrush
-    semrush_api_key: Optional[SecretStr] = Field(default=None)
+    semrush_api_key: SecretStr | None = Field(default=None)
     semrush_daily_quota: int = Field(default=1000)
 
     # PRD v1.2 - ScreenshotOne
-    screenshotone_key: Optional[SecretStr] = Field(default=None)
-    screenshotone_secret: Optional[SecretStr] = Field(default=None)
+    screenshotone_key: SecretStr | None = Field(default=None)
+    screenshotone_secret: SecretStr | None = Field(default=None)
     screenshotone_rate_limit_per_sec: int = Field(default=2)
 
     # Humanloop (for vision assessment)
-    humanloop_api_key: Optional[SecretStr] = Field(default=None)
+    humanloop_api_key: SecretStr | None = Field(default=None)
 
     # Email settings
     from_email: str = Field(default="noreply@leadfactory.com")
@@ -134,7 +134,7 @@ class Settings(BaseSettings):
     # P1-060 - Cost Guardrail Settings
     guardrail_global_daily_limit: float = Field(default=1000.0, description="Global daily spending limit in USD")
     guardrail_global_monthly_limit: float = Field(default=30000.0, description="Global monthly spending limit in USD")
-    guardrail_provider_daily_limits: Dict[str, float] = Field(
+    guardrail_provider_daily_limits: dict[str, float] = Field(
         default={
             "openai": 500.0,
             "dataaxle": 300.0,
@@ -147,8 +147,8 @@ class Settings(BaseSettings):
     )
     guardrail_warning_threshold: float = Field(default=0.8, ge=0.0, le=1.0, description="Warning threshold (0-1)")
     guardrail_critical_threshold: float = Field(default=0.95, ge=0.0, le=1.0, description="Critical threshold (0-1)")
-    guardrail_alert_email: Optional[str] = Field(default=None, description="Email for guardrail alerts")
-    guardrail_alert_slack_webhook: Optional[str] = Field(default=None, description="Slack webhook for guardrail alerts")
+    guardrail_alert_email: str | None = Field(default=None, description="Email for guardrail alerts")
+    guardrail_alert_slack_webhook: str | None = Field(default=None, description="Slack webhook for guardrail alerts")
     guardrail_enable_circuit_breaker: bool = Field(default=True, description="Enable circuit breaker on cost limits")
     enable_report_lineage: bool = Field(default=True)  # P0-023
     enable_template_studio: bool = Field(default=True)  # P0-024
@@ -242,7 +242,7 @@ class Settings(BaseSettings):
         return self.environment == "development"
 
     @property
-    def api_base_urls(self) -> Dict[str, str]:
+    def api_base_urls(self) -> dict[str, str]:
         """Get base URLs for external APIs"""
         if self.use_stubs:
             return {
@@ -256,18 +256,17 @@ class Settings(BaseSettings):
                 "semrush": self.stub_base_url,
                 "screenshotone": self.stub_base_url,
             }
-        else:
-            return {
-                "google_places": "https://maps.googleapis.com",
-                "pagespeed": "https://www.googleapis.com",
-                "stripe": "https://api.stripe.com",
-                "sendgrid": "https://api.sendgrid.com",
-                "openai": "https://api.openai.com",
-                "dataaxle": self.data_axle_base_url,
-                "hunter": "https://api.hunter.io",
-                "semrush": "https://api.semrush.com",
-                "screenshotone": "https://api.screenshotone.com",
-            }
+        return {
+            "google_places": "https://maps.googleapis.com",
+            "pagespeed": "https://www.googleapis.com",
+            "stripe": "https://api.stripe.com",
+            "sendgrid": "https://api.sendgrid.com",
+            "openai": "https://api.openai.com",
+            "dataaxle": self.data_axle_base_url,
+            "hunter": "https://api.hunter.io",
+            "semrush": "https://api.semrush.com",
+            "screenshotone": "https://api.screenshotone.com",
+        }
 
     def get_api_key(self, service: str) -> str:
         """Get API key for a service"""
@@ -342,7 +341,7 @@ class Settings(BaseSettings):
         return data
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     """Get cached settings instance"""
     return Settings()

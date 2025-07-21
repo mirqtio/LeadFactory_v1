@@ -10,17 +10,15 @@ import asyncio
 import json
 import logging
 import os
-import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 import paramiko
 import redis
-import yaml
 from pydantic import BaseModel
 
 # Configure logging
@@ -40,8 +38,8 @@ class AcceptanceConfig(BaseModel):
     vps_ssh_host: str
     vps_ssh_user: str
     vps_ssh_key: str = "/home/acceptance/.ssh/id_rsa"
-    github_repo: Optional[str] = None
-    github_token: Optional[str] = None
+    github_repo: str | None = None
+    github_token: str | None = None
     acceptance_timeout: int = 600
     deployment_timeout: int = 300
     max_retries: int = 2
@@ -54,7 +52,7 @@ class EvidenceCollector:
         self.config = config
         self.redis_client = redis.from_url(config.redis_url)
 
-    async def write_evidence(self, key: str, value: str, log_data: Optional[Dict] = None) -> bool:
+    async def write_evidence(self, key: str, value: str, log_data: dict | None = None) -> bool:
         """Write evidence to Redis with optional log data."""
         try:
             # Write main evidence flag
@@ -73,7 +71,7 @@ class EvidenceCollector:
             logger.error(f"Failed to write evidence {key}: {e}")
             return False
 
-    async def read_evidence(self, key: str) -> Optional[str]:
+    async def read_evidence(self, key: str) -> str | None:
         """Read evidence from Redis."""
         try:
             redis_key = f"prp:{self.config.prp_id}"
@@ -91,13 +89,13 @@ class AcceptanceTestRunner:
         self.config = config
         self.evidence = EvidenceCollector(config)
 
-    async def run_acceptance_tests(self) -> Dict[str, Any]:
+    async def run_acceptance_tests(self) -> dict[str, Any]:
         """Execute acceptance test suite and return results."""
         logger.info("Starting acceptance test execution")
 
         test_result = {
             "status": "failed",
-            "start_time": datetime.now(timezone.utc).isoformat(),
+            "start_time": datetime.now(UTC).isoformat(),
             "end_time": None,
             "duration_seconds": 0,
             "tests_run": 0,
@@ -151,7 +149,7 @@ class AcceptanceTestRunner:
 
             test_result.update(
                 {
-                    "end_time": datetime.now(timezone.utc).isoformat(),
+                    "end_time": datetime.now(UTC).isoformat(),
                     "duration_seconds": round(end_time - start_time, 2),
                     "exit_code": process.returncode,
                     "output": stdout.decode(),
@@ -170,12 +168,12 @@ class AcceptanceTestRunner:
                 test_result["status"] = "failed"
                 logger.error(f"Acceptance tests FAILED (exit code: {process.returncode})")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             test_result.update(
                 {
                     "status": "timeout",
                     "error": f"Tests timed out after {self.config.acceptance_timeout} seconds",
-                    "end_time": datetime.now(timezone.utc).isoformat(),
+                    "end_time": datetime.now(UTC).isoformat(),
                     "duration_seconds": self.config.acceptance_timeout,
                 }
             )
@@ -186,7 +184,7 @@ class AcceptanceTestRunner:
                 {
                     "status": "error",
                     "error": str(e),
-                    "end_time": datetime.now(timezone.utc).isoformat(),
+                    "end_time": datetime.now(UTC).isoformat(),
                     "duration_seconds": round(time.time() - start_time, 2),
                 }
             )
@@ -234,7 +232,7 @@ def test_redis_connectivity():
 
         logger.info("Created minimal acceptance test")
 
-    async def _parse_test_results(self, test_result: Dict[str, Any]):
+    async def _parse_test_results(self, test_result: dict[str, Any]):
         """Parse pytest output to extract test statistics."""
         output = test_result.get("output", "")
 
@@ -278,13 +276,13 @@ class SSHDeployer:
         self.config = config
         self.evidence = EvidenceCollector(config)
 
-    async def deploy_to_vps(self) -> Dict[str, Any]:
+    async def deploy_to_vps(self) -> dict[str, Any]:
         """Execute SSH deployment to VPS."""
         logger.info(f"Starting deployment to {self.config.vps_ssh_host}")
 
         deploy_result = {
             "status": "failed",
-            "start_time": datetime.now(timezone.utc).isoformat(),
+            "start_time": datetime.now(UTC).isoformat(),
             "end_time": None,
             "duration_seconds": 0,
             "deploy_output": "",
@@ -351,7 +349,7 @@ class SSHDeployer:
 
         end_time = time.time()
         deploy_result.update(
-            {"end_time": datetime.now(timezone.utc).isoformat(), "duration_seconds": round(end_time - start_time, 2)}
+            {"end_time": datetime.now(UTC).isoformat(), "duration_seconds": round(end_time - start_time, 2)}
         )
 
         # Write evidence
@@ -360,7 +358,7 @@ class SSHDeployer:
 
         return deploy_result
 
-    async def _run_health_checks(self, ssh: paramiko.SSHClient) -> List[Dict[str, Any]]:
+    async def _run_health_checks(self, ssh: paramiko.SSHClient) -> list[dict[str, Any]]:
         """Run health checks after deployment."""
         health_checks = []
 
@@ -425,13 +423,13 @@ class AcceptanceRunner:
             max_retries=int(os.getenv("MAX_RETRIES", "2")),
         )
 
-    async def run_full_workflow(self) -> Dict[str, Any]:
+    async def run_full_workflow(self) -> dict[str, Any]:
         """Execute the complete acceptance and deployment workflow."""
         logger.info(f"Starting acceptance workflow for PRP {self.config.prp_id}")
 
         workflow_result = {
             "prp_id": self.config.prp_id,
-            "workflow_start": datetime.now(timezone.utc).isoformat(),
+            "workflow_start": datetime.now(UTC).isoformat(),
             "workflow_end": None,
             "workflow_duration": 0,
             "acceptance_tests": {},
@@ -496,7 +494,7 @@ class AcceptanceRunner:
             end_time = time.time()
             workflow_result.update(
                 {
-                    "workflow_end": datetime.now(timezone.utc).isoformat(),
+                    "workflow_end": datetime.now(UTC).isoformat(),
                     "workflow_duration": round(end_time - start_time, 2),
                 }
             )

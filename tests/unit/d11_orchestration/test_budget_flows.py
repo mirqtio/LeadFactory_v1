@@ -2,6 +2,7 @@
 Unit tests for P2-040 budget monitoring flow functions
 Tests for cost_guardrail_flow, profit_snapshot_flow, and deployment functions
 """
+
 from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -27,12 +28,12 @@ class TestBudgetFlows:
         """Test cost_guardrail_flow with OK status"""
         mock_daily_costs = {"total": 500.0, "openai": 250.0, "dataaxle": 250.0}
 
-        with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings, patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_get_costs, patch(
-            "d11_orchestration.cost_guardrails.check_budget_threshold"
-        ) as mock_check_budget, patch(
-            "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
+        with (
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+            patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_get_costs,
+            patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_check_budget,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
         ):
             mock_logger.return_value = MagicMock()
             mock_settings.return_value.cost_budget_usd = 1000.0
@@ -52,14 +53,13 @@ class TestBudgetFlows:
         mock_daily_costs = {"total": 1200.0, "openai": 600.0, "dataaxle": 600.0}
         mock_paused = {"openai": True, "dataaxle": True, "hunter": True}
 
-        with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings, patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_get_costs, patch(
-            "d11_orchestration.cost_guardrails.check_budget_threshold"
-        ) as mock_check_budget, patch(
-            "d11_orchestration.cost_guardrails.pause_expensive_operations"
-        ) as mock_pause, patch(
-            "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
+        with (
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+            patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_get_costs,
+            patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_check_budget,
+            patch("d11_orchestration.cost_guardrails.pause_expensive_operations") as mock_pause,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
         ):
             mock_logger.return_value = MagicMock()
             mock_settings.return_value.cost_budget_usd = 1000.0
@@ -78,12 +78,12 @@ class TestBudgetFlows:
         """Test cost_guardrail_flow with daily budget override"""
         mock_daily_costs = {"total": 800.0, "openai": 400.0, "dataaxle": 400.0}
 
-        with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings, patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_get_costs, patch(
-            "d11_orchestration.cost_guardrails.check_budget_threshold"
-        ) as mock_check_budget, patch(
-            "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
+        with (
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+            patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_get_costs,
+            patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_check_budget,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
         ):
             mock_logger.return_value = MagicMock()
             mock_settings.return_value.cost_budget_usd = 1000.0
@@ -118,12 +118,12 @@ class TestBudgetFlows:
             }
         ]
 
-        with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.get_profit_metrics"
-        ) as mock_get_metrics, patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local, patch(
-            "d11_orchestration.cost_guardrails.create_profit_report"
-        ) as mock_create_report, patch(
-            "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
+        with (
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_get_metrics,
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local,
+            patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_create_report,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
         ):
             mock_logger.return_value = MagicMock()
             mock_get_metrics.return_value = mock_metrics
@@ -163,12 +163,12 @@ class TestBudgetFlows:
             "total_purchases": 0,
         }
 
-        with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-            "d11_orchestration.cost_guardrails.get_profit_metrics"
-        ) as mock_get_metrics, patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local, patch(
-            "d11_orchestration.cost_guardrails.create_profit_report"
-        ) as mock_create_report, patch(
-            "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
+        with (
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_get_metrics,
+            patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session_local,
+            patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_create_report,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
         ):
             mock_logger.return_value = MagicMock()
             mock_get_metrics.return_value = mock_metrics

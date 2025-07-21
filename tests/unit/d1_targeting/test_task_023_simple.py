@@ -6,6 +6,7 @@ Acceptance Criteria:
 - Error handling proper
 - Documentation generated
 """
+
 import sys
 
 import pytest

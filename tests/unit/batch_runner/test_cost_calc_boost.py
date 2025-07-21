@@ -2,6 +2,7 @@
 Simple cost calculator tests to boost coverage
 Focus on basic functionality and initialization
 """
+
 import json
 import tempfile
 from pathlib import Path

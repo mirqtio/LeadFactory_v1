@@ -9,7 +9,7 @@ from pathlib import Path
 def count_test_functions_in_file(filepath):
     """Count test functions in a single file."""
     try:
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -60,7 +60,7 @@ def main():
     # Print summary
     print(f"Total test files found: {len(test_files)}")
     print(f"Total test functions found: {total_tests}")
-    print(f"\nPytest reports: 2,989 tests")
+    print("\nPytest reports: 2,989 tests")
     print(f"Difference: {2989 - total_tests}")
 
     print("\n" + "=" * 80)

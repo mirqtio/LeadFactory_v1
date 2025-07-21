@@ -1,9 +1,9 @@
 """
 Token bucket rate limiter with Redis backing for distributed rate limiting
 """
+
 import time
 from pathlib import Path
-from typing import Dict, Optional
 
 import redis.asyncio as aioredis
 
@@ -46,8 +46,8 @@ class RateLimiter:
         self.limits = self.PROVIDER_LIMITS.get(provider, {"daily_limit": 1000, "burst_limit": 10, "window_seconds": 1})
 
         # Redis connection for distributed rate limiting
-        self._redis: Optional[aioredis.Redis] = None
-        self._lua_script: Optional[str] = None
+        self._redis: aioredis.Redis | None = None
+        self._lua_script: str | None = None
 
         # Load Lua script
         self._load_lua_script()
@@ -61,7 +61,7 @@ class RateLimiter:
         """Load the Lua script for atomic rate limiting operations"""
         script_path = Path(__file__).parent / "lua_scripts" / "rate_limit.lua"
         try:
-            with open(script_path, "r") as f:
+            with open(script_path) as f:
                 self._lua_script = f.read()
             self.logger.debug("Loaded rate limiting Lua script")
         except Exception as e:
@@ -165,7 +165,7 @@ class RateLimiter:
             # Fallback to simple check without Lua script
             return await self._simple_burst_check(redis, operation)
 
-    async def get_usage(self) -> Dict[str, int]:
+    async def get_usage(self) -> dict[str, int]:
         """Get current usage statistics"""
         if self.settings.use_stubs:
             return {

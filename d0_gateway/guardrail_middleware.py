@@ -2,13 +2,14 @@
 Cost guardrail middleware and decorators for P1-060
 Provides automatic cost enforcement for API calls
 """
+
 import asyncio
 import functools
 import time
 from collections import defaultdict
-from datetime import datetime, timedelta
+from collections.abc import Callable
 from decimal import Decimal
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+from typing import Any
 
 from core.logging import get_logger
 from d0_gateway.guardrails import GuardrailAction, GuardrailViolation, guardrail_manager
@@ -20,7 +21,7 @@ class RateLimiter:
     """Token bucket rate limiter for API calls"""
 
     def __init__(self):
-        self._buckets: Dict[str, Dict[str, Any]] = defaultdict(
+        self._buckets: dict[str, dict[str, Any]] = defaultdict(
             lambda: {
                 "tokens": 0,
                 "last_refill": time.time(),
@@ -30,8 +31,8 @@ class RateLimiter:
         )
 
     def check_rate_limit(
-        self, provider: str, operation: Optional[str] = None, cost: Optional[Decimal] = None
-    ) -> Tuple[bool, Optional[float]]:
+        self, provider: str, operation: str | None = None, cost: Decimal | None = None
+    ) -> tuple[bool, float | None]:
         """
         Check if request is within rate limits
 
@@ -93,7 +94,7 @@ class RateLimiter:
 
         return True, None
 
-    def consume_tokens(self, provider: str, operation: Optional[str] = None, cost: Optional[Decimal] = None):
+    def consume_tokens(self, provider: str, operation: str | None = None, cost: Decimal | None = None):
         """Consume tokens after successful rate limit check"""
         key = f"{provider}:{operation or '*'}"
         bucket = self._buckets[key]
@@ -141,7 +142,7 @@ def enforce_cost_guardrails(
             allowed, retry_after = rate_limiter.check_rate_limit(provider, operation)
             if not allowed:
                 raise RateLimitExceeded(
-                    f"Rate limit exceeded for {provider}/{operation}. " f"Retry after {retry_after:.1f} seconds"
+                    f"Rate limit exceeded for {provider}/{operation}. Retry after {retry_after:.1f} seconds"
                 )
 
             # Estimate cost if enabled
@@ -176,7 +177,7 @@ def enforce_cost_guardrails(
                         f"${result.current_spend:.2f} / ${result.limit_amount:.2f} "
                         f"({result.percentage_used:.1%})"
                     )
-                elif GuardrailAction.THROTTLE in result.action_taken:
+                if GuardrailAction.THROTTLE in result.action_taken:
                     # Add delay for throttling
                     delay = min(30, result.percentage_used * 10)  # Max 30s delay
                     logger.warning(f"Throttling request for {delay:.1f}s due to guardrail")
@@ -197,7 +198,7 @@ def enforce_cost_guardrails(
 
                 return result
 
-            except Exception as e:
+            except Exception:
                 # Update circuit breaker on failures
                 elapsed = time.time() - start_time
                 if elapsed < 1.0:  # Fast failure indicates potential issue
@@ -225,7 +226,7 @@ def enforce_cost_guardrails(
             allowed, retry_after = rate_limiter.check_rate_limit(provider, operation)
             if not allowed:
                 raise RateLimitExceeded(
-                    f"Rate limit exceeded for {provider}/{operation}. " f"Retry after {retry_after:.1f} seconds"
+                    f"Rate limit exceeded for {provider}/{operation}. Retry after {retry_after:.1f} seconds"
                 )
 
             # Estimate cost if enabled
@@ -260,7 +261,7 @@ def enforce_cost_guardrails(
                         f"${result.current_spend:.2f} / ${result.limit_amount:.2f} "
                         f"({result.percentage_used:.1%})"
                     )
-                elif GuardrailAction.THROTTLE in result.action_taken:
+                if GuardrailAction.THROTTLE in result.action_taken:
                     # Add delay for throttling
                     delay = min(30, result.percentage_used * 10)  # Max 30s delay
                     logger.warning(f"Throttling request for {delay:.1f}s due to guardrail")
@@ -281,7 +282,7 @@ def enforce_cost_guardrails(
 
                 return result
 
-            except Exception as e:
+            except Exception:
                 # Update circuit breaker on failures
                 elapsed = time.time() - start_time
                 if elapsed < 1.0:  # Fast failure indicates potential issue
@@ -297,8 +298,7 @@ def enforce_cost_guardrails(
         # Return appropriate wrapper based on function type
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
@@ -308,9 +308,9 @@ class GuardrailContext:
 
     def __init__(
         self,
-        provider: Optional[str] = None,
+        provider: str | None = None,
         bypass_guardrails: bool = False,
-        temporary_limits: Optional[Dict[str, Decimal]] = None,
+        temporary_limits: dict[str, Decimal] | None = None,
     ):
         self.provider = provider
         self.bypass_guardrails = bypass_guardrails
@@ -350,24 +350,18 @@ class GuardrailContext:
 class GuardrailException(Exception):
     """Base exception for guardrail violations"""
 
-    pass
-
 
 class GuardrailBlocked(GuardrailException):
     """Raised when an operation is blocked by guardrails"""
-
-    pass
 
 
 class RateLimitExceeded(GuardrailException):
     """Raised when rate limits are exceeded"""
 
-    pass
-
 
 # Utility functions
 def check_budget_available(
-    provider: str, operation: str, estimated_cost: Union[float, Decimal], campaign_id: Optional[int] = None
+    provider: str, operation: str, estimated_cost: float | Decimal, campaign_id: int | None = None
 ) -> bool:
     """
     Quick check if budget is available for an operation
@@ -392,7 +386,7 @@ def check_budget_available(
     return True
 
 
-def get_remaining_budget(provider: Optional[str] = None, period: str = "daily") -> Dict[str, Decimal]:
+def get_remaining_budget(provider: str | None = None, period: str = "daily") -> dict[str, Decimal]:
     """
     Get remaining budget for providers
 

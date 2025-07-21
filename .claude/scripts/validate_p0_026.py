@@ -14,7 +14,7 @@ class P0026Validator:
         if not self.prp_path.exists():
             raise FileNotFoundError(f"PRP not found: {self.prp_path}")
 
-        with open(self.prp_path, "r") as f:
+        with open(self.prp_path) as f:
             self.content = f.read()
 
     def validate_gate_1_schema(self) -> tuple[bool, str, list[str]]:
@@ -198,9 +198,9 @@ class P0026Validator:
 
     def run_validation(self) -> tuple[bool, int]:
         """Run all six gates and return overall status"""
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Six-Gate Validation for: P0-026 - Governance")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         gates = [
             ("Schema", self.validate_gate_1_schema),
@@ -246,14 +246,14 @@ class P0026Validator:
         else:
             final_score = 0
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         if all_passed:
             print(f"✅ VALIDATION PASSED - Score: {final_score}/100")
             print("All six gates passed successfully!")
         else:
             print(f"❌ VALIDATION FAILED - Score: {final_score}/100")
             print(f"Failed gates: {', '.join(failed_gates)}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         return all_passed, final_score
 
@@ -268,7 +268,7 @@ def main():
         if progress_file.exists():
             import json
 
-            with open(progress_file, "r") as f:
+            with open(progress_file) as f:
                 progress = json.load(f)
 
             progress["P0-026"] = {

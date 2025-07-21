@@ -2,10 +2,10 @@
 Cost guardrail models and configuration for P1-060
 Provides configurable spending limits and enforcement mechanisms
 """
+
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, validator
 from sqlalchemy import and_, func
@@ -67,15 +67,15 @@ class CostLimit(BaseModel):
     limit_usd: Decimal = Field(..., gt=0, description="Limit amount in USD")
 
     # Scope-specific filters
-    provider: Optional[str] = Field(None, description="Provider name for provider-scoped limits")
-    campaign_id: Optional[int] = Field(None, description="Campaign ID for campaign-scoped limits")
-    operation: Optional[str] = Field(None, description="Operation name for operation-scoped limits")
-    lead_id: Optional[int] = Field(None, description="Lead ID for per-lead limits")
+    provider: str | None = Field(None, description="Provider name for provider-scoped limits")
+    campaign_id: int | None = Field(None, description="Campaign ID for campaign-scoped limits")
+    operation: str | None = Field(None, description="Operation name for operation-scoped limits")
+    lead_id: int | None = Field(None, description="Lead ID for per-lead limits")
 
     # Thresholds and actions
     warning_threshold: float = Field(0.8, ge=0, le=1, description="Warning threshold (0-1)")
     critical_threshold: float = Field(0.95, ge=0, le=1, description="Critical threshold (0-1)")
-    actions: List[GuardrailAction] = Field(
+    actions: list[GuardrailAction] = Field(
         default=[GuardrailAction.LOG, GuardrailAction.ALERT], description="Actions to take when limit is exceeded"
     )
 
@@ -100,15 +100,15 @@ class RateLimitConfig(BaseModel):
     """Configuration for rate limiting"""
 
     provider: str
-    operation: Optional[str] = None
+    operation: str | None = None
 
     # Token bucket settings
     requests_per_minute: int = Field(..., gt=0, description="Max requests per minute")
     burst_size: int = Field(..., gt=0, description="Max burst size")
 
     # Cost-based rate limiting
-    cost_per_minute: Optional[Decimal] = Field(None, description="Max cost per minute")
-    cost_burst_size: Optional[Decimal] = Field(None, description="Max cost burst")
+    cost_per_minute: Decimal | None = Field(None, description="Max cost per minute")
+    cost_burst_size: Decimal | None = Field(None, description="Max cost burst")
 
     enabled: bool = Field(True, description="Whether this rate limit is active")
 
@@ -142,12 +142,12 @@ class GuardrailViolation(BaseModel):
     current_spend: Decimal
     limit_amount: Decimal
     percentage_used: float
-    provider: Optional[str] = None
-    campaign_id: Optional[int] = None
-    operation: Optional[str] = None
-    lead_id: Optional[int] = None
-    action_taken: List[GuardrailAction]
-    metadata: Dict = Field(default_factory=dict)
+    provider: str | None = None
+    campaign_id: int | None = None
+    operation: str | None = None
+    lead_id: int | None = None
+    action_taken: list[GuardrailAction]
+    metadata: dict = Field(default_factory=dict)
 
 
 class CostEstimate(BaseModel):
@@ -158,7 +158,7 @@ class CostEstimate(BaseModel):
     estimated_cost: Decimal
     confidence: float = Field(1.0, ge=0, le=1, description="Confidence in estimate (0-1)")
     based_on: str = Field("fixed", description="How estimate was calculated")
-    metadata: Dict = Field(default_factory=dict)
+    metadata: dict = Field(default_factory=dict)
 
 
 class GuardrailManager:
@@ -168,9 +168,9 @@ class GuardrailManager:
 
     def __init__(self):
         self.logger = logger
-        self._limits: Dict[str, CostLimit] = {}
-        self._rate_limits: Dict[str, RateLimitConfig] = {}
-        self._circuit_breakers: Dict[str, Dict] = {}
+        self._limits: dict[str, CostLimit] = {}
+        self._rate_limits: dict[str, RateLimitConfig] = {}
+        self._circuit_breakers: dict[str, dict] = {}
         self._load_default_limits()
 
     def _load_default_limits(self):
@@ -296,10 +296,10 @@ class GuardrailManager:
         provider: str,
         operation: str,
         estimated_cost: Decimal,
-        campaign_id: Optional[int] = None,
-        lead_id: Optional[int] = None,
+        campaign_id: int | None = None,
+        lead_id: int | None = None,
         **kwargs,
-    ) -> List[GuardrailStatus]:
+    ) -> list[GuardrailStatus]:
         """
         Check all applicable limits for an operation
 
@@ -368,10 +368,10 @@ class GuardrailManager:
         provider: str,
         operation: str,
         estimated_cost: Decimal,
-        campaign_id: Optional[int] = None,
-        lead_id: Optional[int] = None,
+        campaign_id: int | None = None,
+        lead_id: int | None = None,
         **kwargs,
-    ) -> Union[bool, GuardrailViolation]:
+    ) -> bool | GuardrailViolation:
         """
         Enforce cost limits, blocking if necessary
 
@@ -432,25 +432,25 @@ class GuardrailManager:
         return True
 
     def _limit_applies(
-        self, limit: CostLimit, provider: str, operation: str, campaign_id: Optional[int], lead_id: Optional[int] = None
+        self, limit: CostLimit, provider: str, operation: str, campaign_id: int | None, lead_id: int | None = None
     ) -> bool:
         """Check if a limit applies to the given operation"""
         if limit.scope == LimitScope.GLOBAL:
             return True
-        elif limit.scope == LimitScope.PROVIDER:
+        if limit.scope == LimitScope.PROVIDER:
             return limit.provider == provider
-        elif limit.scope == LimitScope.CAMPAIGN:
+        if limit.scope == LimitScope.CAMPAIGN:
             return limit.campaign_id == campaign_id
-        elif limit.scope == LimitScope.OPERATION:
+        if limit.scope == LimitScope.OPERATION:
             return limit.operation == operation
-        elif limit.scope == LimitScope.PROVIDER_OPERATION:
+        if limit.scope == LimitScope.PROVIDER_OPERATION:
             return limit.provider == provider and limit.operation == operation
-        elif limit.scope == LimitScope.PER_LEAD:
+        if limit.scope == LimitScope.PER_LEAD:
             return lead_id is not None  # Apply per-lead limits to any operation with a lead_id
         return False
 
     def _get_current_spend(
-        self, limit: CostLimit, provider: str, operation: str, campaign_id: Optional[int], lead_id: Optional[int] = None
+        self, limit: CostLimit, provider: str, operation: str, campaign_id: int | None, lead_id: int | None = None
     ) -> Decimal:
         """Get current spend for a limit period"""
         period_start, period_end = self._get_period_bounds(limit.period)
@@ -465,10 +465,9 @@ class GuardrailManager:
                 return self._get_daily_spend_from_aggregate(
                     db, limit, provider, operation, campaign_id, period_start.date()
                 )
-            else:
-                return self._get_spend_from_raw(
-                    db, limit, provider, operation, campaign_id, lead_id, period_start, period_end
-                )
+            return self._get_spend_from_raw(
+                db, limit, provider, operation, campaign_id, lead_id, period_start, period_end
+            )
 
     def _get_daily_spend_from_aggregate(
         self,
@@ -476,7 +475,7 @@ class GuardrailManager:
         limit: CostLimit,
         provider: str,
         operation: str,
-        campaign_id: Optional[int],
+        campaign_id: int | None,
         date: datetime.date,
     ) -> Decimal:
         """Get spend from daily aggregates"""
@@ -500,8 +499,8 @@ class GuardrailManager:
         limit: CostLimit,
         provider: str,
         operation: str,
-        campaign_id: Optional[int],
-        lead_id: Optional[int],
+        campaign_id: int | None,
+        lead_id: int | None,
         start: datetime,
         end: datetime,
     ) -> Decimal:

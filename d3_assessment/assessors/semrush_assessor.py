@@ -6,7 +6,8 @@ Timeout: 5s
 Cost: $0.010 per assessment
 Output: semrush_json column
 """
-from typing import Any, Dict
+
+from typing import Any
 from urllib.parse import urlparse
 
 from core.config import settings
@@ -38,7 +39,7 @@ class SEMrushAssessor(BaseAssessor):
             self._client = create_client("semrush")
         return self._client
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Get domain SEO metrics from SEMrush
 

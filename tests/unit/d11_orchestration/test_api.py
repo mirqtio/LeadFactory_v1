@@ -7,10 +7,9 @@ status checking, experiment management, and run history APIs.
 Acceptance Criteria:
 - Pipeline trigger API ✓
 - Status checking works ✓
-- Experiment management ✓  
+- Experiment management ✓
 - Run history API ✓
 """
-
 
 import pytest
 

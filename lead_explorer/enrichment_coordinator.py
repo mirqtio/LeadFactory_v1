@@ -4,10 +4,11 @@ Enrichment Coordinator for Lead Explorer
 Coordinates enrichment tasks using existing d4_enrichment infrastructure
 and tracks enrichment progress for leads.
 """
+
 import asyncio
 import uuid
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from core.logging import get_logger
 from d4_enrichment.email_enrichment import get_email_enricher
@@ -31,7 +32,7 @@ class EnrichmentCoordinator:
         self.email_enricher = get_email_enricher()
         self._active_tasks = {}  # Track active enrichment tasks
 
-    async def start_enrichment(self, lead_id: str, lead_data: Dict[str, Any]) -> str:
+    async def start_enrichment(self, lead_id: str, lead_data: dict[str, Any]) -> str:
         """
         Start enrichment process for a lead.
 
@@ -54,7 +55,7 @@ class EnrichmentCoordinator:
 
         return task_id
 
-    async def _enrich_lead_async(self, lead_id: str, lead_data: Dict[str, Any], task_id: str):
+    async def _enrich_lead_async(self, lead_id: str, lead_data: dict[str, Any], task_id: str):
         """
         Perform actual enrichment asynchronously.
         """
@@ -97,7 +98,7 @@ class EnrichmentCoordinator:
 
             logger.error(f"Enrichment failed for lead {lead_id} - task_id: {task_id}, error: {str(e)}")
 
-    def _prepare_business_data(self, lead_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_business_data(self, lead_data: dict[str, Any]) -> dict[str, Any]:
         """
         Convert lead data to business data format expected by email enricher.
         """
@@ -119,7 +120,7 @@ class EnrichmentCoordinator:
 
         return business_data
 
-    def _update_lead_status(self, lead_id: str, status: EnrichmentStatus, task_id: str, error: Optional[str] = None):
+    def _update_lead_status(self, lead_id: str, status: EnrichmentStatus, task_id: str, error: str | None = None):
         """
         Update lead enrichment status in database.
         """
@@ -132,7 +133,7 @@ class EnrichmentCoordinator:
             logger.error(f"Failed to update lead {lead_id} status: {str(e)}")
 
     def _update_lead_with_enrichment(
-        self, lead_id: str, enriched_email: Optional[str] = None, email_source: Optional[str] = None
+        self, lead_id: str, enriched_email: str | None = None, email_source: str | None = None
     ):
         """
         Update lead with enriched data.
@@ -153,7 +154,7 @@ class EnrichmentCoordinator:
         except Exception as e:
             logger.error(f"Failed to update lead {lead_id} with enrichment: {str(e)}")
 
-    def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def get_task_status(self, task_id: str) -> dict[str, Any] | None:
         """
         Get status of an enrichment task.
 
@@ -165,7 +166,7 @@ class EnrichmentCoordinator:
         """
         return self._active_tasks.get(task_id)
 
-    def get_lead_enrichment_status(self, lead_id: str) -> Optional[Dict[str, Any]]:
+    def get_lead_enrichment_status(self, lead_id: str) -> dict[str, Any] | None:
         """
         Get enrichment status for a lead from database.
 
@@ -196,7 +197,7 @@ class EnrichmentCoordinator:
             logger.error(f"Failed to get enrichment status for lead {lead_id}: {str(e)}")
             return None
 
-    async def trigger_batch_enrichment(self, lead_ids: list) -> Dict[str, str]:
+    async def trigger_batch_enrichment(self, lead_ids: list) -> dict[str, str]:
         """
         Trigger enrichment for multiple leads.
 
@@ -260,7 +261,7 @@ def get_enrichment_coordinator() -> EnrichmentCoordinator:
 
 
 async def quick_add_enrichment(
-    lead_id: str, email: Optional[str] = None, domain: Optional[str] = None, company_name: Optional[str] = None
+    lead_id: str, email: str | None = None, domain: str | None = None, company_name: str | None = None
 ) -> str:
     """
     Convenience function for quick-add enrichment.

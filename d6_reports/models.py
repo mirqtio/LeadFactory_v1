@@ -14,7 +14,6 @@ Acceptance Criteria:
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from sqlalchemy import DECIMAL, JSON, Boolean, CheckConstraint, Column, DateTime
 from sqlalchemy import Enum as SQLEnum
@@ -144,7 +143,7 @@ class ReportGeneration(Base):
     )
 
     def __repr__(self):
-        return f"<ReportGeneration(id='{self.id}', business_id='{self.business_id}', " f"status='{self.status.value}')>"
+        return f"<ReportGeneration(id='{self.id}', business_id='{self.business_id}', status='{self.status.value}')>"
 
     @property
     def is_completed(self) -> bool:
@@ -157,7 +156,7 @@ class ReportGeneration(Base):
         return self.status == ReportStatus.FAILED
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         """Calculate generation duration if completed"""
         if self.started_at and self.completed_at:
             return (self.completed_at - self.started_at).total_seconds()
@@ -224,7 +223,7 @@ class ReportTemplate(Base):
     )
 
     def __repr__(self):
-        return f"<ReportTemplate(id='{self.id}', name='{self.name}', " f"type='{self.template_type.value}')>"
+        return f"<ReportTemplate(id='{self.id}', name='{self.name}', type='{self.template_type.value}')>"
 
     @property
     def is_mobile_responsive(self) -> bool:
@@ -353,8 +352,7 @@ class ReportDelivery(Base):
 
     def __repr__(self):
         return (
-            f"<ReportDelivery(id='{self.id}', method='{self.delivery_method.value}', "
-            f"status='{self.delivery_status}')>"
+            f"<ReportDelivery(id='{self.id}', method='{self.delivery_method.value}', status='{self.delivery_status}')>"
         )
 
     @property

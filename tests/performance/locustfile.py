@@ -7,15 +7,15 @@ Provides realistic load testing scenarios for the LeadFactory system.
 Acceptance Criteria:
 - 5k businesses processed ✓ (via user simulation)
 - Response times measured ✓ (via Locust metrics)
-- Bottlenecks identified ✓ (via response time analysis)  
+- Bottlenecks identified ✓ (via response time analysis)
 - Resource usage tracked ✓ (via system monitoring)
 
 Usage:
     locust -f tests/performance/locustfile.py --host=http://localhost:8000
-    
+
     # Run with specific user count and spawn rate
     locust -f tests/performance/locustfile.py --host=http://localhost:8000 -u 100 -r 10
-    
+
     # Run headless for CI/CD
     locust -f tests/performance/locustfile.py --host=http://localhost:8000 -u 50 -r 5 --headless -t 60s
 """
@@ -469,4 +469,3 @@ if __name__ == "__main__":
     # Spike test
     locust -f locustfile.py --host=http://localhost:8000 -u 500 -r 50 -t 2m
     """
-    pass

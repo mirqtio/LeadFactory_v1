@@ -2,7 +2,8 @@
 Unit tests for d5_scoring types module.
 Coverage target: 100% for type definitions and enumerations.
 """
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -491,7 +492,7 @@ class TestScoringVersion:
 
     def test_timezone_aware_datetime(self):
         """Test handling timezone-aware datetime."""
-        tz_aware_dt = datetime(2025, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+        tz_aware_dt = datetime(2025, 1, 15, 12, 0, 0, tzinfo=UTC)
         version = ScoringVersion(
             version="v1.0.0",
             created_at=tz_aware_dt,
@@ -508,4 +509,4 @@ class TestScoringVersion:
         restored = ScoringVersion.from_dict(data)
 
         # Note: from_dict creates naive datetime, so compare just the values
-        assert restored.created_at.replace(tzinfo=timezone.utc) == tz_aware_dt
+        assert restored.created_at.replace(tzinfo=UTC) == tz_aware_dt

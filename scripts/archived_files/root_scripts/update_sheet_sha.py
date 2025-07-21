@@ -2,6 +2,7 @@
 """
 Update SHA in Google Sheet for version tracking.
 """
+
 import argparse
 import json
 import os
@@ -21,7 +22,7 @@ def init_sheets_service(credentials_json: str = None):
         creds_json_env = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
         if not creds_json_env:
             raise ValueError(
-                "No Google Sheets credentials provided. " "Set GOOGLE_SHEETS_CREDENTIALS environment variable."
+                "No Google Sheets credentials provided. Set GOOGLE_SHEETS_CREDENTIALS environment variable."
             )
         creds_data = json.loads(creds_json_env)
 

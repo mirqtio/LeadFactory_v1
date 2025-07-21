@@ -14,7 +14,7 @@ import logging
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .models import ProductType
 from .stripe_client import (
@@ -33,8 +33,6 @@ logger = logging.getLogger(__name__)
 
 class CheckoutError(Exception):
     """Custom exception for checkout-related errors"""
-
-    pass
 
 
 class CheckoutConfig:
@@ -65,10 +63,10 @@ class CheckoutItem:
         product_name: str,
         amount_usd: Decimal,
         quantity: int = 1,
-        description: Optional[str] = None,
+        description: str | None = None,
         product_type: ProductType = ProductType.AUDIT_REPORT,
-        business_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        business_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
         self.product_name = product_name
         self.amount_usd = amount_usd
@@ -88,7 +86,7 @@ class CheckoutItem:
         """Get total amount for this item"""
         return self.amount_usd * self.quantity
 
-    def to_stripe_line_item(self) -> Dict[str, Any]:
+    def to_stripe_line_item(self) -> dict[str, Any]:
         """Convert to Stripe line item"""
         return create_one_time_line_item(
             product_name=self.product_name,
@@ -111,10 +109,10 @@ class CheckoutSession:
     def __init__(
         self,
         customer_email: str,
-        items: List[CheckoutItem],
-        purchase_id: Optional[str] = None,
-        config: Optional[CheckoutConfig] = None,
-        stripe_client: Optional[StripeClient] = None,
+        items: list[CheckoutItem],
+        purchase_id: str | None = None,
+        config: CheckoutConfig | None = None,
+        stripe_client: StripeClient | None = None,
     ):
         self.customer_email = customer_email
         self.items = items
@@ -146,7 +144,7 @@ class CheckoutSession:
         """Build cancel URL with purchase ID"""
         return f"{self.config.base_cancel_url}?purchase_id={self.purchase_id}&session_id={{CHECKOUT_SESSION_ID}}"
 
-    def build_metadata(self, additional_metadata: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    def build_metadata(self, additional_metadata: dict[str, str] | None = None) -> dict[str, str]:
         """
         Build metadata for Stripe session - Acceptance Criteria
         """
@@ -173,7 +171,7 @@ class CheckoutSession:
 
         return metadata
 
-    def create_stripe_session(self, additional_metadata: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+    def create_stripe_session(self, additional_metadata: dict[str, str] | None = None) -> dict[str, Any]:
         """
         Create Stripe checkout session - Acceptance Criteria
         """
@@ -219,8 +217,8 @@ class CheckoutManager:
 
     def __init__(
         self,
-        config: Optional[CheckoutConfig] = None,
-        stripe_client: Optional[StripeClient] = None,
+        config: CheckoutConfig | None = None,
+        stripe_client: StripeClient | None = None,
     ):
         self.config = config or CheckoutConfig()
         self.stripe_client = stripe_client or StripeClient(StripeConfig(test_mode=self.config.test_mode))
@@ -228,10 +226,10 @@ class CheckoutManager:
     def initiate_checkout(
         self,
         customer_email: str,
-        items: List[CheckoutItem],
-        attribution_data: Optional[Dict[str, Any]] = None,
-        additional_metadata: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        items: list[CheckoutItem],
+        attribution_data: dict[str, Any] | None = None,
+        additional_metadata: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """
         Initiate complete checkout flow
 
@@ -286,7 +284,7 @@ class CheckoutManager:
                 "error_type": "UnexpectedError",
             }
 
-    def retrieve_session_status(self, session_id: str) -> Dict[str, Any]:
+    def retrieve_session_status(self, session_id: str) -> dict[str, Any]:
         """Retrieve the status of a checkout session"""
         try:
             result = self.stripe_client.retrieve_checkout_session(session_id)
@@ -311,10 +309,10 @@ class CheckoutManager:
         self,
         customer_email: str,
         business_url: str,
-        business_name: Optional[str] = None,
+        business_name: str | None = None,
         amount_usd: Decimal = Decimal("29.99"),
-        attribution_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        attribution_data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Convenience method for creating audit report checkout
         """
@@ -348,10 +346,10 @@ class CheckoutManager:
     def create_bulk_reports_checkout(
         self,
         customer_email: str,
-        business_urls: List[str],
+        business_urls: list[str],
         amount_per_report_usd: Decimal = Decimal("24.99"),
-        attribution_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        attribution_data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Convenience method for creating bulk reports checkout
         """
@@ -380,7 +378,7 @@ class CheckoutManager:
             attribution_data=attribution_data,
         )
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get checkout manager status"""
         return {
             "test_mode": self.config.test_mode,
@@ -394,7 +392,7 @@ class CheckoutManager:
 
 
 # Utility functions for testing and development
-def create_test_checkout_items() -> List[CheckoutItem]:
+def create_test_checkout_items() -> list[CheckoutItem]:
     """Create test checkout items for development"""
     return [
         CheckoutItem(
@@ -412,7 +410,7 @@ def create_test_checkout_items() -> List[CheckoutItem]:
     ]
 
 
-def format_checkout_response_for_api(response: Dict[str, Any]) -> Dict[str, Any]:
+def format_checkout_response_for_api(response: dict[str, Any]) -> dict[str, Any]:
     """Format checkout response for API consumption"""
     if response["success"]:
         return {
@@ -427,11 +425,10 @@ def format_checkout_response_for_api(response: Dict[str, Any]) -> Dict[str, Any]
                 "test_mode": response["test_mode"],
             },
         }
-    else:
-        return {
-            "status": "error",
-            "error": {"message": response["error"], "type": response["error_type"]},
-        }
+    return {
+        "status": "error",
+        "error": {"message": response["error"], "type": response["error_type"]},
+    }
 
 
 # Constants for checkout configuration

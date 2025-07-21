@@ -1,7 +1,8 @@
 """
 Prometheus metrics for D0 Gateway monitoring
 """
-from typing import Any, Dict
+
+from typing import Any
 
 from prometheus_client import Counter, Gauge, Histogram, Info
 
@@ -99,9 +100,7 @@ class GatewayMetrics:
             # Record latency
             self.api_latency_seconds.labels(provider=provider, endpoint=endpoint).observe(duration)
 
-            self.logger.debug(
-                f"Recorded API call: {provider}/{endpoint} " f"status={status_code} duration={duration:.3f}s"
-            )
+            self.logger.debug(f"Recorded API call: {provider}/{endpoint} status={status_code} duration={duration:.3f}s")
 
         except Exception as e:
             self.logger.error(f"Failed to record API call metrics: {e}")
@@ -168,7 +167,7 @@ class GatewayMetrics:
         except Exception as e:
             self.logger.error(f"Failed to update rate limit usage: {e}")
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get a summary of current metrics"""
         try:
             # This would typically be implemented by querying the metrics
@@ -191,7 +190,7 @@ class GatewayMetrics:
             self.logger.error(f"Failed to get metrics summary: {e}")
             return {"metrics_enabled": False, "error": str(e)}
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get a summary of current metrics (alias for get_metrics_summary for backward compatibility)"""
         base_summary = self.get_metrics_summary()
 

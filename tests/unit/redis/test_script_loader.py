@@ -75,7 +75,7 @@ class TestScriptLoader:
     def test_load_script_read_error(self, script_loader):
         """Test handling of file read errors"""
         with patch("pathlib.Path.exists", return_value=True):
-            with patch("builtins.open", side_effect=IOError("Permission denied")):
+            with patch("builtins.open", side_effect=OSError("Permission denied")):
                 with pytest.raises(IOError):
                     script_loader.load_script("error")
 

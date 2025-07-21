@@ -2,6 +2,7 @@
 Tests for email enrichment logic (P0-001)
 Ensures email enrichment works properly and covers all edge cases
 """
+
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest

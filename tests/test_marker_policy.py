@@ -47,7 +47,7 @@ class TestMarkerPolicy:
 
         # Load the JSON report
         try:
-            with open("/tmp/test_results.json", "r") as f:
+            with open("/tmp/test_results.json") as f:
                 report = json.load(f)
         except FileNotFoundError:
             pytest.skip("JSON report not generated - pytest-json-report may not be installed")

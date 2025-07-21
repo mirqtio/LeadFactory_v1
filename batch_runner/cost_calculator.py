@@ -4,11 +4,11 @@ Cost Calculator for Batch Report Runner
 Provides accurate cost estimation for batch report processing
 by analyzing lead requirements and provider rates.
 """
+
 import json
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from sqlalchemy import text
 
@@ -22,18 +22,18 @@ logger = get_logger("batch_cost_calculator")
 class CostRates:
     """Cost rate configuration with caching"""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str | None = None):
         self.config_path = config_path or "config/batch_costs.json"
         self._rates_cache = None
         self._cache_timestamp = None
         self._cache_ttl = 300  # 5 minutes
 
-    def _load_rates_from_file(self) -> Dict:
+    def _load_rates_from_file(self) -> dict:
         """Load rates from configuration file"""
         try:
             config_file = Path(self.config_path)
             if config_file.exists():
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     return json.load(f)
         except Exception as e:
             logger.warning(f"Could not load cost config from {self.config_path}: {e}")
@@ -41,7 +41,7 @@ class CostRates:
         # Return default rates if file not found
         return self._get_default_rates()
 
-    def _get_default_rates(self) -> Dict:
+    def _get_default_rates(self) -> dict:
         """Default cost rates with enhanced provider-specific pricing"""
         return {
             "report_generation": {
@@ -67,7 +67,7 @@ class CostRates:
             "overhead": {"processing_multiplier": 1.10, "margin": 1.15},  # 10% overhead for processing  # 15% margin
         }
 
-    def get_rates(self) -> Dict:
+    def get_rates(self) -> dict:
         """Get current rates with caching"""
         now = datetime.utcnow()
 
@@ -94,7 +94,7 @@ class CostCalculator:
         self.rates = CostRates()
         self.settings = get_settings()
 
-    def calculate_batch_preview(self, lead_ids: List[str], template_version: str = "v1") -> Dict:
+    def calculate_batch_preview(self, lead_ids: list[str], template_version: str = "v1") -> dict:
         """
         Calculate cost preview for a batch of leads
 
@@ -144,10 +144,10 @@ class CostCalculator:
             "accuracy_note": "Estimate accurate within ±5%",
         }
 
-        logger.info(f"Cost preview calculated: ${total_cost:.2f} total, ${total_cost/lead_count:.2f} per lead")
+        logger.info(f"Cost preview calculated: ${total_cost:.2f} total, ${total_cost / lead_count:.2f} per lead")
         return preview
 
-    def _calculate_base_cost(self, lead_count: int, template_version: str, rates_config: Dict) -> Decimal:
+    def _calculate_base_cost(self, lead_count: int, template_version: str, rates_config: dict) -> Decimal:
         """Calculate base report generation cost"""
         base_rate = Decimal(str(rates_config["report_generation"]["base_cost"]))
 
@@ -157,7 +157,7 @@ class CostCalculator:
 
         return base_rate * multiplier * lead_count
 
-    def _calculate_provider_costs(self, lead_ids: List[str], rates_config: Dict) -> Decimal:
+    def _calculate_provider_costs(self, lead_ids: list[str], rates_config: dict) -> Decimal:
         """Calculate estimated provider costs based on lead data"""
         total_cost = Decimal("0")
 
@@ -190,7 +190,7 @@ class CostCalculator:
 
         return total_cost
 
-    def _calculate_lead_provider_cost(self, lead, rates_config: Dict) -> Decimal:
+    def _calculate_lead_provider_cost(self, lead, rates_config: dict) -> Decimal:
         """Calculate provider costs for a single lead"""
         cost = Decimal("0")
         providers = rates_config["providers"]
@@ -213,7 +213,7 @@ class CostCalculator:
 
         return cost
 
-    def _calculate_volume_discount(self, lead_count: int, rates_config: Dict) -> Decimal:
+    def _calculate_volume_discount(self, lead_count: int, rates_config: dict) -> Decimal:
         """Calculate volume discount multiplier"""
         tiers = rates_config["discounts"]["volume_tiers"]
 
@@ -227,7 +227,7 @@ class CostCalculator:
 
         return applicable_discount
 
-    def _calculate_overhead(self, base_cost: Decimal, rates_config: Dict) -> Decimal:
+    def _calculate_overhead(self, base_cost: Decimal, rates_config: dict) -> Decimal:
         """Calculate processing overhead and margin"""
         overhead_config = rates_config["overhead"]
         processing_multiplier = Decimal(str(overhead_config["processing_multiplier"]))
@@ -238,7 +238,7 @@ class CostCalculator:
 
         return processing_overhead + margin_cost
 
-    def _get_provider_breakdown(self, lead_ids: List[str], rates_config: Dict) -> Dict:
+    def _get_provider_breakdown(self, lead_ids: list[str], rates_config: dict) -> dict:
         """Get detailed breakdown by provider"""
         breakdown = {}
         providers = rates_config["providers"]
@@ -339,7 +339,7 @@ class CostCalculator:
         # Add buffer for overhead (20%)
         return int(estimated_minutes * 1.2)
 
-    def _estimate_duration_enhanced(self, lead_count: int, template_version: str) -> Dict:
+    def _estimate_duration_enhanced(self, lead_count: int, template_version: str) -> dict:
         """Enhanced duration estimation with performance metrics and confidence intervals"""
         # Historical performance data (would be loaded from database in production)
         historical_rates = {
@@ -379,7 +379,7 @@ class CostCalculator:
             "max_concurrent": max_concurrent,
         }
 
-    def validate_budget(self, total_cost: float, daily_budget_override: Optional[float] = None) -> Dict:
+    def validate_budget(self, total_cost: float, daily_budget_override: float | None = None) -> dict:
         """
         Validate that batch cost fits within budget constraints
 

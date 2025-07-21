@@ -1,6 +1,7 @@
 """
 Integration tests for P3-006 Mock Integration Replacement system
 """
+
 import asyncio
 import os
 

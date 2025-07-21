@@ -7,7 +7,7 @@ and performs comprehensive health checks across the LeadFactory MVP.
 
 Acceptance Criteria:
 - All systems verified ✓
-- Documentation complete ✓ 
+- Documentation complete ✓
 - Team access granted ✓
 - First revenue tracked ✓
 """
@@ -17,7 +17,7 @@ import json
 import logging
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -44,7 +44,7 @@ class SystemChecker:
         """Initialize system checker"""
         self.config = Config() if IMPORTS_AVAILABLE else None
         self.verification_results = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "systems": {},
             "integrations": {},
             "documentation": {},
@@ -68,7 +68,7 @@ class SystemChecker:
         """Check if a directory exists"""
         return Path(dir_path).is_dir()
 
-    def run_command(self, command: List[str], timeout: int = 30) -> Dict[str, Any]:
+    def run_command(self, command: list[str], timeout: int = 30) -> dict[str, Any]:
         """Run a command and return result"""
         try:
             result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
@@ -86,7 +86,7 @@ class SystemChecker:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    async def verify_core_systems(self) -> Dict[str, bool]:
+    async def verify_core_systems(self) -> dict[str, bool]:
         """Verify core system components are operational"""
         print("🔍 Verifying core systems...")
 
@@ -176,7 +176,7 @@ class SystemChecker:
 
         return systems
 
-    async def verify_external_integrations(self) -> Dict[str, bool]:
+    async def verify_external_integrations(self) -> dict[str, bool]:
         """Verify external API integrations are working"""
         print("🌐 Verifying external integrations...")
 
@@ -221,7 +221,7 @@ class SystemChecker:
 
         return integrations
 
-    async def verify_documentation_complete(self) -> Dict[str, bool]:
+    async def verify_documentation_complete(self) -> dict[str, bool]:
         """Verify documentation is complete and accessible"""
         print("📚 Verifying documentation...")
 
@@ -264,7 +264,7 @@ class SystemChecker:
 
         return documentation
 
-    async def verify_team_access(self) -> Dict[str, bool]:
+    async def verify_team_access(self) -> dict[str, bool]:
         """Verify team access and permissions are properly configured"""
         print("👥 Verifying team access...")
 
@@ -322,7 +322,7 @@ class SystemChecker:
 
         return team_access
 
-    async def verify_revenue_tracking(self) -> Dict[str, bool]:
+    async def verify_revenue_tracking(self) -> dict[str, bool]:
         """Verify revenue tracking and payment systems are operational"""
         print("💰 Verifying revenue tracking...")
 
@@ -409,7 +409,7 @@ class SystemChecker:
 
         return revenue
 
-    async def generate_system_report(self) -> Dict[str, Any]:
+    async def generate_system_report(self) -> dict[str, Any]:
         """Generate comprehensive system verification report"""
         print("🎯 LEADFACTORY SYSTEM VERIFICATION")
         print("=" * 80)
@@ -461,7 +461,7 @@ class SystemChecker:
 
         return self.verification_results
 
-    def check_acceptance_criteria(self) -> Dict[str, bool]:
+    def check_acceptance_criteria(self) -> dict[str, bool]:
         """Check if all acceptance criteria are met"""
         results = self.verification_results
 

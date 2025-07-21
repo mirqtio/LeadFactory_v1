@@ -1,6 +1,7 @@
 """
 Tests for D0 Gateway Client Factory
 """
+
 import threading
 from unittest.mock import Mock, patch
 

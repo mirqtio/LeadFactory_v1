@@ -10,11 +10,12 @@ Acceptance Criteria:
 - Results retrieval API
 - Proper error responses
 """
+
 import logging
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -47,8 +48,8 @@ router = APIRouter(prefix="/api/v1/assessments", tags=["assessments"])
 coordinator = AssessmentCoordinator(max_concurrent=5)
 
 # In-memory storage for demo (would use database in production)
-assessment_sessions: Dict[str, CoordinatorResult] = {}
-batch_sessions: Dict[str, List[str]] = {}
+assessment_sessions: dict[str, CoordinatorResult] = {}
+batch_sessions: dict[str, list[str]] = {}
 
 
 def get_coordinator() -> AssessmentCoordinator:
@@ -65,7 +66,7 @@ async def store_assessment_result(session_id: str, result: CoordinatorResult):
 def create_error_response(
     error_type: str,
     message: str,
-    details: Optional[Dict] = None,
+    details: dict | None = None,
     status_code: int = 400,
 ) -> HTTPException:
     """Create standardized error response"""
@@ -177,7 +178,7 @@ async def trigger_assessment(
     description="Start a comprehensive website assessment (legacy endpoint for backward compatibility)",
 )
 async def assess_website(
-    request: Dict[str, Any],
+    request: dict[str, Any],
     background_tasks: BackgroundTasks,
     coord: AssessmentCoordinator = Depends(get_coordinator),
 ) -> TriggerAssessmentResponse:
@@ -272,24 +273,23 @@ async def get_assessment_status(
                 current_step=_get_current_step(result),
                 errors=errors,
             )
-        else:
-            # Assessment still running or not found - use coordinator status
-            status_info = coord.get_assessment_status(session_id)
+        # Assessment still running or not found - use coordinator status
+        status_info = coord.get_assessment_status(session_id)
 
-            return AssessmentStatusResponse(
-                session_id=session_id,
-                business_id="unknown",  # Would get from database in production
-                status=AssessmentStatus.RUNNING,
-                progress=status_info.get("progress", "Starting..."),
-                total_assessments=status_info.get("total_assessments", 3),
-                completed_assessments=status_info.get("completed_assessments", 0),
-                failed_assessments=0,
-                started_at=datetime.utcnow() - timedelta(minutes=1),  # Estimate
-                estimated_completion=status_info.get("estimated_completion"),
-                completed_at=None,
-                current_step="Processing assessments...",
-                errors=None,
-            )
+        return AssessmentStatusResponse(
+            session_id=session_id,
+            business_id="unknown",  # Would get from database in production
+            status=AssessmentStatus.RUNNING,
+            progress=status_info.get("progress", "Starting..."),
+            total_assessments=status_info.get("total_assessments", 3),
+            completed_assessments=status_info.get("completed_assessments", 0),
+            failed_assessments=0,
+            started_at=datetime.utcnow() - timedelta(minutes=1),  # Estimate
+            estimated_completion=status_info.get("estimated_completion"),
+            completed_at=None,
+            current_step="Processing assessments...",
+            errors=None,
+        )
 
     except ValueError as e:
         raise create_error_response("validation_error", str(e))
@@ -443,7 +443,7 @@ async def trigger_batch_assessment(
             except ValueError as e:
                 raise create_error_response(
                     "validation_error",
-                    f"Invalid assessment {i+1}: {str(e)}",
+                    f"Invalid assessment {i + 1}: {str(e)}",
                     {"assessment_index": i, "business_id": assessment.business_id},
                 )
 
@@ -544,8 +544,7 @@ async def cancel_assessment(session_id: str, coord: AssessmentCoordinator = Depe
                 content={"message": f"Assessment {session_id} cancelled successfully"},
                 status_code=200,
             )
-        else:
-            raise create_error_response("cancellation_failed", "Failed to cancel assessment", status_code=500)
+        raise create_error_response("cancellation_failed", "Failed to cancel assessment", status_code=500)
 
     except HTTPException:
         raise
@@ -597,18 +596,17 @@ async def health_check() -> HealthCheckResponse:
         )
 
 
-def _get_current_step(result: CoordinatorResult) -> Optional[str]:
+def _get_current_step(result: CoordinatorResult) -> str | None:
     """Determine current processing step based on assessment progress"""
     if result.completed_assessments == 0:
         return "Initializing assessments..."
-    elif result.completed_assessments == 1:
+    if result.completed_assessments == 1:
         return "Running performance analysis..."
-    elif result.completed_assessments == 2:
+    if result.completed_assessments == 2:
         return "Analyzing technology stack..."
-    elif result.completed_assessments < result.total_assessments:
+    if result.completed_assessments < result.total_assessments:
         return "Generating AI insights..."
-    else:
-        return "Finalizing results..."
+    return "Finalizing results..."
 
 
 # Note: Exception handlers would be added at the app level, not router level

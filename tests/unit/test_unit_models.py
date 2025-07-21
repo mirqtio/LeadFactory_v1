@@ -1,6 +1,7 @@
 """
 Test database models and relationships
 """
+
 from datetime import datetime
 from decimal import Decimal
 

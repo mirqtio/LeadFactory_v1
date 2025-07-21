@@ -3,7 +3,7 @@ Pydantic schemas for lineage API
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -21,7 +21,7 @@ class LineageResponse(BaseModel):
     compression_ratio: float = Field(..., description="Compression ratio percentage")
     created_at: datetime = Field(..., description="Creation timestamp")
     access_count: int = Field(..., description="Number of times accessed")
-    last_accessed_at: Optional[datetime] = Field(None, description="Last access timestamp")
+    last_accessed_at: datetime | None = Field(None, description="Last access timestamp")
 
     class Config:
         from_attributes = True
@@ -30,10 +30,10 @@ class LineageResponse(BaseModel):
 class LineageSearchParams(BaseModel):
     """Search parameters for lineage queries"""
 
-    lead_id: Optional[str] = Field(None, description="Filter by lead ID")
-    pipeline_run_id: Optional[str] = Field(None, description="Filter by pipeline run ID")
-    start_date: Optional[datetime] = Field(None, description="Filter by start date")
-    end_date: Optional[datetime] = Field(None, description="Filter by end date")
+    lead_id: str | None = Field(None, description="Filter by lead ID")
+    pipeline_run_id: str | None = Field(None, description="Filter by pipeline run ID")
+    start_date: datetime | None = Field(None, description="Filter by start date")
+    end_date: datetime | None = Field(None, description="Filter by end date")
     limit: int = Field(100, ge=1, le=1000, description="Maximum results to return")
 
 
@@ -41,8 +41,8 @@ class LineageLogsResponse(BaseModel):
     """Response schema for lineage logs viewer"""
 
     lineage_id: str
-    pipeline_logs: Dict[str, Any]
-    raw_inputs: Dict[str, Any]
+    pipeline_logs: dict[str, Any]
+    raw_inputs: dict[str, Any]
     pipeline_start_time: datetime
     pipeline_end_time: datetime
     truncated: bool = Field(False, description="Whether data was truncated")
@@ -56,9 +56,9 @@ class LineageAuditLog(BaseModel):
 
     id: str
     action: str
-    user_id: Optional[str]
-    ip_address: Optional[str]
-    user_agent: Optional[str]
+    user_id: str | None
+    ip_address: str | None
+    user_agent: str | None
     accessed_at: datetime
 
     class Config:

@@ -1,6 +1,7 @@
 """
 Simple smoke test to verify CI environment
 """
+
 import os
 import sys
 

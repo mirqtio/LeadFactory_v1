@@ -12,7 +12,7 @@ Acceptance Criteria:
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class ScoringTier(Enum):
@@ -40,12 +40,11 @@ class ScoringTier(Enum):
         # Map to closest A/B/C/D tier for backwards compatibility
         if score >= 80:
             return cls.PLATINUM  # Maps to A
-        elif score >= 60:
+        if score >= 60:
             return cls.GOLD  # Maps to B
-        elif score >= 40:
+        if score >= 40:
             return cls.SILVER  # Maps to C
-        else:
-            return cls.BRONZE  # Maps to D
+        return cls.BRONZE  # Maps to D
 
     @property
     def min_score(self) -> float:
@@ -151,7 +150,7 @@ class ScoringVersion:
     algorithm_version: str
     weights_version: str
     data_schema_version: str
-    changelog: Optional[str] = None
+    changelog: str | None = None
     deprecated: bool = False
 
     def __post_init__(self):
@@ -181,7 +180,7 @@ class ScoringVersion:
         except (ValueError, IndexError):
             return False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for storage"""
         return {
             "version": self.version,
@@ -194,7 +193,7 @@ class ScoringVersion:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ScoringVersion":
+    def from_dict(cls, data: dict[str, Any]) -> "ScoringVersion":
         """Create from dictionary"""
         return cls(
             version=data["version"],

@@ -10,12 +10,13 @@ Acceptance Criteria:
 - Source attribution
 - Data versioning
 """
+
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -275,7 +276,7 @@ class EnrichmentResult(Base):
         """Get age of enrichment data in days"""
         return (datetime.utcnow() - self.enriched_at).days
 
-    def get_address_string(self) -> Optional[str]:
+    def get_address_string(self) -> str | None:
         """Get formatted address string"""
         if not self.headquarters_address:
             return None
@@ -296,7 +297,7 @@ class EnrichmentResult(Base):
 
         return ", ".join(parts) if parts else None
 
-    def get_contact_info(self) -> Dict[str, Any]:
+    def get_contact_info(self) -> dict[str, Any]:
         """Get consolidated contact information"""
         return {
             "phone": self.phone,
@@ -306,7 +307,7 @@ class EnrichmentResult(Base):
             "address": self.get_address_string(),
         }
 
-    def get_company_metrics(self) -> Dict[str, Any]:
+    def get_company_metrics(self) -> dict[str, Any]:
         """Get company size and financial metrics"""
         return {
             "employee_count": self.employee_count,
@@ -317,7 +318,7 @@ class EnrichmentResult(Base):
             "founded_year": self.founded_year,
         }
 
-    def get_data_quality_metrics(self) -> Dict[str, Any]:
+    def get_data_quality_metrics(self) -> dict[str, Any]:
         """Get data quality assessment metrics"""
         return {
             "match_confidence": self.match_confidence,
@@ -329,7 +330,7 @@ class EnrichmentResult(Base):
             "is_expired": self.is_expired,
         }
 
-    def update_data_version(self, new_data: Dict[str, Any]) -> str:
+    def update_data_version(self, new_data: dict[str, Any]) -> str:
         """
         Update data version when enrichment data changes
 
@@ -360,7 +361,7 @@ class EnrichmentResult(Base):
 
         return new_version
 
-    def calculate_match_score(self, input_data: Dict[str, Any], matched_data: Dict[str, Any]) -> float:
+    def calculate_match_score(self, input_data: dict[str, Any], matched_data: dict[str, Any]) -> float:
         """
         Calculate match confidence score
 
@@ -477,7 +478,7 @@ class EnrichmentAuditLog(Base):
 
 
 # Data quality validation functions
-def validate_enrichment_data(data: Dict[str, Any]) -> List[str]:
+def validate_enrichment_data(data: dict[str, Any]) -> list[str]:
     """
     Validate enrichment data quality
 
@@ -535,7 +536,7 @@ def _is_valid_phone(phone: str) -> bool:
     return 10 <= len(digits) <= 15
 
 
-def calculate_completeness_score(data: Dict[str, Any]) -> float:
+def calculate_completeness_score(data: dict[str, Any]) -> float:
     """
     Calculate data completeness score
 

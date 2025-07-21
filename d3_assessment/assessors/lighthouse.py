@@ -7,12 +7,13 @@ Cost: $0.00 (local execution)
 Output: lighthouse_json column
 Cache: 7 days
 """
+
 import asyncio
 import hashlib
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 from core.config import get_settings
 from core.logging import get_logger
@@ -44,7 +45,7 @@ class LighthouseAssessor(BaseAssessor):
         """Generate cache key for URL"""
         return hashlib.md5(url.encode()).hexdigest()
 
-    def _get_cached_result(self, url: str) -> Optional[Dict[str, Any]]:
+    def _get_cached_result(self, url: str) -> dict[str, Any] | None:
         """Get cached result if available and not expired"""
         cache_key = self._get_cache_key(url)
         cache_file = os.path.join(self.cache_dir, f"{cache_key}.json")
@@ -54,7 +55,7 @@ class LighthouseAssessor(BaseAssessor):
                 # Check if cache is still valid
                 file_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
                 if datetime.now() - file_time < timedelta(days=self.cache_days):
-                    with open(cache_file, "r") as f:
+                    with open(cache_file) as f:
                         logger.info(f"Using cached Lighthouse result for {url}")
                         return json.load(f)
             except Exception as e:
@@ -62,7 +63,7 @@ class LighthouseAssessor(BaseAssessor):
 
         return None
 
-    def _save_to_cache(self, url: str, data: Dict[str, Any]):
+    def _save_to_cache(self, url: str, data: dict[str, Any]):
         """Save result to cache"""
         cache_key = self._get_cache_key(url)
         cache_file = os.path.join(self.cache_dir, f"{cache_key}.json")
@@ -74,7 +75,7 @@ class LighthouseAssessor(BaseAssessor):
         except Exception as e:
             logger.warning(f"Failed to save cache for {url}: {e}")
 
-    def _get_stub_data(self, url: str) -> Dict[str, Any]:
+    def _get_stub_data(self, url: str) -> dict[str, Any]:
         """Return stub data when USE_STUBS=true"""
         return {
             "scores": {"performance": 85, "accessibility": 92, "best-practices": 88, "seo": 90, "pwa": 75},
@@ -102,9 +103,8 @@ class LighthouseAssessor(BaseAssessor):
             "is_stub": True,
         }
 
-    async def _run_lighthouse_audit(self, url: str) -> Dict[str, Any]:
+    async def _run_lighthouse_audit(self, url: str) -> dict[str, Any]:
         """Run Lighthouse audit using actual Lighthouse CLI"""
-        import subprocess
         import tempfile
 
         # Create temporary file for Lighthouse output
@@ -140,7 +140,7 @@ class LighthouseAssessor(BaseAssessor):
                 raise RuntimeError(f"Lighthouse CLI failed: {stderr.decode()}")
 
             # Read and parse the JSON output
-            with open(tmp_path, "r") as f:
+            with open(tmp_path) as f:
                 lighthouse_json = json.load(f)
 
             # Extract key data from Lighthouse JSON
@@ -218,7 +218,7 @@ class LighthouseAssessor(BaseAssessor):
             except:
                 pass
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Assess website performance using Lighthouse
 
@@ -257,7 +257,7 @@ class LighthouseAssessor(BaseAssessor):
                         lighthouse_data = await asyncio.wait_for(self._run_lighthouse_audit(url), timeout=self.timeout)
                         # Save to cache
                         self._save_to_cache(url, lighthouse_data)
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         raise AssessmentTimeoutError(f"Lighthouse audit timed out after {self.timeout}s")
 
             # Extract metrics for quick access
@@ -319,9 +319,8 @@ class LighthouseAssessor(BaseAssessor):
             if result.returncode == 0:
                 logger.info(f"Lighthouse CLI available: {result.stdout.strip()}")
                 return True
-            else:
-                logger.warning("Lighthouse CLI not found")
-                return False
+            logger.warning("Lighthouse CLI not found")
+            return False
         except Exception as e:
             logger.warning(f"Failed to check Lighthouse CLI: {e}")
             return False

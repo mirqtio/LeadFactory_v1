@@ -23,7 +23,7 @@ def fix_star_imports():
     for file_path in files_to_check:
         full_path = Path(__file__).parent / file_path
         if full_path.exists():
-            with open(full_path, "r") as f:
+            with open(full_path) as f:
                 content = f.read()
 
             # Add noqa to star imports

@@ -70,9 +70,8 @@ def check_workflows():
     if all_passing:
         print("\n✅ All workflows are passing!")
         return True
-    else:
-        print("\n⚠️  Some workflows are not passing yet")
-        return False
+    print("\n⚠️  Some workflows are not passing yet")
+    return False
 
 
 def wait_for_ci_completion(max_wait=300):

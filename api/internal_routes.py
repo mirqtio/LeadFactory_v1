@@ -3,8 +3,9 @@ Internal API routes for administrative functions.
 
 These endpoints should be protected and not exposed publicly.
 """
+
 import time
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from prometheus_client import Counter, Histogram
@@ -34,7 +35,7 @@ def get_internal_auth(x_internal_token: str = Header(...)) -> bool:
 
 @router.post("/reload_rules")
 @reload_duration.time()
-async def reload_scoring_rules(auth: bool = Depends(get_internal_auth)) -> Dict[str, Any]:
+async def reload_scoring_rules(auth: bool = Depends(get_internal_auth)) -> dict[str, Any]:
     """
     Reload scoring rules from YAML configuration.
 
@@ -127,7 +128,7 @@ async def reload_scoring_rules(auth: bool = Depends(get_internal_auth)) -> Dict[
 
 
 @router.get("/health/scoring")
-async def scoring_health_check(auth: bool = Depends(get_internal_auth)) -> Dict[str, Any]:
+async def scoring_health_check(auth: bool = Depends(get_internal_auth)) -> dict[str, Any]:
     """
     Check health of scoring system.
 

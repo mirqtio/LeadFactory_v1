@@ -13,7 +13,7 @@ Acceptance Criteria Tests:
 
 import asyncio
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -87,7 +87,7 @@ class TestComplianceManager:
         assert token.list_type == "marketing"
         assert token.token is not None
         assert len(token.token) > 50  # Should be reasonably long
-        assert token.expires_at > datetime.now(timezone.utc)
+        assert token.expires_at > datetime.now(UTC)
 
         print("✓ Unsubscribe token generation works")
 

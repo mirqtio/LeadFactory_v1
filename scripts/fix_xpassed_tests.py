@@ -2,6 +2,7 @@
 """
 Script to find and fix xpassed tests by removing unnecessary xfail markers.
 """
+
 import ast
 import re
 import subprocess
@@ -48,7 +49,7 @@ def run_pytest_on_file(file_path):
 
 def remove_xfail_from_test(file_path, test_name):
     """Remove xfail marker from a specific test."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Pattern to match the xfail decorator before the test
@@ -68,7 +69,7 @@ def remove_xfail_from_test(file_path, test_name):
             # Remove just the xfail line
             if match.group(0).count("@") > 1:
                 # Multiple decorators - remove only xfail
-                new_content = re.sub(rf"@pytest\.mark\.xfail[^\n]*\n", "", content)
+                new_content = re.sub(r"@pytest\.mark\.xfail[^\n]*\n", "", content)
             else:
                 # Only xfail decorator - remove it
                 new_content = re.sub(
@@ -92,7 +93,7 @@ def process_file(file_path):
     print(f"\n📄 Processing {file_path}")
 
     # Check if file has xfail markers
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     if "@pytest.mark.xfail" not in content:
@@ -124,12 +125,12 @@ def process_file(file_path):
 
     # Verify fixes
     if fixed_count > 0:
-        print(f"  🧪 Verifying fixes...")
+        print("  🧪 Verifying fixes...")
         new_xpassed = run_pytest_on_file(file_path)
         if len(new_xpassed) < len(xpassed_tests):
             print(f"  ✅ Successfully fixed {fixed_count} tests")
         else:
-            print(f"  ⚠️  Some tests still showing as xpassed")
+            print("  ⚠️  Some tests still showing as xpassed")
 
     return fixed_count
 
@@ -142,7 +143,7 @@ def main():
     test_dir = Path("tests")
     for file_path in test_dir.rglob("test_*.py"):
         if file_path.is_file():
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 if "@pytest.mark.xfail" in f.read():
                     files_with_xfail.append(file_path)
 
@@ -153,9 +154,9 @@ def main():
         fixed = process_file(file_path)
         total_fixed += fixed
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"SUMMARY: Fixed {total_fixed} xpassed tests")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
 
 
 if __name__ == "__main__":

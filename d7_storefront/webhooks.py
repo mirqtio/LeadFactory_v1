@@ -15,7 +15,7 @@ import hashlib
 import logging
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .stripe_client import StripeClient, StripeError
 
@@ -47,8 +47,6 @@ class WebhookStatus(Enum):
 class WebhookError(Exception):
     """Custom exception for webhook-related errors"""
 
-    pass
-
 
 class WebhookProcessor:
     """
@@ -63,7 +61,7 @@ class WebhookProcessor:
 
     def __init__(
         self,
-        stripe_client: Optional[StripeClient] = None,
+        stripe_client: StripeClient | None = None,
         max_event_age_hours: int = 24,
         enable_idempotency: bool = True,
     ):
@@ -88,7 +86,7 @@ class WebhookProcessor:
             logger.error(f"Signature verification error: {e}")
             return False
 
-    def construct_event(self, payload: bytes, signature: str) -> Dict[str, Any]:
+    def construct_event(self, payload: bytes, signature: str) -> dict[str, Any]:
         """
         Construct and validate webhook event
         """
@@ -125,9 +123,7 @@ class WebhookProcessor:
             self._processed_events.add(event_id)
             logger.debug(f"Marked event as processed: {event_id}")
 
-    def process_webhook(
-        self, payload: bytes, signature: str, headers: Optional[Dict[str, str]] = None
-    ) -> Dict[str, Any]:
+    def process_webhook(self, payload: bytes, signature: str, headers: dict[str, str] | None = None) -> dict[str, Any]:
         """
         Main webhook processing method - Acceptance Criteria: Event processing works
         """
@@ -208,7 +204,7 @@ class WebhookProcessor:
                 "status": WebhookStatus.FAILED.value,
             }
 
-    def _process_event(self, event_type: str, event_data: Dict[str, Any], event_id: str) -> Dict[str, Any]:
+    def _process_event(self, event_type: str, event_data: dict[str, Any], event_id: str) -> dict[str, Any]:
         """
         Process specific event types
         """
@@ -220,36 +216,35 @@ class WebhookProcessor:
                 handler = CheckoutSessionHandler(self.stripe_client)
                 return handler.handle_session_completed(event_data, event_id)
 
-            elif event_type == WebhookEventType.CHECKOUT_SESSION_EXPIRED.value:
+            if event_type == WebhookEventType.CHECKOUT_SESSION_EXPIRED.value:
                 handler = CheckoutSessionHandler(self.stripe_client)
                 return handler.handle_session_expired(event_data, event_id)
 
-            elif event_type == WebhookEventType.PAYMENT_INTENT_SUCCEEDED.value:
+            if event_type == WebhookEventType.PAYMENT_INTENT_SUCCEEDED.value:
                 handler = PaymentIntentHandler(self.stripe_client)
                 return handler.handle_payment_succeeded(event_data, event_id)
 
-            elif event_type == WebhookEventType.PAYMENT_INTENT_FAILED.value:
+            if event_type == WebhookEventType.PAYMENT_INTENT_FAILED.value:
                 handler = PaymentIntentHandler(self.stripe_client)
                 return handler.handle_payment_failed(event_data, event_id)
 
-            elif event_type == WebhookEventType.CUSTOMER_CREATED.value:
+            if event_type == WebhookEventType.CUSTOMER_CREATED.value:
                 handler = CustomerHandler(self.stripe_client)
                 return handler.handle_customer_created(event_data, event_id)
 
-            elif event_type in [
+            if event_type in [
                 WebhookEventType.INVOICE_PAYMENT_SUCCEEDED.value,
                 WebhookEventType.INVOICE_PAYMENT_FAILED.value,
             ]:
                 handler = InvoiceHandler(self.stripe_client)
                 return handler.handle_invoice_event(event_type, event_data, event_id)
 
-            else:
-                logger.info(f"Unhandled event type: {event_type}")
-                return {
-                    "success": True,
-                    "status": WebhookStatus.IGNORED.value,
-                    "reason": f"Unhandled event type: {event_type}",
-                }
+            logger.info(f"Unhandled event type: {event_type}")
+            return {
+                "success": True,
+                "status": WebhookStatus.IGNORED.value,
+                "reason": f"Unhandled event type: {event_type}",
+            }
 
         except Exception as e:
             logger.error(f"Error processing event {event_id} of type {event_type}: {e}")
@@ -259,11 +254,11 @@ class WebhookProcessor:
                 "error": str(e),
             }
 
-    def get_supported_events(self) -> List[str]:
+    def get_supported_events(self) -> list[str]:
         """Get list of supported webhook event types"""
         return [event.value for event in WebhookEventType]
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get webhook processor status"""
         return {
             "stripe_test_mode": self.stripe_client.is_test_mode(),
@@ -288,7 +283,7 @@ def generate_event_hash(event_id: str, event_type: str, created: int) -> str:
     return hashlib.sha256(content.encode()).hexdigest()
 
 
-def extract_metadata_from_event(event_data: Dict[str, Any]) -> Dict[str, Any]:
+def extract_metadata_from_event(event_data: dict[str, Any]) -> dict[str, Any]:
     """Extract useful metadata from Stripe event"""
     metadata = {}
 
@@ -313,7 +308,7 @@ def extract_metadata_from_event(event_data: Dict[str, Any]) -> Dict[str, Any]:
     return {k: v for k, v in metadata.items() if v is not None}
 
 
-def format_webhook_response_for_api(result: Dict[str, Any]) -> Dict[str, Any]:
+def format_webhook_response_for_api(result: dict[str, Any]) -> dict[str, Any]:
     """Format webhook processing result for API response"""
     if result["success"]:
         return {
@@ -325,15 +320,14 @@ def format_webhook_response_for_api(result: Dict[str, Any]) -> Dict[str, Any]:
                 "data": result.get("data", {}),
             },
         }
-    else:
-        return {
-            "status": "error",
-            "error": {
-                "message": result.get("error", "Unknown error"),
-                "event_id": result.get("event_id"),
-                "processing_status": result.get("status"),
-            },
-        }
+    return {
+        "status": "error",
+        "error": {
+            "message": result.get("error", "Unknown error"),
+            "event_id": result.get("event_id"),
+            "processing_status": result.get("status"),
+        },
+    }
 
 
 # Constants for webhook configuration

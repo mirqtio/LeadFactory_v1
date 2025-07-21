@@ -6,14 +6,14 @@ conversion impact, effort to fix, and quick win potential.
 
 Acceptance Criteria:
 - Impact scoring works ✓
-- Top 3 issues selected ✓ 
+- Top 3 issues selected ✓
 - Quick wins identified ✓
 - Conversion focus ✓
 """
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 
 class ImpactLevel(Enum):
@@ -48,7 +48,7 @@ class FindingScore:
     priority_score: float
     is_quick_win: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {
             "finding_id": self.finding_id,
@@ -103,7 +103,7 @@ class FindingScorer:
         self.quick_win_threshold = 7.0  # Minimum score for quick wins
         self.high_impact_threshold = 8.0  # Minimum score for high impact
 
-    def score_finding(self, finding: Dict[str, Any]) -> FindingScore:
+    def score_finding(self, finding: dict[str, Any]) -> FindingScore:
         """
         Score a single finding based on conversion impact and effort
 
@@ -150,7 +150,7 @@ class FindingScorer:
             is_quick_win=is_quick_win,
         )
 
-    def _calculate_impact_score(self, category: str, severity: str, finding: Dict) -> float:
+    def _calculate_impact_score(self, category: str, severity: str, finding: dict) -> float:
         """Calculate impact score based on category and severity"""
         # Base impact from severity
         severity_scores = {
@@ -198,7 +198,7 @@ class FindingScorer:
 
         return min(10.0, base_score * multiplier)
 
-    def _calculate_effort_score(self, fix_type: str, finding: Dict) -> float:
+    def _calculate_effort_score(self, fix_type: str, finding: dict) -> float:
         """Calculate effort score (lower = easier to fix)"""
         # Base effort from fix type
         base_effort = self.EFFORT_MULTIPLIERS.get(fix_type, 0.6) * 10
@@ -229,7 +229,7 @@ class FindingScorer:
 
         return min(10.0, base_effort)
 
-    def _calculate_conversion_impact(self, category: str, finding: Dict) -> float:
+    def _calculate_conversion_impact(self, category: str, finding: dict) -> float:
         """Calculate conversion-specific impact score"""
         base_weight = self.CONVERSION_WEIGHTS.get(category, 0.15)
 
@@ -292,20 +292,18 @@ class FindingScorer:
         """Get impact level from score"""
         if score >= 8.5:
             return ImpactLevel.CRITICAL
-        elif score >= 7.0:
+        if score >= 7.0:
             return ImpactLevel.HIGH
-        elif score >= 5.0:
+        if score >= 5.0:
             return ImpactLevel.MEDIUM
-        else:
-            return ImpactLevel.LOW
+        return ImpactLevel.LOW
 
     def get_effort_level(self, score: float) -> EffortLevel:
         """Get effort level from score"""
         if score <= 3.0:
             return EffortLevel.EASY
-        elif score <= 6.0:
+        if score <= 6.0:
             return EffortLevel.MODERATE
-        elif score <= 8.0:
+        if score <= 8.0:
             return EffortLevel.HARD
-        else:
-            return EffortLevel.VERY_HARD
+        return EffortLevel.VERY_HARD

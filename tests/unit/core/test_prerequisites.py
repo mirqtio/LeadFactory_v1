@@ -3,7 +3,7 @@ Comprehensive tests for prerequisites validation system.
 
 Tests critical infrastructure validation including:
 - Python version validation
-- Docker and Docker Compose version checking  
+- Docker and Docker Compose version checking
 - Database connectivity testing
 - Environment variables validation
 - Dependencies installation verification
@@ -571,21 +571,17 @@ class TestPrerequisiteValidator:
         validator = PrerequisiteValidator(settings=mock_settings)
 
         # Mock all individual check methods
-        with patch.object(validator, "check_python_version") as mock_python, patch.object(
-            validator, "check_docker_version"
-        ) as mock_docker, patch.object(validator, "check_docker_compose_version") as mock_compose, patch.object(
-            validator, "check_database_connectivity"
-        ) as mock_db, patch.object(
-            validator, "check_environment_variables"
-        ) as mock_env, patch.object(
-            validator, "check_dependencies_installed"
-        ) as mock_deps, patch.object(
-            validator, "check_pytest_collection"
-        ) as mock_pytest, patch.object(
-            validator, "check_ci_toolchain"
-        ) as mock_ci, patch.object(
-            validator, "check_docker_build"
-        ) as mock_build:
+        with (
+            patch.object(validator, "check_python_version") as mock_python,
+            patch.object(validator, "check_docker_version") as mock_docker,
+            patch.object(validator, "check_docker_compose_version") as mock_compose,
+            patch.object(validator, "check_database_connectivity") as mock_db,
+            patch.object(validator, "check_environment_variables") as mock_env,
+            patch.object(validator, "check_dependencies_installed") as mock_deps,
+            patch.object(validator, "check_pytest_collection") as mock_pytest,
+            patch.object(validator, "check_ci_toolchain") as mock_ci,
+            patch.object(validator, "check_docker_build") as mock_build,
+        ):
             # Configure mocks to return passing checks
             mock_python.return_value = PrerequisiteCheck(name="Python", passed=True, required=True)
             mock_docker.return_value = PrerequisiteCheck(name="Docker", passed=True, required=True)
@@ -709,22 +705,21 @@ class TestPrerequisitesIntegration:
             def mock_run_command(cmd, timeout=30):
                 if cmd[0] == "docker" and cmd[1] == "--version":
                     return (0, "Docker version 20.10.17, build 100c701", "")
-                elif cmd[0] == "docker-compose" and cmd[1] == "--version":
+                if cmd[0] == "docker-compose" and cmd[1] == "--version":
                     return (0, "Docker Compose version v2.17.2", "")
-                elif cmd[1:3] == ["-m", "pip"] and cmd[3] == "check":
+                if cmd[1:3] == ["-m", "pip"] and cmd[3] == "check":
                     return (0, "No broken requirements found.", "")
-                elif cmd[1:3] == ["-m", "pip"] and cmd[3] == "list":
+                if cmd[1:3] == ["-m", "pip"] and cmd[3] == "list":
                     return (0, "pytest==7.4.3\nruff==0.1.6", "")
-                elif cmd[1:3] == ["-m", "pytest"] and cmd[3] == "--collect-only":
+                if cmd[1:3] == ["-m", "pytest"] and cmd[3] == "--collect-only":
                     return (0, "2191 items collected in 5.23s", "")
-                elif cmd[1:3] == ["-m", "ruff"]:
+                if cmd[1:3] == ["-m", "ruff"]:
                     return (0, "ruff 0.1.6", "")
-                elif cmd[1:3] == ["-m", "mypy"]:
+                if cmd[1:3] == ["-m", "mypy"]:
                     return (0, "mypy 1.7.1", "")
-                elif cmd[1:3] == ["-m", "pytest"] and cmd[3] == "--version":
+                if cmd[1:3] == ["-m", "pytest"] and cmd[3] == "--version":
                     return (0, "pytest 7.4.3", "")
-                else:
-                    return (1, "", "Command not found")
+                return (1, "", "Command not found")
 
             # Create mock version_info with proper attributes
             mock_version_info = Mock()
@@ -732,15 +727,18 @@ class TestPrerequisitesIntegration:
             mock_version_info.minor = 11
             mock_version_info.micro = 5
 
-            with patch.object(validator, "_run_command", side_effect=mock_run_command), patch.object(
-                sys, "version_info", mock_version_info
-            ), patch("core.prerequisites.create_engine") as mock_engine, patch.dict(
-                os.environ,
-                {
-                    "DATABASE_URL": "postgresql://test:test@localhost:5432/test",
-                    "SECRET_KEY": "test-secret",
-                    "ENVIRONMENT": "test",
-                },
+            with (
+                patch.object(validator, "_run_command", side_effect=mock_run_command),
+                patch.object(sys, "version_info", mock_version_info),
+                patch("core.prerequisites.create_engine") as mock_engine,
+                patch.dict(
+                    os.environ,
+                    {
+                        "DATABASE_URL": "postgresql://test:test@localhost:5432/test",
+                        "SECRET_KEY": "test-secret",
+                        "ENVIRONMENT": "test",
+                    },
+                ),
             ):
                 # Mock database connection
                 mock_conn = Mock()
@@ -778,9 +776,11 @@ class TestPrerequisitesIntegration:
             mock_validator.validate_all_prerequisites.return_value = test_result
             mock_validator_class.return_value = mock_validator
 
-            with patch("sys.argv", ["prerequisites.py", "--json"]), patch("builtins.print") as mock_print, patch(
-                "sys.exit"
-            ) as mock_exit:
+            with (
+                patch("sys.argv", ["prerequisites.py", "--json"]),
+                patch("builtins.print") as mock_print,
+                patch("sys.exit") as mock_exit,
+            ):
                 # Import and run main
                 from core.prerequisites import main
 

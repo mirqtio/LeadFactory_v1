@@ -7,14 +7,14 @@ This is a critical component for achieving 80% test coverage requirement.
 
 Coverage Areas:
 - MetricsWarehouse: Core warehouse functionality
-- WarehouseJobStatus: Job status enumeration  
+- WarehouseJobStatus: Job status enumeration
 - WarehouseJobResult: Job result dataclass
 - MetricsWarehouseConfig: Configuration dataclass
 - Integration with aggregators and database sessions
 """
 
 import logging
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta, timezone
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -77,7 +77,7 @@ class TestWarehouseJobResult:
 
     def test_job_result_creation_minimal(self):
         """Test WarehouseJobResult creation with minimal fields"""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         result = WarehouseJobResult(
             job_id="test_job_123",
@@ -100,7 +100,7 @@ class TestWarehouseJobResult:
 
     def test_job_result_creation_complete(self):
         """Test WarehouseJobResult creation with all fields"""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         end_time = start_time + timedelta(seconds=30)
         metadata = {"source": "test", "version": "1.0"}
 
@@ -128,7 +128,7 @@ class TestWarehouseJobResult:
 
     def test_job_result_creation_with_error(self):
         """Test WarehouseJobResult creation with error"""
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         end_time = start_time + timedelta(seconds=10)
 
         result = WarehouseJobResult(
@@ -550,7 +550,7 @@ class TestWarehouseIntegration:
     def test_warehouse_job_result_workflow(self):
         """Test warehouse job result workflow"""
         # Test job creation
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         job_result = WarehouseJobResult(
             job_id="workflow_test_123",
@@ -582,7 +582,7 @@ class TestWarehouseIntegration:
     def test_warehouse_error_handling(self):
         """Test warehouse error handling"""
         # Test job failure
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         failed_job = WarehouseJobResult(
             job_id="error_test_456",
@@ -621,7 +621,7 @@ def test_warehouse_comprehensive_integration():
     warehouse = MetricsWarehouse(config)
 
     # Test job creation
-    start_time = datetime.now(timezone.utc)
+    start_time = datetime.now(UTC)
     job_result = WarehouseJobResult(
         job_id="integration_test_789",
         status=WarehouseJobStatus.PENDING,

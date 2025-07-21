@@ -34,7 +34,7 @@ class MockEnrichmentResult:
     source: EnrichmentSource
     confidence: float
     data: dict
-    error: Optional[str] = None
+    error: str | None = None
     cached: bool = False
 
 
@@ -123,7 +123,7 @@ class MockLighthouseRunner:
 
             return MockEnrichmentResult(source=LIGHTHOUSE_SOURCE, confidence=confidence, data=enrichment_data)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return MockEnrichmentResult(
                 source=LIGHTHOUSE_SOURCE,
                 confidence=0.0,
@@ -258,7 +258,7 @@ class TestLighthouseRunner:
 
         # Mock timeout
         async def mock_timeout_audit(url):
-            raise asyncio.TimeoutError()
+            raise TimeoutError
 
         lighthouse_runner.run_audit = mock_timeout_audit
 

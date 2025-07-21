@@ -29,13 +29,13 @@ class TestFullPipelineFlow:
     @pytest.fixture
     def mock_coordinators(self):
         """Mock all coordinator dependencies"""
-        with patch("flows.full_pipeline_flow.AssessmentCoordinator") as mock_assessment, patch(
-            "flows.full_pipeline_flow.ScoringEngine"
-        ) as mock_scorer, patch("flows.full_pipeline_flow.ReportGenerator") as mock_report, patch(
-            "flows.full_pipeline_flow.AdvancedContentGenerator"
-        ) as mock_personalizer, patch(
-            "flows.full_pipeline_flow.DeliveryManager"
-        ) as mock_email:
+        with (
+            patch("flows.full_pipeline_flow.AssessmentCoordinator") as mock_assessment,
+            patch("flows.full_pipeline_flow.ScoringEngine") as mock_scorer,
+            patch("flows.full_pipeline_flow.ReportGenerator") as mock_report,
+            patch("flows.full_pipeline_flow.AdvancedContentGenerator") as mock_personalizer,
+            patch("flows.full_pipeline_flow.DeliveryManager") as mock_email,
+        ):
             # Configure assessment coordinator
             mock_assessment_instance = AsyncMock()
             mock_assessment_instance.execute_comprehensive_assessment = AsyncMock(

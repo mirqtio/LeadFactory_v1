@@ -1,10 +1,11 @@
 """
 Base API client with common functionality for all external API providers
 """
+
 import time
 from abc import ABC, abstractmethod
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any
 
 import httpx
 
@@ -14,10 +15,9 @@ from core.logging import get_logger
 
 from .cache import ResponseCache
 from .circuit_breaker import CircuitBreaker
-from .guardrail_middleware import GuardrailBlocked, GuardrailContext
-from .guardrails import GuardrailAction, GuardrailViolation, guardrail_manager
+from .guardrail_middleware import GuardrailBlocked
 from .metrics import GatewayMetrics
-from .middleware.cost_enforcement import CostEnforcementMiddleware, OperationPriority, cost_enforcement
+from .middleware.cost_enforcement import OperationPriority, cost_enforcement
 from .rate_limiter import RateLimiter
 
 
@@ -27,8 +27,8 @@ class BaseAPIClient(ABC):
     def __init__(
         self,
         provider: str,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
     ):
         self.provider = provider
         self.settings = get_settings()
@@ -62,26 +62,22 @@ class BaseAPIClient(ABC):
     @abstractmethod
     def _get_base_url(self) -> str:
         """Get the base URL for this provider"""
-        pass
 
     @abstractmethod
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get authentication headers for this provider"""
-        pass
 
     @abstractmethod
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get rate limit configuration for this provider"""
-        pass
 
     @abstractmethod
     def calculate_cost(self, operation: str, **kwargs) -> Decimal:
         """Calculate cost for a specific operation"""
-        pass
 
     async def make_request(
-        self, method: str, endpoint: str, priority: Optional[OperationPriority] = None, **kwargs
-    ) -> Dict[str, Any]:
+        self, method: str, endpoint: str, priority: OperationPriority | None = None, **kwargs
+    ) -> dict[str, Any]:
         """
         Make an authenticated API request with all gateway features
 
@@ -136,7 +132,7 @@ class BaseAPIClient(ABC):
                         daily_limit=0,
                         daily_used=0,
                     )
-                elif enforcement_result.get("reason") == "guardrail_violation":
+                if enforcement_result.get("reason") == "guardrail_violation":
                     violation = enforcement_result.get("violation", {})
                     raise GuardrailBlocked(
                         f"Operation blocked by guardrail '{violation.get('limit_name', 'unknown')}': "
@@ -221,8 +217,7 @@ class BaseAPIClient(ABC):
 
             if isinstance(e, ExternalAPIError):
                 raise
-            else:
-                raise ExternalAPIError(provider=self.provider, message=str(e), status_code=500) from e
+            raise ExternalAPIError(provider=self.provider, message=str(e), status_code=500) from e
 
         finally:
             # Record metrics
@@ -279,7 +274,7 @@ class BaseAPIClient(ABC):
                 daily_used=rate_info.get("daily_used", 0),
             )
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform a health check on the API"""
         try:
             # Simple test request to verify connectivity
@@ -300,11 +295,11 @@ class BaseAPIClient(ABC):
 
     def emit_cost(
         self,
-        lead_id: Optional[int] = None,
-        campaign_id: Optional[int] = None,
+        lead_id: int | None = None,
+        campaign_id: int | None = None,
         cost_usd: float = 0.0,
-        operation: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        operation: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Emit cost tracking event for API usage
@@ -357,7 +352,7 @@ class BaseAPIClient(ABC):
         cost_enforcement.set_operation_priority(self.provider, operation, priority)
         self.logger.info(f"Set priority {priority.value} for {self.provider}:{operation}")
 
-    async def make_critical_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
+    async def make_critical_request(self, method: str, endpoint: str, **kwargs) -> dict[str, Any]:
         """
         Make a critical API request that should never be blocked
 
@@ -371,7 +366,7 @@ class BaseAPIClient(ABC):
         """
         return await self.make_request(method, endpoint, priority=OperationPriority.CRITICAL, **kwargs)
 
-    async def make_low_priority_request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
+    async def make_low_priority_request(self, method: str, endpoint: str, **kwargs) -> dict[str, Any]:
         """
         Make a low priority API request that can be aggressively limited
 

@@ -8,15 +8,15 @@ Comprehensive RBAC implementation providing:
 - Audit logging for access decisions
 - Security enforcement for all API endpoints
 """
+
 import functools
 from enum import Enum
-from typing import Dict, List, Optional, Set, Union
 
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from account_management.models import AccountUser
-from core.auth import get_current_user_dependency, require_organization_access
+from core.auth import get_current_user_dependency
 from core.logging import get_logger
 from database.session import get_db
 
@@ -108,7 +108,7 @@ class Resource(Enum):
 
 
 # Role permission mappings with hierarchical inheritance
-ROLE_PERMISSIONS: Dict[Role, Set[Permission]] = {
+ROLE_PERMISSIONS: dict[Role, set[Permission]] = {
     Role.SUPER_ADMIN: {
         # Full system access
         Permission.ADMIN,
@@ -228,7 +228,7 @@ ROLE_PERMISSIONS: Dict[Role, Set[Permission]] = {
 }
 
 # Resource-permission mappings
-RESOURCE_PERMISSIONS: Dict[Resource, Set[Permission]] = {
+RESOURCE_PERMISSIONS: dict[Resource, set[Permission]] = {
     Resource.CAMPAIGNS: {Permission.MANAGE_CAMPAIGNS, Permission.ADMIN},
     Resource.TARGETING: {Permission.MANAGE_TARGETING, Permission.ADMIN},
     Resource.LEADS: {Permission.MANAGE_LEADS, Permission.ADMIN},
@@ -289,15 +289,15 @@ class RBACService:
             email_lower = user.email.lower()
             if "admin" in email_lower:
                 return Role.ADMIN
-            elif "manager" in email_lower:
+            if "manager" in email_lower:
                 return Role.MANAGER
-            elif "lead" in email_lower:
+            if "lead" in email_lower:
                 return Role.TEAM_LEAD
-            elif "analyst" in email_lower:
+            if "analyst" in email_lower:
                 return Role.ANALYST
-            elif "sales" in email_lower:
+            if "sales" in email_lower:
                 return Role.SALES_REP
-            elif "marketing" in email_lower:
+            if "marketing" in email_lower:
                 return Role.MARKETING_USER
 
         # Default role for authenticated users
@@ -305,7 +305,7 @@ class RBACService:
 
     @staticmethod
     def has_permission(
-        user: AccountUser, permission: Permission, resource: Optional[Resource] = None, db: Session = None
+        user: AccountUser, permission: Permission, resource: Resource | None = None, db: Session = None
     ) -> bool:
         """
         Check if user has specific permission for a resource
@@ -356,7 +356,7 @@ class RBACService:
         return result
 
     @staticmethod
-    def require_permission(permission: Permission, resource: Optional[Resource] = None):
+    def require_permission(permission: Permission, resource: Resource | None = None):
         """
         FastAPI dependency to require specific permission
 
@@ -421,7 +421,7 @@ class RBACService:
 
             if user_level < required_level:
                 logger.warning(
-                    f"Role access denied: user={user.email}, role={user_role.value}, " f"required={required_role.value}"
+                    f"Role access denied: user={user.email}, role={user_role.value}, required={required_role.value}"
                 )
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -460,7 +460,7 @@ def require_write_access(resource: Resource = None) -> AccountUser:
         ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Write access required" + (f" for {resource.value}" if resource else ""),
+                detail="Write access required" + (f" for {resource.value}" if resource else ""),
             )
         return user
 
@@ -493,7 +493,7 @@ def require_domain_access(resource: Resource) -> AccountUser:
 
 
 # Decorator for function-level RBAC
-def rbac_required(permission: Permission, resource: Optional[Resource] = None):
+def rbac_required(permission: Permission, resource: Resource | None = None):
     """
     Decorator to enforce RBAC on any function
 

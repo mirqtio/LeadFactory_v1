@@ -2,6 +2,7 @@
 Database models for LeadFactory MVP
 Based on PRD specifications for all domains (D0-D11)
 """
+
 import enum
 import uuid
 

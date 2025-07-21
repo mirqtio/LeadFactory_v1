@@ -1,6 +1,7 @@
 """
 Tests for Phase 0.5 configuration updates
 """
+
 import pytest
 
 from core.config import Settings

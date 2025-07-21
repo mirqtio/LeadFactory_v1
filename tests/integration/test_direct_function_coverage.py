@@ -2,6 +2,7 @@
 Direct function testing to achieve 80% coverage for cost_guardrails
 Tests specific function code directly without Prefect flows
 """
+
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
@@ -11,15 +12,14 @@ import pytest
 def test_cost_guardrail_flow_function_direct():
     """Test cost_guardrail_flow function with mocked dependencies to achieve coverage"""
     # Import and call the actual function with all dependencies mocked
-    with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.get_settings"
-    ) as mock_settings, patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_get_costs, patch(
-        "d11_orchestration.cost_guardrails.check_budget_threshold"
-    ) as mock_threshold, patch(
-        "d11_orchestration.cost_guardrails.pause_expensive_operations"
-    ) as mock_pause, patch(
-        "d11_orchestration.cost_guardrails.create_markdown_artifact"
-    ) as mock_artifact:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_get_costs,
+        patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold,
+        patch("d11_orchestration.cost_guardrails.pause_expensive_operations") as mock_pause,
+        patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+    ):
         # Mock all function calls
         mock_logger.return_value = MagicMock()
         mock_settings.return_value.cost_budget_usd = 100.0
@@ -49,13 +49,13 @@ def test_cost_guardrail_flow_function_direct():
 
 def test_profit_snapshot_flow_function_direct():
     """Test profit_snapshot_flow function with mocked dependencies to achieve coverage"""
-    with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.get_profit_metrics"
-    ) as mock_metrics, patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session, patch(
-        "d11_orchestration.cost_guardrails.create_profit_report"
-    ) as mock_report, patch(
-        "d11_orchestration.cost_guardrails.create_markdown_artifact"
-    ) as mock_artifact:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics,
+        patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+        patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report,
+        patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+    ):
         # Mock all dependencies
         mock_logger.return_value = MagicMock()
         mock_metrics.return_value = {"total_profit": 300.0, "avg_roi": 0.5}

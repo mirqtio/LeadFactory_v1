@@ -5,7 +5,7 @@ Tests PDF generation, chart creation, and template rendering for unit economics 
 
 Acceptance Criteria:
 - PDF generation with charts ✓
-- Executive-grade formatting ✓  
+- Executive-grade formatting ✓
 - Multi-page reports ✓
 - Professional branding ✓
 """

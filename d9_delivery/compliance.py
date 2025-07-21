@@ -6,7 +6,7 @@ unsubscribe tokens, suppression lists, and required headers.
 
 Acceptance Criteria:
 - Suppression check works ✓
-- Compliance headers added ✓ 
+- Compliance headers added ✓
 - Unsubscribe tokens ✓
 - Send recording ✓
 """
@@ -18,8 +18,8 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 from urllib.parse import urlencode
 
 from sqlalchemy import and_
@@ -60,7 +60,7 @@ class ComplianceManager:
     unsubscribe tokens, and suppression lists.
     """
 
-    def __init__(self, config: Optional[Any] = None):
+    def __init__(self, config: Any | None = None):
         """Initialize compliance manager"""
         self.config = config or get_settings()
         self.secret_key = os.getenv("UNSUBSCRIBE_SECRET_KEY", self.config.secret_key)
@@ -104,7 +104,7 @@ class ComplianceManager:
 
                 # Check if suppression has expired
                 if suppression.expires_at:
-                    now = datetime.now(timezone.utc)
+                    now = datetime.now(UTC)
                     if suppression.expires_at < now:
                         # Expired suppression, deactivate it
                         suppression.is_active = False
@@ -132,7 +132,7 @@ class ComplianceManager:
             UnsubscribeToken object
         """
         # Create token data as JSON then base64 encode
-        expires_at = datetime.now(timezone.utc) + timedelta(days=self.token_expiration_days)
+        expires_at = datetime.now(UTC) + timedelta(days=self.token_expiration_days)
         token_data_dict = {
             "email": email,
             "list_type": list_type,
@@ -149,7 +149,7 @@ class ComplianceManager:
 
         return UnsubscribeToken(token=token, email=email, expires_at=expires_at, list_type=list_type)
 
-    def verify_unsubscribe_token(self, token: str) -> Optional[UnsubscribeToken]:
+    def verify_unsubscribe_token(self, token: str) -> UnsubscribeToken | None:
         """
         Verify and decode unsubscribe token
 
@@ -195,7 +195,7 @@ class ComplianceManager:
             expires_at = datetime.fromisoformat(expires_at_str)
 
             # Check expiration
-            if expires_at < datetime.now(timezone.utc):
+            if expires_at < datetime.now(UTC):
                 logger.warning(f"Expired unsubscribe token for {email}")
                 return None
 
@@ -260,7 +260,7 @@ class ComplianceManager:
         self,
         email: str,
         list_type: str = "marketing",
-        custom_headers: Optional[Dict[str, str]] = None,
+        custom_headers: dict[str, str] | None = None,
     ) -> ComplianceHeaders:
         """
         Generate required compliance headers for email
@@ -433,7 +433,7 @@ Contact: support@leadfactory.com
         reason: str,
         list_type: str = "marketing",
         source: str = "manual",
-        expires_days: Optional[int] = None,
+        expires_days: int | None = None,
     ) -> bool:
         """
         Manually record a suppression
@@ -469,7 +469,7 @@ Contact: support@leadfactory.com
                 # Calculate expiration if specified
                 expires_at = None
                 if expires_days:
-                    expires_at = datetime.now(timezone.utc) + timedelta(days=expires_days)
+                    expires_at = datetime.now(UTC) + timedelta(days=expires_days)
 
                 # Create suppression
                 suppression = SuppressionList(
@@ -489,7 +489,7 @@ Contact: support@leadfactory.com
             logger.error(f"Error recording suppression for {email}: {e}")
             return False
 
-    def get_suppression_stats(self) -> Dict[str, Any]:
+    def get_suppression_stats(self) -> dict[str, Any]:
         """
         Get suppression statistics
 
@@ -541,14 +541,14 @@ Contact: support@leadfactory.com
                     "unsubscribe_source_suppressions": unsubscribe_source_count,
                     "user_unsubscribes": unsubscribe_count,
                     "bounce_suppressions": bounce_count,
-                    "last_updated": datetime.now(timezone.utc).isoformat(),
+                    "last_updated": datetime.now(UTC).isoformat(),
                 }
 
         except Exception as e:
             logger.error(f"Error getting suppression stats: {e}")
             return {
                 "error": str(e),
-                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "last_updated": datetime.now(UTC).isoformat(),
             }
 
 
@@ -617,7 +617,7 @@ class ComplianceResult:
 
     passed: bool = True
     message: str = "Compliance check passed"
-    details: Dict[str, Any] = None
+    details: dict[str, Any] = None
 
     @property
     def is_compliant(self) -> bool:

@@ -629,9 +629,10 @@ class TestAlertManager:
                 action_taken=["alert"],
             )
 
-            with patch.object(manager, "_send_log_alert", return_value=True) as mock_log, patch.object(
-                manager, "_send_email_alert", return_value=True
-            ) as mock_email:
+            with (
+                patch.object(manager, "_send_log_alert", return_value=True) as mock_log,
+                patch.object(manager, "_send_email_alert", return_value=True) as mock_email,
+            ):
                 results = await manager.send_alert(violation)
 
                 assert results[AlertChannel.LOG] is True
@@ -750,9 +751,11 @@ class TestAlertsIntegration:
             mock_response = Mock()
             mock_response.status_code = 200
 
-            with patch("d0_gateway.alerts.SendGridClient", return_value=mock_sendgrid), patch(
-                "httpx.AsyncClient"
-            ) as mock_client_class, patch.object(manager.logger, "error") as mock_log_error:
+            with (
+                patch("d0_gateway.alerts.SendGridClient", return_value=mock_sendgrid),
+                patch("httpx.AsyncClient") as mock_client_class,
+                patch.object(manager.logger, "error") as mock_log_error,
+            ):
                 mock_client = AsyncMock()
                 mock_client.post.return_value = mock_response
                 mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -809,9 +812,11 @@ class TestAlertsIntegration:
             mock_sendgrid = Mock()
             mock_sendgrid.send_email = AsyncMock(return_value={"success": True})
 
-            with patch("d0_gateway.alerts.SendGridClient", return_value=mock_sendgrid), patch(
-                "httpx.AsyncClient"
-            ) as mock_client_class, patch.object(manager.logger, "error") as mock_log_error:
+            with (
+                patch("d0_gateway.alerts.SendGridClient", return_value=mock_sendgrid),
+                patch("httpx.AsyncClient") as mock_client_class,
+                patch.object(manager.logger, "error") as mock_log_error,
+            ):
                 mock_client = AsyncMock()
                 mock_client.post.side_effect = Exception("Slack API error")
                 mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -865,9 +870,10 @@ class TestAlertsIntegration:
                 count_this_hour=15,  # Over limit
             )
 
-            with patch.object(manager, "_send_log_alert", return_value=True), patch.object(
-                manager, "_send_email_alert", return_value=True
-            ) as mock_email:
+            with (
+                patch.object(manager, "_send_log_alert", return_value=True),
+                patch.object(manager, "_send_email_alert", return_value=True) as mock_email,
+            ):
                 results = await manager.send_alert(violation)
 
                 # Both should succeed despite throttling

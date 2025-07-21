@@ -1,4 +1,5 @@
 """Unit tests for severity rubric mapper."""
+
 import pytest
 
 from d3_assessment.rubric import map_severity

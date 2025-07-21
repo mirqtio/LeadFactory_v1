@@ -4,7 +4,7 @@ Integration module for capturing lineage during report generation
 
 import uuid
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,7 +23,7 @@ class LineageCapture:
         self._pipeline_context = {}
 
     async def start_pipeline(
-        self, lead_id: str, template_version: str, initial_data: Optional[Dict[str, Any]] = None
+        self, lead_id: str, template_version: str, initial_data: dict[str, Any] | None = None
     ) -> str:
         """
         Start a new pipeline run and return pipeline_run_id
@@ -49,7 +49,7 @@ class LineageCapture:
         return pipeline_run_id
 
     def log_pipeline_event(
-        self, pipeline_run_id: str, event_type: str, message: str, data: Optional[Dict[str, Any]] = None
+        self, pipeline_run_id: str, event_type: str, message: str, data: dict[str, Any] | None = None
     ):
         """
         Log an event during pipeline execution
@@ -93,7 +93,7 @@ class LineageCapture:
         report_generation_id: str,
         pipeline_run_id: str,
         success: bool = True,
-        error_data: Optional[Dict[str, Any]] = None,
+        error_data: dict[str, Any] | None = None,
     ) -> bool:
         """
         Capture lineage when report generation completes
@@ -156,9 +156,9 @@ async def create_report_with_lineage(
     business_id: str,
     template_id: str,
     template_version: str,
-    user_id: Optional[str] = None,
-    order_id: Optional[str] = None,
-    report_data: Optional[Dict[str, Any]] = None,
+    user_id: str | None = None,
+    order_id: str | None = None,
+    report_data: dict[str, Any] | None = None,
 ) -> tuple[ReportGeneration, str]:
     """
     Create a new report generation with lineage tracking

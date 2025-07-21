@@ -13,16 +13,14 @@ Features:
 - Multi-format output (HTML, PDF, JSON)
 """
 
-import json
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
-from jinja2 import BaseLoader, Environment, Template
+from jinja2 import BaseLoader, Environment
 from pydantic import BaseModel, Field
 
-from .component_library import ComponentConfig, ComponentLibrary, ReportComponent, component_library
+from .component_library import ComponentConfig, ReportComponent, component_library
 
 
 class TemplateConfig(BaseModel):
@@ -30,29 +28,29 @@ class TemplateConfig(BaseModel):
 
     id: str = Field(..., description="Template identifier")
     name: str = Field(..., description="Template name")
-    description: Optional[str] = Field(None, description="Template description")
+    description: str | None = Field(None, description="Template description")
     version: str = Field(default="1.0.0", description="Template version")
 
     # Layout properties
     page_size: str = Field(default="A4", description="Page size (A4, Letter, etc.)")
     orientation: str = Field(default="portrait", description="Page orientation")
-    margins: Dict[str, str] = Field(default={"top": "1in", "right": "1in", "bottom": "1in", "left": "1in"})
+    margins: dict[str, str] = Field(default={"top": "1in", "right": "1in", "bottom": "1in", "left": "1in"})
 
     # Styling
     theme: str = Field(default="default", description="Theme identifier")
-    custom_css: Optional[str] = Field(None, description="Custom CSS styles")
+    custom_css: str | None = Field(None, description="Custom CSS styles")
 
     # Components
-    components: List[ComponentConfig] = Field(default=[], description="Template components")
+    components: list[ComponentConfig] = Field(default=[], description="Template components")
 
     # Data requirements
-    data_sources: List[str] = Field(default=[], description="Required data sources")
+    data_sources: list[str] = Field(default=[], description="Required data sources")
 
     # Metadata
-    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    created_by: Optional[str] = Field(None, description="Creator identifier")
-    tags: List[str] = Field(default=[], description="Template tags")
+    created_at: datetime | None = Field(default_factory=datetime.utcnow)
+    updated_at: datetime | None = Field(default_factory=datetime.utcnow)
+    created_by: str | None = Field(None, description="Creator identifier")
+    tags: list[str] = Field(default=[], description="Template tags")
 
 
 class TemplateResult(BaseModel):
@@ -60,26 +58,26 @@ class TemplateResult(BaseModel):
 
     template_id: str
     success: bool
-    html_content: Optional[str] = None
-    css_content: Optional[str] = None
-    json_structure: Optional[Dict[str, Any]] = None
-    error_message: Optional[str] = None
-    warnings: List[str] = Field(default=[])
+    html_content: str | None = None
+    css_content: str | None = None
+    json_structure: dict[str, Any] | None = None
+    error_message: str | None = None
+    warnings: list[str] = Field(default=[])
     render_time_ms: int = 0
     component_count: int = 0
-    required_data_sources: List[str] = Field(default=[])
+    required_data_sources: list[str] = Field(default=[])
 
 
 @dataclass
 class RenderContext:
     """Context for template rendering"""
 
-    data: Dict[str, Any] = field(default_factory=dict)
-    user_context: Optional[Dict[str, Any]] = None
-    business_context: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] = field(default_factory=dict)
+    user_context: dict[str, Any] | None = None
+    business_context: dict[str, Any] | None = None
     render_mode: str = "html"  # html, pdf, json
     include_debug: bool = False
-    custom_filters: Optional[Dict[str, Any]] = None
+    custom_filters: dict[str, Any] | None = None
 
 
 class TemplateEngine:
@@ -89,7 +87,7 @@ class TemplateEngine:
         self.component_library = component_library
         self.jinja_env = Environment(loader=BaseLoader())
         self._setup_jinja_filters()
-        self.templates: Dict[str, TemplateConfig] = {}
+        self.templates: dict[str, TemplateConfig] = {}
         self._load_default_templates()
 
     def _setup_jinja_filters(self):
@@ -99,7 +97,7 @@ class TemplateEngine:
         self.jinja_env.filters["date_format"] = self._date_format_filter
         self.jinja_env.filters["number_format"] = self._number_format_filter
 
-    def _currency_filter(self, value: Union[int, float, str], currency: str = "USD") -> str:
+    def _currency_filter(self, value: int | float | str, currency: str = "USD") -> str:
         """Format number as currency"""
         try:
             num_value = float(value)
@@ -107,7 +105,7 @@ class TemplateEngine:
         except (ValueError, TypeError):
             return str(value)
 
-    def _percentage_filter(self, value: Union[int, float, str], decimals: int = 1) -> str:
+    def _percentage_filter(self, value: int | float | str, decimals: int = 1) -> str:
         """Format number as percentage"""
         try:
             num_value = float(value)
@@ -115,7 +113,7 @@ class TemplateEngine:
         except (ValueError, TypeError):
             return str(value)
 
-    def _date_format_filter(self, value: Union[str, datetime], format: str = "%Y-%m-%d") -> str:
+    def _date_format_filter(self, value: str | datetime, format: str = "%Y-%m-%d") -> str:
         """Format date string"""
         try:
             if isinstance(value, str):
@@ -126,7 +124,7 @@ class TemplateEngine:
         except (ValueError, TypeError):
             return str(value)
 
-    def _number_format_filter(self, value: Union[int, float, str], decimals: int = 2) -> str:
+    def _number_format_filter(self, value: int | float | str, decimals: int = 2) -> str:
         """Format number with commas and decimals"""
         try:
             num_value = float(value)
@@ -220,11 +218,11 @@ class TemplateEngine:
 
         return config.id
 
-    def get_template(self, template_id: str) -> Optional[TemplateConfig]:
+    def get_template(self, template_id: str) -> TemplateConfig | None:
         """Get template by ID"""
         return self.templates.get(template_id)
 
-    def list_templates(self) -> List[Dict[str, Any]]:
+    def list_templates(self) -> list[dict[str, Any]]:
         """List all available templates"""
         templates = []
         for template_config in self.templates.values():
@@ -243,7 +241,7 @@ class TemplateEngine:
             )
         return templates
 
-    def validate_template(self, config: TemplateConfig) -> List[str]:
+    def validate_template(self, config: TemplateConfig) -> list[str]:
         """Validate template configuration"""
         errors = []
 
@@ -313,7 +311,7 @@ class TemplateEngine:
                     required_data_sources=list(set(required_data_sources)),
                 )
 
-            elif context.render_mode == "json":
+            if context.render_mode == "json":
                 json_structure = self._render_json(template_config, components, context)
 
                 render_time = (datetime.utcnow() - start_time).total_seconds() * 1000
@@ -327,18 +325,17 @@ class TemplateEngine:
                     required_data_sources=list(set(required_data_sources)),
                 )
 
-            else:
-                return TemplateResult(
-                    template_id=template_id,
-                    success=False,
-                    error_message=f"Unsupported render mode: {context.render_mode}",
-                )
+            return TemplateResult(
+                template_id=template_id,
+                success=False,
+                error_message=f"Unsupported render mode: {context.render_mode}",
+            )
 
         except Exception as e:
             return TemplateResult(template_id=template_id, success=False, error_message=f"Render error: {str(e)}")
 
     def _render_html(
-        self, template_config: TemplateConfig, components: List[ReportComponent], context: RenderContext
+        self, template_config: TemplateConfig, components: list[ReportComponent], context: RenderContext
     ) -> str:
         """Render template as HTML"""
         # Generate component HTML
@@ -393,7 +390,7 @@ class TemplateEngine:
             render_time=0,  # Will be calculated later
         )
 
-    def _render_css(self, template_config: TemplateConfig, components: List[ReportComponent]) -> str:
+    def _render_css(self, template_config: TemplateConfig, components: list[ReportComponent]) -> str:
         """Render CSS for template and components"""
         css_rules = []
 
@@ -511,8 +508,8 @@ class TemplateEngine:
         return "\n".join(css_rules)
 
     def _render_json(
-        self, template_config: TemplateConfig, components: List[ReportComponent], context: RenderContext
-    ) -> Dict[str, Any]:
+        self, template_config: TemplateConfig, components: list[ReportComponent], context: RenderContext
+    ) -> dict[str, Any]:
         """Render template as JSON structure"""
         component_data = []
 

@@ -10,11 +10,12 @@ Acceptance Criteria:
 - Address similarity scoring
 - Weighted combination logic
 """
+
 import re
 import unicodedata
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional, Set
+from typing import Any
 
 
 class SimilarityAlgorithm(Enum):
@@ -37,7 +38,7 @@ class SimilarityResult:
     algorithm: SimilarityAlgorithm
     normalized_input: str
     normalized_target: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class PhoneSimilarity:
@@ -63,7 +64,7 @@ class PhoneSimilarity:
         return digits
 
     @staticmethod
-    def extract_formats(phone: str) -> Dict[str, str]:
+    def extract_formats(phone: str) -> dict[str, str]:
         """Extract different phone number formats"""
         normalized = PhoneSimilarity.normalize_phone(phone)
 
@@ -75,7 +76,7 @@ class PhoneSimilarity:
                 "number": normalized[6:],
                 "formatted": f"({normalized[:3]}) {normalized[3:6]}-{normalized[6:]}",
             }
-        elif len(normalized) >= 7:
+        if len(normalized) >= 7:
             # Handle shorter numbers
             return {
                 "normalized": normalized,
@@ -84,14 +85,13 @@ class PhoneSimilarity:
                 "number": normalized[3:] if len(normalized) >= 7 else normalized,
                 "formatted": normalized,
             }
-        else:
-            return {
-                "normalized": normalized,
-                "area_code": "",
-                "exchange": "",
-                "number": normalized,
-                "formatted": normalized,
-            }
+        return {
+            "normalized": normalized,
+            "area_code": "",
+            "exchange": "",
+            "number": normalized,
+            "formatted": normalized,
+        }
 
     @classmethod
     def calculate_similarity(cls, phone1: str, phone2: str) -> SimilarityResult:
@@ -267,7 +267,7 @@ class NameSimilarity:
         return normalized
 
     @classmethod
-    def extract_name_tokens(cls, name: str) -> Set[str]:
+    def extract_name_tokens(cls, name: str) -> set[str]:
         """Extract meaningful tokens from business name"""
         normalized = cls.normalize_name(name)
         words = normalized.split()
@@ -282,7 +282,7 @@ class NameSimilarity:
         # Add bigrams for better matching
         for i in range(len(words) - 1):
             if len(words[i]) > 1 and len(words[i + 1]) > 1:
-                bigram = f"{words[i]} {words[i+1]}"
+                bigram = f"{words[i]} {words[i + 1]}"
                 tokens.add(bigram)
 
         return tokens
@@ -436,7 +436,7 @@ class AddressSimilarity:
         return component
 
     @classmethod
-    def parse_address(cls, address: str) -> Dict[str, str]:
+    def parse_address(cls, address: str) -> dict[str, str]:
         """Parse address into components"""
         if not address:
             return {}
@@ -631,9 +631,9 @@ class WeightedSimilarity:
     @classmethod
     def calculate_combined_similarity(
         cls,
-        data1: Dict[str, Any],
-        data2: Dict[str, Any],
-        weights: Optional[Dict[str, float]] = None,
+        data1: dict[str, Any],
+        data2: dict[str, Any],
+        weights: dict[str, float] | None = None,
     ) -> SimilarityResult:
         """
         Calculate weighted combination of multiple similarity scores

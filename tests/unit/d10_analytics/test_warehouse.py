@@ -6,12 +6,12 @@ funnel calculations, cost analysis, and segment breakdowns.
 
 Acceptance Criteria Tests:
 - Daily metrics built ✓
-- Funnel calculations ✓  
+- Funnel calculations ✓
 - Cost analysis works ✓
 - Segment breakdowns ✓
 """
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime, timezone
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -82,7 +82,7 @@ class TestMetricsWarehouse:
                     duration_ms=1000 + (j * 100),
                     cost_cents=50 + (j * 10),
                     success=j % 4 != 0,  # 75% success rate
-                    occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                    occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=UTC),
                 )
                 events.append(event)
                 db_session.add(event)
@@ -96,7 +96,7 @@ class TestMetricsWarehouse:
                 campaign_id=f"campaign_{k % 2}",
                 session_id=f"session_conversion_{k}",
                 event_name=f"conversion_{k}",
-                occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=UTC),
             )
             events.append(conversion_event)
             db_session.add(conversion_event)
@@ -341,7 +341,7 @@ class TestDailyMetricsAggregator:
             event_name="test_event",
             duration_ms=1000,
             success=True,
-            occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+            occurred_at=datetime.combine(target_date, datetime.min.time()).replace(tzinfo=UTC),
         )
         db_session.add(event)
         db_session.commit()
@@ -387,14 +387,14 @@ class TestFunnelCalculator:
                 event_type=EventType.ENTRY,
                 session_id="session_1",
                 event_name="targeting_entry",
-                occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=UTC),
             ),
             FunnelEvent(
                 funnel_stage=FunnelStage.ASSESSMENT,
                 event_type=EventType.ENTRY,
                 session_id="session_1",
                 event_name="assessment_entry",
-                occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+                occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=UTC),
             ),
         ]
 
@@ -443,7 +443,7 @@ class TestCostAnalyzer:
             business_id="business_1",
             event_name="test_event",
             cost_cents=100,
-            occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc),
+            occurred_at=datetime.combine(start_date, datetime.min.time()).replace(tzinfo=UTC),
         )
         db_session.add(event)
         db_session.commit()

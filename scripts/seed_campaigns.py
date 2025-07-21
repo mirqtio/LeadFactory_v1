@@ -59,7 +59,7 @@ class CampaignSeeder:
                 self.errors.append(f"Database connection failed: {e}")
                 self.session = None
 
-    def load_target_data(self) -> List[Dict[str, Any]]:
+    def load_target_data(self) -> list[dict[str, Any]]:
         """Load target campaign data from CSV file"""
         print(f"📊 Loading target data from {self.targets_file}...")
 
@@ -69,7 +69,7 @@ class CampaignSeeder:
 
         targets = []
         try:
-            with open(self.targets_file, "r", newline="") as csvfile:
+            with open(self.targets_file, newline="") as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     # Convert numeric fields
@@ -85,7 +85,7 @@ class CampaignSeeder:
             self.errors.append(f"Error loading targets file: {e}")
             return []
 
-    def validate_target_data(self, targets: List[Dict[str, Any]]) -> bool:
+    def validate_target_data(self, targets: list[dict[str, Any]]) -> bool:
         """Validate target campaign data"""
         print("🔍 Validating target data...")
 
@@ -104,7 +104,7 @@ class CampaignSeeder:
         valid_priorities = ["high", "medium", "low"]
 
         for i, target in enumerate(targets):
-            target_name = target.get("target_name", f"Target {i+1}")
+            target_name = target.get("target_name", f"Target {i + 1}")
 
             # Check required fields
             missing_fields = [field for field in required_fields if not target.get(field)]
@@ -162,7 +162,7 @@ class CampaignSeeder:
 
         return len(self.errors) == 0
 
-    def create_target_campaigns(self, targets: List[Dict[str, Any]]) -> bool:
+    def create_target_campaigns(self, targets: list[dict[str, Any]]) -> bool:
         """Create target campaigns in database"""
         print(f"🎯 Creating {len(targets)} target campaigns...")
 
@@ -253,15 +253,14 @@ class CampaignSeeder:
                     )
 
                 return True
-            else:
-                self.errors.append(f"Expected {len(self.created_targets)} targets, found {len(targets)}")
-                return False
+            self.errors.append(f"Expected {len(self.created_targets)} targets, found {len(targets)}")
+            return False
 
         except Exception as e:
             self.errors.append(f"Error verifying campaigns: {e}")
             return False
 
-    def calculate_quota_distribution(self, targets: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def calculate_quota_distribution(self, targets: list[dict[str, Any]]) -> dict[str, Any]:
         """Calculate quota distribution analytics"""
         print("📊 Calculating quota distribution...")
 
@@ -293,7 +292,7 @@ class CampaignSeeder:
 
         return analytics
 
-    def generate_report(self, targets: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def generate_report(self, targets: list[dict[str, Any]]) -> dict[str, Any]:
         """Generate campaign seeding report"""
         analytics = self.calculate_quota_distribution(targets)
 

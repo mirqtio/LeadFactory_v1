@@ -3,6 +3,7 @@
 Phase-0 Smoke Test
 Tests core functionality without full dependency installation
 """
+
 import os
 import shutil
 import sys
@@ -24,7 +25,7 @@ def test_yaml_config():
         shutil.copy(config_path, backup_path)
 
         # Read config
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             content = f.read()
 
         # Find and modify a weight
@@ -183,9 +184,8 @@ def main():
     if passed == len(tests):
         print("\n✅ Phase-0 smoke test PASSED!")
         return 0
-    else:
-        print(f"\n❌ Smoke test FAILED: {len(tests) - passed} tests failed")
-        return 1
+    print(f"\n❌ Smoke test FAILED: {len(tests) - passed} tests failed")
+    return 1
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 """Tests for hot reload functionality."""
+
 import tempfile
 import time
 from pathlib import Path

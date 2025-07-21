@@ -3,6 +3,7 @@ SendGrid API Mock Factory
 
 Provides realistic mock responses for SendGrid email API testing.
 """
+
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -13,7 +14,7 @@ class SendGridMockFactory(MockFactory):
     """Mock factory for SendGrid API responses."""
 
     @classmethod
-    def create_success_response(cls, **overrides) -> Dict[str, Any]:
+    def create_success_response(cls, **overrides) -> dict[str, Any]:
         """
         Create a successful email send response.
 
@@ -39,7 +40,7 @@ class SendGridMockFactory(MockFactory):
         return base_response
 
     @classmethod
-    def create_error_response(cls, error_type: str, **overrides) -> Dict[str, Any]:
+    def create_error_response(cls, error_type: str, **overrides) -> dict[str, Any]:
         """
         Create an error response for various SendGrid API errors.
 
@@ -103,7 +104,7 @@ class SendGridMockFactory(MockFactory):
         return response
 
     @classmethod
-    def create_batch_send_response(cls, recipient_count: int = 3, **overrides) -> Dict[str, Any]:
+    def create_batch_send_response(cls, recipient_count: int = 3, **overrides) -> dict[str, Any]:
         """Create a batch email send response."""
         return {
             "batch_id": "batch_123456",
@@ -113,7 +114,7 @@ class SendGridMockFactory(MockFactory):
         }
 
     @classmethod
-    def create_bounce_webhook(cls, email: str, reason: str = "bounce", **overrides) -> Dict[str, Any]:
+    def create_bounce_webhook(cls, email: str, reason: str = "bounce", **overrides) -> dict[str, Any]:
         """Create a bounce webhook event."""
         base_event = {
             "email": email,
@@ -132,7 +133,7 @@ class SendGridMockFactory(MockFactory):
         return base_event
 
     @classmethod
-    def create_click_webhook(cls, email: str, url: str, **overrides) -> Dict[str, Any]:
+    def create_click_webhook(cls, email: str, url: str, **overrides) -> dict[str, Any]:
         """Create a click tracking webhook event."""
         base_event = {
             "email": email,
@@ -150,7 +151,7 @@ class SendGridMockFactory(MockFactory):
         return base_event
 
     @classmethod
-    def create_open_webhook(cls, email: str, **overrides) -> Dict[str, Any]:
+    def create_open_webhook(cls, email: str, **overrides) -> dict[str, Any]:
         """Create an open tracking webhook event."""
         base_event = {
             "email": email,
@@ -166,7 +167,7 @@ class SendGridMockFactory(MockFactory):
         return base_event
 
     @classmethod
-    def create_template_response(cls, template_id: str = "template_123", **overrides) -> Dict[str, Any]:
+    def create_template_response(cls, template_id: str = "template_123", **overrides) -> dict[str, Any]:
         """Create a template retrieval response."""
         base_response = {
             "id": template_id,
@@ -191,7 +192,7 @@ class SendGridMockFactory(MockFactory):
         return base_response
 
     @classmethod
-    def create_stats_response(cls, start_date: str, end_date: str, **overrides) -> List[Dict[str, Any]]:
+    def create_stats_response(cls, start_date: str, end_date: str, **overrides) -> list[dict[str, Any]]:
         """Create email statistics response."""
         base_response = [
             {
@@ -227,7 +228,7 @@ class SendGridMockFactory(MockFactory):
         return base_response
 
     @classmethod
-    def create_suppression_response(cls, email: str, group_id: int = 123, **overrides) -> Dict[str, Any]:
+    def create_suppression_response(cls, email: str, group_id: int = 123, **overrides) -> dict[str, Any]:
         """Create a suppression list response."""
         base_response = {
             "recipient_email": email,
@@ -241,7 +242,7 @@ class SendGridMockFactory(MockFactory):
         return base_response
 
     @classmethod
-    def create_validation_response(cls, email: str, is_valid: bool = True, **overrides) -> Dict[str, Any]:
+    def create_validation_response(cls, email: str, is_valid: bool = True, **overrides) -> dict[str, Any]:
         """Create an email validation response."""
         base_response = {
             "result": {

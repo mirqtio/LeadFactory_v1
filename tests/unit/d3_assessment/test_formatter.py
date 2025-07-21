@@ -6,7 +6,7 @@ multiple export formats, and human-readable summary generation.
 
 Acceptance Criteria Tests:
 - Human-readable summaries ✓
-- JSON export works ✓  
+- JSON export works ✓
 - Issue prioritization ✓
 - Markdown formatting ✓
 """
@@ -14,7 +14,7 @@ Acceptance Criteria Tests:
 import json
 import os
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from unittest.mock import Mock
 
 import pytest
@@ -50,7 +50,7 @@ class TestAssessmentFormatter:
         assessment.url = "https://example.com"
         assessment.business_name = "Test Business"
         assessment.status = AssessmentStatus.COMPLETED
-        assessment.created_at = datetime(2025, 6, 9, 12, 0, 0, tzinfo=timezone.utc)
+        assessment.created_at = datetime(2025, 6, 9, 12, 0, 0, tzinfo=UTC)
 
         # PageSpeed data
         assessment.pagespeed_data = {
@@ -355,7 +355,7 @@ class TestAssessmentFormatter:
             # Verify file was created and contains valid JSON
             assert os.path.exists(filepath)
 
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 data = json.load(f)
 
             assert isinstance(data, dict)
@@ -381,7 +381,7 @@ class TestAssessmentFormatter:
             # Verify file was created
             assert os.path.exists(filepath)
 
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 content = f.read()
 
             assert len(content) > 500
@@ -436,7 +436,7 @@ class TestUtilityFunctions:
         assessment.url = "https://utility-test.com"
         assessment.business_name = "Utility Test Business"
         assessment.status = AssessmentStatus.COMPLETED
-        assessment.created_at = datetime.now(timezone.utc)
+        assessment.created_at = datetime.now(UTC)
         assessment.pagespeed_data = {"performance_score": 80}
         assessment.tech_stack_data = {"cms": "WordPress", "has_ssl": True}
         assessment.llm_insights = {"insights": []}

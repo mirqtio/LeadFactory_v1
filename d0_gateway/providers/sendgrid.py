@@ -1,8 +1,9 @@
 """
 SendGrid API v3 client implementation for email delivery
 """
+
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..base import BaseAPIClient
 
@@ -10,7 +11,7 @@ from ..base import BaseAPIClient
 class SendGridClient(BaseAPIClient):
     """SendGrid API v3 client for email delivery"""
 
-    def __init__(self, api_key: Optional[str] = None, allow_test_mode: bool = False):
+    def __init__(self, api_key: str | None = None, allow_test_mode: bool = False):
         from core.config import get_settings
 
         settings = get_settings()
@@ -29,14 +30,14 @@ class SendGridClient(BaseAPIClient):
         """Get SendGrid API base URL"""
         return "https://api.sendgrid.com"
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get SendGrid API headers"""
         return {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get SendGrid rate limit configuration"""
         return {
             "daily_limit": 100000,  # Very high for email service
@@ -56,9 +57,8 @@ class SendGridClient(BaseAPIClient):
         if operation.startswith("POST:/v3/mail/send"):
             # Estimate cost per email
             return Decimal("0.0006")
-        else:
-            # Other operations (webhooks, stats, etc.)
-            return Decimal("0.0001")
+        # Other operations (webhooks, stats, etc.)
+        return Decimal("0.0001")
 
     async def send_email(
         self,
@@ -66,14 +66,14 @@ class SendGridClient(BaseAPIClient):
         subject: str,
         html_content: str,
         from_email: str,
-        from_name: Optional[str] = None,
-        reply_to: Optional[str] = None,
-        text_content: Optional[str] = None,
-        template_id: Optional[str] = None,
-        dynamic_template_data: Optional[Dict[str, Any]] = None,
-        custom_args: Optional[Dict[str, str]] = None,
-        tracking_settings: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        from_name: str | None = None,
+        reply_to: str | None = None,
+        text_content: str | None = None,
+        template_id: str | None = None,
+        dynamic_template_data: dict[str, Any] | None = None,
+        custom_args: dict[str, str] | None = None,
+        tracking_settings: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Send a single email via SendGrid
 
@@ -134,11 +134,11 @@ class SendGridClient(BaseAPIClient):
 
     async def send_bulk_emails(
         self,
-        emails: List[Dict[str, Any]],
+        emails: list[dict[str, Any]],
         from_email: str,
-        from_name: Optional[str] = None,
-        template_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        from_name: str | None = None,
+        template_id: str | None = None,
+    ) -> dict[str, Any]:
         """
         Send multiple emails efficiently
 
@@ -186,9 +186,9 @@ class SendGridClient(BaseAPIClient):
     async def get_email_stats(
         self,
         start_date: str,
-        end_date: Optional[str] = None,
+        end_date: str | None = None,
         aggregated_by: str = "day",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get email statistics
 
@@ -209,11 +209,11 @@ class SendGridClient(BaseAPIClient):
 
     async def get_bounces(
         self,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
         limit: int = 500,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get bounce information
 
@@ -235,7 +235,7 @@ class SendGridClient(BaseAPIClient):
 
         return await self.make_request("GET", "/v3/suppression/bounces", params=params)
 
-    async def delete_bounce(self, email: str) -> Dict[str, Any]:
+    async def delete_bounce(self, email: str) -> dict[str, Any]:
         """
         Remove an email from the bounce list
 
@@ -250,10 +250,10 @@ class SendGridClient(BaseAPIClient):
     async def create_contact(
         self,
         email: str,
-        first_name: Optional[str] = None,
-        last_name: Optional[str] = None,
-        custom_fields: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        first_name: str | None = None,
+        last_name: str | None = None,
+        custom_fields: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Create a contact in SendGrid
 
@@ -279,7 +279,7 @@ class SendGridClient(BaseAPIClient):
 
         return await self.make_request("PUT", "/v3/marketing/contacts", json=payload)
 
-    async def validate_email_address(self, email: str) -> Dict[str, Any]:
+    async def validate_email_address(self, email: str) -> dict[str, Any]:
         """
         Validate an email address
 
@@ -293,7 +293,7 @@ class SendGridClient(BaseAPIClient):
 
         return await self.make_request("POST", "/v3/validations/email", json=payload)
 
-    async def get_webhook_stats(self) -> Dict[str, Any]:
+    async def get_webhook_stats(self) -> dict[str, Any]:
         """
         Get webhook event statistics
 
@@ -306,9 +306,9 @@ class SendGridClient(BaseAPIClient):
         self,
         business_name: str,
         recipient_email: str,
-        website_issues: List[Dict[str, Any]],
+        website_issues: list[dict[str, Any]],
         sender_name: str = "Website Performance Team",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Format email data for lead outreach campaigns
 
@@ -385,7 +385,7 @@ class SendGridClient(BaseAPIClient):
             },
         }
 
-    def _format_issues_html(self, issues: List[Dict[str, Any]]) -> str:
+    def _format_issues_html(self, issues: list[dict[str, Any]]) -> str:
         """Format issues for HTML email"""
         if not issues:
             return "<p>Your website looks good overall!</p>"
@@ -397,7 +397,7 @@ class SendGridClient(BaseAPIClient):
 
         return html
 
-    def _format_issues_text(self, issues: List[Dict[str, Any]]) -> str:
+    def _format_issues_text(self, issues: list[dict[str, Any]]) -> str:
         """Format issues for plain text email"""
         if not issues:
             return "Your website looks good overall!"

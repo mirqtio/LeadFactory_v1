@@ -2,11 +2,12 @@
 Humanloop provider for centralized prompt management
 Phase-0 implementation with all prompts via Humanloop
 """
+
 import os
 import time
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from core.logging import get_logger
 from core.metrics import metrics
@@ -27,7 +28,7 @@ class HumanloopClient(BaseAPIClient):
     - Model switching without code changes
     """
 
-    def __init__(self, api_key: Optional[str] = None, project_id: Optional[str] = None):
+    def __init__(self, api_key: str | None = None, project_id: str | None = None):
         """
         Initialize Humanloop client
 
@@ -44,14 +45,14 @@ class HumanloopClient(BaseAPIClient):
         """Get Humanloop API base URL"""
         return "https://api.humanloop.com/v4"
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get Humanloop API headers"""
         return {
             "X-API-Key": self.api_key,
             "Content-Type": "application/json",
         }
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get Humanloop rate limit configuration"""
         return {
             "daily_limit": 50000,  # Higher limit as it's a proxy
@@ -78,7 +79,7 @@ class HumanloopClient(BaseAPIClient):
             output_cost = (Decimal(estimated_output_tokens) / Decimal("1000000")) * Decimal("0.60")
 
             return input_cost + output_cost
-        elif "gpt-4" in model:
+        if "gpt-4" in model:
             # GPT-4 pricing (higher)
             estimated_input_tokens = kwargs.get("input_tokens", 800)
             estimated_output_tokens = kwargs.get("output_tokens", 300)
@@ -87,11 +88,10 @@ class HumanloopClient(BaseAPIClient):
             output_cost = (Decimal(estimated_output_tokens) / Decimal("1000000")) * Decimal("60.00")
 
             return input_cost + output_cost
-        else:
-            # Default/unknown model
-            return Decimal("0.001")
+        # Default/unknown model
+        return Decimal("0.001")
 
-    async def load_prompt(self, slug: str) -> Dict[str, Any]:
+    async def load_prompt(self, slug: str) -> dict[str, Any]:
         """
         Load prompt configuration from markdown file
 
@@ -108,7 +108,7 @@ class HumanloopClient(BaseAPIClient):
         if not prompt_path.exists():
             raise ValueError(f"Prompt not found: {slug}")
 
-        with open(prompt_path, "r") as f:
+        with open(prompt_path) as f:
             content = f.read()
 
         # Parse frontmatter
@@ -142,13 +142,13 @@ class HumanloopClient(BaseAPIClient):
     async def completion(
         self,
         prompt_slug: str,
-        inputs: Dict[str, Any],
-        project_id: Optional[str] = None,
-        version: Optional[str] = None,
+        inputs: dict[str, Any],
+        project_id: str | None = None,
+        version: str | None = None,
         environment: str = "production",
-        user_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        user_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Create a completion using Humanloop
 
@@ -248,11 +248,11 @@ class HumanloopClient(BaseAPIClient):
     async def chat_completion(
         self,
         prompt_slug: str,
-        inputs: Dict[str, Any],
-        messages: Optional[List[Dict[str, str]]] = None,
-        project_id: Optional[str] = None,
+        inputs: dict[str, Any],
+        messages: list[dict[str, str]] | None = None,
+        project_id: str | None = None,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a chat completion using Humanloop
 
@@ -350,9 +350,9 @@ class HumanloopClient(BaseAPIClient):
         self,
         completion_id: str,
         feedback_type: str,
-        value: Union[bool, float, str],
-        comment: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        value: bool | float | str,
+        comment: str | None = None,
+    ) -> dict[str, Any]:
         """
         Log feedback for a completion
 
@@ -378,7 +378,7 @@ class HumanloopClient(BaseAPIClient):
         logger.info(f"Feedback logged: {feedback_type}={value} for {completion_id}")
         return {"status": "success", "feedback_id": f"fb_{completion_id}"}
 
-    def _format_prompt(self, template: str, inputs: Dict[str, Any]) -> str:
+    def _format_prompt(self, template: str, inputs: dict[str, Any]) -> str:
         """
         Format prompt template with inputs
 
@@ -404,7 +404,7 @@ class HumanloopClient(BaseAPIClient):
 
         return formatted
 
-    async def _simulate_completion(self, payload: Dict[str, Any], prompt_config: Dict[str, Any]) -> Dict[str, Any]:
+    async def _simulate_completion(self, payload: dict[str, Any], prompt_config: dict[str, Any]) -> dict[str, Any]:
         """
         Simulate Humanloop completion by calling OpenAI
 
@@ -437,7 +437,7 @@ class HumanloopClient(BaseAPIClient):
             "humanloop_version": "simulated",
         }
 
-    async def _simulate_chat_completion(self, payload: Dict[str, Any], prompt_config: Dict[str, Any]) -> Dict[str, Any]:
+    async def _simulate_chat_completion(self, payload: dict[str, Any], prompt_config: dict[str, Any]) -> dict[str, Any]:
         """
         Simulate Humanloop chat completion by calling OpenAI
 
@@ -480,7 +480,7 @@ class HumanloopClient(BaseAPIClient):
 
 
 # Convenience functions for backward compatibility
-async def create_completion(prompt_slug: str, inputs: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+async def create_completion(prompt_slug: str, inputs: dict[str, Any], **kwargs) -> dict[str, Any]:
     """
     Create a completion using the default Humanloop client
 
@@ -497,8 +497,8 @@ async def create_completion(prompt_slug: str, inputs: Dict[str, Any], **kwargs) 
 
 
 async def create_chat_completion(
-    prompt_slug: str, inputs: Dict[str, Any], messages: Optional[List[Dict[str, str]]] = None, **kwargs
-) -> Dict[str, Any]:
+    prompt_slug: str, inputs: dict[str, Any], messages: list[dict[str, str]] | None = None, **kwargs
+) -> dict[str, Any]:
     """
     Create a chat completion using the default Humanloop client
 

@@ -4,7 +4,8 @@ Production Configuration API - P3-006 Mock Integration Replacement
 API endpoints for assessing production readiness and managing the transition
 from mock integrations to production APIs.
 """
-from typing import Any, Dict, List
+
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -23,27 +24,27 @@ class IntegrationStatus(BaseModel):
     enabled: bool
     has_api_key: bool
     service_name: str
-    required_env_vars: List[str]
+    required_env_vars: list[str]
     cost_per_request: str
 
 
 class ProductionReadinessResponse(BaseModel):
     """Production readiness assessment response"""
 
-    current_status: Dict[str, Any]
-    ready_integrations: List[str]
-    needs_configuration: List[str]
-    optional_integrations: List[str]
-    critical_issues: List[str]
-    warnings: List[str]
-    recommendations: List[str]
-    next_steps: List[str]
+    current_status: dict[str, Any]
+    ready_integrations: list[str]
+    needs_configuration: list[str]
+    optional_integrations: list[str]
+    critical_issues: list[str]
+    warnings: list[str]
+    recommendations: list[str]
+    next_steps: list[str]
 
 
 class IntegrationReadinessResponse(BaseModel):
     """Integration readiness response"""
 
-    integrations: Dict[str, IntegrationStatus]
+    integrations: dict[str, IntegrationStatus]
 
 
 @router.get(
@@ -107,13 +108,13 @@ async def get_integration_status(
 
 @router.get(
     "/recommendations",
-    response_model=List[str],
+    response_model=list[str],
     summary="Production Configuration Recommendations",
     description="Get actionable recommendations for production deployment",
 )
 async def get_production_recommendations(
     current_user: AccountUser = Depends(get_current_user_dependency),
-) -> List[str]:
+) -> list[str]:
     """
     Get actionable recommendations for production deployment
 
@@ -136,7 +137,7 @@ async def get_production_recommendations(
 )
 async def validate_production_config(
     current_user: AccountUser = Depends(get_current_user_dependency),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Validate current configuration for production readiness
 

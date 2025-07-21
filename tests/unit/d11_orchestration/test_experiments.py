@@ -11,7 +11,6 @@ Acceptance Criteria Tests:
 - Control group handled ✓
 """
 
-
 import pytest
 
 from core.exceptions import ValidationError

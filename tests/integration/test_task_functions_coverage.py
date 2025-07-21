@@ -1,6 +1,7 @@
 """
 Test task functions using .fn() method to achieve missing coverage
 """
+
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
@@ -9,11 +10,12 @@ import pytest
 
 def test_cost_guardrail_flow_with_tasks():
     """Test cost guardrail flow using task .fn() methods to avoid Prefect execution"""
-    with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.get_settings"
-    ) as mock_settings, patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True), patch(
-        "d11_orchestration.cost_guardrails.create_markdown_artifact"
-    ) as mock_artifact:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True),
+        patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+    ):
         # Mock all dependencies
         mock_logger.return_value = MagicMock()
         mock_settings.return_value.cost_budget_usd = 100.0
@@ -26,13 +28,11 @@ def test_cost_guardrail_flow_with_tasks():
         )
 
         # Mock task functions directly
-        with patch.object(
-            get_daily_costs, "fn", return_value={"total": 90.0, "openai": 50.0}
-        ) as mock_costs, patch.object(
-            check_budget_threshold, "fn", return_value=(True, 0.9, "critical")
-        ) as mock_threshold, patch.object(
-            pause_expensive_operations, "fn", return_value={"openai": True}
-        ) as mock_pause:
+        with (
+            patch.object(get_daily_costs, "fn", return_value={"total": 90.0, "openai": 50.0}) as mock_costs,
+            patch.object(check_budget_threshold, "fn", return_value=(True, 0.9, "critical")) as mock_threshold,
+            patch.object(pause_expensive_operations, "fn", return_value={"openai": True}) as mock_pause,
+        ):
             # Execute the flow logic manually by calling the exact code lines
             logger = mock_logger.return_value
             logger.info("Starting cost guardrail check")
@@ -67,8 +67,8 @@ def test_cost_guardrail_flow_with_tasks():
                 artifact_markdown = f"""# Cost Guardrail Alert
 
 **Status**: {alert_level.upper()}  
-**Budget Used**: {percentage_used:.1%} (${daily_costs.get('total', 0):.2f} / ${daily_budget:.2f})  
-**Time**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+**Budget Used**: {percentage_used:.1%} (${daily_costs.get("total", 0):.2f} / ${daily_budget:.2f})  
+**Time**: {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}
 
 ## Provider Breakdown
 """
@@ -98,11 +98,12 @@ def test_cost_guardrail_flow_with_tasks():
 
 def test_profit_snapshot_flow_with_tasks():
     """Test profit snapshot flow using task .fn() methods to avoid Prefect execution"""
-    with patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.SessionLocal"
-    ) as mock_session, patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True), patch(
-        "d11_orchestration.cost_guardrails.create_markdown_artifact"
-    ) as mock_artifact:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+        patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True),
+        patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+    ):
         # Mock all dependencies
         mock_logger.return_value = MagicMock()
 
@@ -124,9 +125,12 @@ def test_profit_snapshot_flow_with_tasks():
         from d11_orchestration.cost_guardrails import create_profit_report, get_profit_metrics
 
         # Mock task functions directly
-        with patch.object(
-            get_profit_metrics, "fn", return_value={"total_profit": 200.0, "avg_roi": 0.4}
-        ) as mock_metrics, patch.object(create_profit_report, "fn", return_value="Generated Report") as mock_report:
+        with (
+            patch.object(
+                get_profit_metrics, "fn", return_value={"total_profit": 200.0, "avg_roi": 0.4}
+            ) as mock_metrics,
+            patch.object(create_profit_report, "fn", return_value="Generated Report") as mock_report,
+        ):
             # Execute the profit snapshot flow logic manually (lines 486-540)
             lookback_days = 7
             top_buckets_count = 5
@@ -188,9 +192,10 @@ def test_profit_snapshot_flow_with_tasks():
 
 def test_main_execution_coverage():
     """Test the main execution section to cover __main__ block"""
-    with patch("d11_orchestration.cost_guardrails.check_costs_now") as mock_check, patch(
-        "d11_orchestration.cost_guardrails.generate_profit_report_now"
-    ) as mock_profit:
+    with (
+        patch("d11_orchestration.cost_guardrails.check_costs_now") as mock_check,
+        patch("d11_orchestration.cost_guardrails.generate_profit_report_now") as mock_profit,
+    ):
         # Mock return values
         mock_check.return_value = {"alert_level": "ok", "budget_used_percentage": 0.6}
         mock_profit.return_value = {"metrics": {"total_profit": 250.0, "avg_roi": 0.45}}

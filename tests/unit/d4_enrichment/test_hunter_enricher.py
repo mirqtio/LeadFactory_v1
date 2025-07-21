@@ -2,6 +2,7 @@
 Tests for Hunter.io enricher (P0-001)
 Ensures Hunter enrichment works properly
 """
+
 from unittest.mock import AsyncMock
 
 import pytest
@@ -133,7 +134,7 @@ class TestHunterEnricher:
         """Test when business has no website"""
         business = {
             "id": "biz_002",
-            "name": "No Website Company"
+            "name": "No Website Company",
             # No website field
         }
 
@@ -183,7 +184,7 @@ class TestHunterEnricher:
             "emails": [
                 {
                     "value": "minimal@test.com",
-                    "confidence": 85
+                    "confidence": 85,
                     # Missing first_name, last_name, position
                 }
             ]

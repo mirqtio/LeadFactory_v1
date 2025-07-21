@@ -4,11 +4,12 @@ Audit logging system with SQLAlchemy event listeners for automatic capture.
 Automatically logs all CREATE, UPDATE, and DELETE operations on Lead models
 with tamper detection and comprehensive change tracking.
 """
+
 import hashlib
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from sqlalchemy import event
 from sqlalchemy.orm import Session
@@ -25,14 +26,12 @@ class AuditContext:
     _context = {}
 
     @classmethod
-    def set_user_context(
-        cls, user_id: Optional[str] = None, user_ip: Optional[str] = None, user_agent: Optional[str] = None
-    ):
+    def set_user_context(cls, user_id: str | None = None, user_ip: str | None = None, user_agent: str | None = None):
         """Set user context for current thread"""
         cls._context = {"user_id": user_id, "user_ip": user_ip, "user_agent": user_agent}
 
     @classmethod
-    def get_user_context(cls) -> Dict[str, Optional[str]]:
+    def get_user_context(cls) -> dict[str, str | None]:
         """Get user context for current thread"""
         return cls._context.copy()
 
@@ -42,7 +41,7 @@ class AuditContext:
         cls._context = {}
 
 
-def get_model_values(instance: Lead) -> Dict[str, Any]:
+def get_model_values(instance: Lead) -> dict[str, Any]:
     """Extract relevant model values for audit logging"""
     return {
         "email": instance.email,
@@ -65,8 +64,8 @@ def create_audit_log(
     session: Session,
     lead_id: str,
     action: AuditAction,
-    old_values: Optional[Dict[str, Any]] = None,
-    new_values: Optional[Dict[str, Any]] = None,
+    old_values: dict[str, Any] | None = None,
+    new_values: dict[str, Any] | None = None,
 ):
     """Create an audit log entry with tamper detection"""
     # Skip audit logging if disabled by feature flag
@@ -294,7 +293,6 @@ def setup_audit_logging():
     logger.info("Setting up audit logging for Lead Explorer")
     # Event listeners are automatically registered when this module is imported
     # This function can be used for any additional setup if needed
-    pass
 
 
 def verify_audit_integrity(session: Session, audit_id: str) -> bool:
@@ -323,7 +321,7 @@ def verify_audit_integrity(session: Session, audit_id: str) -> bool:
         return False
 
 
-def get_audit_summary(session: Session, lead_id: str) -> Dict[str, Any]:
+def get_audit_summary(session: Session, lead_id: str) -> dict[str, Any]:
     """Get audit summary for a lead"""
     audit_logs = session.query(AuditLogLead).filter_by(lead_id=lead_id).all()
 

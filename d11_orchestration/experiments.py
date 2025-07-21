@@ -13,7 +13,7 @@ Acceptance Criteria:
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.exceptions import ValidationError
 from core.metrics import MetricsCollector
@@ -30,11 +30,11 @@ class ExperimentConfig:
     description: str
     hypothesis: str
     primary_metric: str
-    secondary_metrics: Optional[List[str]] = None
+    secondary_metrics: list[str] | None = None
     traffic_allocation_pct: float = 100.0
     holdout_pct: float = 0.0
     confidence_level: float = 0.95
-    minimum_sample_size: Optional[int] = None
+    minimum_sample_size: int | None = None
     maximum_duration_days: int = 30
     randomization_unit: str = "user_id"
 
@@ -49,8 +49,8 @@ class VariantConfig:
     variant_type: VariantType = VariantType.TREATMENT
     weight: float = 1.0
     is_control: bool = False
-    config: Optional[Dict[str, Any]] = None
-    feature_overrides: Optional[Dict[str, Any]] = None
+    config: dict[str, Any] | None = None
+    feature_overrides: dict[str, Any] | None = None
 
 
 class ExperimentManager:
@@ -61,11 +61,11 @@ class ExperimentManager:
     variant assignment, traffic allocation, and result tracking.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         self.metrics = metrics_collector or MetricsCollector()
         self.variant_assigner = VariantAssigner()
 
-    def create_experiment(self, config: ExperimentConfig, variants: List[VariantConfig], created_by: str) -> Experiment:
+    def create_experiment(self, config: ExperimentConfig, variants: list[VariantConfig], created_by: str) -> Experiment:
         """
         Create a new experiment with variants
 
@@ -122,10 +122,10 @@ class ExperimentManager:
         self,
         experiment: Experiment,
         assignment_unit: str,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        assignment_context: Optional[Dict[str, Any]] = None,
-        user_properties: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        assignment_context: dict[str, Any] | None = None,
+        user_properties: dict[str, Any] | None = None,
     ) -> VariantAssignment:
         """
         Variant assignment works - Assign user to experiment variant
@@ -176,7 +176,7 @@ class ExperimentManager:
 
         return assignment
 
-    def get_variant_for_user(self, experiment: Experiment, assignment_unit: str) -> Optional[ExperimentVariant]:
+    def get_variant_for_user(self, experiment: Experiment, assignment_unit: str) -> ExperimentVariant | None:
         """
         Get the assigned variant for a user without creating new assignment
 
@@ -189,7 +189,7 @@ class ExperimentManager:
         # Use variant assigner to get consistent variant
         return self.variant_assigner.assign_variant(experiment=experiment, assignment_unit=assignment_unit)
 
-    def start_experiment(self, experiment: Experiment, start_date: Optional[date] = None) -> None:
+    def start_experiment(self, experiment: Experiment, start_date: date | None = None) -> None:
         """Start an experiment"""
 
         if experiment.status != ExperimentStatus.DRAFT:
@@ -246,7 +246,7 @@ class ExperimentManager:
         # Record experiment resume metric
         self.metrics.track_business_processed(source=f"experiment_{experiment.name}", status="resumed")
 
-    def complete_experiment(self, experiment: Experiment, results: Optional[Dict[str, Any]] = None) -> None:
+    def complete_experiment(self, experiment: Experiment, results: dict[str, Any] | None = None) -> None:
         """Complete an experiment and store results"""
 
         if experiment.status not in [ExperimentStatus.RUNNING, ExperimentStatus.PAUSED]:
@@ -261,7 +261,7 @@ class ExperimentManager:
         # Record experiment completion metric
         self.metrics.track_business_processed(source=f"experiment_{experiment.name}", status="completed")
 
-    def get_experiment_summary(self, experiment: Experiment) -> Dict[str, Any]:
+    def get_experiment_summary(self, experiment: Experiment) -> dict[str, Any]:
         """Get experiment summary with key metrics"""
 
         # In production, this would query assignments from database
@@ -293,7 +293,7 @@ class ExperimentManager:
 
         return summary
 
-    def _validate_experiment_config(self, config: ExperimentConfig, variants: List[VariantConfig]) -> None:
+    def _validate_experiment_config(self, config: ExperimentConfig, variants: list[VariantConfig]) -> None:
         """Validate experiment configuration"""
 
         # Validate basic config
@@ -334,7 +334,7 @@ class ExperimentManager:
         self,
         experiment: Experiment,
         assignment_unit: str,
-        user_properties: Optional[Dict[str, Any]] = None,
+        user_properties: dict[str, Any] | None = None,
     ) -> bool:
         """Determine if user should be excluded from experiment"""
 
@@ -364,10 +364,10 @@ class ExperimentManager:
         self,
         experiment: Experiment,
         assignment_unit: str,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        assignment_context: Optional[Dict[str, Any]] = None,
-        user_properties: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        assignment_context: dict[str, Any] | None = None,
+        user_properties: dict[str, Any] | None = None,
     ) -> VariantAssignment:
         """Create holdout assignment"""
 

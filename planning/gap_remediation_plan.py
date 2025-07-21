@@ -11,23 +11,22 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional
 
 # Load gap remediation tasks
 GAP_TASKS_FILE = Path(__file__).parent.parent / "gap_remediation_tasks.json"
 STATUS_FILE = Path(__file__).parent / "gap_remediation_status.json"
 
 
-def load_gap_tasks() -> Dict:
+def load_gap_tasks() -> dict:
     """Load gap remediation tasks from JSON file"""
-    with open(GAP_TASKS_FILE, "r") as f:
+    with open(GAP_TASKS_FILE) as f:
         return json.load(f)
 
 
-def load_status() -> Dict:
+def load_status() -> dict:
     """Load current status of gap tasks"""
     if STATUS_FILE.exists():
-        with open(STATUS_FILE, "r") as f:
+        with open(STATUS_FILE) as f:
             return json.load(f)
     else:
         # Initialize status file
@@ -47,14 +46,14 @@ def load_status() -> Dict:
         return status
 
 
-def save_status(status: Dict) -> None:
+def save_status(status: dict) -> None:
     """Save status to file"""
     status["last_updated"] = datetime.now().isoformat()
     with open(STATUS_FILE, "w") as f:
         json.dump(status, f, indent=2)
 
 
-def get_next_task() -> Optional[Dict]:
+def get_next_task() -> dict | None:
     """Get the next task to work on based on priority and dependencies"""
     gap_tasks = load_gap_tasks()
     status = load_status()
@@ -101,7 +100,7 @@ def mark_task_status(task_id: str, new_status: str) -> None:
     print(f"Task {task_id} marked as {new_status}")
 
 
-def get_progress_summary() -> Dict:
+def get_progress_summary() -> dict:
     """Get summary of gap remediation progress"""
     gap_tasks = load_gap_tasks()
     status = load_status()
@@ -136,7 +135,7 @@ def get_progress_summary() -> Dict:
     }
 
 
-def display_next_task(task: Dict) -> None:
+def display_next_task(task: dict) -> None:
     """Display task details in a formatted way"""
     print("\n" + "=" * 80)
     print(f"NEXT GAP REMEDIATION TASK: {task['id']}")

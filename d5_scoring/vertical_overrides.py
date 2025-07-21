@@ -15,7 +15,7 @@ import copy
 import logging
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .models import D5ScoringResult, ScoreBreakdown
 from .rules_parser import ScoringRulesParser
@@ -76,7 +76,7 @@ class VerticalScoringEngine:
 
     def __init__(
         self,
-        vertical: Optional[str] = None,
+        vertical: str | None = None,
         base_rules_file: str = "scoring_rules.yaml",
     ):
         """
@@ -170,9 +170,7 @@ class VerticalScoringEngine:
             f"({len(self.vertical_parser.component_rules) if self.vertical_parser else 0} vertical overrides)"
         )
 
-    def calculate_score(
-        self, business_data: Dict[str, Any], version: Optional[ScoringVersion] = None
-    ) -> D5ScoringResult:
+    def calculate_score(self, business_data: dict[str, Any], version: ScoringVersion | None = None) -> D5ScoringResult:
         """
         Calculate score using vertical-specific rules with base rule inheritance
 
@@ -273,8 +271,7 @@ class VerticalScoringEngine:
             )
 
             logger.info(
-                f"Scored {self.vertical or 'base'} business {scoring_result.business_id}: "
-                f"{overall_score:.2f} ({tier})"
+                f"Scored {self.vertical or 'base'} business {scoring_result.business_id}: {overall_score:.2f} ({tier})"
             )
 
             return scoring_result
@@ -283,7 +280,7 @@ class VerticalScoringEngine:
             logger.error(f"Error calculating vertical score: {e}")
             raise
 
-    def calculate_detailed_score(self, business_data: Dict[str, Any]) -> tuple[D5ScoringResult, List[ScoreBreakdown]]:
+    def calculate_detailed_score(self, business_data: dict[str, Any]) -> tuple[D5ScoringResult, list[ScoreBreakdown]]:
         """
         Calculate detailed score with component breakdowns
 
@@ -323,7 +320,7 @@ class VerticalScoringEngine:
 
         return scoring_result, breakdowns
 
-    def _detect_vertical(self, business_data: Dict[str, Any]) -> Optional[str]:
+    def _detect_vertical(self, business_data: dict[str, Any]) -> str | None:
         """
         Auto-detect business vertical from industry data
 
@@ -386,7 +383,7 @@ class VerticalScoringEngine:
 
         return None
 
-    def _calculate_confidence(self, data: Dict[str, Any], component_results: Dict[str, Any]) -> float:
+    def _calculate_confidence(self, data: dict[str, Any], component_results: dict[str, Any]) -> float:
         """Calculate overall confidence in the scoring result"""
         # Base confidence on data completeness and component performance
         data_completeness = self._calculate_data_completeness(data)
@@ -408,7 +405,7 @@ class VerticalScoringEngine:
         confidence = (data_completeness * 0.7) + (avg_component_performance * 0.3) + vertical_boost
         return min(1.0, max(0.0, confidence))
 
-    def _calculate_data_completeness(self, data: Dict[str, Any]) -> float:
+    def _calculate_data_completeness(self, data: dict[str, Any]) -> float:
         """Calculate completeness of input data"""
         # Get expected fields from all component rules
         expected_fields = set()
@@ -450,7 +447,7 @@ class VerticalScoringEngine:
 
         return filled_fields / len(expected_fields)
 
-    def _assess_component_data_quality(self, data: Dict[str, Any], component_name: str) -> str:
+    def _assess_component_data_quality(self, data: dict[str, Any], component_name: str) -> str:
         """Assess data quality for a specific component"""
         component_rules = self.merged_parser.get_component_rules(component_name)
         if not component_rules:
@@ -500,14 +497,13 @@ class VerticalScoringEngine:
 
         if availability_ratio >= 0.9:
             return "excellent"
-        elif availability_ratio >= 0.7:
+        if availability_ratio >= 0.7:
             return "good"
-        elif availability_ratio >= 0.5:
+        if availability_ratio >= 0.5:
             return "fair"
-        else:
-            return "poor"
+        return "poor"
 
-    def get_vertical_info(self) -> Dict[str, Any]:
+    def get_vertical_info(self) -> dict[str, Any]:
         """Get information about the current vertical configuration"""
         if not self.vertical:
             return {
@@ -531,7 +527,7 @@ class VerticalScoringEngine:
             "supported_verticals": list(self.SUPPORTED_VERTICALS.keys()),
         }
 
-    def explain_vertical_score(self, business_data: Dict[str, Any]) -> Dict[str, Any]:
+    def explain_vertical_score(self, business_data: dict[str, Any]) -> dict[str, Any]:
         """
         Provide detailed explanation of vertical scoring
 
@@ -636,7 +632,7 @@ class VerticalScoringEngine:
         return explanation
 
     @classmethod
-    def get_supported_verticals(cls) -> Dict[str, VerticalConfig]:
+    def get_supported_verticals(cls) -> dict[str, VerticalConfig]:
         """Get all supported verticals and their configurations"""
         return cls.SUPPORTED_VERTICALS.copy()
 

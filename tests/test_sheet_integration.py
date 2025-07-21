@@ -1,4 +1,5 @@
 """Tests for Google Sheets integration."""
+
 import json
 from unittest.mock import MagicMock, patch
 
@@ -127,7 +128,7 @@ class TestSheetToYamlConverter:
         data = {
             "tiers": {
                 "tierA": {"min": 80.0, "label": "A"},
-                "tierB": {"min": 60.0, "label": "B"}
+                "tierB": {"min": 60.0, "label": "B"},
                 # Missing C and D
             },
             "components": {"comp1": {"weight": 1.0, "factors": {}}},
@@ -221,9 +222,9 @@ class TestSheetToYamlConverter:
                 return {
                     "values": [["tierA", "80", "A"], ["tierB", "60", "B"], ["tierC", "40", "C"], ["tierD", "0", "D"]]
                 }
-            elif "A10:E50" in range_param:  # Components
+            if "A10:E50" in range_param:  # Components
                 return {"values": [["Company Info", "0.3", "", ""], ["  Name Quality", "", "0.5", ""]]}
-            elif "Z1" in range_param:  # SHA
+            if "Z1" in range_param:  # SHA
                 return {"values": [["test-sha"]]}
 
             return {"values": []}

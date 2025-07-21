@@ -7,6 +7,7 @@ Tests for enrichment models ensuring all acceptance criteria are met:
 - Source attribution
 - Data versioning
 """
+
 import sys
 from datetime import datetime
 from decimal import Decimal
@@ -247,9 +248,9 @@ class TestTask040AcceptanceCriteria:
         results = []
         for i, source_data in enumerate(sources_data):
             result = EnrichmentResult(
-                business_id=f"biz_test_00{i+3}",
-                request_id=f"req_test_00{i+3}",  # Add required request_id
-                data_version=f"20240101_{i+1:06d}",
+                business_id=f"biz_test_00{i + 3}",
+                request_id=f"req_test_00{i + 3}",  # Add required request_id
+                data_version=f"20240101_{i + 1:06d}",
                 enriched_at=datetime.utcnow(),  # Add required enriched_at
                 match_confidence=MatchConfidence.HIGH.value,  # Add required match_confidence
                 **source_data,

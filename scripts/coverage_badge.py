@@ -29,7 +29,7 @@ class CoverageBadgeGenerator:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def get_coverage_from_xml(self, xml_path: Path) -> Optional[float]:
+    def get_coverage_from_xml(self, xml_path: Path) -> float | None:
         """Extract coverage percentage from coverage.xml file."""
         try:
             if not xml_path.exists():
@@ -39,10 +39,9 @@ class CoverageBadgeGenerator:
             tree = ET.parse(xml_path)
             root = tree.getroot()
 
-            # Find coverage element and extract line-rate
-            coverage_elem = root.find(".//coverage")
-            if coverage_elem is not None:
-                line_rate = float(coverage_elem.get("line-rate", 0))
+            # Extract line-rate from root coverage element
+            if root.tag == "coverage":
+                line_rate = float(root.get("line-rate", 0))
                 return round(line_rate * 100, 2)
 
             print("⚠️  No coverage element found in XML")
@@ -52,7 +51,7 @@ class CoverageBadgeGenerator:
             print(f"❌ Failed to parse coverage XML: {e}")
             return None
 
-    def get_coverage_from_pytest(self) -> Optional[float]:
+    def get_coverage_from_pytest(self) -> float | None:
         """Run pytest with coverage to get current coverage percentage."""
         try:
             print("🧪 Running pytest with coverage to get current stats...")
@@ -141,7 +140,7 @@ class CoverageBadgeGenerator:
         json_path.write_text(json.dumps(report_data, indent=2), encoding="utf-8")
         return json_path
 
-    def run(self, coverage_source: str = "auto", coverage_percentage: Optional[float] = None) -> bool:
+    def run(self, coverage_source: str = "auto", coverage_percentage: float | None = None) -> bool:
         """Main execution method."""
         print("🏷️  PRP-1061 Coverage Badge Generator")
         print("=" * 50)

@@ -19,7 +19,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .matchers import BusinessMatcher, MatchConfidence
 from .models import EnrichmentResult, EnrichmentSource
@@ -54,25 +54,25 @@ class GBPSearchResult:
 
     place_id: str
     name: str
-    formatted_address: Optional[str] = None
-    phone_number: Optional[str] = None
-    website: Optional[str] = None
-    rating: Optional[float] = None
-    user_ratings_total: Optional[int] = None
-    business_status: Optional[str] = None
-    opening_hours: Optional[Dict[str, Any]] = None
-    geometry: Optional[Dict[str, Any]] = None
-    price_level: Optional[int] = None
-    types: List[str] = field(default_factory=list)
-    photos: List[Dict[str, Any]] = field(default_factory=list)
-    reviews: List[Dict[str, Any]] = field(default_factory=list)
-    raw_data: Dict[str, Any] = field(default_factory=dict)
+    formatted_address: str | None = None
+    phone_number: str | None = None
+    website: str | None = None
+    rating: float | None = None
+    user_ratings_total: int | None = None
+    business_status: str | None = None
+    opening_hours: dict[str, Any] | None = None
+    geometry: dict[str, Any] | None = None
+    price_level: int | None = None
+    types: list[str] = field(default_factory=list)
+    photos: list[dict[str, Any]] = field(default_factory=list)
+    reviews: list[dict[str, Any]] = field(default_factory=list)
+    raw_data: dict[str, Any] = field(default_factory=dict)
 
     # Confidence and quality metrics
     search_confidence: float = 0.0
     data_quality: GBPDataQuality = GBPDataQuality.POOR
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for storage"""
         return {
             "place_id": self.place_id,
@@ -107,8 +107,8 @@ class GBPEnricher:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        matcher: Optional[BusinessMatcher] = None,
+        api_key: str | None = None,
+        matcher: BusinessMatcher | None = None,
         cache_ttl_hours: int = 24,
     ):
         """Initialize GBP enricher"""
@@ -127,14 +127,12 @@ class GBPEnricher:
         }
 
         # Simple in-memory cache (would use Redis in production)
-        self._cache: Dict[str, Tuple[datetime, GBPSearchResult]] = {}
+        self._cache: dict[str, tuple[datetime, GBPSearchResult]] = {}
 
         # Mock data for testing when no API key is provided
         self.use_mock_data = api_key is None
 
-    async def enrich_business(
-        self, business_data: Dict[str, Any], business_id: Optional[str] = None
-    ) -> EnrichmentResult:
+    async def enrich_business(self, business_data: dict[str, Any], business_id: str | None = None) -> EnrichmentResult:
         """
         Enrich business data with GBP information
 
@@ -202,7 +200,7 @@ class GBPEnricher:
             )
 
             self.stats["successful_enrichments"] += 1
-            logger.info(f"Successfully enriched business {business_id} " f"with confidence {confidence_level.value}")
+            logger.info(f"Successfully enriched business {business_id} with confidence {confidence_level.value}")
 
             return enrichment_result
 
@@ -211,7 +209,7 @@ class GBPEnricher:
             logger.error(f"Failed to enrich business {business_id}: {e}")
             return self._create_failed_enrichment(business_id, business_data, str(e))
 
-    async def _search_gbp_data(self, business_data: Dict[str, Any]) -> List[GBPSearchResult]:
+    async def _search_gbp_data(self, business_data: dict[str, Any]) -> list[GBPSearchResult]:
         """
         Search for GBP data using multiple strategies
 
@@ -269,7 +267,7 @@ class GBPEnricher:
 
         return final_results
 
-    async def _search_by_name_and_location(self, business_data: Dict[str, Any]) -> List[GBPSearchResult]:
+    async def _search_by_name_and_location(self, business_data: dict[str, Any]) -> list[GBPSearchResult]:
         """Search by business name and location"""
         name = business_data.get("name") or business_data.get("business_name")
         location = business_data.get("address") or business_data.get("city") or business_data.get("zip")
@@ -284,7 +282,7 @@ class GBPEnricher:
         # Mock result
         return [self._create_mock_result(name, location, confidence=0.8)]
 
-    async def _search_by_phone(self, business_data: Dict[str, Any]) -> List[GBPSearchResult]:
+    async def _search_by_phone(self, business_data: dict[str, Any]) -> list[GBPSearchResult]:
         """Search by phone number"""
         phone = business_data.get("phone")
         if not phone:
@@ -297,7 +295,7 @@ class GBPEnricher:
         name = business_data.get("name") or business_data.get("business_name") or "Business"
         return [self._create_mock_result(name, phone, confidence=0.9)]
 
-    async def _search_by_address(self, business_data: Dict[str, Any]) -> List[GBPSearchResult]:
+    async def _search_by_address(self, business_data: dict[str, Any]) -> list[GBPSearchResult]:
         """Search by full address"""
         address = business_data.get("address") or business_data.get("full_address")
         if not address:
@@ -311,8 +309,8 @@ class GBPEnricher:
         return [self._create_mock_result(name, address, confidence=0.7)]
 
     async def _select_best_match(
-        self, business_data: Dict[str, Any], gbp_results: List[GBPSearchResult]
-    ) -> Optional[GBPSearchResult]:
+        self, business_data: dict[str, Any], gbp_results: list[GBPSearchResult]
+    ) -> GBPSearchResult | None:
         """
         Select the best GBP match using fuzzy matching
 
@@ -351,7 +349,7 @@ class GBPEnricher:
 
         return None
 
-    def _merge_business_data(self, original_data: Dict[str, Any], gbp_result: GBPSearchResult) -> Dict[str, Any]:
+    def _merge_business_data(self, original_data: dict[str, Any], gbp_result: GBPSearchResult) -> dict[str, Any]:
         """
         Merge original business data with GBP data
 
@@ -400,7 +398,7 @@ class GBPEnricher:
 
         return merged
 
-    def _calculate_confidence_score(self, original_data: Dict[str, Any], gbp_result: GBPSearchResult) -> float:
+    def _calculate_confidence_score(self, original_data: dict[str, Any], gbp_result: GBPSearchResult) -> float:
         """
         Calculate overall confidence score
 
@@ -465,16 +463,15 @@ class GBPEnricher:
         """Map numeric confidence to categorical level"""
         if score >= 0.9:
             return MatchConfidence.EXACT
-        elif score >= 0.75:
+        if score >= 0.75:
             return MatchConfidence.HIGH
-        elif score >= 0.6:
+        if score >= 0.6:
             return MatchConfidence.MEDIUM
-        elif score >= 0.4:
+        if score >= 0.4:
             return MatchConfidence.LOW
-        else:
-            return MatchConfidence.UNCERTAIN
+        return MatchConfidence.UNCERTAIN
 
-    def _get_mock_gbp_data(self, business_data: Dict[str, Any]) -> List[GBPSearchResult]:
+    def _get_mock_gbp_data(self, business_data: dict[str, Any]) -> list[GBPSearchResult]:
         """Generate mock GBP data for testing"""
         name = business_data.get("name") or business_data.get("business_name") or "Test Business"
 
@@ -537,16 +534,16 @@ class GBPEnricher:
         if field_type == "phone":
             # Prefer formatted phone numbers
             return len(str(gbp_value)) > len(str(original_value))
-        elif field_type == "website":
+        if field_type == "website":
             # Prefer https URLs
             return str(gbp_value).startswith("https://")
-        elif field_type == "name":
+        if field_type == "name":
             # Prefer longer, more descriptive names
             return len(str(gbp_value)) > len(str(original_value))
 
         return False
 
-    def _parse_address_components(self, formatted_address: str) -> Dict[str, str]:
+    def _parse_address_components(self, formatted_address: str) -> dict[str, str]:
         """Parse address into components"""
         # Simple address parsing (would use Google's address components in production)
         components = {}
@@ -570,7 +567,7 @@ class GBPEnricher:
 
         return components
 
-    def _calculate_data_quality(self, merged_data: Dict[str, Any]) -> float:
+    def _calculate_data_quality(self, merged_data: dict[str, Any]) -> float:
         """Calculate overall data quality score"""
         quality_factors = []
 
@@ -594,13 +591,13 @@ class GBPEnricher:
 
         return min(1.0, sum(quality_factors))
 
-    def _calculate_completeness(self, merged_data: Dict[str, Any]) -> float:
+    def _calculate_completeness(self, merged_data: dict[str, Any]) -> float:
         """Calculate data completeness score"""
         from .models import calculate_completeness_score
 
         return calculate_completeness_score(merged_data)
 
-    def _extract_domain(self, url: Optional[str]) -> Optional[str]:
+    def _extract_domain(self, url: str | None) -> str | None:
         """Extract domain from URL"""
         if not url:
             return None
@@ -616,7 +613,7 @@ class GBPEnricher:
 
         return domain if domain else None
 
-    def _generate_cache_key(self, business_data: Dict[str, Any]) -> str:
+    def _generate_cache_key(self, business_data: dict[str, Any]) -> str:
         """Generate cache key for business data"""
         key_data = {
             "name": business_data.get("name") or business_data.get("business_name"),
@@ -629,7 +626,7 @@ class GBPEnricher:
         key_string = json.dumps(filtered_data, sort_keys=True)
         return hashlib.md5(key_string.encode()).hexdigest()
 
-    def _get_from_cache(self, cache_key: str) -> Optional[GBPSearchResult]:
+    def _get_from_cache(self, cache_key: str) -> GBPSearchResult | None:
         """Get result from cache if not expired"""
         if cache_key not in self._cache:
             return None
@@ -645,7 +642,7 @@ class GBPEnricher:
         """Add result to cache"""
         self._cache[cache_key] = (datetime.utcnow(), result)
 
-    def _create_no_results_enrichment(self, business_id: str, business_data: Dict[str, Any]) -> EnrichmentResult:
+    def _create_no_results_enrichment(self, business_id: str, business_data: dict[str, Any]) -> EnrichmentResult:
         """Create enrichment result when no GBP data found"""
         return EnrichmentResult(
             business_id=business_id,
@@ -660,7 +657,7 @@ class GBPEnricher:
         )
 
     def _create_failed_enrichment(
-        self, business_id: str, business_data: Dict[str, Any], error_message: str
+        self, business_id: str, business_data: dict[str, Any], error_message: str
     ) -> EnrichmentResult:
         """Create enrichment result for failed enrichment"""
         return EnrichmentResult(
@@ -679,7 +676,7 @@ class GBPEnricher:
             },
         )
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get enrichment statistics"""
         total_requests = self.stats["total_requests"]
         if total_requests == 0:
@@ -707,10 +704,10 @@ class BatchGBPEnricher:
         self.batch_size = batch_size
         self._semaphore = asyncio.Semaphore(max_concurrent)
 
-    async def enrich_businesses(self, businesses: List[Dict[str, Any]]) -> List[EnrichmentResult]:
+    async def enrich_businesses(self, businesses: list[dict[str, Any]]) -> list[EnrichmentResult]:
         """Enrich multiple businesses concurrently"""
 
-        async def enrich_one(business_data: Dict[str, Any]) -> EnrichmentResult:
+        async def enrich_one(business_data: dict[str, Any]) -> EnrichmentResult:
             async with self._semaphore:
                 return await self.enricher.enrich_business(business_data)
 
@@ -729,7 +726,7 @@ class BatchGBPEnricher:
             # Handle exceptions
             for j, result in enumerate(batch_results):
                 if isinstance(result, Exception):
-                    logger.error(f"Failed to enrich business {i+j}: {result}")
+                    logger.error(f"Failed to enrich business {i + j}: {result}")
                     # Create failed enrichment result
                     business_data = batch[j]
                     business_id = business_data.get("id", str(uuid.uuid4()))

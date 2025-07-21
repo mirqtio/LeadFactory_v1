@@ -1,6 +1,7 @@
 """
 Command-line interface for LeadFactory
 """
+
 import asyncio
 
 import click
@@ -17,7 +18,6 @@ logger = get_logger(__name__)
 @click.version_option(version=settings.app_version)
 def cli():
     """LeadFactory CLI - AI-powered website audit platform"""
-    pass
 
 
 @cli.command()

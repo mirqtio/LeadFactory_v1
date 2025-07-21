@@ -6,9 +6,10 @@ Endpoint: GET /v1/companies/enrich?domain=
 Cost: Free (trial credits)
 Used only when Hunter.io doesn't return email
 """
+
 import logging
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any
 
 from core.exceptions import ValidationError
 from d0_gateway.base import BaseAPIClient
@@ -57,7 +58,7 @@ class DataAxleClient(BaseAPIClient):
         """Get the base URL for Data Axle API"""
         return self.base_url
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get rate limit configuration for Data Axle"""
         return {
             "requests_per_minute": self._rate_limit,
@@ -71,7 +72,7 @@ class DataAxleClient(BaseAPIClient):
             return Decimal("0.10")
         return Decimal("0.00")
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get headers for Data Axle API requests"""
         return {
             "Authorization": f"Bearer {self.api_key}",
@@ -79,7 +80,7 @@ class DataAxleClient(BaseAPIClient):
             "Accept": "application/json",
         }
 
-    async def match_business(self, business_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def match_business(self, business_data: dict[str, Any]) -> dict[str, Any] | None:
         """
         Match business and return enriched data
 
@@ -168,12 +169,11 @@ class DataAxleClient(BaseAPIClient):
         except Exception as e:
             if "429" in str(e) or "rate_limit" in str(e).lower():
                 raise RateLimitExceededError("dataaxle", "api_calls")
-            elif "401" in str(e) or "403" in str(e):
+            if "401" in str(e) or "403" in str(e):
                 raise AuthenticationError("dataaxle", str(e))
-            else:
-                raise APIProviderError("dataaxle", str(e))
+            raise APIProviderError("dataaxle", str(e))
 
-    def _transform_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _transform_response(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Transform Data Axle response to standard format
 
@@ -212,7 +212,7 @@ class DataAxleClient(BaseAPIClient):
             "match_confidence": data.get("match_confidence", 0),
         }
 
-    async def enrich(self, domain: str) -> Optional[Dict[str, Any]]:
+    async def enrich(self, domain: str) -> dict[str, Any] | None:
         """
         Enrich company data by domain (PRD v1.2 requirement)
 
@@ -268,22 +268,20 @@ class DataAxleClient(BaseAPIClient):
                 raise AuthenticationError("dataaxle", "Invalid API key")
             raise
 
-    async def _get(self, endpoint: str, **kwargs) -> Dict[str, Any]:
+    async def _get(self, endpoint: str, **kwargs) -> dict[str, Any]:
         """Make GET request using base client or test client"""
         if self._client:
             # Test mode - use injected client
             response = await self._client.get(endpoint, headers=self._get_headers(), **kwargs)
             return response.json()
-        else:
-            # Production mode - use base client's make_request
-            return await self.make_request("GET", endpoint, **kwargs)
+        # Production mode - use base client's make_request
+        return await self.make_request("GET", endpoint, **kwargs)
 
-    async def _post(self, endpoint: str, **kwargs) -> Dict[str, Any]:
+    async def _post(self, endpoint: str, **kwargs) -> dict[str, Any]:
         """Make POST request using base client or test client"""
         if self._client:
             # Test mode - use injected client
             response = await self._client.post(endpoint, headers=self._get_headers(), **kwargs)
             return response.json()
-        else:
-            # Production mode - use base client's make_request
-            return await self.make_request("POST", endpoint, **kwargs)
+        # Production mode - use base client's make_request
+        return await self.make_request("POST", endpoint, **kwargs)

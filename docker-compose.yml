@@ -53,7 +53,7 @@ services:
   stub-server:
     build:
       context: .
-      dockerfile: Dockerfile.stub
+      dockerfile: docker/Dockerfile.stub
     restart: unless-stopped
     ports:
       - "5010:5010"

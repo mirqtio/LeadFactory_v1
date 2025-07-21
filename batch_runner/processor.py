@@ -4,12 +4,13 @@ Batch Processor for Report Runner
 Resilient batch processing engine with error isolation, concurrency control,
 and integration with d6_reports for individual report generation.
 """
+
 import asyncio
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -37,7 +38,7 @@ class BatchProcessingResult:
     skipped: int
     total_cost: float
     duration_seconds: float
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 @dataclass
@@ -46,12 +47,12 @@ class LeadProcessingResult:
 
     lead_id: str
     success: bool
-    report_url: Optional[str] = None
-    actual_cost: Optional[float] = None
-    processing_time_ms: Optional[int] = None
-    error_message: Optional[str] = None
-    error_code: Optional[str] = None
-    quality_score: Optional[float] = None
+    report_url: str | None = None
+    actual_cost: float | None = None
+    processing_time_ms: int | None = None
+    error_message: str | None = None
+    error_code: str | None = None
+    quality_score: float | None = None
 
 
 class BatchProcessor:
@@ -175,7 +176,7 @@ class BatchProcessor:
                 error_message=str(e),
             )
 
-    async def _get_batch_leads(self, batch_id: str) -> List[BatchReportLead]:
+    async def _get_batch_leads(self, batch_id: str) -> list[BatchReportLead]:
         """Get all leads for a batch, ordered by processing order"""
         with SessionLocal() as db:
             leads = (
@@ -188,8 +189,8 @@ class BatchProcessor:
             return leads
 
     async def _process_leads_concurrently(
-        self, batch_id: str, leads: List[BatchReportLead]
-    ) -> List[LeadProcessingResult]:
+        self, batch_id: str, leads: list[BatchReportLead]
+    ) -> list[LeadProcessingResult]:
         """Process leads with controlled concurrency and enhanced error recovery"""
         semaphore = asyncio.Semaphore(self.max_concurrent_leads)
         tasks = []
@@ -344,7 +345,7 @@ class BatchProcessor:
                 error_code=error_code,
             )
 
-    async def _get_lead_data(self, lead_id: str) -> Optional[Dict[str, Any]]:
+    async def _get_lead_data(self, lead_id: str) -> dict[str, Any] | None:
         """Get lead data for report generation"""
         try:
             with SessionLocal() as db:
@@ -367,7 +368,7 @@ class BatchProcessor:
             logger.error(f"Error getting lead data for {lead_id}: {str(e)}")
             return None
 
-    async def _generate_report_for_lead(self, lead_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _generate_report_for_lead(self, lead_data: dict[str, Any]) -> dict[str, Any]:
         """Generate report for a single lead using d6_reports"""
         try:
             # Run report generation in thread pool to avoid blocking
@@ -388,7 +389,7 @@ class BatchProcessor:
             logger.error(f"Report generation failed for lead {lead_data.get('id')}: {str(e)}")
             raise
 
-    def _generate_report_sync(self, lead_data: Dict[str, Any], options: GenerationOptions) -> Dict[str, Any]:
+    def _generate_report_sync(self, lead_data: dict[str, Any], options: GenerationOptions) -> dict[str, Any]:
         """Synchronous report generation wrapper"""
         try:
             # This would integrate with the actual d6_reports generator
@@ -414,7 +415,7 @@ class BatchProcessor:
             logger.error(f"Sync report generation failed: {str(e)}")
             raise
 
-    async def _calculate_actual_cost(self, lead_data: Dict[str, Any], report_result: Dict[str, Any]) -> float:
+    async def _calculate_actual_cost(self, lead_data: dict[str, Any], report_result: dict[str, Any]) -> float:
         """Calculate actual cost for lead processing"""
         try:
             # Use cost calculator to estimate actual cost
@@ -447,9 +448,9 @@ class BatchProcessor:
     async def _update_lead_completion(
         self,
         batch_lead_id: str,
-        report_url: Optional[str],
-        actual_cost: Optional[float],
-        quality_score: Optional[float],
+        report_url: str | None,
+        actual_cost: float | None,
+        quality_score: float | None,
         completed_at: datetime,
     ):
         """Update lead completion with results"""

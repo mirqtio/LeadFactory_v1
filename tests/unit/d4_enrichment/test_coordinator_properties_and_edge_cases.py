@@ -8,6 +8,7 @@ Focused tests to improve coordinator.py coverage by testing:
 4. Cleanup operations
 5. Statistics and progress tracking
 """
+
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 

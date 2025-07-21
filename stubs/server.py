@@ -2,6 +2,7 @@
 Stub server to mock external APIs for testing
 Implements Google PageSpeed, Stripe, SendGrid, OpenAI, Data Axle, and Hunter endpoints
 """
+
 import json
 import os
 import random

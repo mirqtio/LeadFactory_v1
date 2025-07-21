@@ -2,6 +2,7 @@
 """
 Find xpassed tests by running each file with xfail markers individually.
 """
+
 import re
 import subprocess
 import sys
@@ -10,7 +11,7 @@ from pathlib import Path
 
 def has_xfail_markers(file_path):
     """Check if file contains xfail markers."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         return "@pytest.mark.xfail" in f.read()
 
 
@@ -55,7 +56,7 @@ def run_tests_in_file(file_path):
 
 def remove_xfail_markers(file_path, test_names):
     """Remove xfail markers from specific tests."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         lines = f.readlines()
 
     modified = False

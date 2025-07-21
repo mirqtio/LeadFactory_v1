@@ -14,17 +14,16 @@ Features:
 """
 
 import asyncio
-import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .component_library import ComponentConfig, ComponentLibrary, ComponentType, component_library
-from .template_engine import RenderContext, TemplateConfig, TemplateEngine, TemplateResult, template_engine
-from .validation_engine import ValidationEngine, ValidationResult, validation_engine
+from .component_library import ComponentConfig, component_library
+from .template_engine import RenderContext, TemplateConfig, template_engine
+from .validation_engine import validation_engine
 
 
 class DesignerConfig(BaseModel):
@@ -45,7 +44,7 @@ class DesignerConfig(BaseModel):
     preview_debounce_ms: int = Field(default=500, description="Preview debounce delay")
 
     # Export settings
-    export_formats: List[str] = Field(default=["html", "pdf", "json"], description="Available export formats")
+    export_formats: list[str] = Field(default=["html", "pdf", "json"], description="Available export formats")
 
     # Integration settings
     data_source_validation: bool = Field(default=True, description="Validate data sources")
@@ -56,21 +55,21 @@ class DesignerResult(BaseModel):
     """Result of designer operations"""
 
     success: bool
-    template_id: Optional[str] = None
+    template_id: str | None = None
     operation: str = Field(..., description="Operation performed")
-    message: Optional[str] = None
-    errors: List[str] = Field(default=[])
-    warnings: List[str] = Field(default=[])
+    message: str | None = None
+    errors: list[str] = Field(default=[])
+    warnings: list[str] = Field(default=[])
 
     # Operation-specific data
-    template_data: Optional[Dict[str, Any]] = None
-    component_data: Optional[Dict[str, Any]] = None
-    preview_data: Optional[Dict[str, Any]] = None
-    validation_data: Optional[Dict[str, Any]] = None
+    template_data: dict[str, Any] | None = None
+    component_data: dict[str, Any] | None = None
+    preview_data: dict[str, Any] | None = None
+    validation_data: dict[str, Any] | None = None
 
     # Performance metrics
     execution_time_ms: int = 0
-    memory_usage_mb: Optional[float] = None
+    memory_usage_mb: float | None = None
 
 
 @dataclass
@@ -78,8 +77,8 @@ class DesignerSession:
     """Designer session state"""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: Optional[str] = None
-    template_id: Optional[str] = None
+    user_id: str | None = None
+    template_id: str | None = None
 
     # Session state
     started_at: datetime = field(default_factory=datetime.utcnow)
@@ -87,12 +86,12 @@ class DesignerSession:
     is_active: bool = True
 
     # Design state
-    current_template: Optional[TemplateConfig] = None
+    current_template: TemplateConfig | None = None
     unsaved_changes: bool = False
-    change_history: List[Dict[str, Any]] = field(default_factory=list)
+    change_history: list[dict[str, Any]] = field(default_factory=list)
 
     # UI state
-    selected_component: Optional[str] = None
+    selected_component: str | None = None
     preview_mode: str = "html"
     zoom_level: float = 1.0
 
@@ -110,10 +109,10 @@ class ReportDesigner:
         self.validation_engine = validation_engine
 
         # Active sessions
-        self.sessions: Dict[str, DesignerSession] = {}
+        self.sessions: dict[str, DesignerSession] = {}
 
         # Auto-save task
-        self._auto_save_task: Optional[asyncio.Task] = None
+        self._auto_save_task: asyncio.Task | None = None
         # Note: Auto-save will be started when first session is created
 
     def _start_auto_save(self):
@@ -181,7 +180,7 @@ class ReportDesigner:
 
         return session
 
-    def get_session(self, session_id: str) -> Optional[DesignerSession]:
+    def get_session(self, session_id: str) -> DesignerSession | None:
         """Get designer session by ID"""
         return self.sessions.get(session_id)
 
@@ -378,7 +377,7 @@ class ReportDesigner:
                 success=False, operation="remove_component", errors=[f"Failed to remove component: {str(e)}"]
             )
 
-    def update_component(self, session_id: str, component_id: str, updates: Dict[str, Any]) -> DesignerResult:
+    def update_component(self, session_id: str, component_id: str, updates: dict[str, Any]) -> DesignerResult:
         """Update a component in the current template"""
         start_time = datetime.utcnow()
 
@@ -448,7 +447,7 @@ class ReportDesigner:
                 success=False, operation="update_component", errors=[f"Failed to update component: {str(e)}"]
             )
 
-    def generate_preview(self, session_id: str, preview_data: Dict[str, Any] = None) -> DesignerResult:
+    def generate_preview(self, session_id: str, preview_data: dict[str, Any] = None) -> DesignerResult:
         """Generate preview of current template"""
         start_time = datetime.utcnow()
 
@@ -571,11 +570,11 @@ class ReportDesigner:
                 success=False, operation="save_template", errors=[f"Failed to save template: {str(e)}"]
             )
 
-    def list_available_components(self) -> List[Dict[str, Any]]:
+    def list_available_components(self) -> list[dict[str, Any]]:
         """List available components for the designer"""
         return self.component_library.get_available_components()
 
-    def get_template_history(self, session_id: str) -> List[Dict[str, Any]]:
+    def get_template_history(self, session_id: str) -> list[dict[str, Any]]:
         """Get template change history"""
         session = self.get_session(session_id)
         if not session:

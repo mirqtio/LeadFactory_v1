@@ -3,6 +3,7 @@
 Phase-0 Validation Script
 Validates the Config-as-Data & Prompt-Ops implementation
 """
+
 import sys
 from pathlib import Path
 
@@ -21,14 +22,13 @@ def check_yaml_config():
 
     # Check file can be read
     try:
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             content = f.read()
             if "tiers:" in content and "components:" in content:
                 print("  ✅ YAML configuration found and contains required sections")
                 return True
-            else:
-                print("  ❌ YAML missing required sections")
-                return False
+            print("  ❌ YAML missing required sections")
+            return False
     except Exception as e:
         print(f"  ❌ Error reading YAML: {e}")
         return False
@@ -121,9 +121,8 @@ def check_hot_reload():
         if hot_reload_path.exists():
             print("  ✅ hot_reload.py exists")
             return True
-        else:
-            print("  ❌ hot_reload.py not found")
-            return False
+        print("  ❌ hot_reload.py not found")
+        return False
     except Exception as e:
         print(f"  ❌ Error importing hot reload: {e}")
         return False
@@ -146,9 +145,8 @@ def check_scoring_engine():
         if hasattr(engine, "calculate_score") and hasattr(engine, "reload_rules"):
             print("  ✅ Required methods exist")
             return True
-        else:
-            print("  ❌ Missing required methods")
-            return False
+        print("  ❌ Missing required methods")
+        return False
 
     except Exception as e:
         print(f"  ❌ Error with scoring engine: {e}")
@@ -166,9 +164,8 @@ def check_metrics_integration():
         if hasattr(metrics, "track_prompt_request") and hasattr(metrics, "track_config_reload"):
             print("  ✅ Prompt and config metrics methods exist")
             return True
-        else:
-            print("  ❌ Missing metrics methods")
-            return False
+        print("  ❌ Missing metrics methods")
+        return False
 
     except Exception as e:
         print(f"  ❌ Error with metrics: {e}")
@@ -234,9 +231,8 @@ def main():
         print("  • Hot-reload configuration without restart")
         print("  • Prometheus/Loki metrics integrated")
         return 0
-    else:
-        print(f"\n⚠️ {total - passed} checks failed. Please review the errors above.")
-        return 1
+    print(f"\n⚠️ {total - passed} checks failed. Please review the errors above.")
+    return 1
 
 
 if __name__ == "__main__":

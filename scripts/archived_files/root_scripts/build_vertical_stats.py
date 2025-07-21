@@ -2,9 +2,10 @@
 """
 Build vertical_stats.parquet from Census Economic data.
 
-This script should be run annually to update baseline revenue statistics 
+This script should be run annually to update baseline revenue statistics
 by state and NAICS code using Economic Census and SUSB data.
 """
+
 from pathlib import Path
 
 import pandas as pd
@@ -32,9 +33,8 @@ def fetch_economic_census_data():
             rows = data[1:]
             df = pd.DataFrame(rows, columns=headers)
             return df
-        else:
-            print(f"Error fetching data: {response.status_code}")
-            return None
+        print(f"Error fetching data: {response.status_code}")
+        return None
     except Exception as e:
         print(f"Error fetching from API: {e}")
         return None

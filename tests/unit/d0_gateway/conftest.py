@@ -1,6 +1,7 @@
 """
 Shared test configuration for D0 Gateway tests
 """
+
 import pytest
 from prometheus_client import REGISTRY
 from sqlalchemy import create_engine

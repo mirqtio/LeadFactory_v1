@@ -3,6 +3,7 @@ Test marker enforcement and validation system.
 
 This module tests the marker inheritance and validation functionality.
 """
+
 import os
 import subprocess
 import sys
@@ -375,7 +376,7 @@ class TestMarkerEnforcementIntegration:
 @pytest.mark.unit
 def test_marker_constants():
     """Test that marker constants are properly defined."""
-    assert PRIMARY_MARKERS == {"unit", "integration", "e2e", "smoke"}
+    assert {"unit", "integration", "e2e", "smoke"} == PRIMARY_MARKERS
     assert "d0_gateway" in DOMAIN_MARKERS
     assert "d1_targeting" in DOMAIN_MARKERS
     assert len(VALID_MARKERS) > len(PRIMARY_MARKERS)  # Should include all types

@@ -2,9 +2,9 @@
 Authentication Service for Account Management
 Handles password hashing, token generation, and authentication logic
 """
+
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -27,13 +27,13 @@ logger = get_logger(__name__)
 def make_aware(dt: datetime) -> datetime:
     """Ensure datetime is timezone-aware (UTC)"""
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=UTC)
     return dt
 
 
 def utc_now() -> datetime:
     """Get current UTC datetime (timezone-aware)"""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 # JWT Settings - these should be class attributes to avoid circular imports
@@ -135,10 +135,10 @@ class AuthService:
     def create_session(
         db: Session,
         user: AccountUser,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        device_id: Optional[str] = None,
-    ) -> Tuple[str, str, UserSession]:
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        device_id: str | None = None,
+    ) -> tuple[str, str, UserSession]:
         """
         Create a new user session
 
@@ -199,7 +199,7 @@ class AuthService:
         return hashlib.sha256(token.encode()).hexdigest()
 
     @staticmethod
-    def authenticate_user(db: Session, email: str, password: str) -> Optional[AccountUser]:
+    def authenticate_user(db: Session, email: str, password: str) -> AccountUser | None:
         """
         Authenticate a user by email and password
 
@@ -273,7 +273,7 @@ class AuthService:
         return token
 
     @staticmethod
-    def verify_email_token(db: Session, token: str) -> Optional[AccountUser]:
+    def verify_email_token(db: Session, token: str) -> AccountUser | None:
         """
         Verify an email verification token
 
@@ -314,7 +314,7 @@ class AuthService:
         return user
 
     @staticmethod
-    def create_password_reset_token(db: Session, email: str) -> Optional[str]:
+    def create_password_reset_token(db: Session, email: str) -> str | None:
         """
         Create a password reset token
 
@@ -345,7 +345,7 @@ class AuthService:
         return token
 
     @staticmethod
-    def reset_password(db: Session, token: str, new_password: str) -> Optional[AccountUser]:
+    def reset_password(db: Session, token: str, new_password: str) -> AccountUser | None:
         """
         Reset a user's password using a reset token
 
@@ -389,8 +389,8 @@ class AuthService:
 
     @staticmethod
     def create_api_key(
-        db: Session, user: AccountUser, name: str, scopes: list, expires_at: Optional[datetime] = None
-    ) -> Tuple[str, APIKey]:
+        db: Session, user: AccountUser, name: str, scopes: list, expires_at: datetime | None = None
+    ) -> tuple[str, APIKey]:
         """
         Create a new API key
 
@@ -426,7 +426,7 @@ class AuthService:
         return raw_key, api_key
 
     @staticmethod
-    def validate_api_key(db: Session, api_key: str) -> Optional[APIKey]:
+    def validate_api_key(db: Session, api_key: str) -> APIKey | None:
         """
         Validate an API key
 

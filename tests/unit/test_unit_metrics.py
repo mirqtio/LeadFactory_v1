@@ -1,6 +1,7 @@
 """
 Test core metrics functionality
 """
+
 import asyncio
 
 import pytest

@@ -1,6 +1,7 @@
 """
 Test base gateway architecture
 """
+
 import asyncio
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch

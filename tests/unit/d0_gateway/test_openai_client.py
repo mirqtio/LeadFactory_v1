@@ -1,6 +1,7 @@
 """
 Test OpenAI API client implementation
 """
+
 import json
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch

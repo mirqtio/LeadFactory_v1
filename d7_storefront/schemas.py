@@ -13,7 +13,7 @@ Acceptance Criteria:
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, EmailStr, Field, validator
 
@@ -26,10 +26,10 @@ class CheckoutItemRequest(BaseModel):
     product_name: str = Field(..., min_length=1, max_length=200, description="Name of the product")
     amount_usd: Decimal = Field(..., gt=0, le=10000, description="Price in USD")
     quantity: int = Field(default=1, ge=1, le=100, description="Quantity of items")
-    description: Optional[str] = Field(None, max_length=500, description="Product description")
+    description: str | None = Field(None, max_length=500, description="Product description")
     product_type: ProductType = Field(default=ProductType.AUDIT_REPORT, description="Type of product")
-    business_id: Optional[str] = Field(None, max_length=100, description="Associated business ID")
-    metadata: Optional[Dict[str, str]] = Field(default_factory=dict, description="Additional metadata")
+    business_id: str | None = Field(None, max_length=100, description="Associated business ID")
+    metadata: dict[str, str] | None = Field(default_factory=dict, description="Additional metadata")
 
     @validator("amount_usd")
     def validate_amount(cls, v):
@@ -56,11 +56,11 @@ class CheckoutInitiationRequest(BaseModel):
     """Schema for checkout initiation API request - Acceptance Criteria"""
 
     customer_email: EmailStr = Field(..., description="Customer email address")
-    items: List[CheckoutItemRequest] = Field(..., min_items=1, max_items=50, description="Items to purchase")
-    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Marketing attribution data")
-    additional_metadata: Optional[Dict[str, str]] = Field(default_factory=dict, description="Additional metadata")
-    success_url: Optional[str] = Field(None, description="Custom success URL")
-    cancel_url: Optional[str] = Field(None, description="Custom cancel URL")
+    items: list[CheckoutItemRequest] = Field(..., min_items=1, max_items=50, description="Items to purchase")
+    attribution_data: dict[str, str] | None = Field(default_factory=dict, description="Marketing attribution data")
+    additional_metadata: dict[str, str] | None = Field(default_factory=dict, description="Additional metadata")
+    success_url: str | None = Field(None, description="Custom success URL")
+    cancel_url: str | None = Field(None, description="Custom cancel URL")
 
     @validator("items")
     def validate_items_not_empty(cls, v):
@@ -107,17 +107,17 @@ class CheckoutInitiationResponse(BaseModel):
     """Schema for checkout initiation API response"""
 
     success: bool = Field(..., description="Whether the operation was successful")
-    purchase_id: Optional[str] = Field(None, description="Generated purchase ID")
-    checkout_url: Optional[str] = Field(None, description="Stripe checkout URL")
-    session_id: Optional[str] = Field(None, description="Stripe session ID")
-    amount_total_usd: Optional[float] = Field(None, description="Total amount in USD")
-    amount_total_cents: Optional[int] = Field(None, description="Total amount in cents")
-    currency: Optional[str] = Field(None, description="Currency code")
-    expires_at: Optional[int] = Field(None, description="Session expiration timestamp")
-    test_mode: Optional[bool] = Field(None, description="Whether in test mode")
-    items: Optional[List[Dict[str, Any]]] = Field(None, description="Item summary")
-    error: Optional[str] = Field(None, description="Error message if failed")
-    error_type: Optional[str] = Field(None, description="Error type if failed")
+    purchase_id: str | None = Field(None, description="Generated purchase ID")
+    checkout_url: str | None = Field(None, description="Stripe checkout URL")
+    session_id: str | None = Field(None, description="Stripe session ID")
+    amount_total_usd: float | None = Field(None, description="Total amount in USD")
+    amount_total_cents: int | None = Field(None, description="Total amount in cents")
+    currency: str | None = Field(None, description="Currency code")
+    expires_at: int | None = Field(None, description="Session expiration timestamp")
+    test_mode: bool | None = Field(None, description="Whether in test mode")
+    items: list[dict[str, Any]] | None = Field(None, description="Item summary")
+    error: str | None = Field(None, description="Error message if failed")
+    error_type: str | None = Field(None, description="Error type if failed")
 
     class Config:
         json_schema_extra = {
@@ -148,7 +148,7 @@ class WebhookEventRequest(BaseModel):
 
     event_type: str = Field(..., description="Stripe webhook event type")
     event_id: str = Field(..., description="Stripe event ID")
-    data: Dict[str, Any] = Field(..., description="Event data payload")
+    data: dict[str, Any] = Field(..., description="Event data payload")
     created: int = Field(..., description="Event creation timestamp")
     livemode: bool = Field(..., description="Whether event is from live mode")
 
@@ -174,11 +174,11 @@ class WebhookEventResponse(BaseModel):
     """Schema for webhook event processing response"""
 
     success: bool = Field(..., description="Whether webhook processing was successful")
-    event_id: Optional[str] = Field(None, description="Processed event ID")
-    event_type: Optional[str] = Field(None, description="Event type that was processed")
-    processing_status: Optional[str] = Field(None, description="Processing status")
-    data: Optional[Dict[str, Any]] = Field(None, description="Processing result data")
-    error: Optional[str] = Field(None, description="Error message if failed")
+    event_id: str | None = Field(None, description="Processed event ID")
+    event_type: str | None = Field(None, description="Event type that was processed")
+    processing_status: str | None = Field(None, description="Processing status")
+    data: dict[str, Any] | None = Field(None, description="Processing result data")
+    error: str | None = Field(None, description="Error message if failed")
 
     class Config:
         json_schema_extra = {
@@ -212,16 +212,16 @@ class CheckoutSessionStatusResponse(BaseModel):
     """Schema for checkout session status response"""
 
     success: bool = Field(..., description="Whether the operation was successful")
-    session_id: Optional[str] = Field(None, description="Checkout session ID")
-    payment_status: Optional[str] = Field(None, description="Payment status")
-    status: Optional[str] = Field(None, description="Session status")
-    amount_total: Optional[int] = Field(None, description="Total amount in cents")
-    currency: Optional[str] = Field(None, description="Currency code")
-    customer: Optional[str] = Field(None, description="Stripe customer ID")
-    payment_intent: Optional[str] = Field(None, description="Payment intent ID")
-    metadata: Optional[Dict[str, str]] = Field(None, description="Session metadata")
-    error: Optional[str] = Field(None, description="Error message if failed")
-    error_type: Optional[str] = Field(None, description="Error type if failed")
+    session_id: str | None = Field(None, description="Checkout session ID")
+    payment_status: str | None = Field(None, description="Payment status")
+    status: str | None = Field(None, description="Session status")
+    amount_total: int | None = Field(None, description="Total amount in cents")
+    currency: str | None = Field(None, description="Currency code")
+    customer: str | None = Field(None, description="Stripe customer ID")
+    payment_intent: str | None = Field(None, description="Payment intent ID")
+    metadata: dict[str, str] | None = Field(None, description="Session metadata")
+    error: str | None = Field(None, description="Error message if failed")
+    error_type: str | None = Field(None, description="Error type if failed")
 
     class Config:
         json_schema_extra = {
@@ -243,7 +243,7 @@ class SuccessPageRequest(BaseModel):
     """Schema for success page request - Acceptance Criteria"""
 
     session_id: str = Field(..., description="Stripe checkout session ID")
-    purchase_id: Optional[str] = Field(None, description="Purchase ID from metadata")
+    purchase_id: str | None = Field(None, description="Purchase ID from metadata")
 
     class Config:
         json_schema_extra = {
@@ -258,15 +258,15 @@ class SuccessPageResponse(BaseModel):
     """Schema for success page response"""
 
     success: bool = Field(..., description="Whether payment was successful")
-    purchase_id: Optional[str] = Field(None, description="Purchase ID")
-    session_id: Optional[str] = Field(None, description="Session ID")
-    customer_email: Optional[str] = Field(None, description="Customer email")
-    amount_total_usd: Optional[float] = Field(None, description="Total amount paid")
-    payment_status: Optional[str] = Field(None, description="Payment status")
-    items: Optional[List[Dict[str, Any]]] = Field(None, description="Purchased items")
-    report_status: Optional[str] = Field(None, description="Report generation status")
-    estimated_delivery: Optional[str] = Field(None, description="Estimated delivery time")
-    error: Optional[str] = Field(None, description="Error message if failed")
+    purchase_id: str | None = Field(None, description="Purchase ID")
+    session_id: str | None = Field(None, description="Session ID")
+    customer_email: str | None = Field(None, description="Customer email")
+    amount_total_usd: float | None = Field(None, description="Total amount paid")
+    payment_status: str | None = Field(None, description="Payment status")
+    items: list[dict[str, Any]] | None = Field(None, description="Purchased items")
+    report_status: str | None = Field(None, description="Report generation status")
+    estimated_delivery: str | None = Field(None, description="Estimated delivery time")
+    error: str | None = Field(None, description="Error message if failed")
 
     class Config:
         json_schema_extra = {
@@ -296,8 +296,8 @@ class ErrorResponse(BaseModel):
     success: bool = Field(default=False, description="Always false for error responses")
     error: str = Field(..., description="Error message")
     error_type: str = Field(..., description="Error type/category")
-    error_code: Optional[str] = Field(None, description="Specific error code")
-    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    error_code: str | None = Field(None, description="Specific error code")
+    details: dict[str, Any] | None = Field(None, description="Additional error details")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
 
     class Config:
@@ -321,9 +321,9 @@ class AuditReportCheckoutRequest(BaseModel):
 
     customer_email: EmailStr = Field(..., description="Customer email address")
     business_url: str = Field(..., description="Business website URL to audit")
-    business_name: Optional[str] = Field(None, max_length=200, description="Business name")
-    amount_usd: Optional[Decimal] = Field(default=Decimal("29.99"), description="Custom amount")
-    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Attribution data")
+    business_name: str | None = Field(None, max_length=200, description="Business name")
+    amount_usd: Decimal | None = Field(default=Decimal("29.99"), description="Custom amount")
+    attribution_data: dict[str, str] | None = Field(default_factory=dict, description="Attribution data")
 
     @validator("business_url")
     def validate_business_url(cls, v):
@@ -353,9 +353,9 @@ class BulkReportsCheckoutRequest(BaseModel):
     """Schema for bulk reports checkout convenience endpoint"""
 
     customer_email: EmailStr = Field(..., description="Customer email address")
-    business_urls: List[str] = Field(..., min_items=2, max_items=50, description="List of business URLs")
-    amount_per_report_usd: Optional[Decimal] = Field(default=Decimal("24.99"), description="Price per report")
-    attribution_data: Optional[Dict[str, str]] = Field(default_factory=dict, description="Attribution data")
+    business_urls: list[str] = Field(..., min_items=2, max_items=50, description="List of business URLs")
+    amount_per_report_usd: Decimal | None = Field(default=Decimal("24.99"), description="Price per report")
+    attribution_data: dict[str, str] | None = Field(default_factory=dict, description="Attribution data")
 
     @validator("business_urls")
     def validate_business_urls(cls, v):
@@ -397,7 +397,7 @@ class APIStatusResponse(BaseModel):
     status: str = Field(..., description="API status")
     version: str = Field(..., description="API version")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Current timestamp")
-    services: Dict[str, str] = Field(..., description="Service status")
+    services: dict[str, str] = Field(..., description="Service status")
 
     class Config:
         json_schema_extra = {

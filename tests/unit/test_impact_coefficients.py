@@ -1,4 +1,5 @@
 """Unit tests for impact coefficients YAML."""
+
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,7 @@ def test_impact_coefficients_exist():
 
     assert yaml_path.exists(), "impact_coefficients.yaml should exist"
 
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         coefficients = yaml.safe_load(f)
 
     # Expected categories
@@ -38,7 +39,7 @@ def test_coefficient_ordering():
     """Test that coefficients increase with severity."""
     yaml_path = Path(__file__).parent.parent.parent / "config" / "impact_coefficients.yaml"
 
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         coefficients = yaml.safe_load(f)
 
     for category, severities in coefficients.items():
@@ -53,7 +54,7 @@ def test_performance_critical_value():
     """Test that performance critical matches Google/Soasta research."""
     yaml_path = Path(__file__).parent.parent.parent / "config" / "impact_coefficients.yaml"
 
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         coefficients = yaml.safe_load(f)
 
     # Performance severity 4 should be 0.0060 (3% / 5 as noted in comment)

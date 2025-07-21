@@ -3,11 +3,12 @@ FastAPI endpoints for Template Studio (P0-024)
 
 Web-based Jinja2 editor with live preview and GitHub PR workflow
 """
+
 import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from jinja2 import Environment, TemplateSyntaxError, Undefined, UndefinedError
@@ -56,10 +57,10 @@ class TemplateListItem(BaseModel):
     id: str
     name: str
     display_name: str
-    description: Optional[str]
+    description: str | None
     version: str
-    git_sha: Optional[str] = None
-    last_modified: Optional[datetime] = None
+    git_sha: str | None = None
+    last_modified: datetime | None = None
     is_active: bool
 
 
@@ -69,11 +70,11 @@ class TemplateDetail(BaseModel):
     id: str
     name: str
     display_name: str
-    description: Optional[str]
+    description: str | None
     version: str
-    git_sha: Optional[str] = None
+    git_sha: str | None = None
     content: str  # The actual Jinja2 template content
-    css_styles: Optional[str] = None
+    css_styles: str | None = None
     supports_mobile: bool = True
     supports_print: bool = True
 
@@ -90,7 +91,7 @@ class PreviewResponse(BaseModel):
 
     rendered_html: str
     render_time_ms: float
-    errors: List[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
 
 
 class ProposeChangesRequest(BaseModel):
@@ -99,7 +100,7 @@ class ProposeChangesRequest(BaseModel):
     template_id: str
     template_content: str
     commit_message: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class ProposeChangesResponse(BaseModel):
@@ -110,7 +111,7 @@ class ProposeChangesResponse(BaseModel):
     commit_sha: str
 
 
-def get_git_info(file_path: str) -> Dict[str, Any]:
+def get_git_info(file_path: str) -> dict[str, Any]:
     """Get git information for a file"""
     try:
         # Ensure we're in the git repository root
@@ -141,8 +142,7 @@ def get_git_info(file_path: str) -> Dict[str, Any]:
                 "git_sha": sha[:8],  # Short SHA
                 "last_modified": datetime.fromisoformat(date_str.replace("Z", "+00:00")),
             }
-        else:
-            return {}
+        return {}
     except subprocess.CalledProcessError as e:
         logger.warning(f"Git command failed for {file_path}: {e}")
         return {}
@@ -151,8 +151,8 @@ def get_git_info(file_path: str) -> Dict[str, Any]:
         return {}
 
 
-@router.get("/templates", response_model=List[TemplateListItem])
-async def list_templates(db: Session = Depends(get_db)) -> List[TemplateListItem]:
+@router.get("/templates", response_model=list[TemplateListItem])
+async def list_templates(db: Session = Depends(get_db)) -> list[TemplateListItem]:
     """
     List all available templates with git metadata.
 
@@ -376,7 +376,7 @@ async def propose_changes(proposal: ProposeChangesRequest, db: Session = Depends
 
 
 @router.get("/diff/{template_id}")
-async def get_template_diff(template_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_template_diff(template_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     """
     Get diff between current template and last committed version.
     """

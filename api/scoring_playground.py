@@ -3,12 +3,13 @@ FastAPI endpoints for Scoring Playground (P0-025)
 
 Allows safe experimentation with scoring weights using Google Sheets
 """
+
 import hashlib
 import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import yaml
 from fastapi import APIRouter, Depends, HTTPException
@@ -37,7 +38,7 @@ class WeightVector(BaseModel):
 
     name: str
     weight: float = Field(ge=0.0, le=1.0)
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class WeightImportRequest(BaseModel):
@@ -57,11 +58,11 @@ class WeightImportResponse(BaseModel):
 class ScoreDeltaRequest(BaseModel):
     """Request to calculate score deltas"""
 
-    new_weights: List[WeightVector]
+    new_weights: list[WeightVector]
 
     @field_validator("new_weights")
     @classmethod
-    def validate_weight_sum(cls, weights: List[WeightVector]) -> List[WeightVector]:
+    def validate_weight_sum(cls, weights: list[WeightVector]) -> list[WeightVector]:
         """Ensure weights sum to 1.0 ± 0.005"""
         total = sum(w.weight for w in weights)
         if abs(total - 1.0) > 0.005:
@@ -83,18 +84,18 @@ class ScoreDelta(BaseModel):
 class ScoreDeltaResponse(BaseModel):
     """Response with score deltas"""
 
-    deltas: List[ScoreDelta]
-    summary: Dict[str, Any]
+    deltas: list[ScoreDelta]
+    summary: dict[str, Any]
     calculation_time_ms: float
 
 
 class ProposeDiffRequest(BaseModel):
     """Request to propose scoring weight changes"""
 
-    new_weights: List[WeightVector]
+    new_weights: list[WeightVector]
     commit_message: str
     original_sha: str  # For optimistic locking
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class ProposeDiffResponse(BaseModel):
@@ -106,7 +107,7 @@ class ProposeDiffResponse(BaseModel):
     yaml_diff: str
 
 
-def get_current_weights() -> Tuple[List[WeightVector], str]:
+def get_current_weights() -> tuple[list[WeightVector], str]:
     """Load current weights from YAML and calculate SHA"""
     weights_path = Path("d5_scoring/weights.yaml")
 
@@ -122,7 +123,7 @@ def get_current_weights() -> Tuple[List[WeightVector], str]:
         ]
         return default_weights, "default"
 
-    with open(weights_path, "r") as f:
+    with open(weights_path) as f:
         content = f.read()
         weights_data = yaml.safe_load(content)
 
@@ -137,7 +138,7 @@ def get_current_weights() -> Tuple[List[WeightVector], str]:
     return weights, sha
 
 
-def get_sample_leads(db: Session, count: int = 100) -> List[Lead]:
+def get_sample_leads(db: Session, count: int = 100) -> list[Lead]:
     """Get sample leads for scoring (with caching)"""
     global _sample_leads_cache, _cache_timestamp
 
@@ -157,11 +158,11 @@ def get_sample_leads(db: Session, count: int = 100) -> List[Lead]:
     for i, lead in enumerate(leads):
         # Create a copy with anonymized data
         anon_lead = Lead(
-            id=f"sample-{i+1:03d}",
-            business_name=f"Business {i+1}",
+            id=f"sample-{i + 1:03d}",
+            business_name=f"Business {i + 1}",
             website=lead.website,  # Keep website for scoring
             phone="(555) 000-0000",
-            email=f"contact{i+1}@example.com",
+            email=f"contact{i + 1}@example.com",
             street_address="123 Main St",
             city=lead.city,
             state=lead.state,
@@ -182,7 +183,7 @@ def get_sample_leads(db: Session, count: int = 100) -> List[Lead]:
 
 
 @router.get("/weights/current")
-async def get_weights() -> Dict[str, Any]:
+async def get_weights() -> dict[str, Any]:
     """Get current scoring weights"""
     logger.info("Getting current scoring weights")
 
@@ -331,9 +332,7 @@ async def propose_weight_changes(proposal: ProposeDiffRequest, db: Session = Dep
         subprocess.run(["git", "add", str(weights_path)], check=True, capture_output=True, text=True)
 
         commit_message = (
-            f"{proposal.commit_message}\n\n"
-            f"Original SHA: {proposal.original_sha}\n"
-            f"Proposed via Scoring Playground"
+            f"{proposal.commit_message}\n\nOriginal SHA: {proposal.original_sha}\nProposed via Scoring Playground"
         )
 
         subprocess.run(["git", "commit", "-m", commit_message], check=True, capture_output=True, text=True)
@@ -360,7 +359,7 @@ async def propose_weight_changes(proposal: ProposeDiffRequest, db: Session = Dep
 
 
 @router.get("/sheets/poll/{sheet_id}")
-async def poll_sheet_changes(sheet_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def poll_sheet_changes(sheet_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     """
     Poll Google Sheets for weight changes.
 

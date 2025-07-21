@@ -6,6 +6,7 @@ Acceptance Criteria:
 - Timeouts handled properly
 - Results stored correctly
 """
+
 import asyncio
 import sys
 from datetime import datetime, timedelta
@@ -444,7 +445,7 @@ class TestAssessmentIntegrationTask039:
         urls = ["https://example1.com", "https://example2.com"]
 
         # Simulate batch processing by calling coordinator multiple times
-        for business_id, url in zip(business_ids, urls):
+        for business_id, url in zip(business_ids, urls, strict=False):
             # Each call would create an assessment request
             request = AssessmentRequest(
                 assessment_type=AssessmentType.PAGESPEED,

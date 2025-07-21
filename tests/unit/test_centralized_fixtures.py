@@ -4,6 +4,7 @@ Tests for centralized fixture system.
 Verifies that all centralized fixtures work correctly and provide
 proper test isolation.
 """
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

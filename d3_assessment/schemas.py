@@ -11,9 +11,10 @@ Acceptance Criteria:
 - Results retrieval API
 - Proper error responses
 """
+
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 from pydantic import BaseModel, Field, HttpUrl, validator
 
@@ -25,21 +26,21 @@ class TriggerAssessmentRequest(BaseModel):
 
     business_id: str = Field(..., description="Business identifier")
     url: HttpUrl = Field(..., description="Website URL to assess")
-    assessment_types: Optional[List[AssessmentType]] = Field(
+    assessment_types: list[AssessmentType] | None = Field(
         default=None, description="Types of assessments to run (defaults to all)"
     )
-    industry: Optional[str] = Field(default="default", description="Industry for specialized insights")
-    priority: Optional[str] = Field(
+    industry: str | None = Field(default="default", description="Industry for specialized insights")
+    priority: str | None = Field(
         default="medium",
         description="Assessment priority (low, medium, high, critical)",
     )
-    session_config: Optional[Dict[str, Any]] = Field(
+    session_config: dict[str, Any] | None = Field(
         default=None, description="Additional configuration for the assessment session"
     )
-    business_data: Optional[Dict[str, Any]] = Field(
+    business_data: dict[str, Any] | None = Field(
         default=None, description="Business information for enhanced assessments (e.g., GBP)"
     )
-    callback_url: Optional[HttpUrl] = Field(default=None, description="URL to POST results when assessment completes")
+    callback_url: HttpUrl | None = Field(default=None, description="URL to POST results when assessment completes")
 
     @validator("priority")
     def validate_priority(cls, v):
@@ -90,7 +91,7 @@ class TriggerAssessmentResponse(BaseModel):
     business_id: str = Field(..., description="Business identifier")
     status: AssessmentStatus = Field(..., description="Initial assessment status")
     total_assessments: int = Field(..., description="Number of assessments to run")
-    estimated_completion_time: Optional[datetime] = Field(default=None, description="Estimated completion time")
+    estimated_completion_time: datetime | None = Field(default=None, description="Estimated completion time")
     tracking_url: str = Field(..., description="URL to check assessment status")
 
     class Config:
@@ -117,10 +118,10 @@ class AssessmentStatusResponse(BaseModel):
     completed_assessments: int = Field(..., description="Number of completed assessments")
     failed_assessments: int = Field(..., description="Number of failed assessments")
     started_at: datetime = Field(..., description="Assessment start time")
-    estimated_completion: Optional[datetime] = Field(default=None, description="Estimated completion time")
-    completed_at: Optional[datetime] = Field(default=None, description="Actual completion time")
-    current_step: Optional[str] = Field(default=None, description="Description of current processing step")
-    errors: Optional[List[str]] = Field(default=None, description="List of error messages if any assessments failed")
+    estimated_completion: datetime | None = Field(default=None, description="Estimated completion time")
+    completed_at: datetime | None = Field(default=None, description="Actual completion time")
+    current_step: str | None = Field(default=None, description="Description of current processing step")
+    errors: list[str] | None = Field(default=None, description="List of error messages if any assessments failed")
 
     class Config:
         json_schema_extra = {
@@ -147,29 +148,29 @@ class TechStackResult(BaseModel):
     technology_name: str = Field(..., description="Name of detected technology")
     category: str = Field(..., description="Technology category")
     confidence: float = Field(..., description="Detection confidence (0-1)")
-    version: Optional[str] = Field(default=None, description="Detected version")
+    version: str | None = Field(default=None, description="Detected version")
 
 
 class PageSpeedMetrics(BaseModel):
     """PageSpeed performance metrics"""
 
     performance_score: int = Field(..., description="Performance score (0-100)")
-    accessibility_score: Optional[int] = Field(default=None, description="Accessibility score")
-    seo_score: Optional[int] = Field(default=None, description="SEO score")
-    best_practices_score: Optional[int] = Field(default=None, description="Best practices score")
-    largest_contentful_paint: Optional[int] = Field(default=None, description="LCP in milliseconds")
-    first_input_delay: Optional[int] = Field(default=None, description="FID in milliseconds")
-    cumulative_layout_shift: Optional[float] = Field(default=None, description="CLS score")
-    speed_index: Optional[int] = Field(default=None, description="Speed Index in milliseconds")
-    time_to_interactive: Optional[int] = Field(default=None, description="TTI in milliseconds")
+    accessibility_score: int | None = Field(default=None, description="Accessibility score")
+    seo_score: int | None = Field(default=None, description="SEO score")
+    best_practices_score: int | None = Field(default=None, description="Best practices score")
+    largest_contentful_paint: int | None = Field(default=None, description="LCP in milliseconds")
+    first_input_delay: int | None = Field(default=None, description="FID in milliseconds")
+    cumulative_layout_shift: float | None = Field(default=None, description="CLS score")
+    speed_index: int | None = Field(default=None, description="Speed Index in milliseconds")
+    time_to_interactive: int | None = Field(default=None, description="TTI in milliseconds")
 
 
 class AIInsightsResult(BaseModel):
     """AI-generated insights result"""
 
-    recommendations: List[Dict[str, Any]] = Field(..., description="List of recommendations")
-    industry_insights: Dict[str, Any] = Field(..., description="Industry-specific insights")
-    summary: Dict[str, Any] = Field(..., description="Overall assessment summary")
+    recommendations: list[dict[str, Any]] = Field(..., description="List of recommendations")
+    industry_insights: dict[str, Any] = Field(..., description="Industry-specific insights")
+    summary: dict[str, Any] = Field(..., description="Overall assessment summary")
     ai_model_version: str = Field(..., description="AI model version used")
     processing_cost_usd: Decimal = Field(..., description="Cost of AI processing")
 
@@ -191,11 +192,11 @@ class AssessmentResults(BaseModel):
     failed_assessments: int = Field(..., description="Failed assessments")
 
     # Assessment results by type
-    pagespeed_results: Optional[PageSpeedMetrics] = Field(default=None, description="PageSpeed assessment results")
-    tech_stack_results: Optional[List[TechStackResult]] = Field(
+    pagespeed_results: PageSpeedMetrics | None = Field(default=None, description="PageSpeed assessment results")
+    tech_stack_results: list[TechStackResult] | None = Field(
         default=None, description="Technology stack detection results"
     )
-    ai_insights_results: Optional[AIInsightsResult] = Field(
+    ai_insights_results: AIInsightsResult | None = Field(
         default=None, description="AI-generated insights and recommendations"
     )
 
@@ -206,7 +207,7 @@ class AssessmentResults(BaseModel):
     total_cost_usd: Decimal = Field(..., description="Total cost of assessment")
 
     # Error information
-    errors: Optional[Dict[str, str]] = Field(default=None, description="Errors by assessment type")
+    errors: dict[str, str] | None = Field(default=None, description="Errors by assessment type")
 
     class Config:
         json_schema_extra = {
@@ -264,11 +265,11 @@ class AssessmentResults(BaseModel):
 class BatchAssessmentRequest(BaseModel):
     """Request model for batch assessment processing"""
 
-    assessments: List[TriggerAssessmentRequest] = Field(
+    assessments: list[TriggerAssessmentRequest] = Field(
         ..., description="List of assessments to process", min_items=1, max_items=50
     )
-    max_concurrent: Optional[int] = Field(default=3, description="Maximum concurrent assessments", ge=1, le=10)
-    batch_id: Optional[str] = Field(default=None, description="Optional batch identifier for tracking")
+    max_concurrent: int | None = Field(default=3, description="Maximum concurrent assessments", ge=1, le=10)
+    batch_id: str | None = Field(default=None, description="Optional batch identifier for tracking")
 
     class Config:
         json_schema_extra = {
@@ -296,10 +297,8 @@ class BatchAssessmentResponse(BaseModel):
 
     batch_id: str = Field(..., description="Batch identifier")
     total_assessments: int = Field(..., description="Total assessments in batch")
-    session_ids: List[str] = Field(..., description="List of session IDs")
-    estimated_completion_time: Optional[datetime] = Field(
-        default=None, description="Estimated time for batch completion"
-    )
+    session_ids: list[str] = Field(..., description="List of session IDs")
+    estimated_completion_time: datetime | None = Field(default=None, description="Estimated time for batch completion")
     tracking_url: str = Field(..., description="URL to check batch status")
 
     class Config:
@@ -319,8 +318,8 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error type")
     message: str = Field(..., description="Human-readable error message")
-    details: Optional[Dict[str, Any]] = Field(default=None, description="Additional error details")
-    request_id: Optional[str] = Field(default=None, description="Request identifier for tracking")
+    details: dict[str, Any] | None = Field(default=None, description="Additional error details")
+    request_id: str | None = Field(default=None, description="Request identifier for tracking")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
 
     class Config:
@@ -343,7 +342,7 @@ class HealthCheckResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Health check timestamp")
     version: str = Field(..., description="API version")
     uptime_seconds: int = Field(..., description="Service uptime in seconds")
-    dependencies: Dict[str, str] = Field(..., description="Status of dependent services")
+    dependencies: dict[str, str] = Field(..., description="Status of dependent services")
 
     class Config:
         json_schema_extra = {

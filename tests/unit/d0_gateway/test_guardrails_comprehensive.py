@@ -2,6 +2,7 @@
 Comprehensive unit tests for guardrails.py - Cost guardrail system
 Tests for models, guardrail manager, limit checking, and enforcement
 """
+
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -685,11 +686,11 @@ class TestGuardrailManager:
 
         mock_db = MagicMock()
 
-        with patch("d0_gateway.guardrails.get_db_sync") as mock_get_db, patch(
-            "d0_gateway.guardrails.datetime"
-        ) as mock_datetime, patch.object(
-            manager, "_get_daily_spend_from_aggregate", return_value=Decimal("500.0")
-        ) as mock_aggregate:
+        with (
+            patch("d0_gateway.guardrails.get_db_sync") as mock_get_db,
+            patch("d0_gateway.guardrails.datetime") as mock_datetime,
+            patch.object(manager, "_get_daily_spend_from_aggregate", return_value=Decimal("500.0")) as mock_aggregate,
+        ):
             mock_get_db.return_value.__enter__.return_value = mock_db
             mock_now = datetime(2025, 1, 15, 14, 30, 45)
             mock_datetime.utcnow.return_value = mock_now
@@ -713,9 +714,10 @@ class TestGuardrailManager:
 
         mock_db = MagicMock()
 
-        with patch("d0_gateway.guardrails.get_db_sync") as mock_get_db, patch.object(
-            manager, "_get_spend_from_raw", return_value=Decimal("50.0")
-        ) as mock_raw:
+        with (
+            patch("d0_gateway.guardrails.get_db_sync") as mock_get_db,
+            patch.object(manager, "_get_spend_from_raw", return_value=Decimal("50.0")) as mock_raw,
+        ):
             mock_get_db.return_value.__enter__.return_value = mock_db
 
             result = manager._get_current_spend(limit, "dataaxle", "search", None, None)
@@ -736,9 +738,10 @@ class TestGuardrailManager:
 
         mock_db = MagicMock()
 
-        with patch("d0_gateway.guardrails.get_db_sync") as mock_get_db, patch.object(
-            manager, "_get_spend_from_raw", return_value=Decimal("1.50")
-        ) as mock_raw:
+        with (
+            patch("d0_gateway.guardrails.get_db_sync") as mock_get_db,
+            patch.object(manager, "_get_spend_from_raw", return_value=Decimal("1.50")) as mock_raw,
+        ):
             mock_get_db.return_value.__enter__.return_value = mock_db
 
             result = manager._get_current_spend(limit, "dataaxle", "search", None, 123)
@@ -768,9 +771,10 @@ class TestGuardrailManager:
             circuit_breaker_enabled=False,
         )
 
-        with patch.object(manager.logger, "warning") as mock_warning, patch(
-            "d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock
-        ) as mock_send_alert:
+        with (
+            patch.object(manager.logger, "warning") as mock_warning,
+            patch("d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock) as mock_send_alert,
+        ):
             manager._handle_violation(violation, limit)
 
             mock_warning.assert_called_once()
@@ -800,9 +804,10 @@ class TestGuardrailManager:
             circuit_breaker_recovery_timeout=300,
         )
 
-        with patch.object(manager, "_update_circuit_breaker") as mock_update, patch(
-            "d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock
-        ) as mock_send_alert:
+        with (
+            patch.object(manager, "_update_circuit_breaker") as mock_update,
+            patch("d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock) as mock_send_alert,
+        ):
             manager._handle_violation(violation, limit)
 
             mock_update.assert_called_once_with("circuit_test", 3, 300)
@@ -829,9 +834,11 @@ class TestGuardrailManager:
             circuit_breaker_enabled=False,
         )
 
-        with patch("d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock) as mock_send_alert, patch(
-            "asyncio.get_event_loop"
-        ) as mock_get_loop, patch("asyncio.create_task") as mock_create_task:
+        with (
+            patch("d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock) as mock_send_alert,
+            patch("asyncio.get_event_loop") as mock_get_loop,
+            patch("asyncio.create_task") as mock_create_task,
+        ):
             mock_loop = MagicMock()
             mock_loop.is_running.return_value = True
             mock_get_loop.return_value = mock_loop
@@ -862,9 +869,11 @@ class TestGuardrailManager:
             circuit_breaker_enabled=False,
         )
 
-        with patch("d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock) as mock_send_alert, patch(
-            "asyncio.get_event_loop", side_effect=RuntimeError("No event loop")
-        ), patch.object(manager.logger, "warning") as mock_warning:
+        with (
+            patch("d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock) as mock_send_alert,
+            patch("asyncio.get_event_loop", side_effect=RuntimeError("No event loop")),
+            patch.object(manager.logger, "warning") as mock_warning,
+        ):
             manager._handle_violation(violation, limit)
 
             # Should have logged the fallback warning
@@ -960,9 +969,10 @@ class TestGuardrailManagerIntegration:
         )
         manager.add_limit(limit)
 
-        with patch.object(manager, "_get_current_spend", return_value=Decimal("950.0")), patch.object(
-            manager, "_handle_violation"
-        ) as mock_handle:
+        with (
+            patch.object(manager, "_get_current_spend", return_value=Decimal("950.0")),
+            patch.object(manager, "_handle_violation") as mock_handle,
+        ):
             result = manager.enforce_limits("dataaxle", "search", Decimal("100.0"))
 
             assert isinstance(result, GuardrailViolation)
@@ -992,9 +1002,10 @@ class TestGuardrailManagerIntegration:
             "recovery_timeout": 300,
         }
 
-        with patch.object(manager, "_get_current_spend", return_value=Decimal("500.0")), patch.object(
-            manager, "_handle_violation"
-        ) as mock_handle:
+        with (
+            patch.object(manager, "_get_current_spend", return_value=Decimal("500.0")),
+            patch.object(manager, "_handle_violation") as mock_handle,
+        ):
             result = manager.enforce_limits("dataaxle", "search", Decimal("50.0"))
 
             assert isinstance(result, GuardrailViolation)
@@ -1027,11 +1038,11 @@ class TestGuardrailManagerIntegration:
         )
         manager.add_limit(limit)
 
-        with patch.object(manager, "_get_current_spend", return_value=Decimal("800.0")), patch.object(
-            manager, "_handle_violation"
-        ) as mock_handle, patch(
-            "d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock
-        ) as mock_send_alert:
+        with (
+            patch.object(manager, "_get_current_spend", return_value=Decimal("800.0")),
+            patch.object(manager, "_handle_violation") as mock_handle,
+            patch("d0_gateway.guardrail_alerts.send_cost_alert", new_callable=AsyncMock) as mock_send_alert,
+        ):
             result = manager.enforce_limits("dataaxle", "search", Decimal("50.0"))
 
             # Should still return True but handle violation

@@ -11,6 +11,7 @@ Tests all required functionality:
 7. All 5 scores are returned (Performance, Accessibility, Best Practices, SEO, PWA)
 8. Integration with assessment models
 """
+
 import asyncio
 import json
 import os

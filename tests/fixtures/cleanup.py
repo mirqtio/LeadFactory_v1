@@ -1,6 +1,7 @@
 """
 Database cleanup utilities for test isolation
 """
+
 import pytest
 from sqlalchemy import text
 

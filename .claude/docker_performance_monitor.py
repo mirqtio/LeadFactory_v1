@@ -7,7 +7,7 @@ Tracks build times, image sizes, and CI performance metrics
 import json
 import subprocess
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -60,7 +60,7 @@ class DockerPerformanceMonitor:
             image_size = size_result.stdout.strip()
 
             metric = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "dockerfile": dockerfile,
                 "target": target,
                 "build_time_seconds": round(build_time, 2),
@@ -99,7 +99,7 @@ class DockerPerformanceMonitor:
                     (current["build_time_seconds"] - optimized["build_time_seconds"]) / current["build_time_seconds"]
                 ) * 100
 
-                print(f"\n📊 Performance Comparison:")
+                print("\n📊 Performance Comparison:")
                 print(f"Current:   {current['build_time_seconds']}s ({current['image_size']})")
                 print(f"Optimized: {optimized['build_time_seconds']}s ({optimized['image_size']})")
                 print(f"Improvement: {improvement:.1f}% faster")
@@ -161,7 +161,7 @@ class DockerPerformanceMonitor:
                 duration = (updated - started).total_seconds()
 
                 ci_metric = {
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "run_id": run_id,
                     "duration_seconds": duration,
                     "conclusion": data["conclusion"],

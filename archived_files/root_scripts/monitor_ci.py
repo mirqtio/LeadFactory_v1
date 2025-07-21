@@ -47,11 +47,10 @@ def main():
             if conclusion == "success":
                 print("✅ CI PASSED! All checks are green!")
                 return True
-            else:
-                print(f"❌ CI FAILED with conclusion: {conclusion}")
-                return False
+            print(f"❌ CI FAILED with conclusion: {conclusion}")
+            return False
 
-        print(f"⏳ CI still running... (check {i+1}/20)")
+        print(f"⏳ CI still running... (check {i + 1}/20)")
         time.sleep(30)  # Wait 30 seconds between checks
 
     print("⏰ Timeout waiting for CI completion")

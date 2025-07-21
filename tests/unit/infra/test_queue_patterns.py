@@ -4,6 +4,7 @@ Unit tests for infra.queue_patterns - Reliable queue patterns with BLMOVE operat
 Tests comprehensive queue pattern operations, reliable message transfer,
 batch processing, and priority queue functionality to ensure 80%+ coverage.
 """
+
 import json
 import time
 from datetime import datetime, timedelta

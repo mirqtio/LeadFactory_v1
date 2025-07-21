@@ -232,9 +232,10 @@ class TestPipelineComponents:
             "report_path": "/tmp/report.pdf",
         }
 
-        with patch("flows.full_pipeline_flow.DeliveryManager") as mock_delivery, patch(
-            "flows.full_pipeline_flow.AdvancedContentGenerator"
-        ) as mock_content:
+        with (
+            patch("flows.full_pipeline_flow.DeliveryManager") as mock_delivery,
+            patch("flows.full_pipeline_flow.AdvancedContentGenerator") as mock_content,
+        ):
             # Mock content generator
             mock_content_instance = AsyncMock()
             mock_content_instance.generate_email_content = AsyncMock(
@@ -267,9 +268,10 @@ class TestPipelineComponents:
             "score_tier": "B",
         }
 
-        with patch("flows.full_pipeline_flow.DeliveryManager") as mock_delivery, patch(
-            "flows.full_pipeline_flow.AdvancedContentGenerator"
-        ) as mock_content:
+        with (
+            patch("flows.full_pipeline_flow.DeliveryManager") as mock_delivery,
+            patch("flows.full_pipeline_flow.AdvancedContentGenerator") as mock_content,
+        ):
             mock_content_instance = AsyncMock()
             mock_content_instance.generate_email_content = AsyncMock(return_value={"subject": "Test", "body": "Test"})
             mock_content.return_value = mock_content_instance
@@ -290,9 +292,10 @@ class TestPipelineComponents:
         """Test email sending when no email address is available"""
         business_data = {"id": "test_123", "sourced_data": {}, "score": 75, "score_tier": "B"}  # No email
 
-        with patch("flows.full_pipeline_flow.DeliveryManager") as mock_delivery, patch(
-            "flows.full_pipeline_flow.AdvancedContentGenerator"
-        ) as mock_content:
+        with (
+            patch("flows.full_pipeline_flow.DeliveryManager") as mock_delivery,
+            patch("flows.full_pipeline_flow.AdvancedContentGenerator") as mock_content,
+        ):
             mock_content_instance = AsyncMock()
             mock_content.return_value = mock_content_instance
 
@@ -361,7 +364,6 @@ class TestPipelineMetrics:
         """Test that each stage logs appropriately"""
         # This would verify logging output
         # For unit tests, we focus on the logic rather than logging
-        pass
 
 
 if __name__ == "__main__":

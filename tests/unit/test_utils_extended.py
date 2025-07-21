@@ -1,4 +1,5 @@
 """Extended tests for core.utils to increase coverage."""
+
 from datetime import date, datetime
 
 import pytest

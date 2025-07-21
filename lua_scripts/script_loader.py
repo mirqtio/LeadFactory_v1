@@ -6,7 +6,6 @@ Implements optimized script loading and execution patterns for PRP promotion sys
 import hashlib
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Union
 
 try:
     import redis.asyncio as aioredis
@@ -19,12 +18,12 @@ from core.config import get_settings
 class ScriptLoader:
     """Redis Lua script loader with SHA caching and automatic fallback"""
 
-    def __init__(self, redis_client: Optional[aioredis.Redis] = None):
+    def __init__(self, redis_client: aioredis.Redis | None = None):
         self.settings = get_settings()
         self.logger = logging.getLogger(__name__)
-        self._redis: Optional[aioredis.Redis] = redis_client
-        self._script_cache: Dict[str, str] = {}  # script_name -> SHA hash
-        self._script_source: Dict[str, str] = {}  # script_name -> Lua source
+        self._redis: aioredis.Redis | None = redis_client
+        self._script_cache: dict[str, str] = {}  # script_name -> SHA hash
+        self._script_source: dict[str, str] = {}  # script_name -> Lua source
 
     async def get_redis(self) -> aioredis.Redis:
         """Get Redis connection (lazy initialization)"""
@@ -32,7 +31,7 @@ class ScriptLoader:
             self._redis = await aioredis.from_url(self.settings.redis_url, decode_responses=True, encoding="utf-8")
         return self._redis
 
-    async def load_script(self, script_name: str, script_path: Optional[Path] = None) -> str:
+    async def load_script(self, script_name: str, script_path: Path | None = None) -> str:
         """
         Load Lua script and cache SHA hash
 
@@ -60,9 +59,9 @@ class ScriptLoader:
             raise FileNotFoundError(f"Script not found: {script_path}")
 
         try:
-            with open(script_path, "r", encoding="utf-8") as f:
+            with open(script_path, encoding="utf-8") as f:
                 script_source = f.read()
-        except IOError as e:
+        except OSError as e:
             raise FileNotFoundError(f"Failed to read script {script_path}: {e}")
 
         # Cache source for fallback
@@ -83,8 +82,8 @@ class ScriptLoader:
             raise
 
     async def execute_script(
-        self, script_name: str, keys: List[str], args: List[Union[str, int, float]]
-    ) -> Union[List, Dict, str, int]:
+        self, script_name: str, keys: list[str], args: list[str | int | float]
+    ) -> list | dict | str | int:
         """
         Execute Lua script with EVALSHA and automatic EVAL fallback
 
@@ -148,7 +147,7 @@ class ScriptLoader:
             self.logger.error(f"Script execution failed for '{script_name}': {e}")
             raise
 
-    async def reload_all_scripts(self) -> Dict[str, str]:
+    async def reload_all_scripts(self) -> dict[str, str]:
         """
         Reload all cached scripts and return new SHA hashes
 
@@ -198,15 +197,15 @@ class ScriptLoader:
             self.logger.error(f"Failed to check script existence '{script_name}': {e}")
             return False
 
-    def get_script_sha(self, script_name: str) -> Optional[str]:
+    def get_script_sha(self, script_name: str) -> str | None:
         """Get cached SHA hash for script"""
         return self._script_cache.get(script_name)
 
-    def get_loaded_scripts(self) -> List[str]:
+    def get_loaded_scripts(self) -> list[str]:
         """Get list of loaded script names"""
         return list(self._script_cache.keys())
 
-    def calculate_source_hash(self, script_name: str) -> Optional[str]:
+    def calculate_source_hash(self, script_name: str) -> str | None:
         """Calculate SHA1 hash of script source for integrity checking"""
         if script_name not in self._script_source:
             return None
@@ -221,7 +220,7 @@ class ScriptLoader:
 
 
 # Global script loader instance
-_script_loader: Optional[ScriptLoader] = None
+_script_loader: ScriptLoader | None = None
 
 
 async def get_script_loader() -> ScriptLoader:
@@ -240,7 +239,7 @@ async def get_script_loader() -> ScriptLoader:
     return _script_loader
 
 
-async def execute_promote_script(keys: List[str], args: List[Union[str, int, float]]) -> Union[List, Dict, str, int]:
+async def execute_promote_script(keys: list[str], args: list[str | int | float]) -> list | dict | str | int:
     """
     Convenience function to execute promotion script
 

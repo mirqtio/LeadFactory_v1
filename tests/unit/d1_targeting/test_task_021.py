@@ -6,6 +6,7 @@ Acceptance Criteria:
 - Priority scoring implemented
 - Freshness tracking works
 """
+
 import sys
 from datetime import datetime, timedelta
 from unittest.mock import Mock

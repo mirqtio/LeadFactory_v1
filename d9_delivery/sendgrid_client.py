@@ -15,7 +15,7 @@ import asyncio
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.config import get_settings
 from core.exceptions import ExternalAPIError, RateLimitError
@@ -29,13 +29,13 @@ class SendGridResponse:
     """SendGrid API response data"""
 
     success: bool
-    message_id: Optional[str] = None
-    batch_id: Optional[str] = None
-    error_message: Optional[str] = None
-    status_code: Optional[int] = None
-    headers: Optional[Dict[str, str]] = None
-    rate_limit_remaining: Optional[int] = None
-    rate_limit_reset: Optional[int] = None
+    message_id: str | None = None
+    batch_id: str | None = None
+    error_message: str | None = None
+    status_code: int | None = None
+    headers: dict[str, str] | None = None
+    rate_limit_remaining: int | None = None
+    rate_limit_reset: int | None = None
 
 
 @dataclass
@@ -45,15 +45,15 @@ class EmailData:
     to_email: str
     from_email: str
     subject: str
-    to_name: Optional[str] = None
-    from_name: Optional[str] = None
-    html_content: Optional[str] = None
-    text_content: Optional[str] = None
-    categories: Optional[List[str]] = None
-    custom_args: Optional[Dict[str, Any]] = None
-    reply_to_email: Optional[str] = None
-    reply_to_name: Optional[str] = None
-    batch_id: Optional[str] = None
+    to_name: str | None = None
+    from_name: str | None = None
+    html_content: str | None = None
+    text_content: str | None = None
+    categories: list[str] | None = None
+    custom_args: dict[str, Any] | None = None
+    reply_to_email: str | None = None
+    reply_to_name: str | None = None
+    batch_id: str | None = None
 
 
 class SendGridClient:
@@ -64,7 +64,7 @@ class SendGridClient:
     and proper integration with SendGrid's v3 API.
     """
 
-    def __init__(self, api_key: Optional[str] = None, sandbox_mode: bool = False):
+    def __init__(self, api_key: str | None = None, sandbox_mode: bool = False):
         """Initialize SendGrid client"""
         self.config = get_settings()
         self.sandbox_mode = sandbox_mode or os.getenv("SENDGRID_SANDBOX_MODE", "false").lower() == "true"
@@ -85,7 +85,6 @@ class SendGridClient:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit"""
-        pass
 
     async def send_email(self, email_data: EmailData) -> SendGridResponse:
         """
@@ -149,7 +148,7 @@ class SendGridClient:
             logger.error(f"Unexpected error sending email: {e}")
             return SendGridResponse(success=False, error_message=f"Unexpected error: {str(e)}")
 
-    def _prepare_custom_args(self, email_data: EmailData) -> Dict[str, str]:
+    def _prepare_custom_args(self, email_data: EmailData) -> dict[str, str]:
         """
         Prepare custom arguments for email tracking
 
@@ -181,9 +180,7 @@ class SendGridClient:
 
         return custom_args
 
-    async def send_batch_emails(
-        self, emails: List[EmailData], batch_id: Optional[str] = None
-    ) -> List[SendGridResponse]:
+    async def send_batch_emails(self, emails: list[EmailData], batch_id: str | None = None) -> list[SendGridResponse]:
         """
         Send multiple emails as a batch
 
@@ -236,7 +233,7 @@ class SendGridClient:
             logger.error(f"Error validating SendGrid API key: {e}")
             return False
 
-    async def get_account_details(self) -> Optional[Dict[str, Any]]:
+    async def get_account_details(self) -> dict[str, Any] | None:
         """
         Get SendGrid account details
 
@@ -271,12 +268,12 @@ async def send_single_email(
     to_email: str,
     subject: str,
     html_content: str,
-    text_content: Optional[str] = None,
-    to_name: Optional[str] = None,
-    from_email: Optional[str] = None,
-    from_name: Optional[str] = None,
-    categories: Optional[List[str]] = None,
-    custom_args: Optional[Dict[str, Any]] = None,
+    text_content: str | None = None,
+    to_name: str | None = None,
+    from_email: str | None = None,
+    from_name: str | None = None,
+    categories: list[str] | None = None,
+    custom_args: dict[str, Any] | None = None,
 ) -> SendGridResponse:
     """
     Utility function to send a single email
@@ -316,7 +313,7 @@ def create_email_data(
     from_email: str,
     subject: str,
     html_content: str,
-    text_content: Optional[str] = None,
+    text_content: str | None = None,
     **kwargs,
 ) -> EmailData:
     """

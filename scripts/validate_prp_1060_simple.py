@@ -23,7 +23,7 @@ class PRP1060SimpleValidator:
         self.max_score = 100
         self.project_root = Path(__file__).parent.parent
 
-    def run_validation(self) -> Dict[str, Any]:
+    def run_validation(self) -> dict[str, Any]:
         """Run complete PRP-1060 validation."""
         print("🚀 Starting PRP-1060 Simple Validation")
         print("=" * 60)
@@ -85,7 +85,7 @@ class PRP1060SimpleValidator:
         self.print_summary(final_results)
         return final_results
 
-    def validate_profile_system(self) -> Dict[str, Any]:
+    def validate_profile_system(self) -> dict[str, Any]:
         """Validate SuperClaude profile system."""
         result = {"passed": False, "score": 0, "max_score": 15, "details": []}
 
@@ -119,7 +119,7 @@ class PRP1060SimpleValidator:
             try:
                 import yaml
 
-                with open(acceptance_profile, "r") as f:
+                with open(acceptance_profile) as f:
                     profile_data = yaml.safe_load(f)
 
                 required_fields = ["name", "description", "command", "workflow"]
@@ -151,7 +151,7 @@ class PRP1060SimpleValidator:
         result["passed"] = result["score"] >= 12  # 80% of max score
         return result
 
-    def validate_container_system(self) -> Dict[str, Any]:
+    def validate_container_system(self) -> dict[str, Any]:
         """Validate container system components."""
         result = {"passed": False, "score": 0, "max_score": 15, "details": []}
 
@@ -210,7 +210,7 @@ class PRP1060SimpleValidator:
         result["passed"] = result["score"] >= 12  # 80% of max score
         return result
 
-    def validate_evidence_system(self) -> Dict[str, Any]:
+    def validate_evidence_system(self) -> dict[str, Any]:
         """Validate evidence collection and validation system."""
         result = {"passed": False, "score": 0, "max_score": 12, "details": []}
 
@@ -251,7 +251,7 @@ class PRP1060SimpleValidator:
         result["passed"] = result["score"] >= 10  # 80% of max score
         return result
 
-    def validate_deployment_system(self) -> Dict[str, Any]:
+    def validate_deployment_system(self) -> dict[str, Any]:
         """Validate deployment and health checking system."""
         result = {"passed": False, "score": 0, "max_score": 12, "details": []}
 
@@ -292,7 +292,7 @@ class PRP1060SimpleValidator:
         result["passed"] = result["score"] >= 10  # 80% of max score
         return result
 
-    def validate_integration_files(self) -> Dict[str, Any]:
+    def validate_integration_files(self) -> dict[str, Any]:
         """Validate integration files and core integration."""
         result = {"passed": False, "score": 0, "max_score": 15, "details": []}
 
@@ -331,7 +331,7 @@ class PRP1060SimpleValidator:
         result["passed"] = result["score"] >= 12  # 80% of max score
         return result
 
-    def validate_github_actions(self) -> Dict[str, Any]:
+    def validate_github_actions(self) -> dict[str, Any]:
         """Validate GitHub Actions workflow."""
         result = {"passed": False, "score": 0, "max_score": 10, "details": []}
 
@@ -357,7 +357,7 @@ class PRP1060SimpleValidator:
         result["passed"] = result["score"] >= 8  # 80% of max score
         return result
 
-    def validate_documentation(self) -> Dict[str, Any]:
+    def validate_documentation(self) -> dict[str, Any]:
         """Validate documentation completeness."""
         result = {"passed": False, "score": 0, "max_score": 10, "details": []}
 
@@ -388,7 +388,7 @@ class PRP1060SimpleValidator:
         result["passed"] = result["score"] >= 8  # 80% of max score
         return result
 
-    def validate_requirements(self) -> Dict[str, Any]:
+    def validate_requirements(self) -> dict[str, Any]:
         """Validate requirements and dependencies."""
         result = {"passed": False, "score": 0, "max_score": 11, "details": []}
 
@@ -429,7 +429,7 @@ class PRP1060SimpleValidator:
         result["passed"] = result["score"] >= 9  # 80% of max score
         return result
 
-    def print_summary(self, results: Dict[str, Any]):
+    def print_summary(self, results: dict[str, Any]):
         """Print validation summary."""
         print("\n" + "=" * 60)
         print("📊 PRP-1060 VALIDATION SUMMARY")

@@ -4,12 +4,13 @@ WebSocket Connection Manager for Batch Report Runner
 Manages real-time progress updates with throttling, authentication,
 and multi-client support for batch processing notifications.
 """
+
 import asyncio
 import json
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, Dict, Optional, Set
+from typing import Any
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -52,7 +53,7 @@ class AsyncThrottle:
 class WebSocketConnection:
     """Individual WebSocket connection wrapper"""
 
-    def __init__(self, websocket: WebSocket, batch_id: str, user_id: Optional[str] = None):
+    def __init__(self, websocket: WebSocket, batch_id: str, user_id: str | None = None):
         self.websocket = websocket
         self.batch_id = batch_id
         self.user_id = user_id
@@ -60,7 +61,7 @@ class WebSocketConnection:
         self.last_message_at = None
         self.message_count = 0
 
-    async def send_json(self, data: Dict[str, Any]):
+    async def send_json(self, data: dict[str, Any]):
         """Send JSON message with error handling"""
         try:
             await self.websocket.send_json(data)
@@ -92,19 +93,19 @@ class ConnectionManager:
 
     def __init__(self):
         # Active connections by batch_id
-        self.active_connections: Dict[str, WebSocketConnection] = {}
+        self.active_connections: dict[str, WebSocketConnection] = {}
 
         # Connections by user (for user-specific broadcasts)
-        self.user_connections: Dict[str, Set[str]] = {}
+        self.user_connections: dict[str, set[str]] = {}
 
         # Throttle instances per batch
-        self.throttles: Dict[str, AsyncThrottle] = {}
+        self.throttles: dict[str, AsyncThrottle] = {}
 
         # Statistics
         self.total_connections = 0
         self.total_messages_sent = 0
 
-    async def connect(self, websocket: WebSocket, batch_id: str, user_id: Optional[str] = None) -> bool:
+    async def connect(self, websocket: WebSocket, batch_id: str, user_id: str | None = None) -> bool:
         """
         Accept WebSocket connection and register it
 
@@ -168,7 +169,7 @@ class ConnectionManager:
 
             logger.info(f"WebSocket disconnected for batch {batch_id}")
 
-    async def broadcast_progress(self, batch_id: str, progress_data: Dict[str, Any], force: bool = False) -> bool:
+    async def broadcast_progress(self, batch_id: str, progress_data: dict[str, Any], force: bool = False) -> bool:
         """
         Broadcast progress update to specific batch connection
 
@@ -215,7 +216,7 @@ class ConnectionManager:
             self.disconnect(batch_id)
             return False
 
-    async def broadcast_completion(self, batch_id: str, completion_data: Dict[str, Any]):
+    async def broadcast_completion(self, batch_id: str, completion_data: dict[str, Any]):
         """Broadcast batch completion with final results"""
         message = {
             "type": "batch_completed",
@@ -226,7 +227,7 @@ class ConnectionManager:
 
         await self.broadcast_progress(batch_id, message, force=True)
 
-    async def broadcast_error(self, batch_id: str, error_message: str, error_code: Optional[str] = None):
+    async def broadcast_error(self, batch_id: str, error_message: str, error_code: str | None = None):
         """Broadcast error message"""
         message = {
             "type": "batch_error",
@@ -238,13 +239,13 @@ class ConnectionManager:
 
         await self.broadcast_progress(batch_id, message, force=True)
 
-    async def send_lead_update(self, batch_id: str, lead_data: Dict[str, Any]):
+    async def send_lead_update(self, batch_id: str, lead_data: dict[str, Any]):
         """Send individual lead processing update"""
         message = {"type": "lead_update", "batch_id": batch_id, "timestamp": datetime.utcnow().isoformat(), **lead_data}
 
         await self.broadcast_progress(batch_id, message, force=False)
 
-    def get_connection_info(self, batch_id: str) -> Optional[Dict[str, Any]]:
+    def get_connection_info(self, batch_id: str) -> dict[str, Any] | None:
         """Get information about a connection"""
         connection = self.active_connections.get(batch_id)
         if not connection:
@@ -259,7 +260,7 @@ class ConnectionManager:
             "last_message_at": connection.last_message_at.isoformat() if connection.last_message_at else None,
         }
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get connection manager statistics"""
         active_count = len(self.active_connections)
         active_users = len(self.user_connections)
@@ -289,7 +290,7 @@ class ConnectionManager:
         return len(stale_batches)
 
     @asynccontextmanager
-    async def connection_context(self, websocket: WebSocket, batch_id: str, user_id: Optional[str] = None):
+    async def connection_context(self, websocket: WebSocket, batch_id: str, user_id: str | None = None):
         """Context manager for handling WebSocket connection lifecycle"""
         connected = await self.connect(websocket, batch_id, user_id)
         if not connected:
@@ -317,7 +318,7 @@ def get_connection_manager() -> ConnectionManager:
     return _connection_manager
 
 
-async def handle_websocket_connection(websocket: WebSocket, batch_id: str, user_id: Optional[str] = None):
+async def handle_websocket_connection(websocket: WebSocket, batch_id: str, user_id: str | None = None):
     """
     Handle WebSocket connection for batch progress updates
 

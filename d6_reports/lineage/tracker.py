@@ -2,9 +2,10 @@
 Lineage tracking implementation
 """
 
+from collections.abc import Awaitable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Awaitable, Dict, Optional, Union
+from typing import Any, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -23,8 +24,8 @@ class LineageData:
     template_version_id: str
     pipeline_start_time: datetime
     pipeline_end_time: datetime
-    pipeline_logs: Dict[str, Any]
-    raw_inputs: Dict[str, Any]
+    pipeline_logs: dict[str, Any]
+    raw_inputs: dict[str, Any]
 
 
 class LineageTracker:
@@ -32,14 +33,14 @@ class LineageTracker:
     Tracks and manages report generation lineage
     """
 
-    def __init__(self, session: Union[Session, AsyncSession]):
+    def __init__(self, session: Session | AsyncSession):
         self.session = session
 
     def capture_lineage(
         self,
         report_generation_id: str,
         lineage_data: LineageData,
-    ) -> Union[Optional[ReportLineage], "Awaitable[Optional[ReportLineage]]"]:
+    ) -> Union[ReportLineage | None, "Awaitable[ReportLineage | None]"]:
         """
         Capture lineage information for a report generation
 
@@ -56,15 +57,14 @@ class LineageTracker:
         if isinstance(self.session, AsyncSession):
             # Return coroutine for async session
             return self._capture_lineage_async(report_generation_id, lineage_data)
-        else:
-            # Handle sync session immediately
-            return self._capture_lineage_sync(report_generation_id, lineage_data)
+        # Handle sync session immediately
+        return self._capture_lineage_sync(report_generation_id, lineage_data)
 
     def _capture_lineage_sync(
         self,
         report_generation_id: str,
         lineage_data: LineageData,
-    ) -> Optional[ReportLineage]:
+    ) -> ReportLineage | None:
         """Synchronous implementation of lineage capture"""
         if not getattr(settings, "ENABLE_REPORT_LINEAGE", True):
             return None
@@ -113,7 +113,7 @@ class LineageTracker:
         self,
         report_generation_id: str,
         lineage_data: LineageData,
-    ) -> Optional[ReportLineage]:
+    ) -> ReportLineage | None:
         """Asynchronous implementation of lineage capture"""
         if not getattr(settings, "ENABLE_REPORT_LINEAGE", True):
             return None
@@ -162,10 +162,10 @@ class LineageTracker:
         self,
         lineage_id: str,
         action: str,
-        user_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-    ) -> Optional[ReportLineageAudit]:
+        user_id: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> ReportLineageAudit | None:
         """
         Record access to lineage data
 
@@ -205,7 +205,7 @@ class LineageTracker:
             self.session.rollback()
             return None
 
-    def get_lineage_by_report(self, report_generation_id: str) -> Optional[ReportLineage]:
+    def get_lineage_by_report(self, report_generation_id: str) -> ReportLineage | None:
         """
         Get lineage data for a report generation
 
@@ -224,11 +224,11 @@ class LineageTracker:
 
     def search_lineage(
         self,
-        lead_id: Optional[str] = None,
-        pipeline_run_id: Optional[str] = None,
-        template_version_id: Optional[str] = None,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
+        lead_id: str | None = None,
+        pipeline_run_id: str | None = None,
+        template_version_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
         limit: int = 100,
     ) -> list[ReportLineage]:
         """

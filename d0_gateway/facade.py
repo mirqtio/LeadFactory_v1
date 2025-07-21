@@ -1,8 +1,9 @@
 """
 D0 Gateway facade - unified interface for all external APIs
 """
+
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.logging import get_logger
 
@@ -16,7 +17,7 @@ class GatewayFacade:
     Provides a single entry point for PageSpeed, OpenAI, SendGrid, and Stripe APIs.
     """
 
-    def __init__(self, factory: Optional[GatewayClientFactory] = None):
+    def __init__(self, factory: GatewayClientFactory | None = None):
         """
         Initialize the gateway facade
 
@@ -31,8 +32,8 @@ class GatewayFacade:
 
     # PageSpeed API Methods
     async def analyze_website(
-        self, url: str, strategy: str = "mobile", categories: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, url: str, strategy: str = "mobile", categories: list[str] | None = None
+    ) -> dict[str, Any]:
         """
         Analyze website performance using PageSpeed Insights
 
@@ -55,7 +56,7 @@ class GatewayFacade:
             self.logger.error(f"PageSpeed analysis failed: {e}")
             raise
 
-    async def get_core_web_vitals(self, url: str, strategy: str = "mobile") -> Dict[str, Any]:
+    async def get_core_web_vitals(self, url: str, strategy: str = "mobile") -> dict[str, Any]:
         """
         Get Core Web Vitals for a website
 
@@ -77,7 +78,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to get Core Web Vitals: {e}")
             raise
 
-    async def analyze_multiple_websites(self, urls: List[str], strategy: str = "mobile") -> Dict[str, Any]:
+    async def analyze_multiple_websites(self, urls: list[str], strategy: str = "mobile") -> dict[str, Any]:
         """
         Analyze multiple websites in parallel
 
@@ -102,9 +103,9 @@ class GatewayFacade:
     # OpenAI API Methods
     async def generate_website_insights(
         self,
-        pagespeed_data: Dict[str, Any],
-        business_context: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        pagespeed_data: dict[str, Any],
+        business_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Generate AI-powered website insights from PageSpeed data
 
@@ -131,9 +132,9 @@ class GatewayFacade:
     async def generate_personalized_email(
         self,
         business_name: str,
-        website_issues: List[Dict[str, Any]],
-        recipient_name: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        website_issues: list[dict[str, Any]],
+        recipient_name: str | None = None,
+    ) -> dict[str, Any]:
         """
         Generate personalized email content for outreach
 
@@ -168,13 +169,13 @@ class GatewayFacade:
         from_name: str,
         subject: str,
         html_content: str,
-        text_content: Optional[str] = None,
-        reply_to: Optional[str] = None,
-        template_id: Optional[str] = None,
-        dynamic_template_data: Optional[Dict[str, Any]] = None,
-        custom_args: Optional[Dict[str, str]] = None,
-        tracking_settings: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        text_content: str | None = None,
+        reply_to: str | None = None,
+        template_id: str | None = None,
+        dynamic_template_data: dict[str, Any] | None = None,
+        custom_args: dict[str, str] | None = None,
+        tracking_settings: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Send email via SendGrid
 
@@ -220,11 +221,11 @@ class GatewayFacade:
 
     async def send_bulk_emails(
         self,
-        emails: List[Dict[str, Any]],
+        emails: list[dict[str, Any]],
         from_email: str,
-        from_name: Optional[str] = None,
-        template_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        from_name: str | None = None,
+        template_id: str | None = None,
+    ) -> dict[str, Any]:
         """
         Send multiple emails efficiently
 
@@ -257,9 +258,9 @@ class GatewayFacade:
     async def get_email_stats(
         self,
         start_date: str,
-        end_date: Optional[str] = None,
+        end_date: str | None = None,
         aggregated_by: str = "day",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get SendGrid email statistics
 
@@ -284,11 +285,11 @@ class GatewayFacade:
 
     async def get_bounces(
         self,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
         limit: int = 500,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get bounce information from SendGrid
 
@@ -312,7 +313,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to get bounces: {e}")
             raise
 
-    async def delete_bounce(self, email: str) -> Dict[str, Any]:
+    async def delete_bounce(self, email: str) -> dict[str, Any]:
         """
         Remove an email from the bounce list
 
@@ -333,7 +334,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to delete bounce: {e}")
             raise
 
-    async def validate_email_address(self, email: str) -> Dict[str, Any]:
+    async def validate_email_address(self, email: str) -> dict[str, Any]:
         """
         Validate an email address using SendGrid
 
@@ -354,7 +355,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to validate email: {e}")
             raise
 
-    async def get_webhook_stats(self) -> Dict[str, Any]:
+    async def get_webhook_stats(self) -> dict[str, Any]:
         """
         Get webhook event statistics from SendGrid
 
@@ -379,11 +380,11 @@ class GatewayFacade:
         success_url: str,
         cancel_url: str,
         quantity: int = 1,
-        customer_email: Optional[str] = None,
-        client_reference_id: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        customer_email: str | None = None,
+        client_reference_id: str | None = None,
+        metadata: dict[str, str] | None = None,
         mode: str = "payment",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a Stripe checkout session with a single price ID
 
@@ -423,18 +424,18 @@ class GatewayFacade:
 
     async def create_checkout_session_with_line_items(
         self,
-        line_items: List[Dict[str, Any]],
+        line_items: list[dict[str, Any]],
         success_url: str,
         cancel_url: str,
-        customer_email: Optional[str] = None,
-        client_reference_id: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        customer_email: str | None = None,
+        client_reference_id: str | None = None,
+        metadata: dict[str, str] | None = None,
         mode: str = "payment",
-        expires_at: Optional[int] = None,
-        payment_method_types: Optional[List[str]] = None,
-        billing_address_collection: Optional[str] = None,
-        allow_promotion_codes: Optional[bool] = None,
-    ) -> Dict[str, Any]:
+        expires_at: int | None = None,
+        payment_method_types: list[str] | None = None,
+        billing_address_collection: str | None = None,
+        allow_promotion_codes: bool | None = None,
+    ) -> dict[str, Any]:
         """
         Create a Stripe checkout session with line items (supports dynamic pricing)
 
@@ -482,11 +483,11 @@ class GatewayFacade:
         self,
         amount: int,
         currency: str = "usd",
-        customer_id: Optional[str] = None,
-        description: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
-        receipt_email: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        customer_id: str | None = None,
+        description: str | None = None,
+        metadata: dict[str, str] | None = None,
+        receipt_email: str | None = None,
+    ) -> dict[str, Any]:
         """
         Create a Stripe payment intent
 
@@ -520,7 +521,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to create payment intent: {e}")
             raise
 
-    async def get_checkout_session(self, session_id: str) -> Dict[str, Any]:
+    async def get_checkout_session(self, session_id: str) -> dict[str, Any]:
         """
         Retrieve a checkout session
 
@@ -541,7 +542,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to get checkout session: {e}")
             raise
 
-    async def get_payment_intent(self, payment_intent_id: str) -> Dict[str, Any]:
+    async def get_payment_intent(self, payment_intent_id: str) -> dict[str, Any]:
         """
         Retrieve a payment intent
 
@@ -565,10 +566,10 @@ class GatewayFacade:
     async def create_customer(
         self,
         email: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        name: str | None = None,
+        description: str | None = None,
+        metadata: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """
         Create a Stripe customer
 
@@ -593,7 +594,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to create customer: {e}")
             raise
 
-    async def get_customer(self, customer_id: str) -> Dict[str, Any]:
+    async def get_customer(self, customer_id: str) -> dict[str, Any]:
         """
         Retrieve a customer
 
@@ -617,10 +618,10 @@ class GatewayFacade:
     async def create_product(
         self,
         name: str,
-        description: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        description: str | None = None,
+        metadata: dict[str, str] | None = None,
         active: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a Stripe product
 
@@ -647,10 +648,10 @@ class GatewayFacade:
 
     async def list_charges(
         self,
-        customer_id: Optional[str] = None,
+        customer_id: str | None = None,
         limit: int = 10,
-        starting_after: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        starting_after: str | None = None,
+    ) -> dict[str, Any]:
         """
         List charges
 
@@ -678,10 +679,10 @@ class GatewayFacade:
         self,
         amount: int,
         currency: str = "usd",
-        product_id: Optional[str] = None,
-        product_data: Optional[Dict[str, str]] = None,
-        recurring: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        product_id: str | None = None,
+        product_data: dict[str, str] | None = None,
+        recurring: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Create a price
 
@@ -714,8 +715,8 @@ class GatewayFacade:
             raise
 
     async def create_webhook_endpoint(
-        self, url: str, enabled_events: List[str], description: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, url: str, enabled_events: list[str], description: str | None = None
+    ) -> dict[str, Any]:
         """
         Create a webhook endpoint
 
@@ -741,7 +742,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to create webhook endpoint: {e}")
             raise
 
-    async def construct_webhook_event(self, payload: str, signature: str, endpoint_secret: str) -> Dict[str, Any]:
+    async def construct_webhook_event(self, payload: str, signature: str, endpoint_secret: str) -> dict[str, Any]:
         """
         Verify and construct webhook event
 
@@ -771,9 +772,9 @@ class GatewayFacade:
     async def complete_business_analysis(
         self,
         business_id: str,
-        business_url: Optional[str] = None,
+        business_url: str | None = None,
         include_email_generation: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Complete analysis workflow: PageSpeed → AI insights
 
@@ -845,7 +846,7 @@ class GatewayFacade:
         return analysis_results
 
     # Gateway Management Methods
-    def get_gateway_status(self) -> Dict[str, Any]:
+    def get_gateway_status(self) -> dict[str, Any]:
         """
         Get comprehensive gateway status
 
@@ -874,7 +875,7 @@ class GatewayFacade:
             self.logger.error(f"Failed to get gateway status: {e}")
             return {"status": "error", "error": str(e)}
 
-    async def get_all_rate_limits(self) -> Dict[str, Any]:
+    async def get_all_rate_limits(self) -> dict[str, Any]:
         """
         Get rate limit status for all providers
 
@@ -892,7 +893,7 @@ class GatewayFacade:
 
         return rate_limits
 
-    async def calculate_total_costs(self) -> Dict[str, Decimal]:
+    async def calculate_total_costs(self) -> dict[str, Decimal]:
         """
         Calculate total costs across all providers
 

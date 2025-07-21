@@ -3,10 +3,11 @@ D3 Assessment Types - Task 030
 
 Enums and type definitions for website assessment functionality.
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class AssessmentStatus(Enum):
@@ -154,9 +155,9 @@ class AssessmentConfig:
     max_processing_time: int = 300  # seconds
     enable_caching: bool = True
     cache_ttl: int = 3600  # seconds
-    cost_limit: Optional[float] = None
+    cost_limit: float | None = None
     priority: int = 5  # 1-10 scale
-    custom_settings: Optional[Dict[str, Any]] = None
+    custom_settings: dict[str, Any] | None = None
 
 
 @dataclass
@@ -165,10 +166,10 @@ class PageSpeedScore:
 
     metric: PageSpeedMetric
     score: float
-    value: Optional[float] = None
-    unit: Optional[str] = None
-    display_value: Optional[str] = None
-    description: Optional[str] = None
+    value: float | None = None
+    unit: str | None = None
+    display_value: str | None = None
+    description: str | None = None
 
 
 @dataclass
@@ -177,12 +178,12 @@ class TechStackItem:
 
     name: str
     category: TechCategory
-    version: Optional[str] = None
+    version: str | None = None
     confidence: float = 1.0
-    website: Optional[str] = None
-    icon: Optional[str] = None
-    description: Optional[str] = None
-    pricing: Optional[str] = None
+    website: str | None = None
+    icon: str | None = None
+    description: str | None = None
+    pricing: str | None = None
 
 
 @dataclass
@@ -196,8 +197,8 @@ class AIInsightItem:
     effort: str  # high, medium, low
     confidence: float = 1.0
     priority: int = 5
-    actionable_steps: Optional[List[str]] = None
-    estimated_improvement: Optional[str] = None
+    actionable_steps: list[str] | None = None
+    estimated_improvement: str | None = None
 
 
 @dataclass
@@ -207,27 +208,27 @@ class AssessmentCostItem:
     cost_type: CostType
     amount: float
     currency: str = "USD"
-    provider: Optional[str] = None
-    description: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    provider: str | None = None
+    description: str | None = None
+    timestamp: datetime | None = None
 
 
 @dataclass
 class AssessmentMetadata:
     """Metadata about an assessment"""
 
-    user_agent: Optional[str] = None
-    ip_address: Optional[str] = None
-    referrer: Optional[str] = None
-    assessment_config: Optional[Dict[str, Any]] = None
-    processing_time: Optional[float] = None
+    user_agent: str | None = None
+    ip_address: str | None = None
+    referrer: str | None = None
+    assessment_config: dict[str, Any] | None = None
+    processing_time: float | None = None
     cache_hit: bool = False
     retry_count: int = 0
-    error_details: Optional[Dict[str, Any]] = None
+    error_details: dict[str, Any] | None = None
 
 
 # Type aliases for common data structures
-PageSpeedData = Dict[str, Any]
-TechStackData = Dict[str, Any]
-AIInsightData = Dict[str, Any]
-AssessmentData = Dict[str, Any]
+PageSpeedData = dict[str, Any]
+TechStackData = dict[str, Any]
+AIInsightData = dict[str, Any]
+AssessmentData = dict[str, Any]

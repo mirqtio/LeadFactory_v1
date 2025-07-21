@@ -6,6 +6,7 @@ Acceptance Criteria:
 - Error handling proper
 - Documentation generated
 """
+
 import sys
 from datetime import datetime
 from unittest.mock import Mock, patch
@@ -82,18 +83,17 @@ class TestTask023AcceptanceCriteria:
         def mock_query(model):
             if "TargetUniverse" in str(model):
                 return mock_universe_query
-            elif "Campaign" in str(model):
+            if "Campaign" in str(model):
                 return mock_campaign_query
-            else:
-                # For list endpoints, return a mock that supports pagination
-                list_mock = Mock()
-                # Set up the pagination chain to return an empty list
-                list_mock.filter.return_value = list_mock  # For additional filters
-                list_mock.offset.return_value = list_mock
-                list_mock.limit.return_value = list_mock
-                list_mock.all.return_value = []
-                list_mock.filter_by.return_value.first.return_value = None  # For not found tests
-                return list_mock
+            # For list endpoints, return a mock that supports pagination
+            list_mock = Mock()
+            # Set up the pagination chain to return an empty list
+            list_mock.filter.return_value = list_mock  # For additional filters
+            list_mock.offset.return_value = list_mock
+            list_mock.limit.return_value = list_mock
+            list_mock.all.return_value = []
+            list_mock.filter_by.return_value.first.return_value = None  # For not found tests
+            return list_mock
 
         mock_db_session.query.side_effect = mock_query
 
@@ -378,9 +378,11 @@ class TestTask023AcceptanceCriteria:
         ]
 
         for endpoint in get_endpoints:
-            with patch("d1_targeting.api.QuotaTracker") as mock_quota, patch(
-                "d1_targeting.api.TargetUniverseManager"
-            ) as mock_manager, patch("d1_targeting.api.BatchScheduler") as mock_scheduler:
+            with (
+                patch("d1_targeting.api.QuotaTracker") as mock_quota,
+                patch("d1_targeting.api.TargetUniverseManager") as mock_manager,
+                patch("d1_targeting.api.BatchScheduler") as mock_scheduler,
+            ):
                 # Set up specific mocks for complex endpoints
                 mock_quota.return_value.get_daily_quota.return_value = 1000
                 mock_quota.return_value.get_used_quota.return_value = 100

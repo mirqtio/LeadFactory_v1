@@ -1,6 +1,7 @@
 """
 Tests for Phase 0.5 enrichment flow modifications - Task EN-05
 """
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

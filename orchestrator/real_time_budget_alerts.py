@@ -5,10 +5,10 @@ Integrates orchestrator.budget_monitor with d0_gateway.guardrail_alerts
 This module provides real-time alerting when budget limits are exceeded,
 enhancing the existing alert infrastructure with immediate threshold monitoring.
 """
+
 import asyncio
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional
 
 from d0_gateway.guardrail_alerts import send_cost_alert
 from d0_gateway.guardrails import AlertSeverity, GuardrailAction, GuardrailViolation, LimitScope
@@ -27,15 +27,15 @@ class RealTimeBudgetAlertManager:
     """
 
     def __init__(self):
-        self.monitors: Dict[str, BudgetMonitor] = {}
-        self.last_alerts: Dict[str, datetime] = {}
+        self.monitors: dict[str, BudgetMonitor] = {}
+        self.last_alerts: dict[str, datetime] = {}
         self.alert_cooldown_minutes = 5  # Prevent spam
 
     def register_budget_monitor(self, monitor_id: str, monitor: BudgetMonitor):
         """Register a budget monitor for real-time alerting"""
         self.monitors[monitor_id] = monitor
 
-    async def check_all_budgets(self, current_spending: Dict[str, float]) -> List[GuardrailViolation]:
+    async def check_all_budgets(self, current_spending: dict[str, float]) -> list[GuardrailViolation]:
         """
         Check all registered budget monitors and trigger alerts
 
@@ -55,7 +55,7 @@ class RealTimeBudgetAlertManager:
 
         return violations
 
-    async def check_budget_and_alert(self, monitor_id: str, current_spend: float) -> Optional[GuardrailViolation]:
+    async def check_budget_and_alert(self, monitor_id: str, current_spend: float) -> GuardrailViolation | None:
         """
         Check specific budget monitor and send alert if threshold exceeded
 
@@ -189,7 +189,7 @@ class BudgetThresholdIntegrator:
             )
             self.alert_manager.register_budget_monitor(provider, monitor)
 
-    async def get_current_spending(self) -> Dict[str, float]:
+    async def get_current_spending(self) -> dict[str, float]:
         """
         Get current spending amounts for all monitored budgets
 

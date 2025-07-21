@@ -102,9 +102,8 @@ def monitor_ci(max_wait=600):
             if all_success:
                 print("\n✅ ALL CI WORKFLOWS PASSED! 🎉")
                 return True
-            else:
-                print("\n❌ Some workflows failed. Check the logs for details.")
-                return False
+            print("\n❌ Some workflows failed. Check the logs for details.")
+            return False
 
         time.sleep(15)
 

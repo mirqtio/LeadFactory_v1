@@ -1,6 +1,7 @@
 """
 Test Lead Explorer Pydantic schemas
 """
+
 from datetime import datetime
 
 import pytest

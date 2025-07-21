@@ -2,8 +2,9 @@
 Visual analyzer that combines screenshot capture and AI vision analysis
 Implements 9 visual rubric dimensions with 0-100 scoring
 """
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.config import settings
 from core.logging import get_logger
@@ -49,7 +50,7 @@ class VisualAnalyzer(BaseAssessor):
             self._vision_client = create_client("humanloop")
         return self._vision_client
 
-    def _get_stub_data(self, url: str) -> Dict[str, Any]:
+    def _get_stub_data(self, url: str) -> dict[str, Any]:
         """Return deterministic stub data when USE_STUBS=true"""
         # Generate deterministic scores based on URL hash
         url_hash = hash(url) % 9
@@ -113,7 +114,7 @@ class VisualAnalyzer(BaseAssessor):
             },
         }
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Capture screenshots and analyze them with AI vision
 
@@ -329,7 +330,7 @@ class VisualAnalyzer(BaseAssessor):
         except (ValueError, TypeError):
             return 5  # Default middle score
 
-    def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
+    def _extract_json_from_text(self, text: str) -> dict[str, Any]:
         """Try to extract JSON from text response"""
         import re
 

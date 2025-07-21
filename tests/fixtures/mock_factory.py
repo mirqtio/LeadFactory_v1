@@ -4,6 +4,7 @@ Mock Factory Framework for Test Coverage Enhancement
 Provides a standardized approach to creating mock responses for external services.
 Based on P0-015 triangulation feedback for fast, deterministic tests.
 """
+
 import json
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, TypeVar
@@ -29,15 +30,13 @@ class MockFactory(ABC):
 
     @classmethod
     @abstractmethod
-    def create_success_response(cls, **overrides) -> Dict[str, Any]:
+    def create_success_response(cls, **overrides) -> dict[str, Any]:
         """Create standard success response with optional overrides."""
-        pass
 
     @classmethod
     @abstractmethod
-    def create_error_response(cls, error_type: str, **overrides) -> Dict[str, Any]:
+    def create_error_response(cls, error_type: str, **overrides) -> dict[str, Any]:
         """Create standard error response for given error type."""
-        pass
 
     @classmethod
     def create_timeout_scenario(cls) -> Mock:
@@ -54,7 +53,7 @@ class MockFactory(ABC):
         return mock
 
     @classmethod
-    def create_rate_limit_response(cls, retry_after: int = 60) -> Dict[str, Any]:
+    def create_rate_limit_response(cls, retry_after: int = 60) -> dict[str, Any]:
         """Create standard rate limit response."""
         return {
             "error": "rate_limit_exceeded",
@@ -65,8 +64,8 @@ class MockFactory(ABC):
 
     @classmethod
     def create_paginated_response(
-        cls, items: list, page: int = 1, per_page: int = 20, total: Optional[int] = None
-    ) -> Dict[str, Any]:
+        cls, items: list, page: int = 1, per_page: int = 20, total: int | None = None
+    ) -> dict[str, Any]:
         """Create standard paginated response."""
         if total is None:
             total = len(items)
@@ -80,7 +79,7 @@ class MockFactory(ABC):
         }
 
     @classmethod
-    def create_mock_session(cls, responses: Dict[str, Any]) -> Mock:
+    def create_mock_session(cls, responses: dict[str, Any]) -> Mock:
         """
         Create a mock session with predefined responses.
 
@@ -147,12 +146,12 @@ class ResponseBuilder:
         self.status_code = status_code
         return self
 
-    def with_data(self, data: Dict[str, Any]) -> "ResponseBuilder":
+    def with_data(self, data: dict[str, Any]) -> "ResponseBuilder":
         """Set the response data."""
         self.data = data
         return self
 
-    def with_headers(self, headers: Dict[str, str]) -> "ResponseBuilder":
+    def with_headers(self, headers: dict[str, str]) -> "ResponseBuilder":
         """Set response headers."""
         self.headers.update(headers)
         return self

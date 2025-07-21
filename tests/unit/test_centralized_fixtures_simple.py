@@ -1,6 +1,7 @@
 """
 Simple test to verify centralized fixtures work correctly.
 """
+
 import pytest
 from sqlalchemy.orm import Session
 

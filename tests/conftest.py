@@ -2,6 +2,7 @@
 Root conftest.py for all tests
 Provides common fixtures and configuration
 """
+
 import atexit
 import os
 import signal
@@ -213,7 +214,7 @@ def provider_stub(monkeypatch):
 
     if not settings.use_stubs:
         pytest.fail(
-            "CRITICAL: Tests must use stubs! USE_STUBS is False. " "Set USE_STUBS=true in environment or .env file."
+            "CRITICAL: Tests must use stubs! USE_STUBS is False. Set USE_STUBS=true in environment or .env file."
         )
 
     # Verify stub configuration

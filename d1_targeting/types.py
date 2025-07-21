@@ -1,11 +1,12 @@
 """
 Type definitions for targeting domain
 """
+
 from dataclasses import dataclass
 from datetime import datetime, time
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class VerticalMarket(str, Enum):
@@ -83,14 +84,14 @@ class TargetQualificationStatus(str, Enum):
 class TargetingCriteria:
     """Criteria for target selection"""
 
-    verticals: List[VerticalMarket]
-    geography: Dict[str, Any]  # Geographic constraints
-    business_size: Optional[Dict[str, int]] = None  # employee/revenue ranges
+    verticals: list[VerticalMarket]
+    geography: dict[str, Any]  # Geographic constraints
+    business_size: dict[str, int] | None = None  # employee/revenue ranges
     website_required: bool = True
     phone_required: bool = True
     email_required: bool = False
-    min_rating: Optional[float] = None
-    max_age_days: Optional[int] = None  # How recent the business data should be
+    min_rating: float | None = None
+    max_age_days: int | None = None  # How recent the business data should be
     exclude_chains: bool = False
     exclude_franchises: bool = False
 
@@ -100,10 +101,10 @@ class GeographicConstraint:
     """Geographic targeting constraint"""
 
     level: GeographyLevel
-    values: List[str]  # State codes, city names, zip codes, etc.
-    radius_miles: Optional[float] = None  # For radius-based targeting
-    center_lat: Optional[float] = None
-    center_lng: Optional[float] = None
+    values: list[str]  # State codes, city names, zip codes, etc.
+    radius_miles: float | None = None  # For radius-based targeting
+    center_lat: float | None = None
+    center_lng: float | None = None
 
 
 @dataclass
@@ -115,10 +116,10 @@ class BatchSchedule:
     delay_between_batches_seconds: int = 60
     retry_failed_attempts: int = 3
     retry_delay_seconds: int = 300
-    max_daily_targets: Optional[int] = None
+    max_daily_targets: int | None = None
     allowed_hours_start: time = time(9, 0)  # 9 AM
     allowed_hours_end: time = time(17, 0)  # 5 PM
-    allowed_days: List[int] = None  # Monday=0, Sunday=6, None = all days
+    allowed_days: list[int] = None  # Monday=0, Sunday=6, None = all days
 
 
 @dataclass
@@ -160,10 +161,10 @@ class TargetSource:
     """Source information for a target"""
 
     provider: str  # google, manual, etc.
-    external_id: Optional[str] = None
-    discovered_at: Optional[datetime] = None
-    last_updated: Optional[datetime] = None
-    data_quality_score: Optional[float] = None
+    external_id: str | None = None
+    discovered_at: datetime | None = None
+    last_updated: datetime | None = None
+    data_quality_score: float | None = None
     verification_status: str = "unverified"
 
 
@@ -171,21 +172,21 @@ class TargetSource:
 TargetId = str
 CampaignId = str
 BatchId = str
-GeographyConfig = Dict[str, Any]
-ContactInfo = Dict[str, str]
-BusinessInfo = Dict[str, Any]
+GeographyConfig = dict[str, Any]
+ContactInfo = dict[str, str]
+BusinessInfo = dict[str, Any]
 
 
 @dataclass
 class QualificationRules:
     """Rules for automatic target qualification"""
 
-    min_website_score: Optional[float] = None
-    required_contact_methods: List[str] = None
-    exclude_keywords: List[str] = None
-    require_keywords: List[str] = None
-    min_business_age_months: Optional[int] = None
-    max_distance_miles: Optional[float] = None
+    min_website_score: float | None = None
+    required_contact_methods: list[str] = None
+    exclude_keywords: list[str] = None
+    require_keywords: list[str] = None
+    min_business_age_months: int | None = None
+    max_distance_miles: float | None = None
     business_hours_required: bool = False
     social_media_required: bool = False
 

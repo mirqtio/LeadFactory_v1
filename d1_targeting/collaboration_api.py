@@ -4,12 +4,13 @@ P2-010: Collaborative Bucket API
 FastAPI endpoints for multi-user bucket collaboration including
 sharing, permissions, activity tracking, and real-time updates.
 """
+
 import secrets
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
-from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session, selectinload
 
 from core.auth import get_current_user
@@ -34,7 +35,6 @@ from .collaboration_models import (
 )
 from .collaboration_schemas import (
     ActivityFeedResponse,
-    ActivityResponse,
     BucketCreate,
     BucketListResponse,
     BucketResponse,
@@ -49,9 +49,7 @@ from .collaboration_schemas import (
     CommentUpdate,
     LeadAnnotationCreate,
     LeadAnnotationResponse,
-    LeadAnnotationUpdate,
     NotificationListResponse,
-    NotificationResponse,
     PermissionGrantCreate,
     PermissionGrantResponse,
     PermissionGrantUpdate,
@@ -188,9 +186,9 @@ async def get_bucket(
 async def list_buckets(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    bucket_type: Optional[str] = None,
+    bucket_type: str | None = None,
     is_archived: bool = False,
-    search: Optional[str] = None,
+    search: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -417,7 +415,7 @@ async def grant_permission(
     return db_grant
 
 
-@router.get("/{bucket_id}/permissions", response_model=List[PermissionGrantResponse])
+@router.get("/{bucket_id}/permissions", response_model=list[PermissionGrantResponse])
 async def list_permissions(
     bucket_id: str,
     current_user: dict = Depends(get_current_user),
@@ -576,7 +574,7 @@ async def get_activity_feed(
     bucket_id: str,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
-    activity_type: Optional[BucketActivityType] = None,
+    activity_type: BucketActivityType | None = None,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -691,11 +689,11 @@ async def create_comment(
     return db_comment
 
 
-@router.get("/{bucket_id}/comments", response_model=List[CommentResponse])
+@router.get("/{bucket_id}/comments", response_model=list[CommentResponse])
 async def list_comments(
     bucket_id: str,
-    lead_id: Optional[str] = None,
-    parent_comment_id: Optional[str] = None,
+    lead_id: str | None = None,
+    parent_comment_id: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -995,11 +993,11 @@ async def create_lead_annotation(
     return db_annotation
 
 
-@router.get("/{bucket_id}/annotations", response_model=List[LeadAnnotationResponse])
+@router.get("/{bucket_id}/annotations", response_model=list[LeadAnnotationResponse])
 async def list_lead_annotations(
     bucket_id: str,
-    lead_id: Optional[str] = None,
-    annotation_type: Optional[str] = None,
+    lead_id: str | None = None,
+    annotation_type: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -1066,7 +1064,7 @@ async def create_share_link(
     return db_share_link
 
 
-@router.get("/{bucket_id}/share-links", response_model=List[ShareLinkResponse])
+@router.get("/{bucket_id}/share-links", response_model=list[ShareLinkResponse])
 async def list_share_links(
     bucket_id: str,
     active_only: bool = True,
@@ -1506,7 +1504,7 @@ async def create_tag(
     return db_tag
 
 
-@router.get("/tags", response_model=List[BucketTagResponse])
+@router.get("/tags", response_model=list[BucketTagResponse])
 async def list_tags(
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -1549,7 +1547,7 @@ async def get_memory_stats(
     }
 
 
-def _get_performance_recommendations(ws_stats: Dict[str, Any]) -> List[str]:
+def _get_performance_recommendations(ws_stats: dict[str, Any]) -> list[str]:
     """Generate performance recommendations based on current stats"""
     recommendations = []
 

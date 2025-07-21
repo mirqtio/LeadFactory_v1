@@ -2,6 +2,7 @@
 Unit tests for P2-040 Budget Monitoring enhancements
 Tests enhanced threshold tracking, alert system, and API cost monitoring integration
 """
+
 from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -21,9 +22,10 @@ class TestP2040BudgetMonitoring:
 
     def test_check_monthly_budget_threshold_notice_level(self):
         """Test 70% notice threshold detection"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             # Mock 70% usage - notice level
             mock_costs.return_value = Decimal("2100.0")  # 70% of 3000
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
@@ -38,9 +40,10 @@ class TestP2040BudgetMonitoring:
 
     def test_check_monthly_budget_threshold_warning_level(self):
         """Test 80% warning threshold detection"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             # Mock 80% usage - warning level
             mock_costs.return_value = Decimal("2400.0")  # 80% of 3000
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
@@ -53,9 +56,10 @@ class TestP2040BudgetMonitoring:
 
     def test_check_monthly_budget_threshold_high_level(self):
         """Test 90% high threshold detection"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             # Mock 90% usage - high level
             mock_costs.return_value = Decimal("2700.0")  # 90% of 3000
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
@@ -68,9 +72,10 @@ class TestP2040BudgetMonitoring:
 
     def test_check_monthly_budget_threshold_critical_level(self):
         """Test 100%+ critical threshold detection"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             # Mock 100%+ usage - critical level
             mock_costs.return_value = Decimal("3100.0")  # 103% of 3000
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
@@ -83,9 +88,10 @@ class TestP2040BudgetMonitoring:
 
     def test_check_monthly_budget_threshold_ok_level(self):
         """Test under 70% OK level"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             # Mock 60% usage - OK level
             mock_costs.return_value = Decimal("1800.0")  # 60% of 3000
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
@@ -98,9 +104,10 @@ class TestP2040BudgetMonitoring:
 
     def test_check_monthly_budget_threshold_zero_limit(self):
         """Test threshold checking with zero limit"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             # Mock zero limit
             mock_costs.return_value = Decimal("100.0")
             mock_settings.return_value.guardrail_global_monthly_limit = 0.0
@@ -112,9 +119,10 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_proceed(self):
         """Test real-time cost check allowing operation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             # Mock 60% current usage, operation would bring to 65%
             mock_threshold.return_value = (False, 0.6, "ok", Decimal("1800.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
@@ -129,9 +137,10 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_proceed_with_monitoring(self):
         """Test real-time cost check with monitoring recommendation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             # Mock 75% current usage, operation would bring to 85%
             mock_threshold.return_value = (True, 0.75, "notice", Decimal("2250.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
@@ -144,9 +153,10 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_proceed_with_caution(self):
         """Test real-time cost check with caution recommendation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             # Mock 85% current usage, operation would bring to 92%
             mock_threshold.return_value = (True, 0.85, "warning", Decimal("2550.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
@@ -159,9 +169,10 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_block_high_risk(self):
         """Test real-time cost check blocking high risk operation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             # Mock 90% current usage, operation would bring to 96%
             mock_threshold.return_value = (True, 0.9, "high", Decimal("2700.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
@@ -174,9 +185,10 @@ class TestP2040BudgetMonitoring:
 
     def test_real_time_cost_check_block_critical(self):
         """Test real-time cost check blocking critical operation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             # Mock 95% current usage, operation would exceed 100%
             mock_threshold.return_value = (True, 0.95, "high", Decimal("2850.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
@@ -234,9 +246,11 @@ class TestP2040BudgetMonitoringFlow:
 
     def test_monthly_budget_monitor_flow_ok_status(self):
         """Test monthly budget monitoring flow with OK status"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False):
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
+        ):
             # Mock OK status
             mock_threshold.return_value = (False, 0.6, "ok", Decimal("1800.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
@@ -251,15 +265,14 @@ class TestP2040BudgetMonitoringFlow:
 
     def test_monthly_budget_monitor_flow_warning_status(self):
         """Test monthly budget monitoring flow with warning status and alert"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert, patch(
-            "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
-        ), patch(
-            "asyncio.get_event_loop"
-        ) as mock_get_loop, patch(
-            "asyncio.run"
-        ) as mock_asyncio:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
+            patch("asyncio.get_event_loop") as mock_get_loop,
+            patch("asyncio.run") as mock_asyncio,
+        ):
             # Mock warning status
             mock_threshold.return_value = (True, 0.8, "warning", Decimal("2400.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()
@@ -280,14 +293,13 @@ class TestP2040BudgetMonitoringFlow:
 
     def test_monthly_budget_monitor_flow_alert_failure(self):
         """Test monthly budget monitoring flow with alert failure"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert, patch(
-            "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
-        ), patch(
-            "asyncio.get_event_loop"
-        ) as mock_get_loop, patch(
-            "asyncio.run", side_effect=Exception("Alert failed")
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
+            patch("asyncio.get_event_loop") as mock_get_loop,
+            patch("asyncio.run", side_effect=Exception("Alert failed")),
         ):
             # Mock warning status
             mock_threshold.return_value = (True, 0.8, "warning", Decimal("2400.0"), Decimal("3000.0"))
@@ -306,11 +318,12 @@ class TestP2040BudgetMonitoringFlow:
 
     def test_monthly_budget_monitor_flow_with_prefect_artifact(self):
         """Test monthly budget monitoring flow with Prefect artifact creation"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold, patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger, patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True), patch(
-            "d11_orchestration.cost_guardrails.create_markdown_artifact"
-        ) as mock_artifact:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_threshold") as mock_threshold,
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+            patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", True),
+            patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+        ):
             # Mock notice status
             mock_threshold.return_value = (True, 0.75, "notice", Decimal("2250.0"), Decimal("3000.0"))
             mock_logger.return_value = MagicMock()

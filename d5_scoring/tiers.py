@@ -17,7 +17,7 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ class TierConfiguration:
     name: str
     version: str
     gate_threshold: float  # Minimum score to pass gate
-    boundaries: List[TierBoundary]
+    boundaries: list[TierBoundary]
     enabled: bool = True
     created_at: datetime = field(default_factory=datetime.now)
     description: str = ""
@@ -159,7 +159,7 @@ class TierDistribution:
 
     configuration_name: str
     total_assignments: int = 0
-    tier_counts: Dict[LeadTier, int] = field(default_factory=lambda: {tier: 0 for tier in LeadTier})
+    tier_counts: dict[LeadTier, int] = field(default_factory=lambda: dict.fromkeys(LeadTier, 0))
     gate_pass_count: int = 0
     gate_fail_count: int = 0
     last_updated: datetime = field(default_factory=datetime.now)
@@ -172,10 +172,10 @@ class TierDistribution:
         return (self.gate_pass_count / self.total_assignments) * 100
 
     @property
-    def tier_percentages(self) -> Dict[LeadTier, float]:
+    def tier_percentages(self) -> dict[LeadTier, float]:
         """Percentage distribution across tiers"""
         if self.total_assignments == 0:
-            return {tier: 0.0 for tier in LeadTier}
+            return dict.fromkeys(LeadTier, 0.0)
 
         return {tier: (count / self.total_assignments) * 100 for tier, count in self.tier_counts.items()}
 
@@ -199,7 +199,7 @@ class TierAssignmentEngine:
     Acceptance Criteria: All four criteria implemented
     """
 
-    def __init__(self, configuration: Optional[TierConfiguration] = None):
+    def __init__(self, configuration: TierConfiguration | None = None):
         """
         Initialize tier assignment engine
 
@@ -208,7 +208,7 @@ class TierAssignmentEngine:
         """
         self.configuration = configuration or self._create_default_configuration()
         self.distribution = TierDistribution(configuration_name=self.configuration.name)
-        self.assignments: List[TierAssignment] = []
+        self.assignments: list[TierAssignment] = []
         self._lock = threading.Lock()  # Thread safety for distribution tracking
 
         logger.info(f"Initialized TierAssignmentEngine with configuration '{self.configuration.name}'")
@@ -272,7 +272,7 @@ class TierAssignmentEngine:
 
         return assignment
 
-    def batch_assign_tiers(self, lead_scores: Dict[str, float]) -> List[TierAssignment]:
+    def batch_assign_tiers(self, lead_scores: dict[str, float]) -> list[TierAssignment]:
         """
         Assign tiers to multiple leads in batch
 
@@ -305,17 +305,17 @@ class TierAssignmentEngine:
         with self._lock:
             return self.distribution
 
-    def get_assignments_by_tier(self, tier: LeadTier) -> List[TierAssignment]:
+    def get_assignments_by_tier(self, tier: LeadTier) -> list[TierAssignment]:
         """Get all assignments for a specific tier"""
         with self._lock:
             return [assignment for assignment in self.assignments if assignment.tier == tier]
 
-    def get_qualified_leads(self) -> List[TierAssignment]:
+    def get_qualified_leads(self) -> list[TierAssignment]:
         """Get all leads that passed the gate threshold"""
         with self._lock:
             return [assignment for assignment in self.assignments if assignment.passed_gate]
 
-    def get_failed_leads(self) -> List[TierAssignment]:
+    def get_failed_leads(self) -> list[TierAssignment]:
         """Get all leads that failed the gate threshold"""
         with self._lock:
             return [assignment for assignment in self.assignments if not assignment.passed_gate]
@@ -336,7 +336,7 @@ class TierAssignmentEngine:
 
         logger.info(f"Updated configuration from '{old_config}' to '{new_configuration.name}'")
 
-    def export_distribution_summary(self) -> Dict[str, Any]:
+    def export_distribution_summary(self) -> dict[str, Any]:
         """
         Export comprehensive distribution summary
 
@@ -409,7 +409,7 @@ class TierAssignmentEngine:
     def from_configuration_file(cls, file_path: str) -> "TierAssignmentEngine":
         """Load tier assignment engine from JSON configuration file"""
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 config_data = json.load(f)
 
             # Parse boundaries
@@ -444,7 +444,7 @@ class TierAssignmentEngine:
 # Convenience functions for common operations
 
 
-def assign_lead_tier(lead_id: str, score: float, configuration: Optional[TierConfiguration] = None) -> TierAssignment:
+def assign_lead_tier(lead_id: str, score: float, configuration: TierConfiguration | None = None) -> TierAssignment:
     """
     Quick function to assign a single lead tier
 

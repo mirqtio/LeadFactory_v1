@@ -11,7 +11,6 @@ Acceptance Criteria:
 - Conversion focus ✓
 """
 
-
 import pytest
 
 # Mark entire module as slow for CI optimization

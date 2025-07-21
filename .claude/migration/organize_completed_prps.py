@@ -14,7 +14,7 @@ def get_completed_prps():
     """Get list of completed PRPs from tracking system."""
 
     yaml_path = Path(".claude/prp_tracking/prp_status.yaml")
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         data = yaml.safe_load(f)
 
     completed_prps = []
@@ -96,15 +96,15 @@ def organize_completed_prps():
             print(f"❌ Not found: {legacy_id} - {title}")
             not_found_count += 1
 
-    print(f"\n📊 ORGANIZATION SUMMARY")
+    print("\n📊 ORGANIZATION SUMMARY")
     print("=" * 50)
     print(f"✅ Files moved: {moved_count}")
     print(f"❌ Files not found: {not_found_count}")
     print(f"📁 Total completed PRPs: {len(completed_prps)}")
 
     if moved_count > 0:
-        print(f"\n📂 Completed PRP files now organized in:")
-        print(f"   .claude/PRPs/Completed/")
+        print("\n📂 Completed PRP files now organized in:")
+        print("   .claude/PRPs/Completed/")
 
     return moved_count, not_found_count
 

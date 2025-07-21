@@ -14,7 +14,7 @@ Acceptance Criteria:
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .models import ContentStrategy, EmailContentType
 from .personalizer import ExtractedIssue, IssueImpact
@@ -47,7 +47,7 @@ class ContentTemplate:
     solution_statement: str
     call_to_action: str
     closing_template: str
-    variables: List[str]
+    variables: list[str]
     tone: str = "professional"
     length_category: str = "medium"  # short, medium, long
 
@@ -63,7 +63,7 @@ class GeneratedContent:
     closing: str
     full_html: str
     full_text: str
-    variables_used: Dict[str, str]
+    variables_used: dict[str, str]
     template_used: str
     generation_method: str
 
@@ -74,7 +74,7 @@ class ContentTemplateLibrary:
     def __init__(self):
         self.templates = self._initialize_templates()
 
-    def _initialize_templates(self) -> Dict[str, List[ContentTemplate]]:
+    def _initialize_templates(self) -> dict[str, list[ContentTemplate]]:
         """Initialize content template library"""
         return {
             ContentStrategy.PROBLEM_AGITATION.value: self._create_problem_agitation_templates(),
@@ -85,7 +85,7 @@ class ContentTemplateLibrary:
             ContentStrategy.URGENCY_SCARCITY.value: self._create_urgency_templates(),
         }
 
-    def _create_problem_agitation_templates(self) -> List[ContentTemplate]:
+    def _create_problem_agitation_templates(self) -> list[ContentTemplate]:
         """Create problem-agitation-solution templates"""
         return [
             ContentTemplate(
@@ -122,7 +122,7 @@ class ContentTemplateLibrary:
             ),
         ]
 
-    def _create_before_after_templates(self) -> List[ContentTemplate]:
+    def _create_before_after_templates(self) -> list[ContentTemplate]:
         """Create before/after scenario templates"""
         return [
             ContentTemplate(
@@ -146,7 +146,7 @@ class ContentTemplateLibrary:
             )
         ]
 
-    def _create_educational_templates(self) -> List[ContentTemplate]:
+    def _create_educational_templates(self) -> list[ContentTemplate]:
         """Create educational value templates"""
         return [
             ContentTemplate(
@@ -170,7 +170,7 @@ class ContentTemplateLibrary:
             )
         ]
 
-    def _create_direct_offer_templates(self) -> List[ContentTemplate]:
+    def _create_direct_offer_templates(self) -> list[ContentTemplate]:
         """Create direct offer templates"""
         return [
             ContentTemplate(
@@ -193,7 +193,7 @@ class ContentTemplateLibrary:
             )
         ]
 
-    def _create_social_proof_templates(self) -> List[ContentTemplate]:
+    def _create_social_proof_templates(self) -> list[ContentTemplate]:
         """Create social proof templates"""
         return [
             ContentTemplate(
@@ -217,7 +217,7 @@ class ContentTemplateLibrary:
             )
         ]
 
-    def _create_urgency_templates(self) -> List[ContentTemplate]:
+    def _create_urgency_templates(self) -> list[ContentTemplate]:
         """Create urgency/scarcity templates"""
         return [
             ContentTemplate(
@@ -240,11 +240,11 @@ class ContentTemplateLibrary:
             )
         ]
 
-    def get_templates(self, strategy: ContentStrategy) -> List[ContentTemplate]:
+    def get_templates(self, strategy: ContentStrategy) -> list[ContentTemplate]:
         """Get templates for a specific strategy"""
         return self.templates.get(strategy.value, [])
 
-    def get_template_by_name(self, name: str) -> Optional[ContentTemplate]:
+    def get_template_by_name(self, name: str) -> ContentTemplate | None:
         """Get a specific template by name"""
         for templates in self.templates.values():
             for template in templates:
@@ -272,10 +272,10 @@ class VariableResolver:
     def resolve_variables(
         self,
         template: ContentTemplate,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
-    ) -> Dict[str, str]:
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
+    ) -> dict[str, str]:
         """Resolve all variables in a template"""
         resolved = {}
 
@@ -289,9 +289,9 @@ class VariableResolver:
 
     def _resolve_business_name(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve business name variable"""
         name = business_data.get("name", "your business")
@@ -306,9 +306,9 @@ class VariableResolver:
 
     def _resolve_contact_name(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve contact name variable"""
         if not contact_data:
@@ -326,9 +326,9 @@ class VariableResolver:
 
     def _resolve_industry(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve industry variable"""
         category = business_data.get("category", "")
@@ -346,9 +346,9 @@ class VariableResolver:
 
     def _resolve_location(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve location variable"""
         location_data = business_data.get("location", {})
@@ -363,9 +363,9 @@ class VariableResolver:
 
     def _resolve_main_issue(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve main issue variable"""
         if not issues:
@@ -376,24 +376,23 @@ class VariableResolver:
 
     def _resolve_issue_count(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve issue count variable"""
         count = len(issues)
         if count == 0:
             return "several"
-        elif count == 1:
+        if count == 1:
             return "1"
-        else:
-            return str(count)
+        return str(count)
 
     def _resolve_impact_level(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve impact level variable"""
         if not issues:
@@ -404,9 +403,9 @@ class VariableResolver:
 
     def _resolve_improvement(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve improvement variable"""
         if not issues:
@@ -417,9 +416,9 @@ class VariableResolver:
 
     def _resolve_call_to_action(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> str:
         """Resolve call to action variable"""
         business_name = self._resolve_business_name(business_data, contact_data, issues)
@@ -443,8 +442,8 @@ class ContentFormatter:
     def format_html_email(
         self,
         template: ContentTemplate,
-        resolved_variables: Dict[str, str],
-        issues: List[ExtractedIssue],
+        resolved_variables: dict[str, str],
+        issues: list[ExtractedIssue],
     ) -> str:
         """Format email content as HTML"""
 
@@ -468,34 +467,34 @@ class ContentFormatter:
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>{subject}</title>
         </head>
-        <body style="{self.html_styles['container']}">
-            <div style="{self.html_styles['header']}">
-                <h2 style="{self.html_styles['title']}">Website Performance Insights</h2>
+        <body style="{self.html_styles["container"]}">
+            <div style="{self.html_styles["header"]}">
+                <h2 style="{self.html_styles["title"]}">Website Performance Insights</h2>
                 
                 <p>{opening}</p>
                 
-                <div style="{self.html_styles['content']}">
+                <div style="{self.html_styles["content"]}">
                     <p><strong>The Issue:</strong></p>
                     <p>{problem}</p>
                 </div>
                 
                 {issues_html}
                 
-                <div style="{self.html_styles['highlight']}">
+                <div style="{self.html_styles["highlight"]}">
                     <p><strong>The Solution:</strong></p>
                     <p>{solution}</p>
                 </div>
                 
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="mailto:hello@example.com?subject=Website%20Consultation" 
-                       style="{self.html_styles['button']}">
+                       style="{self.html_styles["button"]}">
                         Get Started Today
                     </a>
                 </div>
                 
                 <p>{cta}</p>
                 
-                <p style="{self.html_styles['footer']}">
+                <p style="{self.html_styles["footer"]}">
                     {closing}
                 </p>
             </div>
@@ -508,8 +507,8 @@ class ContentFormatter:
     def format_text_email(
         self,
         template: ContentTemplate,
-        resolved_variables: Dict[str, str],
-        issues: List[ExtractedIssue],
+        resolved_variables: dict[str, str],
+        issues: list[ExtractedIssue],
     ) -> str:
         """Format email content as plain text"""
 
@@ -546,13 +545,13 @@ Email: hello@example.com
 
         return text_content.strip()
 
-    def _replace_variables(self, text: str, variables: Dict[str, str]) -> str:
+    def _replace_variables(self, text: str, variables: dict[str, str]) -> str:
         """Replace template variables with resolved values"""
         for variable, value in variables.items():
             text = text.replace(f"{{{variable}}}", value)
         return text
 
-    def _format_issues_html(self, issues: List[ExtractedIssue]) -> str:
+    def _format_issues_html(self, issues: list[ExtractedIssue]) -> str:
         """Format issues list as HTML"""
         if not issues:
             return ""
@@ -579,7 +578,7 @@ Email: hello@example.com
         html += "</ul></div>"
         return html
 
-    def _format_issues_text(self, issues: List[ExtractedIssue]) -> str:
+    def _format_issues_text(self, issues: list[ExtractedIssue]) -> str:
         """Format issues list as plain text"""
         if not issues:
             return ""
@@ -605,9 +604,9 @@ class AdvancedContentGenerator:
     def generate_content(
         self,
         strategy: ContentStrategy,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
         content_type: EmailContentType = EmailContentType.COLD_OUTREACH,
     ) -> GeneratedContent:
         """Generate complete email content using templates"""
@@ -654,11 +653,11 @@ class AdvancedContentGenerator:
 
     def _select_best_template(
         self,
-        templates: List[ContentTemplate],
+        templates: list[ContentTemplate],
         content_type: EmailContentType,
-        business_data: Dict[str, Any],
-        issues: List[ExtractedIssue],
-    ) -> Optional[ContentTemplate]:
+        business_data: dict[str, Any],
+        issues: list[ExtractedIssue],
+    ) -> ContentTemplate | None:
         """Select the best template for the given context"""
 
         if not templates:
@@ -683,8 +682,8 @@ class AdvancedContentGenerator:
     def _score_template(
         self,
         template: ContentTemplate,
-        business_data: Dict[str, Any],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        issues: list[ExtractedIssue],
     ) -> float:
         """Score template based on how well it fits the context"""
         score = 0.0
@@ -709,9 +708,9 @@ class AdvancedContentGenerator:
 
     def _generate_fallback_content(
         self,
-        business_data: Dict[str, Any],
-        contact_data: Optional[Dict[str, Any]],
-        issues: List[ExtractedIssue],
+        business_data: dict[str, Any],
+        contact_data: dict[str, Any] | None,
+        issues: list[ExtractedIssue],
     ) -> GeneratedContent:
         """Generate fallback content when no template matches"""
 
@@ -754,7 +753,7 @@ class AdvancedContentGenerator:
             generation_method="fallback",
         )
 
-    def _replace_variables(self, text: str, variables: Dict[str, str]) -> str:
+    def _replace_variables(self, text: str, variables: dict[str, str]) -> str:
         """Replace template variables with resolved values"""
         for variable, value in variables.items():
             text = text.replace(f"{{{variable}}}", value)
@@ -784,7 +783,7 @@ def extract_text_from_html(html_content: str) -> str:
     return text.strip()
 
 
-def validate_email_content(subject: str, content: str) -> Dict[str, bool]:
+def validate_email_content(subject: str, content: str) -> dict[str, bool]:
     """Validate email content for common issues"""
     return {
         "subject_length_ok": 10 <= len(subject) <= 60,

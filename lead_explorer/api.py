@@ -4,8 +4,8 @@ FastAPI endpoints for Lead Explorer Domain
 Provides REST API for lead management with CRUD operations,
 audit logging, and enrichment tracking.
 """
+
 from datetime import datetime
-from typing import Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import ValidationError
@@ -25,12 +25,11 @@ from database.session import get_db
 
 from .audit import AuditContext
 from .enrichment_coordinator import get_enrichment_coordinator
-from .permissions import BadgePermissionMiddleware, check_badge_permission, get_user_badge_permissions
+from .permissions import BadgePermissionMiddleware, get_user_badge_permissions
 from .repository import AuditRepository, LeadRepository
 from .schemas import (  # Badge schemas
     AssignBadgeSchema,
     AuditTrailResponseSchema,
-    BadgeAuditTrailResponseSchema,
     BadgeFilterSchema,
     BadgeListResponseSchema,
     BadgeResponseSchema,
@@ -46,8 +45,6 @@ from .schemas import (  # Badge schemas
     PaginationSchema,
     QuickAddLeadSchema,
     QuickAddResponseSchema,
-    RemoveBadgeSchema,
-    UpdateBadgeSchema,
     UpdateLeadSchema,
 )
 
@@ -64,7 +61,7 @@ router = APIRouter()
 # Using global get_db dependency from database.session
 
 
-def get_user_context(request: Request) -> Dict[str, Optional[str]]:
+def get_user_context(request: Request) -> dict[str, str | None]:
     """Extract user context from request for audit logging"""
     return {
         "user_id": request.headers.get("X-User-ID"),
@@ -439,8 +436,8 @@ async def update_enrichment_status(
     lead_id: str,
     status: EnrichmentStatusEnum,
     request: Request,
-    task_id: Optional[str] = None,
-    error: Optional[str] = None,
+    task_id: str | None = None,
+    error: str | None = None,
     db: Session = Depends(get_db),
 ):
     """

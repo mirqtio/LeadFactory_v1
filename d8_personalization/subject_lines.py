@@ -6,7 +6,7 @@ and A/B variant creation for email personalization.
 
 Acceptance Criteria:
 - Pattern-based generation ✓
-- Token replacement works ✓ 
+- Token replacement works ✓
 - Length limits enforced ✓
 - A/B variants created ✓
 """
@@ -16,7 +16,7 @@ import os
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import yaml
 
@@ -49,14 +49,14 @@ class SubjectLineRequest:
     business_id: str
     content_type: EmailContentType
     personalization_strategy: PersonalizationStrategy
-    business_data: Dict[str, Any]
-    contact_data: Optional[Dict[str, Any]] = None
-    assessment_data: Optional[Dict[str, Any]] = None
-    campaign_context: Optional[Dict[str, Any]] = None
+    business_data: dict[str, Any]
+    contact_data: dict[str, Any] | None = None
+    assessment_data: dict[str, Any] | None = None
+    campaign_context: dict[str, Any] | None = None
     generation_strategy: GenerationStrategy = GenerationStrategy.TEMPLATE_BASED
     max_variants: int = 3
-    target_length: Optional[int] = None
-    tone_preference: Optional[ToneStyle] = None
+    target_length: int | None = None
+    tone_preference: ToneStyle | None = None
 
 
 @dataclass
@@ -66,8 +66,8 @@ class GeneratedSubjectLine:
     text: str
     variant_name: str
     pattern_used: str
-    tokens_resolved: Dict[str, str]
-    tokens_failed: List[str]
+    tokens_resolved: dict[str, str]
+    tokens_failed: list[str]
     length: int
     tone: ToneStyle
     quality_score: float
@@ -79,7 +79,7 @@ class GeneratedSubjectLine:
 class SubjectLineGenerator:
     """Main subject line generator - Acceptance Criteria"""
 
-    def __init__(self, templates_path: Optional[str] = None):
+    def __init__(self, templates_path: str | None = None):
         """Initialize the subject line generator"""
         self.templates_path = templates_path or self._get_default_templates_path()
         self.templates = self._load_templates()
@@ -90,16 +90,16 @@ class SubjectLineGenerator:
         current_dir = os.path.dirname(__file__)
         return os.path.join(current_dir, "templates.yaml")
 
-    def _load_templates(self) -> Dict[str, Any]:
+    def _load_templates(self) -> dict[str, Any]:
         """Load templates from YAML file"""
         try:
-            with open(self.templates_path, "r") as file:
+            with open(self.templates_path) as file:
                 return yaml.safe_load(file)
         except Exception:
             # Fallback to minimal templates if file not found
             return self._get_fallback_templates()
 
-    def _get_fallback_templates(self) -> Dict[str, Any]:
+    def _get_fallback_templates(self) -> dict[str, Any]:
         """Fallback templates if YAML file not available"""
         return {
             "templates": {
@@ -129,18 +129,17 @@ class SubjectLineGenerator:
             "generation_rules": {"global_constraints": {"min_length": 10, "max_length": 78}},
         }
 
-    def generate_subject_lines(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
+    def generate_subject_lines(self, request: SubjectLineRequest) -> list[GeneratedSubjectLine]:
         """Generate subject lines based on request - Acceptance Criteria"""
         if request.generation_strategy == GenerationStrategy.AB_TESTING:
             return self._generate_ab_variants(request)
-        elif request.generation_strategy == GenerationStrategy.PERFORMANCE_OPTIMIZED:
+        if request.generation_strategy == GenerationStrategy.PERFORMANCE_OPTIMIZED:
             return self._generate_performance_optimized(request)
-        elif request.generation_strategy == GenerationStrategy.INDUSTRY_SPECIFIC:
+        if request.generation_strategy == GenerationStrategy.INDUSTRY_SPECIFIC:
             return self._generate_industry_specific(request)
-        else:
-            return self._generate_template_based(request)
+        return self._generate_template_based(request)
 
-    def _generate_template_based(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
+    def _generate_template_based(self, request: SubjectLineRequest) -> list[GeneratedSubjectLine]:
         """Generate subject lines using template patterns - Acceptance Criteria"""
         content_type_key = request.content_type.value
         templates = self.templates.get("templates", {}).get(content_type_key, {})
@@ -169,8 +168,8 @@ class SubjectLineGenerator:
         return generated_lines[: request.max_variants]
 
     def _generate_from_template(
-        self, template: Dict[str, Any], request: SubjectLineRequest, variant_name: str
-    ) -> Optional[GeneratedSubjectLine]:
+        self, template: dict[str, Any], request: SubjectLineRequest, variant_name: str
+    ) -> GeneratedSubjectLine | None:
         """Generate a single subject line from template - Acceptance Criteria"""
         pattern = template.get("pattern", "")
         required_tokens = template.get("tokens", [])
@@ -218,7 +217,7 @@ class SubjectLineGenerator:
             generation_method="template_based",
         )
 
-    def _generate_ab_variants(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
+    def _generate_ab_variants(self, request: SubjectLineRequest) -> list[GeneratedSubjectLine]:
         """Generate A/B testing variants - Acceptance Criteria"""
         variants = []
         ab_config = self.templates.get("ab_testing", {})
@@ -260,7 +259,7 @@ class SubjectLineGenerator:
 
         return variants[: request.max_variants]
 
-    def _generate_performance_optimized(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
+    def _generate_performance_optimized(self, request: SubjectLineRequest) -> list[GeneratedSubjectLine]:
         """Generate performance-optimized subject lines"""
         high_performers = self.templates.get("high_performing_patterns", {}).get("top_performers", [])
         generated_lines = []
@@ -286,7 +285,7 @@ class SubjectLineGenerator:
 
         return generated_lines
 
-    def _generate_industry_specific(self, request: SubjectLineRequest) -> List[GeneratedSubjectLine]:
+    def _generate_industry_specific(self, request: SubjectLineRequest) -> list[GeneratedSubjectLine]:
         """Generate industry-specific subject lines"""
         # Detect industry from business data
         industry = self._detect_industry(request.business_data)
@@ -304,8 +303,8 @@ class SubjectLineGenerator:
         return base_lines
 
     def _resolve_tokens(
-        self, required_tokens: List[str], request: SubjectLineRequest
-    ) -> Tuple[Dict[str, str], List[str]]:
+        self, required_tokens: list[str], request: SubjectLineRequest
+    ) -> tuple[dict[str, str], list[str]]:
         """Resolve personalization tokens from request data - Acceptance Criteria"""
         tokens_resolved = {}
         tokens_failed = []
@@ -329,8 +328,8 @@ class SubjectLineGenerator:
         return tokens_resolved, tokens_failed
 
     def _resolve_single_token(
-        self, token: str, request: SubjectLineRequest, token_config: Dict[str, Any]
-    ) -> Optional[str]:
+        self, token: str, request: SubjectLineRequest, token_config: dict[str, Any]
+    ) -> str | None:
         """Resolve a single token from request data"""
         config = token_config.get(token, {})
         config.get("source", "")
@@ -389,11 +388,11 @@ class SubjectLineGenerator:
         """Apply transformation to token value"""
         if transformation == "title_case":
             return value.title()
-        elif transformation == "upper_case":
+        if transformation == "upper_case":
             return value.upper()
-        elif transformation == "lower_case":
+        if transformation == "lower_case":
             return value.lower()
-        elif transformation == "remove_legal_suffixes":
+        if transformation == "remove_legal_suffixes":
             # Remove LLC, Inc, Corp, etc. (case insensitive)
             legal_suffixes = [" LLC", " Inc", " Corp", " Ltd", " Co"]
             for suffix in legal_suffixes:
@@ -401,7 +400,7 @@ class SubjectLineGenerator:
                     value = value[: -len(suffix)]
                     break
             return value
-        elif transformation == "normalize_industry":
+        if transformation == "normalize_industry":
             # Normalize industry names
             industry_mapping = {
                 "restaurants": "restaurant",
@@ -412,17 +411,16 @@ class SubjectLineGenerator:
                 "shopping": "store",
             }
             return industry_mapping.get(value.lower(), value)
-        elif transformation == "make_singular":
+        if transformation == "make_singular":
             if value.endswith("s") and len(value) > 3:
                 return value[:-1]
             return value
-        elif transformation == "remove_state_suffix":
+        if transformation == "remove_state_suffix":
             # Remove state abbreviations from city names
             if ", " in value:
                 return value.split(", ")[0]
             return value
-        else:
-            return value
+        return value
 
     def _truncate_subject_line(self, text: str, max_length: int) -> str:
         """Truncate subject line while preserving readability - Acceptance Criteria"""
@@ -440,7 +438,7 @@ class SubjectLineGenerator:
         return text[: max_length - 3] + "..."
 
     def _calculate_quality_score(
-        self, subject_text: str, template: Dict[str, Any], request: SubjectLineRequest
+        self, subject_text: str, template: dict[str, Any], request: SubjectLineRequest
     ) -> float:
         """Calculate overall quality score for subject line"""
         score = 0.0
@@ -474,7 +472,7 @@ class SubjectLineGenerator:
 
         return min(score, 1.0)
 
-    def _calculate_personalization_score(self, tokens_resolved: Dict[str, str], required_tokens: List[str]) -> float:
+    def _calculate_personalization_score(self, tokens_resolved: dict[str, str], required_tokens: list[str]) -> float:
         """Calculate personalization completeness score"""
         if not required_tokens:
             return 1.0
@@ -561,7 +559,7 @@ class SubjectLineGenerator:
         return True
 
     def _modify_request_for_variant(
-        self, request: SubjectLineRequest, variant_type: str, config: Dict[str, Any]
+        self, request: SubjectLineRequest, variant_type: str, config: dict[str, Any]
     ) -> SubjectLineRequest:
         """Modify request for A/B variant generation"""
         modified_request = SubjectLineRequest(
@@ -587,12 +585,12 @@ class SubjectLineGenerator:
 
         return modified_request
 
-    def _extract_tokens_from_pattern(self, pattern: str) -> List[str]:
+    def _extract_tokens_from_pattern(self, pattern: str) -> list[str]:
         """Extract token names from pattern string"""
         token_pattern = r"\{([^}]+)\}"
         return re.findall(token_pattern, pattern)
 
-    def _detect_industry(self, business_data: Dict[str, Any]) -> str:
+    def _detect_industry(self, business_data: dict[str, Any]) -> str:
         """Detect industry from business data"""
         category = business_data.get("category", "").lower()
         industry = business_data.get("industry", "").lower()
@@ -600,16 +598,15 @@ class SubjectLineGenerator:
         # Map to standard industry categories
         if any(term in f"{category} {industry}" for term in ["restaurant", "food", "dining"]):
             return "restaurant"
-        elif any(term in f"{category} {industry}" for term in ["medical", "health", "doctor", "clinic"]):
+        if any(term in f"{category} {industry}" for term in ["medical", "health", "doctor", "clinic"]):
             return "medical"
-        elif any(term in f"{category} {industry}" for term in ["retail", "store", "shop", "clothing"]):
+        if any(term in f"{category} {industry}" for term in ["retail", "store", "shop", "clothing"]):
             return "retail"
-        elif any(term in f"{category} {industry}" for term in ["lawyer", "legal", "attorney", "accountant"]):
+        if any(term in f"{category} {industry}" for term in ["lawyer", "legal", "attorney", "accountant"]):
             return "professional_services"
-        else:
-            return "general"
+        return "general"
 
-    def _apply_industry_modifications(self, text: str, industry_config: Dict[str, Any]) -> str:
+    def _apply_industry_modifications(self, text: str, industry_config: dict[str, Any]) -> str:
         """Apply industry-specific modifications to subject line"""
         avoid_terms = industry_config.get("avoid_terms", [])
         prefer_terms = industry_config.get("prefer_terms", [])
@@ -633,7 +630,7 @@ class SubjectLineManager:
 
     def create_subject_line_variants(
         self, template: EmailTemplate, request: SubjectLineRequest, session=None
-    ) -> List[SubjectLineVariant]:
+    ) -> list[SubjectLineVariant]:
         """Create subject line variants for database storage"""
         generated_lines = self.generator.generate_subject_lines(request)
         variants = []
@@ -641,7 +638,7 @@ class SubjectLineManager:
         for i, line in enumerate(generated_lines):
             variant = SubjectLineVariant(
                 template_id=template.id,
-                variant_name=line.variant_name or f"variant_{i+1}",
+                variant_name=line.variant_name or f"variant_{i + 1}",
                 subject_text=line.text,
                 personalization_tokens=list(line.tokens_resolved.keys()),
                 status=VariantStatus.DRAFT,
@@ -658,7 +655,7 @@ class SubjectLineManager:
 
         return variants
 
-    def get_best_performing_variant(self, template_id: str, session) -> Optional[SubjectLineVariant]:
+    def get_best_performing_variant(self, template_id: str, session) -> SubjectLineVariant | None:
         """Get the best performing variant for a template"""
         if not session:
             return None

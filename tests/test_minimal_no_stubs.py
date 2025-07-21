@@ -2,6 +2,7 @@
 Minimal test suite that doesn't require stub server
 These tests verify basic functionality without external dependencies
 """
+
 import sys
 
 import pytest

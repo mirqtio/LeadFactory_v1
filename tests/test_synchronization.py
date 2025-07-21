@@ -1,15 +1,16 @@
 """
 Test Synchronization Utilities
 
-Provides proper synchronization primitives to replace time.sleep() 
+Provides proper synchronization primitives to replace time.sleep()
 and prevent race conditions in tests.
 """
 
 import asyncio
 import threading
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 from unittest.mock import Mock
 
 
@@ -21,7 +22,7 @@ class SyncEvent:
         self._results = []
         self._lock = threading.Lock()
 
-    def wait(self, timeout: Optional[float] = None) -> bool:
+    def wait(self, timeout: float | None = None) -> bool:
         """Wait for the event to be set."""
         return self._event.wait(timeout)
 
@@ -56,12 +57,12 @@ class AsyncSyncEvent:
         self._results = []
         self._lock = asyncio.Lock()
 
-    async def wait(self, timeout: Optional[float] = None) -> bool:
+    async def wait(self, timeout: float | None = None) -> bool:
         """Wait for the event to be set."""
         try:
             await asyncio.wait_for(self._event.wait(), timeout)
             return True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return False
 
     async def set(self, result: Any = None) -> None:

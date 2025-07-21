@@ -1,8 +1,9 @@
 """
 Factory for creating D0 Gateway API clients
 """
+
 import threading
-from typing import Any, Dict, Optional, Type
+from typing import Any
 
 from core.config import get_settings
 from core.logging import get_logger
@@ -44,7 +45,7 @@ class GatewayClientFactory:
                     self.settings = get_settings()
 
                     # Registry of available providers
-                    self._providers: Dict[str, Type[BaseAPIClient]] = {
+                    self._providers: dict[str, type[BaseAPIClient]] = {
                         "pagespeed": PageSpeedClient,
                         "openai": OpenAIClient,
                         "humanloop": HumanloopClient,
@@ -58,13 +59,13 @@ class GatewayClientFactory:
                     }
 
                     # Cache for created instances
-                    self._client_cache: Dict[str, BaseAPIClient] = {}
+                    self._client_cache: dict[str, BaseAPIClient] = {}
                     self._cache_lock = threading.Lock()
 
                     self.__class__._initialized = True
                     self.logger.info("Gateway client factory initialized")
 
-    def register_provider(self, provider_name: str, client_class: Type[BaseAPIClient]) -> None:
+    def register_provider(self, provider_name: str, client_class: type[BaseAPIClient]) -> None:
         """
         Register a new provider with the factory
 
@@ -139,7 +140,7 @@ class GatewayClientFactory:
             self.logger.error(f"Failed to create client for {provider}: {e}")
             raise
 
-    def _get_provider_config(self, provider: str) -> Dict[str, Any]:
+    def _get_provider_config(self, provider: str) -> dict[str, Any]:
         """
         Get configuration for a specific provider
 
@@ -190,7 +191,7 @@ class GatewayClientFactory:
 
         return config
 
-    def invalidate_cache(self, provider: Optional[str] = None) -> None:
+    def invalidate_cache(self, provider: str | None = None) -> None:
         """
         Invalidate cached client instances
 
@@ -206,7 +207,7 @@ class GatewayClientFactory:
                 self._client_cache.clear()
                 self.logger.info("Invalidated all cached clients")
 
-    def get_client_status(self) -> Dict[str, Any]:
+    def get_client_status(self) -> dict[str, Any]:
         """
         Get status of all registered providers and cached clients
 
@@ -224,7 +225,7 @@ class GatewayClientFactory:
             "factory_initialized": self._initialized,
         }
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """
         Perform health check on factory and providers
 
@@ -297,7 +298,7 @@ def create_client(provider: str, **kwargs) -> BaseAPIClient:
     return factory.create_client(provider, **kwargs)
 
 
-def register_provider(provider_name: str, client_class: Type[BaseAPIClient]) -> None:
+def register_provider(provider_name: str, client_class: type[BaseAPIClient]) -> None:
     """
     Convenience function to register a provider with the global factory
 

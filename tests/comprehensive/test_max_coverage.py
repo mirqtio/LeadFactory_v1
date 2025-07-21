@@ -7,6 +7,7 @@ This test is designed to maximize coverage by:
 2. Testing key execution paths
 3. Running in USE_STUBS=true mode for CI compatibility
 """
+
 import os
 
 import pytest

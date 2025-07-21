@@ -4,8 +4,9 @@ FastAPI endpoints for D1 Targeting Domain
 Provides REST API for target universe management, campaign operations,
 batch scheduling, and targeting analytics.
 """
+
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import ValidationError
@@ -146,19 +147,19 @@ async def create_target_universe(
     return universe
 
 
-@router.get("/universes", response_model=List[TargetUniverseResponseSchema])
+@router.get("/universes", response_model=list[TargetUniverseResponseSchema])
 async def list_target_universes(
     db: Session = Depends(get_db),
     current_user: AccountUser = require_authenticated_user(),
     page: int = Query(default=1, ge=1, description="Page number"),
     size: int = Query(default=20, ge=1, le=100, description="Items per page"),
-    name_contains: Optional[str] = Query(None, description="Filter by name containing text"),
-    verticals: Optional[List[VerticalMarket]] = Query(None, description="Filter by verticals"),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
-    min_size: Optional[int] = Query(None, ge=0, description="Minimum universe size"),
-    max_size: Optional[int] = Query(None, ge=0, description="Maximum universe size"),
-    created_after: Optional[datetime] = Query(None, description="Created after date"),
-    created_before: Optional[datetime] = Query(None, description="Created before date"),
+    name_contains: str | None = Query(None, description="Filter by name containing text"),
+    verticals: list[VerticalMarket] | None = Query(None, description="Filter by verticals"),
+    is_active: bool | None = Query(None, description="Filter by active status"),
+    min_size: int | None = Query(None, ge=0, description="Minimum universe size"),
+    max_size: int | None = Query(None, ge=0, description="Maximum universe size"),
+    created_after: datetime | None = Query(None, description="Created after date"),
+    created_before: datetime | None = Query(None, description="Created before date"),
 ):
     """
     List target universes with optional filtering and pagination.
@@ -317,7 +318,7 @@ async def create_campaign(request: CreateCampaignSchema, db: Session = Depends(g
     return campaign
 
 
-@router.get("/campaigns", response_model=List[CampaignResponseSchema])
+@router.get("/campaigns", response_model=list[CampaignResponseSchema])
 @handle_api_errors
 async def list_campaigns(
     filters: CampaignFilterSchema = Depends(),
@@ -400,7 +401,7 @@ async def update_campaign(campaign_id: str, request: UpdateCampaignSchema, db: S
 
 
 # Batch endpoints
-@router.post("/batches", response_model=Dict[str, Any])
+@router.post("/batches", response_model=dict[str, Any])
 @handle_api_errors
 async def create_batches(request: CreateBatchesSchema, db: Session = Depends(get_db)):
     """
@@ -428,7 +429,7 @@ async def create_batches(request: CreateBatchesSchema, db: Session = Depends(get
     }
 
 
-@router.get("/batches", response_model=List[BatchResponseSchema])
+@router.get("/batches", response_model=list[BatchResponseSchema])
 @handle_api_errors
 async def list_batches(
     filters: BatchFilterSchema = Depends(),
@@ -464,9 +465,9 @@ async def list_batches(
     return batches
 
 
-@router.get("/batches/pending", response_model=List[BatchResponseSchema])
+@router.get("/batches/pending", response_model=list[BatchResponseSchema])
 @handle_api_errors
-async def get_pending_batches(limit: Optional[int] = Query(None, ge=1, le=100), db: Session = Depends(get_db)):
+async def get_pending_batches(limit: int | None = Query(None, ge=1, le=100), db: Session = Depends(get_db)):
     """
     Get batches ready for processing.
     """
@@ -514,7 +515,7 @@ async def update_batch_status(batch_id: str, request: BatchStatusUpdateSchema, d
 # Analytics endpoints
 @router.get("/analytics/quota", response_model=QuotaAllocationResponseSchema)
 @handle_api_errors
-async def get_quota_allocation(target_date: Optional[date] = Query(None), db: Session = Depends(get_db)):
+async def get_quota_allocation(target_date: date | None = Query(None), db: Session = Depends(get_db)):
     """
     Get current quota allocation and usage.
 
@@ -553,9 +554,9 @@ async def get_quota_allocation(target_date: Optional[date] = Query(None), db: Se
     )
 
 
-@router.get("/analytics/priorities", response_model=List[UniversePriorityResponseSchema])
+@router.get("/analytics/priorities", response_model=list[UniversePriorityResponseSchema])
 @handle_api_errors
-async def get_universe_priorities(limit: Optional[int] = Query(10, ge=1, le=50), db: Session = Depends(get_db)):
+async def get_universe_priorities(limit: int | None = Query(10, ge=1, le=50), db: Session = Depends(get_db)):
     """
     Get target universe priorities for scheduling.
 
@@ -611,11 +612,11 @@ async def create_geographic_boundary(request: CreateGeographicBoundarySchema, db
     return boundary
 
 
-@router.get("/geographic-boundaries", response_model=List[GeographicBoundaryResponseSchema])
+@router.get("/geographic-boundaries", response_model=list[GeographicBoundaryResponseSchema])
 @handle_api_errors
 async def list_geographic_boundaries(
-    level: Optional[str] = Query(None, description="Filter by geography level"),
-    country: Optional[str] = Query("US", description="Filter by country"),
+    level: str | None = Query(None, description="Filter by geography level"),
+    country: str | None = Query("US", description="Filter by country"),
     pagination: PaginationSchema = Depends(),
     db: Session = Depends(get_db),
 ):
@@ -638,9 +639,9 @@ async def list_geographic_boundaries(
 
 
 # Validation endpoint
-@router.post("/validate", response_model=Dict[str, Any])
+@router.post("/validate", response_model=dict[str, Any])
 @handle_api_errors
-async def validate_targeting_criteria(request: Dict[str, Any], db: Session = Depends(get_db)):
+async def validate_targeting_criteria(request: dict[str, Any], db: Session = Depends(get_db)):
     """
     Validate targeting criteria for locations and industries.
     """
@@ -692,7 +693,7 @@ async def create_target_universe_alias(request: CreateTargetUniverseSchema, db: 
 # Quota endpoint alias for backward compatibility
 @router.get("/quota", response_model=QuotaAllocationResponseSchema)
 @handle_api_errors
-async def get_quota_allocation_alias(target_date: Optional[date] = Query(None), db: Session = Depends(get_db)):
+async def get_quota_allocation_alias(target_date: date | None = Query(None), db: Session = Depends(get_db)):
     """
     Get current quota allocation and usage (alias endpoint for backward compatibility).
     """
@@ -700,7 +701,7 @@ async def get_quota_allocation_alias(target_date: Optional[date] = Query(None), 
 
 
 # Health check endpoint
-@router.get("/health", response_model=Dict[str, Any])
+@router.get("/health", response_model=dict[str, Any])
 @handle_api_errors
 async def targeting_health_check(db: Session = Depends(get_db)):
     """

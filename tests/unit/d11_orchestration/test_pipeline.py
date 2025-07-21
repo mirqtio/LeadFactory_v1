@@ -187,15 +187,14 @@ class TestPipelineFlow:
             mock_orchestrator.update_pipeline_status = AsyncMock()
 
             # Mock all stage tasks
-            with patch("d11_orchestration.pipeline.targeting_stage") as mock_targeting, patch(
-                "d11_orchestration.pipeline.sourcing_stage"
-            ) as mock_sourcing, patch("d11_orchestration.pipeline.assessment_stage") as mock_assessment, patch(
-                "d11_orchestration.pipeline.scoring_stage"
-            ) as mock_scoring, patch(
-                "d11_orchestration.pipeline.personalization_stage"
-            ) as mock_personalization, patch(
-                "d11_orchestration.pipeline.delivery_stage"
-            ) as mock_delivery:
+            with (
+                patch("d11_orchestration.pipeline.targeting_stage") as mock_targeting,
+                patch("d11_orchestration.pipeline.sourcing_stage") as mock_sourcing,
+                patch("d11_orchestration.pipeline.assessment_stage") as mock_assessment,
+                patch("d11_orchestration.pipeline.scoring_stage") as mock_scoring,
+                patch("d11_orchestration.pipeline.personalization_stage") as mock_personalization,
+                patch("d11_orchestration.pipeline.delivery_stage") as mock_delivery,
+            ):
                 # Configure stage mocks
                 mock_targeting.submit = AsyncMock(return_value={"businesses": [{"id": "1"}]})
                 mock_sourcing.submit = AsyncMock(return_value={"enriched_businesses": [{"id": "1"}]})

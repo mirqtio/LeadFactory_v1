@@ -1,6 +1,7 @@
 """
 Unit tests for integration validation framework
 """
+
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
@@ -109,7 +110,7 @@ class TestIntegrationValidator:
 
         # Mock timeout exception
         mock_session = AsyncMock()
-        mock_session.request.side_effect = asyncio.TimeoutError()
+        mock_session.request.side_effect = TimeoutError()
 
         with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await validator.validate_service_endpoint(
@@ -189,9 +190,11 @@ class TestIntegrationValidator:
         )
 
         # Mock individual validations
-        with patch.object(validator, "validate_google_places") as mock_google, patch.object(
-            validator, "validate_openai"
-        ) as mock_openai, patch.object(validator, "validate_sendgrid") as mock_sendgrid:
+        with (
+            patch.object(validator, "validate_google_places") as mock_google,
+            patch.object(validator, "validate_openai") as mock_openai,
+            patch.object(validator, "validate_sendgrid") as mock_sendgrid,
+        ):
             mock_google.return_value = [
                 ValidationResult(service_name="google_places", test_name="test1", passed=True),
                 ValidationResult(service_name="google_places", test_name="test2", passed=True),
@@ -338,9 +341,11 @@ async def test_validate_all_integrations():
 @pytest.mark.asyncio
 async def test_validate_production_transition():
     """Test comprehensive production transition validation"""
-    with patch("core.integration_validator.validate_all_integrations") as mock_validate, patch(
-        "core.integration_validator.service_router"
-    ) as mock_router, patch("core.integration_validator.production_config_service") as mock_config:
+    with (
+        patch("core.integration_validator.validate_all_integrations") as mock_validate,
+        patch("core.integration_validator.service_router") as mock_router,
+        patch("core.integration_validator.production_config_service") as mock_config,
+    ):
         # Mock integration validation
         mock_report = IntegrationReport(
             overall_score=85.0,

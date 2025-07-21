@@ -13,7 +13,7 @@ Usage:
     From Python:
         from core.prerequisites import validate_all_prerequisites
         result = validate_all_prerequisites()
-        
+
     From command line:
         python -m core.prerequisites
 """
@@ -22,7 +22,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from packaging import version
 from packaging.version import InvalidVersion
@@ -42,10 +42,10 @@ class PrerequisiteCheck(BaseModel):
     name: str
     required: bool = True
     passed: bool = False
-    version_found: Optional[str] = None
-    version_required: Optional[str] = None
+    version_found: str | None = None
+    version_required: str | None = None
     message: str = ""
-    details: Dict[str, Any] = Field(default_factory=dict)
+    details: dict[str, Any] = Field(default_factory=dict)
 
 
 class PrerequisiteResult(BaseModel):
@@ -56,8 +56,8 @@ class PrerequisiteResult(BaseModel):
     passed_checks: int = 0
     failed_checks: int = 0
     warning_checks: int = 0
-    checks: List[PrerequisiteCheck] = Field(default_factory=list)
-    environment_info: Dict[str, Any] = Field(default_factory=dict)
+    checks: list[PrerequisiteCheck] = Field(default_factory=list)
+    environment_info: dict[str, Any] = Field(default_factory=dict)
 
     def __init__(self, **data):
         """Initialize and compute derived fields."""
@@ -88,12 +88,12 @@ class PrerequisiteResult(BaseModel):
 class PrerequisiteValidator:
     """Main prerequisites validation class."""
 
-    def __init__(self, settings: Optional[Any] = None):
+    def __init__(self, settings: Any | None = None):
         """Initialize validator with settings."""
         self.settings = settings or get_settings()
-        self.checks: List[PrerequisiteCheck] = []
+        self.checks: list[PrerequisiteCheck] = []
 
-    def _run_command(self, cmd: List[str], timeout: int = 30) -> Tuple[int, str, str]:
+    def _run_command(self, cmd: list[str], timeout: int = 30) -> tuple[int, str, str]:
         """
         Run a command and return exit code, stdout, stderr.
 
@@ -505,7 +505,7 @@ class PrerequisiteValidator:
 
         return check
 
-    def _get_docker_info(self) -> Dict[str, Any]:
+    def _get_docker_info(self) -> dict[str, Any]:
         """Get Docker system information."""
         try:
             exit_code, stdout, stderr = self._run_command(["docker", "info", "--format", "json"])
@@ -517,7 +517,7 @@ class PrerequisiteValidator:
             pass
         return {}
 
-    def _get_environment_info(self) -> Dict[str, Any]:
+    def _get_environment_info(self) -> dict[str, Any]:
         """Get environment information."""
         return {
             "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",

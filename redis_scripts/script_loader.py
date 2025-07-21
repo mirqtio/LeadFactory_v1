@@ -2,10 +2,10 @@
 Redis Lua Script Loader with SHA caching and EVALSHA fallback
 Implements optimized script loading following d0_gateway patterns
 """
-import hashlib
+
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import redis
 from redis.exceptions import NoScriptError, RedisError
@@ -25,7 +25,7 @@ class ScriptLoader:
     - Connection pooling integration with existing Redis patterns
     """
 
-    def __init__(self, redis_instance: Optional[redis.Redis] = None):
+    def __init__(self, redis_instance: redis.Redis | None = None):
         """
         Initialize script loader.
 
@@ -43,8 +43,8 @@ class ScriptLoader:
             self.redis = redis.from_url(redis_url, decode_responses=True)
 
         # SHA cache for loaded scripts
-        self._script_shas: Dict[str, str] = {}
-        self._script_contents: Dict[str, str] = {}
+        self._script_shas: dict[str, str] = {}
+        self._script_contents: dict[str, str] = {}
 
         # Script directory
         self.script_dir = Path(__file__).parent
@@ -78,7 +78,7 @@ class ScriptLoader:
             raise FileNotFoundError(f"Script file not found: {script_path}")
 
         try:
-            with open(script_path, "r") as f:
+            with open(script_path) as f:
                 script_content = f.read()
 
             # Load script into Redis and get SHA
@@ -91,14 +91,14 @@ class ScriptLoader:
             self.logger.debug(f"Loaded script {script_name} with SHA: {sha}")
             return sha
 
-        except (IOError, OSError) as e:
+        except OSError as e:
             self.logger.error(f"Failed to read script {script_name}: {e}")
             raise
         except RedisError as e:
             self.logger.error(f"Failed to load script {script_name} into Redis: {e}")
             raise
 
-    def execute_script(self, script_name: str, keys: List[str], args: List[Any], reload_on_error: bool = True) -> Any:
+    def execute_script(self, script_name: str, keys: list[str], args: list[Any], reload_on_error: bool = True) -> Any:
         """
         Execute Lua script using EVALSHA with automatic EVAL fallback.
 
@@ -139,7 +139,7 @@ class ScriptLoader:
             if not script_content:
                 # Re-read script if not in cache
                 script_path = self.script_dir / f"{script_name}.lua"
-                with open(script_path, "r") as f:
+                with open(script_path) as f:
                     script_content = f.read()
 
             return self.redis.eval(script_content, len(keys), *keys, *args)
@@ -148,7 +148,7 @@ class ScriptLoader:
             self.logger.error(f"Script execution failed for {script_name}: {e}")
             raise
 
-    def load_all_scripts(self, reload: bool = False) -> Dict[str, str]:
+    def load_all_scripts(self, reload: bool = False) -> dict[str, str]:
         """
         Load all Lua scripts in the script directory.
 
@@ -175,7 +175,7 @@ class ScriptLoader:
         self.logger.info(f"Loaded {len(script_shas)} Lua scripts")
         return script_shas
 
-    def get_script_sha(self, script_name: str) -> Optional[str]:
+    def get_script_sha(self, script_name: str) -> str | None:
         """
         Get cached SHA for script.
 
@@ -225,7 +225,7 @@ class ScriptLoader:
             self.logger.error(f"Failed to flush Redis scripts: {e}")
             raise
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """
         Perform health check on script loader.
 
@@ -262,7 +262,7 @@ class ScriptLoader:
 
 
 # Global script loader instance
-_script_loader: Optional[ScriptLoader] = None
+_script_loader: ScriptLoader | None = None
 
 
 def get_script_loader() -> ScriptLoader:
@@ -278,12 +278,12 @@ def load_script(script_name: str, reload: bool = False) -> str:
     return get_script_loader().load_script(script_name, reload=reload)
 
 
-def get_script_sha(script_name: str) -> Optional[str]:
+def get_script_sha(script_name: str) -> str | None:
     """Get script SHA using global loader."""
     return get_script_loader().get_script_sha(script_name)
 
 
-def execute_script(script_name: str, keys: List[str], args: List[Any]) -> Any:
+def execute_script(script_name: str, keys: list[str], args: list[Any]) -> Any:
     """Execute script using global loader."""
     return get_script_loader().execute_script(script_name, keys, args)
 

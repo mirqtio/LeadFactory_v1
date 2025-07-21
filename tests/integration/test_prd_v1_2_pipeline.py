@@ -2,6 +2,7 @@
 Integration test for PRD v1.2 full pipeline
 Tests Yelp sourcing → 7-assessor stack → Email enrichment → Cost tracking
 """
+
 import asyncio
 
 import pytest
@@ -23,7 +24,6 @@ class TestPRDv12Pipeline:
     @pytest.mark.skip(reason="Yelp has been removed from the codebase")
     async def test_yelp_sourcing_with_limit(self):
         """Test Yelp sourcing respects 300/day limit"""
-        pass
 
     @pytest.mark.asyncio
     async def test_seven_assessor_stack(self):

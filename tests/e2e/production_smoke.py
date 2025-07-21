@@ -9,6 +9,7 @@ Test Matrix:
 - Lawyer Stripe error
 - Rotating vertical
 """
+
 import asyncio
 import json
 import time
@@ -50,7 +51,7 @@ ROTATING_VERTICALS = [
 class SmokeTestVariant:
     """Base class for smoke test variants"""
 
-    def __init__(self, name: str, vertical: str, fixture_data: Dict[str, Any]):
+    def __init__(self, name: str, vertical: str, fixture_data: dict[str, Any]):
         self.name = name
         self.vertical = vertical
         self.fixture_data = fixture_data
@@ -59,11 +60,9 @@ class SmokeTestVariant:
 
     def inject_failures(self):
         """Override to inject specific failures"""
-        pass
 
-    def validate_results(self, results: Dict[str, Any]):
+    def validate_results(self, results: dict[str, Any]):
         """Override to add variant-specific validations"""
-        pass
 
 
 class HVACNormalVariant(SmokeTestVariant):
@@ -85,7 +84,7 @@ class HVACNormalVariant(SmokeTestVariant):
             },
         )
 
-    def validate_results(self, results: Dict[str, Any]):
+    def validate_results(self, results: dict[str, Any]):
         """All components should complete successfully"""
         assert results["assessment"]["status"] == "completed"
         assert results["scoring"]["tier"] in ["A", "B", "C", "D"]
@@ -131,7 +130,7 @@ class HVACNegativeVariant(SmokeTestVariant):
         original_analyze = PageSpeedClient.analyze
         PageSpeedClient.analyze = slow_analyze
 
-    def validate_results(self, results: Dict[str, Any]):
+    def validate_results(self, results: dict[str, Any]):
         """Should complete but with timeout warnings"""
         assert results["assessment"]["status"] == "completed"
         assert results["scoring"]["tier"] == "D"  # Low score due to timeout
@@ -162,7 +161,7 @@ class RestaurantEmailFailVariant(SmokeTestVariant):
             },
         )
 
-    def validate_results(self, results: Dict[str, Any]):
+    def validate_results(self, results: dict[str, Any]):
         """Should skip email delivery"""
         assert results["assessment"]["status"] == "completed"
         assert results["scoring"]["status"] == "completed"
@@ -195,7 +194,7 @@ class LawyerStripeErrorVariant(SmokeTestVariant):
             },
         )
 
-    def validate_results(self, results: Dict[str, Any]):
+    def validate_results(self, results: dict[str, Any]):
         """Should handle payment failure gracefully"""
         assert results["assessment"]["status"] == "completed"
         assert results["scoring"]["status"] == "completed"
@@ -229,7 +228,7 @@ class RotatingVerticalVariant(SmokeTestVariant):
             },
         )
 
-    def validate_results(self, results: Dict[str, Any]):
+    def validate_results(self, results: dict[str, Any]):
         """Standard validation for rotating vertical"""
         assert results["assessment"]["status"] == "completed"
         assert results["scoring"]["status"] == "completed"
@@ -237,7 +236,7 @@ class RotatingVerticalVariant(SmokeTestVariant):
 
 
 @task(name="smoke_test_runner", retries=0, timeout_seconds=300)
-async def run_smoke_variant(variant: SmokeTestVariant) -> Dict[str, Any]:
+async def run_smoke_variant(variant: SmokeTestVariant) -> dict[str, Any]:
     """Run a single smoke test variant"""
     logger.info(f"Starting smoke test variant: {variant.name}")
 
@@ -322,7 +321,7 @@ async def run_smoke_variant(variant: SmokeTestVariant) -> Dict[str, Any]:
     return results
 
 
-async def run_assessment(business: Business) -> Dict[str, Any]:
+async def run_assessment(business: Business) -> dict[str, Any]:
     """Run assessment for smoke test"""
     from d0_gateway.facade import GatewayFacade
     from d3_assessment.coordinator import AssessmentCoordinator
@@ -339,7 +338,7 @@ async def run_assessment(business: Business) -> Dict[str, Any]:
     }
 
 
-async def run_scoring(business: Business, assessment: Dict[str, Any]) -> Dict[str, Any]:
+async def run_scoring(business: Business, assessment: dict[str, Any]) -> dict[str, Any]:
     """Run scoring for smoke test"""
     from d5_scoring.engine import ScoringEngine
 
@@ -354,7 +353,7 @@ async def run_scoring(business: Business, assessment: Dict[str, Any]) -> Dict[st
     }
 
 
-async def run_email_flow(business: Business, scoring: Dict[str, Any]) -> Dict[str, Any]:
+async def run_email_flow(business: Business, scoring: dict[str, Any]) -> dict[str, Any]:
     """Run email personalization and delivery"""
     from d0_gateway.facade import GatewayFacade
     from d8_personalization.personalizer import EmailPersonalizer
@@ -383,7 +382,7 @@ async def run_email_flow(business: Business, scoring: Dict[str, Any]) -> Dict[st
     }
 
 
-async def run_payment_flow(business: Business, test_card: str = None) -> Dict[str, Any]:
+async def run_payment_flow(business: Business, test_card: str = None) -> dict[str, Any]:
     """Run payment flow for smoke test"""
     from d0_gateway.facade import GatewayFacade
     from d7_storefront.checkout import CheckoutManager
@@ -401,8 +400,7 @@ async def run_payment_flow(business: Business, test_card: str = None) -> Dict[st
     # Simulate webhook for test
     if test_card == "4000000000000341":  # Decline card
         return {"status": "payment_failed", "session_id": session.id}
-    else:
-        return {"status": "completed", "session_id": session.id}
+    return {"status": "completed", "session_id": session.id}
 
 
 async def cleanup_smoke_data(run_id: str):
@@ -528,7 +526,7 @@ async def daily_smoke_flow():
     return summary
 
 
-async def send_alert(level: str, message: str, details: Dict[str, Any]):
+async def send_alert(level: str, message: str, details: dict[str, Any]):
     """Send alert based on level"""
     logger.error(f"[{level.upper()}] {message}")
     logger.error(f"Details: {json.dumps(details, indent=2)}")

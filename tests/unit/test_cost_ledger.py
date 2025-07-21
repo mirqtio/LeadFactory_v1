@@ -1,6 +1,7 @@
 """
 Tests for cost tracking functionality - Phase 0.5 Task GW-04
 """
+
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -176,9 +177,13 @@ class TestEmitCost:
         mock_get_db.return_value.__enter__.return_value = test_db
 
         # Create client with mocked components
-        with patch("d0_gateway.base.RateLimiter"), patch("d0_gateway.base.CircuitBreaker"), patch(
-            "d0_gateway.base.ResponseCache"
-        ), patch("d0_gateway.base.GatewayMetrics") as mock_metrics, patch("d0_gateway.base.get_settings"):
+        with (
+            patch("d0_gateway.base.RateLimiter"),
+            patch("d0_gateway.base.CircuitBreaker"),
+            patch("d0_gateway.base.ResponseCache"),
+            patch("d0_gateway.base.GatewayMetrics") as mock_metrics,
+            patch("d0_gateway.base.get_settings"),
+        ):
             client = MockAPIClient(provider="test_provider", api_key="test")
 
             # Emit cost
@@ -210,11 +215,14 @@ class TestEmitCost:
         mock_get_db.side_effect = Exception("DB Error")
 
         # Create client
-        with patch("d0_gateway.base.RateLimiter"), patch("d0_gateway.base.CircuitBreaker"), patch(
-            "d0_gateway.base.ResponseCache"
-        ), patch("d0_gateway.base.GatewayMetrics"), patch("d0_gateway.base.get_settings"), patch(
-            "d0_gateway.base.get_logger"
-        ) as mock_logger:
+        with (
+            patch("d0_gateway.base.RateLimiter"),
+            patch("d0_gateway.base.CircuitBreaker"),
+            patch("d0_gateway.base.ResponseCache"),
+            patch("d0_gateway.base.GatewayMetrics"),
+            patch("d0_gateway.base.get_settings"),
+            patch("d0_gateway.base.get_logger") as mock_logger,
+        ):
             client = MockAPIClient(provider="test_provider", api_key="test")
 
             # Should not raise exception
@@ -344,14 +352,13 @@ class TestBaseClientCostIntegration:
         mock_httpx.return_value = mock_client
 
         # Create client with mocked components
-        with patch("d0_gateway.base.RateLimiter") as mock_rate_limiter, patch(
-            "d0_gateway.base.CircuitBreaker"
-        ) as mock_circuit_breaker, patch("d0_gateway.base.ResponseCache") as mock_cache, patch(
-            "d0_gateway.base.GatewayMetrics"
-        ) as mock_metrics, patch(
-            "d0_gateway.base.get_settings"
-        ), patch(
-            "database.session.get_db_sync"
+        with (
+            patch("d0_gateway.base.RateLimiter") as mock_rate_limiter,
+            patch("d0_gateway.base.CircuitBreaker") as mock_circuit_breaker,
+            patch("d0_gateway.base.ResponseCache") as mock_cache,
+            patch("d0_gateway.base.GatewayMetrics") as mock_metrics,
+            patch("d0_gateway.base.get_settings"),
+            patch("database.session.get_db_sync"),
         ):
             # Setup mocks
             mock_rate_limiter.return_value.is_allowed = AsyncMock(return_value=True)

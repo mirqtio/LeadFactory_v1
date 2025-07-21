@@ -271,7 +271,7 @@ class TestEvidenceValidation:
         incomplete_evidence = {
             "timestamp": "2025-07-21T10:00:00Z",
             "agent_id": "pm-1",
-            "transition_type": "pending_to_development"
+            "transition_type": "pending_to_development",
             # Missing requirements_analysis and acceptance_criteria
         }
 

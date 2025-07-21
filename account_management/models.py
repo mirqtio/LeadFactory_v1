@@ -2,11 +2,10 @@
 Account Management Database Models
 Comprehensive user, organization, team, and RBAC models for P2-000
 """
+
 import enum
 import secrets
 import uuid
-from datetime import datetime, timedelta
-from typing import Optional
 
 from sqlalchemy import JSON, TIMESTAMP, Boolean, Column, Date
 from sqlalchemy import Enum as SQLEnum

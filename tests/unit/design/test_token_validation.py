@@ -3,7 +3,7 @@ Tests for design token validation logic.
 
 Tests cover:
 - JSON schema compliance
-- File size constraints  
+- File size constraints
 - Required token presence
 - Value format validation
 """
@@ -355,7 +355,7 @@ class TestTokenValidation:
         tokens_file = Path(__file__).parent.parent.parent.parent / "design" / "design_tokens.json"
 
         if tokens_file.exists():
-            with open(tokens_file, "r") as f:
+            with open(tokens_file) as f:
                 content = f.read()
 
             # Minified JSON should not have unnecessary whitespace

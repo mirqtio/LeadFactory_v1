@@ -7,7 +7,7 @@ with subject line variants, content personalization, and spam score tracking.
 Acceptance Criteria:
 - Email content model ✓
 - Subject line variants ✓
-- Personalization tokens ✓ 
+- Personalization tokens ✓
 - Spam score tracking ✓
 """
 

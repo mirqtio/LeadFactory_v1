@@ -2,6 +2,7 @@
 Unit tests for WebSocket Manager module
 Tests WebSocket connection management and throttling without network dependencies
 """
+
 import asyncio
 import time
 from unittest.mock import AsyncMock, MagicMock, patch

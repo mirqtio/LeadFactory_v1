@@ -30,7 +30,7 @@ class TestIssueAnalyzer:
             "no_timeout": [],
         }
 
-    def analyze_all_tests(self) -> Dict:
+    def analyze_all_tests(self) -> dict:
         """Analyze all test files for issues."""
         test_files = self._find_test_files()
 
@@ -41,7 +41,7 @@ class TestIssueAnalyzer:
 
         return self._generate_report()
 
-    def _find_test_files(self) -> List[Path]:
+    def _find_test_files(self) -> list[Path]:
         """Find all test files."""
         test_files = []
 
@@ -55,7 +55,7 @@ class TestIssueAnalyzer:
     def _analyze_file(self, file_path: Path):
         """Analyze a single test file for issues."""
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 content = f.read()
 
             # Analyze content
@@ -242,9 +242,8 @@ class TestIssueAnalyzer:
     def _analyze_ast(self, file_path: Path, tree: ast.AST):
         """Perform AST-based analysis."""
         # This could be extended for more sophisticated analysis
-        pass
 
-    def _generate_report(self) -> Dict:
+    def _generate_report(self) -> dict:
         """Generate analysis report."""
         report = {
             "summary": {
@@ -259,7 +258,7 @@ class TestIssueAnalyzer:
 
         return report
 
-    def _prioritize_issues(self) -> List[Dict]:
+    def _prioritize_issues(self) -> list[dict]:
         """Prioritize issues for fixing."""
         priorities = []
 
@@ -313,7 +312,7 @@ def main():
     report = analyzer.analyze_all_tests()
 
     # Print summary
-    print(f"\n📊 Analysis Complete")
+    print("\n📊 Analysis Complete")
     print(f"Total issues found: {report['summary']['total_issues']}")
     print(f"Files with issues: {report['summary']['files_analyzed']}")
 
@@ -334,11 +333,11 @@ def main():
     generate_markdown_report(report)
 
 
-def generate_markdown_report(report: Dict):
+def generate_markdown_report(report: dict):
     """Generate a markdown report of test issues."""
     lines = []
     lines.append("# Test Issues Analysis Report")
-    lines.append(f"\n## Summary")
+    lines.append("\n## Summary")
     lines.append(f"- Total issues: {report['summary']['total_issues']}")
     lines.append(f"- Files with issues: {report['summary']['files_analyzed']}")
 

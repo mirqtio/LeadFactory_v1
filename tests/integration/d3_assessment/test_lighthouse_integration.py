@@ -1,6 +1,7 @@
 """
 Integration tests for Lighthouse assessor with coordinator
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -170,7 +171,7 @@ class TestLighthouseIntegration:
         import hashlib
         import os
 
-        cache_key = hashlib.md5("https://cache-test.example.com".encode()).hexdigest()
+        cache_key = hashlib.md5(b"https://cache-test.example.com").hexdigest()
         cache_file = f"/tmp/lighthouse_cache/{cache_key}.json"
         if os.path.exists(cache_file):
             os.remove(cache_file)

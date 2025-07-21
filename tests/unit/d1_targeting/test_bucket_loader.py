@@ -1,6 +1,7 @@
 """
 Tests for bucket feature loader - Phase 0.5 Task TG-06
 """
+
 import tempfile
 from pathlib import Path
 

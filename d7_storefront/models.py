@@ -5,7 +5,7 @@ Purchase tracking models with Stripe integration, attribution tracking, and stat
 
 Acceptance Criteria:
 - Purchase tracking model ✓
-- Stripe ID fields ✓ 
+- Stripe ID fields ✓
 - Attribution tracking ✓
 - Status management ✓
 """
@@ -14,7 +14,7 @@ import enum
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import JSON, TIMESTAMP, Boolean, CheckConstraint, Column
 from sqlalchemy import Enum as SQLEnum
@@ -153,7 +153,7 @@ class D7Purchase(Base):
     )
 
     def __repr__(self):
-        return f"<D7Purchase(id={self.id}, email={self.customer_email}, status={self.status}, amount=${self.amount_cents/100:.2f})>"
+        return f"<D7Purchase(id={self.id}, email={self.customer_email}, status={self.status}, amount=${self.amount_cents / 100:.2f})>"
 
     @property
     def amount_usd(self) -> Decimal:
@@ -348,9 +348,9 @@ class PurchaseCreateRequest:
     def __init__(
         self,
         customer_email: str,
-        items: List[Dict[str, Any]],
-        attribution: Optional[Dict[str, Any]] = None,
-        customer_info: Optional[Dict[str, Any]] = None,
+        items: list[dict[str, Any]],
+        attribution: dict[str, Any] | None = None,
+        customer_info: dict[str, Any] | None = None,
     ):
         self.customer_email = customer_email
         self.items = items
@@ -372,7 +372,7 @@ class PurchaseSummary:
         self.utm_source = purchase.utm_source
         self.utm_campaign = purchase.utm_campaign
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
         return {
             "id": self.id,

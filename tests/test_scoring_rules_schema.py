@@ -1,4 +1,5 @@
 """Tests for scoring rules schema validation."""
+
 import tempfile
 
 import pytest
@@ -197,7 +198,7 @@ components:
             "contact_info",
             "location_data",
             "business_validation",
-            "online_presence"
+            "online_presence",
             # Missing many others
         ]
 

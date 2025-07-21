@@ -6,9 +6,10 @@ Provides domain-based email finding with confidence threshold
 Endpoint: /v2/domain-search
 Cost: $0.003 per search
 """
+
 import logging
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any
 
 from core.exceptions import ValidationError
 from d0_gateway.base import BaseAPIClient
@@ -57,7 +58,7 @@ class HunterClient(BaseAPIClient):
         """Get the base URL for Hunter API"""
         return self.base_url
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get rate limit configuration for Hunter"""
         return {
             "requests_per_minute": self._rate_limit,
@@ -73,13 +74,13 @@ class HunterClient(BaseAPIClient):
             return Decimal("0.003")
         return Decimal("0.000")
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get headers for Hunter API requests"""
         return {
             "Accept": "application/json",
         }
 
-    async def find_email(self, company_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def find_email(self, company_data: dict[str, Any]) -> dict[str, Any] | None:
         """
         Find email addresses for a company
 
@@ -160,12 +161,11 @@ class HunterClient(BaseAPIClient):
         except Exception as e:
             if "429" in str(e) or "rate_limit" in str(e).lower():
                 raise RateLimitExceededError("hunter", "api_calls")
-            elif "401" in str(e) or "403" in str(e):
+            if "401" in str(e) or "403" in str(e):
                 raise AuthenticationError("hunter", str(e))
-            else:
-                raise APIProviderError("hunter", str(e))
+            raise APIProviderError("hunter", str(e))
 
-    async def domain_search(self, domain: str) -> tuple[Optional[str], float]:
+    async def domain_search(self, domain: str) -> tuple[str | None, float]:
         """
         Search for emails at a domain (PRD v1.2 requirement)
 
@@ -223,7 +223,7 @@ class HunterClient(BaseAPIClient):
             logger.error(f"Hunter domain search failed for {domain}: {e}")
             return None, 0.0
 
-    def _transform_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _transform_response(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Transform Hunter response to standard format
 
@@ -265,12 +265,11 @@ class HunterClient(BaseAPIClient):
                 raise AuthenticationError("hunter", "Invalid API key")
             raise
 
-    async def _get(self, endpoint: str, **kwargs) -> Dict[str, Any]:
+    async def _get(self, endpoint: str, **kwargs) -> dict[str, Any]:
         """Make GET request using base client or test client"""
         if self._client:
             # Test mode - use injected client
             response = await self._client.get(endpoint, headers=self._get_headers(), **kwargs)
             return response.json()
-        else:
-            # Production mode - use base client's make_request
-            return await self.make_request("GET", endpoint, **kwargs)
+        # Production mode - use base client's make_request
+        return await self.make_request("GET", endpoint, **kwargs)

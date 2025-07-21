@@ -1,6 +1,7 @@
 """
 Targeted tests that execute code paths for maximum coverage
 """
+
 import os
 from unittest.mock import MagicMock, patch
 
@@ -87,7 +88,11 @@ class TestD5ScoringExecution:
 
         # Test the function directly
         impact = calculate_impact(
-            category="performance", severity=3, baseline_revenue=100000.0, source="test", omega=1.0  # High severity
+            category="performance",
+            severity=3,
+            baseline_revenue=100000.0,
+            source="test",
+            omega=1.0,  # High severity
         )
 
         assert impact[0] > 0  # Revenue impact should be positive

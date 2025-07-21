@@ -1,14 +1,16 @@
 """
 Core utility functions used across domains
 """
+
 import asyncio
 import hashlib
 import re
 import secrets
+from collections.abc import Callable
 from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, TypeVar
 from urllib.parse import urlparse
 
 T = TypeVar("T")
@@ -24,7 +26,7 @@ def hash_email(email: str) -> str:
     return hashlib.sha256(email.lower().strip().encode()).hexdigest()
 
 
-def normalize_phone(phone: str) -> Optional[str]:
+def normalize_phone(phone: str) -> str | None:
     """Normalize phone number to E.164 format"""
     # Remove all non-digits
     digits = re.sub(r"\D", "", phone)
@@ -32,9 +34,9 @@ def normalize_phone(phone: str) -> Optional[str]:
     # Handle US numbers
     if len(digits) == 10:
         return f"+1{digits}"
-    elif len(digits) == 11 and digits.startswith("1"):
+    if len(digits) == 11 and digits.startswith("1"):
         return f"+{digits}"
-    elif len(digits) > 0:
+    if len(digits) > 0:
         # Assume it's already in correct format
         return f"+{digits}"
 
@@ -80,8 +82,7 @@ def format_currency(cents: int, currency: str = "USD") -> str:
     dollars = Decimal(cents) / 100
     if currency == "USD":
         return f"${dollars:.2f}"
-    else:
-        return f"{dollars:.2f} {currency}"
+    return f"{dollars:.2f} {currency}"
 
 
 def parse_currency(amount_str: str) -> int:
@@ -96,12 +97,12 @@ def parse_currency(amount_str: str) -> int:
     return cents
 
 
-def chunk_list(lst: List[T], chunk_size: int) -> List[List[T]]:
+def chunk_list(lst: list[T], chunk_size: int) -> list[list[T]]:
     """Split list into chunks of specified size"""
     return [lst[i : i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-def deep_merge(dict1: Dict[str, Any], dict2: Dict[str, Any]) -> Dict[str, Any]:
+def deep_merge(dict1: dict[str, Any], dict2: dict[str, Any]) -> dict[str, Any]:
     """Deep merge two dictionaries"""
     result = dict1.copy()
 
@@ -170,7 +171,7 @@ def safe_divide(numerator: float, denominator: float, default: float = 0.0) -> f
     return numerator / denominator
 
 
-def extract_domain(url: str) -> Optional[str]:
+def extract_domain(url: str) -> str | None:
     """Extract domain from URL"""
     try:
         parsed = urlparse(url)
@@ -243,9 +244,7 @@ def mask_sensitive_data(data: str, visible_chars: int = 4) -> str:
     return "*" * masked_length + data[-visible_chars:]
 
 
-def calculate_rate_limit_wait(
-    used: int, limit: int, reset_time: datetime, buffer_percent: float = 0.1
-) -> Optional[float]:
+def calculate_rate_limit_wait(used: int, limit: int, reset_time: datetime, buffer_percent: float = 0.1) -> float | None:
     """Calculate wait time to avoid rate limits"""
     # Check if we're close to the limit
     threshold = limit * (1 - buffer_percent)
@@ -339,7 +338,7 @@ def validate_phone(phone: str) -> bool:
     return bool(re.match(pattern, phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")))
 
 
-def get_nested(data: Dict[str, Any], path: str, default: Any = None) -> Any:
+def get_nested(data: dict[str, Any], path: str, default: Any = None) -> Any:
     """
     Get nested value from dictionary using dot notation.
 

@@ -20,10 +20,11 @@ Admin Escalation Flow:
 4. Role change is logged in role_change_log table
 5. All role changes are audited and cannot be modified
 """
+
 import json
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -56,8 +57,8 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     """Request to update user"""
 
-    name: Optional[str] = None
-    is_active: Optional[bool] = None
+    name: str | None = None
+    is_active: bool | None = None
 
 
 class RoleChangeRequest(BaseModel):
@@ -90,21 +91,21 @@ class AuditLogEntry(BaseModel):
     method: str
     endpoint: str
     object_type: str
-    object_id: Optional[str]
+    object_id: str | None
     response_status: int
-    duration_ms: Optional[int]
-    ip_address: Optional[str]
+    duration_ms: int | None
+    ip_address: str | None
 
 
 class AuditLogQuery(BaseModel):
     """Query parameters for audit log"""
 
-    user_id: Optional[str] = None
-    object_type: Optional[str] = None
-    object_id: Optional[str] = None
-    action: Optional[str] = None
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    user_id: str | None = None
+    object_type: str | None = None
+    object_id: str | None = None
+    action: str | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
     limit: int = Field(100, le=1000)
     offset: int = Field(0, ge=0)
 
@@ -129,7 +130,7 @@ def get_current_user(
 class RoleChecker:
     """Dependency to check user role for mutations"""
 
-    def __init__(self, allowed_roles: List[UserRole]):
+    def __init__(self, allowed_roles: list[UserRole]):
         self.allowed_roles = allowed_roles
 
     def __call__(self, current_user: User = Depends(get_current_user)) -> User:
@@ -157,10 +158,10 @@ async def create_audit_log(
     response: Response,
     user: User,
     start_time: float,
-    request_body: Optional[Dict[str, Any]] = None,
-    response_body: Optional[Dict[str, Any]] = None,
-    object_type: Optional[str] = None,
-    object_id: Optional[str] = None,
+    request_body: dict[str, Any] | None = None,
+    response_body: dict[str, Any] | None = None,
+    object_type: str | None = None,
+    object_id: str | None = None,
 ):
     """Create audit log entry for a mutation"""
     try:
@@ -262,10 +263,10 @@ async def create_user(
     )
 
 
-@router.get("/users", response_model=List[UserResponse])
+@router.get("/users", response_model=list[UserResponse])
 async def list_users(
-    db: Session = Depends(get_db), current_user: User = Depends(require_any_role), is_active: Optional[bool] = None
-) -> List[UserResponse]:
+    db: Session = Depends(get_db), current_user: User = Depends(require_any_role), is_active: bool | None = None
+) -> list[UserResponse]:
     """List all users"""
     query = db.query(User)
 
@@ -356,7 +357,7 @@ async def change_user_role(
 @router.delete("/users/{user_id}")
 async def deactivate_user(
     request: Request, user_id: str, db: Session = Depends(get_db), current_user: User = Depends(require_admin)
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Deactivate a user (admin only)"""
     start_time = time.time()
 
@@ -395,10 +396,10 @@ async def deactivate_user(
 
 
 # Audit log endpoints
-@router.post("/audit/query", response_model=List[AuditLogEntry])
+@router.post("/audit/query", response_model=list[AuditLogEntry])
 async def query_audit_logs(
     query: AuditLogQuery, db: Session = Depends(get_db), current_user: User = Depends(require_any_role)
-) -> List[AuditLogEntry]:
+) -> list[AuditLogEntry]:
     """Query audit logs with filters"""
     # Build query
     q = db.query(AuditLog)
@@ -446,7 +447,7 @@ async def query_audit_logs(
 @router.get("/audit/verify/{audit_id}")
 async def verify_audit_integrity(
     audit_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Verify audit log integrity (admin only)"""
     # Get audit entry
     entry = db.query(AuditLog).filter(AuditLog.id == audit_id).first()

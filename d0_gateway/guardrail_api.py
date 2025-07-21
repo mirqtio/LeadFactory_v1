@@ -2,16 +2,16 @@
 API endpoints for cost guardrail management in P1-060
 Provides REST endpoints for guardrail configuration and monitoring
 """
-from datetime import date, datetime
-from decimal import Decimal
-from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from datetime import datetime
+from decimal import Decimal
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from core.logging import get_logger
 from d0_gateway.guardrail_alerts import AlertChannel, AlertConfig, alert_manager
-from d0_gateway.guardrail_middleware import get_remaining_budget
 from d0_gateway.guardrails import (
     CostLimit,
     GuardrailStatus,
@@ -34,9 +34,9 @@ class CreateLimitRequest(BaseModel):
     scope: LimitScope = Field(..., description="Scope of the limit")
     period: LimitPeriod = Field(..., description="Time period for the limit")
     limit_usd: float = Field(..., gt=0, description="Limit amount in USD")
-    provider: Optional[str] = Field(None, description="Provider for provider-scoped limits")
-    campaign_id: Optional[int] = Field(None, description="Campaign for campaign-scoped limits")
-    operation: Optional[str] = Field(None, description="Operation for operation-scoped limits")
+    provider: str | None = Field(None, description="Provider for provider-scoped limits")
+    campaign_id: int | None = Field(None, description="Campaign for campaign-scoped limits")
+    operation: str | None = Field(None, description="Operation for operation-scoped limits")
     warning_threshold: float = Field(0.8, ge=0, le=1, description="Warning threshold (0-1)")
     critical_threshold: float = Field(0.95, ge=0, le=1, description="Critical threshold (0-1)")
     circuit_breaker_enabled: bool = Field(False, description="Enable circuit breaker")
@@ -45,21 +45,21 @@ class CreateLimitRequest(BaseModel):
 class UpdateLimitRequest(BaseModel):
     """Request to update an existing cost limit"""
 
-    limit_usd: Optional[float] = Field(None, gt=0, description="New limit amount in USD")
-    warning_threshold: Optional[float] = Field(None, ge=0, le=1, description="New warning threshold")
-    critical_threshold: Optional[float] = Field(None, ge=0, le=1, description="New critical threshold")
-    enabled: Optional[bool] = Field(None, description="Enable/disable the limit")
+    limit_usd: float | None = Field(None, gt=0, description="New limit amount in USD")
+    warning_threshold: float | None = Field(None, ge=0, le=1, description="New warning threshold")
+    critical_threshold: float | None = Field(None, ge=0, le=1, description="New critical threshold")
+    enabled: bool | None = Field(None, description="Enable/disable the limit")
 
 
 class CreateRateLimitRequest(BaseModel):
     """Request to create a rate limit"""
 
     provider: str = Field(..., description="Provider to rate limit")
-    operation: Optional[str] = Field(None, description="Specific operation or None for all")
+    operation: str | None = Field(None, description="Specific operation or None for all")
     requests_per_minute: int = Field(..., gt=0, description="Max requests per minute")
     burst_size: int = Field(..., gt=0, description="Max burst size")
-    cost_per_minute: Optional[float] = Field(None, description="Max cost per minute")
-    cost_burst_size: Optional[float] = Field(None, description="Max cost burst")
+    cost_per_minute: float | None = Field(None, description="Max cost per minute")
+    cost_burst_size: float | None = Field(None, description="Max cost burst")
 
 
 class ConfigureAlertRequest(BaseModel):
@@ -67,18 +67,18 @@ class ConfigureAlertRequest(BaseModel):
 
     channel: AlertChannel = Field(..., description="Alert channel")
     enabled: bool = Field(True, description="Enable this channel")
-    email_addresses: Optional[List[str]] = Field(None, description="Email addresses for email channel")
-    slack_webhook_url: Optional[str] = Field(None, description="Slack webhook URL")
-    webhook_url: Optional[str] = Field(None, description="Generic webhook URL")
-    webhook_headers: Optional[Dict[str, str]] = Field(None, description="Webhook headers")
+    email_addresses: list[str] | None = Field(None, description="Email addresses for email channel")
+    slack_webhook_url: str | None = Field(None, description="Slack webhook URL")
+    webhook_url: str | None = Field(None, description="Generic webhook URL")
+    webhook_headers: dict[str, str] | None = Field(None, description="Webhook headers")
     min_severity: str = Field("warning", description="Minimum severity to alert on")
-    providers: Optional[List[str]] = Field(None, description="Filter by providers")
+    providers: list[str] | None = Field(None, description="Filter by providers")
 
 
 class GuardrailStatusResponse(BaseModel):
     """Response with guardrail status"""
 
-    limits: List[GuardrailStatus]
+    limits: list[GuardrailStatus]
     total_limits: int
     limits_exceeded: int
     limits_warning: int
@@ -92,9 +92,9 @@ class LimitResponse(BaseModel):
     scope: str
     period: str
     limit_usd: float
-    provider: Optional[str]
-    campaign_id: Optional[int]
-    operation: Optional[str]
+    provider: str | None
+    campaign_id: int | None
+    operation: str | None
     warning_threshold: float
     critical_threshold: float
     enabled: bool
@@ -105,7 +105,7 @@ class BudgetSummaryResponse(BaseModel):
     """Response with budget summary"""
 
     period: str
-    providers: Dict[str, Dict[str, float]]  # provider -> {remaining, limit, spent, percentage}
+    providers: dict[str, dict[str, float]]  # provider -> {remaining, limit, spent, percentage}
     total_remaining: float
     total_limit: float
     total_spent: float
@@ -115,8 +115,8 @@ class BudgetSummaryResponse(BaseModel):
 # Endpoints
 @router.get("/status", response_model=GuardrailStatusResponse)
 async def get_guardrail_status(
-    provider: Optional[str] = Query(None, description="Filter by provider"),
-    campaign_id: Optional[int] = Query(None, description="Filter by campaign"),
+    provider: str | None = Query(None, description="Filter by provider"),
+    campaign_id: int | None = Query(None, description="Filter by campaign"),
 ) -> GuardrailStatusResponse:
     """Get current status of all guardrails"""
     all_statuses = []
@@ -159,12 +159,12 @@ async def get_guardrail_status(
     )
 
 
-@router.get("/limits", response_model=List[LimitResponse])
+@router.get("/limits", response_model=list[LimitResponse])
 async def list_limits(
-    scope: Optional[LimitScope] = Query(None, description="Filter by scope"),
-    provider: Optional[str] = Query(None, description="Filter by provider"),
+    scope: LimitScope | None = Query(None, description="Filter by scope"),
+    provider: str | None = Query(None, description="Filter by provider"),
     enabled_only: bool = Query(True, description="Only show enabled limits"),
-) -> List[LimitResponse]:
+) -> list[LimitResponse]:
     """List all configured cost limits"""
     limits = []
 
@@ -369,15 +369,14 @@ async def reset_circuit_breaker(limit_name: str):
     if limit_name in guardrail_manager._circuit_breakers:
         del guardrail_manager._circuit_breakers[limit_name]
         return {"message": f"Circuit breaker for '{limit_name}' reset successfully"}
-    else:
-        return {"message": f"No circuit breaker active for '{limit_name}'"}
+    return {"message": f"No circuit breaker active for '{limit_name}'"}
 
 
 @router.get("/violations")
 async def get_recent_violations(
     hours: int = Query(24, description="Hours to look back"),
-    min_severity: Optional[str] = Query(None, description="Minimum severity"),
-) -> List[Dict]:
+    min_severity: str | None = Query(None, description="Minimum severity"),
+) -> list[dict]:
     """Get recent guardrail violations from logs"""
     # In a production system, this would query a violations table
     # For now, return a placeholder response
@@ -396,13 +395,13 @@ class AlertAcknowledgment(BaseModel):
     limit_name: str = Field(..., description="Name of the limit that triggered the alert")
     acknowledged_by: str = Field(..., description="User or system acknowledging the alert")
     action_taken: str = Field(..., description="Action taken in response to alert")
-    notes: Optional[str] = Field(None, description="Additional notes")
-    increase_limit_to: Optional[float] = Field(None, description="New limit if increasing")
-    snooze_until: Optional[datetime] = Field(None, description="Snooze alerts until this time")
+    notes: str | None = Field(None, description="Additional notes")
+    increase_limit_to: float | None = Field(None, description="New limit if increasing")
+    snooze_until: datetime | None = Field(None, description="Snooze alerts until this time")
 
 
 @router.post("/alerts/acknowledge")
-async def acknowledge_alert(ack: AlertAcknowledgment) -> Dict[str, Any]:
+async def acknowledge_alert(ack: AlertAcknowledgment) -> dict[str, Any]:
     """
     Acknowledge an alert and optionally take action
 
@@ -420,27 +419,25 @@ async def acknowledge_alert(ack: AlertAcknowledgment) -> Dict[str, Any]:
         guardrail_manager._limits[ack.limit_name].limit_usd = Decimal(str(ack.increase_limit_to))
         response["actions_taken"].append(f"Increased limit from ${old_limit} to ${ack.increase_limit_to}")
         logger.info(
-            f"Limit '{ack.limit_name}' increased from ${old_limit} to ${ack.increase_limit_to} "
-            f"by {ack.acknowledged_by}"
+            f"Limit '{ack.limit_name}' increased from ${old_limit} to ${ack.increase_limit_to} by {ack.acknowledged_by}"
         )
 
     # If snoozing alerts
     if ack.snooze_until:
         # In production, this would update alert configuration
         response["actions_taken"].append(f"Alerts snoozed until {ack.snooze_until.isoformat()}")
-        logger.info(f"Alerts for '{ack.limit_name}' snoozed until {ack.snooze_until} " f"by {ack.acknowledged_by}")
+        logger.info(f"Alerts for '{ack.limit_name}' snoozed until {ack.snooze_until} by {ack.acknowledged_by}")
 
     # Log the acknowledgment
     logger.info(
-        f"Alert {ack.alert_id} acknowledged by {ack.acknowledged_by}. "
-        f"Action: {ack.action_taken}. Notes: {ack.notes}"
+        f"Alert {ack.alert_id} acknowledged by {ack.acknowledged_by}. Action: {ack.action_taken}. Notes: {ack.notes}"
     )
 
     response["message"] = "Alert acknowledged successfully"
     return response
 
 
-async def _test_alert_core(channel, severity: str) -> Dict[str, Any]:
+async def _test_alert_core(channel, severity: str) -> dict[str, Any]:
     """Core test alert functionality that can be called directly or via API"""
     from d0_gateway.alerts import alert_manager
     from d0_gateway.guardrail_alerts import AlertChannel
@@ -481,6 +478,6 @@ async def _test_alert_core(channel, severity: str) -> Dict[str, Any]:
 async def test_alert(
     channel: AlertChannel = Query(..., description="Channel to test"),
     severity: str = Query("warning", description="Alert severity to simulate"),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Test alert delivery to a specific channel"""
     return await _test_alert_core(channel, severity)

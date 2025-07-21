@@ -4,6 +4,7 @@ Test D2 Sourcing Hunter.io Provider
 Unit tests for the Hunter.io API client provider
 focusing on email discovery and verification functionality.
 """
+
 import pytest
 
 from d2_sourcing.providers.hunter import HunterAPI
@@ -197,7 +198,7 @@ class TestHunterAPI:
 
         # Test names with special characters
         result = hunter.email_finder("company.com", "Jean-Luc", "O'Connor")
-        assert "jean-luc@company.com" == result["data"]["email"]
+        assert result["data"]["email"] == "jean-luc@company.com"
 
         # Test email with plus addressing
         email = "user+tag@domain.com"

@@ -6,8 +6,9 @@ Timeout: 12s
 Cost: $0.003 per analysis
 Output: visual_scores_json, visual_warnings, visual_quickwins columns
 """
+
 import json
-from typing import Any, Dict
+from typing import Any
 
 from core.config import settings
 from core.logging import get_logger
@@ -42,7 +43,7 @@ class VisionAssessor(BaseAssessor):
             self._client = create_client("humanloop")
         return self._client
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Analyze website screenshot using GPT-4o Vision
 
@@ -178,7 +179,7 @@ class VisionAssessor(BaseAssessor):
         except Exception:
             return 0
 
-    def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
+    def _extract_json_from_text(self, text: str) -> dict[str, Any]:
         """Try to extract JSON from text response"""
         # Look for JSON-like structure
         import re

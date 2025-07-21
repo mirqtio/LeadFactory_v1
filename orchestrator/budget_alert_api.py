@@ -2,8 +2,9 @@
 P2-040 Budget Alert API Enhancement
 Real-time budget monitoring API endpoints for dashboard integration
 """
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -11,16 +12,11 @@ from pydantic import BaseModel, Field
 from account_management.models import AccountUser
 from api.dependencies import get_current_user_dependency
 from orchestrator.budget_monitor import BudgetStatus
-from orchestrator.real_time_budget_alerts import (
-    initialize_p2040_enhancements,
-    real_time_alert_manager,
-    threshold_integrator,
-)
+from orchestrator.real_time_budget_alerts import real_time_alert_manager, threshold_integrator
 from orchestrator.unified_budget_system import (
     get_unified_budget_status,
     initialize_unified_p2040_system,
     trigger_unified_budget_check,
-    unified_budget_system,
 )
 
 router = APIRouter(prefix="/api/v1/budget-alerts", tags=["Budget Monitoring"])
@@ -43,7 +39,7 @@ class BudgetStatusResponse(BaseModel):
 class BudgetSummaryResponse(BaseModel):
     """Complete budget summary"""
 
-    monitors: List[BudgetStatusResponse]
+    monitors: list[BudgetStatusResponse]
     total_monitors: int
     alerts_active: int
     global_status: str
@@ -55,27 +51,27 @@ class AlertHistoryResponse(BaseModel):
 
     alert_key: str
     last_sent: datetime
-    cooldown_remaining_minutes: Optional[int] = None
+    cooldown_remaining_minutes: int | None = None
 
 
 # Request Models
 class BudgetCheckRequest(BaseModel):
     """Manual budget check request"""
 
-    monitor_ids: Optional[List[str]] = None
-    current_spending: Optional[Dict[str, float]] = None
+    monitor_ids: list[str] | None = None
+    current_spending: dict[str, float] | None = None
 
 
 class ThresholdUpdateRequest(BaseModel):
     """Update budget thresholds"""
 
     monitor_id: str
-    warning_threshold: Optional[float] = None
-    stop_threshold: Optional[float] = None
-    monthly_budget: Optional[float] = None
+    warning_threshold: float | None = None
+    stop_threshold: float | None = None
+    monthly_budget: float | None = None
 
 
-@router.post("/initialize", response_model=Dict[str, str])
+@router.post("/initialize", response_model=dict[str, str])
 async def initialize_budget_alerts(
     background_tasks: BackgroundTasks,
     current_user: AccountUser = Depends(get_current_user_dependency),
@@ -146,7 +142,7 @@ async def get_budget_status(
         raise HTTPException(status_code=500, detail=f"Failed to get status: {str(e)}")
 
 
-@router.post("/check", response_model=Dict[str, str])
+@router.post("/check", response_model=dict[str, str])
 async def manual_budget_check(
     request: BudgetCheckRequest,
     current_user: AccountUser = Depends(get_current_user_dependency),
@@ -169,7 +165,7 @@ async def manual_budget_check(
 
         return {
             "status": "success",
-            "message": f"Manual budget check completed",
+            "message": "Manual budget check completed",
             "monitors_checked": str(len(spending)),
             "alerts_sent": str(len(violations)),
             "timestamp": datetime.utcnow().isoformat(),
@@ -179,7 +175,7 @@ async def manual_budget_check(
         raise HTTPException(status_code=500, detail=f"Failed to check budgets: {str(e)}")
 
 
-@router.get("/alerts/history", response_model=List[AlertHistoryResponse])
+@router.get("/alerts/history", response_model=list[AlertHistoryResponse])
 async def get_alert_history(
     current_user: AccountUser = Depends(get_current_user_dependency),
 ):
@@ -210,7 +206,7 @@ async def get_alert_history(
         raise HTTPException(status_code=500, detail=f"Failed to get alert history: {str(e)}")
 
 
-@router.put("/thresholds", response_model=Dict[str, str])
+@router.put("/thresholds", response_model=dict[str, str])
 async def update_thresholds(
     request: ThresholdUpdateRequest,
     current_user: AccountUser = Depends(get_current_user_dependency),
@@ -254,7 +250,7 @@ async def update_thresholds(
         raise HTTPException(status_code=500, detail=f"Failed to update thresholds: {str(e)}")
 
 
-@router.get("/health", response_model=Dict[str, str])
+@router.get("/health", response_model=dict[str, str])
 async def health_check():
     """
     Health check for budget alert system
@@ -275,7 +271,7 @@ async def health_check():
 
 
 # Unified system endpoints
-@router.get("/unified/status", response_model=Dict[str, Any])
+@router.get("/unified/status", response_model=dict[str, Any])
 async def get_unified_status(
     current_user: AccountUser = Depends(get_current_user_dependency),
 ):
@@ -290,7 +286,7 @@ async def get_unified_status(
         raise HTTPException(status_code=500, detail=f"Failed to get unified status: {str(e)}")
 
 
-@router.post("/unified/check", response_model=Dict[str, Any])
+@router.post("/unified/check", response_model=dict[str, Any])
 async def trigger_unified_check(
     current_user: AccountUser = Depends(get_current_user_dependency),
 ):
@@ -305,7 +301,7 @@ async def trigger_unified_check(
         raise HTTPException(status_code=500, detail=f"Failed to trigger unified check: {str(e)}")
 
 
-@router.post("/unified/check-operation", response_model=Dict[str, Any])
+@router.post("/unified/check-operation", response_model=dict[str, Any])
 async def check_unified_operation(
     provider: str,
     estimated_cost: float,
@@ -325,7 +321,7 @@ async def check_unified_operation(
 
 
 # Integration endpoint for pre-operation budget checks
-@router.post("/check-operation", response_model=Dict[str, bool])
+@router.post("/check-operation", response_model=dict[str, bool])
 async def check_operation_budget(
     provider: str,
     estimated_cost: float,

@@ -5,7 +5,6 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
 
 # Import the validation components from recursive_prp_processor
 sys.path.insert(0, str(Path(__file__).parent))
@@ -18,11 +17,11 @@ class MockTask:
 
     priority: str
     title: str
-    dependencies: List[str]
+    dependencies: list[str]
     goal: str
-    integration_points: List[str]
-    tests_to_pass: List[str]
-    acceptance_criteria: List[str]
+    integration_points: list[str]
+    tests_to_pass: list[str]
+    acceptance_criteria: list[str]
     wave: str
 
     @property
@@ -36,7 +35,7 @@ class MockTask:
 
 def extract_task_from_prp(prp_path: str) -> MockTask:
     """Extract task data from a PRP file"""
-    with open(prp_path, "r") as f:
+    with open(prp_path) as f:
         content = f.read()
 
     # Extract task ID and title from header
@@ -129,7 +128,7 @@ def main():
 
         # Run validation
         generator = PRPGenerator()
-        with open(prp_path, "r") as f:
+        with open(prp_path) as f:
             prp_content = f.read()
 
         # Run six-gate validation

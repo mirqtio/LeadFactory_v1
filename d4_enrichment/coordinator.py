@@ -18,7 +18,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .gbp_enricher import GBPEnricher
 from .models import EnrichmentRequest, EnrichmentResult, EnrichmentSource, EnrichmentStatus, MatchConfidence
@@ -49,10 +49,10 @@ class EnrichmentProgress:
     enriched_businesses: int = 0
     skipped_businesses: int = 0
     failed_businesses: int = 0
-    started_at: Optional[datetime] = None
-    estimated_completion: Optional[datetime] = None
-    current_source: Optional[str] = None
-    errors: List[str] = field(default_factory=list)
+    started_at: datetime | None = None
+    estimated_completion: datetime | None = None
+    current_source: str | None = None
+    errors: list[str] = field(default_factory=list)
 
     @property
     def completion_percentage(self) -> float:
@@ -79,8 +79,8 @@ class BatchEnrichmentResult:
     skipped_enrichments: int
     failed_enrichments: int
     progress: EnrichmentProgress
-    results: List[EnrichmentResult]
-    errors: List[str]
+    results: list[EnrichmentResult]
+    errors: list[str]
     execution_time_seconds: float
 
 
@@ -113,8 +113,8 @@ class EnrichmentCoordinator:
         self._initialize_phase05_enrichers()
 
         # Progress tracking
-        self.active_requests: Dict[str, EnrichmentProgress] = {}
-        self.completed_requests: Dict[str, BatchEnrichmentResult] = {}
+        self.active_requests: dict[str, EnrichmentProgress] = {}
+        self.completed_requests: dict[str, BatchEnrichmentResult] = {}
 
         # Statistics
         self.stats = {
@@ -158,8 +158,8 @@ class EnrichmentCoordinator:
 
     async def enrich_businesses_batch(
         self,
-        businesses: List[Dict[str, Any]],
-        sources: Optional[List[EnrichmentSource]] = None,
+        businesses: list[dict[str, Any]],
+        sources: list[EnrichmentSource] | None = None,
         priority: EnrichmentPriority = EnrichmentPriority.MEDIUM,
         skip_existing: bool = True,
         timeout_seconds: int = 300,
@@ -273,14 +273,14 @@ class EnrichmentCoordinator:
 
     async def _process_batch_concurrent(
         self,
-        businesses: List[Dict[str, Any]],
-        sources: List[EnrichmentSource],
+        businesses: list[dict[str, Any]],
+        sources: list[EnrichmentSource],
         request_id: str,
         skip_existing: bool,
-    ) -> List[Optional[EnrichmentResult]]:
+    ) -> list[EnrichmentResult | None]:
         """Process batch with concurrency control"""
 
-        async def process_single_business(business: Dict[str, Any]) -> Optional[EnrichmentResult]:
+        async def process_single_business(business: dict[str, Any]) -> EnrichmentResult | None:
             """Process a single business with error handling"""
             async with self._semaphore:
                 try:
@@ -318,11 +318,11 @@ class EnrichmentCoordinator:
 
     async def _enrich_single_business(
         self,
-        business: Dict[str, Any],
-        sources: List[EnrichmentSource],
+        business: dict[str, Any],
+        sources: list[EnrichmentSource],
         request_id: str,
         skip_existing: bool,
-    ) -> Optional[EnrichmentResult]:
+    ) -> EnrichmentResult | None:
         """
         Enrich a single business with skip logic and error handling
 
@@ -365,8 +365,7 @@ class EnrichmentCoordinator:
 
                         logger.debug(f"Successfully enriched business {business_id} using {source.value}")
                         return result
-                    else:
-                        last_error = f"Low confidence result from {source.value}"
+                    last_error = f"Low confidence result from {source.value}"
 
                 except Exception as e:
                     error_msg = f"Error enriching with {source.value}: {e}"
@@ -406,7 +405,7 @@ class EnrichmentCoordinator:
         # For now, return False to always enrich
         return False
 
-    def get_progress(self, request_id: str) -> Optional[EnrichmentProgress]:
+    def get_progress(self, request_id: str) -> EnrichmentProgress | None:
         """
         Get progress for an active or completed request
 
@@ -414,11 +413,11 @@ class EnrichmentCoordinator:
         """
         if request_id in self.active_requests:
             return self.active_requests[request_id]
-        elif request_id in self.completed_requests:
+        if request_id in self.completed_requests:
             return self.completed_requests[request_id].progress
         return None
 
-    def get_all_active_progress(self) -> Dict[str, EnrichmentProgress]:
+    def get_all_active_progress(self) -> dict[str, EnrichmentProgress]:
         """
         Get progress for all active requests
 
@@ -426,11 +425,11 @@ class EnrichmentCoordinator:
         """
         return self.active_requests.copy()
 
-    def get_batch_result(self, request_id: str) -> Optional[BatchEnrichmentResult]:
+    def get_batch_result(self, request_id: str) -> BatchEnrichmentResult | None:
         """Get completed batch result"""
         return self.completed_requests.get(request_id)
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get coordinator statistics"""
         return {
             **self.stats,
@@ -491,7 +490,7 @@ class EnrichmentCoordinator:
         if requests_to_remove:
             logger.info(f"Cleaned up {len(requests_to_remove)} old enrichment requests")
 
-    def merge_enrichment_data(self, existing_data: Dict[str, Any], new_data: Dict[str, Any]) -> Dict[str, Any]:
+    def merge_enrichment_data(self, existing_data: dict[str, Any], new_data: dict[str, Any]) -> dict[str, Any]:
         """
         Merge enrichment data by (field, provider) with freshest collected_at.
 
@@ -571,7 +570,7 @@ class EnrichmentCoordinator:
 
         return merged
 
-    def generate_cache_key(self, business_id: str, provider: str, timestamp: Optional[datetime] = None) -> str:
+    def generate_cache_key(self, business_id: str, provider: str, timestamp: datetime | None = None) -> str:
         """
         Generate unique cache key including business, provider, and time window.
 
@@ -599,10 +598,10 @@ class EnrichmentCoordinator:
 
 # Convenience function for single business enrichment
 async def enrich_business(
-    business: Dict[str, Any],
-    sources: Optional[List[EnrichmentSource]] = None,
-    coordinator: Optional[EnrichmentCoordinator] = None,
-) -> Optional[EnrichmentResult]:
+    business: dict[str, Any],
+    sources: list[EnrichmentSource] | None = None,
+    coordinator: EnrichmentCoordinator | None = None,
+) -> EnrichmentResult | None:
     """
     Convenience function to enrich a single business
     """
@@ -622,8 +621,8 @@ async def enrich_business(
 
 # Convenience function for batch enrichment
 async def enrich_businesses(
-    businesses: List[Dict[str, Any]],
-    sources: Optional[List[EnrichmentSource]] = None,
+    businesses: list[dict[str, Any]],
+    sources: list[EnrichmentSource] | None = None,
     max_concurrent: int = 5,
     skip_existing: bool = True,
 ) -> BatchEnrichmentResult:

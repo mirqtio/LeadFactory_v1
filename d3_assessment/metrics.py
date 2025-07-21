@@ -10,13 +10,14 @@ Acceptance Criteria:
 - Cost tracking accurate
 - Success/failure rates
 """
+
 import logging
 import time
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import wraps
-from typing import Any, Dict, List
+from typing import Any
 
 from prometheus_client import Counter, Gauge, Histogram, Info, Summary
 
@@ -145,8 +146,8 @@ class AssessmentMetrics:
     def __init__(self):
         """Initialize metrics collector"""
         self._start_time = time.time()
-        self._success_window: List[Dict[str, Any]] = []
-        self._error_window: List[Dict[str, Any]] = []
+        self._success_window: list[dict[str, Any]] = []
+        self._error_window: list[dict[str, Any]] = []
         self._window_duration = timedelta(minutes=15)  # 15-minute rolling window
 
     def track_assessment_start(
@@ -338,7 +339,7 @@ class AssessmentMetrics:
 
                 assessment_error_rate.labels(assessment_type=assessment_type.value, window="15m").set(error_rate)
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get summary of current metrics"""
         self._cleanup_windows()
 
@@ -477,13 +478,13 @@ class AssessmentMetricsCollector:
         """Initialize collector with metrics instance"""
         self.metrics = metrics_instance or metrics
 
-    def collect_prometheus_metrics(self) -> List[Dict[str, Any]]:
+    def collect_prometheus_metrics(self) -> list[dict[str, Any]]:
         """Collect metrics in Prometheus format"""
         # This would be used by Prometheus client to scrape metrics
         # The actual metrics are already exposed via prometheus_client
         return []
 
-    def export_to_json(self) -> Dict[str, Any]:
+    def export_to_json(self) -> dict[str, Any]:
         """Export metrics summary as JSON"""
         summary = self.metrics.get_metrics_summary()
 

@@ -18,15 +18,11 @@ Features:
 import asyncio
 import json
 import logging
-import smtplib
 from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,9 +35,9 @@ class MeetingSchedule(BaseModel):
     meeting_type: str
     schedule: str  # cron-like format
     duration_minutes: int
-    participants: List[str]
+    participants: list[str]
     agenda_template: str
-    deliverables: List[str]
+    deliverables: list[str]
 
 
 class CrossDomainIntegration(BaseModel):
@@ -49,8 +45,8 @@ class CrossDomainIntegration(BaseModel):
 
     source_domain: str
     target_domain: str
-    integration_points: List[str]
-    validation_requirements: List[str]
+    integration_points: list[str]
+    validation_requirements: list[str]
     meeting_schedule: MeetingSchedule
 
 
@@ -61,7 +57,7 @@ class ProgressMetrics(BaseModel):
     test_coverage_percentage: float
     defect_density: float
     velocity_points: int
-    business_metrics: Dict[str, float]
+    business_metrics: dict[str, float]
     timestamp: datetime
 
 
@@ -79,7 +75,7 @@ class P2CoordinationFramework:
 
         logger.info("P2 Coordination Framework initialized")
 
-    def _load_config(self) -> Dict:
+    def _load_config(self) -> dict:
         """Load coordination configuration"""
         default_config = {
             "meetings": {
@@ -136,7 +132,7 @@ class P2CoordinationFramework:
         }
 
         if self.config_path.exists():
-            with open(self.config_path, "r") as f:
+            with open(self.config_path) as f:
                 return yaml.safe_load(f)
         else:
             # Create default config
@@ -144,10 +140,10 @@ class P2CoordinationFramework:
                 yaml.dump(default_config, f, default_flow_style=False)
             return default_config
 
-    async def get_prp_status(self) -> Dict:
+    async def get_prp_status(self) -> dict:
         """Get current PRP status from tracking system"""
         try:
-            with open(self.prp_tracking_path, "r") as f:
+            with open(self.prp_tracking_path) as f:
                 prp_data = yaml.safe_load(f)
 
             # Filter P2 domain PRPs
@@ -176,7 +172,7 @@ class P2CoordinationFramework:
             logger.error(f"Error getting PRP status: {str(e)}")
             return {"error": str(e)}
 
-    async def get_analytics_metrics(self) -> Dict:
+    async def get_analytics_metrics(self) -> dict:
         """Get unit economics and business metrics"""
         try:
             # In a real implementation, this would make HTTP requests to the analytics API
@@ -247,21 +243,21 @@ class P2CoordinationFramework:
 ## Executive Summary
 
 - **Overall Domain Progress**: {completion_rate:.1f}% complete
-- **Active PRPs**: {active_prps} in progress, {prp_status.get('completed', 0)} completed
+- **Active PRPs**: {active_prps} in progress, {prp_status.get("completed", 0)} completed
 - **Critical Path Status**: {overall_status}
-- **Resource Utilization**: {analytics_metrics.get('development_metrics', {}).get('velocity_points', 0)} story points
+- **Resource Utilization**: {analytics_metrics.get("development_metrics", {}).get("velocity_points", 0)} story points
 
 ## Key Achievements
 
 ### Completed This Week
 - **Unit Economics Dashboard**: P2-010 analytics endpoints operational
-- **Test Coverage**: Maintained {analytics_metrics.get('development_metrics', {}).get('test_coverage_pct', 0)}% coverage
-- **Performance**: {analytics_metrics.get('performance_metrics', {}).get('avg_response_time_ms', 0)}ms average response time
+- **Test Coverage**: Maintained {analytics_metrics.get("development_metrics", {}).get("test_coverage_pct", 0)}% coverage
+- **Performance**: {analytics_metrics.get("performance_metrics", {}).get("avg_response_time_ms", 0)}ms average response time
 
 ### Business Impact
-- **Cost Per Lead**: ${analytics_metrics.get('unit_economics', {}).get('avg_cpl_cents', 0) / 100:.2f}
-- **Customer Acquisition Cost**: ${analytics_metrics.get('unit_economics', {}).get('avg_cac_cents', 0) / 100:.2f}
-- **Return on Investment**: {analytics_metrics.get('unit_economics', {}).get('overall_roi_percentage', 0):.1f}%
+- **Cost Per Lead**: ${analytics_metrics.get("unit_economics", {}).get("avg_cpl_cents", 0) / 100:.2f}
+- **Customer Acquisition Cost**: ${analytics_metrics.get("unit_economics", {}).get("avg_cac_cents", 0) / 100:.2f}
+- **Return on Investment**: {analytics_metrics.get("unit_economics", {}).get("overall_roi_percentage", 0):.1f}%
 
 ## Challenges & Mitigations
 
@@ -281,20 +277,20 @@ class P2CoordinationFramework:
 ## Metrics Dashboard
 
 ### Unit Economics
-- **Total Leads**: {analytics_metrics.get('unit_economics', {}).get('total_leads', 0)}
-- **Conversion Rate**: {analytics_metrics.get('unit_economics', {}).get('conversion_rate_pct', 0):.1f}%
-- **Revenue**: ${analytics_metrics.get('unit_economics', {}).get('total_revenue_cents', 0) / 100:.2f}
-- **ROI**: {analytics_metrics.get('unit_economics', {}).get('overall_roi_percentage', 0):.1f}%
+- **Total Leads**: {analytics_metrics.get("unit_economics", {}).get("total_leads", 0)}
+- **Conversion Rate**: {analytics_metrics.get("unit_economics", {}).get("conversion_rate_pct", 0):.1f}%
+- **Revenue**: ${analytics_metrics.get("unit_economics", {}).get("total_revenue_cents", 0) / 100:.2f}
+- **ROI**: {analytics_metrics.get("unit_economics", {}).get("overall_roi_percentage", 0):.1f}%
 
 ### Development Metrics
-- **PRPs**: {prp_status.get('in_progress', 0)} active, {prp_status.get('completed', 0)} completed
-- **Quality**: {analytics_metrics.get('development_metrics', {}).get('test_coverage_pct', 0)}% test coverage
-- **Velocity**: {analytics_metrics.get('development_metrics', {}).get('velocity_points', 0)} story points
+- **PRPs**: {prp_status.get("in_progress", 0)} active, {prp_status.get("completed", 0)} completed
+- **Quality**: {analytics_metrics.get("development_metrics", {}).get("test_coverage_pct", 0)}% test coverage
+- **Velocity**: {analytics_metrics.get("development_metrics", {}).get("velocity_points", 0)} story points
 
 ### Infrastructure
-- **Uptime**: {analytics_metrics.get('performance_metrics', {}).get('uptime_pct', 0):.1f}%
-- **Performance**: {analytics_metrics.get('performance_metrics', {}).get('avg_response_time_ms', 0)}ms avg response
-- **Deployment**: {analytics_metrics.get('performance_metrics', {}).get('deployment_success_rate', 0) * 100:.1f}% success rate
+- **Uptime**: {analytics_metrics.get("performance_metrics", {}).get("uptime_pct", 0):.1f}%
+- **Performance**: {analytics_metrics.get("performance_metrics", {}).get("avg_response_time_ms", 0)}ms avg response
+- **Deployment**: {analytics_metrics.get("performance_metrics", {}).get("deployment_success_rate", 0) * 100:.1f}% success rate
 
 ---
 
@@ -308,7 +304,7 @@ class P2CoordinationFramework:
             logger.error(f"Error generating weekly report: {str(e)}")
             return f"Error generating report: {str(e)}"
 
-    async def schedule_meetings(self) -> Dict[str, str]:
+    async def schedule_meetings(self) -> dict[str, str]:
         """Schedule all coordination meetings"""
         results = {}
 
@@ -336,7 +332,7 @@ class P2CoordinationFramework:
 
         return results
 
-    async def validate_prp_completion(self, prp_id: str) -> Dict[str, bool]:
+    async def validate_prp_completion(self, prp_id: str) -> dict[str, bool]:
         """Validate PRP completion according to framework standards"""
         validation_results = {}
 
@@ -397,7 +393,7 @@ class P2CoordinationFramework:
             logger.error(f"Error sending weekly report: {str(e)}")
             return False
 
-    async def run_coordination_cycle(self) -> Dict:
+    async def run_coordination_cycle(self) -> dict:
         """Run a complete coordination cycle"""
         cycle_results = {"timestamp": datetime.now().isoformat(), "cycle_type": "weekly", "results": {}}
 
@@ -454,7 +450,7 @@ class SuperClaudeTaskAgent:
         patterns and evidence-based validation.
         """
 
-    async def spawn_task_agent(self, task_description: str, prp_id: str) -> Dict:
+    async def spawn_task_agent(self, task_description: str, prp_id: str) -> dict:
         """Spawn Task agent with SuperClaude framework integration"""
         try:
             agent_config = {

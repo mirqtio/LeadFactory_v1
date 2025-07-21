@@ -11,6 +11,7 @@ Acceptance Criteria:
 - Cache invalidation logic
 - Hit rate tracking
 """
+
 import asyncio
 import hashlib
 import json
@@ -18,7 +19,7 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from .coordinator import CoordinatorResult
 from .types import AssessmentType
@@ -46,7 +47,7 @@ class CacheEntry:
     accessed_at: datetime
     access_count: int
     ttl_seconds: int
-    tags: Set[str]
+    tags: set[str]
     size_bytes: int
 
     @property
@@ -123,11 +124,11 @@ class AssessmentCache:
         self.cleanup_interval_seconds = cleanup_interval_seconds
 
         # Cache storage
-        self._cache: Dict[str, CacheEntry] = {}
+        self._cache: dict[str, CacheEntry] = {}
         self._stats = CacheStats()
 
         # Configuration per assessment type
-        self._ttl_config: Dict[AssessmentType, int] = {
+        self._ttl_config: dict[AssessmentType, int] = {
             AssessmentType.PAGESPEED: 1800,  # 30 minutes
             AssessmentType.TECH_STACK: 7200,  # 2 hours
             AssessmentType.AI_INSIGHTS: 3600,  # 1 hour
@@ -135,7 +136,7 @@ class AssessmentCache:
         }
 
         # Background cleanup task
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._cleanup_task: asyncio.Task | None = None
         try:
             self._start_background_cleanup()
         except RuntimeError:
@@ -172,7 +173,7 @@ class AssessmentCache:
         self,
         business_id: str,
         url: str,
-        assessment_types: List[AssessmentType],
+        assessment_types: list[AssessmentType],
         industry: str = "default",
         **kwargs,
     ) -> str:
@@ -196,7 +197,7 @@ class AssessmentCache:
 
         return f"assessment:{key_hash}"
 
-    def _get_ttl_for_assessment(self, assessment_types: List[AssessmentType]) -> int:
+    def _get_ttl_for_assessment(self, assessment_types: list[AssessmentType]) -> int:
         """
         Get TTL for assessment based on types
 
@@ -267,10 +268,10 @@ class AssessmentCache:
         self,
         business_id: str,
         url: str,
-        assessment_types: List[AssessmentType],
+        assessment_types: list[AssessmentType],
         industry: str = "default",
         **kwargs,
-    ) -> Optional[CoordinatorResult]:
+    ) -> CoordinatorResult | None:
         """
         Get cached assessment result
 
@@ -304,11 +305,11 @@ class AssessmentCache:
         self,
         business_id: str,
         url: str,
-        assessment_types: List[AssessmentType],
+        assessment_types: list[AssessmentType],
         result: CoordinatorResult,
         industry: str = "default",
-        ttl_override: Optional[int] = None,
-        tags: Optional[Set[str]] = None,
+        ttl_override: int | None = None,
+        tags: set[str] | None = None,
         **kwargs,
     ) -> str:
         """
@@ -356,10 +357,10 @@ class AssessmentCache:
 
     async def invalidate(
         self,
-        business_id: Optional[str] = None,
-        url: Optional[str] = None,
-        assessment_types: Optional[List[AssessmentType]] = None,
-        tags: Optional[Set[str]] = None,
+        business_id: str | None = None,
+        url: str | None = None,
+        assessment_types: list[AssessmentType] | None = None,
+        tags: set[str] | None = None,
         **kwargs,
     ) -> int:
         """
@@ -444,7 +445,7 @@ class AssessmentCache:
             entry_count=self._stats.entry_count,
         )
 
-    def get_cache_info(self) -> Dict[str, Any]:
+    def get_cache_info(self) -> dict[str, Any]:
         """Get detailed cache information"""
         stats = self.get_stats()
 
@@ -494,7 +495,7 @@ class AssessmentCache:
         self._ttl_config[assessment_type] = ttl_seconds
         logger.info(f"Configured TTL for {assessment_type.value}: {ttl_seconds}s")
 
-    def list_entries(self, limit: int = 50) -> List[Dict[str, Any]]:
+    def list_entries(self, limit: int = 50) -> list[dict[str, Any]]:
         """List cache entries for debugging"""
         entries = []
 
@@ -535,7 +536,7 @@ class CacheManager:
     Provides singleton access to assessment cache with configuration management
     """
 
-    _instance: Optional[AssessmentCache] = None
+    _instance: AssessmentCache | None = None
     _lock = asyncio.Lock()
 
     @classmethod
@@ -571,9 +572,9 @@ class CacheManager:
 
 # Cache decorator for easy use
 def cached_assessment(
-    ttl_seconds: Optional[int] = None,
-    tags: Optional[Set[str]] = None,
-    cache_manager: Optional[CacheManager] = None,
+    ttl_seconds: int | None = None,
+    tags: set[str] | None = None,
+    cache_manager: CacheManager | None = None,
 ):
     """
     Decorator for caching assessment results

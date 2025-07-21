@@ -10,6 +10,7 @@ Acceptance Criteria:
 - Proper indexing
 - Cost tracking fields
 """
+
 import uuid
 
 from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Boolean, CheckConstraint, Column

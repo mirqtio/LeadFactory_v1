@@ -74,11 +74,10 @@ def main():
         print("\n🎉 P0-000 Prerequisites Check - VALIDATION PASSED")
         print("All acceptance criteria met!")
         return True
-    else:
-        print("\n❌ P0-000 Prerequisites Check - VALIDATION FAILED")
-        print(f"Failed checks: {result.failed_checks}")
-        print(f"Warning checks: {result.warning_checks}")
-        return False
+    print("\n❌ P0-000 Prerequisites Check - VALIDATION FAILED")
+    print(f"Failed checks: {result.failed_checks}")
+    print(f"Warning checks: {result.warning_checks}")
+    return False
 
 
 if __name__ == "__main__":

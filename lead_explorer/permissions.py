@@ -4,12 +4,11 @@ Permission system for Lead Explorer Badge Management (P0-021)
 Provides role-based access control for badge management operations,
 with specific support for CPO (Chief Product Officer) permissions.
 """
-from typing import Dict, List, Set
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from account_management.models import AccountUser, Permission, PermissionAction, ResourceType, Role
+from account_management.models import AccountUser
 from core.logging import get_logger
 
 logger = get_logger("lead_explorer_permissions")
@@ -109,9 +108,9 @@ def get_user_role(user: AccountUser, db: Session) -> str:
     if user.email:
         if "sales" in user.email.lower():
             return "sales_rep"
-        elif "manager" in user.email.lower():
+        if "manager" in user.email.lower():
             return "sales_manager"
-        elif "analyst" in user.email.lower():
+        if "analyst" in user.email.lower():
             return "analyst"
 
     # Default to basic sales rep
@@ -252,7 +251,7 @@ def require_badge_type_permission(badge_type: str):
     return decorator
 
 
-def get_user_badge_permissions(user: AccountUser, db: Session) -> Dict[str, List[str]]:
+def get_user_badge_permissions(user: AccountUser, db: Session) -> dict[str, list[str]]:
     """
     Get all badge permissions for a user.
 
@@ -277,7 +276,7 @@ def get_user_badge_permissions(user: AccountUser, db: Session) -> Dict[str, List
     return result
 
 
-def filter_badges_by_permission(user: AccountUser, badges: List, db: Session) -> List:
+def filter_badges_by_permission(user: AccountUser, badges: list, db: Session) -> list:
     """
     Filter badges based on user permissions.
 
@@ -301,10 +300,11 @@ def filter_badges_by_permission(user: AccountUser, badges: List, db: Session) ->
     filtered_badges = []
     for badge in badges:
         # Check if user can work with this badge type
-        if hasattr(badge, "badge_type") and badge.badge_type.value in allowed_types:
-            filtered_badges.append(badge)
-        # Always show badges they can read
-        elif check_badge_permission(user, "read", "badge", db):
+        if (
+            hasattr(badge, "badge_type")
+            and badge.badge_type.value in allowed_types
+            or check_badge_permission(user, "read", "badge", db)
+        ):
             filtered_badges.append(badge)
 
     return filtered_badges

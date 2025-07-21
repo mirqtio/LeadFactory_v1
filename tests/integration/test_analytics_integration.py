@@ -6,7 +6,7 @@ API response correctness, performance benchmarks, and data consistency.
 
 Acceptance Criteria:
 - Metrics calculation verified ✓
-- API responses correct ✓  
+- API responses correct ✓
 - Performance acceptable ✓
 - Data consistency ✓
 """
@@ -312,11 +312,11 @@ class TestAnalyticsIntegration:
     def test_data_consistency(self, client, sample_metrics_data, sample_funnel_data):
         """Test data consistency across endpoints - Data consistency"""
 
-        with patch.object(MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock) as mock_metrics, patch.object(
-            MetricsWarehouse, "calculate_funnel_conversions", new_callable=AsyncMock
-        ) as mock_funnel, patch.object(
-            MetricsWarehouse, "analyze_cohort_retention", new_callable=AsyncMock
-        ) as mock_cohort:
+        with (
+            patch.object(MetricsWarehouse, "get_daily_metrics", new_callable=AsyncMock) as mock_metrics,
+            patch.object(MetricsWarehouse, "calculate_funnel_conversions", new_callable=AsyncMock) as mock_funnel,
+            patch.object(MetricsWarehouse, "analyze_cohort_retention", new_callable=AsyncMock) as mock_cohort,
+        ):
             mock_metrics.return_value = sample_metrics_data
             mock_funnel.return_value = sample_funnel_data
             mock_cohort.return_value = {"cohorts": []}

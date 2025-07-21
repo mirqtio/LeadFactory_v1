@@ -2,6 +2,7 @@
 Focused tests for batch processor to achieve ≥80% coverage
 P0-022 requirement: comprehensive test coverage on all batch_runner modules
 """
+
 import asyncio
 import uuid
 from datetime import datetime
@@ -20,10 +21,12 @@ class TestBatchProcessorFocused:
     @pytest.fixture
     def mock_processor(self):
         """Create a processor with all dependencies mocked"""
-        with patch("batch_runner.processor.get_settings"), patch(
-            "batch_runner.processor.get_connection_manager"
-        ), patch("batch_runner.processor.get_cost_calculator"), patch("batch_runner.processor.ReportGenerator"), patch(
-            "batch_runner.processor.ThreadPoolExecutor"
+        with (
+            patch("batch_runner.processor.get_settings"),
+            patch("batch_runner.processor.get_connection_manager"),
+            patch("batch_runner.processor.get_cost_calculator"),
+            patch("batch_runner.processor.ReportGenerator"),
+            patch("batch_runner.processor.ThreadPoolExecutor"),
         ):
             processor = BatchProcessor()
             # Mock internal methods that we're not testing
@@ -84,10 +87,12 @@ class TestBatchProcessorFocused:
     async def test_get_batch_leads_success(self):
         """Test _get_batch_leads method"""
         # Create actual processor to test this method
-        with patch("batch_runner.processor.get_settings"), patch(
-            "batch_runner.processor.get_connection_manager"
-        ), patch("batch_runner.processor.get_cost_calculator"), patch("batch_runner.processor.ReportGenerator"), patch(
-            "batch_runner.processor.ThreadPoolExecutor"
+        with (
+            patch("batch_runner.processor.get_settings"),
+            patch("batch_runner.processor.get_connection_manager"),
+            patch("batch_runner.processor.get_cost_calculator"),
+            patch("batch_runner.processor.ReportGenerator"),
+            patch("batch_runner.processor.ThreadPoolExecutor"),
         ):
             processor = BatchProcessor()
             batch_id = str(uuid.uuid4())
@@ -116,17 +121,20 @@ class TestBatchProcessorFocused:
 
     async def test_get_lead_data_success(self):
         """Test _get_lead_data method"""
-        with patch("batch_runner.processor.get_settings"), patch(
-            "batch_runner.processor.get_connection_manager"
-        ), patch("batch_runner.processor.get_cost_calculator"), patch("batch_runner.processor.ReportGenerator"), patch(
-            "batch_runner.processor.ThreadPoolExecutor"
+        with (
+            patch("batch_runner.processor.get_settings"),
+            patch("batch_runner.processor.get_connection_manager"),
+            patch("batch_runner.processor.get_cost_calculator"),
+            patch("batch_runner.processor.ReportGenerator"),
+            patch("batch_runner.processor.ThreadPoolExecutor"),
         ):
             processor = BatchProcessor()
             lead_id = str(uuid.uuid4())
 
-            with patch("batch_runner.processor.SessionLocal") as mock_session, patch(
-                "batch_runner.processor.LeadRepository"
-            ) as mock_repo_class:
+            with (
+                patch("batch_runner.processor.SessionLocal") as mock_session,
+                patch("batch_runner.processor.LeadRepository") as mock_repo_class,
+            ):
                 mock_db = Mock()
                 mock_session.return_value.__enter__.return_value = mock_db
 
@@ -155,17 +163,20 @@ class TestBatchProcessorFocused:
 
     async def test_get_lead_data_not_found(self):
         """Test _get_lead_data with missing lead"""
-        with patch("batch_runner.processor.get_settings"), patch(
-            "batch_runner.processor.get_connection_manager"
-        ), patch("batch_runner.processor.get_cost_calculator"), patch("batch_runner.processor.ReportGenerator"), patch(
-            "batch_runner.processor.ThreadPoolExecutor"
+        with (
+            patch("batch_runner.processor.get_settings"),
+            patch("batch_runner.processor.get_connection_manager"),
+            patch("batch_runner.processor.get_cost_calculator"),
+            patch("batch_runner.processor.ReportGenerator"),
+            patch("batch_runner.processor.ThreadPoolExecutor"),
         ):
             processor = BatchProcessor()
             lead_id = str(uuid.uuid4())
 
-            with patch("batch_runner.processor.SessionLocal") as mock_session, patch(
-                "batch_runner.processor.LeadRepository"
-            ) as mock_repo_class:
+            with (
+                patch("batch_runner.processor.SessionLocal") as mock_session,
+                patch("batch_runner.processor.LeadRepository") as mock_repo_class,
+            ):
                 mock_db = Mock()
                 mock_session.return_value.__enter__.return_value = mock_db
 
@@ -181,10 +192,12 @@ class TestBatchProcessorFocused:
 
     async def test_calculate_actual_cost(self):
         """Test _calculate_actual_cost method"""
-        with patch("batch_runner.processor.get_settings"), patch(
-            "batch_runner.processor.get_connection_manager"
-        ), patch("batch_runner.processor.get_cost_calculator"), patch("batch_runner.processor.ReportGenerator"), patch(
-            "batch_runner.processor.ThreadPoolExecutor"
+        with (
+            patch("batch_runner.processor.get_settings"),
+            patch("batch_runner.processor.get_connection_manager"),
+            patch("batch_runner.processor.get_cost_calculator"),
+            patch("batch_runner.processor.ReportGenerator"),
+            patch("batch_runner.processor.ThreadPoolExecutor"),
         ):
             processor = BatchProcessor()
 
@@ -200,10 +213,12 @@ class TestBatchProcessorFocused:
 
     async def test_update_lead_status(self):
         """Test _update_lead_status method"""
-        with patch("batch_runner.processor.get_settings"), patch(
-            "batch_runner.processor.get_connection_manager"
-        ), patch("batch_runner.processor.get_cost_calculator"), patch("batch_runner.processor.ReportGenerator"), patch(
-            "batch_runner.processor.ThreadPoolExecutor"
+        with (
+            patch("batch_runner.processor.get_settings"),
+            patch("batch_runner.processor.get_connection_manager"),
+            patch("batch_runner.processor.get_cost_calculator"),
+            patch("batch_runner.processor.ReportGenerator"),
+            patch("batch_runner.processor.ThreadPoolExecutor"),
         ):
             processor = BatchProcessor()
             batch_lead_id = str(uuid.uuid4())
@@ -224,10 +239,12 @@ class TestBatchProcessorFocused:
 
     async def test_update_lead_completion(self):
         """Test _update_lead_completion method"""
-        with patch("batch_runner.processor.get_settings"), patch(
-            "batch_runner.processor.get_connection_manager"
-        ), patch("batch_runner.processor.get_cost_calculator"), patch("batch_runner.processor.ReportGenerator"), patch(
-            "batch_runner.processor.ThreadPoolExecutor"
+        with (
+            patch("batch_runner.processor.get_settings"),
+            patch("batch_runner.processor.get_connection_manager"),
+            patch("batch_runner.processor.get_cost_calculator"),
+            patch("batch_runner.processor.ReportGenerator"),
+            patch("batch_runner.processor.ThreadPoolExecutor"),
         ):
             processor = BatchProcessor()
             batch_lead_id = str(uuid.uuid4())
@@ -304,10 +321,12 @@ class TestBatchProcessorFocused:
 
     async def test_generate_report_sync(self):
         """Test _generate_report_sync method"""
-        with patch("batch_runner.processor.get_settings"), patch(
-            "batch_runner.processor.get_connection_manager"
-        ), patch("batch_runner.processor.get_cost_calculator"), patch("batch_runner.processor.ReportGenerator"), patch(
-            "batch_runner.processor.ThreadPoolExecutor"
+        with (
+            patch("batch_runner.processor.get_settings"),
+            patch("batch_runner.processor.get_connection_manager"),
+            patch("batch_runner.processor.get_cost_calculator"),
+            patch("batch_runner.processor.ReportGenerator"),
+            patch("batch_runner.processor.ThreadPoolExecutor"),
         ):
             processor = BatchProcessor()
 

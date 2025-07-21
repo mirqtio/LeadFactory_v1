@@ -7,6 +7,7 @@ Provides:
 - Stub server management utilities
 - Rate limiting mocks
 """
+
 import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -48,11 +49,11 @@ def mock_llm_responses():
             # Check for specific response patterns
             if "analyze" in prompt.lower():
                 return self.responses.get("analysis", self.responses["default"])
-            elif "personalize" in prompt.lower():
+            if "personalize" in prompt.lower():
                 return self.responses.get("personalization", self.responses["default"])
-            elif "error" in prompt.lower() and self.responses.get("error") is None:
+            if "error" in prompt.lower() and self.responses.get("error") is None:
                 raise Exception("Mock LLM error")
-            elif "test" in prompt.lower():
+            if "test" in prompt.lower():
                 return self.responses.get("test", self.responses["default"])
 
             return self.responses.get("default")
@@ -419,7 +420,7 @@ def mock_webhook_server(monkeypatch):
                 else:
                     return True
 
-            raise AssertionError(f"No webhook received matching criteria")
+            raise AssertionError("No webhook received matching criteria")
 
     server = MockWebhookServer()
 

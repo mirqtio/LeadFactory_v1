@@ -147,7 +147,7 @@ def create_correct_dashboard():
         </div>
         
         <div style="text-align: center; margin-top: 40px; color: var(--text-secondary);">
-            Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC<br>
+            Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC<br>
             <strong>TRUTH: CI must actually pass, not just appear to pass</strong>
         </div>
     </div>

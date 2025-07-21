@@ -15,7 +15,7 @@ import hashlib
 import hmac
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -234,7 +234,7 @@ class TestWebhookHandler:
         event = WebhookEvent(
             event_type=SendGridEventType.DELIVERED,
             email="test@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id=sample_email_delivery["message_id"],
             event_id="delivered_event_123",
         )
@@ -271,7 +271,7 @@ class TestWebhookHandler:
         event = WebhookEvent(
             event_type=SendGridEventType.BOUNCE,
             email="test@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id=sample_email_delivery["message_id"],
             event_id="bounce_event_123",
             reason="Invalid email address",
@@ -325,7 +325,7 @@ class TestWebhookHandler:
         event = WebhookEvent(
             event_type=SendGridEventType.SPAM_REPORT,
             email="test@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id=sample_email_delivery["message_id"],
             event_id="spam_event_123",
             asm_group_id=12345,
@@ -371,7 +371,7 @@ class TestWebhookHandler:
         event = WebhookEvent(
             event_type=SendGridEventType.CLICK,
             email="test@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id=sample_email_delivery["message_id"],
             event_id="click_event_123",
             url="https://example.com/link",
@@ -404,7 +404,7 @@ class TestWebhookHandler:
         event = WebhookEvent(
             event_type=SendGridEventType.OPEN,
             email="test@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id=sample_email_delivery["message_id"],
             event_id="open_event_123",
             user_agent="Mozilla/5.0",
@@ -435,7 +435,7 @@ class TestWebhookHandler:
         event = WebhookEvent(
             event_type=SendGridEventType.UNSUBSCRIBE,
             email="test@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id=sample_email_delivery["message_id"],
             event_id="unsubscribe_event_123",
         )
@@ -470,7 +470,7 @@ class TestWebhookHandler:
         event = WebhookEvent(
             event_type=SendGridEventType.DROPPED,
             email="test@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id=sample_email_delivery["message_id"],
             event_id="dropped_event_123",
             reason="Bounced Address",
@@ -509,21 +509,21 @@ class TestWebhookHandler:
             WebhookEvent(
                 event_type=SendGridEventType.PROCESSED,
                 email="batch1@example.com",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 message_id="msg_batch_1",
                 event_id="event_1",
             ),
             WebhookEvent(
                 event_type=SendGridEventType.DELIVERED,
                 email="batch2@example.com",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 message_id="msg_batch_2",
                 event_id="event_2",
             ),
             WebhookEvent(
                 event_type=SendGridEventType.CLICK,
                 email="batch3@example.com",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 message_id="msg_batch_3",
                 event_id="event_3",
                 url="https://example.com",
@@ -564,7 +564,7 @@ class TestWebhookHandler:
         event1 = WebhookEvent(
             event_type=SendGridEventType.DELIVERED,
             email="duplicate@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id="msg_duplicate",
             event_id="duplicate_event_123",
         )
@@ -577,7 +577,7 @@ class TestWebhookHandler:
         event2 = WebhookEvent(
             event_type=SendGridEventType.DELIVERED,
             email="duplicate@example.com",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             message_id="msg_duplicate",
             event_id="duplicate_event_123",  # Same event ID
         )
@@ -599,7 +599,7 @@ class TestWebhookHandler:
                 email_delivery_id=i + 1,  # Need valid delivery IDs
                 event_type=EventType.DELIVERED.value,
                 sendgrid_message_id=f"msg_{i}",
-                event_timestamp=datetime.now(timezone.utc),
+                event_timestamp=datetime.now(UTC),
             )
             db_session.add(event)
 
@@ -613,7 +613,7 @@ class TestWebhookHandler:
             bounce_type=BounceType.HARD.value,
             bounce_reason="Test bounce",
             sendgrid_event_id=bounce_event_id,
-            bounced_at=datetime.now(timezone.utc),
+            bounced_at=datetime.now(UTC),
         )
         db_session.add(bounce)
         db_session.commit()

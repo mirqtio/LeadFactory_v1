@@ -13,7 +13,7 @@ for validating token files.
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 try:
     import jsonschema
@@ -25,7 +25,7 @@ except ImportError:
 class DesignTokenValidator:
     """Validates design tokens against schema and quality requirements."""
 
-    def __init__(self, schema_path: Optional[str] = None):
+    def __init__(self, schema_path: str | None = None):
         """
         Initialize validator with schema.
 
@@ -38,12 +38,12 @@ class DesignTokenValidator:
         else:
             schema_file_path = Path(schema_path)
 
-        with open(schema_file_path, "r", encoding="utf-8") as f:
+        with open(schema_file_path, encoding="utf-8") as f:
             self.schema = json.load(f)
 
         self.validator = jsonschema.Draft7Validator(self.schema)
 
-    def validate_schema(self, tokens: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def validate_schema(self, tokens: dict[str, Any]) -> tuple[bool, list[str]]:
         """
         Validate tokens against JSON schema.
 
@@ -72,7 +72,7 @@ class DesignTokenValidator:
 
         return len(errors) == 0, errors
 
-    def validate_file_size(self, tokens_path: str, max_size_bytes: int = 2048) -> Tuple[bool, List[str]]:
+    def validate_file_size(self, tokens_path: str, max_size_bytes: int = 2048) -> tuple[bool, list[str]]:
         """
         Validate that tokens file meets size constraint.
 
@@ -98,7 +98,7 @@ class DesignTokenValidator:
 
         return True, errors
 
-    def validate_color_contrast(self, tokens: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def validate_color_contrast(self, tokens: dict[str, Any]) -> tuple[bool, list[str]]:
         """
         Validate that color tokens include proper contrast ratios.
 
@@ -150,7 +150,7 @@ class DesignTokenValidator:
 
         return len([e for e in errors if not e.startswith("WARNING:")]) == 0, errors
 
-    def validate_spacing_system(self, tokens: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def validate_spacing_system(self, tokens: dict[str, Any]) -> tuple[bool, list[str]]:
         """
         Validate that spacing system follows 8px base unit.
 
@@ -184,7 +184,7 @@ class DesignTokenValidator:
 
         return len(errors) == 0, errors
 
-    def validate_typography_hierarchy(self, tokens: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def validate_typography_hierarchy(self, tokens: dict[str, Any]) -> tuple[bool, list[str]]:
         """
         Validate that typography scale maintains proper hierarchy.
 
@@ -232,7 +232,7 @@ class DesignTokenValidator:
 
         return len(errors) == 0, errors
 
-    def validate_completeness(self, tokens: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def validate_completeness(self, tokens: dict[str, Any]) -> tuple[bool, list[str]]:
         """
         Validate that all required tokens are present with correct counts.
 
@@ -281,9 +281,7 @@ class DesignTokenValidator:
 
         return len(errors) == 0, errors
 
-    def validate_all(
-        self, tokens: Dict[str, Any], tokens_path: Optional[str] = None
-    ) -> Tuple[bool, Dict[str, List[str]]]:
+    def validate_all(self, tokens: dict[str, Any], tokens_path: str | None = None) -> tuple[bool, dict[str, list[str]]]:
         """
         Run all validation checks.
 
@@ -337,7 +335,7 @@ class DesignTokenValidator:
         return all_valid, results
 
 
-def validate_tokens_file(tokens_path: str, schema_path: Optional[str] = None, verbose: bool = False) -> bool:
+def validate_tokens_file(tokens_path: str, schema_path: str | None = None, verbose: bool = False) -> bool:
     """
     Validate a design tokens JSON file.
 
@@ -351,7 +349,7 @@ def validate_tokens_file(tokens_path: str, schema_path: Optional[str] = None, ve
     """
     try:
         # Load tokens
-        with open(tokens_path, "r", encoding="utf-8") as f:
+        with open(tokens_path, encoding="utf-8") as f:
             tokens = json.load(f)
 
         # Create validator

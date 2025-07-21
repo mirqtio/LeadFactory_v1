@@ -32,7 +32,7 @@ class PRP1060Validator:
         self.score = 0
         self.max_score = 100
 
-    async def run_validation(self) -> Dict[str, Any]:
+    async def run_validation(self) -> dict[str, Any]:
         """Run complete PRP-1060 validation."""
         print("🚀 Starting PRP-1060 Validation")
         print("=" * 60)
@@ -90,7 +90,7 @@ class PRP1060Validator:
         self.print_summary(final_results)
         return final_results
 
-    async def validate_profile_system(self) -> Dict[str, Any]:
+    async def validate_profile_system(self) -> dict[str, Any]:
         """Validate SuperClaude profile system."""
         result = {"passed": False, "score": 0, "max_score": 15, "details": []}
 
@@ -141,7 +141,7 @@ class PRP1060Validator:
 
         return result
 
-    async def validate_container_system(self) -> Dict[str, Any]:
+    async def validate_container_system(self) -> dict[str, Any]:
         """Validate container system components."""
         result = {"passed": False, "score": 0, "max_score": 15, "details": []}
 
@@ -204,7 +204,7 @@ class PRP1060Validator:
 
         return result
 
-    async def validate_evidence_system(self) -> Dict[str, Any]:
+    async def validate_evidence_system(self) -> dict[str, Any]:
         """Validate evidence collection and validation system."""
         result = {"passed": False, "score": 0, "max_score": 12, "details": []}
 
@@ -259,7 +259,7 @@ class PRP1060Validator:
 
         return result
 
-    async def validate_deployment_system(self) -> Dict[str, Any]:
+    async def validate_deployment_system(self) -> dict[str, Any]:
         """Validate deployment and health checking system."""
         result = {"passed": False, "score": 0, "max_score": 12, "details": []}
 
@@ -309,7 +309,7 @@ class PRP1060Validator:
 
         return result
 
-    async def validate_integration_tests(self) -> Dict[str, Any]:
+    async def validate_integration_tests(self) -> dict[str, Any]:
         """Validate integration tests and core integration."""
         result = {"passed": False, "score": 0, "max_score": 15, "details": []}
 
@@ -367,7 +367,7 @@ class PRP1060Validator:
 
         return result
 
-    async def validate_performance_requirements(self) -> Dict[str, Any]:
+    async def validate_performance_requirements(self) -> dict[str, Any]:
         """Validate performance requirements for PRP-1060."""
         result = {"passed": False, "score": 0, "max_score": 10, "details": []}
 
@@ -410,7 +410,7 @@ class PRP1060Validator:
 
         return result
 
-    async def validate_security_requirements(self) -> Dict[str, Any]:
+    async def validate_security_requirements(self) -> dict[str, Any]:
         """Validate security requirements."""
         result = {"passed": False, "score": 0, "max_score": 10, "details": []}
 
@@ -457,7 +457,7 @@ class PRP1060Validator:
 
         return result
 
-    async def validate_documentation(self) -> Dict[str, Any]:
+    async def validate_documentation(self) -> dict[str, Any]:
         """Validate documentation completeness."""
         result = {"passed": False, "score": 0, "max_score": 11, "details": []}
 
@@ -503,7 +503,7 @@ class PRP1060Validator:
 
         return result
 
-    def print_summary(self, results: Dict[str, Any]):
+    def print_summary(self, results: dict[str, Any]):
         """Print validation summary."""
         print("\n" + "=" * 60)
         print("📊 PRP-1060 VALIDATION SUMMARY")

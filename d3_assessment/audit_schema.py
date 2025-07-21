@@ -1,7 +1,8 @@
 """Audit schema definitions for assessment findings."""
+
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any
 
 
 class FindingSeverity(Enum):
@@ -30,8 +31,8 @@ class Evidence:
 
     type: str
     value: Any
-    source: Optional[str] = None
-    confidence: Optional[float] = None
+    source: str | None = None
+    confidence: float | None = None
 
 
 @dataclass
@@ -43,9 +44,9 @@ class AuditFinding:
     description: str
     severity: FindingSeverity
     category: FindingCategory
-    evidence: List[Evidence]
+    evidence: list[Evidence]
     conversion_impact: float
     effort_estimate: str
-    recommendation: Optional[str] = None
-    technical_details: Optional[str] = None
-    source: Optional[str] = None
+    recommendation: str | None = None
+    technical_details: str | None = None
+    source: str | None = None

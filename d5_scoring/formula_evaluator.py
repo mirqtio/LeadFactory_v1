@@ -4,10 +4,11 @@ Formula evaluator using xlcalculator for Excel-compatible formulas.
 This module provides Excel formula evaluation capabilities for scoring rules,
 allowing business users to define complex scoring logic using familiar Excel syntax.
 """
+
 import re
 import time
 from functools import lru_cache
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from prometheus_client import Counter, Histogram
 from xlcalculator import Evaluator, Model, ModelCompiler
@@ -38,7 +39,7 @@ class FormulaEvaluator:
             cache_size: Number of compiled formulas to cache
         """
         self.cache_size = cache_size
-        self._formula_cache: Dict[str, Model] = {}
+        self._formula_cache: dict[str, Model] = {}
         self._clear_cache()
 
     def _clear_cache(self):
@@ -70,7 +71,7 @@ class FormulaEvaluator:
 
         return model
 
-    def _prepare_context(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_context(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Prepare data context for formula evaluation.
 
@@ -105,8 +106,8 @@ class FormulaEvaluator:
 
     @formula_evaluation_time.labels(formula_type="excel").time()
     def evaluate(
-        self, formula: str, data: Dict[str, Any], timeout: float = FORMULA_EVALUATION_TIMEOUT
-    ) -> Union[float, int, str, bool, None]:
+        self, formula: str, data: dict[str, Any], timeout: float = FORMULA_EVALUATION_TIMEOUT
+    ) -> float | int | str | bool | None:
         """
         Evaluate an Excel formula with given data.
 
@@ -176,7 +177,7 @@ class FormulaEvaluator:
             logger.error(f"Formula evaluation error: {e}", extra={"formula": formula, "data_keys": list(data.keys())})
             raise ValueError(f"Formula evaluation failed: {str(e)}")
 
-    def validate_formula(self, formula: str) -> List[str]:
+    def validate_formula(self, formula: str) -> list[str]:
         """
         Validate an Excel formula and return any errors.
 
@@ -211,7 +212,7 @@ class FormulaEvaluator:
 
         return errors
 
-    def _check_unsupported_functions(self, formula: str) -> List[str]:
+    def _check_unsupported_functions(self, formula: str) -> list[str]:
         """
         Check for Excel functions that xlcalculator doesn't support.
 
@@ -274,7 +275,7 @@ class FormulaEvaluator:
 
 
 # Global evaluator instance
-_evaluator_instance: Optional[FormulaEvaluator] = None
+_evaluator_instance: FormulaEvaluator | None = None
 
 
 def get_formula_evaluator() -> FormulaEvaluator:
@@ -287,7 +288,7 @@ def get_formula_evaluator() -> FormulaEvaluator:
     return _evaluator_instance
 
 
-def evaluate_formula(formula: str, data: Dict[str, Any], timeout: float = FORMULA_EVALUATION_TIMEOUT) -> Any:
+def evaluate_formula(formula: str, data: dict[str, Any], timeout: float = FORMULA_EVALUATION_TIMEOUT) -> Any:
     """
     Convenience function to evaluate a formula.
 
@@ -303,7 +304,7 @@ def evaluate_formula(formula: str, data: Dict[str, Any], timeout: float = FORMUL
     return evaluator.evaluate(formula, data, timeout)
 
 
-def validate_formula(formula: str) -> List[str]:
+def validate_formula(formula: str) -> list[str]:
     """
     Convenience function to validate a formula.
 

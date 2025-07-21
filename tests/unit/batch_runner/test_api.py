@@ -2,6 +2,7 @@
 Test suite for batch_runner API endpoints
 Focus on achieving ≥80% total coverage for P0-022
 """
+
 import uuid
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
@@ -252,9 +253,10 @@ class TestBatchRunnerAPI:
         mock_repo_class.return_value = mock_repo
 
         # Mock BatchReport creation and BatchReportLead creation
-        with patch("batch_runner.api.BatchReport") as mock_batch_class, patch(
-            "batch_runner.api.BatchReportLead"
-        ) as mock_batch_lead_class:
+        with (
+            patch("batch_runner.api.BatchReport") as mock_batch_class,
+            patch("batch_runner.api.BatchReportLead") as mock_batch_lead_class,
+        ):
             mock_batch = Mock()
             mock_batch.id = "new-batch-123"
             mock_batch.name = sample_start_request.name

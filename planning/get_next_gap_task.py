@@ -8,7 +8,6 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 # Color codes for terminal output
 GREEN = "\033[92m"
@@ -25,23 +24,23 @@ class GapTaskManager:
         self.gap_plan_path = self.project_root / "taskmaster_gap_remediation.json"
         self.status_path = Path(__file__).parent / "gap_remediation_status.json"
 
-    def load_gap_plan(self) -> Dict:
+    def load_gap_plan(self) -> dict:
         """Load the gap remediation plan"""
-        with open(self.gap_plan_path, "r") as f:
+        with open(self.gap_plan_path) as f:
             return json.load(f)
 
-    def load_status(self) -> Dict:
+    def load_status(self) -> dict:
         """Load current status of gap tasks"""
-        with open(self.status_path, "r") as f:
+        with open(self.status_path) as f:
             return json.load(f)
 
-    def save_status(self, status: Dict):
+    def save_status(self, status: dict):
         """Save updated status"""
         status["last_updated"] = datetime.utcnow().isoformat()
         with open(self.status_path, "w") as f:
             json.dump(status, f, indent=2)
 
-    def get_task_details(self, task_id: str) -> Optional[Dict]:
+    def get_task_details(self, task_id: str) -> dict | None:
         """Get details for a specific task from the plan"""
         plan = self.load_gap_plan()
         for phase in plan["phases"]:
@@ -50,7 +49,7 @@ class GapTaskManager:
                     return task
         return None
 
-    def check_dependencies(self, task: Dict, status: Dict) -> Tuple[bool, List[str]]:
+    def check_dependencies(self, task: dict, status: dict) -> tuple[bool, list[str]]:
         """Check if all dependencies are completed"""
         unmet_deps = []
         for dep_id in task.get("dependencies", []):
@@ -59,7 +58,7 @@ class GapTaskManager:
                     unmet_deps.append(dep_id)
         return len(unmet_deps) == 0, unmet_deps
 
-    def get_next_task(self) -> Optional[str]:
+    def get_next_task(self) -> str | None:
         """Get the next task to work on based on priority and dependencies"""
         status = self.load_status()
         plan = self.load_gap_plan()
@@ -95,12 +94,11 @@ class GapTaskManager:
         # Return highest priority task
         if p0_tasks:
             return p0_tasks[0]
-        elif p1_tasks:
+        if p1_tasks:
             return p1_tasks[0]
-        elif p2_tasks:
+        if p2_tasks:
             return p2_tasks[0]
-        else:
-            return None
+        return None
 
     def print_task_details(self, task_id: str):
         """Print detailed information about a task"""
@@ -161,7 +159,7 @@ class GapTaskManager:
         print(f"Completed: {GREEN}{completed}{RESET}")
         print(f"In Progress: {YELLOW}{in_progress}{RESET}")
         print(f"Pending: {RED}{pending}{RESET}")
-        print(f"Progress: {completed}/{total} ({completed/total*100:.1f}%)")
+        print(f"Progress: {completed}/{total} ({completed / total * 100:.1f}%)")
 
         # Show breakdown by priority
         p0_complete = sum(1 for t in status["tasks"].values() if t["status"] == "completed" and t["priority"] == "P0")

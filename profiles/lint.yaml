@@ -1,0 +1,317 @@
+# SuperClaude Lint Profile Configuration
+# PRP-1061: Coverage/Lint Bot with Redis Evidence Integration
+
+name: "lint"
+description: "Quality enforcement bot with comprehensive Ruff linting and 80%+ coverage validation"
+version: "1.0.0"
+command: "/refactor --mode=lint"
+
+# Profile activation triggers
+triggers:
+  - command_patterns: ["/refactor --mode=lint", "/refactor --tool=ruff", "/lint", "quality gate"]
+  - context_keywords: ["lint", "coverage", "code quality", "quality gate", "ruff"]
+  - prp_states: ["dev_queue", "pending", "validated"]
+
+# Core workflow configuration
+workflow:
+  type: "local_execution"
+  timeout_minutes: 2
+  performance_target:
+    p95_completion_time_seconds: 120  # <2 minutes for quality validation
+  
+  # Workflow steps
+  steps:
+    - name: "environment_setup"
+      description: "Initialize quality gate environment"
+      actions:
+        - "validate_redis_connection"
+        - "load_quality_configuration"
+        - "prepare_workspace"
+    
+    - name: "ruff_linting"
+      description: "Run Ruff linting with zero-tolerance enforcement"
+      actions:
+        - "ruff check . --fix"
+        - "ruff format ."
+        - "validate_zero_tolerance_rules"
+    
+    - name: "coverage_validation"
+      description: "Run pytest with coverage enforcement"
+      actions:
+        - "pytest --cov=. --cov-fail-under=80 --cov-report=xml --cov-report=term"
+        - "generate_coverage_badge"
+        - "validate_coverage_thresholds"
+    
+    - name: "evidence_collection"
+      description: "Write evidence to Redis for PRP promotion"
+      actions:
+        - "write_lint_clean_flag"
+        - "write_coverage_percentage"
+        - "update_prp_evidence"
+    
+    - name: "quality_gate_validation"
+      description: "Final quality gate validation"
+      actions:
+        - "validate_promotion_criteria"
+        - "generate_quality_report"
+        - "set_promotion_ready_flag"
+
+# Environment configuration
+environment:
+  variables:
+    - REDIS_URL: "${REDIS_URL}"
+    - PRP_ID: "${PRP_ID}"
+    - ENABLE_RUFF_ENFORCEMENT: "${ENABLE_RUFF_ENFORCEMENT:-false}"
+    - QUALITY_GATE_STRICT_MODE: "${QUALITY_GATE_STRICT_MODE:-false}"
+    - COVERAGE_FAIL_UNDER: "80"
+  
+  required_tools:
+    - "ruff>=0.1.0"
+    - "pytest-cov>=4.0.0"
+    - "coverage>=7.0.0"
+
+# Quality enforcement configuration
+quality_rules:
+  ruff:
+    zero_tolerance_rules:
+      - "E501"  # Line length violations
+      - "F401"  # Unused imports
+      - "PD*"   # Pandas-vet rules
+    
+    auto_fix_enabled: true
+    strict_mode: true
+    target_python_version: "py311"
+    
+    # Rule categories
+    select:
+      - "E"    # pycodestyle errors
+      - "F"    # Pyflakes
+      - "UP"   # pyupgrade
+      - "B"    # flake8-bugbear
+      - "SIM"  # flake8-simplify
+      - "I"    # isort
+      - "N"    # pep8-naming
+      - "PD"   # pandas-vet
+    
+    ignore:
+      - "E203"  # Whitespace before ':'
+      - "B008"  # Do not perform function calls in argument defaults
+      - "B904"  # Within except clause, raise exceptions with `raise ... from err`
+  
+  coverage:
+    minimum_threshold: 80
+    fail_under: 80
+    branch_coverage: true
+    
+    critical_modules:
+      - "core/*": 90
+      - "d0_gateway/*": 85
+      - "scripts/quality_gate.py": 100
+    
+    exclusions:
+      - "tests/*"
+      - "stubs/*"
+      - "scripts/*"
+      - "alembic/*"
+
+# Evidence collection configuration
+evidence:
+  redis_keys:
+    lint_clean: "prp:${PRP_ID}:lint_clean"
+    coverage_pct: "prp:${PRP_ID}:coverage_pct"
+    quality_report: "prp:${PRP_ID}:quality_report"
+    badge_updated: "prp:${PRP_ID}:badge_updated"
+  
+  success_criteria:
+    - "Zero Ruff errors for critical rules (E501, F401, PD*)"
+    - "Code coverage ≥80% project-wide"
+    - "Critical modules meet enhanced coverage thresholds"
+    - "Coverage badge generated successfully"
+    - "All quality gates pass within performance target"
+  
+  promotion_requirements:
+    - key: "lint_clean"
+      value: "true"
+      required: true
+    - key: "coverage_pct"
+      value: ">=80"
+      required: true
+
+# Dual-tooling transition configuration
+legacy_support:
+  preserve_configs: true
+  backup_location: "legacy-lint/"
+  
+  parallel_validation:
+    enabled: true
+    tools:
+      - name: "ruff"
+        primary: true
+      - name: "flake8"
+        legacy: true
+      - name: "black"
+        legacy: true
+      - name: "isort"
+        legacy: true
+  
+  migration_strategy:
+    phase: "side_by_side"
+    duration_sprints: 1
+    rollback_plan: "disable_ruff_enforcement"
+
+# Performance targets and monitoring
+performance:
+  targets:
+    ruff_execution_time_seconds: 30    # Ruff is ~10x faster than flake8
+    coverage_calculation_seconds: 60   # Full project coverage analysis
+    total_workflow_seconds: 120        # Complete quality gate validation
+  
+  monitoring:
+    metrics:
+      - "quality_gate_duration"
+      - "lint_error_count"
+      - "coverage_percentage"
+      - "success_rate"
+      - "auto_fix_count"
+    
+    alerts:
+      - condition: "duration > 120 seconds"
+        severity: "warning"
+      - condition: "success_rate < 95%"
+        severity: "critical"
+
+# Integration with PRP-1059 promotion system
+promotion:
+  lua_script: "redis_scripts/promote.lua"
+  command: "promote"
+  
+  evidence_validation:
+    atomic_update: true
+    partial_failure_handling: "preserve_successful_evidence"
+  
+  quality_gate_blocking:
+    lint_failures: true
+    coverage_failures: true
+    performance_degradation: false  # Allow slow runs to complete
+
+# Badge generation configuration
+badges:
+  coverage_badge:
+    output_path: "docs/badges/coverage.svg"
+    style: "flat-square"
+    color_thresholds:
+      excellent: 90  # brightgreen
+      good: 80       # green
+      fair: 70       # yellow
+      poor: 60       # orange
+      critical: 0    # red
+    
+    shields_io_integration: true
+    commit_to_repo: true
+
+# Error handling strategy
+error_handling:
+  lint_failures:
+    action: "block_promotion"
+    feedback: "detailed_line_annotations"
+    auto_fix_suggestions: true
+  
+  coverage_failures:
+    action: "block_promotion"
+    feedback: "uncovered_lines_report"
+    improvement_recommendations: true
+  
+  performance_degradation:
+    action: "warn_continue"
+    timeout_handling: "partial_results"
+    degraded_mode: "basic_validation"
+  
+  redis_unavailable:
+    action: "local_validation_only"
+    fallback: "file_based_evidence"
+    retry_policy:
+      max_attempts: 3
+      backoff_seconds: 5
+
+# Feature flags configuration
+feature_flags:
+  ruff_enforcement:
+    type: "environment_variable"
+    key: "ENABLE_RUFF_ENFORCEMENT"
+    default: false
+    description: "Enable Ruff linting enforcement in quality gates"
+  
+  strict_mode:
+    type: "redis_key"
+    key: "settings:strict_quality"
+    default: false
+    description: "Enable strict mode quality enforcement"
+  
+  parallel_legacy:
+    type: "environment_variable"
+    key: "PARALLEL_LEGACY_TOOLS"
+    default: true
+    description: "Run legacy tools in parallel during transition"
+
+# Pre-commit integration
+pre_commit:
+  hooks:
+    fast_rules_only: true
+    auto_fix_enabled: true
+    
+  performance_budget:
+    max_execution_seconds: 10
+    rules_subset:
+      - "E9"   # Syntax errors
+      - "F63"  # Invalid syntax
+      - "F7"   # Syntax errors
+      - "F82"  # Undefined name
+
+# Testing strategy for the lint bot itself
+testing:
+  unit_tests: "tests/unit/profiles/test_lint_profile.py"
+  coverage_tests: "tests/unit/profiles/test_coverage_enforcement.py"
+  integration_tests: "tests/integration/test_quality_gate.py"
+  
+  mock_strategies:
+    redis_client: "fakeredis"
+    subprocess_calls: "pytest-subprocess"
+    file_system: "pytest-mock"
+  
+  performance_tests:
+    target_codebase_size: "10000+ lines"
+    benchmark_thresholds:
+      p50: 60   # seconds
+      p95: 120  # seconds
+      p99: 180  # seconds
+
+# Documentation and compliance
+documentation:
+  profile_docs: "docs/profiles/lint.md"
+  quality_standards: "docs/quality/standards.md"
+  troubleshooting_guide: "docs/troubleshooting/quality_gate.md"
+  
+  compliance:
+    security_review: false  # Quality tooling only
+    performance_validation: true
+    rollback_tested: true
+
+# Rollback configuration
+rollback:
+  triggers:
+    - "quality_gate_failures > 10%"
+    - "performance_degradation > 200%"
+    - "evidence_validation_errors > 5%"
+    - "developer_productivity_decline > 25%"
+  
+  actions:
+    - "set_enable_ruff_enforcement_false"
+    - "set_quality_gate_strict_mode_false"
+    - "restore_legacy_configs"
+    - "clear_redis_evidence_keys"
+    - "notify_development_team"
+  
+  validation:
+    legacy_tool_functionality: true
+    manual_validation_workflows: true
+    ci_pipeline_stability: true

@@ -1,9 +1,10 @@
 """Omega (online dependence) calculator for impact scaling."""
+
 import ast
 import operator
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 
@@ -27,31 +28,30 @@ ALLOWED_OPS = {
 def _load_omega_rules():
     """Load omega rules from YAML."""
     yaml_path = Path(__file__).parent.parent / "config" / "online_dependence.yaml"
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         return yaml.safe_load(f)
 
 
-def _safe_eval(node, context: Dict[str, Any]):
+def _safe_eval(node, context: dict[str, Any]):
     """Safely evaluate AST node with given context."""
     if isinstance(node, ast.Constant):
         return node.value
-    elif isinstance(node, ast.Name):
+    if isinstance(node, ast.Name):
         if node.id in context:
             return context[node.id]
-        elif node.id in ["True", "False", "None"]:
+        if node.id in ["True", "False", "None"]:
             return eval(node.id)
-        else:
-            raise ValueError(f"Unknown variable: {node.id}")
-    elif isinstance(node, ast.BinOp):
+        raise ValueError(f"Unknown variable: {node.id}")
+    if isinstance(node, ast.BinOp):
         raise ValueError("Binary operations not allowed")
-    elif isinstance(node, ast.UnaryOp):
+    if isinstance(node, ast.UnaryOp):
         op_func = ALLOWED_OPS.get(type(node.op))
         if op_func:
             return op_func(_safe_eval(node.operand, context))
         raise ValueError(f"Unsupported operation: {type(node.op)}")
-    elif isinstance(node, ast.Compare):
+    if isinstance(node, ast.Compare):
         left = _safe_eval(node.left, context)
-        for op, right in zip(node.ops, node.comparators):
+        for op, right in zip(node.ops, node.comparators, strict=False):
             op_func = ALLOWED_OPS.get(type(op))
             if not op_func:
                 raise ValueError(f"Unsupported comparison: {type(op)}")
@@ -60,14 +60,14 @@ def _safe_eval(node, context: Dict[str, Any]):
                 return False
             left = right_val
         return True
-    elif isinstance(node, ast.BoolOp):
+    if isinstance(node, ast.BoolOp):
         op_func = ALLOWED_OPS.get(type(node.op))
         if not op_func:
             raise ValueError(f"Unsupported boolean operation: {type(node.op)}")
         values = [_safe_eval(v, context) for v in node.values]
         if isinstance(node.op, ast.And):
             return all(values)
-        elif isinstance(node.op, ast.Or):
+        if isinstance(node.op, ast.Or):
             return any(values)
     elif isinstance(node, ast.List):
         return [_safe_eval(item, context) for item in node.elts]
@@ -77,7 +77,7 @@ def _safe_eval(node, context: Dict[str, Any]):
         raise ValueError(f"Unsupported node type: {type(node)}")
 
 
-def evaluate_condition(condition: str, context: Dict[str, Any]) -> bool:
+def evaluate_condition(condition: str, context: dict[str, Any]) -> bool:
     """
     Safely evaluate a condition string with given context.
 
@@ -101,11 +101,11 @@ def evaluate_condition(condition: str, context: Dict[str, Any]) -> bool:
 
 
 def calculate_omega(
-    visits_per_mil: Optional[int] = None,
-    commercial_kw_pct: Optional[int] = None,
-    vertical: Optional[str] = None,
-    has_online_ordering: Optional[bool] = None,
-    business_type: Optional[str] = None,
+    visits_per_mil: int | None = None,
+    commercial_kw_pct: int | None = None,
+    vertical: str | None = None,
+    has_online_ordering: bool | None = None,
+    business_type: str | None = None,
     **kwargs,
 ) -> float:
     """

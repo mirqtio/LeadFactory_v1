@@ -162,7 +162,7 @@ def create_final_dashboard():
         </div>
         
         <div style="text-align: center; margin-top: 40px; color: var(--text-secondary);">
-            Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC<br>
+            Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC<br>
             <strong>Remember: No CI green = No tasks complete</strong>
         </div>
     </div>

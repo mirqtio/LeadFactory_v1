@@ -176,7 +176,9 @@ class TestUnitEconomicsAPI:
         """Test validation error for invalid date range"""
         with pytest.raises(HTTPException) as exc_info:
             await get_unit_economics(
-                start_date="2025-01-16", end_date="2025-01-15", warehouse=mock_warehouse  # End before start
+                start_date="2025-01-16",
+                end_date="2025-01-15",
+                warehouse=mock_warehouse,  # End before start
             )
 
         assert exc_info.value.status_code == 400

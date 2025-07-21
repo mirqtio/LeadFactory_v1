@@ -125,9 +125,8 @@ def run_migrations(database_url: str) -> bool:
                     command.stamp(alembic_cfg, "head")
                     print("✅ Database stamped to head revision")
                     return True
-                else:
-                    print("❌ Insufficient tables created, migration truly failed")
-                    return False
+                print("❌ Insufficient tables created, migration truly failed")
+                return False
 
             except Exception as recovery_error:
                 print(f"❌ Failed to recover from migration error: {recovery_error}")

@@ -10,6 +10,7 @@ Acceptance Criteria:
 - Proper indexing
 - Cost tracking fields
 """
+
 import sys
 from decimal import Decimal
 from unittest.mock import Mock

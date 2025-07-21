@@ -4,8 +4,8 @@ Quota Tracker for D1 Targeting Domain
 Manages daily quotas and fair allocation of targeting resources across campaigns.
 Tracks usage, enforces limits, and provides analytics on quota utilization.
 """
+
 from datetime import date, timedelta
-from typing import Dict, List, Optional
 
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ class QuotaTracker:
     Tracks and manages daily quotas for fair allocation across campaigns
     """
 
-    def __init__(self, session: Optional[Session] = None):
+    def __init__(self, session: Session | None = None):
         self.logger = get_logger("quota_tracker", domain="d1")
         self.session = session or SessionLocal()
         self.settings = get_settings()
@@ -32,7 +32,7 @@ class QuotaTracker:
         self.default_campaign_max_percentage = 0.4  # Max 40% of daily quota per campaign
         self.quota_reset_hour = 0  # Midnight UTC
 
-    def get_daily_quota(self, target_date: Optional[date] = None) -> int:
+    def get_daily_quota(self, target_date: date | None = None) -> int:
         """
         Get the total daily quota for target processing
 
@@ -56,7 +56,7 @@ class QuotaTracker:
 
         return adjusted_quota
 
-    def get_remaining_quota(self, target_date: Optional[date] = None) -> int:
+    def get_remaining_quota(self, target_date: date | None = None) -> int:
         """Get remaining quota for the target date"""
         if target_date is None:
             target_date = date.today()
@@ -66,7 +66,7 @@ class QuotaTracker:
 
         return max(0, total_quota - used_quota)
 
-    def get_used_quota(self, target_date: Optional[date] = None) -> int:
+    def get_used_quota(self, target_date: date | None = None) -> int:
         """Get quota already used for the target date"""
         if target_date is None:
             target_date = date.today()
@@ -84,7 +84,7 @@ class QuotaTracker:
 
         return used_quota
 
-    def get_campaign_quota_allocation(self, campaign_id: str, target_date: Optional[date] = None) -> Dict[str, int]:
+    def get_campaign_quota_allocation(self, campaign_id: str, target_date: date | None = None) -> dict[str, int]:
         """Get quota allocation details for a specific campaign"""
         if target_date is None:
             target_date = date.today()
@@ -120,8 +120,8 @@ class QuotaTracker:
     def is_quota_available(
         self,
         requested_quota: int,
-        campaign_id: Optional[str] = None,
-        target_date: Optional[date] = None,
+        campaign_id: str | None = None,
+        target_date: date | None = None,
     ) -> bool:
         """Check if requested quota is available"""
         if target_date is None:
@@ -141,7 +141,7 @@ class QuotaTracker:
 
         return True
 
-    def reserve_quota(self, campaign_id: str, requested_quota: int, target_date: Optional[date] = None) -> bool:
+    def reserve_quota(self, campaign_id: str, requested_quota: int, target_date: date | None = None) -> bool:
         """
         Reserve quota for a campaign (used when creating batches)
 
@@ -171,7 +171,7 @@ class QuotaTracker:
 
         self.logger.debug(f"Recorded {targets_processed} processed targets for batch {batch_id}")
 
-    def get_quota_utilization_stats(self, days_back: int = 7) -> Dict[str, any]:
+    def get_quota_utilization_stats(self, days_back: int = 7) -> dict[str, any]:
         """Get quota utilization statistics for analysis"""
         end_date = date.today()
         start_date = end_date - timedelta(days=days_back)
@@ -210,7 +210,7 @@ class QuotaTracker:
             "daily_breakdown": daily_stats,
         }
 
-    def get_campaign_quota_usage(self, days_back: int = 7) -> List[Dict[str, any]]:
+    def get_campaign_quota_usage(self, days_back: int = 7) -> list[dict[str, any]]:
         """Get quota usage breakdown by campaign"""
         end_date = date.today()
         start_date = end_date - timedelta(days=days_back)
@@ -293,7 +293,7 @@ class QuotaTracker:
 
         return factor
 
-    def get_quota_alerts(self) -> List[Dict[str, any]]:
+    def get_quota_alerts(self) -> list[dict[str, any]]:
         """Get quota-related alerts and warnings"""
         alerts = []
         today = date.today()
@@ -333,7 +333,7 @@ class QuotaTracker:
 
         return alerts
 
-    def optimize_quota_distribution(self, campaigns: List[str], total_quota: int) -> Dict[str, int]:
+    def optimize_quota_distribution(self, campaigns: list[str], total_quota: int) -> dict[str, int]:
         """
         Optimize quota distribution across campaigns based on performance metrics
 

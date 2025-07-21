@@ -2,16 +2,16 @@
 Cost enforcement middleware and decorators for P1-060 Cost guardrails
 Implements pre-flight cost estimation, circuit breakers, and rate limiting
 """
+
 import asyncio
 import functools
 import time
 from collections import defaultdict, deque
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-
-from pydantic import BaseModel, Field
+from typing import Any
 
 from core.config import get_settings
 from core.exceptions import ExternalAPIError
@@ -40,8 +40,8 @@ class TokenBucket:
         self,
         capacity: int,
         refill_rate: float,
-        cost_capacity: Optional[Decimal] = None,
-        cost_refill_rate: Optional[Decimal] = None,
+        cost_capacity: Decimal | None = None,
+        cost_refill_rate: Decimal | None = None,
     ):
         self.capacity = capacity
         self.refill_rate = refill_rate  # tokens per second
@@ -54,7 +54,7 @@ class TokenBucket:
         self.cost_tokens = float(cost_capacity) if cost_capacity else None
         self.cost_last_refill = time.time()
 
-    def consume(self, tokens: int = 1, cost: Optional[Decimal] = None) -> Tuple[bool, Optional[float]]:
+    def consume(self, tokens: int = 1, cost: Decimal | None = None) -> tuple[bool, float | None]:
         """
         Try to consume tokens from the bucket
 
@@ -104,7 +104,7 @@ class SlidingWindowCounter:
         self.events: deque = deque()
         self._total = Decimal("0")
 
-    def add(self, amount: Decimal, timestamp: Optional[datetime] = None):
+    def add(self, amount: Decimal, timestamp: datetime | None = None):
         """Add an event to the window"""
         timestamp = timestamp or datetime.utcnow()
         self.events.append((timestamp, amount))
@@ -133,7 +133,7 @@ class PreflightCostEstimator:
         self.settings = get_settings()
         self._cost_models = self._initialize_cost_models()
 
-    def _initialize_cost_models(self) -> Dict[str, Dict[str, Any]]:
+    def _initialize_cost_models(self) -> dict[str, dict[str, Any]]:
         """Initialize cost models for different providers and operations"""
         return {
             "openai": {
@@ -245,13 +245,13 @@ class CostEnforcementMiddleware:
         self.estimator = PreflightCostEstimator()
 
         # Rate limiters per provider/operation
-        self._rate_limiters: Dict[str, TokenBucket] = {}
+        self._rate_limiters: dict[str, TokenBucket] = {}
 
         # Sliding window counters for cost tracking
-        self._cost_windows: Dict[str, Dict[str, SlidingWindowCounter]] = defaultdict(dict)
+        self._cost_windows: dict[str, dict[str, SlidingWindowCounter]] = defaultdict(dict)
 
         # Operation priorities
-        self._operation_priorities: Dict[str, OperationPriority] = {}
+        self._operation_priorities: dict[str, OperationPriority] = {}
 
         self._initialize_rate_limiters()
 
@@ -276,11 +276,11 @@ class CostEnforcementMiddleware:
         self,
         provider: str,
         operation: str,
-        estimated_cost: Optional[Decimal] = None,
-        campaign_id: Optional[int] = None,
-        priority: Optional[OperationPriority] = None,
+        estimated_cost: Decimal | None = None,
+        campaign_id: int | None = None,
+        priority: OperationPriority | None = None,
         **kwargs,
-    ) -> Union[bool, Dict[str, Any]]:
+    ) -> bool | dict[str, Any]:
         """
         Check and enforce all cost controls
 
@@ -336,7 +336,7 @@ class CostEnforcementMiddleware:
 
     async def _check_rate_limits(
         self, provider: str, operation: str, cost: Decimal, priority: OperationPriority
-    ) -> Union[bool, Dict[str, Any]]:
+    ) -> bool | dict[str, Any]:
         """Check rate limits with priority-based enforcement"""
         # Check operation-specific limit first
         operation_key = f"{provider}:{operation}"
@@ -356,7 +356,7 @@ class CostEnforcementMiddleware:
 
     def _handle_rate_limit_exceeded(
         self, provider: str, operation: str, retry_after: float, priority: OperationPriority
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Handle rate limit exceeded with priority consideration"""
         if priority == OperationPriority.LOW:
             # Aggressive rate limiting for low priority
@@ -371,7 +371,7 @@ class CostEnforcementMiddleware:
             "priority": priority.value,
         }
 
-    def _handle_violation(self, violation: GuardrailViolation, priority: OperationPriority) -> Dict[str, Any]:
+    def _handle_violation(self, violation: GuardrailViolation, priority: OperationPriority) -> dict[str, Any]:
         """Handle guardrail violations based on priority"""
         blocked = GuardrailAction.BLOCK in violation.action_taken
 
@@ -423,7 +423,7 @@ class CostEnforcementMiddleware:
 
         self._cost_windows[operation_key]["hourly"].add(cost)
 
-    def get_current_usage(self, provider: Optional[str] = None, operation: Optional[str] = None) -> Dict[str, Any]:
+    def get_current_usage(self, provider: str | None = None, operation: str | None = None) -> dict[str, Any]:
         """Get current usage statistics"""
         usage = {}
 
@@ -550,8 +550,7 @@ def enforce_cost_limits(
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 

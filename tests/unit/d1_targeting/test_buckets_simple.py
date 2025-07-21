@@ -2,6 +2,7 @@
 Simplified unit tests for Phase 0.5 bucket functionality
 Task TG-06: Test bucket columns and CSV seed data
 """
+
 from pathlib import Path
 
 import pandas as pd

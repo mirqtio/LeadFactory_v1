@@ -2,6 +2,7 @@
 Unit tests for d0_gateway.cost_api module
 Tests cost tracking API endpoints and response models
 """
+
 from datetime import date, datetime, timedelta
 from unittest.mock import MagicMock, Mock, patch
 

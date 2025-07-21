@@ -2,6 +2,7 @@
 """
 Run assessments for the remaining URLs with corrected industries
 """
+
 import asyncio
 import json
 import os
@@ -39,7 +40,7 @@ ASSESSMENT_ENDPOINT = f"{API_BASE_URL}/api/v1/assessments/trigger"
 STATUS_ENDPOINT = f"{API_BASE_URL}/api/v1/assessments"
 
 
-async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]) -> str:
+async def trigger_assessment(client: httpx.AsyncClient, business: dict[str, Any]) -> str:
     """Trigger assessment for a business URL"""
     print(f"\n📊 Triggering assessment for {business['business_name']}...")
 
@@ -62,14 +63,14 @@ async def trigger_assessment(client: httpx.AsyncClient, business: Dict[str, Any]
     return session_id
 
 
-async def check_assessment_status(client: httpx.AsyncClient, session_id: str) -> Dict[str, Any]:
+async def check_assessment_status(client: httpx.AsyncClient, session_id: str) -> dict[str, Any]:
     """Check assessment status"""
     url = f"{STATUS_ENDPOINT}/{session_id}/status"
     response = await client.get(url)
     return response.json()
 
 
-async def get_assessment_results(client: httpx.AsyncClient, session_id: str) -> Dict[str, Any]:
+async def get_assessment_results(client: httpx.AsyncClient, session_id: str) -> dict[str, Any]:
     """Get assessment results"""
     url = f"{STATUS_ENDPOINT}/{session_id}/results"
     response = await client.get(url)
@@ -88,14 +89,14 @@ async def wait_for_completion(client: httpx.AsyncClient, session_id: str, busine
             print(f"✅ Assessment {status['status']} for {business_name}")
             return True
 
-        print(f"   Progress: {status.get('progress', 'Processing...')} ({attempt+1}/{max_attempts})")
+        print(f"   Progress: {status.get('progress', 'Processing...')} ({attempt + 1}/{max_attempts})")
         await asyncio.sleep(5)  # Check every 5 seconds
 
     print(f"❌ Assessment timed out for {business_name}")
     return False
 
 
-def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str, Any], output_dir: Path):
+def generate_html_report(business: dict[str, Any], assessment_results: dict[str, Any], output_dir: Path):
     """Generate a simple HTML report from assessment results"""
     print(f"\n📝 Generating HTML report for {business['business_name']}...")
 
@@ -110,7 +111,7 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Assessment Report - {business['business_name']}</title>
+    <title>Website Assessment Report - {business["business_name"]}</title>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -207,11 +208,11 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
         
         <div class="info-section">
             <h2>Business Information</h2>
-            <p><strong>Name:</strong> {business['business_name']}</p>
-            <p><strong>Website:</strong> <a href="{business['url']}" target="_blank">{business['url']}</a></p>
-            <p><strong>Industry:</strong> {business['vertical'].replace('_', ' ').title()}</p>
-            <p><strong>Location:</strong> {business['location']}</p>
-            <p><strong>Assessment Date:</strong> {datetime.now().strftime('%B %d, %Y')}</p>
+            <p><strong>Name:</strong> {business["business_name"]}</p>
+            <p><strong>Website:</strong> <a href="{business["url"]}" target="_blank">{business["url"]}</a></p>
+            <p><strong>Industry:</strong> {business["vertical"].replace("_", " ").title()}</p>
+            <p><strong>Location:</strong> {business["location"]}</p>
+            <p><strong>Assessment Date:</strong> {datetime.now().strftime("%B %d, %Y")}</p>
         </div>
 """
 
@@ -224,28 +225,28 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
         if pagespeed.get("performance_score") is not None:
             html_content += f"""
             <div class="score-card">
-                <div class="score-value">{pagespeed.get('performance_score', 0)}</div>
+                <div class="score-value">{pagespeed.get("performance_score", 0)}</div>
                 <div class="score-label">Performance</div>
             </div>
 """
         if pagespeed.get("accessibility_score") is not None:
             html_content += f"""
             <div class="score-card">
-                <div class="score-value">{pagespeed.get('accessibility_score', 0)}</div>
+                <div class="score-value">{pagespeed.get("accessibility_score", 0)}</div>
                 <div class="score-label">Accessibility</div>
             </div>
 """
         if pagespeed.get("seo_score") is not None:
             html_content += f"""
             <div class="score-card">
-                <div class="score-value">{pagespeed.get('seo_score', 0)}</div>
+                <div class="score-value">{pagespeed.get("seo_score", 0)}</div>
                 <div class="score-label">SEO</div>
             </div>
 """
         if pagespeed.get("best_practices_score") is not None:
             html_content += f"""
             <div class="score-card">
-                <div class="score-value">{pagespeed.get('best_practices_score', 0)}</div>
+                <div class="score-value">{pagespeed.get("best_practices_score", 0)}</div>
                 <div class="score-label">Best Practices</div>
             </div>
 """
@@ -260,9 +261,9 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
             for opp in opportunities[:5]:  # Show top 5
                 html_content += f"""
         <div class="recommendation">
-            <h3>{opp.get('title', 'Improvement Opportunity')}</h3>
-            <p>{opp.get('description', '')}</p>
-            {f"<p><strong>Potential Impact:</strong> {opp.get('displayValue', '')}</p>" if opp.get('displayValue') else ''}
+            <h3>{opp.get("title", "Improvement Opportunity")}</h3>
+            <p>{opp.get("description", "")}</p>
+            {f"<p><strong>Potential Impact:</strong> {opp.get('displayValue', '')}</p>" if opp.get("displayValue") else ""}
         </div>
 """
 
@@ -285,9 +286,9 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
         for rec in ai_insights["recommendations"][:5]:  # Show top 5
             html_content += f"""
         <div class="recommendation">
-            <h3>{rec.get('title', 'Recommendation')}</h3>
-            <p>{rec.get('description', rec.get('recommendation', ''))}</p>
-            {f"<p><strong>Priority:</strong> {rec.get('priority', 'Medium')}</p>" if rec.get('priority') else ''}
+            <h3>{rec.get("title", "Recommendation")}</h3>
+            <p>{rec.get("description", rec.get("recommendation", ""))}</p>
+            {f"<p><strong>Priority:</strong> {rec.get('priority', 'Medium')}</p>" if rec.get("priority") else ""}
         </div>
 """
 
@@ -308,7 +309,7 @@ def generate_html_report(business: Dict[str, Any], assessment_results: Dict[str,
     print(f"✅ HTML report saved: {html_filename}")
 
 
-async def save_assessment_data(session_id: str, business: Dict[str, Any], results: Dict[str, Any], output_dir: Path):
+async def save_assessment_data(session_id: str, business: dict[str, Any], results: dict[str, Any], output_dir: Path):
     """Save assessment results to JSON file"""
     filename = output_dir / f"assessment_{business['business_id']}_{session_id}.json"
 
@@ -325,13 +326,13 @@ async def save_assessment_data(session_id: str, business: Dict[str, Any], result
     print(f"💾 Assessment data saved to {filename}")
 
 
-async def run_pipeline_for_business(client: httpx.AsyncClient, business: Dict[str, Any], output_dir: Path):
+async def run_pipeline_for_business(client: httpx.AsyncClient, business: dict[str, Any], output_dir: Path):
     """Run complete pipeline for a single business"""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"🏢 Processing: {business['business_name']}")
     print(f"🌐 URL: {business['url']}")
     print(f"📊 Industry: {business['vertical']}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Step 1: Trigger assessment
     session_id = await trigger_assessment(client, business)
@@ -405,10 +406,10 @@ async def main():
             # Small delay between businesses
             await asyncio.sleep(2)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("✅ Remaining assessments completed!")
     print(f"📁 All results saved in: {output_dir.absolute()}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # List all generated files
     print("\n📋 All generated files in directory:")

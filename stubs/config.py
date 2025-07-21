@@ -1,6 +1,7 @@
 """
 Configuration for stub server usage
 """
+
 import os
 from typing import Any, Dict
 

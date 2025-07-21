@@ -1,6 +1,7 @@
 """
 Unit tests for the Lighthouse assessor
 """
+
 import asyncio
 import json
 import os

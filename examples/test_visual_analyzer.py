@@ -2,6 +2,7 @@
 """
 Example script to demonstrate the visual analyzer functionality
 """
+
 import asyncio
 import json
 import os

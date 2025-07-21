@@ -3,6 +3,7 @@ Comprehensive API endpoint integration tests for P2-010 Collaborative Buckets.
 
 Tests all API endpoints to achieve ≥80% coverage for collaboration_api.py
 """
+
 import json
 import secrets
 from datetime import datetime, timedelta
@@ -338,9 +339,10 @@ class TestPermissionManagement:
             "send_notification": True,
         }
 
-        with patch("d1_targeting.collaboration_api.create_activity") as mock_activity, patch(
-            "d1_targeting.collaboration_api.create_notification"
-        ) as mock_notification:
+        with (
+            patch("d1_targeting.collaboration_api.create_activity") as mock_activity,
+            patch("d1_targeting.collaboration_api.create_notification") as mock_notification,
+        ):
             mock_activity.return_value = AsyncMock()
             mock_notification.return_value = AsyncMock()
 
@@ -442,9 +444,10 @@ class TestPermissionManagement:
         db_session.add(permission)
         db_session.commit()
 
-        with patch("d1_targeting.collaboration_api.create_activity") as mock_activity, patch(
-            "d1_targeting.collaboration_api.create_notification"
-        ) as mock_notification:
+        with (
+            patch("d1_targeting.collaboration_api.create_activity") as mock_activity,
+            patch("d1_targeting.collaboration_api.create_notification") as mock_notification,
+        ):
             mock_activity.return_value = AsyncMock()
             mock_notification.return_value = AsyncMock()
 
@@ -559,9 +562,10 @@ class TestComments:
             "mentioned_users": ["user-789"],
         }
 
-        with patch("d1_targeting.collaboration_api.create_activity") as mock_activity, patch(
-            "d1_targeting.collaboration_api.create_notification"
-        ) as mock_notification:
+        with (
+            patch("d1_targeting.collaboration_api.create_activity") as mock_activity,
+            patch("d1_targeting.collaboration_api.create_notification") as mock_notification,
+        ):
             mock_activity.return_value = AsyncMock()
             mock_notification.return_value = AsyncMock()
 

@@ -134,9 +134,8 @@ def check_test_coverage():
                 if total_coverage >= 80:
                     print(f"  ✓ Test coverage: {total_coverage:.1f}% (≥80% required)")
                     return True
-                else:
-                    print(f"  ❌ Test coverage: {total_coverage:.1f}% (≥80% required)")
-                    return False
+                print(f"  ❌ Test coverage: {total_coverage:.1f}% (≥80% required)")
+                return False
         else:
             print("  ℹ️  Coverage report not found - would check in CI")
             return True
@@ -202,9 +201,8 @@ def main():
         print("   - Performance requirements met")
         print("   - Security controls in place")
         return 0
-    else:
-        print("\n❌ P0-023 validation FAILED - see errors above")
-        return 1
+    print("\n❌ P0-023 validation FAILED - see errors above")
+    return 1
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ import uuid
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from io import StringIO
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -89,7 +89,7 @@ warehouse = MetricsWarehouse()
 pdf_service = UnitEconomicsPDFService()
 
 # In-memory storage for exports (would use file storage/S3 in production)
-export_cache: Dict[str, Dict[str, Any]] = {}
+export_cache: dict[str, dict[str, Any]] = {}
 
 
 def get_warehouse() -> MetricsWarehouse:
@@ -100,7 +100,7 @@ def get_warehouse() -> MetricsWarehouse:
 def create_error_response(
     error_type: str,
     message: str,
-    details: Optional[Dict] = None,
+    details: dict | None = None,
     status_code: int = 400,
 ) -> HTTPException:
     """Create standardized error response"""
@@ -554,7 +554,7 @@ async def get_export_status(
                     "created_at": export_data["created_at"].isoformat(),
                 }
             )
-        elif export_data["status"] == "failed":
+        if export_data["status"] == "failed":
             return JSONResponse(
                 {
                     "export_id": export_id,
@@ -564,7 +564,7 @@ async def get_export_status(
                 },
                 status_code=500,
             )
-        elif export_data["status"] == "completed":
+        if export_data["status"] == "completed":
             # Check if download is requested
             return StreamingResponse(
                 iter([export_data["content"]]),
@@ -585,10 +585,10 @@ async def get_export_status(
     description="Retrieve unit economics metrics (CPL, CAC, ROI, LTV) with 24-hour cache",
 )
 async def get_unit_economics(
-    date: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    format: Optional[str] = "json",
+    date: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    format: str | None = "json",
     warehouse: MetricsWarehouse = Depends(get_warehouse),
     current_user: AccountUser = Depends(get_current_user_dependency),
     organization_id: str = Depends(require_organization_access),
@@ -601,7 +601,6 @@ async def get_unit_economics(
     - Response cached 24 h
     - JSON and CSV export
     """
-    import json as json_module
     from datetime import date as date_class
     from datetime import datetime, timedelta
 
@@ -721,9 +720,9 @@ async def get_unit_economics(
     description="Generate executive-grade PDF report for unit economics with charts and analysis",
 )
 async def get_unit_economics_pdf(
-    date: Optional[str] = None,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
+    date: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
     include_charts: bool = True,
     include_detailed_analysis: bool = True,
     warehouse: MetricsWarehouse = Depends(get_warehouse),
@@ -739,7 +738,6 @@ async def get_unit_economics_pdf(
     - Multi-page reports with comprehensive metrics
     - Professional branding and layout
     """
-    import json as json_module
     from datetime import date as date_class
     from datetime import datetime, timedelta
 
@@ -899,7 +897,7 @@ async def health_check(
         )
 
 
-def _build_filters(segment_filter: Optional[SegmentFilter]) -> Dict[str, Any]:
+def _build_filters(segment_filter: SegmentFilter | None) -> dict[str, Any]:
     """Build filters dictionary from segment filter"""
     filters = {}
     if segment_filter:
@@ -918,13 +916,12 @@ def _generate_export_content(data: Any, file_format: str) -> str:
     """Generate export file content in specified format"""
     if file_format == "csv":
         return _generate_csv_content(data)
-    elif file_format == "json":
+    if file_format == "json":
         return json.dumps(data, indent=2, default=str)
-    elif file_format == "excel":
+    if file_format == "excel":
         # Would use pandas.to_excel() in production
         return _generate_csv_content(data)  # Fallback to CSV for now
-    else:
-        raise ValueError(f"Unsupported file format: {file_format}")
+    raise ValueError(f"Unsupported file format: {file_format}")
 
 
 async def _get_unit_economics_from_view(start_date: date, end_date: date) -> list:

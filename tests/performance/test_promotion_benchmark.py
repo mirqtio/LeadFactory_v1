@@ -31,7 +31,7 @@ class SyncScriptLoader:
         """Synchronous wrapper for load_script"""
         return asyncio.run(self.async_loader.load_script(script_name))
 
-    def execute_script(self, script_name: str, keys: List[str], args: List) -> any:
+    def execute_script(self, script_name: str, keys: list[str], args: list) -> any:
         """Synchronous wrapper for execute_script"""
         return asyncio.run(self.async_loader.execute_script(script_name, keys, args))
 
@@ -65,7 +65,7 @@ class PromotionBenchmark:
             ],
         }
 
-    def setup_test_data(self, num_prps: int) -> List[str]:
+    def setup_test_data(self, num_prps: int) -> list[str]:
         """Setup test PRPs in pending queue"""
         prp_ids = [f"PRP-BENCH-{i:04d}" for i in range(num_prps)]
 
@@ -140,7 +140,7 @@ class PromotionBenchmark:
 
         return results
 
-    def batch_promotion_benchmark(self, batch_sizes: List[int] = [10, 50, 100]) -> dict:
+    def batch_promotion_benchmark(self, batch_sizes: list[int] = [10, 50, 100]) -> dict:
         """Benchmark batch promotions with different sizes"""
         results = {"test_type": "batch_promotion", "batch_results": {}}
 
@@ -213,7 +213,7 @@ class PromotionBenchmark:
 
         print(f"Running concurrent load test: {num_threads} threads × {operations_per_thread} ops...")
 
-        def worker_thread(thread_id: int) -> Tuple[int, int, List[float]]:
+        def worker_thread(thread_id: int) -> tuple[int, int, list[float]]:
             """Worker function for concurrent testing"""
             successes = 0
             errors = 0
@@ -358,7 +358,7 @@ class PromotionBenchmark:
 
         return results
 
-    def _single_promotion_op(self, op_id: int) -> Tuple[bool, float]:
+    def _single_promotion_op(self, op_id: int) -> tuple[bool, float]:
         """Single promotion operation for stress testing"""
         prp_id = f"PRP-STRESS-{op_id:06d}"
 
@@ -390,7 +390,7 @@ class PromotionBenchmark:
         except Exception:
             return False, None
 
-    def _percentile(self, data: List[float], percentile: float) -> float:
+    def _percentile(self, data: list[float], percentile: float) -> float:
         """Calculate percentile of data"""
         if not data:
             return 0.0
@@ -400,10 +400,9 @@ class PromotionBenchmark:
 
         if index.is_integer():
             return sorted_data[int(index)]
-        else:
-            lower = sorted_data[int(index)]
-            upper = sorted_data[int(index) + 1]
-            return lower + (upper - lower) * (index - int(index))
+        lower = sorted_data[int(index)]
+        upper = sorted_data[int(index) + 1]
+        return lower + (upper - lower) * (index - int(index))
 
     def run_full_benchmark_suite(self) -> dict:
         """Run complete benchmark suite"""

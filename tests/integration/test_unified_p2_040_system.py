@@ -2,6 +2,7 @@
 Integration tests for P2-040 Unified Budget Monitoring System
 Tests the integration between PM-1's core monitoring and PM-2's alert enhancements
 """
+
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -27,9 +28,10 @@ class TestUnifiedP2040System:
         """Test unified system initialization"""
         system = UnifiedBudgetSystem()
 
-        with patch("orchestrator.unified_budget_system.PM1CoreIntegration.initialize") as mock_pm1, patch(
-            "orchestrator.unified_budget_system.PM2AlertIntegration.initialize"
-        ) as mock_pm2:
+        with (
+            patch("orchestrator.unified_budget_system.PM1CoreIntegration.initialize") as mock_pm1,
+            patch("orchestrator.unified_budget_system.PM2AlertIntegration.initialize") as mock_pm2,
+        ):
             await system.initialize()
 
             assert system.is_initialized
@@ -87,9 +89,10 @@ class TestUnifiedP2040System:
     async def test_unified_budget_status(self):
         """Test unified budget status retrieval"""
         # Mock both PM-1 and PM-2 status calls
-        with patch.object(PM1CoreIntegration, "get_status") as mock_pm1_status, patch.object(
-            PM2AlertIntegration, "get_status"
-        ) as mock_pm2_status:
+        with (
+            patch.object(PM1CoreIntegration, "get_status") as mock_pm1_status,
+            patch.object(PM2AlertIntegration, "get_status") as mock_pm2_status,
+        ):
             mock_pm1_status.return_value = {
                 "current_spend": 1500.0,
                 "monthly_limit": 3000.0,
@@ -118,9 +121,10 @@ class TestUnifiedP2040System:
     @pytest.mark.asyncio
     async def test_unified_budget_check(self):
         """Test unified budget check coordination"""
-        with patch.object(PM1CoreIntegration, "trigger_monthly_monitor") as mock_pm1_check, patch.object(
-            PM2AlertIntegration, "trigger_realtime_check"
-        ) as mock_pm2_check:
+        with (
+            patch.object(PM1CoreIntegration, "trigger_monthly_monitor") as mock_pm1_check,
+            patch.object(PM2AlertIntegration, "trigger_realtime_check") as mock_pm2_check,
+        ):
             mock_pm1_check.return_value = {"status": "success", "alert_sent": True}
 
             mock_pm2_check.return_value = {"status": "success", "alerts_sent": "2"}
@@ -139,9 +143,10 @@ class TestUnifiedP2040System:
     async def test_unified_operation_budget_check(self):
         """Test unified operation budget checking"""
         # Mock PM-1's real-time cost check
-        with patch("orchestrator.unified_budget_system.real_time_cost_check") as mock_pm1_check, patch(
-            "orchestrator.unified_budget_system.check_budget_before_operation"
-        ) as mock_pm2_check:
+        with (
+            patch("orchestrator.unified_budget_system.real_time_cost_check") as mock_pm1_check,
+            patch("orchestrator.unified_budget_system.check_budget_before_operation") as mock_pm2_check,
+        ):
             mock_pm1_check.return_value = {"should_proceed": True, "recommendation": "proceed"}
 
             mock_pm2_check.return_value = True
@@ -158,9 +163,10 @@ class TestUnifiedP2040System:
     async def test_unified_operation_budget_check_blocked(self):
         """Test unified operation budget checking when blocked"""
         # Mock one system blocking the operation
-        with patch("orchestrator.unified_budget_system.real_time_cost_check") as mock_pm1_check, patch(
-            "orchestrator.unified_budget_system.check_budget_before_operation"
-        ) as mock_pm2_check:
+        with (
+            patch("orchestrator.unified_budget_system.real_time_cost_check") as mock_pm1_check,
+            patch("orchestrator.unified_budget_system.check_budget_before_operation") as mock_pm2_check,
+        ):
             mock_pm1_check.return_value = {"should_proceed": True, "recommendation": "proceed"}
 
             mock_pm2_check.return_value = False  # PM-2 blocks
@@ -216,9 +222,10 @@ class TestUnifiedP2040System:
         system.is_initialized = True
 
         # Mock PM-1 to raise exception
-        with patch.object(PM1CoreIntegration, "trigger_monthly_monitor") as mock_pm1, patch.object(
-            PM2AlertIntegration, "trigger_realtime_check"
-        ) as mock_pm2:
+        with (
+            patch.object(PM1CoreIntegration, "trigger_monthly_monitor") as mock_pm1,
+            patch.object(PM2AlertIntegration, "trigger_realtime_check") as mock_pm2,
+        ):
             mock_pm1.side_effect = Exception("PM-1 error")
             mock_pm2.return_value = {"status": "success", "alerts_sent": "0"}
 
@@ -276,8 +283,9 @@ class TestUnifiedP2040System:
             "alerts_active": 1,
         }
 
-        with patch.object(PM1CoreIntegration, "get_status", return_value=pm1_status), patch.object(
-            PM2AlertIntegration, "get_status", return_value=pm2_status
+        with (
+            patch.object(PM1CoreIntegration, "get_status", return_value=pm1_status),
+            patch.object(PM2AlertIntegration, "get_status", return_value=pm2_status),
         ):
             status = await system.check_unified_budget_status()
 

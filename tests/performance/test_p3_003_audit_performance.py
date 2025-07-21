@@ -2,6 +2,7 @@
 Performance tests for P3-003 Lead Explorer Audit Trail
 Validates audit logging performance requirements for production deployment
 """
+
 import time
 from unittest.mock import patch
 

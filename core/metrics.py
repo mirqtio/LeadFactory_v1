@@ -1,6 +1,7 @@
 """
 Core metrics collection for LeadFactory using Prometheus
 """
+
 import asyncio
 import time
 from functools import wraps
@@ -394,8 +395,7 @@ def track_time(metric_name: str = None):
         # Return appropriate wrapper based on function type
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 

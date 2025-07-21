@@ -19,7 +19,7 @@ import asyncio  # noqa: E402
 import json  # noqa: E402
 import logging  # noqa: E402
 import sys  # noqa: E402
-from datetime import datetime, timezone  # noqa: E402
+from datetime import UTC, datetime, timezone  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any, Dict  # noqa: E402
 
@@ -56,7 +56,7 @@ class CampaignLauncher:
         self.metrics = MetricsCollector() if PIPELINE_AVAILABLE else None
 
         # Campaign tracking
-        self.campaign_id = f"launch_batch_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        self.campaign_id = f"launch_batch_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
         self.emails_sent = 0
         self.emails_delivered = 0
         self.emails_bounced = 0
@@ -268,9 +268,8 @@ class CampaignLauncher:
                     print("⚠️  Email tracking not confirmed")
 
                 return delivery_rate > 95 and bounce_rate < 5
-            else:
-                self.campaign_results["errors"].append("No emails were sent")
-                return False
+            self.campaign_results["errors"].append("No emails were sent")
+            return False
 
         except Exception as e:
             error_msg = f"Email delivery verification failed: {e}"
@@ -302,9 +301,8 @@ class CampaignLauncher:
                 print("✅ Campaign monitoring active")
                 self.campaign_results["monitoring_active"] = True
                 return True
-            else:
-                self.campaign_results["errors"].append("Campaign monitoring not active")
-                return False
+            self.campaign_results["errors"].append("Campaign monitoring not active")
+            return False
 
         except Exception as e:
             error_msg = f"Campaign monitoring failed: {e}"
@@ -312,7 +310,7 @@ class CampaignLauncher:
             self.logger.error(error_msg)
             return False
 
-    def check_acceptance_criteria(self) -> Dict[str, bool]:
+    def check_acceptance_criteria(self) -> dict[str, bool]:
         """Check if all acceptance criteria are met"""
         criteria = {
             "100_emails_sent": self.emails_sent >= self.batch_size,
@@ -332,7 +330,7 @@ class CampaignLauncher:
 
         return criteria
 
-    def generate_campaign_report(self) -> Dict[str, Any]:
+    def generate_campaign_report(self) -> dict[str, Any]:
         """Generate comprehensive campaign launch report"""
         acceptance_criteria = self.check_acceptance_criteria()
 
@@ -341,7 +339,7 @@ class CampaignLauncher:
                 "campaign_id": self.campaign_id,
                 "batch_size": self.batch_size,
                 "dry_run": self.dry_run,
-                "launch_date": datetime.now(timezone.utc).isoformat(),
+                "launch_date": datetime.now(UTC).isoformat(),
             },
             "results": self.campaign_results,
             "acceptance_criteria": acceptance_criteria,
@@ -370,7 +368,7 @@ class CampaignLauncher:
         print(f"Mode: {'DRY RUN' if self.dry_run else 'PRODUCTION'}")
         print("=" * 60)
 
-        self.campaign_results["start_time"] = datetime.now(timezone.utc).isoformat()
+        self.campaign_results["start_time"] = datetime.now(UTC).isoformat()
 
         # Step 1: Validate prerequisites
         if not await self.validate_prerequisites():
@@ -397,7 +395,7 @@ class CampaignLauncher:
             print("❌ Campaign monitoring failed")
             return False
 
-        self.campaign_results["end_time"] = datetime.now(timezone.utc).isoformat()
+        self.campaign_results["end_time"] = datetime.now(UTC).isoformat()
 
         # Final validation
         acceptance_criteria = self.check_acceptance_criteria()

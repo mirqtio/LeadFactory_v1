@@ -11,11 +11,12 @@ Acceptance Criteria:
 - Issue extraction works
 - Mobile-first approach
 """
+
 import asyncio
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from d0_gateway.providers.pagespeed import PageSpeedClient
 
@@ -32,7 +33,7 @@ class PageSpeedAssessorLegacy:
     optimization opportunities.
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """
         Initialize PageSpeed assessor
 
@@ -47,7 +48,7 @@ class PageSpeedAssessorLegacy:
         self,
         business_id: str,
         url: str,
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
         include_desktop: bool = True,
     ) -> AssessmentResult:
         """
@@ -119,7 +120,7 @@ class PageSpeedAssessorLegacy:
             assessment.completed_at = datetime.utcnow()
             raise
 
-    async def _analyze_mobile(self, assessment_id: str, url: str) -> Dict[str, Any]:
+    async def _analyze_mobile(self, assessment_id: str, url: str) -> dict[str, Any]:
         """Analyze website on mobile device (mobile-first approach)"""
         try:
             result = await self.client.analyze_url(
@@ -153,7 +154,7 @@ class PageSpeedAssessorLegacy:
         except Exception as e:
             raise Exception(f"Mobile analysis failed: {str(e)}")
 
-    async def _analyze_desktop(self, assessment_id: str, url: str) -> Dict[str, Any]:
+    async def _analyze_desktop(self, assessment_id: str, url: str) -> dict[str, Any]:
         """Analyze website on desktop device"""
         try:
             result = await self.client.analyze_url(
@@ -190,8 +191,8 @@ class PageSpeedAssessorLegacy:
     def _populate_core_metrics(
         self,
         assessment: AssessmentResult,
-        mobile_result: Dict[str, Any],
-        desktop_result: Optional[Dict[str, Any]] = None,
+        mobile_result: dict[str, Any],
+        desktop_result: dict[str, Any] | None = None,
     ):
         """
         Populate core metrics in assessment (mobile-first approach)
@@ -217,7 +218,7 @@ class PageSpeedAssessorLegacy:
         if "pwa" in mobile_categories:
             assessment.pwa_score = int(mobile_categories["pwa"].get("score", 0) * 100)
 
-    def _extract_core_web_vitals(self, assessment: AssessmentResult, mobile_result: Dict[str, Any]):
+    def _extract_core_web_vitals(self, assessment: AssessmentResult, mobile_result: dict[str, Any]):
         """
         Extract Core Web Vitals from mobile result (mobile-first)
 
@@ -260,7 +261,7 @@ class PageSpeedAssessorLegacy:
             tbt = audits["total-blocking-time"]
             assessment.total_blocking_time = tbt.get("numericValue")
 
-    def _extract_lighthouse_scores(self, pagespeed_assessment: PageSpeedAssessment, result: Dict[str, Any]):
+    def _extract_lighthouse_scores(self, pagespeed_assessment: PageSpeedAssessment, result: dict[str, Any]):
         """Extract Lighthouse scores for PageSpeedAssessment"""
         categories = result.get("lighthouseResult", {}).get("categories", {})
 
@@ -275,7 +276,7 @@ class PageSpeedAssessorLegacy:
         if "pwa" in categories:
             pagespeed_assessment.pwa_score = int(categories["pwa"].get("score", 0) * 100)
 
-    def _extract_detailed_cwv(self, pagespeed_assessment: PageSpeedAssessment, result: Dict[str, Any]):
+    def _extract_detailed_cwv(self, pagespeed_assessment: PageSpeedAssessment, result: dict[str, Any]):
         """Extract detailed Core Web Vitals for PageSpeedAssessment"""
         audits = result.get("lighthouseResult", {}).get("audits", {})
 
@@ -313,7 +314,7 @@ class PageSpeedAssessorLegacy:
 
         pagespeed_assessment.core_web_vitals = core_web_vitals
 
-    def _extract_opportunities(self, result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_opportunities(self, result: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Extract optimization opportunities
 
@@ -345,7 +346,7 @@ class PageSpeedAssessorLegacy:
         opportunities.sort(key=lambda x: x["savings_ms"], reverse=True)
         return opportunities
 
-    def _extract_diagnostics(self, result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_diagnostics(self, result: dict[str, Any]) -> list[dict[str, Any]]:
         """Extract diagnostic information and issues"""
         diagnostics = []
         audits = result.get("lighthouseResult", {}).get("audits", {})
@@ -384,9 +385,9 @@ class PageSpeedAssessorLegacy:
 
     def _extract_issues(
         self,
-        mobile_result: Dict[str, Any],
-        desktop_result: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        mobile_result: dict[str, Any],
+        desktop_result: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Extract comprehensive performance issues
 
@@ -415,10 +416,9 @@ class PageSpeedAssessorLegacy:
         """Categorize performance impact level"""
         if savings_ms >= 1000:  # 1+ seconds
             return "high"
-        elif savings_ms >= 500:  # 0.5+ seconds
+        if savings_ms >= 500:  # 0.5+ seconds
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _extract_domain(self, url: str) -> str:
         """Extract domain from URL"""
@@ -429,9 +429,9 @@ class PageSpeedAssessorLegacy:
     async def _calculate_assessment_cost(
         self,
         assessment_id: str,
-        session_id: Optional[str],
-        mobile_result: Dict[str, Any],
-        desktop_result: Optional[Dict[str, Any]] = None,
+        session_id: str | None,
+        mobile_result: dict[str, Any],
+        desktop_result: dict[str, Any] | None = None,
     ) -> Decimal:
         """
         Calculate and track assessment costs
@@ -488,7 +488,7 @@ class PageSpeedBatchAssessor:
     error handling.
     """
 
-    def __init__(self, api_key: Optional[str] = None, max_concurrent: int = 5):
+    def __init__(self, api_key: str | None = None, max_concurrent: int = 5):
         """
         Initialize batch assessor
 
@@ -502,10 +502,10 @@ class PageSpeedBatchAssessor:
     async def assess_multiple_websites(
         self,
         # [{"business_id": "...", "url": "..."}]
-        websites: List[Dict[str, str]],
-        session_id: Optional[str] = None,
+        websites: list[dict[str, str]],
+        session_id: str | None = None,
         include_desktop: bool = True,
-    ) -> List[AssessmentResult]:
+    ) -> list[AssessmentResult]:
         """
         Assess multiple websites efficiently
 
@@ -519,7 +519,7 @@ class PageSpeedBatchAssessor:
         """
         semaphore = asyncio.Semaphore(self.max_concurrent)
 
-        async def assess_single(website_data: Dict[str, str]) -> AssessmentResult:
+        async def assess_single(website_data: dict[str, str]) -> AssessmentResult:
             async with semaphore:
                 try:
                     return await self.assessor.assess_website(

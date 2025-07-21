@@ -6,7 +6,7 @@ and time series data with efficient indexing for query performance.
 
 Acceptance Criteria:
 - Funnel event model ✓
-- Metrics aggregation ✓  
+- Metrics aggregation ✓
 - Time series support ✓
 - Efficient indexing ✓
 """
@@ -15,7 +15,7 @@ import enum
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Column, Date, DateTime
 from sqlalchemy import Enum as SQLEnum
@@ -128,8 +128,8 @@ class FunnelConversion:
     total_count: int
     success_count: int
     conversion_rate: float
-    avg_duration_seconds: Optional[float] = None
-    metadata: Optional[Dict[str, Any]] = None
+    avg_duration_seconds: float | None = None
+    metadata: dict[str, Any] | None = None
 
 
 @dataclass
@@ -140,12 +140,12 @@ class MetricSnapshot:
     metric_type: MetricType
     value: float
     timestamp: datetime
-    period_type: Optional[AggregationPeriod] = None
-    period_start: Optional[datetime] = None
-    period_end: Optional[datetime] = None
-    funnel_stage: Optional[FunnelStage] = None
-    campaign_id: Optional[str] = None
-    tags: Optional[Dict[str, Any]] = None
+    period_type: AggregationPeriod | None = None
+    period_start: datetime | None = None
+    period_end: datetime | None = None
+    funnel_stage: FunnelStage | None = None
+    campaign_id: str | None = None
+    tags: dict[str, Any] | None = None
 
 
 @dataclass
@@ -156,10 +156,10 @@ class DashboardMetric:
     display_name: str
     value: float
     unit: str
-    change_percentage: Optional[float] = None
-    trend: Optional[str] = None
-    period: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    change_percentage: float | None = None
+    trend: str | None = None
+    period: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 # Backward compatibility class for tests
@@ -170,7 +170,7 @@ class D10Metric:
     type: MetricType  # Maps to metric_type in MetricSnapshot
     value: float
     timestamp: datetime
-    dimensions: Optional[Dict[str, Any]] = None
+    dimensions: dict[str, Any] | None = None
 
     @property
     def metric_type(self) -> MetricType:

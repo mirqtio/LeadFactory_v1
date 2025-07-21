@@ -23,6 +23,7 @@ Test Coverage:
 - Quick win prioritization
 - Warning severity levels
 """
+
 import pytest
 
 from d3_assessment.assessors.visual_analyzer import VisualAnalyzer
@@ -51,7 +52,7 @@ class TestVisualRubric:
         ]
 
         # Create a sample scores dict
-        scores = {dim: 5 for dim in expected_dimensions}
+        scores = dict.fromkeys(expected_dimensions, 5)
 
         # Verify all dimensions are present
         assert len(scores) == 9
@@ -254,9 +255,8 @@ class TestVisualRubric:
 
     def test_perfect_score_handling(self):
         """Test handling of perfect scores (100)"""
-        perfect_scores = {
-            dim: 9
-            for dim in [
+        perfect_scores = dict.fromkeys(
+            [
                 "visual_design_quality",
                 "brand_consistency",
                 "navigation_clarity",
@@ -266,8 +266,9 @@ class TestVisualRubric:
                 "loading_performance",
                 "trust_signals",
                 "overall_user_experience",
-            ]
-        }
+            ],
+            9,
+        )
 
         # Average should be 9
         avg = sum(perfect_scores.values()) / len(perfect_scores)
@@ -304,29 +305,27 @@ class TestVisualRubric:
         """Categorize score into performance bands"""
         if score >= 9:
             return "excellent"
-        elif score >= 7:
+        if score >= 7:
             return "good"
-        elif score >= 5:
+        if score >= 5:
             return "average"
-        elif score >= 4:
+        if score >= 4:
             return "below_average"
-        elif score >= 2:
+        if score >= 2:
             return "poor"
-        else:
-            return "critical"
+        return "critical"
 
     def _get_severity(self, score: int) -> str:
         """Get severity level based on score"""
         if score < 2:
             return "severe"
-        elif score < 4:
+        if score < 4:
             return "high"
-        elif score < 6:
+        if score < 6:
             return "medium"
-        elif score < 8:
+        if score < 8:
             return "low"
-        else:
-            return "none"
+        return "none"
 
     def _generate_warning(self, dimension: str, score: int) -> str:
         """Generate warning message for low-scoring dimension"""

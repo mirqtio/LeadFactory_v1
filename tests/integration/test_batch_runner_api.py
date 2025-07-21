@@ -2,6 +2,7 @@
 Integration tests for Batch Runner API endpoints
 Tests all 7 API endpoints plus WebSocket functionality with real FastAPI client
 """
+
 import asyncio
 import json
 from unittest.mock import AsyncMock, patch
@@ -419,7 +420,6 @@ class TestBatchRunnerWebSocketIntegration:
 
                         # Test receiving a message (would be sent by processor)
                         # In real scenario, processor would send progress updates
-                        pass
                 except Exception as e:
                     # WebSocket might fail with test client, but connection attempt is what we're testing
                     assert "websocket" in str(e).lower()

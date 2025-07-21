@@ -6,8 +6,9 @@ and reduce boilerplate across the test suite.
 """
 
 import asyncio
+from collections.abc import Callable
 from contextlib import contextmanager
-from typing import Any, Callable, Dict
+from typing import Any, Dict
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -172,7 +173,7 @@ def async_raise():
 
 
 # Test data factories
-def create_test_business(business_id: str = "test_biz_001", **kwargs) -> Dict[str, Any]:
+def create_test_business(business_id: str = "test_biz_001", **kwargs) -> dict[str, Any]:
     """Create a test business record with sensible defaults."""
     defaults = {
         "id": business_id,
@@ -189,7 +190,7 @@ def create_test_business(business_id: str = "test_biz_001", **kwargs) -> Dict[st
     return defaults
 
 
-def create_test_assessment_result(business_id: str = "test_biz_001", **kwargs) -> Dict[str, Any]:
+def create_test_assessment_result(business_id: str = "test_biz_001", **kwargs) -> dict[str, Any]:
     """Create a test assessment result with sensible defaults."""
     defaults = {
         "business_id": business_id,
@@ -204,7 +205,7 @@ def create_test_assessment_result(business_id: str = "test_biz_001", **kwargs) -
     return defaults
 
 
-def create_test_enrichment_result(business_id: str = "test_biz_001", **kwargs) -> Dict[str, Any]:
+def create_test_enrichment_result(business_id: str = "test_biz_001", **kwargs) -> dict[str, Any]:
     """Create a test enrichment result with sensible defaults."""
     defaults = {
         "business_id": business_id,

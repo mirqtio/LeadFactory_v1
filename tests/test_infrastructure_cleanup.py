@@ -102,7 +102,7 @@ class TestInfrastructureCleanup:
 
     def test_pytest_markers_defined(self):
         """Test that all required markers are defined in pytest.ini"""
-        with open("pytest.ini", "r") as f:
+        with open("pytest.ini") as f:
             content = f.read()
 
         # Check for required markers
@@ -114,7 +114,7 @@ class TestInfrastructureCleanup:
         """Test that ignored test files are Phase 0.5 tests"""
         # Read pytest.ini to get ignored files
         ignored_files = []
-        with open("pytest.ini", "r") as f:
+        with open("pytest.ini") as f:
             for line in f:
                 line = line.strip()
                 if line.startswith("--ignore=tests/") and line.endswith(".py"):
@@ -125,7 +125,7 @@ class TestInfrastructureCleanup:
         phase05_count = 0
         for filepath in ignored_files:
             if os.path.exists(filepath):
-                with open(filepath, "r") as f:
+                with open(filepath) as f:
                     content = f.read()
                     if 'pytestmark = pytest.mark.xfail(reason="Phase 0.5' in content:
                         phase05_count += 1

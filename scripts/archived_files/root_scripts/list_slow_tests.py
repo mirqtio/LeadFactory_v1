@@ -8,12 +8,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 
-def find_slow_tests(test_dir: Path) -> List[Tuple[str, str, int]]:
+def find_slow_tests(test_dir: Path) -> list[tuple[str, str, int]]:
     """Find all tests marked with @pytest.mark.slow."""
     slow_tests = []
 
     for test_file in test_dir.rglob("test_*.py"):
-        with open(test_file, "r") as f:
+        with open(test_file) as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines):
@@ -36,9 +36,9 @@ def main():
     # Find all slow tests
     slow_tests = find_slow_tests(test_dir)
 
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print("TESTS MARKED AS SLOW")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     if not slow_tests:
         print("No tests marked with @pytest.mark.slow found.")
@@ -63,9 +63,9 @@ def main():
             print(f"  Line {line_num:4}: {test_name}")
 
     # Print summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("SUMMARY")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"Total files with slow tests: {len(by_file)}")
     print(f"Total slow tests marked: {len(slow_tests)}")
     print("\nTo run tests excluding slow ones:")

@@ -6,6 +6,7 @@ Tests performance requirements:
 - <100ms latency for queue operations
 - System behavior under load
 """
+
 import asyncio
 import time
 from unittest.mock import MagicMock, patch

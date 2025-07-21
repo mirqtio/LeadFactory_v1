@@ -4,8 +4,8 @@ Assessment Database Service - Replace In-Memory Storage
 Replaces in-memory storage with proper database persistence for assessment results,
 sessions, and coordinator data. Part of P3-006 mock integration replacement.
 """
+
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -177,7 +177,7 @@ class AssessmentDatabaseService:
         if hasattr(result, "error_message"):
             existing.error_message = result.error_message
 
-    async def get_assessment_result(self, session_id: str) -> Optional[CoordinatorResult]:
+    async def get_assessment_result(self, session_id: str) -> CoordinatorResult | None:
         """
         Retrieve assessment result from database instead of memory
 
@@ -225,7 +225,7 @@ class AssessmentDatabaseService:
             self.logger.error(f"Failed to get assessment result for session {session_id}: {e}")
             return None
 
-    async def get_batch_sessions(self, batch_id: str) -> Optional[List[str]]:
+    async def get_batch_sessions(self, batch_id: str) -> list[str] | None:
         """
         Get batch session IDs from database
 
@@ -250,7 +250,7 @@ class AssessmentDatabaseService:
             self.logger.error(f"Failed to get batch sessions for batch {batch_id}: {e}")
             return None
 
-    async def store_batch_sessions(self, batch_id: str, session_ids: List[str]) -> bool:
+    async def store_batch_sessions(self, batch_id: str, session_ids: list[str]) -> bool:
         """
         Store batch session mapping in database
 
@@ -284,12 +284,11 @@ class AssessmentDatabaseService:
         """Map coordinator result to assessment status"""
         if result.failed_assessments == result.total_assessments:
             return AssessmentStatus.FAILED
-        elif result.completed_assessments == result.total_assessments:
+        if result.completed_assessments == result.total_assessments:
             return AssessmentStatus.COMPLETED
-        elif result.completed_assessments > 0:
+        if result.completed_assessments > 0:
             return AssessmentStatus.PARTIAL
-        else:
-            return AssessmentStatus.RUNNING
+        return AssessmentStatus.RUNNING
 
     def _calculate_execution_time(self, session: DBAssessmentSession) -> int:
         """Calculate execution time in milliseconds"""

@@ -3,6 +3,7 @@ Fixed unit tests for infra.agent_coordinator - Essential functionality tests.
 
 Focus on core agent coordination features to achieve coverage requirements.
 """
+
 import asyncio
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -248,9 +249,11 @@ class TestGlobalCoordinatorFunctions:
         """Test getting global coordinator instance"""
         reset_agent_coordinator()  # Ensure clean state
 
-        with patch("infra.agent_coordinator.get_queue_broker") as mock_get_broker, patch(
-            "infra.agent_coordinator.get_settings"
-        ) as mock_get_settings, patch("infra.agent_coordinator.DeadLetterQueue") as mock_dlq:
+        with (
+            patch("infra.agent_coordinator.get_queue_broker") as mock_get_broker,
+            patch("infra.agent_coordinator.get_settings") as mock_get_settings,
+            patch("infra.agent_coordinator.DeadLetterQueue") as mock_dlq,
+        ):
             mock_broker = MagicMock(spec=RedisQueueBroker)
             mock_broker.redis_url = "redis://localhost:6379/0"
             mock_broker.queue_prefix = "test_"
@@ -269,9 +272,11 @@ class TestGlobalCoordinatorFunctions:
 
     def test_reset_agent_coordinator(self):
         """Test resetting global coordinator instance"""
-        with patch("infra.agent_coordinator.get_queue_broker") as mock_get_broker, patch(
-            "infra.agent_coordinator.get_settings"
-        ) as mock_get_settings, patch("infra.agent_coordinator.DeadLetterQueue") as mock_dlq:
+        with (
+            patch("infra.agent_coordinator.get_queue_broker") as mock_get_broker,
+            patch("infra.agent_coordinator.get_settings") as mock_get_settings,
+            patch("infra.agent_coordinator.DeadLetterQueue") as mock_dlq,
+        ):
             mock_broker = MagicMock(spec=RedisQueueBroker)
             mock_broker.redis_url = "redis://localhost:6379/0"
             mock_broker.queue_prefix = "test_"

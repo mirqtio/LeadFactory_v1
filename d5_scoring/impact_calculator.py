@@ -1,24 +1,24 @@
 """Impact calculator for revenue opportunity estimation."""
+
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Optional, Tuple
 
 import yaml
 
 
 @lru_cache(maxsize=1)
-def _load_impact_coefficients() -> Dict[str, Dict[int, float]]:
+def _load_impact_coefficients() -> dict[str, dict[int, float]]:
     """Load impact coefficients from YAML."""
     yaml_path = Path(__file__).parent.parent / "config" / "impact_coefficients.yaml"
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         return yaml.safe_load(f)
 
 
 @lru_cache(maxsize=1)
-def _load_confidence_weights() -> Dict[str, float]:
+def _load_confidence_weights() -> dict[str, float]:
     """Load confidence source weights from YAML."""
     yaml_path = Path(__file__).parent.parent / "config" / "confidence_sources.yaml"
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         data = yaml.safe_load(f)
         return {
             "sources": data["sources"],
@@ -31,9 +31,9 @@ def calculate_impact(
     category: str,
     severity: int,
     baseline_revenue: float,
-    source: Optional[str] = None,
+    source: str | None = None,
     omega: float = 1.0,
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """
     Calculate revenue impact with confidence interval.
 

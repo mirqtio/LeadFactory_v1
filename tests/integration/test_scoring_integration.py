@@ -1,6 +1,7 @@
 """
 Integration Tests for Scoring System - Task 049
 """
+
 import pytest
 
 """
@@ -237,7 +238,7 @@ class TestTask049AcceptanceCriteria(unittest.TestCase):
         incomplete_data = {
             "id": "incomplete_001",
             "company_name": "Incomplete Business",
-            "industry": "services"
+            "industry": "services",
             # Missing most fields
         }
 

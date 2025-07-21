@@ -2,6 +2,7 @@
 """
 Debug database migrations for P0-004.
 """
+
 import os
 import sqlite3
 import sys

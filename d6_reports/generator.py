@@ -16,7 +16,7 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     # from .finding_scorer import FindingScorer  # Not used currently
@@ -49,7 +49,7 @@ class GenerationOptions:
     include_html: bool = True
     timeout_seconds: int = 30
     template_name: str = "basic_report"
-    pdf_options: Optional[PDFOptions] = None
+    pdf_options: PDFOptions | None = None
     max_findings: int = 50
     max_top_issues: int = 3
     max_quick_wins: int = 5
@@ -60,20 +60,20 @@ class GenerationResult:
     """Result of report generation"""
 
     success: bool
-    html_content: Optional[str] = None
-    pdf_result: Optional[PDFResult] = None
+    html_content: str | None = None
+    pdf_result: PDFResult | None = None
     generation_time_seconds: float = 0.0
     data_loading_time_ms: float = 0.0
     template_rendering_time_ms: float = 0.0
     pdf_generation_time_ms: float = 0.0
-    error_message: Optional[str] = None
-    warnings: List[str] = None
+    error_message: str | None = None
+    warnings: list[str] = None
 
     def __post_init__(self):
         if self.warnings is None:
             self.warnings = []
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert result to dictionary for serialization"""
         result = {
             "success": self.success,
@@ -98,7 +98,7 @@ class DataLoader:
     """Loads and validates data for report generation"""
 
     @staticmethod
-    def load_business_data(business_id: str) -> Dict[str, Any]:
+    def load_business_data(business_id: str) -> dict[str, Any]:
         """Load business information by ID"""
         # In real implementation, this would query the database
         # For now, return mock data structure
@@ -114,7 +114,7 @@ class DataLoader:
         }
 
     @staticmethod
-    def load_assessment_data(business_id: str) -> Dict[str, Any]:
+    def load_assessment_data(business_id: str) -> dict[str, Any]:
         """Load assessment results for business"""
         # In real implementation, this would query assessment results
         # For now, return mock assessment data
@@ -200,7 +200,7 @@ class DataLoader:
         }
 
     @staticmethod
-    def validate_data(business_data: Dict[str, Any], assessment_data: Dict[str, Any]) -> List[str]:
+    def validate_data(business_data: dict[str, Any], assessment_data: dict[str, Any]) -> list[str]:
         """Validate loaded data and return any warnings"""
         warnings = []
 
@@ -234,9 +234,9 @@ class ReportGenerator:
 
     def __init__(
         self,
-        template_engine: Optional[TemplateEngine] = None,
-        pdf_converter: Optional[PDFConverter] = None,
-        finding_prioritizer: Optional[FindingPrioritizer] = None,
+        template_engine: TemplateEngine | None = None,
+        pdf_converter: PDFConverter | None = None,
+        finding_prioritizer: FindingPrioritizer | None = None,
     ):
         """
         Initialize report generator
@@ -253,7 +253,7 @@ class ReportGenerator:
 
         logger.info("Initialized ReportGenerator")
 
-    async def generate_report(self, business_id: str, options: Optional[GenerationOptions] = None) -> GenerationResult:
+    async def generate_report(self, business_id: str, options: GenerationOptions | None = None) -> GenerationResult:
         """
         Generate a complete audit report for a business
 
@@ -279,7 +279,7 @@ class ReportGenerator:
                 timeout=options.timeout_seconds,
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             result.error_message = f"Report generation exceeded {options.timeout_seconds} second timeout"
             logger.error(f"Report generation timeout for business {business_id}")
 
@@ -391,7 +391,7 @@ class ReportGenerator:
 
         return result
 
-    def _extract_findings(self, assessment_data: Dict[str, Any], max_findings: int) -> List[Dict[str, Any]]:
+    def _extract_findings(self, assessment_data: dict[str, Any], max_findings: int) -> list[dict[str, Any]]:
         """Extract and format findings from assessment data"""
         findings = []
 
@@ -438,12 +438,11 @@ class ReportGenerator:
         """Calculate impact score from performance savings in milliseconds"""
         if savings_ms >= 1000:  # 1+ seconds
             return 9  # High impact
-        elif savings_ms >= 500:  # 500ms+
+        if savings_ms >= 500:  # 500ms+
             return 6  # Medium impact
-        elif savings_ms >= 100:  # 100ms+
+        if savings_ms >= 100:  # 100ms+
             return 3  # Low impact
-        else:
-            return 1  # Minimal impact
+        return 1  # Minimal impact
 
     async def generate_html_only(self, business_id: str, template_name: str = "basic_report") -> GenerationResult:
         """
@@ -465,7 +464,7 @@ class ReportGenerator:
 
         return await self.generate_report(business_id, options)
 
-    async def generate_pdf_only(self, business_id: str, pdf_options: Optional[PDFOptions] = None) -> GenerationResult:
+    async def generate_pdf_only(self, business_id: str, pdf_options: PDFOptions | None = None) -> GenerationResult:
         """
         Generate PDF report only
 
@@ -493,8 +492,8 @@ class ReportGenerator:
         return result
 
     async def batch_generate(
-        self, business_ids: List[str], options: Optional[GenerationOptions] = None
-    ) -> List[GenerationResult]:
+        self, business_ids: list[str], options: GenerationOptions | None = None
+    ) -> list[GenerationResult]:
         """
         Generate reports for multiple businesses concurrently
 
@@ -533,7 +532,7 @@ class ReportGenerator:
 
         return final_results
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get generator status and statistics"""
         return {
             "template_engine": {"available_templates": self.template_engine.list_templates()},
@@ -543,7 +542,7 @@ class ReportGenerator:
 
 
 # Utility functions for convenience
-async def generate_audit_report(business_id: str, options: Optional[GenerationOptions] = None) -> GenerationResult:
+async def generate_audit_report(business_id: str, options: GenerationOptions | None = None) -> GenerationResult:
     """
     Convenience function to generate an audit report
 
@@ -581,7 +580,7 @@ async def generate_html_report(business_id: str, template_name: str = "basic_rep
     return result.html_content
 
 
-async def generate_pdf_report(business_id: str, pdf_options: Optional[PDFOptions] = None) -> bytes:
+async def generate_pdf_report(business_id: str, pdf_options: PDFOptions | None = None) -> bytes:
     """
     Convenience function to generate PDF report and return bytes
 

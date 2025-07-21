@@ -211,7 +211,7 @@ def create_success_dashboard():
         </div>
         
         <div style="text-align: center; margin-top: 40px; color: var(--text-secondary);">
-            Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC<br>
+            Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC<br>
             <strong>Status: 🎯 CI FULLY PASSING - ALL SYSTEMS GREEN</strong><br>
             <a href="https://github.com/mirqtio/LeadFactory_v1/actions/runs/16284126311" style="color: var(--primary-color);">
                 View successful CI run →

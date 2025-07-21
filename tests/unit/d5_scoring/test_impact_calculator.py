@@ -1,4 +1,5 @@
 """Unit tests for impact calculator."""
+
 import pytest
 
 # Mark entire module as xfail for Phase 0.5

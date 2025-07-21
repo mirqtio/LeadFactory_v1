@@ -6,6 +6,7 @@ Integration tests for Lighthouse assessor verifying:
 4. Feature flag controls execution properly
 5. Caching works across multiple assessment runs
 """
+
 import hashlib
 import json
 import os
@@ -369,7 +370,7 @@ class TestLighthouseIntegration:
                 assert os.path.exists(cache_file)
 
                 # Read cache file to verify contents
-                with open(cache_file, "r") as f:
+                with open(cache_file) as f:
                     cached_data = json.load(f)
                     assert cached_data["scores"]["performance"] == 85  # Match the mock data
 

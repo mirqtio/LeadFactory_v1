@@ -4,6 +4,7 @@ Test D4 Enrichment Matchers Focused Coverage
 Focused tests that successfully improve matchers.py coverage.
 Targets specific uncovered lines with working test cases.
 """
+
 from unittest.mock import Mock, patch
 
 import pytest

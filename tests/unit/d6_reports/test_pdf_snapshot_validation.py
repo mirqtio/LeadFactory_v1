@@ -57,14 +57,14 @@ class PDFSnapshotComparator:
         self.snapshot_dir = SNAPSHOT_DIR
         self.snapshot_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate_snapshot_key(self, test_name: str, params: Dict) -> str:
+    def generate_snapshot_key(self, test_name: str, params: dict) -> str:
         """Generate unique snapshot key based on test parameters"""
         # Create deterministic key from test parameters
         param_str = json.dumps(params, sort_keys=True)
         param_hash = hashlib.md5(param_str.encode()).hexdigest()[:8]
         return f"{test_name}_{param_hash}"
 
-    def save_snapshot(self, snapshot_key: str, pdf_data: bytes, metadata: Dict) -> Path:
+    def save_snapshot(self, snapshot_key: str, pdf_data: bytes, metadata: dict) -> Path:
         """Save PDF snapshot with metadata"""
         snapshot_path = self.snapshot_dir / f"{snapshot_key}.pdf"
         metadata_path = self.snapshot_dir / f"{snapshot_key}.json"
@@ -92,7 +92,7 @@ class PDFSnapshotComparator:
 
         return snapshot_path
 
-    def load_snapshot(self, snapshot_key: str) -> Optional[Tuple[bytes, Dict]]:
+    def load_snapshot(self, snapshot_key: str) -> tuple[bytes, dict] | None:
         """Load existing snapshot and metadata"""
         snapshot_path = self.snapshot_dir / f"{snapshot_key}.pdf"
         metadata_path = self.snapshot_dir / f"{snapshot_key}.json"
@@ -105,12 +105,12 @@ class PDFSnapshotComparator:
             pdf_data = f.read()
 
         # Load metadata
-        with open(metadata_path, "r") as f:
+        with open(metadata_path) as f:
             metadata = json.load(f)
 
         return pdf_data, metadata
 
-    def compare_pdf_snapshots(self, current_pdf: bytes, reference_pdf: bytes) -> Dict:
+    def compare_pdf_snapshots(self, current_pdf: bytes, reference_pdf: bytes) -> dict:
         """Compare two PDF snapshots and return difference metrics"""
         # Basic comparison metrics
         size_diff = abs(len(current_pdf) - len(reference_pdf))
@@ -135,7 +135,7 @@ class PDFSnapshotComparator:
             "reference_hash": reference_hash,
         }
 
-    def validate_pdf_structure(self, pdf_data: bytes) -> Dict:
+    def validate_pdf_structure(self, pdf_data: bytes) -> dict:
         """Validate basic PDF structure and properties"""
         validation_results = {
             "is_valid_pdf": False,

@@ -1,6 +1,7 @@
 """
 Test circuit breaker pattern implementation
 """
+
 import time
 from unittest.mock import patch
 
@@ -275,9 +276,10 @@ class TestCircuitBreakerUtilities:
     def test_logging_integration(self, circuit_breaker):
         """Test logging integration"""
         # Mock logger to verify log messages
-        with patch.object(circuit_breaker.logger, "info") as mock_info, patch.object(
-            circuit_breaker.logger, "warning"
-        ) as mock_warning:
+        with (
+            patch.object(circuit_breaker.logger, "info") as mock_info,
+            patch.object(circuit_breaker.logger, "warning") as mock_warning,
+        ):
             # Test state transitions trigger appropriate log messages
             circuit_breaker.force_open()
             mock_warning.assert_called()

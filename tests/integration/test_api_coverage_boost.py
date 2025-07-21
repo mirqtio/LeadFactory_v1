@@ -2,6 +2,7 @@
 Strategic integration tests to boost coverage for PRP-014
 These tests exercise full code paths through API endpoints
 """
+
 import os
 from unittest.mock import patch
 
@@ -71,7 +72,6 @@ class TestStrategicAPICoverage:
         """Test batch runner API - covers ~250 lines"""
         # NOTE: This test requires proper database session management across multiple
         # API modules. Skipping for now to focus on CI stability.
-        pass
 
     def test_d1_targeting_api_flow(self, client, db_session):
         """Test targeting API - covers ~300 lines"""

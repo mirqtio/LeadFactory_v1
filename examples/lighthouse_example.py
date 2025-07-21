@@ -2,9 +2,8 @@
 """
 Example of using the Lighthouse assessor to analyze website performance
 """
+
 import asyncio
-import json
-from pprint import pprint
 
 from d3_assessment.assessors.lighthouse import LighthouseAssessor
 from d3_assessment.coordinator import AssessmentCoordinator

@@ -4,10 +4,10 @@ Database models for Batch Report Runner
 Tracks batch processing state, progress, and individual lead results
 with proper indexing for performance.
 """
+
 import enum
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DECIMAL, JSON, TIMESTAMP, Boolean, Column
 from sqlalchemy import Enum as SQLEnum
@@ -102,7 +102,7 @@ class BatchReport(Base):
     )
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         """Calculate processing duration in seconds"""
         if not self.started_at or not self.completed_at:
             return None
@@ -115,7 +115,7 @@ class BatchReport(Base):
             return 0.0
         return (self.successful_leads / self.processed_leads) * 100
 
-    def update_progress(self, processed: int, successful: int, failed: int, current_lead_id: Optional[str] = None):
+    def update_progress(self, processed: int, successful: int, failed: int, current_lead_id: str | None = None):
         """Update batch progress counters"""
         self.processed_leads = processed
         self.successful_leads = successful
@@ -216,13 +216,13 @@ class BatchReportLead(Base):
     )
 
     @property
-    def processing_duration_seconds(self) -> Optional[float]:
+    def processing_duration_seconds(self) -> float | None:
         """Calculate processing duration in seconds"""
         if not self.started_at or not self.completed_at:
             return None
         return (self.completed_at - self.started_at).total_seconds()
 
-    def is_retryable(self, max_retries: Optional[int] = None) -> bool:
+    def is_retryable(self, max_retries: int | None = None) -> bool:
         """Check if lead can be retried"""
         if max_retries is None:
             max_retries = self.max_retries
@@ -235,10 +235,10 @@ class BatchReportLead(Base):
 
     def mark_completed(
         self,
-        report_url: Optional[str] = None,
-        actual_cost: Optional[float] = None,
-        quality_score: Optional[float] = None,
-        processing_time_ms: Optional[int] = None,
+        report_url: str | None = None,
+        actual_cost: float | None = None,
+        quality_score: float | None = None,
+        processing_time_ms: int | None = None,
     ):
         """Mark lead processing as completed successfully"""
         self.status = LeadProcessingStatus.COMPLETED
@@ -258,7 +258,7 @@ class BatchReportLead(Base):
             duration_ms = (self.completed_at - self.started_at).total_seconds() * 1000
             self.processing_duration_ms = int(duration_ms)
 
-    def mark_failed(self, error_message: str, error_code: Optional[str] = None):
+    def mark_failed(self, error_message: str, error_code: str | None = None):
         """Mark lead processing as failed"""
         self.status = LeadProcessingStatus.FAILED
         self.completed_at = datetime.utcnow()

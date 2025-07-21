@@ -278,7 +278,7 @@ class TestAuditTeaserTemplate:
         assert f'href="{sample_template_data["report_url"]}"' in rendered
 
         # Check for price display
-        assert f'${sample_template_data["price"]}' in rendered
+        assert f"${sample_template_data['price']}" in rendered
 
     def test_template_security(self, jinja_env):
         """Test that template handles potentially malicious input safely"""
@@ -399,7 +399,7 @@ def test_template_encoding():
 
     if template_path.exists():
         try:
-            with open(template_path, "r", encoding="utf-8") as f:
+            with open(template_path, encoding="utf-8") as f:
                 content = f.read()
                 # Should contain UTF-8 declaration
                 assert 'charset="UTF-8"' in content

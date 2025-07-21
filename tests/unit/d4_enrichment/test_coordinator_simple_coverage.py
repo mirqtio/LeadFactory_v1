@@ -3,6 +3,7 @@ Test D4 Enrichment Coordinator Simple Coverage Expansion
 
 Simple tests focusing only on uncovered property methods to improve coverage.
 """
+
 import pytest
 
 from d4_enrichment.coordinator import EnrichmentProgress

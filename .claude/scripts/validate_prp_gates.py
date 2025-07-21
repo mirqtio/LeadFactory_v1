@@ -2,6 +2,7 @@
 """
 Six-Gate PRP Validation Script
 """
+
 import json
 import re
 import sys
@@ -49,7 +50,7 @@ def gate1_structure_validation(content):
     header_pattern = re.compile(r"^#{1,6} .+")
     for i, line in enumerate(lines):
         if line.startswith("#") and not header_pattern.match(line):
-            issues.append(f"Line {i+1}: Invalid header format: {line}")
+            issues.append(f"Line {i + 1}: Invalid header format: {line}")
 
     # Check for code blocks
     code_block_count = content.count("```")
@@ -85,15 +86,14 @@ def gate2_dependency_check(content, task_id):
         print("ERROR: Progress file not found")
         return False
 
-    with open(progress_file, "r") as f:
+    with open(progress_file) as f:
         progress = json.load(f)
 
     if dependency in progress and progress[dependency]["status"] == "completed":
         print(f"PASSED: Dependency {dependency} is completed")
         return True
-    else:
-        print(f"FAILED: Dependency {dependency} is not completed")
-        return False
+    print(f"FAILED: Dependency {dependency} is not completed")
+    return False
 
 
 def gate3_acceptance_criteria(content):
@@ -261,7 +261,7 @@ def main():
         print(f"ERROR: PRP file not found: {prp_file}")
         return 1
 
-    with open(prp_file, "r") as f:
+    with open(prp_file) as f:
         content = f.read()
 
     print(f"Validating PRP for task {task_id}")
@@ -292,9 +292,8 @@ def main():
     if all_passed:
         print("✓ ALL GATES PASSED - PRP is valid")
         return 0
-    else:
-        print("✗ VALIDATION FAILED - PRP needs revision")
-        return 1
+    print("✗ VALIDATION FAILED - PRP needs revision")
+    return 1
 
 
 if __name__ == "__main__":

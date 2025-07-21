@@ -6,15 +6,15 @@ and delivery events for compliance and monitoring.
 
 Acceptance Criteria:
 - Email send tracking ✓
-- Bounce tracking model ✓ 
+- Bounce tracking model ✓
 - Suppression list ✓
 - Event timestamps ✓
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -142,7 +142,7 @@ class EmailDelivery(Base):
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         index=True,
     )
     sent_at = Column(DateTime(timezone=True), nullable=True, index=True)
@@ -190,7 +190,7 @@ class EmailDelivery(Base):
     def __repr__(self):
         return f"<EmailDelivery(id={self.id}, to_email='{self.to_email}', status='{self.status}')>"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation"""
         return {
             "id": self.id,
@@ -253,13 +253,13 @@ class BounceTracking(Base):
     bounced_at = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         index=True,
     )
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     # Additional metadata
@@ -307,13 +307,13 @@ class SuppressionList(Base):
     suppressed_at = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         index=True,
     )
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     # Management fields
@@ -346,12 +346,12 @@ class SuppressionList(Base):
 
         if self.expires_at:
             # Handle timezone comparison properly
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             expires_at = self.expires_at
 
             # If expires_at is naive, assume UTC
             if expires_at.tzinfo is None:
-                expires_at = expires_at.replace(tzinfo=timezone.utc)
+                expires_at = expires_at.replace(tzinfo=UTC)
 
             if now > expires_at:
                 return False
@@ -388,7 +388,7 @@ class DeliveryEvent(Base):
     processed_at = Column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     # Event metadata

@@ -2,6 +2,7 @@
 Unit tests for d5_scoring constants module.
 Coverage target: 100% for scoring configuration constants.
 """
+
 import pytest
 
 from d5_scoring.constants import (
@@ -45,7 +46,7 @@ class TestScoringConstants:
     def test_tier_labels_alphabetical_order(self):
         """Test that tier labels are in ascending alphabetical order."""
         sorted_labels = sorted(VALID_TIER_LABELS)
-        assert VALID_TIER_LABELS == sorted_labels
+        assert sorted_labels == VALID_TIER_LABELS
 
     def test_formula_evaluation_timeout(self):
         """Test that formula evaluation timeout is reasonable."""

@@ -2,6 +2,7 @@
 Unit tests for P2-040 cost calculation and budget checking functions
 Tests for get_monthly_costs, check_monthly_budget_limit, and budget_circuit_breaker functions
 """
+
 from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -49,9 +50,10 @@ class TestCostCalculationFunctions:
 
     def test_check_monthly_budget_limit_under_budget(self):
         """Test check_monthly_budget_limit when under budget"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             mock_costs.return_value = Decimal("2000.0")
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
 
@@ -63,9 +65,10 @@ class TestCostCalculationFunctions:
 
     def test_check_monthly_budget_limit_over_budget(self):
         """Test check_monthly_budget_limit when over budget"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             mock_costs.return_value = Decimal("3500.0")
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
 
@@ -77,9 +80,10 @@ class TestCostCalculationFunctions:
 
     def test_check_monthly_budget_limit_exactly_at_budget(self):
         """Test check_monthly_budget_limit when exactly at budget"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             mock_costs.return_value = Decimal("3000.0")
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
 
@@ -111,9 +115,12 @@ class TestCostCalculationFunctions:
         def mock_flow():
             return {"status": "success", "result": "flow_executed"}
 
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert, patch("asyncio.get_event_loop") as mock_get_loop, patch("asyncio.run") as mock_asyncio_run:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+            patch("asyncio.get_event_loop") as mock_get_loop,
+            patch("asyncio.run") as mock_asyncio_run,
+        ):
             mock_check.return_value = (True, Decimal("3500.0"), Decimal("3000.0"))
 
             # Mock the event loop path (which is taken first)
@@ -139,13 +146,13 @@ class TestCostCalculationFunctions:
         def mock_flow():
             return {"status": "success", "result": "flow_executed"}
 
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert, patch("asyncio.get_event_loop") as mock_get_loop, patch(
-            "asyncio.run", side_effect=Exception("Alert failed")
-        ), patch(
-            "d11_orchestration.cost_guardrails.get_run_logger"
-        ) as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+            patch("asyncio.get_event_loop") as mock_get_loop,
+            patch("asyncio.run", side_effect=Exception("Alert failed")),
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             mock_check.return_value = (True, Decimal("3500.0"), Decimal("3000.0"))
             mock_logger_instance = MagicMock()
             mock_logger.return_value = mock_logger_instance

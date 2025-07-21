@@ -2,7 +2,8 @@
 Custom exceptions for LeadFactory
 Provides structured error handling across all domains
 """
-from typing import Any, Dict, Optional
+
+from typing import Any
 
 
 class LeadFactoryError(Exception):
@@ -11,8 +12,8 @@ class LeadFactoryError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
         status_code: int = 500,
     ):
         super().__init__(message)
@@ -21,7 +22,7 @@ class LeadFactoryError(Exception):
         self.details = details or {}
         self.status_code = status_code
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert exception to dictionary for API responses"""
         return {
             "error": self.error_code,
@@ -33,7 +34,7 @@ class LeadFactoryError(Exception):
 class ValidationError(LeadFactoryError):
     """Raised when input validation fails"""
 
-    def __init__(self, message: str, field: Optional[str] = None, **details):
+    def __init__(self, message: str, field: str | None = None, **details):
         super().__init__(
             message=message,
             error_code="VALIDATION_ERROR",
@@ -73,8 +74,8 @@ class ExternalAPIError(LeadFactoryError):
         self,
         provider: str,
         message: str,
-        status_code: Optional[int] = None,
-        response_body: Optional[str] = None,
+        status_code: int | None = None,
+        response_body: str | None = None,
         **details,
     ):
         super().__init__(
@@ -96,9 +97,9 @@ class RateLimitError(ExternalAPIError):
     def __init__(
         self,
         provider: str,
-        retry_after: Optional[int] = None,
-        daily_limit: Optional[int] = None,
-        daily_used: Optional[int] = None,
+        retry_after: int | None = None,
+        daily_limit: int | None = None,
+        daily_used: int | None = None,
     ):
         message = "Rate limit exceeded"
         if retry_after:
@@ -118,7 +119,7 @@ class RateLimitError(ExternalAPIError):
 class ConfigurationError(LeadFactoryError):
     """Raised when configuration is invalid or missing"""
 
-    def __init__(self, message: str, setting: Optional[str] = None):
+    def __init__(self, message: str, setting: str | None = None):
         super().__init__(
             message=message,
             error_code="CONFIGURATION_ERROR",
@@ -130,7 +131,7 @@ class ConfigurationError(LeadFactoryError):
 class DatabaseError(LeadFactoryError):
     """Raised when database operations fail"""
 
-    def __init__(self, message: str, operation: Optional[str] = None, **details):
+    def __init__(self, message: str, operation: str | None = None, **details):
         super().__init__(
             message=message,
             error_code="DATABASE_ERROR",
@@ -145,8 +146,8 @@ class PaymentError(LeadFactoryError):
     def __init__(
         self,
         message: str,
-        payment_intent_id: Optional[str] = None,
-        stripe_error_code: Optional[str] = None,
+        payment_intent_id: str | None = None,
+        stripe_error_code: str | None = None,
         **details,
     ):
         super().__init__(
@@ -167,8 +168,8 @@ class EmailDeliveryError(LeadFactoryError):
     def __init__(
         self,
         message: str,
-        email: Optional[str] = None,
-        reason: Optional[str] = None,
+        email: str | None = None,
+        reason: str | None = None,
         **details,
     ):
         super().__init__(
@@ -182,7 +183,7 @@ class EmailDeliveryError(LeadFactoryError):
 class AssessmentError(LeadFactoryError):
     """Raised when website assessment fails"""
 
-    def __init__(self, message: str, assessment_type: str, url: Optional[str] = None, **details):
+    def __init__(self, message: str, assessment_type: str, url: str | None = None, **details):
         super().__init__(
             message=message,
             error_code="ASSESSMENT_ERROR",

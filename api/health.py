@@ -1,10 +1,11 @@
 """
 Production-ready health check endpoint with performance monitoring
 """
+
 import asyncio
 import time
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import redis.asyncio as redis
 from fastapi import APIRouter, Depends
@@ -20,7 +21,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-def check_database_health(db: Session) -> Dict[str, Any]:
+def check_database_health(db: Session) -> dict[str, Any]:
     """
     Check database connectivity with timeout protection.
 
@@ -42,7 +43,7 @@ def check_database_health(db: Session) -> Dict[str, Any]:
         return {"status": "error", "error": str(e)}
 
 
-async def check_redis_health(redis_url: str) -> Dict[str, Any]:
+async def check_redis_health(redis_url: str) -> dict[str, Any]:
     """
     Check Redis connectivity with PING command.
 
@@ -65,8 +66,7 @@ async def check_redis_health(redis_url: str) -> Dict[str, Any]:
 
         if response:
             return {"status": "connected", "latency_ms": round(latency_ms, 2)}
-        else:
-            return {"status": "error", "error": "PING returned False"}
+        return {"status": "error", "error": "PING returned False"}
     except Exception as e:
         logger.error(f"Redis health check failed: {str(e)}")
         return {"status": "error", "error": str(e)}
@@ -121,13 +121,14 @@ async def health_check(db: Session = Depends(get_db)) -> JSONResponse:
     if settings.redis_url and settings.redis_url != "redis://localhost:6379/0":
         try:
             redis_result = await asyncio.wait_for(
-                check_redis_health(settings.redis_url), timeout=0.03  # 30ms timeout for Redis check
+                check_redis_health(settings.redis_url),
+                timeout=0.03,  # 30ms timeout for Redis check
             )
             health_data["checks"]["redis"] = redis_result
             if redis_result.get("status") != "connected":
                 # Redis failure is not critical for health check
                 logger.warning(f"Redis health check failed: {redis_result}")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             health_data["checks"]["redis"] = {"status": "timeout", "error": "Redis check timed out after 30ms"}
         except Exception as e:
             health_data["checks"]["redis"] = {"status": "error", "error": str(e)}

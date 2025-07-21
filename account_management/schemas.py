@@ -2,26 +2,26 @@
 Pydantic schemas for Account Management
 Request/response validation models
 """
+
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field, SecretStr, validator
 
-from account_management.models import AuthProvider, PermissionAction, ResourceType, TeamRole, UserStatus
+from account_management.models import PermissionAction, ResourceType, TeamRole, UserStatus
 
 
 # Base schemas
 class OrganizationBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     slug: str = Field(..., min_length=1, max_length=100, pattern="^[a-z0-9-]+$")
-    billing_email: Optional[EmailStr] = None
+    billing_email: EmailStr | None = None
 
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: Optional[str] = Field(None, min_length=3, max_length=100, pattern="^[a-zA-Z0-9_-]+$")
-    full_name: Optional[str] = Field(None, max_length=255)
-    phone: Optional[str] = Field(None, max_length=20)
+    username: str | None = Field(None, min_length=3, max_length=100, pattern="^[a-zA-Z0-9_-]+$")
+    full_name: str | None = Field(None, max_length=255)
+    phone: str | None = Field(None, max_length=20)
     timezone: str = Field("UTC", max_length=50)
     locale: str = Field("en_US", max_length=10)
 
@@ -29,7 +29,7 @@ class UserBase(BaseModel):
 class TeamBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     slug: str = Field(..., min_length=1, max_length=100, pattern="^[a-z0-9-]+$")
-    description: Optional[str] = None
+    description: str | None = None
 
 
 # Request schemas
@@ -41,7 +41,7 @@ class OrganizationCreate(OrganizationBase):
 
 class UserRegister(UserBase):
     password: SecretStr = Field(..., min_length=8, max_length=128)
-    organization_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    organization_name: str | None = Field(None, min_length=1, max_length=255)
 
     @validator("password")
     def validate_password(cls, v):
@@ -58,16 +58,16 @@ class UserRegister(UserBase):
 class UserLogin(BaseModel):
     email: EmailStr
     password: SecretStr
-    device_id: Optional[str] = None
+    device_id: str | None = None
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=100, pattern="^[a-zA-Z0-9_-]+$")
-    full_name: Optional[str] = Field(None, max_length=255)
-    avatar_url: Optional[str] = Field(None, max_length=500)
-    phone: Optional[str] = Field(None, max_length=20)
-    timezone: Optional[str] = Field(None, max_length=50)
-    locale: Optional[str] = Field(None, max_length=10)
+    username: str | None = Field(None, min_length=3, max_length=100, pattern="^[a-zA-Z0-9_-]+$")
+    full_name: str | None = Field(None, max_length=255)
+    avatar_url: str | None = Field(None, max_length=500)
+    phone: str | None = Field(None, max_length=20)
+    timezone: str | None = Field(None, max_length=50)
+    locale: str | None = Field(None, max_length=10)
 
 
 class PasswordChange(BaseModel):
@@ -96,8 +96,8 @@ class TeamCreate(TeamBase):
 
 
 class TeamUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
 
 
 class TeamMemberAdd(BaseModel):
@@ -107,8 +107,8 @@ class TeamMemberAdd(BaseModel):
 
 class RoleCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    description: Optional[str] = None
-    permissions: List[str] = []  # List of permission IDs
+    description: str | None = None
+    permissions: list[str] = []  # List of permission IDs
 
 
 class PermissionGrant(BaseModel):
@@ -118,19 +118,19 @@ class PermissionGrant(BaseModel):
 
 class APIKeyCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    scopes: List[str] = []
-    expires_in_days: Optional[int] = Field(None, ge=1, le=365)
+    scopes: list[str] = []
+    expires_in_days: int | None = Field(None, ge=1, le=365)
 
 
 # Response schemas
 class OrganizationResponse(OrganizationBase):
     id: str
-    stripe_customer_id: Optional[str]
+    stripe_customer_id: str | None
     max_users: int
     max_teams: int
     max_api_keys: int
     is_active: bool
-    trial_ends_at: Optional[datetime]
+    trial_ends_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -140,12 +140,12 @@ class OrganizationResponse(OrganizationBase):
 
 class UserResponse(UserBase):
     id: str
-    organization_id: Optional[str]
+    organization_id: str | None
     status: UserStatus
     email_verified: bool
-    email_verified_at: Optional[datetime]
+    email_verified_at: datetime | None
     mfa_enabled: bool
-    last_login_at: Optional[datetime]
+    last_login_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -154,8 +154,8 @@ class UserResponse(UserBase):
 
 
 class UserProfileResponse(UserResponse):
-    organization: Optional[OrganizationResponse]
-    teams: List["TeamResponse"] = []
+    organization: OrganizationResponse | None
+    teams: list["TeamResponse"] = []
 
 
 class TeamResponse(TeamBase):
@@ -171,13 +171,13 @@ class TeamResponse(TeamBase):
 
 
 class TeamDetailResponse(TeamResponse):
-    members: List["TeamMemberResponse"] = []
+    members: list["TeamMemberResponse"] = []
 
 
 class TeamMemberResponse(BaseModel):
     user_id: str
     email: str
-    full_name: Optional[str]
+    full_name: str | None
     role: TeamRole
     joined_at: datetime
 
@@ -188,9 +188,9 @@ class TeamMemberResponse(BaseModel):
 class RoleResponse(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     is_system: bool
-    permissions: List["PermissionResponse"] = []
+    permissions: list["PermissionResponse"] = []
     created_at: datetime
     updated_at: datetime
 
@@ -202,7 +202,7 @@ class PermissionResponse(BaseModel):
     id: str
     resource: ResourceType
     action: PermissionAction
-    description: Optional[str]
+    description: str | None
 
     class Config:
         from_attributes = True
@@ -212,10 +212,10 @@ class APIKeyResponse(BaseModel):
     id: str
     name: str
     key_prefix: str
-    scopes: List[str]
-    last_used_at: Optional[datetime]
+    scopes: list[str]
+    last_used_at: datetime | None
     usage_count: int
-    expires_at: Optional[datetime]
+    expires_at: datetime | None
     is_active: bool
     created_at: datetime
 
@@ -237,9 +237,9 @@ class AuthTokenResponse(BaseModel):
 
 class SessionResponse(BaseModel):
     id: str
-    ip_address: Optional[str]
-    user_agent: Optional[str]
-    device_id: Optional[str]
+    ip_address: str | None
+    user_agent: str | None
+    device_id: str | None
     created_at: datetime
     last_activity_at: datetime
     expires_at: datetime
@@ -263,13 +263,13 @@ class RefreshTokenRequest(BaseModel):
 # Audit log response
 class AuditLogResponse(BaseModel):
     id: str
-    user_id: Optional[str]
-    user_email: Optional[str]
+    user_id: str | None
+    user_email: str | None
     action: str
     resource_type: str
-    resource_id: Optional[str]
-    ip_address: Optional[str]
-    details: Optional[dict]
+    resource_id: str | None
+    ip_address: str | None
+    details: dict | None
     created_at: datetime
 
     class Config:
@@ -291,13 +291,13 @@ class OrganizationStatsResponse(BaseModel):
 class ErrorResponse(BaseModel):
     error: str
     message: str
-    details: Optional[dict] = None
+    details: dict | None = None
 
 
 class ValidationErrorResponse(BaseModel):
     error: str = "validation_error"
     message: str = "Validation failed"
-    errors: List[dict]
+    errors: list[dict]
 
 
 # Forward references

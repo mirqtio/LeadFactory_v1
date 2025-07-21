@@ -1,6 +1,7 @@
 """
 Test Lead Explorer repository functionality
 """
+
 import pytest
 
 from database.models import AuditAction, EnrichmentStatus

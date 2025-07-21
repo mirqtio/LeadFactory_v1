@@ -6,7 +6,7 @@ subject line generation, email personalization, and spam checking.
 
 Acceptance Criteria:
 - Full generation flow ✓
-- Quality checks pass ✓ 
+- Quality checks pass ✓
 - Performance acceptable ✓
 - Variety in output ✓
 """

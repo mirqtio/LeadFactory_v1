@@ -2,6 +2,7 @@
 Unit tests for Phase 0.5 bucket enrichment flow
 Task ET-07: Test nightly bucket_enrichment Prefect flow
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest

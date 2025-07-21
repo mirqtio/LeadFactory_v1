@@ -7,7 +7,7 @@ Prefect pipeline orchestration, and A/B testing functionality.
 
 This domain handles:
 - Pipeline run tracking and status management
-- Experiment model definitions and configurations  
+- Experiment model definitions and configurations
 - Assignment tracking for A/B testing and experiments
 - Status management across orchestration workflows
 - Prefect pipeline orchestration and task execution

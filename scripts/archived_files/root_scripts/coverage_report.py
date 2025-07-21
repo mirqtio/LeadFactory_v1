@@ -7,7 +7,7 @@ Integrates with CI and provides detailed analysis of critical paths.
 
 Acceptance Criteria:
 - Coverage > 80% ✓
-- Critical paths 100% ✓  
+- Critical paths 100% ✓
 - Report generation ✓
 - CI integration ✓
 """
@@ -96,7 +96,7 @@ class CoverageReporter:
             print(f"❌ Error running tests: {e}")
             return False
 
-    def analyze_coverage(self) -> Dict[str, Any]:
+    def analyze_coverage(self) -> dict[str, Any]:
         """Analyze coverage data and generate report"""
         print("📊 Analyzing coverage data...")
 
@@ -144,7 +144,7 @@ class CoverageReporter:
             print(f"❌ Error analyzing coverage: {e}")
             return {}
 
-    def _analyze_critical_paths(self, file_coverage: Dict[str, Any]) -> Dict[str, Any]:
+    def _analyze_critical_paths(self, file_coverage: dict[str, Any]) -> dict[str, Any]:
         """Analyze coverage of critical paths"""
         critical_analysis = {}
 
@@ -166,7 +166,7 @@ class CoverageReporter:
 
         return critical_analysis
 
-    def _generate_summary(self, total_coverage: float, file_coverage: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_summary(self, total_coverage: float, file_coverage: dict[str, Any]) -> dict[str, Any]:
         """Generate coverage summary statistics"""
         files_above_threshold = sum(1 for f in file_coverage.values() if f["coverage"] >= self.min_coverage)
         total_files = len(file_coverage)
@@ -216,7 +216,7 @@ class CoverageReporter:
             print(f"❌ Error generating XML report: {e}")
             return ""
 
-    def print_detailed_report(self, analysis: Dict[str, Any]):
+    def print_detailed_report(self, analysis: dict[str, Any]):
         """Print detailed coverage report to console"""
         print("\n" + "=" * 80)
         print("🎯 LEADFACTORY TEST COVERAGE REPORT")
@@ -264,7 +264,7 @@ class CoverageReporter:
 
         print("\n" + "=" * 80)
 
-    def save_json_report(self, analysis: Dict[str, Any], output_file: str = "coverage_report.json"):
+    def save_json_report(self, analysis: dict[str, Any], output_file: str = "coverage_report.json"):
         """Save detailed analysis as JSON"""
         print(f"💾 Saving JSON report: {output_file}")
 
@@ -276,7 +276,7 @@ class CoverageReporter:
             print(f"❌ Error saving JSON report: {e}")
             return ""
 
-    def check_ci_requirements(self, analysis: Dict[str, Any]) -> bool:
+    def check_ci_requirements(self, analysis: dict[str, Any]) -> bool:
         """Check if coverage meets CI requirements"""
         summary = analysis["summary"]
         critical_paths = analysis["critical_paths"]

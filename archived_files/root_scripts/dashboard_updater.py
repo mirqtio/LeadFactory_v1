@@ -135,7 +135,7 @@ class DashboardUpdater:
         self._calculate_metrics()
 
         # Read current HTML
-        with open(self.dashboard_path, "r") as f:
+        with open(self.dashboard_path) as f:
             html_content = f.read()
 
         # Update metrics

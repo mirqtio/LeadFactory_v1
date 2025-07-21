@@ -12,7 +12,7 @@ from pathlib import Path
 def count_test_functions_in_file(filepath):
     """Count test functions in a single file using AST."""
     try:
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -29,7 +29,7 @@ def count_test_functions_in_file(filepath):
                         test_functions.append(("method", f"{node.name}::{item.name}"))
 
         return test_functions
-    except Exception as e:
+    except Exception:
         return []
 
 
@@ -104,18 +104,18 @@ def main():
     pytest_tests = get_pytest_collected_tests()
 
     # Analyze discrepancies
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("TEST COLLECTION ANALYSIS")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"Total test files found: {len(test_files)}")
     print(f"Total tests found by AST: {total_ast_tests}")
     print(f"Total tests collected by pytest: {len(pytest_tests)}")
     print(f"Discrepancy: {total_ast_tests - len(pytest_tests)}")
 
     # Find tests in AST but not in pytest
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("TESTS FOUND BY AST BUT NOT COLLECTED BY PYTEST")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
 
     uncollected_count = 0
     for filepath, tests in ast_tests.items():
@@ -138,9 +138,9 @@ def main():
     print(f"\nTotal uncollected tests: {uncollected_count}")
 
     # Check pytest.ini ignores
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("PYTEST.INI IGNORED FILES")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
 
     ignored_files = [
         "tests/e2e/",
@@ -163,9 +163,9 @@ def main():
     print(f"\nTotal tests in ignored files: {ignored_test_count}")
 
     # Files outside tests directory
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("TEST FILES OUTSIDE 'tests' DIRECTORY")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
 
     outside_test_count = 0
     for filepath, tests in ast_tests.items():
@@ -176,9 +176,9 @@ def main():
     print(f"\nTotal tests outside 'tests' directory: {outside_test_count}")
 
     # Summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("SUMMARY")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"AST found: {total_ast_tests}")
     print(f"Ignored by pytest.ini: {ignored_test_count}")
     print(f"Outside tests directory: {outside_test_count}")

@@ -1,6 +1,7 @@
 """
 Test SEMrush API client implementation
 """
+
 import asyncio
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -484,28 +485,24 @@ class TestSEMrushClientExtendedMetrics:
         """Test site health metric (would require site audit API)"""
         # This would require implementing a separate method like get_site_health()
         # that calls SEMrush Site Audit API
-        pass
 
     @pytest.mark.asyncio
     async def test_domain_authority_metric(self):
         """Test domain authority metric extraction"""
         # The Dn column in domain overview should provide this
         # Already covered in basic tests
-        pass
 
     @pytest.mark.asyncio
     async def test_backlink_toxicity_metric(self):
         """Test backlink toxicity metric (would require backlinks API)"""
         # This would require implementing a separate method like get_backlink_toxicity()
         # that calls SEMrush Backlinks API
-        pass
 
     @pytest.mark.asyncio
     async def test_site_issues_metric(self):
         """Test site issues metric (would require site audit API)"""
         # This would require implementing a separate method like get_site_issues()
         # that calls SEMrush Site Audit API
-        pass
 
 
 class TestSEMrushClientMockResponses:

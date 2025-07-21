@@ -99,7 +99,7 @@ def migrate_yaml():
     yaml_path = Path(".claude/prp_tracking/prp_status.yaml")
 
     # Load current YAML
-    with open(yaml_path, "r") as f:
+    with open(yaml_path) as f:
         data = yaml.safe_load(f)
 
     # Update metadata
@@ -152,10 +152,10 @@ def migrate_yaml():
         "status_distribution": status_counts,
         "completion_rate": round(status_counts["complete"] / 55, 3),
         "moscow_distribution": {
-            "must_have_p0": f"{priority_counts['P0']} ({round(priority_counts['P0']/55*100)}%)",
-            "should_have_p1": f"{priority_counts['P1']} ({round(priority_counts['P1']/55*100)}%)",
-            "could_have_p2": f"{priority_counts['P2']} ({round(priority_counts['P2']/55*100)}%)",
-            "wont_have_p3": f"{priority_counts['P3']} ({round(priority_counts['P3']/55*100)}%)",
+            "must_have_p0": f"{priority_counts['P0']} ({round(priority_counts['P0'] / 55 * 100)}%)",
+            "should_have_p1": f"{priority_counts['P1']} ({round(priority_counts['P1'] / 55 * 100)}%)",
+            "could_have_p2": f"{priority_counts['P2']} ({round(priority_counts['P2'] / 55 * 100)}%)",
+            "wont_have_p3": f"{priority_counts['P3']} ({round(priority_counts['P3'] / 55 * 100)}%)",
         },
     }
 

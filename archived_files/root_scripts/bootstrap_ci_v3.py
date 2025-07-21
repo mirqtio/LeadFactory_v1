@@ -11,7 +11,6 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import List
 
 
 class Colors:
@@ -59,7 +58,7 @@ def print_info(message: str):
     print(f"{Colors.MAGENTA}ℹ️  {message}{Colors.RESET}")
 
 
-def run_command(cmd: List[str], check: bool = True, capture_output: bool = False) -> subprocess.CompletedProcess:
+def run_command(cmd: list[str], check: bool = True, capture_output: bool = False) -> subprocess.CompletedProcess:
     """Run a command and return the result"""
     print_step(f"Running: {' '.join(cmd)}")
     try:
@@ -375,10 +374,9 @@ def main():
     if test_passed:
         print_header("✅ ALL TESTS PASSED - CI WILL BE GREEN")
         return 0
-    else:
-        print_header("❌ TESTS FAILED - CI WILL BE RED")
-        print_warning("Fix the issues above before pushing to GitHub")
-        return 1
+    print_header("❌ TESTS FAILED - CI WILL BE RED")
+    print_warning("Fix the issues above before pushing to GitHub")
+    return 1
 
 
 if __name__ == "__main__":

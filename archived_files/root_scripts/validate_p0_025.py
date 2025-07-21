@@ -238,8 +238,7 @@ def check_test_coverage():
     if missing:
         print(f"  ❌ Missing test cases: {', '.join(missing)}")
         return False
-    else:
-        print("  ✓ All required test cases present")
+    print("  ✓ All required test cases present")
 
     # Check test organization
     test_classes = [
@@ -257,8 +256,7 @@ def check_test_coverage():
     if missing_classes:
         print(f"  ❌ Missing test classes: {', '.join(missing_classes)}")
         return False
-    else:
-        print("  ✓ All test classes organized")
+    print("  ✓ All test classes organized")
 
     print("  ℹ️  Coverage target: ≥80% (verify in CI)")
     return True
@@ -321,15 +319,12 @@ def check_feature_flag():
             if 'app.mount("/static/scoring-playground"' in main_content:
                 print("  ✓ Static files mounted correctly")
                 return True
-            else:
-                print("  ❌ Static files not mounted")
-                return False
-        else:
-            print("  ❌ Feature flag not checked in main.py")
+            print("  ❌ Static files not mounted")
             return False
-    else:
-        print("  ❌ Feature flag not found or disabled")
+        print("  ❌ Feature flag not checked in main.py")
         return False
+    print("  ❌ Feature flag not found or disabled")
+    return False
 
 
 def main():
@@ -383,9 +378,8 @@ def main():
         print("   - Test coverage ≥80% on scoring_playground module")
         print("   - CI green after implementation")
         return 0
-    else:
-        print("\n❌ P0-025 validation FAILED - see errors above")
-        return 1
+    print("\n❌ P0-025 validation FAILED - see errors above")
+    return 1
 
 
 if __name__ == "__main__":

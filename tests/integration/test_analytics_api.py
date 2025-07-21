@@ -471,7 +471,7 @@ class TestAnalyticsAPIIntegration:
         for i in range(100):
             large_data.append(
                 {
-                    "date": f"2025-01-{i%28 + 1:02d}",
+                    "date": f"2025-01-{i % 28 + 1:02d}",
                     "total_cost_cents": i * 100,
                     "total_revenue_cents": i * 1000,
                     "total_leads": i * 10,

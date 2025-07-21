@@ -2,6 +2,7 @@
 Comprehensive unit tests for guardrail_middleware.py - Middleware and decorators for cost enforcement
 Tests for RateLimiter, decorators, context managers, and utility functions
 """
+
 import asyncio
 import time
 from contextlib import contextmanager
@@ -246,9 +247,10 @@ class TestEnforceCostGuardrailsDecorator:
         mock_client = Mock()
         mock_client.provider = "test_provider"
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = True
             mock_rate_limiter.consume_tokens.return_value = None
@@ -276,9 +278,10 @@ class TestEnforceCostGuardrailsDecorator:
         mock_client = Mock()
         mock_client.provider = "test_provider"
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = True
             mock_rate_limiter.consume_tokens.return_value = None
@@ -359,9 +362,10 @@ class TestEnforceCostGuardrailsDecorator:
             action_taken=[GuardrailAction.BLOCK],
         )
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = violation
 
@@ -397,9 +401,11 @@ class TestEnforceCostGuardrailsDecorator:
             action_taken=[GuardrailAction.THROTTLE],
         )
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager, patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+            patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = violation
             mock_rate_limiter.consume_tokens.return_value = None
@@ -432,9 +438,11 @@ class TestEnforceCostGuardrailsDecorator:
             action_taken=[GuardrailAction.THROTTLE],
         )
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager, patch("time.sleep") as mock_sleep:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+            patch("time.sleep") as mock_sleep,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = violation
             mock_rate_limiter.consume_tokens.return_value = None
@@ -454,9 +462,10 @@ class TestEnforceCostGuardrailsDecorator:
         mock_client.provider = "test_provider"
         mock_client.calculate_cost.return_value = 5.50
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = True
             mock_rate_limiter.consume_tokens.return_value = None
@@ -486,9 +495,10 @@ class TestEnforceCostGuardrailsDecorator:
         mock_estimate = Mock()
         mock_estimate.estimated_cost = Decimal("3.25")
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
 
             # Ensure the mock estimate_cost method is properly configured
@@ -521,9 +531,11 @@ class TestEnforceCostGuardrailsDecorator:
         mock_client.provider = "test_provider"
         mock_client.calculate_cost.side_effect = Exception("Cost calculation failed")
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager, patch("d0_gateway.guardrail_middleware.logger") as mock_logger:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+            patch("d0_gateway.guardrail_middleware.logger") as mock_logger,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = True
             mock_rate_limiter.consume_tokens.return_value = None
@@ -557,9 +569,11 @@ class TestEnforceCostGuardrailsDecorator:
         mock_limit.circuit_breaker_failure_threshold = 5
         mock_limit.circuit_breaker_recovery_timeout = 300
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager, patch("time.time") as mock_time:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+            patch("time.time") as mock_time,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = True
             mock_rate_limiter.consume_tokens.return_value = None
@@ -586,9 +600,10 @@ class TestEnforceCostGuardrailsDecorator:
         mock_client = Mock()
         mock_client.custom_provider = "custom_provider"
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+        ):
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = True
             mock_rate_limiter.consume_tokens.return_value = None
@@ -929,9 +944,10 @@ class TestMiddlewareIntegration:
         mock_client.calculate_cost.return_value = 5.75
         mock_client.emit_cost = Mock()
 
-        with patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter, patch(
-            "d0_gateway.guardrail_middleware.guardrail_manager"
-        ) as mock_manager:
+        with (
+            patch("d0_gateway.guardrail_middleware.rate_limiter") as mock_rate_limiter,
+            patch("d0_gateway.guardrail_middleware.guardrail_manager") as mock_manager,
+        ):
             # Setup successful path
             mock_rate_limiter.check_rate_limit.return_value = (True, None)
             mock_manager.enforce_limits.return_value = True

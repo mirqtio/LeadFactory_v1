@@ -1,4 +1,5 @@
 """Unit tests for email builder."""
+
 import pytest
 
 from d3_assessment.audit_schema import AuditFinding, FindingCategory, FindingSeverity

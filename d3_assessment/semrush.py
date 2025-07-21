@@ -1,9 +1,9 @@
 """SEMrush adapter for traffic and keyword enrichment."""
+
 import logging
 import os
 from datetime import datetime, timedelta
 from functools import lru_cache
-from typing import Dict, Optional
 
 import redis
 
@@ -34,7 +34,7 @@ class SEMrushAdapter:
     - Traffic and keyword intent extraction
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize SEMrush adapter."""
         self.api_key = api_key or os.getenv("SEMRUSH_API_KEY")
         if not self.api_key:
@@ -92,7 +92,7 @@ class SEMrushAdapter:
             logger.error(f"Redis quota increment failed: {e}")
 
     @lru_cache(maxsize=1000)
-    def _get_cached(self, domain: str) -> Optional[Dict]:
+    def _get_cached(self, domain: str) -> dict | None:
         """Get cached result for domain (30-day cache)."""
         cache_key = f"semrush:{domain}"
 
@@ -104,12 +104,12 @@ class SEMrushAdapter:
 
         return None
 
-    def _set_cached(self, domain: str, data: Dict):
+    def _set_cached(self, domain: str, data: dict):
         """Cache result for domain."""
         cache_key = f"semrush:{domain}"
         self._cache[cache_key] = (data, datetime.now())
 
-    async def fetch_overview(self, domain: str) -> Optional[Dict]:
+    async def fetch_overview(self, domain: str) -> dict | None:
         """
         Fetch domain overview with traffic and keyword data.
 
@@ -171,7 +171,7 @@ class SEMrushAdapter:
             logger.error(f"SEMrush fetch failed for {domain}: {e}")
             return None
 
-    def _estimate_commercial_intent(self, semrush_data: Dict) -> int:
+    def _estimate_commercial_intent(self, semrush_data: dict) -> int:
         """
         Estimate commercial keyword percentage from SEMrush data.
 
@@ -192,14 +192,13 @@ class SEMrushAdapter:
         # 80%+ paid = 90% commercial
         if ratio < 0.1:
             return 20
-        elif ratio < 0.3:
+        if ratio < 0.3:
             return 40
-        elif ratio < 0.5:
+        if ratio < 0.5:
             return 60
-        elif ratio < 0.8:
+        if ratio < 0.8:
             return 70
-        else:
-            return 90
+        return 90
 
     def get_visits_per_mil(self, visits: int, annual_revenue: float) -> int:
         """

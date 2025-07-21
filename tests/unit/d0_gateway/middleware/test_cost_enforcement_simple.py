@@ -1,6 +1,7 @@
 """
 Simple unit tests for cost enforcement middleware without database dependencies
 """
+
 import time
 from datetime import datetime, timedelta
 from decimal import Decimal

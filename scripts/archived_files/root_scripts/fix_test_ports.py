@@ -11,12 +11,12 @@ from pathlib import Path
 from typing import List, Tuple
 
 
-def find_hardcoded_ports(file_path: Path) -> List[Tuple[int, str, str]]:
+def find_hardcoded_ports(file_path: Path) -> list[tuple[int, str, str]]:
     """Find hardcoded ports in a file.
 
     Returns list of (line_number, original_text, suggested_fix)
     """
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
         lines = content.split("\n")
 
@@ -136,7 +136,7 @@ def main():
                 print(f"    → Suggestion: {suggestion}")
             print()
 
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  Files scanned: {len(files)}")
     print(f"  Files with issues: {files_with_issues}")
     print(f"  Total hardcoded ports: {total_issues}")

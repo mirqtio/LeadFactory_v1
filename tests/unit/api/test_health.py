@@ -3,7 +3,7 @@ Comprehensive tests for health check endpoints.
 
 Tests critical health monitoring infrastructure including:
 - Basic health check endpoint with database and Redis validation
-- Performance timing and timeout handling  
+- Performance timing and timeout handling
 - Detailed health check with system information
 - Error handling and failure scenarios
 - Response format and status code validation
@@ -101,8 +101,9 @@ class TestRedisHealth:
         mock_client.ping.return_value = True
         mock_client.close.return_value = None
 
-        with patch("redis.asyncio.from_url", return_value=mock_client) as mock_from_url, patch(
-            "time.time", side_effect=[0.0, 0.002]
+        with (
+            patch("redis.asyncio.from_url", return_value=mock_client) as mock_from_url,
+            patch("time.time", side_effect=[0.0, 0.002]),
         ):  # 2ms latency
             result = await check_redis_health("redis://localhost:6379/0")
 
@@ -128,9 +129,10 @@ class TestRedisHealth:
     @pytest.mark.asyncio
     async def test_check_redis_health_connection_error(self):
         """Test Redis health check with connection error."""
-        with patch("redis.asyncio.from_url", side_effect=redis.ConnectionError("Connection refused")), patch(
-            "api.health.logger"
-        ) as mock_logger:
+        with (
+            patch("redis.asyncio.from_url", side_effect=redis.ConnectionError("Connection refused")),
+            patch("api.health.logger") as mock_logger,
+        ):
             result = await check_redis_health("redis://localhost:6379/0")
 
             assert result["status"] == "error"
@@ -144,8 +146,9 @@ class TestRedisHealth:
         mock_client.ping.return_value = True
         mock_client.close.return_value = None
 
-        with patch("redis.asyncio.from_url", return_value=mock_client), patch(
-            "time.time", side_effect=[0.0, 0.025]
+        with (
+            patch("redis.asyncio.from_url", return_value=mock_client),
+            patch("time.time", side_effect=[0.0, 0.025]),
         ):  # 25ms latency
             result = await check_redis_health("redis://localhost:6379/0")
 
@@ -183,8 +186,9 @@ class TestHealthCheckEndpoint:
         mock_settings.environment = "test"
         mock_settings.redis_url = None
 
-        with patch("api.health.settings", mock_settings), patch(
-            "time.time", side_effect=[0.0, 0.001, 0.01]
+        with (
+            patch("api.health.settings", mock_settings),
+            patch("time.time", side_effect=[0.0, 0.001, 0.01]),
         ):  # Start, DB check, End
             response = await health_check(mock_db)
 
@@ -231,8 +235,9 @@ class TestHealthCheckEndpoint:
         mock_settings.redis_url = None
 
         # Simulate database check taking 60ms (exceeds 50ms limit)
-        with patch("api.health.settings", mock_settings), patch(
-            "time.time", side_effect=[0.0, 0.0, 0.06, 0.07]
+        with (
+            patch("api.health.settings", mock_settings),
+            patch("time.time", side_effect=[0.0, 0.0, 0.06, 0.07]),
         ):  # Start, DB start, DB end, End
             response = await health_check(mock_db)
 
@@ -259,9 +264,11 @@ class TestHealthCheckEndpoint:
         mock_client.ping.return_value = True
         mock_client.close.return_value = None
 
-        with patch("api.health.settings", mock_settings), patch(
-            "redis.asyncio.from_url", return_value=mock_client
-        ), patch("time.time", side_effect=[0.0, 0.001, 0.002, 0.01]):
+        with (
+            patch("api.health.settings", mock_settings),
+            patch("redis.asyncio.from_url", return_value=mock_client),
+            patch("time.time", side_effect=[0.0, 0.001, 0.002, 0.01]),
+        ):
             response = await health_check(mock_db)
 
             assert response.status_code == 200
@@ -283,9 +290,12 @@ class TestHealthCheckEndpoint:
         mock_settings.environment = "test"
         mock_settings.redis_url = "redis://redis-server:6379/0"
 
-        with patch("api.health.settings", mock_settings), patch(
-            "redis.asyncio.from_url", side_effect=redis.ConnectionError("Redis down")
-        ), patch("api.health.logger") as mock_logger, patch("time.time", side_effect=[0.0, 0.001, 0.01]):
+        with (
+            patch("api.health.settings", mock_settings),
+            patch("redis.asyncio.from_url", side_effect=redis.ConnectionError("Redis down")),
+            patch("api.health.logger") as mock_logger,
+            patch("time.time", side_effect=[0.0, 0.001, 0.01]),
+        ):
             response = await health_check(mock_db)
 
             # Redis failure should not make health check fail (it's non-critical)
@@ -312,9 +322,11 @@ class TestHealthCheckEndpoint:
             await asyncio.sleep(0.1)  # Simulate slow Redis
             return {"status": "connected"}
 
-        with patch("api.health.settings", mock_settings), patch(
-            "api.health.check_redis_health", slow_redis_check
-        ), patch("time.time", side_effect=[0.0, 0.001, 0.01]):
+        with (
+            patch("api.health.settings", mock_settings),
+            patch("api.health.check_redis_health", slow_redis_check),
+            patch("time.time", side_effect=[0.0, 0.001, 0.01]),
+        ):
             response = await health_check(mock_db)
 
             assert response.status_code == 200
@@ -335,8 +347,10 @@ class TestHealthCheckEndpoint:
         mock_settings.environment = "test"
         mock_settings.redis_url = None
 
-        with patch("api.health.settings", mock_settings), patch("api.health.logger") as mock_logger, patch(
-            "time.time", side_effect=[0.0, 0.001, 0.15]
+        with (
+            patch("api.health.settings", mock_settings),
+            patch("api.health.logger") as mock_logger,
+            patch("time.time", side_effect=[0.0, 0.001, 0.15]),
         ):  # 150ms total time
             response = await health_check(mock_db)
 
@@ -549,10 +563,10 @@ class TestHealthEndpointsIntegration:
         mock_client.ping.return_value = True
         mock_client.close.return_value = None
 
-        with patch("api.health.settings", mock_settings), patch(
-            "redis.asyncio.from_url", return_value=mock_client
-        ), patch(
-            "time.time", side_effect=[0.0, 0.001, 0.003, 0.02]
+        with (
+            patch("api.health.settings", mock_settings),
+            patch("redis.asyncio.from_url", return_value=mock_client),
+            patch("time.time", side_effect=[0.0, 0.001, 0.003, 0.02]),
         ):  # Realistic timings
             # Test basic health check
             basic_response = await health_check(mock_db)

@@ -36,10 +36,9 @@ class IntegrationAgent:
             self.redis.set("merge:lock:timestamp", datetime.now().isoformat())
             print(f"🔒 Acquired merge lock for {prp_id}")
             return True
-        else:
-            current_lock = self.redis.get("merge:lock")
-            print(f"⚠️ Merge lock held by {current_lock}")
-            return False
+        current_lock = self.redis.get("merge:lock")
+        print(f"⚠️ Merge lock held by {current_lock}")
+        return False
 
     def process_integration_queue(self):
         """Process next PRP from integration queue"""
@@ -79,15 +78,14 @@ class IntegrationAgent:
             if result.returncode == 0:
                 print(f"✅ Fast-forward merge successful for {prp_id}")
                 return True
-            else:
-                print(f"⚠️ Fast-forward failed, attempting rebase merge")
-                # Try rebase merge
-                subprocess.run(["git", "checkout", feature_branch], check=True)
-                subprocess.run(["git", "rebase", "main"], check=True)
-                subprocess.run(["git", "checkout", "main"], check=True)
-                subprocess.run(["git", "merge", "--ff-only", feature_branch], check=True)
-                print(f"✅ Rebase merge successful for {prp_id}")
-                return True
+            print("⚠️ Fast-forward failed, attempting rebase merge")
+            # Try rebase merge
+            subprocess.run(["git", "checkout", feature_branch], check=True)
+            subprocess.run(["git", "rebase", "main"], check=True)
+            subprocess.run(["git", "checkout", "main"], check=True)
+            subprocess.run(["git", "merge", "--ff-only", feature_branch], check=True)
+            print(f"✅ Rebase merge successful for {prp_id}")
+            return True
 
         except subprocess.CalledProcessError as e:
             print(f"❌ Merge failed for {prp_id}: {e}")
@@ -104,9 +102,8 @@ class IntegrationAgent:
             if result.returncode == 0:
                 print("✅ Smoke CI passed")
                 return True
-            else:
-                print(f"❌ Smoke CI failed: {result.stderr}")
-                return False
+            print(f"❌ Smoke CI failed: {result.stderr}")
+            return False
 
         except subprocess.TimeoutExpired:
             print("⏰ Smoke CI timeout (>5 min)")
@@ -121,19 +118,18 @@ class IntegrationAgent:
             print(f"🔧 Attempting to fix simple failure for {prp_id}")
             # Implement simple fixes (formatting, lint, etc.)
             return True
-        else:
-            print(f"📞 Complex failure - pinging PM for {prp_id}")
-            # Notify PM via tmux messaging
-            pm_session = self.get_pm_session(prp_id)
-            if pm_session:
-                subprocess.run(
-                    [
-                        "/Users/charlieirwin/Tmux-Orchestrator/send-claude-message.sh",
-                        f"{pm_session}:0",
-                        f"Integration failure on {prp_id}. Your expertise needed for complex issue.",
-                    ]
-                )
-            return False
+        print(f"📞 Complex failure - pinging PM for {prp_id}")
+        # Notify PM via tmux messaging
+        pm_session = self.get_pm_session(prp_id)
+        if pm_session:
+            subprocess.run(
+                [
+                    "/Users/charlieirwin/Tmux-Orchestrator/send-claude-message.sh",
+                    f"{pm_session}:0",
+                    f"Integration failure on {prp_id}. Your expertise needed for complex issue.",
+                ]
+            )
+        return False
 
     def update_prp_state(self, prp_id: str, new_state: str):
         """Update PRP state in Redis and YAML"""

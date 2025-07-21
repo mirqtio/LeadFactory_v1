@@ -3,8 +3,9 @@ P2-010: Collaborative Bucket Schemas
 
 Pydantic schemas for collaborative bucket API endpoints
 """
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,23 +17,21 @@ class UserInfo(BaseModel):
     """Basic user information for collaboration"""
 
     user_id: str
-    name: Optional[str] = None
-    email: Optional[str] = None
-    avatar_url: Optional[str] = None
+    name: str | None = None
+    email: str | None = None
+    avatar_url: str | None = None
 
 
 class BucketTagBase(BaseModel):
     """Base schema for bucket tags"""
 
     name: str = Field(..., min_length=1, max_length=100)
-    description: Optional[str] = None
-    color: Optional[str] = Field(None, pattern="^#[0-9A-Fa-f]{6}$")
+    description: str | None = None
+    color: str | None = Field(None, pattern="^#[0-9A-Fa-f]{6}$")
 
 
 class BucketTagCreate(BucketTagBase):
     """Schema for creating a tag"""
-
-    pass
 
 
 class BucketTagResponse(BucketTagBase):
@@ -50,32 +49,32 @@ class BucketBase(BaseModel):
     """Base schema for buckets"""
 
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     bucket_type: str = Field(..., description="Type of bucket: vertical, geographic, custom")
     bucket_key: str = Field(..., description="Unique key for the bucket type")
     is_public: bool = Field(False, description="Whether bucket is public within organization")
-    enrichment_config: Optional[Dict[str, Any]] = None
-    processing_strategy: Optional[str] = None
-    priority_level: Optional[str] = None
+    enrichment_config: dict[str, Any] | None = None
+    processing_strategy: str | None = None
+    priority_level: str | None = None
 
 
 class BucketCreate(BucketBase):
     """Schema for creating a bucket"""
 
-    organization_id: Optional[str] = None
-    tags: Optional[List[str]] = Field(default_factory=list, description="List of tag IDs")
+    organization_id: str | None = None
+    tags: list[str] | None = Field(default_factory=list, description="List of tag IDs")
 
 
 class BucketUpdate(BaseModel):
     """Schema for updating a bucket"""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    is_public: Optional[bool] = None
-    enrichment_config: Optional[Dict[str, Any]] = None
-    processing_strategy: Optional[str] = None
-    priority_level: Optional[str] = None
-    tags: Optional[List[str]] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    is_public: bool | None = None
+    enrichment_config: dict[str, Any] | None = None
+    processing_strategy: str | None = None
+    priority_level: str | None = None
+    tags: list[str] | None = None
 
 
 class BucketResponse(BucketBase):
@@ -83,20 +82,20 @@ class BucketResponse(BucketBase):
 
     id: str
     owner_id: str
-    organization_id: Optional[str]
+    organization_id: str | None
     lead_count: int
-    last_enriched_at: Optional[datetime]
+    last_enriched_at: datetime | None
     total_enrichment_cost: int  # In cents
     version: int
     created_at: datetime
     updated_at: datetime
-    tags: List[BucketTagResponse] = Field(default_factory=list)
+    tags: list[BucketTagResponse] = Field(default_factory=list)
 
     # Current user's permission
-    user_permission: Optional[BucketPermission] = None
+    user_permission: BucketPermission | None = None
 
     # Active collaborators count
-    active_collaborators: Optional[int] = None
+    active_collaborators: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -104,7 +103,7 @@ class BucketResponse(BucketBase):
 class BucketListResponse(BaseModel):
     """Schema for listing buckets"""
 
-    buckets: List[BucketResponse]
+    buckets: list[BucketResponse]
     total: int
     page: int
     page_size: int
@@ -116,7 +115,7 @@ class PermissionGrantBase(BaseModel):
 
     user_id: str
     permission: BucketPermission
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
 
 class PermissionGrantCreate(PermissionGrantBase):
@@ -129,7 +128,7 @@ class PermissionGrantUpdate(BaseModel):
     """Schema for updating permissions"""
 
     permission: BucketPermission
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
 
 class PermissionGrantResponse(PermissionGrantBase):
@@ -139,7 +138,7 @@ class PermissionGrantResponse(PermissionGrantBase):
     bucket_id: str
     granted_by: str
     granted_at: datetime
-    user_info: Optional[UserInfo] = None
+    user_info: UserInfo | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -149,11 +148,11 @@ class ActivityBase(BaseModel):
     """Base schema for activities"""
 
     activity_type: BucketActivityType
-    entity_type: Optional[str] = None
-    entity_id: Optional[str] = None
-    old_values: Optional[Dict[str, Any]] = None
-    new_values: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    entity_type: str | None = None
+    entity_id: str | None = None
+    old_values: dict[str, Any] | None = None
+    new_values: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class ActivityCreate(ActivityBase):
@@ -170,7 +169,7 @@ class ActivityResponse(ActivityBase):
     bucket_id: str
     user_id: str
     created_at: datetime
-    user_info: Optional[UserInfo] = None
+    user_info: UserInfo | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -178,7 +177,7 @@ class ActivityResponse(ActivityBase):
 class ActivityFeedResponse(BaseModel):
     """Schema for activity feed"""
 
-    activities: List[ActivityResponse]
+    activities: list[ActivityResponse]
     total: int
     page: int
     page_size: int
@@ -189,22 +188,20 @@ class CommentBase(BaseModel):
     """Base schema for comments"""
 
     content: str = Field(..., min_length=1)
-    lead_id: Optional[str] = None
-    parent_comment_id: Optional[str] = None
-    mentioned_users: Optional[List[str]] = Field(default_factory=list)
+    lead_id: str | None = None
+    parent_comment_id: str | None = None
+    mentioned_users: list[str] | None = Field(default_factory=list)
 
 
 class CommentCreate(CommentBase):
     """Schema for creating a comment"""
-
-    pass
 
 
 class CommentUpdate(BaseModel):
     """Schema for updating a comment"""
 
     content: str = Field(..., min_length=1)
-    mentioned_users: Optional[List[str]] = None
+    mentioned_users: list[str] | None = None
 
 
 class CommentResponse(CommentBase):
@@ -217,8 +214,8 @@ class CommentResponse(CommentBase):
     is_deleted: bool
     created_at: datetime
     updated_at: datetime
-    user_info: Optional[UserInfo] = None
-    reply_count: Optional[int] = None
+    user_info: UserInfo | None = None
+    reply_count: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -230,9 +227,9 @@ class NotificationBase(BaseModel):
     notification_type: NotificationType
     title: str
     message: str
-    related_user_id: Optional[str] = None
-    related_entity_type: Optional[str] = None
-    related_entity_id: Optional[str] = None
+    related_user_id: str | None = None
+    related_entity_type: str | None = None
+    related_entity_id: str | None = None
 
 
 class NotificationResponse(NotificationBase):
@@ -244,8 +241,8 @@ class NotificationResponse(NotificationBase):
     is_read: bool
     is_email_sent: bool
     created_at: datetime
-    read_at: Optional[datetime]
-    bucket_info: Optional[Dict[str, Any]] = None
+    read_at: datetime | None
+    bucket_info: dict[str, Any] | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -253,7 +250,7 @@ class NotificationResponse(NotificationBase):
 class NotificationListResponse(BaseModel):
     """Schema for listing notifications"""
 
-    notifications: List[NotificationResponse]
+    notifications: list[NotificationResponse]
     unread_count: int
     total: int
     page: int
@@ -269,11 +266,11 @@ class VersionResponse(BaseModel):
     version_number: int
     change_type: str
     change_summary: str
-    bucket_snapshot: Dict[str, Any]
-    lead_ids_snapshot: Optional[List[str]]
+    bucket_snapshot: dict[str, Any]
+    lead_ids_snapshot: list[str] | None
     changed_by: str
     created_at: datetime
-    user_info: Optional[UserInfo] = None
+    user_info: UserInfo | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -281,7 +278,7 @@ class VersionResponse(BaseModel):
 class VersionListResponse(BaseModel):
     """Schema for listing versions"""
 
-    versions: List[VersionResponse]
+    versions: list[VersionResponse]
     total: int
     page: int
     page_size: int
@@ -293,21 +290,19 @@ class LeadAnnotationBase(BaseModel):
 
     lead_id: str
     annotation_type: str = Field(..., description="note, tag, status, priority")
-    content: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    content: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class LeadAnnotationCreate(LeadAnnotationBase):
     """Schema for creating a lead annotation"""
 
-    pass
-
 
 class LeadAnnotationUpdate(BaseModel):
     """Schema for updating a lead annotation"""
 
-    content: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    content: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class LeadAnnotationResponse(LeadAnnotationBase):
@@ -318,7 +313,7 @@ class LeadAnnotationResponse(LeadAnnotationBase):
     user_id: str
     created_at: datetime
     updated_at: datetime
-    user_info: Optional[UserInfo] = None
+    user_info: UserInfo | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -328,8 +323,8 @@ class ShareLinkCreate(BaseModel):
     """Schema for creating a share link"""
 
     permission: BucketPermission = Field(BucketPermission.VIEWER)
-    max_uses: Optional[int] = Field(None, ge=1)
-    expires_at: Optional[datetime] = None
+    max_uses: int | None = Field(None, ge=1)
+    expires_at: datetime | None = None
 
 
 class ShareLinkResponse(BaseModel):
@@ -340,9 +335,9 @@ class ShareLinkResponse(BaseModel):
     share_token: str
     share_url: str  # Full URL for sharing
     permission: BucketPermission
-    max_uses: Optional[int]
+    max_uses: int | None
     current_uses: int
-    expires_at: Optional[datetime]
+    expires_at: datetime | None
     created_by: str
     created_at: datetime
     is_active: bool
@@ -355,11 +350,11 @@ class ActiveCollaboratorInfo(BaseModel):
     """Information about an active collaborator"""
 
     user_id: str
-    user_info: Optional[UserInfo] = None
+    user_info: UserInfo | None = None
     session_id: str
     connection_type: str
     last_activity_at: datetime
-    current_view: Optional[str]
+    current_view: str | None
     is_editing: bool
     connected_at: datetime
 
@@ -370,7 +365,7 @@ class CollaborationStatusResponse(BaseModel):
     """Schema for collaboration status"""
 
     bucket_id: str
-    active_collaborators: List[ActiveCollaboratorInfo]
+    active_collaborators: list[ActiveCollaboratorInfo]
     total_collaborators: int
 
 
@@ -393,7 +388,7 @@ class WSMessage(BaseModel):
     type: str
     bucket_id: str
     user_id: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -401,9 +396,9 @@ class WSMessage(BaseModel):
 class BulkLeadOperation(BaseModel):
     """Schema for bulk lead operations"""
 
-    lead_ids: List[str] = Field(..., min_items=1)
+    lead_ids: list[str] = Field(..., min_items=1)
     operation: str = Field(..., description="add, remove, update")
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class BulkOperationResponse(BaseModel):
@@ -411,4 +406,4 @@ class BulkOperationResponse(BaseModel):
 
     success_count: int
     failure_count: int
-    failures: Optional[List[Dict[str, str]]] = None  # lead_id -> error message
+    failures: list[dict[str, str]] | None = None  # lead_id -> error message

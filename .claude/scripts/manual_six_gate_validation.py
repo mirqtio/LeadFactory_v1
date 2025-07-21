@@ -15,7 +15,7 @@ class SixGateValidator:
         if not self.prp_path.exists():
             raise FileNotFoundError(f"PRP not found: {prp_path}")
 
-        with open(self.prp_path, "r") as f:
+        with open(self.prp_path) as f:
             self.content = f.read()
 
         # Extract basic info
@@ -119,10 +119,9 @@ class SixGateValidator:
 
         if research_count >= 4:
             return True, f"Strong research backing ({research_count}/6 indicators)"
-        elif research_count >= 2:
+        if research_count >= 2:
             return True, f"Adequate research ({research_count}/6 indicators)"
-        else:
-            return False, f"Insufficient research ({research_count}/6 indicators)"
+        return False, f"Insufficient research ({research_count}/6 indicators)"
 
     def validate_gate_5_critic(self) -> tuple[bool, str]:
         """Gate 5: Critic Review (manual assessment)"""
@@ -215,9 +214,9 @@ class SixGateValidator:
 
     def run_validation(self) -> bool:
         """Run all six gates"""
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Six-Gate Validation for: {self.task_id} - {self.title}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         gates = [
             ("Schema", self.validate_gate_1_schema),
@@ -243,7 +242,7 @@ class SixGateValidator:
                 print(f"     {message}")
                 all_passed = False
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         if all_passed:
             print("🎉 All six validation gates PASSED!")
             print("\nValidation Summary:")
@@ -255,7 +254,7 @@ class SixGateValidator:
             for gate_name, passed, message in results:
                 status = "✅" if passed else "❌"
                 print(f"  • {gate_name}: {status} {message}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         return all_passed
 

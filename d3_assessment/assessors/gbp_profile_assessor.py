@@ -6,7 +6,8 @@ Timeout: 5s
 Cost: $0.002 per assessment
 Output: gbp_profile_json column
 """
-from typing import Any, Dict, Optional
+
+from typing import Any
 
 from core.config import settings
 from core.logging import get_logger
@@ -36,7 +37,7 @@ class GBPProfileAssessor(BaseAssessor):
             self._client = create_client("google_places")
         return self._client
 
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Get Google Business Profile data
 
@@ -148,7 +149,7 @@ class GBPProfileAssessor(BaseAssessor):
                 error_message=f"GBP API error: {str(e)}",
             )
 
-    async def _find_place(self, client: GooglePlacesClient, business_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def _find_place(self, client: GooglePlacesClient, business_data: dict[str, Any]) -> dict[str, Any] | None:
         """Find place using business data"""
         # Build search query
         name = business_data.get("name", "")
@@ -172,7 +173,7 @@ class GBPProfileAssessor(BaseAssessor):
 
         return None
 
-    def _process_place_details(self, details: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_place_details(self, details: dict[str, Any]) -> dict[str, Any]:
         """Process place details into structured format"""
         # Extract opening hours
         opening_hours = details.get("opening_hours", {})

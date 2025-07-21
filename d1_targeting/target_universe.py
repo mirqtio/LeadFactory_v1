@@ -1,10 +1,11 @@
 """
 Target Universe Manager for managing CRUD operations, geo conflicts, priority scoring, and freshness tracking
 """
+
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import Session
@@ -24,7 +25,7 @@ class TargetUniverseManager:
     priority scoring, and freshness tracking
     """
 
-    def __init__(self, session: Optional[Session] = None):
+    def __init__(self, session: Session | None = None):
         self.logger = get_logger("target_universe", domain="d1")
         self.session = session or SessionLocal()
         self.settings = get_settings()
@@ -35,11 +36,11 @@ class TargetUniverseManager:
     def create_universe(
         self,
         name: str,
-        description: Optional[str],
-        verticals: List[VerticalMarket],
-        geography_config: Dict[str, Any],
-        qualification_rules: Optional[QualificationRules] = None,
-        created_by: Optional[str] = None,
+        description: str | None,
+        verticals: list[VerticalMarket],
+        geography_config: dict[str, Any],
+        qualification_rules: QualificationRules | None = None,
+        created_by: str | None = None,
     ) -> TargetUniverse:
         """
         Create a new target universe with validation
@@ -90,11 +91,11 @@ class TargetUniverseManager:
             self.logger.error(f"Failed to create target universe '{name}': {e}")
             raise
 
-    def get_universe(self, universe_id: str) -> Optional[TargetUniverse]:
+    def get_universe(self, universe_id: str) -> TargetUniverse | None:
         """Get target universe by ID"""
         return self.session.query(TargetUniverse).filter_by(id=universe_id).first()
 
-    def list_universes(self, active_only: bool = True, limit: int = 100, offset: int = 0) -> List[TargetUniverse]:
+    def list_universes(self, active_only: bool = True, limit: int = 100, offset: int = 0) -> list[TargetUniverse]:
         """
         List target universes with pagination
 
@@ -113,7 +114,7 @@ class TargetUniverseManager:
 
         return query.order_by(desc(TargetUniverse.created_at)).offset(offset).limit(limit).all()
 
-    def update_universe(self, universe_id: str, **updates) -> Optional[TargetUniverse]:
+    def update_universe(self, universe_id: str, **updates) -> TargetUniverse | None:
         """
         Update target universe with validation
 
@@ -195,7 +196,7 @@ class TargetUniverseManager:
 
     # Geo Conflict Detection
 
-    def detect_geo_conflicts(self, geography_config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def detect_geo_conflicts(self, geography_config: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Detect geographic conflicts in configuration
 
@@ -207,7 +208,7 @@ class TargetUniverseManager:
         """
         return self.geo_validator.detect_conflicts(geography_config)
 
-    def validate_geo_hierarchy(self, constraints: List[GeographicConstraint]) -> List[str]:
+    def validate_geo_hierarchy(self, constraints: list[GeographicConstraint]) -> list[str]:
         """
         Validate geographic hierarchy consistency
 
@@ -219,7 +220,7 @@ class TargetUniverseManager:
         """
         return self.geo_validator.validate_hierarchy(constraints)
 
-    def resolve_geo_overlaps(self, constraints: List[GeographicConstraint]) -> List[GeographicConstraint]:
+    def resolve_geo_overlaps(self, constraints: list[GeographicConstraint]) -> list[GeographicConstraint]:
         """
         Resolve geographic overlaps by merging or removing redundant constraints
 
@@ -276,8 +277,8 @@ class TargetUniverseManager:
             return 0.0
 
     def rank_universes_by_priority(
-        self, universe_ids: Optional[List[str]] = None, limit: int = 50
-    ) -> List[Tuple[TargetUniverse, float]]:
+        self, universe_ids: list[str] | None = None, limit: int = 50
+    ) -> list[tuple[TargetUniverse, float]]:
         """
         Rank target universes by priority score
 
@@ -335,7 +336,7 @@ class TargetUniverseManager:
             self.logger.error(f"Failed to update freshness for universe {universe_id}: {e}")
             raise
 
-    def get_stale_universes(self, max_age_hours: int = 24) -> List[TargetUniverse]:
+    def get_stale_universes(self, max_age_hours: int = 24) -> list[TargetUniverse]:
         """
         Get universes that need freshness updates
 
@@ -427,7 +428,7 @@ class TargetUniverseManager:
             else Decimal("0.00"),
         )
 
-    def get_performance_summary(self, days: int = 30) -> Dict[str, Any]:
+    def get_performance_summary(self, days: int = 30) -> dict[str, Any]:
         """
         Get performance summary across all universes
 
@@ -485,9 +486,7 @@ class TargetUniverseManager:
 
     # Private helper methods
 
-    def _estimate_universe_size(
-        self, verticals: List[VerticalMarket], geography_config: Dict[str, Any]
-    ) -> Optional[int]:
+    def _estimate_universe_size(self, verticals: list[VerticalMarket], geography_config: dict[str, Any]) -> int | None:
         """Estimate universe size based on criteria (placeholder implementation)"""
         # This would typically query historical data or use estimation algorithms
         base_size = len(verticals) * 1000  # 1000 targets per vertical as baseline
@@ -497,7 +496,7 @@ class TargetUniverseManager:
 
         return int(base_size * geo_multiplier)
 
-    def _calculate_geo_multiplier(self, geography_config: Dict[str, Any]) -> float:
+    def _calculate_geo_multiplier(self, geography_config: dict[str, Any]) -> float:
         """Calculate geographic scope multiplier for size estimation"""
         # Simplified implementation
         if not geography_config:
@@ -517,8 +516,7 @@ class TargetUniverseManager:
         # Score decreases over time: 1.0 at 0 hours, 0.5 at 24 hours, 0.0 at 72 hours
         if hours_since_refresh <= 24:
             return 1.0 - (hours_since_refresh / 48)  # Linear decrease
-        else:
-            return max(0.0, 0.5 - ((hours_since_refresh - 24) / 96))
+        return max(0.0, 0.5 - ((hours_since_refresh - 24) / 96))
 
     def _calculate_campaign_performance(self, universe: TargetUniverse) -> float:
         """Calculate average campaign performance for universe"""

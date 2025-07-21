@@ -4,11 +4,11 @@ Tmux Background Monitor for Orchestrator
 Belt and suspenders approach - monitors all agent windows every minute
 Responds to agent needs while Redis coordination settles in
 """
+
 import re
 import subprocess
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
 
 
 class TmuxMonitor:
@@ -53,7 +53,7 @@ class TmuxMonitor:
             ],
         }
 
-    def capture_window(self, window_num: int) -> Optional[str]:
+    def capture_window(self, window_num: int) -> str | None:
         """Capture content of specified tmux window."""
         try:
             cmd = f"tmux capture-pane -t {self.session_name}:{window_num} -p"
@@ -61,9 +61,8 @@ class TmuxMonitor:
 
             if result.returncode == 0:
                 return result.stdout.strip()
-            else:
-                print(f"❌ Failed to capture window {window_num}: {result.stderr}")
-                return None
+            print(f"❌ Failed to capture window {window_num}: {result.stderr}")
+            return None
 
         except Exception as e:
             print(f"❌ Exception capturing window {window_num}: {e}")
@@ -83,15 +82,14 @@ class TmuxMonitor:
             if result1.returncode == 0 and result2.returncode == 0:
                 print(f"📤 Sent to {self.agent_windows.get(window_num)}: {message[:50]}...")
                 return True
-            else:
-                print(f"❌ Failed to send to window {window_num}")
-                return False
+            print(f"❌ Failed to send to window {window_num}")
+            return False
 
         except Exception as e:
             print(f"❌ Exception sending to window {window_num}: {e}")
             return False
 
-    def analyze_content(self, content: str, agent_name: str) -> Dict[str, any]:
+    def analyze_content(self, content: str, agent_name: str) -> dict[str, any]:
         """Analyze window content for triggers requiring response."""
         analysis = {
             "needs_response": False,
@@ -145,7 +143,7 @@ class TmuxMonitor:
 
         return analysis
 
-    def generate_contextual_response(self, agent_name: str, analysis: Dict[str, any], window_num: int) -> Optional[str]:
+    def generate_contextual_response(self, agent_name: str, analysis: dict[str, any], window_num: int) -> str | None:
         """Generate contextual response based on agent and analysis."""
         if not analysis["needs_response"]:
             return None
@@ -157,18 +155,17 @@ class TmuxMonitor:
         # Generate contextual responses based on agent role
         if agent_name == "PM-1":
             return "PM-1: I'm monitoring your P0-022 progress. What's your current status and any blockers?"
-        elif agent_name == "PM-2":
+        if agent_name == "PM-2":
             return "PM-2: Checking in on your work. What's your current task status?"
-        elif agent_name == "PM-3":
+        if agent_name == "PM-3":
             return "PM-3: I see activity. What's your P2-040 progress and next steps?"
-        elif agent_name == "Validator":
+        if agent_name == "Validator":
             return "Validator: I'm tracking validation work. What items need validation approval?"
-        elif agent_name == "Integration":
+        if agent_name == "Integration":
             return "Integration: Checking CI and integration status. Any issues or completions to report?"
-        else:
-            return f"{agent_name}: I see activity in your window. Please provide status update."
+        return f"{agent_name}: I see activity in your window. Please provide status update."
 
-    def should_respond(self, agent_name: str, analysis: Dict[str, any]) -> bool:
+    def should_respond(self, agent_name: str, analysis: dict[str, any]) -> bool:
         """Determine if orchestrator should respond to this agent."""
         # Don't respond if no triggers
         if not analysis["needs_response"]:
@@ -188,7 +185,7 @@ class TmuxMonitor:
 
         return True
 
-    def monitor_single_cycle(self) -> Dict[str, any]:
+    def monitor_single_cycle(self) -> dict[str, any]:
         """Perform single monitoring cycle of all windows."""
         cycle_report = {
             "timestamp": datetime.now().strftime("%H:%M:%S"),
@@ -232,7 +229,7 @@ class TmuxMonitor:
         print(f"🚀 Starting tmux background monitoring for {duration_minutes} minutes")
         print(f"   Monitoring session: {self.session_name}")
         print(f"   Agent windows: {self.agent_windows}")
-        print(f"   Check interval: 60 seconds")
+        print("   Check interval: 60 seconds")
 
         start_time = time.time()
         end_time = start_time + (duration_minutes * 60)
@@ -255,19 +252,19 @@ class TmuxMonitor:
                     print(f"    {alert}")
 
                 # Wait 60 seconds before next cycle
-                print(f"  ⏳ Next check in 60 seconds...")
+                print("  ⏳ Next check in 60 seconds...")
                 time.sleep(60)
 
         except KeyboardInterrupt:
-            print(f"\n⏹️  Monitoring stopped by user")
+            print("\n⏹️  Monitoring stopped by user")
 
         # Final summary
         elapsed_minutes = (time.time() - start_time) / 60
-        print(f"\n📊 Monitoring Summary:")
+        print("\n📊 Monitoring Summary:")
         print(f"   Duration: {elapsed_minutes:.1f} minutes")
         print(f"   Cycles completed: {cycle_count}")
         print(f"   Total responses sent: {total_responses}")
-        print(f"   Average responses per cycle: {total_responses/cycle_count if cycle_count > 0 else 0:.1f}")
+        print(f"   Average responses per cycle: {total_responses / cycle_count if cycle_count > 0 else 0:.1f}")
 
 
 def main():
@@ -282,15 +279,15 @@ def main():
     print(f"   Result: {report}")
 
     # Ask user if they want to run background monitoring
-    print(f"\n2. Background monitoring test:")
-    print(f"   This will monitor all agent windows every minute.")
-    print(f"   Press Ctrl+C to stop at any time.")
+    print("\n2. Background monitoring test:")
+    print("   This will monitor all agent windows every minute.")
+    print("   Press Ctrl+C to stop at any time.")
 
     try:
         # Run for 5 minutes as test
         monitor.run_background_monitoring(duration_minutes=5)
     except KeyboardInterrupt:
-        print(f"\n✅ Test completed")
+        print("\n✅ Test completed")
 
 
 if __name__ == "__main__":

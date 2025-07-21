@@ -1,7 +1,7 @@
 """
 End-to-end test for full pipeline orchestration - Task 084
 
-This test validates the complete LeadFactory pipeline from targeting through 
+This test validates the complete LeadFactory pipeline from targeting through
 report delivery, ensuring all domains integrate properly with no data leaks.
 
 Acceptance Criteria:
@@ -84,10 +84,10 @@ def test_complete_flow_works(test_db_session, mock_external_services, simple_wor
     for i in range(5):
         business = Business(
             id=f"pipeline_business_{i:03d}",
-            name=f"Pipeline Restaurant {i+1}",
+            name=f"Pipeline Restaurant {i + 1}",
             phone=f"555-010{i:04d}",
-            website=f"https://restaurant{i+1}.example.com",
-            address=f"{100+i} Pipeline St",
+            website=f"https://restaurant{i + 1}.example.com",
+            address=f"{100 + i} Pipeline St",
             city="San Francisco",
             state="CA",
             zip_code=f"9410{i}",
@@ -162,7 +162,7 @@ def test_complete_flow_works(test_db_session, mock_external_services, simple_wor
             stripe_payment_intent_id=f"pi_pipeline_{i:03d}_{unique_suffix}",
             amount_cents=4997,
             currency="USD",
-            customer_email=f"owner{i+1}@{business.website.replace('https://', '')}",
+            customer_email=f"owner{i + 1}@{business.website.replace('https://', '')}",
             source="email_campaign",
             campaign="pipeline_test",
             status=PurchaseStatus.COMPLETED,
@@ -274,7 +274,7 @@ def test_complete_flow_works(test_db_session, mock_external_services, simple_wor
 
     # Verify pipeline performance
     assert total_time < 30, f"Pipeline took {total_time:.2f}s, should be under 30s"
-    assert memory_delta < 50 * 1024 * 1024, f"Memory usage increased by {memory_delta/1024/1024:.2f}MB"
+    assert memory_delta < 50 * 1024 * 1024, f"Memory usage increased by {memory_delta / 1024 / 1024:.2f}MB"
 
     print("\n=== COMPLETE FLOW PIPELINE TEST ===")
     print(f"Businesses Processed: {len(businesses)}")
@@ -282,7 +282,7 @@ def test_complete_flow_works(test_db_session, mock_external_services, simple_wor
     print(f"Purchases: {len(purchases)}")
     print(f"Reports Generated: {len(reports)}")
     print(f"Total Time: {total_time:.2f}s")
-    print(f"Memory Delta: {memory_delta/1024/1024:.2f}MB")
+    print(f"Memory Delta: {memory_delta / 1024 / 1024:.2f}MB")
 
 
 @pytest.mark.e2e
@@ -419,7 +419,7 @@ def test_all_domains_integrate(test_db_session, mock_external_services, simple_w
     print(f"✓ D2 Sourcing → D5 Scoring: {test_business.id} → {score.business_id}")
     print(f"✓ D5 Scoring → D8/D9 Email: {score.tier} tier → Email sent")
     print("✓ D9 Delivery → D7 Purchase: Email delivered → Purchase completed")
-    print(f"✓ D7 Purchase → D6 Reports: ${purchase.amount_cents/100} → Report generated")
+    print(f"✓ D7 Purchase → D6 Reports: ${purchase.amount_cents / 100} → Report generated")
     print(f"✓ D11 Orchestration: {pipeline_run.records_processed} processed, {pipeline_run.records_failed} failed")
 
 
@@ -439,7 +439,7 @@ def test_metrics_recorded(test_db_session, mock_external_services, simple_workfl
         for j in range(2):  # 2 calls per provider
             metric = GatewayUsage(
                 provider=provider,
-                endpoint=f"/{provider}/api/v{j+1}",
+                endpoint=f"/{provider}/api/v{j + 1}",
                 cost_usd=0.01 * (i + 1),
                 cache_hit=(j == 1),  # Second call is cache hit
                 response_time_ms=100 + (i * 50),
@@ -453,7 +453,7 @@ def test_metrics_recorded(test_db_session, mock_external_services, simple_workfl
     for i, business in enumerate(businesses):
         email = Email(
             business_id=business.id,
-            subject=f"Metrics test email {i+1}",
+            subject=f"Metrics test email {i + 1}",
             html_body="Test email content",
             text_body="Test email content",
             sendgrid_message_id=f"metrics_msg_{i:03d}",
@@ -483,7 +483,7 @@ def test_metrics_recorded(test_db_session, mock_external_services, simple_workfl
             business_id=businesses[i].id,
             stripe_session_id=f"cs_metrics_{i:03d}_{uuid4().hex[:8]}",
             amount_cents=4997,
-            customer_email=f"metrics{i+1}@example.com",
+            customer_email=f"metrics{i + 1}@example.com",
             status=PurchaseStatus.COMPLETED,
             completed_at=datetime.utcnow(),
         )
@@ -726,8 +726,8 @@ def test_full_pipeline_integration(test_db_session, mock_external_services, simp
         # Create business
         business = Business(
             id=f"integration_business_{i:03d}",
-            name=f"Integration Test Business {i+1}",
-            website=f"https://business{i+1}.example.com",
+            name=f"Integration Test Business {i + 1}",
+            website=f"https://business{i + 1}.example.com",
             phone=f"555-111{i:04d}",
             city="Test City",
             state="CA",
@@ -770,7 +770,7 @@ def test_full_pipeline_integration(test_db_session, mock_external_services, simp
                 business_id=business.id,
                 stripe_session_id=f"cs_integration_{i:03d}_{uuid4().hex[:8]}",
                 amount_cents=4997,
-                customer_email=f"owner{i+1}@business{i+1}.example.com",
+                customer_email=f"owner{i + 1}@business{i + 1}.example.com",
                 status=PurchaseStatus.COMPLETED,
                 completed_at=datetime.utcnow(),
             )
@@ -854,7 +854,7 @@ def test_full_pipeline_integration(test_db_session, mock_external_services, simp
     print(f"Reports Generated: {reports_generated} ({report_fulfillment_rate:.1f}% fulfillment)")
     print(f"Total Cost: ${total_cost:.4f}")
     print(f"Execution Time: {pipeline_run.execution_time_seconds}s")
-    print(f"Memory Delta: {memory_delta/1024/1024:.2f}MB")
+    print(f"Memory Delta: {memory_delta / 1024 / 1024:.2f}MB")
     print("✓ Complete flow works")
     print("✓ All domains integrate")
     print("✓ Metrics recorded")

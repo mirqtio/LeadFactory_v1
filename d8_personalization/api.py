@@ -4,13 +4,11 @@ FastAPI endpoints for D8 Personalization Domain
 Provides REST API for content personalization, spam checking,
 and subject line generation.
 """
-from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from core.exceptions import LeadFactoryError
 from core.logging import get_logger
 from database.session import get_db
 
@@ -40,7 +38,7 @@ router = APIRouter()
 class PersonalizationRequest(BaseModel):
     lead_id: str
     template: str
-    context: Dict
+    context: dict
 
 
 class SpamCheckRequest(BaseModel):
@@ -49,14 +47,14 @@ class SpamCheckRequest(BaseModel):
 
 
 class SubjectLinesRequest(BaseModel):
-    industry: Optional[str] = None
-    context: Optional[Dict] = None
-    tone: Optional[str] = "professional"
-    count: Optional[int] = 5
+    industry: str | None = None
+    context: dict | None = None
+    tone: str | None = "professional"
+    count: int | None = 5
 
 
 @router.post("/generate")
-async def generate_personalized_content(request: PersonalizationRequest, db: Session = Depends(get_db)) -> Dict:
+async def generate_personalized_content(request: PersonalizationRequest, db: Session = Depends(get_db)) -> dict:
     """Generate personalized content for a lead."""
     try:
         # For now, return a mock response
@@ -75,7 +73,7 @@ async def generate_personalized_content(request: PersonalizationRequest, db: Ses
 
 
 @router.post("/spam-check")
-async def check_spam_score(request: SpamCheckRequest, db: Session = Depends(get_db)) -> Dict:
+async def check_spam_score(request: SpamCheckRequest, db: Session = Depends(get_db)) -> dict:
     """Check spam score for email content."""
     try:
         # For now, return a mock response
@@ -95,7 +93,7 @@ async def check_spam_score(request: SpamCheckRequest, db: Session = Depends(get_
 
 
 @router.post("/subject-lines")
-async def generate_subject_lines(request: SubjectLinesRequest, db: Session = Depends(get_db)) -> Dict:
+async def generate_subject_lines(request: SubjectLinesRequest, db: Session = Depends(get_db)) -> dict:
     """Generate multiple subject line variations."""
     try:
         # For now, return a mock response
@@ -116,7 +114,7 @@ async def generate_subject_lines(request: SubjectLinesRequest, db: Session = Dep
 
 
 @router.get("/templates")
-async def list_available_templates(db: Session = Depends(get_db)) -> Dict:
+async def list_available_templates(db: Session = Depends(get_db)) -> dict:
     """List available personalization templates."""
     try:
         # In a real implementation, this would query the database

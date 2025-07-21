@@ -1,6 +1,7 @@
 """
 Test flow function logic directly to achieve coverage without Prefect execution
 """
+
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
@@ -12,13 +13,13 @@ def test_cost_guardrail_flow_internal_logic():
     """Test cost guardrail flow internal logic to cover missing lines"""
     from datetime import datetime
 
-    with patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings, patch(
-        "d11_orchestration.cost_guardrails.get_daily_costs"
-    ) as mock_costs, patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold, patch(
-        "d11_orchestration.cost_guardrails.pause_expensive_operations"
-    ) as mock_pause, patch(
-        "d11_orchestration.cost_guardrails.get_run_logger"
-    ) as mock_logger:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_costs,
+        patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold,
+        patch("d11_orchestration.cost_guardrails.pause_expensive_operations") as mock_pause,
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+    ):
         # Mock all dependencies
         mock_logger_instance = MagicMock()
         mock_logger.return_value = mock_logger_instance
@@ -80,13 +81,13 @@ def test_cost_guardrail_flow_with_artifact_logic():
     """Test cost guardrail flow with artifact creation logic to cover missing lines"""
     from datetime import datetime
 
-    with patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings, patch(
-        "d11_orchestration.cost_guardrails.get_daily_costs"
-    ) as mock_costs, patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold, patch(
-        "d11_orchestration.cost_guardrails.get_run_logger"
-    ) as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.create_markdown_artifact"
-    ) as mock_artifact:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_costs,
+        patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold,
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+    ):
         # Mock dependencies for artifact creation path
         mock_logger_instance = MagicMock()
         mock_logger.return_value = mock_logger_instance
@@ -117,8 +118,8 @@ def test_cost_guardrail_flow_with_artifact_logic():
         artifact_markdown = f"""# Cost Guardrail Alert
 
 **Status**: {alert_level.upper()}  
-**Budget Used**: {percentage_used:.1%} (${daily_costs_result.get('total', 0):.2f} / ${daily_budget:.2f})  
-**Time**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+**Budget Used**: {percentage_used:.1%} (${daily_costs_result.get("total", 0):.2f} / ${daily_budget:.2f})  
+**Time**: {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}
 
 ## Provider Breakdown
 """
@@ -148,12 +149,12 @@ def test_profit_snapshot_flow_internal_logic():
     """Test profit snapshot flow internal logic to cover missing lines"""
     from datetime import datetime
 
-    with patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics, patch(
-        "d11_orchestration.cost_guardrails.SessionLocal"
-    ) as mock_session, patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report, patch(
-        "d11_orchestration.cost_guardrails.get_run_logger"
-    ) as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False
+    with (
+        patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics,
+        patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+        patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report,
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.PREFECT_AVAILABLE", False),
     ):
         # Mock dependencies
         mock_logger_instance = MagicMock()
@@ -235,13 +236,13 @@ def test_profit_snapshot_flow_with_artifact_logic():
     """Test profit snapshot flow with artifact creation to cover missing lines"""
     from datetime import datetime
 
-    with patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics, patch(
-        "d11_orchestration.cost_guardrails.SessionLocal"
-    ) as mock_session, patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report, patch(
-        "d11_orchestration.cost_guardrails.get_run_logger"
-    ) as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.create_markdown_artifact"
-    ) as mock_artifact:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics,
+        patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+        patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report,
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+    ):
         # Mock dependencies for artifact path
         mock_logger_instance = MagicMock()
         mock_logger.return_value = mock_logger_instance

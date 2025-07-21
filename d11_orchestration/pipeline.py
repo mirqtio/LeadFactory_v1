@@ -12,8 +12,9 @@ Acceptance Criteria:
 """
 
 import asyncio
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 try:
     # import httpx  # Not used currently
@@ -82,7 +83,7 @@ class PipelineOrchestrator:
     retries, and monitoring across all pipeline stages.
     """
 
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, metrics_collector: MetricsCollector | None = None):
         self.metrics = metrics_collector or MetricsCollector()
         self.logger = get_run_logger()
 
@@ -91,7 +92,7 @@ class PipelineOrchestrator:
         pipeline_name: str,
         triggered_by: str = "scheduler",
         trigger_reason: str = "Daily scheduled execution",
-        config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
     ) -> PipelineRun:
         """Create a new pipeline run record"""
 
@@ -114,8 +115,8 @@ class PipelineOrchestrator:
         self,
         pipeline_run: PipelineRun,
         status: PipelineRunStatus,
-        error_message: Optional[str] = None,
-        error_details: Optional[Dict] = None,
+        error_message: str | None = None,
+        error_details: dict | None = None,
     ) -> None:
         """Update pipeline run status"""
 
@@ -151,9 +152,7 @@ class PipelineOrchestrator:
     retry_delay_seconds=300,
     task_runner=SequentialTaskRunner(),
 )
-async def daily_lead_generation_flow(
-    date: Optional[str] = None, config: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+async def daily_lead_generation_flow(date: str | None = None, config: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Daily flow defined - Main daily lead generation pipeline
 
@@ -281,7 +280,7 @@ async def daily_lead_generation_flow(
     retry_delay_seconds=60,
     timeout_seconds=1800,  # 30 minutes
 )
-async def targeting_stage(execution_date: datetime, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+async def targeting_stage(execution_date: datetime, config: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute targeting stage with error handling and retries"""
 
     logger = get_run_logger()
@@ -307,10 +306,10 @@ async def targeting_stage(execution_date: datetime, config: Optional[Dict[str, A
     timeout_seconds=3600,  # 1 hour
 )
 async def sourcing_stage(
-    businesses: List[Dict[str, Any]],
+    businesses: list[dict[str, Any]],
     execution_date: datetime,
-    config: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Execute sourcing stage with error handling and retries"""
 
     logger = get_run_logger()
@@ -336,10 +335,10 @@ async def sourcing_stage(
     timeout_seconds=7200,  # 2 hours
 )
 async def assessment_stage(
-    businesses: List[Dict[str, Any]],
+    businesses: list[dict[str, Any]],
     execution_date: datetime,
-    config: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Execute assessment stage with error handling and retries"""
 
     logger = get_run_logger()
@@ -365,10 +364,10 @@ async def assessment_stage(
     timeout_seconds=900,  # 15 minutes
 )
 async def scoring_stage(
-    assessments: List[Dict[str, Any]],
+    assessments: list[dict[str, Any]],
     execution_date: datetime,
-    config: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Execute scoring stage with error handling and retries"""
 
     logger = get_run_logger()
@@ -396,10 +395,10 @@ async def scoring_stage(
     timeout_seconds=1800,  # 30 minutes
 )
 async def personalization_stage(
-    scored_businesses: List[Dict[str, Any]],
+    scored_businesses: list[dict[str, Any]],
     execution_date: datetime,
-    config: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Execute personalization stage with error handling and retries"""
 
     logger = get_run_logger()
@@ -429,10 +428,10 @@ async def personalization_stage(
     timeout_seconds=3600,  # 1 hour
 )
 async def delivery_stage(
-    personalized_reports: List[Dict[str, Any]],
+    personalized_reports: list[dict[str, Any]],
     execution_date: datetime,
-    config: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Execute delivery stage with error handling and retries"""
 
     logger = get_run_logger()
@@ -482,7 +481,7 @@ def create_daily_deployment() -> Deployment:
 # Utility functions for pipeline management
 
 
-async def trigger_manual_run(date: Optional[str] = None, config: Optional[Dict[str, Any]] = None) -> str:
+async def trigger_manual_run(date: str | None = None, config: dict[str, Any] | None = None) -> str:
     """Trigger a manual pipeline run"""
 
     flow_run = await daily_lead_generation_flow.submit(date=date, config=config)
@@ -490,7 +489,7 @@ async def trigger_manual_run(date: Optional[str] = None, config: Optional[Dict[s
     return flow_run.id
 
 
-async def get_pipeline_status(pipeline_run_id: str) -> Dict[str, Any]:
+async def get_pipeline_status(pipeline_run_id: str) -> dict[str, Any]:
     """Get status of a pipeline run"""
 
     # In production, this would query the database
@@ -518,7 +517,7 @@ class Pipeline:
     Generic pipeline class for backward compatibility with tests.
     """
 
-    def __init__(self, stages: Optional[List[Any]] = None):
+    def __init__(self, stages: list[Any] | None = None):
         """Initialize pipeline with optional stages."""
         self.stages = stages or []
         try:
@@ -531,7 +530,7 @@ class Pipeline:
         """Add a stage to the pipeline."""
         self.stages.append(stage)
 
-    def execute(self, data: Any = None) -> Dict[str, Any]:
+    def execute(self, data: Any = None) -> dict[str, Any]:
         """Execute the pipeline stages."""
         try:
             # For test compatibility, return a simple result
@@ -553,12 +552,12 @@ class PipelineStage:
     Generic pipeline stage class for backward compatibility with tests.
     """
 
-    def __init__(self, name: str, processor: Optional[Callable] = None):
+    def __init__(self, name: str, processor: Callable | None = None):
         """Initialize pipeline stage."""
         self.name = name
         self.processor = processor
 
-    def execute(self, data: Any = None) -> Dict[str, Any]:
+    def execute(self, data: Any = None) -> dict[str, Any]:
         """Execute the stage."""
         try:
             if self.processor:

@@ -114,9 +114,11 @@ class TestAuditLoggingMiddleware:
         response.status_code = 201
         call_next = AsyncMock(return_value=response)
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit, patch("time.time", side_effect=[1000.0, 1000.5]):
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+            patch("time.time", side_effect=[1000.0, 1000.5]),
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
             mock_create_audit.return_value = None
@@ -158,9 +160,11 @@ class TestAuditLoggingMiddleware:
         response.status_code = 200
         call_next = AsyncMock(return_value=response)
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit, patch("time.time", side_effect=[1000.0, 1000.25]):
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+            patch("time.time", side_effect=[1000.0, 1000.25]),
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
 
@@ -190,9 +194,10 @@ class TestAuditLoggingMiddleware:
         response.status_code = 204
         call_next = AsyncMock(return_value=response)
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit:
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
 
@@ -297,9 +302,11 @@ class TestAuditLoggingMiddleware:
         response.status_code = 201
         call_next = AsyncMock(return_value=response)
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit, patch("api.audit_middleware.logger") as mock_logger:
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+            patch("api.audit_middleware.logger") as mock_logger,
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
 
@@ -333,9 +340,11 @@ class TestAuditLoggingMiddleware:
         response.status_code = 201
         call_next = AsyncMock(return_value=response)
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit, patch("api.audit_middleware.logger") as mock_logger:
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+            patch("api.audit_middleware.logger") as mock_logger,
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
 
@@ -368,9 +377,10 @@ class TestAuditLoggingMiddleware:
         response.status_code = 201
         call_next = AsyncMock(return_value=response)
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit:
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
 
@@ -402,9 +412,11 @@ class TestAuditLoggingMiddleware:
         response.status_code = 201
         call_next = AsyncMock(return_value=response)
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit, patch("api.audit_middleware.logger") as mock_logger:
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+            patch("api.audit_middleware.logger") as mock_logger,
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
             mock_create_audit.side_effect = Exception("Audit log creation failed")
@@ -434,9 +446,10 @@ class TestAuditLoggingMiddleware:
         response.status_code = 201
         call_next = AsyncMock(return_value=response)
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit:
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
 
@@ -594,9 +607,11 @@ class TestAuditMiddlewareIntegration:
             await asyncio.sleep(0.1)  # Simulate 100ms processing
             return response
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit, patch("time.time", side_effect=[1000.0, 1000.1]):
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+            patch("time.time", side_effect=[1000.0, 1000.1]),
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
 
@@ -640,9 +655,10 @@ class TestAuditMiddlewareIntegration:
             response.status_code = 200
             call_next = AsyncMock(return_value=response)
 
-            with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-                "api.audit_middleware.create_audit_log"
-            ) as mock_create_audit:
+            with (
+                patch("api.audit_middleware.SessionLocal") as mock_session_local,
+                patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+            ):
                 mock_db = Mock()
                 mock_session_local.return_value = mock_db
 
@@ -712,9 +728,10 @@ class TestAuditMiddlewareIntegration:
             assert receive_result["body"] == body_bytes
             return response
 
-        with patch("api.audit_middleware.SessionLocal") as mock_session_local, patch(
-            "api.audit_middleware.create_audit_log"
-        ) as mock_create_audit:
+        with (
+            patch("api.audit_middleware.SessionLocal") as mock_session_local,
+            patch("api.audit_middleware.create_audit_log") as mock_create_audit,
+        ):
             mock_db = Mock()
             mock_session_local.return_value = mock_db
 

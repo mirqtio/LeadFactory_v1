@@ -12,11 +12,9 @@ Component Types:
 - Interactive: Forms, buttons, links
 """
 
-import json
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -59,18 +57,18 @@ class ComponentConfig(BaseModel):
     id: str = Field(..., description="Unique component identifier")
     type: ComponentType = Field(..., description="Component type")
     title: str = Field(..., description="Component display title")
-    description: Optional[str] = Field(None, description="Component description")
+    description: str | None = Field(None, description="Component description")
 
     # Layout properties
-    width: Optional[Union[int, str]] = Field("100%", description="Component width")
-    height: Optional[Union[int, str]] = Field("auto", description="Component height")
-    margin: Optional[str] = Field("0", description="Component margin")
-    padding: Optional[str] = Field("0", description="Component padding")
+    width: int | str | None = Field("100%", description="Component width")
+    height: int | str | None = Field("auto", description="Component height")
+    margin: str | None = Field("0", description="Component margin")
+    padding: str | None = Field("0", description="Component padding")
 
     # Styling properties
-    background_color: Optional[str] = Field(None, description="Background color")
-    border: Optional[str] = Field(None, description="Border style")
-    border_radius: Optional[str] = Field(None, description="Border radius")
+    background_color: str | None = Field(None, description="Background color")
+    border: str | None = Field(None, description="Border style")
+    border_radius: str | None = Field(None, description="Border radius")
 
     # Behavior properties
     draggable: bool = Field(True, description="Can be dragged in designer")
@@ -78,11 +76,11 @@ class ComponentConfig(BaseModel):
     deletable: bool = Field(True, description="Can be deleted in designer")
 
     # Data properties
-    data_source: Optional[str] = Field(None, description="Data source identifier")
-    data_filters: Optional[Dict[str, Any]] = Field(None, description="Data filters")
+    data_source: str | None = Field(None, description="Data source identifier")
+    data_filters: dict[str, Any] | None = Field(None, description="Data filters")
 
     # Custom properties (component-specific)
-    custom_props: Optional[Dict[str, Any]] = Field(None, description="Custom properties")
+    custom_props: dict[str, Any] | None = Field(None, description="Custom properties")
 
 
 class ReportComponent(ABC):
@@ -95,24 +93,20 @@ class ReportComponent(ABC):
     @abstractmethod
     def validate_config(self) -> None:
         """Validate component configuration"""
-        pass
 
     @abstractmethod
-    def render_html(self, context: Dict[str, Any] = None) -> str:
+    def render_html(self, context: dict[str, Any] = None) -> str:
         """Render component as HTML"""
-        pass
 
     @abstractmethod
-    def render_json(self) -> Dict[str, Any]:
+    def render_json(self) -> dict[str, Any]:
         """Render component as JSON for API"""
-        pass
 
     @abstractmethod
-    def get_required_data(self) -> List[str]:
+    def get_required_data(self) -> list[str]:
         """Get list of required data fields"""
-        pass
 
-    def get_css_classes(self) -> List[str]:
+    def get_css_classes(self) -> list[str]:
         """Get CSS classes for component"""
         return [f"component-{self.config.type.value}", f"component-{self.config.id}"]
 
@@ -146,7 +140,7 @@ class HeaderComponent(ReportComponent):
         if not self.config.title:
             raise ValueError("Header component requires a title")
 
-    def render_html(self, context: Dict[str, Any] = None) -> str:
+    def render_html(self, context: dict[str, Any] = None) -> str:
         """Render header as HTML"""
         css_classes = " ".join(self.get_css_classes())
         inline_styles = self.get_inline_styles()
@@ -161,7 +155,7 @@ class HeaderComponent(ReportComponent):
         </header>
         """
 
-    def render_json(self) -> Dict[str, Any]:
+    def render_json(self) -> dict[str, Any]:
         """Render header as JSON"""
         return {
             "type": self.config.type.value,
@@ -172,7 +166,7 @@ class HeaderComponent(ReportComponent):
             "classes": self.get_css_classes(),
         }
 
-    def get_required_data(self) -> List[str]:
+    def get_required_data(self) -> list[str]:
         """Get required data fields"""
         return []
 
@@ -185,7 +179,7 @@ class TableComponent(ReportComponent):
         if not self.config.data_source:
             raise ValueError("Table component requires a data source")
 
-    def render_html(self, context: Dict[str, Any] = None) -> str:
+    def render_html(self, context: dict[str, Any] = None) -> str:
         """Render table as HTML"""
         css_classes = " ".join(self.get_css_classes())
         inline_styles = self.get_inline_styles()
@@ -200,7 +194,7 @@ class TableComponent(ReportComponent):
         # Generate sample data rows (would be replaced with actual data)
         sample_rows = []
         for i in range(3):
-            row_data = "".join([f"<td>Sample {i+1}-{j+1}</td>" for j in range(len(columns))])
+            row_data = "".join([f"<td>Sample {i + 1}-{j + 1}</td>" for j in range(len(columns))])
             sample_rows.append(f"<tr>{row_data}</tr>")
 
         rows = "".join(sample_rows)
@@ -219,7 +213,7 @@ class TableComponent(ReportComponent):
         </div>
         """
 
-    def render_json(self) -> Dict[str, Any]:
+    def render_json(self) -> dict[str, Any]:
         """Render table as JSON"""
         return {
             "type": self.config.type.value,
@@ -232,7 +226,7 @@ class TableComponent(ReportComponent):
             "classes": self.get_css_classes(),
         }
 
-    def get_required_data(self) -> List[str]:
+    def get_required_data(self) -> list[str]:
         """Get required data fields"""
         return [self.config.data_source] if self.config.data_source else []
 
@@ -249,7 +243,7 @@ class ChartComponent(ReportComponent):
         if chart_type and chart_type not in ["bar", "line", "pie", "scatter"]:
             raise ValueError(f"Invalid chart type: {chart_type}")
 
-    def render_html(self, context: Dict[str, Any] = None) -> str:
+    def render_html(self, context: dict[str, Any] = None) -> str:
         """Render chart as HTML"""
         css_classes = " ".join(self.get_css_classes())
         inline_styles = self.get_inline_styles()
@@ -270,7 +264,7 @@ class ChartComponent(ReportComponent):
         </div>
         """
 
-    def render_json(self) -> Dict[str, Any]:
+    def render_json(self) -> dict[str, Any]:
         """Render chart as JSON"""
         return {
             "type": self.config.type.value,
@@ -283,7 +277,7 @@ class ChartComponent(ReportComponent):
             "classes": self.get_css_classes(),
         }
 
-    def get_required_data(self) -> List[str]:
+    def get_required_data(self) -> list[str]:
         """Get required data fields"""
         return [self.config.data_source] if self.config.data_source else []
 
@@ -296,7 +290,7 @@ class MetricComponent(ReportComponent):
         if not self.config.data_source:
             raise ValueError("Metric component requires a data source")
 
-    def render_html(self, context: Dict[str, Any] = None) -> str:
+    def render_html(self, context: dict[str, Any] = None) -> str:
         """Render metric as HTML"""
         css_classes = " ".join(self.get_css_classes())
         inline_styles = self.get_inline_styles()
@@ -321,7 +315,7 @@ class MetricComponent(ReportComponent):
         </div>
         """
 
-    def render_json(self) -> Dict[str, Any]:
+    def render_json(self) -> dict[str, Any]:
         """Render metric as JSON"""
         return {
             "type": self.config.type.value,
@@ -335,7 +329,7 @@ class MetricComponent(ReportComponent):
             "classes": self.get_css_classes(),
         }
 
-    def get_required_data(self) -> List[str]:
+    def get_required_data(self) -> list[str]:
         """Get required data fields"""
         return [self.config.data_source] if self.config.data_source else []
 
@@ -369,7 +363,7 @@ class ComponentLibrary:
         component_class = self._components[config.type]
         return component_class(config)
 
-    def get_available_components(self) -> List[Dict[str, Any]]:
+    def get_available_components(self) -> list[dict[str, Any]]:
         """Get list of available component types"""
         components = []
 
@@ -407,18 +401,17 @@ class ComponentLibrary:
         """Get category for component type"""
         if component_type in [ComponentType.HEADER, ComponentType.FOOTER, ComponentType.SECTION, ComponentType.COLUMN]:
             return "Layout"
-        elif component_type in [ComponentType.TABLE, ComponentType.CHART, ComponentType.METRIC, ComponentType.LIST]:
+        if component_type in [ComponentType.TABLE, ComponentType.CHART, ComponentType.METRIC, ComponentType.LIST]:
             return "Data"
-        elif component_type in [ComponentType.HEADING, ComponentType.PARAGRAPH, ComponentType.FORMATTED_TEXT]:
+        if component_type in [ComponentType.HEADING, ComponentType.PARAGRAPH, ComponentType.FORMATTED_TEXT]:
             return "Text"
-        elif component_type in [ComponentType.IMAGE, ComponentType.LOGO, ComponentType.ICON]:
+        if component_type in [ComponentType.IMAGE, ComponentType.LOGO, ComponentType.ICON]:
             return "Media"
-        elif component_type in [ComponentType.LINK, ComponentType.BUTTON]:
+        if component_type in [ComponentType.LINK, ComponentType.BUTTON]:
             return "Interactive"
-        else:
-            return "Other"
+        return "Other"
 
-    def validate_component_config(self, config: ComponentConfig) -> List[str]:
+    def validate_component_config(self, config: ComponentConfig) -> list[str]:
         """Validate component configuration and return error messages"""
         errors = []
 

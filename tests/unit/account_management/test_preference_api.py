@@ -1,6 +1,7 @@
 """
 Unit tests for user preferences API endpoints
 """
+
 import json
 from datetime import datetime
 from unittest.mock import Mock

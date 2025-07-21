@@ -73,7 +73,7 @@ class StabilityCodeAnalyzer(ast.NodeVisitor):
         """Extract function name from call node."""
         if isinstance(node.func, ast.Name):
             return node.func.id
-        elif isinstance(node.func, ast.Attribute):
+        if isinstance(node.func, ast.Attribute):
             parts = []
             current = node.func
             while isinstance(current, ast.Attribute):
@@ -86,18 +86,14 @@ class StabilityCodeAnalyzer(ast.NodeVisitor):
 
     def get_value(self, node):
         """Extract value from AST node."""
-        if isinstance(node, ast.Constant):
-            return node.value
-        elif isinstance(node, ast.NameConstant):
-            return node.value
-        elif hasattr(node, "value"):
+        if isinstance(node, ast.Constant) or isinstance(node, ast.NameConstant) or hasattr(node, "value"):
             return node.value
         return None
 
     def get_line(self, lineno):
         """Get source line by number."""
         try:
-            with open(self.filepath, "r") as f:
+            with open(self.filepath) as f:
                 lines = f.readlines()
                 if 0 < lineno <= len(lines):
                     return lines[lineno - 1].strip()
@@ -108,7 +104,7 @@ class StabilityCodeAnalyzer(ast.NodeVisitor):
     def analyze(self):
         """Analyze the file and return issues."""
         try:
-            with open(self.filepath, "r") as f:
+            with open(self.filepath) as f:
                 tree = ast.parse(f.read(), filename=self.filepath)
             self.visit(tree)
         except Exception as e:
@@ -124,7 +120,7 @@ class StabilityCodeAnalyzer(ast.NodeVisitor):
         }
 
 
-def find_test_files(root_dir: Path) -> List[Path]:
+def find_test_files(root_dir: Path) -> list[Path]:
     """Find all Python test files."""
     test_files = []
     for path in root_dir.rglob("test_*.py"):
@@ -133,11 +129,11 @@ def find_test_files(root_dir: Path) -> List[Path]:
     return test_files
 
 
-def check_resource_cleanup(filepath: Path) -> List[Tuple[int, str]]:
+def check_resource_cleanup(filepath: Path) -> list[tuple[int, str]]:
     """Check for proper resource cleanup patterns."""
     issues = []
 
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         content = f.read()
         lines = content.splitlines()
 
@@ -212,7 +208,7 @@ class TestStabilityValidation:
 
             if results["sleep_calls"]:
                 # Read file to check context
-                with open(filepath, "r") as f:
+                with open(filepath) as f:
                     lines = f.readlines()
 
                 for lineno, func in results["sleep_calls"]:
@@ -247,7 +243,7 @@ class TestStabilityValidation:
 
             # Check for threads without join()
             if results["thread_starts"]:
-                with open(filepath, "r") as f:
+                with open(filepath) as f:
                     lines = f.readlines()
 
                 for lineno, has_daemon in results["thread_starts"]:
@@ -316,7 +312,7 @@ class TestStabilityValidation:
         test_files = find_test_files(Path(__file__).parent)
 
         for filepath in test_files:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 lines = f.readlines()
 
             for i, line in enumerate(lines, 1):
@@ -340,7 +336,7 @@ class TestStabilityValidation:
         warnings = []
 
         for filepath in test_files:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 content = f.read()
 
             # Look for tests that might need serial execution
@@ -360,7 +356,7 @@ class TestStabilityValidation:
                     warnings.append(f"{filepath} - May need serial execution marker")
 
         if warnings:
-            print(f"Tests that may need serial execution markers:")
+            print("Tests that may need serial execution markers:")
             for warning in warnings[:5]:
                 print(f"  {warning}")
 

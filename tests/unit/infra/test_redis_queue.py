@@ -4,6 +4,7 @@ Unit tests for infra.redis_queue - Core Redis queue broker functionality.
 Tests comprehensive Redis queue operations, message handling, statistics,
 health checks, and error scenarios to ensure 80%+ coverage.
 """
+
 import json
 import os
 import socket

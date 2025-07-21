@@ -16,7 +16,7 @@ import logging
 import threading
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from playwright.async_api import Browser, Page, async_playwright
@@ -47,7 +47,7 @@ class PDFOptions:
     scale: float = 1.0
     landscape: bool = False
 
-    def to_playwright_options(self) -> Dict[str, Any]:
+    def to_playwright_options(self) -> dict[str, Any]:
         """Convert to Playwright PDF options"""
         return {
             "format": self.format,
@@ -72,13 +72,13 @@ class PDFResult:
     """Result of PDF generation process"""
 
     success: bool
-    pdf_data: Optional[bytes] = None
-    file_size: Optional[int] = None
-    generation_time_ms: Optional[int] = None
-    error_message: Optional[str] = None
-    optimization_ratio: Optional[float] = None
+    pdf_data: bytes | None = None
+    file_size: int | None = None
+    generation_time_ms: int | None = None
+    error_message: str | None = None
+    optimization_ratio: float | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {
             "success": self.success,
@@ -223,7 +223,7 @@ class PDFConverter:
         self.optimizer = PDFOptimizer()
         self.browser_timeout = browser_timeout
         self.page_timeout = page_timeout
-        self._browser: Optional[Browser] = None
+        self._browser: Browser | None = None
         self._playwright = None
 
         if async_playwright is None:
@@ -262,7 +262,7 @@ class PDFConverter:
     async def convert_html_to_pdf(
         self,
         html_content: str,
-        options: Optional[PDFOptions] = None,
+        options: PDFOptions | None = None,
         optimize: bool = True,
     ) -> PDFResult:
         """
@@ -321,7 +321,7 @@ class PDFConverter:
             # Always release concurrency slot
             self.concurrency_manager.release()
 
-    async def _generate_pdf_internal(self, html_content: str, options: PDFOptions) -> Optional[bytes]:
+    async def _generate_pdf_internal(self, html_content: str, options: PDFOptions) -> bytes | None:
         """Internal PDF generation using Playwright"""
         if not self._browser:
             raise RuntimeError("Browser not initialized. Use async context manager.")
@@ -354,8 +354,8 @@ class PDFConverter:
     async def convert_html_file_to_pdf(
         self,
         html_file_path: str,
-        output_path: Optional[str] = None,
-        options: Optional[PDFOptions] = None,
+        output_path: str | None = None,
+        options: PDFOptions | None = None,
         optimize: bool = True,
     ) -> PDFResult:
         """
@@ -372,7 +372,7 @@ class PDFConverter:
         """
         try:
             # Read HTML file
-            with open(html_file_path, "r", encoding="utf-8") as f:
+            with open(html_file_path, encoding="utf-8") as f:
                 html_content = f.read()
 
             # Convert to PDF
@@ -390,9 +390,7 @@ class PDFConverter:
             logger.error(f"File conversion failed: {e}")
             return PDFResult(success=False, error_message=str(e))
 
-    async def convert_url_to_pdf(
-        self, url: str, options: Optional[PDFOptions] = None, optimize: bool = True
-    ) -> PDFResult:
+    async def convert_url_to_pdf(self, url: str, options: PDFOptions | None = None, optimize: bool = True) -> PDFResult:
         """
         Convert web page URL to PDF
 
@@ -455,10 +453,10 @@ class PDFConverter:
 
     async def batch_convert(
         self,
-        html_contents: List[str],
-        options: Optional[PDFOptions] = None,
+        html_contents: list[str],
+        options: PDFOptions | None = None,
         optimize: bool = True,
-    ) -> List[PDFResult]:
+    ) -> list[PDFResult]:
         """
         Convert multiple HTML contents to PDF concurrently
 
@@ -494,7 +492,7 @@ class PDFConverter:
 
         return final_results
 
-    def get_concurrency_status(self) -> Dict[str, Any]:
+    def get_concurrency_status(self) -> dict[str, Any]:
         """Get current concurrency status"""
         return {
             "max_concurrent": self.concurrency_manager.max_concurrent,
@@ -504,7 +502,7 @@ class PDFConverter:
 
 
 # Utility functions for easy usage
-async def html_to_pdf(html_content: str, options: Optional[PDFOptions] = None, optimize: bool = True) -> PDFResult:
+async def html_to_pdf(html_content: str, options: PDFOptions | None = None, optimize: bool = True) -> PDFResult:
     """
     Convenience function to convert HTML to PDF
 
@@ -523,7 +521,7 @@ async def html_to_pdf(html_content: str, options: Optional[PDFOptions] = None, o
 async def save_html_as_pdf(
     html_content: str,
     output_path: str,
-    options: Optional[PDFOptions] = None,
+    options: PDFOptions | None = None,
     optimize: bool = True,
 ) -> bool:
     """

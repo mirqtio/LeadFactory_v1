@@ -8,6 +8,7 @@ Tests all acceptance criteria:
 - Cost tracking works
 - Structured output parsing
 """
+
 import json
 import sys
 from decimal import Decimal
@@ -110,7 +111,7 @@ class TestTask033AcceptanceCriteria:
                         "total_tokens": 2300,
                     },
                 )
-            elif call_count == 2:
+            if call_count == 2:
                 # Technical analysis response
                 return MagicMock(
                     content=json.dumps(
@@ -137,7 +138,7 @@ class TestTask033AcceptanceCriteria:
                         "total_tokens": 1800,
                     },
                 )
-            elif call_count == 3:
+            if call_count == 3:
                 # Industry benchmark response
                 return MagicMock(
                     content=json.dumps(
@@ -173,31 +174,30 @@ class TestTask033AcceptanceCriteria:
                         "total_tokens": 1400,
                     },
                 )
-            else:
-                # Quick wins or other responses
-                return MagicMock(
-                    content=json.dumps(
-                        {
-                            "quick_wins": [
-                                {
-                                    "action": "Enable compression",
-                                    "effort": "Low",
-                                    "impact": "High",
-                                },
-                                {
-                                    "action": "Optimize images",
-                                    "effort": "Medium",
-                                    "impact": "High",
-                                },
-                            ]
-                        }
-                    ),
-                    usage={
-                        "prompt_tokens": 800,
-                        "completion_tokens": 300,
-                        "total_tokens": 1100,
-                    },
-                )
+            # Quick wins or other responses
+            return MagicMock(
+                content=json.dumps(
+                    {
+                        "quick_wins": [
+                            {
+                                "action": "Enable compression",
+                                "effort": "Low",
+                                "impact": "High",
+                            },
+                            {
+                                "action": "Optimize images",
+                                "effort": "Medium",
+                                "impact": "High",
+                            },
+                        ]
+                    }
+                ),
+                usage={
+                    "prompt_tokens": 800,
+                    "completion_tokens": 300,
+                    "total_tokens": 1100,
+                },
+            )
 
         client.generate_completion.side_effect = mock_generate_completion
         client.get_model_version.return_value = "gpt-4-0125-preview"
@@ -289,13 +289,13 @@ class TestTask033AcceptanceCriteria:
 
         # Verify recommendation structure
         for i, rec in enumerate(recommendations):
-            assert "title" in rec, f"Recommendation {i+1} missing title"
-            assert "description" in rec, f"Recommendation {i+1} missing description"
-            assert "priority" in rec, f"Recommendation {i+1} missing priority"
-            assert "effort" in rec, f"Recommendation {i+1} missing effort"
-            assert "impact" in rec, f"Recommendation {i+1} missing impact"
-            assert "implementation_steps" in rec, f"Recommendation {i+1} missing implementation_steps"
-            assert "industry_context" in rec, f"Recommendation {i+1} missing industry_context"
+            assert "title" in rec, f"Recommendation {i + 1} missing title"
+            assert "description" in rec, f"Recommendation {i + 1} missing description"
+            assert "priority" in rec, f"Recommendation {i + 1} missing priority"
+            assert "effort" in rec, f"Recommendation {i + 1} missing effort"
+            assert "impact" in rec, f"Recommendation {i + 1} missing impact"
+            assert "implementation_steps" in rec, f"Recommendation {i + 1} missing implementation_steps"
+            assert "industry_context" in rec, f"Recommendation {i + 1} missing industry_context"
 
         # Verify recommendation quality
         titles = [rec["title"] for rec in recommendations]

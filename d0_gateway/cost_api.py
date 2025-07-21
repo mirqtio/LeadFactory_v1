@@ -2,11 +2,12 @@
 Cost tracking API endpoints for gateway cost ledger
 P1-050: Gateway Cost Ledger implementation
 """
+
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from core.auth import get_current_user
 from core.logging import get_logger
@@ -32,10 +33,10 @@ class ProviderCostSummary(BaseModel):
     """Cost summary for a provider"""
 
     provider: str
-    period: Dict[str, str]
+    period: dict[str, str]
     total_cost: float
     total_requests: int
-    operations: Dict[str, Dict[str, float]]
+    operations: dict[str, dict[str, float]]
 
 
 class CampaignCostSummary(BaseModel):
@@ -43,7 +44,7 @@ class CampaignCostSummary(BaseModel):
 
     campaign_id: int
     total_cost: float
-    providers: Dict[str, Dict]
+    providers: dict[str, dict]
 
 
 class DailyCostRecord(BaseModel):
@@ -51,8 +52,8 @@ class DailyCostRecord(BaseModel):
 
     date: str
     provider: str
-    operation: Optional[str]
-    campaign_id: Optional[int]
+    operation: str | None
+    campaign_id: int | None
     total_cost: float
     request_count: int
     avg_cost: float
@@ -61,12 +62,12 @@ class DailyCostRecord(BaseModel):
 class CostTrend(BaseModel):
     """Cost trend over time"""
 
-    period: Dict[str, str]
-    daily_costs: List[DailyCostRecord]
+    period: dict[str, str]
+    daily_costs: list[DailyCostRecord]
     total_cost: float
     avg_daily_cost: float
-    peak_day: Optional[str]
-    peak_cost: Optional[float]
+    peak_day: str | None
+    peak_cost: float | None
 
 
 # API endpoints
@@ -117,14 +118,14 @@ async def get_campaign_costs(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/daily", response_model=List[DailyCostRecord])
+@router.get("/daily", response_model=list[DailyCostRecord])
 async def get_daily_costs(
     start_date: date = Query(..., description="Start date (YYYY-MM-DD)"),
-    end_date: Optional[date] = Query(None, description="End date (YYYY-MM-DD)"),
-    provider: Optional[str] = Query(None, description="Filter by provider"),
-    campaign_id: Optional[int] = Query(None, description="Filter by campaign"),
+    end_date: date | None = Query(None, description="End date (YYYY-MM-DD)"),
+    provider: str | None = Query(None, description="Filter by provider"),
+    campaign_id: int | None = Query(None, description="Filter by campaign"),
     current_user: dict = Depends(get_current_user),
-) -> List[DailyCostRecord]:
+) -> list[DailyCostRecord]:
     """
     Get daily cost aggregates with optional filtering
 
@@ -153,7 +154,7 @@ async def get_daily_costs(
 @router.get("/trends", response_model=CostTrend)
 async def get_cost_trends(
     days: int = Query(30, ge=1, le=365, description="Number of days to analyze"),
-    provider: Optional[str] = Query(None, description="Filter by provider"),
+    provider: str | None = Query(None, description="Filter by provider"),
     current_user: dict = Depends(get_current_user),
 ) -> CostTrend:
     """
@@ -219,7 +220,7 @@ async def get_cost_trends(
 async def trigger_cost_aggregation(
     target_date: date,
     current_user: dict = Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Manually trigger cost aggregation for a specific date
 
@@ -247,7 +248,7 @@ async def trigger_cost_aggregation(
 async def cleanup_old_costs(
     days_to_keep: int = Query(90, ge=30, le=365, description="Days of records to keep"),
     current_user: dict = Depends(get_current_user),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Clean up old cost records (keeps aggregates)
 
@@ -272,7 +273,7 @@ async def cleanup_old_costs(
 
 # Health check
 @router.get("/health")
-async def health_check() -> Dict[str, str]:
+async def health_check() -> dict[str, str]:
     """Check if cost tracking service is healthy"""
     return {
         "status": "healthy",

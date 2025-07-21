@@ -1,6 +1,7 @@
 """
 Test Lead Explorer domain models
 """
+
 import uuid
 from datetime import datetime
 

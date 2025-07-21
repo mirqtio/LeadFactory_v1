@@ -4,8 +4,9 @@ Batch Scheduler for D1 Targeting Domain
 Manages creation and scheduling of campaign batches with priority-based allocation,
 quota tracking, and fair distribution across campaigns.
 """
+
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -24,7 +25,7 @@ class BatchScheduler:
     Handles batch creation and scheduling for campaigns with priority-based allocation
     """
 
-    def __init__(self, session: Optional[Session] = None):
+    def __init__(self, session: Session | None = None):
         self.logger = get_logger("batch_scheduler", domain="d1")
         self.session = session or SessionLocal()
         self.settings = get_settings()
@@ -33,7 +34,7 @@ class BatchScheduler:
         # Default batch settings
         self.default_batch_settings = BatchSchedule()
 
-    def create_daily_batches(self, target_date: Optional[datetime] = None) -> List[str]:
+    def create_daily_batches(self, target_date: datetime | None = None) -> list[str]:
         """
         Create daily batches for all active campaigns
 
@@ -82,7 +83,7 @@ class BatchScheduler:
             self.logger.error(f"Failed to create daily batches: {str(e)}")
             raise
 
-    def _get_campaigns_needing_batches(self, target_date: datetime) -> List[Campaign]:
+    def _get_campaigns_needing_batches(self, target_date: datetime) -> list[Campaign]:
         """Get campaigns that need batch creation for the target date"""
         # Find campaigns that are running and don't have batches for target_date
         existing_batch_campaigns = (
@@ -106,8 +107,8 @@ class BatchScheduler:
         return campaigns
 
     def _calculate_priority_allocations(
-        self, campaigns: List[Campaign], total_quota: int
-    ) -> Dict[Campaign, Dict[str, Any]]:
+        self, campaigns: list[Campaign], total_quota: int
+    ) -> dict[Campaign, dict[str, Any]]:
         """
         Calculate priority-based quota allocation across campaigns
 
@@ -226,12 +227,11 @@ class BatchScheduler:
                 ),
                 max_daily_targets=settings_dict.get("max_daily_targets", self.default_batch_settings.max_daily_targets),
             )
-        else:
-            return self.default_batch_settings
+        return self.default_batch_settings
 
     def _create_campaign_batches(
-        self, campaign: Campaign, allocation: Dict[str, Any], target_date: datetime
-    ) -> List[str]:
+        self, campaign: Campaign, allocation: dict[str, Any], target_date: datetime
+    ) -> list[str]:
         """Create batches for a specific campaign"""
         batch_settings = allocation["batch_settings"]
         total_quota = allocation["quota"]
@@ -300,7 +300,7 @@ class BatchScheduler:
 
         return scheduled_time
 
-    def get_pending_batches(self, limit: Optional[int] = None) -> List[CampaignBatch]:
+    def get_pending_batches(self, limit: int | None = None) -> list[CampaignBatch]:
         """Get pending batches ready for processing"""
         query = (
             self.session.query(CampaignBatch)
@@ -371,7 +371,7 @@ class BatchScheduler:
         self.session.commit()
         return True
 
-    def get_batch_status_summary(self, campaign_id: Optional[str] = None) -> Dict[str, int]:
+    def get_batch_status_summary(self, campaign_id: str | None = None) -> dict[str, int]:
         """Get summary of batch statuses"""
         query = self.session.query(CampaignBatch.status, func.count(CampaignBatch.id).label("count"))
 

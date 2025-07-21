@@ -1,6 +1,7 @@
 """
 Test Docker Compose configuration
 """
+
 import subprocess
 import time
 

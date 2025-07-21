@@ -1,6 +1,7 @@
 """
 Test Lead Explorer audit system
 """
+
 import hashlib
 import json
 from unittest.mock import Mock, patch

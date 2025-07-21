@@ -2,6 +2,7 @@
 """
 Find xpassed tests by running each domain separately.
 """
+
 import re
 import subprocess
 import sys

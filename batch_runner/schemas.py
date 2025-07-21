@@ -4,9 +4,10 @@ Pydantic schemas for Batch Report Runner API validation
 Provides request/response schemas with comprehensive validation
 for batch processing operations.
 """
+
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, validator
 
@@ -43,7 +44,7 @@ class BaseResponseSchema(BaseModel):
 class CreateBatchSchema(BaseModel):
     """Schema for creating batch cost preview"""
 
-    lead_ids: List[str] = Field(..., min_items=1, max_items=1000, description="List of lead IDs to process")
+    lead_ids: list[str] = Field(..., min_items=1, max_items=1000, description="List of lead IDs to process")
     template_version: str = Field(default="v1", description="Report template version")
 
     @validator("lead_ids")
@@ -65,16 +66,16 @@ class CreateBatchSchema(BaseModel):
 class StartBatchSchema(BaseModel):
     """Schema for starting batch processing"""
 
-    lead_ids: List[str] = Field(..., min_items=1, max_items=1000)
-    name: Optional[str] = Field(None, max_length=255, description="Batch name")
-    description: Optional[str] = Field(None, max_length=1000, description="Batch description")
+    lead_ids: list[str] = Field(..., min_items=1, max_items=1000)
+    name: str | None = Field(None, max_length=255, description="Batch name")
+    description: str | None = Field(None, max_length=1000, description="Batch description")
     template_version: str = Field(default="v1", description="Report template version")
     estimated_cost_usd: float = Field(..., ge=0, description="Estimated cost from preview")
     cost_approved: bool = Field(..., description="User approval of estimated cost")
-    max_concurrent: Optional[int] = Field(5, ge=1, le=20, description="Maximum concurrent lead processing")
+    max_concurrent: int | None = Field(5, ge=1, le=20, description="Maximum concurrent lead processing")
     retry_failed: bool = Field(True, description="Whether to retry failed leads")
-    retry_count: Optional[int] = Field(3, ge=0, le=5, description="Maximum retry attempts")
-    created_by: Optional[str] = Field(None, description="User who created the batch")
+    retry_count: int | None = Field(3, ge=0, le=5, description="Maximum retry attempts")
+    created_by: str | None = Field(None, description="User who created the batch")
 
     @validator("lead_ids")
     def validate_lead_ids(cls, v):
@@ -91,11 +92,11 @@ class StartBatchSchema(BaseModel):
 class BatchFilterSchema(BaseModel):
     """Schema for filtering batch list"""
 
-    status: Optional[List[str]] = Field(None, description="Filter by batch status")
-    created_by: Optional[str] = Field(None, description="Filter by creator")
-    template_version: Optional[str] = Field(None, description="Filter by template version")
-    created_after: Optional[datetime] = Field(None, description="Filter by creation date")
-    created_before: Optional[datetime] = Field(None, description="Filter by creation date")
+    status: list[str] | None = Field(None, description="Filter by batch status")
+    created_by: str | None = Field(None, description="Filter by creator")
+    template_version: str | None = Field(None, description="Filter by template version")
+    created_after: datetime | None = Field(None, description="Filter by creation date")
+    created_before: datetime | None = Field(None, description="Filter by creation date")
 
     @validator("status")
     def validate_status(cls, v):
@@ -120,15 +121,15 @@ class BatchPreviewSchema(BaseModel):
     """Schema for batch cost preview response"""
 
     lead_count: int = Field(description="Number of leads to process")
-    valid_lead_ids: List[str] = Field(description="Valid lead IDs found")
+    valid_lead_ids: list[str] = Field(description="Valid lead IDs found")
     template_version: str = Field(description="Report template version")
     estimated_cost_usd: float = Field(description="Total estimated cost")
-    cost_breakdown: Dict[str, float] = Field(description="Detailed cost breakdown")
-    provider_breakdown: Dict[str, Dict[str, Any]] = Field(description="Cost breakdown by provider")
+    cost_breakdown: dict[str, float] = Field(description="Detailed cost breakdown")
+    provider_breakdown: dict[str, dict[str, Any]] = Field(description="Cost breakdown by provider")
     estimated_duration_minutes: int = Field(description="Estimated processing time")
     cost_per_lead: float = Field(description="Average cost per lead")
     is_within_budget: bool = Field(description="Whether cost is within daily budget")
-    budget_warning: Optional[str] = Field(description="Budget warning message if applicable")
+    budget_warning: str | None = Field(description="Budget warning message if applicable")
     accuracy_note: str = Field(description="Cost accuracy disclaimer")
 
 
@@ -136,23 +137,23 @@ class BatchResponseSchema(BaseModel):
     """Schema for batch processing response"""
 
     id: str = Field(description="Batch ID")
-    name: Optional[str] = Field(description="Batch name")
-    description: Optional[str] = Field(description="Batch description")
+    name: str | None = Field(description="Batch name")
+    description: str | None = Field(description="Batch description")
     status: str = Field(description="Current batch status")
     total_leads: int = Field(description="Total leads in batch")
     processed_leads: int = Field(description="Number of processed leads")
     successful_leads: int = Field(description="Number of successfully processed leads")
     failed_leads: int = Field(description="Number of failed leads")
     progress_percentage: float = Field(description="Progress percentage (0-100)")
-    estimated_cost_usd: Optional[float] = Field(description="Estimated cost")
-    actual_cost_usd: Optional[float] = Field(description="Actual cost incurred")
+    estimated_cost_usd: float | None = Field(description="Estimated cost")
+    actual_cost_usd: float | None = Field(description="Actual cost incurred")
     template_version: str = Field(description="Report template version")
-    websocket_url: Optional[str] = Field(description="WebSocket URL for progress updates")
+    websocket_url: str | None = Field(description="WebSocket URL for progress updates")
     created_at: datetime = Field(description="Creation timestamp")
-    started_at: Optional[datetime] = Field(description="Processing start timestamp")
-    completed_at: Optional[datetime] = Field(description="Completion timestamp")
-    created_by: Optional[str] = Field(description="User who created the batch")
-    error_message: Optional[str] = Field(description="Error message if failed")
+    started_at: datetime | None = Field(description="Processing start timestamp")
+    completed_at: datetime | None = Field(description="Completion timestamp")
+    created_by: str | None = Field(description="User who created the batch")
+    error_message: str | None = Field(description="Error message if failed")
 
     class Config:
         from_attributes = True
@@ -168,22 +169,22 @@ class BatchStatusResponseSchema(BaseModel):
     processed_leads: int = Field(description="Processed leads")
     successful_leads: int = Field(description="Successful leads")
     failed_leads: int = Field(description="Failed leads")
-    current_lead_id: Optional[str] = Field(description="Currently processing lead")
-    estimated_cost_usd: Optional[float] = Field(description="Estimated cost")
-    actual_cost_usd: Optional[float] = Field(description="Actual cost")
-    started_at: Optional[str] = Field(description="Start time ISO string")
-    estimated_completion: Optional[str] = Field(description="Estimated completion time")
-    recent_results: List[Dict[str, Any]] = Field(description="Recent processing results")
-    error_summary: Dict[str, int] = Field(description="Error summary by type")
-    websocket_url: Optional[str] = Field(description="WebSocket URL for real-time updates")
+    current_lead_id: str | None = Field(description="Currently processing lead")
+    estimated_cost_usd: float | None = Field(description="Estimated cost")
+    actual_cost_usd: float | None = Field(description="Actual cost")
+    started_at: str | None = Field(description="Start time ISO string")
+    estimated_completion: str | None = Field(description="Estimated completion time")
+    recent_results: list[dict[str, Any]] = Field(description="Recent processing results")
+    error_summary: dict[str, int] = Field(description="Error summary by type")
+    websocket_url: str | None = Field(description="WebSocket URL for real-time updates")
 
 
 class BatchListResponseSchema(BaseModel):
     """Schema for batch list response"""
 
-    batches: List[BatchResponseSchema] = Field(description="List of batches")
+    batches: list[BatchResponseSchema] = Field(description="List of batches")
     total_count: int = Field(description="Total number of batches")
-    page_info: Dict[str, Any] = Field(description="Pagination information")
+    page_info: dict[str, Any] = Field(description="Pagination information")
 
 
 class LeadResultSchema(BaseModel):
@@ -191,14 +192,14 @@ class LeadResultSchema(BaseModel):
 
     lead_id: str = Field(description="Lead ID")
     status: str = Field(description="Processing status")
-    report_url: Optional[str] = Field(None, description="Generated report URL")
-    actual_cost_usd: Optional[float] = Field(None, description="Actual processing cost")
-    processing_duration_ms: Optional[int] = Field(None, description="Processing time in milliseconds")
-    quality_score: Optional[float] = Field(None, description="Report quality score")
-    error_message: Optional[str] = Field(None, description="Error message if failed")
-    error_code: Optional[str] = Field(None, description="Error code if failed")
+    report_url: str | None = Field(None, description="Generated report URL")
+    actual_cost_usd: float | None = Field(None, description="Actual processing cost")
+    processing_duration_ms: int | None = Field(None, description="Processing time in milliseconds")
+    quality_score: float | None = Field(None, description="Report quality score")
+    error_message: str | None = Field(None, description="Error message if failed")
+    error_code: str | None = Field(None, description="Error code if failed")
     retry_count: int = Field(description="Number of retry attempts")
-    completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
+    completed_at: datetime | None = Field(None, description="Completion timestamp")
 
 
 class WebSocketMessageSchema(BaseModel):
@@ -207,15 +208,15 @@ class WebSocketMessageSchema(BaseModel):
     type: str = Field(description="Message type")
     batch_id: str = Field(description="Batch ID")
     timestamp: str = Field(description="Message timestamp")
-    processed: Optional[int] = Field(None, description="Number of processed leads")
-    total: Optional[int] = Field(None, description="Total leads")
-    successful: Optional[int] = Field(None, description="Successful leads")
-    failed: Optional[int] = Field(None, description="Failed leads")
-    progress_percentage: Optional[float] = Field(None, description="Progress percentage")
-    current_lead: Optional[str] = Field(None, description="Currently processing lead")
-    message: Optional[str] = Field(None, description="Status message")
-    error_message: Optional[str] = Field(None, description="Error message")
-    error_code: Optional[str] = Field(None, description="Error code")
+    processed: int | None = Field(None, description="Number of processed leads")
+    total: int | None = Field(None, description="Total leads")
+    successful: int | None = Field(None, description="Successful leads")
+    failed: int | None = Field(None, description="Failed leads")
+    progress_percentage: float | None = Field(None, description="Progress percentage")
+    current_lead: str | None = Field(None, description="Currently processing lead")
+    message: str | None = Field(None, description="Status message")
+    error_message: str | None = Field(None, description="Error message")
+    error_code: str | None = Field(None, description="Error code")
 
 
 class ErrorResponseSchema(BaseModel):
@@ -223,7 +224,7 @@ class ErrorResponseSchema(BaseModel):
 
     error: str = Field(description="Error type")
     message: str = Field(description="Error message")
-    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    details: dict[str, Any] | None = Field(None, description="Additional error details")
 
 
 class ValidationErrorSchema(BaseModel):
@@ -231,7 +232,7 @@ class ValidationErrorSchema(BaseModel):
 
     error: str = Field(default="VALIDATION_ERROR", description="Error type")
     message: str = Field(description="Validation error message")
-    validation_errors: List[Dict[str, str]] = Field(description="Detailed validation errors")
+    validation_errors: list[dict[str, str]] = Field(description="Detailed validation errors")
 
 
 class HealthCheckResponseSchema(BaseModel):
@@ -248,10 +249,10 @@ class BatchAnalyticsSchema(BaseModel):
 
     period_days: int = Field(description="Analysis period in days")
     start_date: str = Field(description="Analysis start date")
-    statistics: Dict[str, float] = Field(description="Aggregate statistics")
-    status_breakdown: Dict[str, int] = Field(description="Batches by status")
-    cost_trends: Optional[List[Dict[str, Any]]] = Field(description="Cost trend data")
-    performance_metrics: Optional[Dict[str, float]] = Field(description="Performance metrics")
+    statistics: dict[str, float] = Field(description="Aggregate statistics")
+    status_breakdown: dict[str, int] = Field(description="Batches by status")
+    cost_trends: list[dict[str, Any]] | None = Field(description="Cost trend data")
+    performance_metrics: dict[str, float] | None = Field(description="Performance metrics")
     generated_at: str = Field(description="Report generation timestamp")
 
 
@@ -301,5 +302,5 @@ class BatchSummarySchema(BaseModel):
     processing_duration_seconds: float = Field(description="Total processing duration")
     average_processing_time_per_lead: float = Field(description="Average processing time per lead")
     reports_generated: int = Field(description="Number of reports generated")
-    error_summary: Dict[str, int] = Field(description="Errors by type")
+    error_summary: dict[str, int] = Field(description="Errors by type")
     completed_at: datetime = Field(description="Completion timestamp")

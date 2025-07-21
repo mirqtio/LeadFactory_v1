@@ -1,6 +1,7 @@
 """
 Main FastAPI application entry point
 """
+
 import time
 
 import uvicorn

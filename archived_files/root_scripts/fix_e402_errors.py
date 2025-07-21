@@ -8,7 +8,7 @@ from pathlib import Path
 
 def fix_e402_in_file(file_path):
     """Fix E402 errors in a single file"""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     lines = content.split("\n")

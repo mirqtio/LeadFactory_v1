@@ -6,7 +6,7 @@ unsubscribe tokens, suppression lists, and required headers.
 
 Acceptance Criteria:
 - Suppression check works ✓
-- Compliance headers added ✓ 
+- Compliance headers added ✓
 - Unsubscribe tokens ✓
 - Send recording ✓
 """
@@ -16,7 +16,7 @@ import hashlib
 import hmac
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -165,7 +165,7 @@ class TestSuppressionChecking:
         mock_session_local.return_value.__enter__.return_value = mock_session
 
         mock_suppression = Mock()
-        mock_suppression.expires_at = datetime.now(timezone.utc) - timedelta(days=1)
+        mock_suppression.expires_at = datetime.now(UTC) - timedelta(days=1)
         mock_suppression.is_active = True
         mock_session.query.return_value.filter.return_value.first.return_value = mock_suppression
 
@@ -214,7 +214,7 @@ class TestUnsubscribeTokens:
         assert isinstance(token, UnsubscribeToken)
         assert token.email == email
         assert token.list_type == list_type
-        assert token.expires_at > datetime.now(timezone.utc)
+        assert token.expires_at > datetime.now(UTC)
         assert token.token is not None
         assert ":" in token.token  # Should have signature:data format
 
@@ -715,7 +715,7 @@ class TestComplianceEnhancements:
 
         # Verify expires_at is valid ISO format
         expires_at = datetime.fromisoformat(data_dict["expires_at"])
-        assert expires_at > datetime.now(timezone.utc)
+        assert expires_at > datetime.now(UTC)
 
     def test_compliance_headers_customization(self, compliance_manager):
         """Test compliance headers with custom parameters"""
@@ -775,7 +775,7 @@ class TestComplianceEnhancements:
 
         # Test suppression expiring exactly now
         mock_suppression = Mock()
-        mock_suppression.expires_at = datetime.now(timezone.utc)
+        mock_suppression.expires_at = datetime.now(UTC)
         mock_suppression.is_active = True
         mock_session.query.return_value.filter.return_value.first.return_value = mock_suppression
 

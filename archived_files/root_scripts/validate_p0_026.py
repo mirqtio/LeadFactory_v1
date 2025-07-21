@@ -358,12 +358,10 @@ def check_performance_overhead():
         if "assert duration < 100" in content:
             print("  ✓ 100ms requirement assertion")
             return True
-        else:
-            print("  ❌ 100ms requirement not verified")
-            return False
-    else:
-        print("  ❌ Performance test not found")
+        print("  ❌ 100ms requirement not verified")
         return False
+    print("  ❌ Performance test not found")
+    return False
 
 
 def check_ui_implementation():
@@ -481,9 +479,8 @@ def main():
         print("   - Performance overhead <100ms verified")
         print("   - CI green after implementation")
         return 0
-    else:
-        print("\n❌ P0-026 validation FAILED - see errors above")
-        return 1
+    print("\n❌ P0-026 validation FAILED - see errors above")
+    return 1
 
 
 if __name__ == "__main__":

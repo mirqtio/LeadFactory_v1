@@ -7,7 +7,7 @@ to ensure proper deployment readiness.
 
 Acceptance Criteria:
 - All secrets configured ✓
-- API keys validated ✓  
+- API keys validated ✓
 - Database URL set ✓
 - Monitoring configured ✓
 """
@@ -76,7 +76,7 @@ class ConfigValidator:
             return False
 
         try:
-            with open(self.env_file, "r") as f:
+            with open(self.env_file) as f:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#") and "=" in line:
@@ -92,7 +92,7 @@ class ConfigValidator:
             return False
 
         try:
-            with open(self.config_file, "r") as f:
+            with open(self.config_file) as f:
                 self.config = yaml.safe_load(f)
         except Exception as e:
             self.errors.append(f"Error reading YAML config: {e}")
@@ -397,9 +397,8 @@ class ConfigValidator:
         if self.errors:
             print("\n❌ VALIDATION FAILED - Must fix errors before deployment")
             return False
-        else:
-            print("\n⚠️  VALIDATION PASSED WITH WARNINGS - Review recommended")
-            return True
+        print("\n⚠️  VALIDATION PASSED WITH WARNINGS - Review recommended")
+        return True
 
     def run_validation(self) -> bool:
         """Run complete validation process"""

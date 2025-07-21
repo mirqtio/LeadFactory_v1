@@ -6,7 +6,7 @@ proper queueing, and scheduling support.
 
 Industry Bucket Strategy:
 - Healthcare: High-value, strict budget
-- SaaS: Medium-value, normal budget  
+- SaaS: Medium-value, normal budget
 - Restaurants: Low-value, minimal budget
 """
 
@@ -15,7 +15,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 try:
     from prefect import flow, task
@@ -60,9 +60,7 @@ except ImportError:
 
 
 from sqlalchemy import and_, func, select, update
-from sqlalchemy.orm import Session
 
-from d1_targeting.bucket_loader import get_bucket_loader
 from d4_enrichment.coordinator import EnrichmentCoordinator
 from d4_enrichment.models import EnrichmentSource
 from database.models import Business
@@ -96,7 +94,7 @@ class BucketEnrichmentConfig:
     strategy: BucketStrategy
     priority: BucketPriority
     max_budget: float
-    enrichment_sources: List[EnrichmentSource]
+    enrichment_sources: list[EnrichmentSource]
     batch_size: int
     max_concurrent: int
     skip_recent_days: int = 7  # Skip if enriched within N days
@@ -114,9 +112,9 @@ class BucketProcessingStats:
     skipped_businesses: int = 0
     failed_businesses: int = 0
     total_cost: float = 0.0
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    errors: List[str] = field(default_factory=list)
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    errors: list[str] = field(default_factory=list)
 
     @property
     def success_rate(self) -> float:
@@ -126,7 +124,7 @@ class BucketProcessingStats:
         return (self.enriched_businesses / self.processed_businesses) * 100
 
     @property
-    def processing_time(self) -> Optional[timedelta]:
+    def processing_time(self) -> timedelta | None:
         """Calculate total processing time"""
         if self.started_at and self.completed_at:
             return self.completed_at - self.started_at
@@ -137,7 +135,7 @@ class BucketProcessingStats:
 class BucketQueue:
     """Queue management for bucket processing"""
 
-    buckets: List[Tuple[str, BucketEnrichmentConfig]] = field(default_factory=list)
+    buckets: list[tuple[str, BucketEnrichmentConfig]] = field(default_factory=list)
     current_index: int = 0
 
     def add_bucket(self, bucket_name: str, config: BucketEnrichmentConfig):
@@ -158,7 +156,7 @@ class BucketQueue:
 
         self.buckets.insert(insert_index, (bucket_name, config))
 
-    def get_next(self) -> Optional[Tuple[str, BucketEnrichmentConfig]]:
+    def get_next(self) -> tuple[str, BucketEnrichmentConfig] | None:
         """Get next bucket to process"""
         if self.current_index < len(self.buckets):
             bucket = self.buckets[self.current_index]
@@ -218,7 +216,7 @@ BUCKET_CONFIGS = {
     retries=2,
     retry_delay_seconds=60,
 )
-def identify_bucket_segments(limit: Optional[int] = None) -> List[Tuple[str, int]]:
+def identify_bucket_segments(limit: int | None = None) -> list[tuple[str, int]]:
     """Identify unique vertical bucket segments and their counts"""
     logger = get_run_logger()
     logger.info("Identifying bucket segments from database")
@@ -252,7 +250,7 @@ def identify_bucket_segments(limit: Optional[int] = None) -> List[Tuple[str, int
     retries=1,
     retry_delay_seconds=30,
 )
-def build_bucket_queue(segments: List[Tuple[str, int]]) -> BucketQueue:
+def build_bucket_queue(segments: list[tuple[str, int]]) -> BucketQueue:
     """Build priority queue based on bucket strategies"""
     logger = get_run_logger()
 
@@ -283,7 +281,7 @@ def build_bucket_queue(segments: List[Tuple[str, int]]) -> BucketQueue:
 )
 def get_businesses_for_bucket(
     bucket_name: str, config: BucketEnrichmentConfig, offset: int = 0
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get businesses for a specific bucket that need enrichment"""
     logger = get_run_logger()
 
@@ -336,8 +334,8 @@ def get_businesses_for_bucket(
     retry_delay_seconds=180,
 )
 async def enrich_bucket_batch(
-    businesses: List[Dict[str, Any]], config: BucketEnrichmentConfig, bucket_name: str, current_cost: float
-) -> Tuple[List[Dict[str, Any]], float]:
+    businesses: list[dict[str, Any]], config: BucketEnrichmentConfig, bucket_name: str, current_cost: float
+) -> tuple[list[dict[str, Any]], float]:
     """Enrich businesses with cost tracking"""
     logger = get_run_logger()
 
@@ -392,7 +390,7 @@ async def enrich_bucket_batch(
     retries=2,
     retry_delay_seconds=120,
 )
-def update_enriched_businesses(enriched_businesses: List[Dict[str, Any]]) -> int:
+def update_enriched_businesses(enriched_businesses: list[dict[str, Any]]) -> int:
     """Update businesses with enrichment data"""
     logger = get_run_logger()
 
@@ -504,8 +502,8 @@ async def process_single_bucket(bucket_name: str, config: BucketEnrichmentConfig
     retry_delay_seconds=600,
 )
 async def bucket_enrichment_flow(
-    max_buckets: Optional[int] = None, total_budget: float = 5000.0, bucket_limit: Optional[int] = None
-) -> Dict[str, Any]:
+    max_buckets: int | None = None, total_budget: float = 5000.0, bucket_limit: int | None = None
+) -> dict[str, Any]:
     """
     Main bucket enrichment flow
 
@@ -518,7 +516,7 @@ async def bucket_enrichment_flow(
         Flow execution summary
     """
     logger = get_run_logger()
-    logger.info(f"Starting bucket enrichment flow " f"(max_buckets={max_buckets}, total_budget=${total_budget:.2f})")
+    logger.info(f"Starting bucket enrichment flow (max_buckets={max_buckets}, total_budget=${total_budget:.2f})")
 
     # Identify bucket segments
     segments = identify_bucket_segments(limit=bucket_limit)
@@ -624,11 +622,13 @@ def create_nightly_deployment() -> Deployment:
 
 
 # Manual trigger for testing
-async def trigger_bucket_enrichment(max_buckets: int = 3, total_budget: float = 100.0) -> Dict[str, Any]:
+async def trigger_bucket_enrichment(max_buckets: int = 3, total_budget: float = 100.0) -> dict[str, Any]:
     """Manually trigger bucket enrichment for testing"""
 
     result = await bucket_enrichment_flow(
-        max_buckets=max_buckets, total_budget=total_budget, bucket_limit=10  # Test with top 10 buckets
+        max_buckets=max_buckets,
+        total_budget=total_budget,
+        bucket_limit=10,  # Test with top 10 buckets
     )
 
     return result

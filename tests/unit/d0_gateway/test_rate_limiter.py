@@ -1,6 +1,7 @@
 """
 Test token bucket rate limiter
 """
+
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -507,12 +508,11 @@ class TestRateLimiterEnhancements:
                 call_count += 1
                 if call_count % 2 == 1:  # Daily checks (odd calls)
                     return [1, 1000, 1]  # Always allow daily
-                else:  # Burst checks (even calls)
-                    # First operation has low usage, second has high usage
-                    if "op1" in str(args):
-                        return [1, 10, 1]  # Low usage, allowed
-                    else:
-                        return [9, 10, 1]  # High usage, still allowed
+                # Burst checks (even calls)
+                # First operation has low usage, second has high usage
+                if "op1" in str(args):
+                    return [1, 10, 1]  # Low usage, allowed
+                return [9, 10, 1]  # High usage, still allowed
 
             mock_redis.eval.side_effect = mock_eval
             limiter._redis = mock_redis
@@ -651,7 +651,7 @@ class TestRateLimiterEnhancements:
             limiter.limits["daily_limit"] = 99999
 
         # Original class limits should be unchanged
-        assert RateLimiter.PROVIDER_LIMITS == original_limits
+        assert original_limits == RateLimiter.PROVIDER_LIMITS
 
     @pytest.mark.asyncio
     async def test_stub_mode_comprehensive(self):

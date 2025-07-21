@@ -2,7 +2,6 @@
 Unit tests for lineage data compression
 """
 
-
 from d6_reports.lineage.compressor import _truncate_lineage_data, compress_lineage_data, decompress_lineage_data
 
 

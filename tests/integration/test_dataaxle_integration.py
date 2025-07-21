@@ -2,6 +2,7 @@
 Integration tests for DataAxle provider
 Tests the full integration with stub server and cost tracking
 """
+
 import pytest
 from httpx import AsyncClient
 

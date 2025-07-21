@@ -1,4 +1,5 @@
 """Unit tests for company size multiplier."""
+
 import pytest
 
 from d4_enrichment.company_size import multiplier  # noqa: E402

@@ -2,11 +2,12 @@
 Assessment Coordinator v2 for PRD v1.2
 Coordinates the 7-assessor stack with proper timeout and error handling
 """
+
 import asyncio
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.logging import get_logger
 from d3_assessment.assessors import ASSESSOR_REGISTRY
@@ -54,8 +55,8 @@ class AssessmentCoordinatorV2:
                 logger.error(f"Failed to initialize assessor {name}: {e}")
 
     async def assess_business(
-        self, business_data: Dict[str, Any], assessor_names: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, business_data: dict[str, Any], assessor_names: list[str] | None = None
+    ) -> dict[str, Any]:
         """
         Run assessments for a business
 
@@ -106,7 +107,7 @@ class AssessmentCoordinatorV2:
                     logger.info(f"Completed {assessor_name} for {url}")
                     return assessor_name, result
 
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     logger.error(f"{assessor_name} timed out for {url}")
                     return assessor_name, None
                 except Exception as e:
@@ -149,8 +150,8 @@ class AssessmentCoordinatorV2:
 
     async def _save_assessment_results(
         self,
-        business_data: Dict[str, Any],
-        assessment_data: Dict[str, Any],
+        business_data: dict[str, Any],
+        assessment_data: dict[str, Any],
         total_cost: float,
     ):
         """Save assessment results to database"""
@@ -243,9 +244,9 @@ class AssessmentCoordinatorV2:
 
     async def assess_batch(
         self,
-        businesses: List[Dict[str, Any]],
-        assessor_names: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        businesses: list[dict[str, Any]],
+        assessor_names: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Assess multiple businesses
 

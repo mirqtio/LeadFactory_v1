@@ -15,14 +15,14 @@ class PortManager:
 
     # Class-level lock for thread safety
     _lock = threading.Lock()
-    _allocated_ports: Set[int] = set()
+    _allocated_ports: set[int] = set()
 
     # Port range for test servers
     MIN_PORT = 15000
     MAX_PORT = 25000
 
     @classmethod
-    def get_free_port(cls, preferred_port: Optional[int] = None) -> int:
+    def get_free_port(cls, preferred_port: int | None = None) -> int:
         """
         Get a free port for testing.
 
@@ -70,7 +70,7 @@ class PortManager:
             cls._allocated_ports.clear()
 
 
-def get_dynamic_port(preferred: Optional[int] = None) -> int:
+def get_dynamic_port(preferred: int | None = None) -> int:
     """Convenience function to get a free port."""
     return PortManager.get_free_port(preferred)
 

@@ -1,6 +1,7 @@
 """
 Test D0 Gateway metrics and monitoring
 """
+
 from unittest.mock import Mock, patch
 
 import pytest
@@ -233,9 +234,11 @@ class TestGatewayMetrics:
     def test_comprehensive_api_call_flow(self, gateway_metrics):
         """Test comprehensive API call recording flow"""
         # Mock all relevant metrics
-        with patch.object(gateway_metrics.api_calls_total, "labels") as mock_calls, patch.object(
-            gateway_metrics.api_latency_seconds, "labels"
-        ) as mock_latency, patch.object(gateway_metrics.api_cost_usd_total, "labels") as mock_cost:
+        with (
+            patch.object(gateway_metrics.api_calls_total, "labels") as mock_calls,
+            patch.object(gateway_metrics.api_latency_seconds, "labels") as mock_latency,
+            patch.object(gateway_metrics.api_cost_usd_total, "labels") as mock_cost,
+        ):
             mock_call_counter = Mock()
             mock_latency_histogram = Mock()
             mock_cost_counter = Mock()

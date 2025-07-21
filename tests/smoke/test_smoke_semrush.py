@@ -2,6 +2,7 @@
 Smoke test for SEMrush API - P1-010
 Verify SEMrush domain overview API and all 6 metrics from PRP
 """
+
 import asyncio
 import os
 

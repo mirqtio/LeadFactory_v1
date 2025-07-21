@@ -8,6 +8,7 @@ This script will:
 3. Create backward compatibility aliases
 4. Report on changes made
 """
+
 import os
 import re
 from pathlib import Path
@@ -32,9 +33,9 @@ class FixtureMigrator:
 
     def __init__(self, dry_run: bool = True):
         self.dry_run = dry_run
-        self.changes: List[Dict] = []
+        self.changes: list[dict] = []
 
-    def find_conftest_files(self, root_path: str = "tests") -> List[Path]:
+    def find_conftest_files(self, root_path: str = "tests") -> list[Path]:
         """Find all conftest.py files in the test directory."""
         conftest_files = []
         for root, dirs, files in os.walk(root_path):
@@ -42,7 +43,7 @@ class FixtureMigrator:
                 conftest_files.append(Path(root) / "conftest.py")
         return conftest_files
 
-    def analyze_fixture(self, content: str) -> Dict[str, List[str]]:
+    def analyze_fixture(self, content: str) -> dict[str, list[str]]:
         """Analyze fixtures defined in a conftest file."""
         fixtures = {"database": [], "api": [], "external": [], "other": []}
 
@@ -65,7 +66,7 @@ class FixtureMigrator:
 
         return fixtures
 
-    def generate_migration(self, fixtures: Dict[str, List[str]], file_path: Path) -> str:
+    def generate_migration(self, fixtures: dict[str, list[str]], file_path: Path) -> str:
         """Generate migrated conftest content."""
         module_name = file_path.parent.name
 

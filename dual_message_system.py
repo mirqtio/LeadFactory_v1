@@ -3,11 +3,10 @@
 Dual Message System: Redis + Tmux Parallel Messaging
 Sends same messages to both Redis pub/sub and tmux for redundancy
 """
+
 import json
 import subprocess
-import time
 from datetime import datetime
-from typing import List, Optional
 
 
 class DualMessageSystem:

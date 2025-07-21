@@ -4,6 +4,7 @@ Test D4 Enrichment Matchers Coverage Expansion
 Focused tests to improve matchers.py coverage from 71.88% to 85%+.
 Targets uncovered lines including edge cases, error paths, and missing branches.
 """
+
 from unittest.mock import Mock, patch
 
 import pytest
@@ -63,7 +64,10 @@ class TestBusinessMatcherEdgeCases:
 
         # Test partial match scenario (lines 289-290)
         result_partial = matcher.match_name_zip(
-            "Acme Corporation", "12345", "Different Company", "12345"  # Same ZIP, different name
+            "Acme Corporation",
+            "12345",
+            "Different Company",
+            "12345",  # Same ZIP, different name
         )
         # Should be partial match if ZIP >= 0.7 but name < 0.7
 

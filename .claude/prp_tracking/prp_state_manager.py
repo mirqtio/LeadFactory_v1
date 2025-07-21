@@ -9,9 +9,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
 
-import requests
 import yaml
 
 
@@ -31,12 +29,12 @@ class PRPEntry:
     prp_id: str
     title: str
     status: PRPStatus
-    validated_at: Optional[str] = None
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
-    github_commit: Optional[str] = None
-    ci_run_url: Optional[str] = None
-    notes: Optional[str] = None
+    validated_at: str | None = None
+    started_at: str | None = None
+    completed_at: str | None = None
+    github_commit: str | None = None
+    ci_run_url: str | None = None
+    notes: str | None = None
 
 
 class PRPStateManager:
@@ -46,12 +44,12 @@ class PRPStateManager:
         self.status_file = status_file or os.path.join(os.path.dirname(__file__), "prp_status.yaml")
         self.data = self._load_status_file()
 
-    def _load_status_file(self) -> Dict:
+    def _load_status_file(self) -> dict:
         """Load PRP status from YAML file"""
         if not os.path.exists(self.status_file):
             raise FileNotFoundError(f"PRP status file not found: {self.status_file}")
 
-        with open(self.status_file, "r") as f:
+        with open(self.status_file) as f:
             return yaml.safe_load(f)
 
     def _save_status_file(self) -> None:
@@ -77,7 +75,7 @@ class PRPStateManager:
         stats["completion_rate"] = round(stats["complete"] / stats["total_prps"], 2)
         self.data["stats"] = stats
 
-    def get_prp(self, prp_id: str) -> Optional[PRPEntry]:
+    def get_prp(self, prp_id: str) -> PRPEntry | None:
         """Get PRP entry by ID"""
         prp_data = self.data["prp_tracking"].get(prp_id)
         if not prp_data:
@@ -95,7 +93,7 @@ class PRPStateManager:
             notes=prp_data.get("notes"),
         )
 
-    def list_prps(self, status_filter: Optional[PRPStatus] = None) -> List[PRPEntry]:
+    def list_prps(self, status_filter: PRPStatus | None = None) -> list[PRPEntry]:
         """List all PRPs, optionally filtered by status"""
         prps = []
         for prp_id in self.data["prp_tracking"]:
@@ -104,7 +102,7 @@ class PRPStateManager:
                 prps.append(prp)
         return prps
 
-    def validate_transition(self, prp_id: str, new_status: PRPStatus) -> Tuple[bool, str]:
+    def validate_transition(self, prp_id: str, new_status: PRPStatus) -> tuple[bool, str]:
         """Validate if a state transition is allowed"""
         prp = self.get_prp(prp_id)
         if not prp:
@@ -173,7 +171,7 @@ class PRPStateManager:
 
     def transition_prp(
         self, prp_id: str, new_status: PRPStatus, commit_hash: str = None, notes: str = None
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Transition PRP to new status if valid"""
         valid, message = self.validate_transition(prp_id, new_status)
         if not valid:
@@ -202,15 +200,15 @@ class PRPStateManager:
 
         return True, f"PRP {prp_id} transitioned to {new_status.value}"
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         """Get current statistics"""
         return self.data["stats"]
 
-    def get_in_progress_prps(self) -> List[PRPEntry]:
+    def get_in_progress_prps(self) -> list[PRPEntry]:
         """Get all PRPs currently in progress"""
         return self.list_prps(PRPStatus.IN_PROGRESS)
 
-    def get_next_prp(self) -> Optional[PRPEntry]:
+    def get_next_prp(self) -> PRPEntry | None:
         """Get the next PRP ready for execution"""
         validated_prps = self.list_prps(PRPStatus.VALIDATED)
         if not validated_prps:

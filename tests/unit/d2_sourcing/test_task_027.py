@@ -6,6 +6,7 @@ Acceptance Criteria:
 - Update timestamps properly
 - Performance optimized
 """
+
 import sys
 from datetime import datetime
 from unittest.mock import Mock, patch
@@ -113,8 +114,9 @@ class TestTask027AcceptanceCriteria:
     @pytest.fixture
     def deduplicator(self, mock_session):
         """Create BusinessDeduplicator instance with mocked dependencies"""
-        with patch("d2_sourcing.deduplicator.get_settings") as mock_settings, patch(
-            "d2_sourcing.deduplicator.SessionLocal", return_value=mock_session
+        with (
+            patch("d2_sourcing.deduplicator.get_settings") as mock_settings,
+            patch("d2_sourcing.deduplicator.SessionLocal", return_value=mock_session),
         ):
             settings = Mock()
             mock_settings.return_value = settings
@@ -279,9 +281,10 @@ class TestTask027AcceptanceCriteria:
         assert merge_result.merge_timestamp > original_b2_updated
 
         # Test sourced location timestamp updates
-        with patch.object(deduplicator, "_update_sourced_locations") as mock_update_sourced, patch.object(
-            deduplicator, "_update_yelp_metadata"
-        ) as mock_update_yelp:
+        with (
+            patch.object(deduplicator, "_update_sourced_locations") as mock_update_sourced,
+            patch.object(deduplicator, "_update_yelp_metadata") as mock_update_yelp,
+        ):
             deduplicator._update_sourced_locations("primary_id", ["merged_id"])
             deduplicator._update_yelp_metadata("primary_id", ["merged_id"])
 
@@ -583,8 +586,9 @@ if __name__ == "__main__":
     mock_session.commit = Mock()
     mock_session.rollback = Mock()
 
-    with patch("d2_sourcing.deduplicator.get_settings") as mock_settings, patch(
-        "d2_sourcing.deduplicator.SessionLocal", return_value=mock_session
+    with (
+        patch("d2_sourcing.deduplicator.get_settings") as mock_settings,
+        patch("d2_sourcing.deduplicator.SessionLocal", return_value=mock_session),
     ):
         settings = Mock()
         mock_settings.return_value = settings

@@ -7,12 +7,12 @@ It also exposes a reusable `validate_rules(path)` helper that loads the YAML
 file, validates it against the schema, and enforces a few additional business
 rules (e.g. component weights must sum to **1.0**).
 """
+
 from __future__ import annotations
 
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator, validator
@@ -64,7 +64,7 @@ class ComponentConfig(BaseModel):
     """Configuration for a scoring component."""
 
     weight: float = Field(..., ge=0, le=1, description="Component weight (0-1)")
-    factors: Dict[str, FactorConfig] = Field(..., description="Factors within this component")
+    factors: dict[str, FactorConfig] = Field(..., description="Factors within this component")
 
     @validator("factors")
     def validate_factor_weights(cls, v):
@@ -77,7 +77,7 @@ class ComponentConfig(BaseModel):
 
         if diff > _TOLERANCE_HARD:
             raise ValueError(f"Factor weights sum to {total:.3f}, must be 1.0 ± {_TOLERANCE_HARD}")
-        elif diff > _TOLERANCE_SOFT:
+        if diff > _TOLERANCE_SOFT:
             _logger.warning(f"Factor weights sum to {total:.3f}, should be 1.0 ± {_TOLERANCE_SOFT}")
 
         return v
@@ -88,15 +88,15 @@ class Rule(BaseModel):
 
     condition: str = Field(..., description="Boolean expression evaluated at runtime")
     points: float = Field(..., ge=0, description="Points awarded if condition is true")
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class ScoringComponent(BaseModel):
     """Declarative description of a scoring component."""
 
     weight: float = Field(..., gt=0, description="Relative weight, expected to sum to 1.0 across components")
-    description: Optional[str] = None
-    rules: List[Rule] = Field(default_factory=list)
+    description: str | None = None
+    rules: list[Rule] = Field(default_factory=list)
 
 
 class EngineConfig(BaseModel):
@@ -113,15 +113,15 @@ class ScoringRulesSchema(BaseModel):
     """Root schema for the scoring rules document."""
 
     version: str = Field(..., pattern=r"^\d+\.\d+$", description="Configuration version")
-    tiers: Dict[str, TierConfig] = Field(..., description="Tier configurations")
-    components: Dict[str, ComponentConfig] = Field(..., description="Component configurations")
-    formulas: Optional[Dict[str, str]] = Field(default=None, description="Excel formulas for scoring")
+    tiers: dict[str, TierConfig] = Field(..., description="Tier configurations")
+    components: dict[str, ComponentConfig] = Field(..., description="Component configurations")
+    formulas: dict[str, str] | None = Field(default=None, description="Excel formulas for scoring")
 
     # Legacy fields kept for compatibility
-    vertical: Optional[str] = None
-    base_rules: Optional[str] = None
-    engine_config: Optional[EngineConfig] = Field(default_factory=EngineConfig)
-    scoring_components: Optional[Dict[str, ScoringComponent]] = None
+    vertical: str | None = None
+    base_rules: str | None = None
+    engine_config: EngineConfig | None = Field(default_factory=EngineConfig)
+    scoring_components: dict[str, ScoringComponent] | None = None
 
     @validator("tiers")
     def validate_tiers(cls, v):
@@ -148,7 +148,7 @@ class ScoringRulesSchema(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _validate_component_weights(self) -> "ScoringRulesSchema":  # noqa: D401
+    def _validate_component_weights(self) -> ScoringRulesSchema:  # noqa: D401
         """Ensure component weights add up to ~1.0 within tolerance.
 
         * Hard error if total deviation > ``_TOLERANCE_HARD`` (0.05).
@@ -181,7 +181,7 @@ class ScoringRulesSchema(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def _validate_formulas(self) -> "ScoringRulesSchema":
+    def _validate_formulas(self) -> ScoringRulesSchema:
         """Validate Excel formulas if present."""
         if self.formulas:
             from .formula_evaluator import validate_formula
@@ -240,7 +240,7 @@ def validate_rules(path: os.PathLike | str) -> ScoringRulesSchema:  # noqa: D401
         raise ValidationError(f"Validation failed for scoring rules file '{path_obj}': {exc}") from exc
 
 
-def check_missing_components(schema: ScoringRulesSchema, assessment_fields: List[str]) -> List[str]:
+def check_missing_components(schema: ScoringRulesSchema, assessment_fields: list[str]) -> list[str]:
     """
     Check for components in config that don't exist in assessment.
 

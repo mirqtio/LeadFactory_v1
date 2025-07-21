@@ -270,21 +270,21 @@ def create_ci_aware_dashboard():
             <div class="status-card">
                 <h3 class="failing">❌ Pushed but CI Failing</h3>
                 <ul class="task-list">
-                    {"".join(f'<li>{task}</li>' for task in committed_but_ci_failing)}
+                    {"".join(f"<li>{task}</li>" for task in committed_but_ci_failing)}
                 </ul>
             </div>
             
             <div class="status-card">
                 <h3 class="in-progress">📝 Uncommitted Local Work</h3>
                 <ul class="task-list">
-                    {"".join(f'<li>{task}</li>' for task in uncommitted_work)}
+                    {"".join(f"<li>{task}</li>" for task in uncommitted_work)}
                 </ul>
             </div>
             
             <div class="status-card">
                 <h3 class="pending">📋 Ready for Implementation</h3>
                 <ul class="task-list">
-                    {"".join(f'<li>{task}</li>' for task in ready_for_implementation[:7])}
+                    {"".join(f"<li>{task}</li>" for task in ready_for_implementation[:7])}
                     <li><em>...and {len(ready_for_implementation) - 7} more</em></li>
                 </ul>
             </div>
@@ -301,7 +301,7 @@ def create_ci_aware_dashboard():
         </div>
         
         <div class="last-updated">
-            Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC | Auto-refresh: 30s | 
+            Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC | Auto-refresh: 30s | 
             <button onclick="refreshPage()">Manual Refresh</button>
         </div>
     </div>

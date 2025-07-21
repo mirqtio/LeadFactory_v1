@@ -50,7 +50,9 @@ class TestEnvironmentConfiguration:
         """Test that production environment rejects USE_STUBS=true"""
         with pytest.raises(ValidationError) as exc_info:
             Settings(
-                environment="production", use_stubs=True, secret_key="production-secret-key"  # Provide valid secret key
+                environment="production",
+                use_stubs=True,
+                secret_key="production-secret-key",  # Provide valid secret key
             )
 
         errors = exc_info.value.errors()

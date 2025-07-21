@@ -13,10 +13,10 @@ from pathlib import Path
 
 def run_tests(args, description):
     """Run pytest with given arguments and measure time."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Running: {description}")
     print(f"Command: pytest {' '.join(args)}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     start_time = time.time()
 

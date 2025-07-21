@@ -3,9 +3,10 @@ Audit logging middleware for all mutations (P0-026)
 
 Automatically logs all POST/PUT/DELETE operations
 """
+
 import json
 import time
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -95,7 +96,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
 
         return response
 
-    def _extract_object_info(self, path: str) -> tuple[str, Optional[str]]:
+    def _extract_object_info(self, path: str) -> tuple[str, str | None]:
         """Extract object type and ID from API path"""
         parts = path.strip("/").split("/")
 

@@ -25,9 +25,8 @@ def check_git_metadata_support():
     if ('"git", "log"' in content or "git log" in content) and "get_git_info" in content:
         print("  ✓ Git metadata retrieval implemented")
         return True
-    else:
-        print("  ❌ Git metadata not properly implemented")
-        return False
+    print("  ❌ Git metadata not properly implemented")
+    return False
 
 
 def check_monaco_editor():
@@ -66,9 +65,8 @@ def check_preview_performance():
         print("  ✓ Preview render time tracking implemented")
         print("  ✓ Requirement: <500ms render time")
         return True
-    else:
-        print("  ❌ Preview render time not tracked")
-        return False
+    print("  ❌ Preview render time not tracked")
+    return False
 
 
 def check_pr_workflow():
@@ -155,8 +153,7 @@ def check_test_coverage():
     if missing:
         print(f"  ❌ Missing test cases: {', '.join(missing)}")
         return False
-    else:
-        print("  ✓ All required test cases present")
+    print("  ✓ All required test cases present")
 
     print("  ℹ️  Coverage target: ≥80% (verify in CI)")
     return True
@@ -180,12 +177,10 @@ def check_feature_flag():
         if "if settings.enable_template_studio:" in main_content:
             print("  ✓ Feature flag properly gated in main.py")
             return True
-        else:
-            print("  ❌ Feature flag not checked in main.py")
-            return False
-    else:
-        print("  ❌ Feature flag not found or disabled")
+        print("  ❌ Feature flag not checked in main.py")
         return False
+    print("  ❌ Feature flag not found or disabled")
+    return False
 
 
 def main():
@@ -234,9 +229,8 @@ def main():
         print("   - Security controls in place")
         print("   - CI green after implementation")
         return 0
-    else:
-        print("\n❌ P0-024 validation FAILED - see errors above")
-        return 1
+    print("\n❌ P0-024 validation FAILED - see errors above")
+    return 1
 
 
 if __name__ == "__main__":

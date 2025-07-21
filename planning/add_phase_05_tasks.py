@@ -2,6 +2,7 @@
 """
 Add Phase 0.5 tasks to the task planning system
 """
+
 import json
 from datetime import datetime
 from pathlib import Path
@@ -12,12 +13,12 @@ def add_phase_05_tasks():
 
     # Read current task status
     status_file = Path("planning/task_status.json")
-    with open(status_file, "r") as f:
+    with open(status_file) as f:
         task_status = json.load(f)
 
     # Read Phase 0.5 tasks
     phase_05_file = Path("planning/phase_0.5_tasks.json")
-    with open(phase_05_file, "r") as f:
+    with open(phase_05_file) as f:
         phase_05 = json.load(f)
 
     # Add new tasks to status
@@ -58,7 +59,7 @@ def add_phase_05_tasks():
     # Update taskmaster_plan.json to include Phase 0.5
     taskmaster_file = Path("taskmaster_plan.json")
     if taskmaster_file.exists():
-        with open(taskmaster_file, "r") as f:
+        with open(taskmaster_file) as f:
             taskmaster = json.load(f)
 
         # Add Phase 0.5 as a new phase

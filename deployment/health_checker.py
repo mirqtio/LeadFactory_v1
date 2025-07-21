@@ -8,8 +8,8 @@ including HTTP endpoints, service status, and system resources.
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field
@@ -31,8 +31,8 @@ class HealthCheckConfig(BaseModel):
     liveness_endpoint: str = Field(default="/alive", description="Liveness check endpoint")
 
     # Expected responses
-    expected_status_codes: List[int] = Field(default=[200], description="Expected HTTP status codes")
-    expected_content_patterns: List[str] = Field(default_factory=list, description="Expected content patterns")
+    expected_status_codes: list[int] = Field(default=[200], description="Expected HTTP status codes")
+    expected_content_patterns: list[str] = Field(default_factory=list, description="Expected content patterns")
 
 
 class HealthCheckResult(BaseModel):
@@ -43,16 +43,16 @@ class HealthCheckResult(BaseModel):
     response_time_ms: float = Field(default=0.0, description="Response time in milliseconds")
 
     # HTTP specific fields
-    status_code: Optional[int] = Field(None, description="HTTP status code")
+    status_code: int | None = Field(None, description="HTTP status code")
     response_body: str = Field(default="", description="Response body (truncated)")
-    headers: Dict[str, str] = Field(default_factory=dict, description="Response headers")
+    headers: dict[str, str] = Field(default_factory=dict, description="Response headers")
 
     # Error information
     error: str = Field(default="", description="Error message if check failed")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Metadata
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional check metadata")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional check metadata")
 
 
 class HealthChecker:
@@ -61,7 +61,7 @@ class HealthChecker:
     def __init__(self, config: HealthCheckConfig):
         self.config = config
 
-    async def run_all_checks(self) -> Dict[str, Any]:
+    async def run_all_checks(self) -> dict[str, Any]:
         """Run all health checks and return comprehensive results."""
         logger.info("Starting comprehensive health checks")
 
@@ -98,7 +98,7 @@ class HealthChecker:
             "healthy_checks": len([r for r in check_results if r.status == "healthy"]),
             "unhealthy_checks": len([r for r in check_results if r.status in ["unhealthy", "error", "timeout"]]),
             "total_duration_ms": round((end_time - start_time) * 1000, 2),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "checks": [result.model_dump() for result in check_results],
         }
 
@@ -140,7 +140,8 @@ class HealthChecker:
                 )
 
             async with httpx.AsyncClient(
-                timeout=self.config.timeout_seconds, verify=True  # Enable SSL verification
+                timeout=self.config.timeout_seconds,
+                verify=True,  # Enable SSL verification
             ) as client:
                 response = await client.get(self.config.base_url + self.config.health_endpoint)
 
@@ -214,7 +215,7 @@ class HealthChecker:
                     },
                 )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return HealthCheckResult(
                 name="load_time_performance",
                 status="timeout",
@@ -230,7 +231,7 @@ class HealthChecker:
             )
 
     async def _check_endpoint(
-        self, name: str, endpoint: str, expected_patterns: Optional[List[str]] = None, check_headers: bool = False
+        self, name: str, endpoint: str, expected_patterns: list[str] | None = None, check_headers: bool = False
     ) -> HealthCheckResult:
         """Generic endpoint health check."""
         logger.info(f"Checking endpoint: {endpoint}")
@@ -283,38 +284,36 @@ class HealthChecker:
                         },
                     )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 if attempt < self.config.max_retries - 1:
                     logger.warning(f"Timeout on attempt {attempt + 1}, retrying...")
                     await asyncio.sleep(self.config.retry_delay)
                     continue
-                else:
-                    return HealthCheckResult(
-                        name=name,
-                        status="timeout",
-                        error=f"Endpoint timed out after {self.config.max_retries} attempts",
-                        response_time_ms=self.config.timeout_seconds * 1000,
-                        metadata={"final_attempt": attempt + 1},
-                    )
+                return HealthCheckResult(
+                    name=name,
+                    status="timeout",
+                    error=f"Endpoint timed out after {self.config.max_retries} attempts",
+                    response_time_ms=self.config.timeout_seconds * 1000,
+                    metadata={"final_attempt": attempt + 1},
+                )
 
             except Exception as e:
                 if attempt < self.config.max_retries - 1:
                     logger.warning(f"Error on attempt {attempt + 1}: {e}, retrying...")
                     await asyncio.sleep(self.config.retry_delay)
                     continue
-                else:
-                    return HealthCheckResult(
-                        name=name,
-                        status="error",
-                        error=str(e),
-                        response_time_ms=(time.time() - start_time) * 1000,
-                        metadata={"final_attempt": attempt + 1},
-                    )
+                return HealthCheckResult(
+                    name=name,
+                    status="error",
+                    error=str(e),
+                    response_time_ms=(time.time() - start_time) * 1000,
+                    metadata={"final_attempt": attempt + 1},
+                )
 
         # Should not reach here
         return HealthCheckResult(name=name, status="error", error="Unexpected end of retry loop")
 
-    def _analyze_headers(self, headers: Dict[str, str]) -> Dict[str, Any]:
+    def _analyze_headers(self, headers: dict[str, str]) -> dict[str, Any]:
         """Analyze response headers for security and performance."""
         analysis = {"security_headers": {}, "performance_headers": {}, "recommendations": []}
 
@@ -348,7 +347,7 @@ class HealthChecker:
 
         return analysis
 
-    def _calculate_overall_status(self, results: List[HealthCheckResult]) -> str:
+    def _calculate_overall_status(self, results: list[HealthCheckResult]) -> str:
         """Calculate overall health status from individual check results."""
         if not results:
             return "unknown"
@@ -370,12 +369,11 @@ class HealthChecker:
 
         if health_percentage == 100:
             return "healthy"
-        elif health_percentage >= 80:
+        if health_percentage >= 80:
             return "degraded"
-        elif health_percentage >= 50:
+        if health_percentage >= 50:
             return "unhealthy"
-        else:
-            return "critical"
+        return "critical"
 
     async def quick_health_check(self) -> bool:
         """Quick health check that returns True/False."""

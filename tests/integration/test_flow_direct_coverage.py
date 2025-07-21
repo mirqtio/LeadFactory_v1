@@ -2,6 +2,7 @@
 Direct testing of flow function lines to achieve 80% coverage
 Tests the exact code logic without Prefect execution
 """
+
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
@@ -10,15 +11,14 @@ import pytest
 
 def test_cost_guardrail_flow_body_coverage():
     """Test the exact lines in cost_guardrail_flow body function"""
-    with patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings, patch(
-        "d11_orchestration.cost_guardrails.get_daily_costs"
-    ) as mock_costs, patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold, patch(
-        "d11_orchestration.cost_guardrails.pause_expensive_operations"
-    ) as mock_pause, patch(
-        "d11_orchestration.cost_guardrails.get_run_logger"
-    ) as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.create_markdown_artifact"
-    ) as mock_artifact:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        patch("d11_orchestration.cost_guardrails.get_daily_costs") as mock_costs,
+        patch("d11_orchestration.cost_guardrails.check_budget_threshold") as mock_threshold,
+        patch("d11_orchestration.cost_guardrails.pause_expensive_operations") as mock_pause,
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+    ):
         # Mock all dependencies to match flow execution
         mock_logger_instance = MagicMock()
         mock_logger.return_value = mock_logger_instance
@@ -65,8 +65,8 @@ def test_cost_guardrail_flow_body_coverage():
             artifact_markdown = f"""# Cost Guardrail Alert
 
 **Status**: {alert_level.upper()}  
-**Budget Used**: {percentage_used:.1%} (${daily_costs.get('total', 0):.2f} / ${daily_budget:.2f})  
-**Time**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+**Budget Used**: {percentage_used:.1%} (${daily_costs.get("total", 0):.2f} / ${daily_budget:.2f})  
+**Time**: {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}
 
 ## Provider Breakdown
 """
@@ -101,13 +101,13 @@ def test_cost_guardrail_flow_body_coverage():
 
 def test_profit_snapshot_flow_body_coverage():
     """Test the exact lines in profit_snapshot_flow body function"""
-    with patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics, patch(
-        "d11_orchestration.cost_guardrails.SessionLocal"
-    ) as mock_session, patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report, patch(
-        "d11_orchestration.cost_guardrails.get_run_logger"
-    ) as mock_logger, patch(
-        "d11_orchestration.cost_guardrails.create_markdown_artifact"
-    ) as mock_artifact:
+    with (
+        patch("d11_orchestration.cost_guardrails.get_profit_metrics") as mock_metrics,
+        patch("d11_orchestration.cost_guardrails.SessionLocal") as mock_session,
+        patch("d11_orchestration.cost_guardrails.create_profit_report") as mock_report,
+        patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        patch("d11_orchestration.cost_guardrails.create_markdown_artifact") as mock_artifact,
+    ):
         # Mock dependencies for profit snapshot (lines 486-540)
         mock_logger_instance = MagicMock()
         mock_logger.return_value = mock_logger_instance
@@ -191,9 +191,11 @@ def test_profit_snapshot_flow_body_coverage():
 
 def test_main_execution_block_coverage():
     """Test the __main__ execution block to cover remaining lines"""
-    with patch("d11_orchestration.cost_guardrails.check_costs_now") as mock_check, patch(
-        "d11_orchestration.cost_guardrails.generate_profit_report_now"
-    ) as mock_profit, patch("d11_orchestration.cost_guardrails.asyncio.run") as mock_asyncio_run:
+    with (
+        patch("d11_orchestration.cost_guardrails.check_costs_now") as mock_check,
+        patch("d11_orchestration.cost_guardrails.generate_profit_report_now") as mock_profit,
+        patch("d11_orchestration.cost_guardrails.asyncio.run") as mock_asyncio_run,
+    ):
         # Mock the async function returns
         mock_check.return_value = {"alert_level": "ok", "budget_used_percentage": 0.5}
         mock_profit.return_value = {"metrics": {"total_profit": 300.0, "avg_roi": 0.6}}

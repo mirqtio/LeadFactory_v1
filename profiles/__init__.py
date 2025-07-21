@@ -15,24 +15,24 @@ import yaml
 class ProfileLoader:
     """Load and validate SuperClaude profile configurations."""
 
-    def __init__(self, profiles_dir: Optional[Path] = None):
+    def __init__(self, profiles_dir: Path | None = None):
         if profiles_dir is None:
             profiles_dir = Path(__file__).parent
         self.profiles_dir = profiles_dir
 
-    def load_profile(self, profile_name: str) -> Dict[str, Any]:
+    def load_profile(self, profile_name: str) -> dict[str, Any]:
         """Load a profile configuration by name."""
         profile_path = self.profiles_dir / f"{profile_name}.yaml"
 
         if not profile_path.exists():
             raise FileNotFoundError(f"Profile not found: {profile_path}")
 
-        with open(profile_path, "r") as f:
+        with open(profile_path) as f:
             config = yaml.safe_load(f)
 
         return self._validate_profile(config, profile_name)
 
-    def _validate_profile(self, config: Dict[str, Any], profile_name: str) -> Dict[str, Any]:
+    def _validate_profile(self, config: dict[str, Any], profile_name: str) -> dict[str, Any]:
         """Validate profile configuration structure."""
         required_fields = ["name", "description", "command", "workflow"]
 

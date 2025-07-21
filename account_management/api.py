@@ -2,8 +2,8 @@
 Account Management API Endpoints
 Authentication, user management, and organization endpoints
 """
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -15,10 +15,8 @@ from account_management.schemas import (
     APIKeyCreate,
     APIKeyCreateResponse,
     APIKeyResponse,
-    AuditLogResponse,
     AuthTokenResponse,
     EmailVerificationRequest,
-    ErrorResponse,
     OrganizationCreate,
     OrganizationResponse,
     OrganizationStatsResponse,
@@ -29,9 +27,7 @@ from account_management.schemas import (
     SessionResponse,
     TeamCreate,
     TeamDetailResponse,
-    TeamMemberAdd,
     TeamResponse,
-    TeamUpdate,
     UserLogin,
     UserProfileResponse,
     UserRegister,
@@ -47,13 +43,13 @@ logger = get_logger(__name__)
 def make_aware(dt: datetime) -> datetime:
     """Ensure datetime is timezone-aware (UTC)"""
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=UTC)
     return dt
 
 
 def utc_now() -> datetime:
     """Get current UTC datetime (timezone-aware)"""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 # Create router
@@ -93,8 +89,8 @@ async def get_current_user(
 
 
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security), db: Session = Depends(get_db)
-) -> Optional[AccountUser]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security), db: Session = Depends(get_db)
+) -> AccountUser | None:
     """Get current user if authenticated, None otherwise"""
     if not credentials:
         return None
@@ -309,7 +305,7 @@ async def change_password(
     return {"message": "Password changed successfully"}
 
 
-@router.get("/me/sessions", response_model=List[SessionResponse])
+@router.get("/me/sessions", response_model=list[SessionResponse])
 async def get_user_sessions(current_user: AccountUser = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get user's active sessions"""
     sessions = (
@@ -404,7 +400,7 @@ async def get_organization_stats(current_user: AccountUser = Depends(get_current
 
 
 # Team endpoints
-@router.get("/teams", response_model=List[TeamResponse])
+@router.get("/teams", response_model=list[TeamResponse])
 async def list_teams(current_user: AccountUser = Depends(get_current_user), db: Session = Depends(get_db)):
     """List user's teams"""
     if not current_user.organization_id:
@@ -452,7 +448,7 @@ async def get_team(team_id: str, current_user: AccountUser = Depends(get_current
 
 
 # API Key endpoints
-@router.get("/api-keys", response_model=List[APIKeyResponse])
+@router.get("/api-keys", response_model=list[APIKeyResponse])
 async def list_api_keys(current_user: AccountUser = Depends(get_current_user), db: Session = Depends(get_db)):
     """List user's API keys"""
     keys = db.query(APIKey).filter(APIKey.user_id == current_user.id, APIKey.is_active == True).all()

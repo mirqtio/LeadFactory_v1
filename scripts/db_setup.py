@@ -7,7 +7,7 @@ and configures automated backups for production deployment.
 
 Acceptance Criteria:
 - PostgreSQL connected ✓
-- Migrations applied ✓  
+- Migrations applied ✓
 - Indexes created ✓
 - Backup scheduled ✓
 """
@@ -87,10 +87,9 @@ class DatabaseSetup:
                 if self.check_only:
                     print(f"⚠️  Database '{self.db_config['database']}' does not exist")
                     return False
-                else:
-                    print(f"📦 Creating database '{self.db_config['database']}'...")
-                    cursor.execute(f'CREATE DATABASE "{self.db_config["database"]}"')
-                    print("✅ Database created successfully")
+                print(f"📦 Creating database '{self.db_config['database']}'...")
+                cursor.execute(f'CREATE DATABASE "{self.db_config["database"]}"')
+                print("✅ Database created successfully")
 
             cursor.close()
             conn.close()
@@ -148,9 +147,8 @@ class DatabaseSetup:
             if new_rev == head_rev:
                 print("✅ Migrations applied successfully")
                 return True
-            else:
-                self.errors.append(f"Migration verification failed: expected {head_rev}, got {new_rev}")
-                return False
+            self.errors.append(f"Migration verification failed: expected {head_rev}, got {new_rev}")
+            return False
 
         except Exception as e:
             self.errors.append(f"Migration failed: {e}")
@@ -230,10 +228,10 @@ class DatabaseSetup:
 set -e
 
 # Configuration
-PGHOST="{backup_config['host']}"
-PGPORT="{backup_config['port']}"
-PGUSER="{backup_config['username']}"
-PGDATABASE="{backup_config['database']}"
+PGHOST="{backup_config["host"]}"
+PGPORT="{backup_config["port"]}"
+PGUSER="{backup_config["username"]}"
+PGDATABASE="{backup_config["database"]}"
 BACKUP_DIR="/var/backups/postgresql"
 RETENTION_DAYS=30
 
@@ -423,9 +421,8 @@ echo "Backup process finished at $(date)"
         if self.errors:
             print("\n❌ DATABASE SETUP FAILED")
             return False
-        else:
-            print("\n⚠️  DATABASE SETUP COMPLETED WITH WARNINGS")
-            return True
+        print("\n⚠️  DATABASE SETUP COMPLETED WITH WARNINGS")
+        return True
 
 
 def main():

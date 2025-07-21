@@ -1,9 +1,10 @@
 """
 Response caching for external API calls with Redis backing
 """
+
 import hashlib
 import json
-from typing import Any, Dict, Optional
+from typing import Any
 
 import redis.asyncio as aioredis
 
@@ -32,7 +33,7 @@ class ResponseCache:
         self.ttl = self.CACHE_TTL.get(provider, 1800)  # 30 min default
 
         # Redis connection
-        self._redis: Optional[aioredis.Redis] = None
+        self._redis: aioredis.Redis | None = None
 
         # Hit/miss tracking
         self._hits = 0
@@ -44,7 +45,7 @@ class ResponseCache:
             self._redis = aioredis.from_url(self.settings.redis_url, decode_responses=True)
         return self._redis
 
-    def generate_key(self, endpoint: str, params: Dict[str, Any]) -> str:
+    def generate_key(self, endpoint: str, params: dict[str, Any]) -> str:
         """
         Generate a cache key from endpoint and parameters
 
@@ -64,7 +65,7 @@ class ResponseCache:
 
         return f"api_cache:{cache_key}"
 
-    async def get(self, cache_key: str) -> Optional[Dict[str, Any]]:
+    async def get(self, cache_key: str) -> dict[str, Any] | None:
         """
         Get cached response
 
@@ -87,17 +88,16 @@ class ResponseCache:
                 self._hits += 1
                 self.logger.debug(f"Cache hit for key: {cache_key[:16]}...")
                 return response
-            else:
-                self._misses += 1
-                self.logger.debug(f"Cache miss for key: {cache_key[:16]}...")
-                return None
+            self._misses += 1
+            self.logger.debug(f"Cache miss for key: {cache_key[:16]}...")
+            return None
 
         except Exception as e:
             self.logger.error(f"Cache get error: {e}")
             self._misses += 1
             return None
 
-    async def set(self, cache_key: str, response_data: Dict[str, Any], ttl: Optional[int] = None) -> None:
+    async def set(self, cache_key: str, response_data: dict[str, Any], ttl: int | None = None) -> None:
         """
         Cache response data
 
@@ -160,15 +160,14 @@ class ResponseCache:
                 deleted = await redis.delete(*keys)
                 self.logger.info(f"Cleared {deleted} cache entries for {self.provider}")
                 return deleted
-            else:
-                self.logger.debug(f"No cache entries found for {self.provider}")
-                return 0
+            self.logger.debug(f"No cache entries found for {self.provider}")
+            return 0
 
         except Exception as e:
             self.logger.error(f"Cache clear error: {e}")
             return 0
 
-    async def get_cache_stats(self) -> Dict[str, Any]:
+    async def get_cache_stats(self) -> dict[str, Any]:
         """
         Get cache statistics for this provider
 

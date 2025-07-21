@@ -7,6 +7,7 @@ Provides:
 - API endpoint testing helpers
 - OAuth and JWT token management
 """
+
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
@@ -49,7 +50,7 @@ async def async_test_client() -> AsyncClient:
 
 
 @pytest.fixture
-def auth_headers() -> Dict[str, str]:
+def auth_headers() -> dict[str, str]:
     """
     Generate authentication headers with a valid JWT token.
 
@@ -68,7 +69,7 @@ def auth_headers() -> Dict[str, str]:
 
 
 @pytest.fixture
-def admin_auth_headers() -> Dict[str, str]:
+def admin_auth_headers() -> dict[str, str]:
     """
     Generate admin authentication headers with elevated permissions.
 
@@ -88,7 +89,7 @@ def admin_auth_headers() -> Dict[str, str]:
 
 
 @pytest.fixture
-def authenticated_client(test_client: TestClient, auth_headers: Dict[str, str]) -> TestClient:
+def authenticated_client(test_client: TestClient, auth_headers: dict[str, str]) -> TestClient:
     """
     Create an authenticated test client with user credentials.
 
@@ -104,7 +105,7 @@ def authenticated_client(test_client: TestClient, auth_headers: Dict[str, str]) 
 
 
 @pytest.fixture
-def admin_client(test_client: TestClient, admin_auth_headers: Dict[str, str]) -> TestClient:
+def admin_client(test_client: TestClient, admin_auth_headers: dict[str, str]) -> TestClient:
     """
     Create an authenticated test client with admin credentials.
 
@@ -137,7 +138,7 @@ class APITestHelper:
         response.raise_for_status()
         return response.json()["access_token"]
 
-    def assert_error_response(self, response, status_code: int, error_type: Optional[str] = None):
+    def assert_error_response(self, response, status_code: int, error_type: str | None = None):
         """Assert that response is an error with expected status and type."""
         assert response.status_code == status_code
         data = response.json()

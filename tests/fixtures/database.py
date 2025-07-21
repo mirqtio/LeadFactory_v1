@@ -7,9 +7,11 @@ Provides:
 - Database seeding utilities
 - Migration helpers for tests
 """
+
 import asyncio
+from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
-from typing import AsyncGenerator, Generator, Optional
+from typing import Optional
 
 import pytest
 from sqlalchemy import create_engine, event
@@ -194,7 +196,7 @@ class DatabaseSeeder:
         self.session.commit()
         return companies
 
-    def seed_leads(self, count: int = 10, business_ids: Optional[list] = None) -> list:
+    def seed_leads(self, count: int = 10, business_ids: list | None = None) -> list:
         """Seed database with sample leads."""
         from database.models import EnrichmentStatus, Lead
 

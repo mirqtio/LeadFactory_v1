@@ -14,8 +14,8 @@ Acceptance Criteria:
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from core.config import get_settings
 from d9_delivery.compliance import ComplianceManager
@@ -34,12 +34,12 @@ class DeliveryRequest:
     to_email: str
     template_name: str
     personalization: PersonalizationData
-    to_name: Optional[str] = None
-    reply_to_email: Optional[str] = None
+    to_name: str | None = None
+    reply_to_email: str | None = None
     list_type: str = "marketing"
     priority: str = "normal"  # normal, high, low
-    scheduled_at: Optional[datetime] = None
-    custom_args: Optional[Dict[str, Any]] = None
+    scheduled_at: datetime | None = None
+    custom_args: dict[str, Any] | None = None
 
 
 @dataclass
@@ -47,9 +47,9 @@ class DeliveryResult:
     """Email delivery result data structure"""
 
     success: bool
-    delivery_id: Optional[str] = None
-    message_id: Optional[str] = None
-    error_message: Optional[str] = None
+    delivery_id: str | None = None
+    message_id: str | None = None
+    error_message: str | None = None
     suppressed: bool = False
     compliance_added: bool = False
 
@@ -66,7 +66,7 @@ class DeliveryManager:
     - Delivery recording and tracking
     """
 
-    def __init__(self, config: Optional[Any] = None):
+    def __init__(self, config: Any | None = None):
         """Initialize delivery manager"""
         self.config = config or get_settings()
         self.email_builder = EmailBuilder()
@@ -193,29 +193,28 @@ class DeliveryManager:
                         compliance_added=compliance_added,
                     )
 
-                else:
-                    # Step 6: Record failed send
-                    self._update_delivery_status(
-                        delivery_id=delivery_id,
-                        status=DeliveryStatus.FAILED,
-                        error_message=sendgrid_response.error_message,
-                    )
+                # Step 6: Record failed send
+                self._update_delivery_status(
+                    delivery_id=delivery_id,
+                    status=DeliveryStatus.FAILED,
+                    error_message=sendgrid_response.error_message,
+                )
 
-                    # Record failure event
-                    self._record_delivery_event(
-                        delivery_id=delivery_id,
-                        event_type=EventType.FAILED,
-                        error_message=sendgrid_response.error_message,
-                    )
+                # Record failure event
+                self._record_delivery_event(
+                    delivery_id=delivery_id,
+                    event_type=EventType.FAILED,
+                    error_message=sendgrid_response.error_message,
+                )
 
-                    logger.error(f"SendGrid send failed for {request.to_email}: {sendgrid_response.error_message}")
+                logger.error(f"SendGrid send failed for {request.to_email}: {sendgrid_response.error_message}")
 
-                    return DeliveryResult(
-                        success=False,
-                        delivery_id=delivery_id,
-                        error_message=sendgrid_response.error_message,
-                        compliance_added=compliance_added,
-                    )
+                return DeliveryResult(
+                    success=False,
+                    delivery_id=delivery_id,
+                    error_message=sendgrid_response.error_message,
+                    compliance_added=compliance_added,
+                )
 
             except Exception as e:
                 # Step 6: Record exception
@@ -260,7 +259,7 @@ class DeliveryManager:
 
             return DeliveryResult(success=False, delivery_id=delivery_id, error_message=error_message)
 
-    async def send_batch_emails(self, requests: List[DeliveryRequest]) -> List[DeliveryResult]:
+    async def send_batch_emails(self, requests: list[DeliveryRequest]) -> list[DeliveryResult]:
         """
         Send multiple emails in batch
 
@@ -298,9 +297,9 @@ class DeliveryManager:
         delivery_id: str,
         to_email: str,
         status: DeliveryStatus,
-        sendgrid_message_id: Optional[str] = None,
-        error_message: Optional[str] = None,
-        scheduled_at: Optional[datetime] = None,
+        sendgrid_message_id: str | None = None,
+        error_message: str | None = None,
+        scheduled_at: datetime | None = None,
     ) -> bool:
         """
         Record email delivery to database
@@ -349,8 +348,8 @@ class DeliveryManager:
         self,
         delivery_id: str,
         status: DeliveryStatus,
-        sendgrid_message_id: Optional[str] = None,
-        error_message: Optional[str] = None,
+        sendgrid_message_id: str | None = None,
+        error_message: str | None = None,
     ) -> bool:
         """
         Update delivery status in database
@@ -378,16 +377,15 @@ class DeliveryManager:
                         delivery.error_message = error_message
 
                     if status == DeliveryStatus.SENT:
-                        delivery.sent_at = datetime.now(timezone.utc)
+                        delivery.sent_at = datetime.now(UTC)
                     elif status == DeliveryStatus.DELIVERED:
-                        delivery.delivered_at = datetime.now(timezone.utc)
+                        delivery.delivered_at = datetime.now(UTC)
 
                     session.commit()
                     logger.debug(f"Updated delivery {delivery_id} status to {status.value}")
                     return True
-                else:
-                    logger.warning(f"Delivery {delivery_id} not found for status update")
-                    return False
+                logger.warning(f"Delivery {delivery_id} not found for status update")
+                return False
 
         except Exception as e:
             logger.error(f"Error updating delivery {delivery_id} status: {e}")
@@ -397,9 +395,9 @@ class DeliveryManager:
         self,
         delivery_id: str,
         event_type: EventType,
-        sendgrid_message_id: Optional[str] = None,
-        error_message: Optional[str] = None,
-        event_data: Optional[Dict[str, Any]] = None,
+        sendgrid_message_id: str | None = None,
+        error_message: str | None = None,
+        event_data: dict[str, Any] | None = None,
     ) -> bool:
         """
         Record delivery event to database
@@ -427,7 +425,7 @@ class DeliveryManager:
                     email_delivery_id=delivery.id,
                     event_type=event_type.value,
                     sendgrid_message_id=sendgrid_message_id,
-                    event_timestamp=datetime.now(timezone.utc),
+                    event_timestamp=datetime.now(UTC),
                     event_data={"error_message": error_message} if error_message else event_data or {},
                 )
 
@@ -441,7 +439,7 @@ class DeliveryManager:
             logger.error(f"Error recording event for delivery {delivery_id}: {e}")
             return False
 
-    def get_delivery_status(self, delivery_id: str) -> Optional[Dict[str, Any]]:
+    def get_delivery_status(self, delivery_id: str) -> dict[str, Any] | None:
         """
         Get delivery status and events
 
@@ -493,7 +491,7 @@ class DeliveryManager:
             logger.error(f"Error getting delivery status for {delivery_id}: {e}")
             return None
 
-    def get_delivery_stats(self, hours: int = 24) -> Dict[str, Any]:
+    def get_delivery_stats(self, hours: int = 24) -> dict[str, Any]:
         """
         Get delivery statistics for the last N hours
 
@@ -506,7 +504,7 @@ class DeliveryManager:
         try:
             from datetime import timedelta
 
-            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+            cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
             with SessionLocal() as session:
                 # Total deliveries
@@ -564,14 +562,14 @@ class DeliveryManager:
                         (suppressed_count / total_deliveries * 100) if total_deliveries > 0 else 0,
                         2,
                     ),
-                    "last_updated": datetime.now(timezone.utc).isoformat(),
+                    "last_updated": datetime.now(UTC).isoformat(),
                 }
 
         except Exception as e:
             logger.error(f"Error getting delivery stats: {e}")
             return {
                 "error": str(e),
-                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "last_updated": datetime.now(UTC).isoformat(),
             }
 
 
@@ -581,9 +579,9 @@ class DeliveryManager:
 async def send_audit_email(
     business_name: str,
     to_email: str,
-    contact_name: Optional[str] = None,
-    issues: Optional[List[Dict[str, str]]] = None,
-    score: Optional[float] = None,
+    contact_name: str | None = None,
+    issues: list[dict[str, str]] | None = None,
+    score: float | None = None,
     template: str = "cold_outreach",
     list_type: str = "marketing",
 ) -> DeliveryResult:

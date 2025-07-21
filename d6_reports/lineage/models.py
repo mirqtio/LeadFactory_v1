@@ -3,7 +3,6 @@ Lineage tracking models for report generation
 """
 
 import uuid
-from typing import Optional
 
 from sqlalchemy import (
     DECIMAL,
@@ -94,9 +93,7 @@ class ReportLineage(Base):
     )
 
     def __repr__(self):
-        return (
-            f"<ReportLineage(id='{self.id}', lead_id='{self.lead_id}', " f"pipeline_run_id='{self.pipeline_run_id}')>"
-        )
+        return f"<ReportLineage(id='{self.id}', lead_id='{self.lead_id}', pipeline_run_id='{self.pipeline_run_id}')>"
 
     @property
     def pipeline_duration_seconds(self) -> float:
@@ -105,7 +102,7 @@ class ReportLineage(Base):
             return (self.pipeline_end_time - self.pipeline_start_time).total_seconds()
         return 0.0
 
-    def record_access(self, user_id: Optional[str] = None, ip_address: Optional[str] = None):
+    def record_access(self, user_id: str | None = None, ip_address: str | None = None):
         """Update access tracking fields"""
         self.last_accessed_at = func.now()
         self.access_count += 1

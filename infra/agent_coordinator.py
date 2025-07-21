@@ -1,16 +1,17 @@
 """
 Agent Coordination Layer for PRP workflow orchestration.
 
-Provides agent-specific queue management with isolation, queue routing for 
+Provides agent-specific queue management with isolation, queue routing for
 PRP state transitions, queue-based workflow orchestration, and seamless
 integration with existing Redis pub/sub system for broadcast messages.
 """
+
 import asyncio
 import json
 import os
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -47,7 +48,7 @@ class PRPTransition(BaseModel):
     from_state: PRPState
     to_state: PRPState
     agent_id: str
-    transition_data: Dict[str, Any] = Field(default_factory=dict)
+    transition_data: dict[str, Any] = Field(default_factory=dict)
     priority: int = Field(default=0)
 
 
@@ -58,10 +59,10 @@ class AgentMessage(BaseModel):
     agent_id: str
     agent_type: AgentType
     message_type: str  # 'prp_transition', 'task_assignment', 'status_update', etc.
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     priority: int = Field(default=0)
     requires_response: bool = Field(default=False)
-    correlation_id: Optional[str] = Field(default=None)
+    correlation_id: str | None = Field(default=None)
 
 
 class AgentStatus(BaseModel):
@@ -70,7 +71,7 @@ class AgentStatus(BaseModel):
     agent_id: str
     agent_type: AgentType
     status: str  # 'active', 'busy', 'idle', 'offline'
-    current_prp: Optional[str] = Field(default=None)
+    current_prp: str | None = Field(default=None)
     last_heartbeat: datetime = Field(default_factory=datetime.utcnow)
     queue_backlog: int = Field(default=0)
     processing_capacity: float = Field(default=1.0)
@@ -88,7 +89,7 @@ class AgentCoordinator:
     - Agent health monitoring and failover
     """
 
-    def __init__(self, broker: Optional[RedisQueueBroker] = None):
+    def __init__(self, broker: RedisQueueBroker | None = None):
         """
         Initialize agent coordinator.
 
@@ -104,8 +105,8 @@ class AgentCoordinator:
         self.reliable_pattern = ReliableQueuePattern(self.broker)
 
         # Agent management
-        self.agents: Dict[str, AgentStatus] = {}
-        self.agent_assignments: Dict[str, Set[str]] = {}  # agent_id -> set of PRPs
+        self.agents: dict[str, AgentStatus] = {}
+        self.agent_assignments: dict[str, set[str]] = {}  # agent_id -> set of PRPs
 
         # Queue configuration
         self.coordination_mode = os.getenv("AGENT_COORDINATION_MODE", "tmux")
@@ -113,7 +114,7 @@ class AgentCoordinator:
 
         self.logger.info(f"Agent coordinator initialized in {self.coordination_mode} mode")
 
-    def _initialize_queue_routing(self) -> Dict[str, str]:
+    def _initialize_queue_routing(self) -> dict[str, str]:
         """Initialize queue routing for different workflows"""
         return {
             # PRP workflow queues
@@ -226,7 +227,7 @@ class AgentCoordinator:
             self.logger.error(f"Failed to unregister agent {agent_id}: {e}")
             return False
 
-    async def assign_prp_to_agent(self, prp_id: str, prp_transition: PRPTransition) -> Optional[str]:
+    async def assign_prp_to_agent(self, prp_id: str, prp_transition: PRPTransition) -> str | None:
         """
         Assign PRP to the best available agent.
 
@@ -296,17 +297,15 @@ class AgentCoordinator:
         """Determine required agent type for PRP transition"""
         if prp_transition.to_state == PRPState.VALIDATED:
             return AgentType.VALIDATOR
-        elif prp_transition.to_state == PRPState.IN_PROGRESS:
+        if prp_transition.to_state == PRPState.IN_PROGRESS:
             if "integration" in prp_transition.transition_data.get("work_type", ""):
                 return AgentType.INTEGRATOR
-            else:
-                return AgentType.PM
-        elif prp_transition.to_state == PRPState.COMPLETE:
+            return AgentType.PM
+        if prp_transition.to_state == PRPState.COMPLETE:
             return AgentType.VALIDATOR
-        else:
-            return AgentType.PM  # Default
+        return AgentType.PM  # Default
 
-    def _find_best_agent(self, agent_type: AgentType) -> Optional[str]:
+    def _find_best_agent(self, agent_type: AgentType) -> str | None:
         """Find best available agent of specified type"""
         available_agents = [
             (agent_id, agent)
@@ -335,7 +334,7 @@ class AgentCoordinator:
 
         self.broker.enqueue(queue_name, assignment_request, priority=prp_transition.priority)
 
-    async def complete_prp_assignment(self, agent_id: str, prp_id: str, completion_data: Dict[str, Any]) -> bool:
+    async def complete_prp_assignment(self, agent_id: str, prp_id: str, completion_data: dict[str, Any]) -> bool:
         """
         Complete PRP assignment and update agent status.
 
@@ -411,13 +410,12 @@ class AgentCoordinator:
                 message_id = self.broker.enqueue(queue_name, message.model_dump(), priority=message.priority)
                 return message_id is not None
 
-            elif self.coordination_mode == "tmux":
+            if self.coordination_mode == "tmux":
                 # Fall back to existing tmux messaging (backward compatibility)
                 return await self._send_tmux_message(agent_id, message)
 
-            else:
-                self.logger.error(f"Unknown coordination mode: {self.coordination_mode}")
-                return False
+            self.logger.error(f"Unknown coordination mode: {self.coordination_mode}")
+            return False
 
         except Exception as e:
             self.logger.error(f"Failed to send message to agent {agent_id}: {e}")
@@ -469,20 +467,19 @@ class AgentCoordinator:
 
         return moved_count
 
-    def _get_workflow_queue_for_message(self, message_data: Dict[str, Any]) -> str:
+    def _get_workflow_queue_for_message(self, message_data: dict[str, Any]) -> str:
         """Determine appropriate workflow queue for message"""
         message_type = message_data.get("message_type", "")
 
         if "prp" in message_type:
             return self.get_workflow_queue_name("prp_development")
-        elif "validation" in message_type:
+        if "validation" in message_type:
             return self.get_workflow_queue_name("prp_validation")
-        elif "integration" in message_type:
+        if "integration" in message_type:
             return self.get_workflow_queue_name("prp_integration")
-        else:
-            return self.get_workflow_queue_name("coordination")
+        return self.get_workflow_queue_name("coordination")
 
-    async def update_agent_heartbeat(self, agent_id: str, status: Optional[str] = None) -> bool:
+    async def update_agent_heartbeat(self, agent_id: str, status: str | None = None) -> bool:
         """Update agent heartbeat and status"""
         try:
             if agent_id not in self.agents:
@@ -500,7 +497,7 @@ class AgentCoordinator:
             self.logger.error(f"Failed to update heartbeat for agent {agent_id}: {e}")
             return False
 
-    async def check_agent_health(self) -> Dict[str, Any]:
+    async def check_agent_health(self) -> dict[str, Any]:
         """Check health of all registered agents"""
         health_status = {
             "total_agents": len(self.agents),
@@ -550,9 +547,8 @@ class AgentCoordinator:
             if new_agent:
                 self.logger.info(f"Reassigned PRP {prp_id} from {failed_agent_id} to {new_agent}")
                 return True
-            else:
-                self.logger.error(f"Failed to reassign PRP {prp_id} from {failed_agent_id}")
-                return False
+            self.logger.error(f"Failed to reassign PRP {prp_id} from {failed_agent_id}")
+            return False
 
         except Exception as e:
             self.logger.error(f"Error reassigning PRP {prp_id}: {e}")
@@ -560,7 +556,7 @@ class AgentCoordinator:
 
 
 # Global coordinator instance (lazy initialization)
-_coordinator_instance: Optional[AgentCoordinator] = None
+_coordinator_instance: AgentCoordinator | None = None
 
 
 def get_agent_coordinator() -> AgentCoordinator:
@@ -577,7 +573,7 @@ def reset_agent_coordinator():
     _coordinator_instance = None
 
 
-async def coordination_worker(coordinator: AgentCoordinator, queue_names: List[str]):
+async def coordination_worker(coordinator: AgentCoordinator, queue_names: list[str]):
     """
     Background worker for processing coordination messages.
 
@@ -628,22 +624,21 @@ async def _process_coordination_message(coordinator: AgentCoordinator, queue_nam
             assigned_agent = await coordinator.assign_prp_to_agent(prp_id, prp_transition)
             return assigned_agent is not None
 
-        elif message_type == "agent_heartbeat":
+        if message_type == "agent_heartbeat":
             agent_id = payload.get("agent_id")
             status = payload.get("status")
 
             return await coordinator.update_agent_heartbeat(agent_id, status)
 
-        elif message_type == "prp_completion":
+        if message_type == "prp_completion":
             agent_id = payload.get("agent_id")
             prp_id = payload.get("prp_id")
             completion_data = payload.get("completion_data", {})
 
             return await coordinator.complete_prp_assignment(agent_id, prp_id, completion_data)
 
-        else:
-            coordinator.logger.warning(f"Unknown coordination message type: {message_type}")
-            return False
+        coordinator.logger.warning(f"Unknown coordination message type: {message_type}")
+        return False
 
     except Exception as e:
         coordinator.logger.error(f"Error processing coordination message: {e}")

@@ -36,12 +36,12 @@ def run_pytest_json():
 def analyze_test_results():
     """Analyze test results and categorize failures."""
     try:
-        with open("test_results.json", "r") as f:
+        with open("test_results.json") as f:
             data = json.load(f)
     except FileNotFoundError:
         print("No test results found. Running tests first...")
         run_pytest_json()
-        with open("test_results.json", "r") as f:
+        with open("test_results.json") as f:
             data = json.load(f)
 
     summary = data.get("summary", {})
@@ -102,9 +102,9 @@ def generate_fix_report():
         f.write("## Summary\n")
         f.write(f"- Total Tests: {total}\n")
         if total > 0:
-            f.write(f"- Passed: {passed} ({passed/total*100:.1f}%)\n")
-            f.write(f"- Failed: {failed} ({failed/total*100:.1f}%)\n")
-            f.write(f"- Skipped: {skipped} ({skipped/total*100:.1f}%)\n\n")
+            f.write(f"- Passed: {passed} ({passed / total * 100:.1f}%)\n")
+            f.write(f"- Failed: {failed} ({failed / total * 100:.1f}%)\n")
+            f.write(f"- Skipped: {skipped} ({skipped / total * 100:.1f}%)\n\n")
         else:
             f.write("- No test results found\n\n")
 

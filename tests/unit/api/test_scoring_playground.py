@@ -217,10 +217,10 @@ class TestSampleLeadAnonymization:
         # Verify anonymization happened
         for i, lead in enumerate(anonymized):
             # Check anonymized fields
-            assert lead.id == f"sample-{i+1:03d}"
-            assert lead.business_name == f"Business {i+1}"
+            assert lead.id == f"sample-{i + 1:03d}"
+            assert lead.business_name == f"Business {i + 1}"
             assert lead.phone == "(555) 000-0000"
-            assert lead.email == f"contact{i+1}@example.com"
+            assert lead.email == f"contact{i + 1}@example.com"
             assert lead.street_address == "123 Main St"
             assert lead.zip_code == "00000"
 

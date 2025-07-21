@@ -2,6 +2,7 @@
 Comprehensive unit tests for alerts.py - Alert system and notifications
 Tests for AlertManager, alert channels, throttling, and template system
 """
+
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -312,15 +313,17 @@ class TestAlertManager:
         manager = AlertManager()
 
         # Test default (log only)
-        with patch.object(manager.settings, "guardrail_alert_email", None), patch.object(
-            manager.settings, "guardrail_alert_slack_webhook", None
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", None),
+            patch.object(manager.settings, "guardrail_alert_slack_webhook", None),
         ):
             channels = manager._get_configured_channels()
             assert channels == [AlertChannel.LOG]
 
         # Test with email
-        with patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"), patch.object(
-            manager.settings, "guardrail_alert_slack_webhook", None
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"),
+            patch.object(manager.settings, "guardrail_alert_slack_webhook", None),
         ):
             channels = manager._get_configured_channels()
             assert AlertChannel.LOG in channels
@@ -328,8 +331,9 @@ class TestAlertManager:
             assert len(channels) == 2
 
         # Test with slack
-        with patch.object(manager.settings, "guardrail_alert_email", None), patch.object(
-            manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", None),
+            patch.object(manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"),
         ):
             channels = manager._get_configured_channels()
             assert AlertChannel.LOG in channels
@@ -337,8 +341,9 @@ class TestAlertManager:
             assert len(channels) == 2
 
         # Test with both
-        with patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"), patch.object(
-            manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"),
+            patch.object(manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"),
         ):
             channels = manager._get_configured_channels()
             assert AlertChannel.LOG in channels
@@ -488,12 +493,12 @@ class TestAlertManager:
         mock_sendgrid = AsyncMock()
         mock_sendgrid.send_email.return_value = {"success": True}
 
-        with patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"), patch.object(
-            manager.settings, "base_url", "https://app.example.com"
-        ), patch.object(manager.settings, "from_email", "noreply@example.com"), patch.object(
-            manager.settings, "from_name", "LeadFactory"
-        ), patch(
-            "d0_gateway.alerts.SendGridClient", return_value=mock_sendgrid
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"),
+            patch.object(manager.settings, "base_url", "https://app.example.com"),
+            patch.object(manager.settings, "from_email", "noreply@example.com"),
+            patch.object(manager.settings, "from_name", "LeadFactory"),
+            patch("d0_gateway.alerts.SendGridClient", return_value=mock_sendgrid),
         ):
             result = await manager._send_email_alert(context, AlertLevel.WARNING)
             assert result is True
@@ -546,9 +551,11 @@ class TestAlertManager:
         mock_sendgrid = AsyncMock()
         mock_sendgrid.send_email.side_effect = Exception("SendGrid error")
 
-        with patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"), patch(
-            "d0_gateway.alerts.SendGridClient", return_value=mock_sendgrid
-        ), patch.object(manager.logger, "error") as mock_error:
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"),
+            patch("d0_gateway.alerts.SendGridClient", return_value=mock_sendgrid),
+            patch.object(manager.logger, "error") as mock_error,
+        ):
             result = await manager._send_email_alert(context, AlertLevel.WARNING)
             assert result is False
             mock_error.assert_called_once()
@@ -579,9 +586,10 @@ class TestAlertManager:
         mock_response = MagicMock()
         mock_response.status_code = 200
 
-        with patch.object(manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"), patch(
-            "httpx.AsyncClient"
-        ) as mock_client:
+        with (
+            patch.object(manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"),
+            patch("httpx.AsyncClient") as mock_client,
+        ):
             mock_client.return_value.__aenter__.return_value.post.return_value = mock_response
 
             result = await manager._send_slack_alert(context, AlertLevel.WARNING)
@@ -631,9 +639,11 @@ class TestAlertManager:
             percentage=0.8,
         )
 
-        with patch.object(manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"), patch(
-            "httpx.AsyncClient"
-        ) as mock_client, patch.object(manager.logger, "error") as mock_error:
+        with (
+            patch.object(manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"),
+            patch("httpx.AsyncClient") as mock_client,
+            patch.object(manager.logger, "error") as mock_error,
+        ):
             mock_client.return_value.__aenter__.side_effect = Exception("HTTP error")
 
             result = await manager._send_slack_alert(context, AlertLevel.WARNING)
@@ -679,13 +689,12 @@ class TestAlertManager:
             action_taken=[GuardrailAction.ALERT],
         )
 
-        with patch.object(
-            manager, "_get_configured_channels", return_value=[AlertChannel.LOG, AlertChannel.EMAIL]
-        ), patch.object(manager, "_should_send", return_value=True), patch.object(
-            manager, "_send_to_channel", return_value=True
-        ) as mock_send, patch.object(
-            manager, "_record_sent"
-        ) as mock_record:
+        with (
+            patch.object(manager, "_get_configured_channels", return_value=[AlertChannel.LOG, AlertChannel.EMAIL]),
+            patch.object(manager, "_should_send", return_value=True),
+            patch.object(manager, "_send_to_channel", return_value=True) as mock_send,
+            patch.object(manager, "_record_sent") as mock_record,
+        ):
             results = await manager.send_alert(violation)
 
             assert results[AlertChannel.LOG] is True
@@ -708,8 +717,9 @@ class TestAlertManager:
             action_taken=[GuardrailAction.ALERT],
         )
 
-        with patch.object(manager, "_get_configured_channels", return_value=[AlertChannel.EMAIL]), patch.object(
-            manager, "_should_send", return_value=False
+        with (
+            patch.object(manager, "_get_configured_channels", return_value=[AlertChannel.EMAIL]),
+            patch.object(manager, "_should_send", return_value=False),
         ):  # Throttled
             results = await manager.send_alert(violation)
 
@@ -730,11 +740,12 @@ class TestAlertManager:
             action_taken=[GuardrailAction.ALERT],
         )
 
-        with patch.object(manager, "_get_configured_channels", return_value=[AlertChannel.EMAIL]), patch.object(
-            manager, "_should_send", return_value=True
-        ), patch.object(manager, "_send_to_channel", side_effect=Exception("Channel error")), patch.object(
-            manager.logger, "error"
-        ) as mock_error:
+        with (
+            patch.object(manager, "_get_configured_channels", return_value=[AlertChannel.EMAIL]),
+            patch.object(manager, "_should_send", return_value=True),
+            patch.object(manager, "_send_to_channel", side_effect=Exception("Channel error")),
+            patch.object(manager.logger, "error") as mock_error,
+        ):
             results = await manager.send_alert(violation)
 
             assert results[AlertChannel.EMAIL] is False
@@ -800,13 +811,13 @@ class TestAlertsIntegration:
         )
 
         # Mock all external dependencies
-        with patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"), patch.object(
-            manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"
-        ), patch.object(manager, "_send_log_alert", return_value=True) as mock_log, patch.object(
-            manager, "_send_email_alert", return_value=True
-        ) as mock_email, patch.object(
-            manager, "_send_slack_alert", return_value=True
-        ) as mock_slack:
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"),
+            patch.object(manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"),
+            patch.object(manager, "_send_log_alert", return_value=True) as mock_log,
+            patch.object(manager, "_send_email_alert", return_value=True) as mock_email,
+            patch.object(manager, "_send_slack_alert", return_value=True) as mock_slack,
+        ):
             results = await manager.send_alert(violation)
 
             # All channels should succeed
@@ -837,12 +848,12 @@ class TestAlertsIntegration:
             action_taken=[GuardrailAction.ALERT],
         )
 
-        with patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"), patch.object(
-            manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"
-        ), patch.object(manager, "_send_log_alert", return_value=True), patch.object(
-            manager, "_send_email_alert", return_value=False
-        ), patch.object(
-            manager, "_send_slack_alert", return_value=True
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"),
+            patch.object(manager.settings, "guardrail_alert_slack_webhook", "https://hooks.slack.com/test"),
+            patch.object(manager, "_send_log_alert", return_value=True),
+            patch.object(manager, "_send_email_alert", return_value=False),
+            patch.object(manager, "_send_slack_alert", return_value=True),
         ):
             results = await manager.send_alert(violation)
 
@@ -874,9 +885,11 @@ class TestAlertsIntegration:
             count_this_hour=15,  # Over limit
         )
 
-        with patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"), patch.object(
-            manager, "_send_log_alert", return_value=True
-        ), patch.object(manager, "_send_email_alert", return_value=True) as mock_email:
+        with (
+            patch.object(manager.settings, "guardrail_alert_email", "admin@example.com"),
+            patch.object(manager, "_send_log_alert", return_value=True),
+            patch.object(manager, "_send_email_alert", return_value=True) as mock_email,
+        ):
             results = await manager.send_alert(violation)
 
             # HALT alert should succeed despite throttling conditions

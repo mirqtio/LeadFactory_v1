@@ -4,17 +4,16 @@ Production Transition Planning System for P3-006 Mock Integration Replacement
 Intelligent planning system that creates step-by-step transition plans from mock
 services to production APIs with risk assessment and rollback capabilities.
 """
-import asyncio
+
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 from core.config import get_settings
 from core.integration_validator import validate_production_transition
 from core.logging import get_logger
-from core.production_config import production_config_service
 from core.service_discovery import ServiceStatus, service_router
 
 logger = get_logger(__name__)
@@ -59,16 +58,16 @@ class TransitionTask(BaseModel):
     phase: TransitionPhase
     priority: TaskPriority
     status: TaskStatus = TaskStatus.PENDING
-    service_name: Optional[str] = None
+    service_name: str | None = None
     estimated_duration_minutes: int = 30
-    dependencies: List[str] = Field(default_factory=list)
-    checklist: List[str] = Field(default_factory=list)
-    validation_criteria: List[str] = Field(default_factory=list)
-    rollback_plan: List[str] = Field(default_factory=list)
-    assigned_to: Optional[str] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    notes: List[str] = Field(default_factory=list)
+    dependencies: list[str] = Field(default_factory=list)
+    checklist: list[str] = Field(default_factory=list)
+    validation_criteria: list[str] = Field(default_factory=list)
+    rollback_plan: list[str] = Field(default_factory=list)
+    assigned_to: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    notes: list[str] = Field(default_factory=list)
 
 
 class TransitionPlan(BaseModel):
@@ -78,15 +77,15 @@ class TransitionPlan(BaseModel):
     title: str
     description: str
     created_at: datetime = Field(default_factory=datetime.now)
-    target_completion_date: Optional[datetime] = None
+    target_completion_date: datetime | None = None
     current_phase: TransitionPhase = TransitionPhase.ASSESSMENT
     overall_progress: float = 0.0
-    tasks: List[TransitionTask] = Field(default_factory=list)
-    risks: List[Dict[str, Any]] = Field(default_factory=list)
-    prerequisites: List[str] = Field(default_factory=list)
-    success_criteria: List[str] = Field(default_factory=list)
-    rollback_triggers: List[str] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    tasks: list[TransitionTask] = Field(default_factory=list)
+    risks: list[dict[str, Any]] = Field(default_factory=list)
+    prerequisites: list[str] = Field(default_factory=list)
+    success_criteria: list[str] = Field(default_factory=list)
+    rollback_triggers: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class TransitionPlanner:
@@ -104,7 +103,7 @@ class TransitionPlanner:
     def __init__(self):
         self.settings = get_settings()
 
-    async def create_transition_plan(self, target_services: Optional[List[str]] = None) -> TransitionPlan:
+    async def create_transition_plan(self, target_services: list[str] | None = None) -> TransitionPlan:
         """
         Create comprehensive transition plan for moving to production APIs
 
@@ -163,7 +162,7 @@ class TransitionPlanner:
 
         return plan
 
-    async def _generate_assessment_tasks(self, validation_result: Dict[str, Any]) -> List[TransitionTask]:
+    async def _generate_assessment_tasks(self, validation_result: dict[str, Any]) -> list[TransitionTask]:
         """Generate assessment phase tasks"""
         tasks = []
 
@@ -212,8 +211,8 @@ class TransitionPlanner:
         return tasks
 
     async def _generate_preparation_tasks(
-        self, target_services: List[str], service_statuses: Dict[str, Any]
-    ) -> List[TransitionTask]:
+        self, target_services: list[str], service_statuses: dict[str, Any]
+    ) -> list[TransitionTask]:
         """Generate preparation phase tasks"""
         tasks = []
 
@@ -273,7 +272,7 @@ class TransitionPlanner:
 
         return tasks
 
-    async def _generate_testing_tasks(self, target_services: List[str]) -> List[TransitionTask]:
+    async def _generate_testing_tasks(self, target_services: list[str]) -> list[TransitionTask]:
         """Generate testing phase tasks"""
         tasks = []
 
@@ -331,7 +330,7 @@ class TransitionPlanner:
 
         return tasks
 
-    async def _generate_deployment_tasks(self, target_services: List[str]) -> List[TransitionTask]:
+    async def _generate_deployment_tasks(self, target_services: list[str]) -> list[TransitionTask]:
         """Generate deployment phase tasks"""
         tasks = []
 
@@ -369,7 +368,7 @@ class TransitionPlanner:
 
         return tasks
 
-    async def _generate_validation_tasks(self, target_services: List[str]) -> List[TransitionTask]:
+    async def _generate_validation_tasks(self, target_services: list[str]) -> list[TransitionTask]:
         """Generate validation phase tasks"""
         tasks = []
 
@@ -426,7 +425,7 @@ class TransitionPlanner:
 
         return tasks
 
-    async def _generate_completion_tasks(self) -> List[TransitionTask]:
+    async def _generate_completion_tasks(self) -> list[TransitionTask]:
         """Generate completion phase tasks"""
         tasks = []
 
@@ -457,12 +456,12 @@ class TransitionPlanner:
 
         return tasks
 
-    def _get_service_preparation_checklist(self, service_name: str) -> List[str]:
+    def _get_service_preparation_checklist(self, service_name: str) -> list[str]:
         """Get service-specific preparation checklist"""
         common_items = [
             f"Obtain {service_name} production API key",
             f"Configure {service_name} authentication",
-            f"Update service endpoint URL",
+            "Update service endpoint URL",
             f"Verify {service_name} quota limits",
         ]
 
@@ -488,7 +487,7 @@ class TransitionPlanner:
 
         return common_items + service_specific.get(service_name, [])
 
-    def _get_service_testing_checklist(self, service_name: str) -> List[str]:
+    def _get_service_testing_checklist(self, service_name: str) -> list[str]:
         """Get service-specific testing checklist"""
         common_items = [
             f"Test {service_name} basic functionality",
@@ -511,8 +510,8 @@ class TransitionPlanner:
         return common_items + service_specific.get(service_name, [])
 
     def _generate_risk_assessment(
-        self, target_services: List[str], validation_result: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, target_services: list[str], validation_result: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Generate risk assessment for transition"""
         risks = []
 
@@ -570,7 +569,7 @@ class TransitionPlanner:
 
         return risks
 
-    def _generate_prerequisites(self, validation_result: Dict[str, Any]) -> List[str]:
+    def _generate_prerequisites(self, validation_result: dict[str, Any]) -> list[str]:
         """Generate prerequisites for transition"""
         prerequisites = [
             "All development environment tests passing",
@@ -587,7 +586,7 @@ class TransitionPlanner:
 
         return prerequisites
 
-    def _generate_success_criteria(self, target_services: List[str]) -> List[str]:
+    def _generate_success_criteria(self, target_services: list[str]) -> list[str]:
         """Generate success criteria for transition"""
         return [
             "All target services operational in production",
@@ -599,7 +598,7 @@ class TransitionPlanner:
             "Monitoring and alerting operational",
         ]
 
-    def _generate_rollback_triggers(self) -> List[str]:
+    def _generate_rollback_triggers(self) -> list[str]:
         """Generate rollback triggers"""
         return [
             "Integration test failure rate >10%",
@@ -610,7 +609,7 @@ class TransitionPlanner:
             "Billing alerts triggered unexpectedly",
         ]
 
-    def _calculate_progress(self, tasks: List[TransitionTask]) -> float:
+    def _calculate_progress(self, tasks: list[TransitionTask]) -> float:
         """Calculate overall progress based on task completion"""
         if not tasks:
             return 0.0
@@ -619,7 +618,7 @@ class TransitionPlanner:
         return (completed / len(tasks)) * 100.0
 
     async def update_task_status(
-        self, plan: TransitionPlan, task_id: str, status: TaskStatus, notes: Optional[str] = None
+        self, plan: TransitionPlan, task_id: str, status: TaskStatus, notes: str | None = None
     ) -> TransitionPlan:
         """Update task status and recalculate progress"""
         for task in plan.tasks:
@@ -645,7 +644,7 @@ class TransitionPlanner:
 
         return plan
 
-    def _determine_current_phase(self, tasks: List[TransitionTask]) -> TransitionPhase:
+    def _determine_current_phase(self, tasks: list[TransitionTask]) -> TransitionPhase:
         """Determine current phase based on task completion"""
         phase_order = [
             TransitionPhase.ASSESSMENT,
@@ -663,7 +662,7 @@ class TransitionPlanner:
 
         return TransitionPhase.COMPLETION
 
-    async def validate_transition_readiness(self, plan: TransitionPlan) -> Dict[str, Any]:
+    async def validate_transition_readiness(self, plan: TransitionPlan) -> dict[str, Any]:
         """Validate if transition is ready to proceed to next phase"""
         current_phase_tasks = [t for t in plan.tasks if t.phase == plan.current_phase]
         completed_tasks = [t for t in current_phase_tasks if t.status == TaskStatus.COMPLETED]
@@ -682,7 +681,7 @@ class TransitionPlanner:
 
         return readiness
 
-    def _get_next_phase(self, current_phase: TransitionPhase) -> Optional[TransitionPhase]:
+    def _get_next_phase(self, current_phase: TransitionPhase) -> TransitionPhase | None:
         """Get the next phase in the transition"""
         phase_order = [
             TransitionPhase.ASSESSMENT,
@@ -707,7 +706,7 @@ class TransitionPlanner:
 transition_planner = TransitionPlanner()
 
 
-async def create_production_transition_plan(target_services: Optional[List[str]] = None) -> TransitionPlan:
+async def create_production_transition_plan(target_services: list[str] | None = None) -> TransitionPlan:
     """
     Convenience function to create production transition plan
 

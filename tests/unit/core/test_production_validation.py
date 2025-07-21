@@ -2,6 +2,7 @@
 Test production environment validation
 Ensures production never runs with stubs
 """
+
 import os
 import subprocess
 import sys

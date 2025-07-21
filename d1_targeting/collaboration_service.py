@@ -4,11 +4,11 @@ P2-010: Collaborative Bucket Service
 Service layer for bucket collaboration including permissions,
 activity tracking, notifications, and WebSocket management.
 """
+
 import asyncio
-import json
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from fastapi import HTTPException, WebSocket, status
 from sqlalchemy import and_, or_
@@ -33,15 +33,15 @@ class WebSocketManager:
 
     def __init__(self, connection_timeout: int = 1800):  # 30 minutes default
         # bucket_id -> {user_id -> websocket}
-        self.active_connections: Dict[str, Dict[str, WebSocket]] = {}
+        self.active_connections: dict[str, dict[str, WebSocket]] = {}
         # user_id -> set of bucket_ids
-        self.user_buckets: Dict[str, Set[str]] = {}
+        self.user_buckets: dict[str, set[str]] = {}
         # Connection tracking: {bucket_id -> {user_id -> last_activity_timestamp}}
-        self.connection_timestamps: Dict[str, Dict[str, float]] = {}
+        self.connection_timestamps: dict[str, dict[str, float]] = {}
         # Connection timeout in seconds
         self.connection_timeout = connection_timeout
         # Cleanup task
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._cleanup_task: asyncio.Task | None = None
         # Flag to ensure cleanup task is started only once
         self._cleanup_started = False
         # Start periodic cleanup - delayed to avoid event loop issues
@@ -91,7 +91,7 @@ class WebSocketManager:
         """Send a message to a specific WebSocket"""
         await websocket.send_text(message)
 
-    async def send_bucket_message(self, bucket_id: str, message: WSMessage, exclude_user: Optional[str] = None):
+    async def send_bucket_message(self, bucket_id: str, message: WSMessage, exclude_user: str | None = None):
         """Broadcast a message to all users in a bucket"""
         if bucket_id in self.active_connections:
             # Convert message to JSON
@@ -127,13 +127,13 @@ class WebSocketManager:
                         except Exception:
                             pass
 
-    def get_bucket_users(self, bucket_id: str) -> List[str]:
+    def get_bucket_users(self, bucket_id: str) -> list[str]:
         """Get list of users currently connected to a bucket"""
         if bucket_id in self.active_connections:
             return list(self.active_connections[bucket_id].keys())
         return []
 
-    def get_user_buckets(self, user_id: str) -> List[str]:
+    def get_user_buckets(self, user_id: str) -> list[str]:
         """Get list of buckets a user is connected to"""
         if user_id in self.user_buckets:
             return list(self.user_buckets[user_id])
@@ -193,7 +193,7 @@ class WebSocketManager:
             self.connection_timestamps[bucket_id] = {}
         self.connection_timestamps[bucket_id][user_id] = time.time()
 
-    def get_connection_stats(self) -> Dict[str, Any]:
+    def get_connection_stats(self) -> dict[str, Any]:
         """Get statistics about active connections"""
         total_connections = sum(len(users) for users in self.active_connections.values())
         total_buckets = len(self.active_connections)
@@ -231,7 +231,7 @@ class BucketCollaborationService:
 
         return bucket
 
-    async def get_user_permission(self, bucket_id: str, user_id: str) -> Optional[BucketPermission]:
+    async def get_user_permission(self, bucket_id: str, user_id: str) -> BucketPermission | None:
         """Get user's permission for a bucket"""
         permission_grant = (
             self.db.query(BucketPermissionGrant)
@@ -250,7 +250,7 @@ class BucketCollaborationService:
         return permission_grant.permission if permission_grant else None
 
     async def check_permission(
-        self, bucket_id: str, user_id: str, required_permissions: List[BucketPermission]
+        self, bucket_id: str, user_id: str, required_permissions: list[BucketPermission]
     ) -> BucketPermission:
         """Check if user has required permission for bucket"""
         user_permission = await self.get_user_permission(bucket_id, user_id)
@@ -285,11 +285,11 @@ class BucketCollaborationService:
         bucket_id: str,
         user_id: str,
         activity_type: BucketActivityType,
-        entity_type: Optional[str] = None,
-        entity_id: Optional[str] = None,
-        old_values: Optional[Dict[str, Any]] = None,
-        new_values: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        entity_type: str | None = None,
+        entity_id: str | None = None,
+        old_values: dict[str, Any] | None = None,
+        new_values: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> BucketActivity:
         """Create an activity log entry"""
         activity = BucketActivity(
@@ -315,9 +315,9 @@ class BucketCollaborationService:
         notification_type: NotificationType,
         title: str,
         message: str,
-        related_user_id: Optional[str] = None,
-        related_entity_type: Optional[str] = None,
-        related_entity_id: Optional[str] = None,
+        related_user_id: str | None = None,
+        related_entity_type: str | None = None,
+        related_entity_id: str | None = None,
     ) -> BucketNotification:
         """Create a notification for a user"""
         notification = BucketNotification(
@@ -388,7 +388,7 @@ class BucketCollaborationService:
 
         return version
 
-    async def get_bucket_stats(self, bucket_id: str) -> Dict[str, Any]:
+    async def get_bucket_stats(self, bucket_id: str) -> dict[str, Any]:
         """Get statistics for a bucket"""
         from database.models import Business
 
@@ -435,7 +435,7 @@ class BucketCollaborationService:
 
 # Helper functions for use in API endpoints
 async def check_bucket_permission(
-    db: Session, bucket_id: str, user_id: str, required_permissions: List[BucketPermission]
+    db: Session, bucket_id: str, user_id: str, required_permissions: list[BucketPermission]
 ) -> BucketPermission:
     """Check if user has required permission for bucket"""
     service = BucketCollaborationService(db)
@@ -447,11 +447,11 @@ async def create_activity(
     bucket_id: str,
     user_id: str,
     activity_type: BucketActivityType,
-    entity_type: Optional[str] = None,
-    entity_id: Optional[str] = None,
-    old_values: Optional[Dict[str, Any]] = None,
-    new_values: Optional[Dict[str, Any]] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    entity_type: str | None = None,
+    entity_id: str | None = None,
+    old_values: dict[str, Any] | None = None,
+    new_values: dict[str, Any] | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> BucketActivity:
     """Create an activity log entry"""
     service = BucketCollaborationService(db)
@@ -474,9 +474,9 @@ async def create_notification(
     notification_type: NotificationType,
     title: str,
     message: str,
-    related_user_id: Optional[str] = None,
-    related_entity_type: Optional[str] = None,
-    related_entity_id: Optional[str] = None,
+    related_user_id: str | None = None,
+    related_entity_type: str | None = None,
+    related_entity_id: str | None = None,
 ) -> BucketNotification:
     """Create a notification for a user"""
     service = BucketCollaborationService(db)

@@ -1,6 +1,7 @@
 """
 Unit tests for cost guardrail middleware (P1-060)
 """
+
 import asyncio
 import time
 from decimal import Decimal
@@ -68,7 +69,10 @@ class TestRateLimiter:
         try:
             guardrail_manager._rate_limits = {
                 "openai:*": RateLimitConfig(
-                    provider="openai", requests_per_minute=60, burst_size=1, enabled=True  # Very small burst
+                    provider="openai",
+                    requests_per_minute=60,
+                    burst_size=1,
+                    enabled=True,  # Very small burst
                 )
             }
 

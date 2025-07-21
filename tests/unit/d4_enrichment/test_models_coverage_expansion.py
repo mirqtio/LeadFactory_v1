@@ -4,6 +4,7 @@ Test D4 Enrichment Models Coverage Expansion
 Targeted tests to improve models.py coverage from 50% to 80%+.
 Focuses on uncovered property methods, utility functions, and edge cases.
 """
+
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
@@ -420,7 +421,7 @@ class TestValidationFunctions:
         """Test calculate_completeness_score with partial data"""
         data = {
             "company_name": "Test Corp",  # 0.15 weight
-            "domain": "test.com"  # 0.15 weight
+            "domain": "test.com",  # 0.15 weight
             # Total: 0.30 out of 1.0
         }
 

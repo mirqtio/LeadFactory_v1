@@ -2,6 +2,7 @@
 Comprehensive unit tests for guardrail_alerts.py - Alert system for cost guardrail violations
 Tests for AlertChannel, AlertConfig, AlertMessage, AlertManager and utility functions
 """
+
 import asyncio
 import json
 from datetime import datetime, timedelta
@@ -832,9 +833,11 @@ class TestAlertManager:
         mock_sendgrid = AsyncMock()
         mock_sendgrid.send_email.return_value = {"success": True}
 
-        with patch("d0_gateway.providers.sendgrid.SendGridClient", return_value=mock_sendgrid), patch(
-            "d0_gateway.guardrail_alerts.get_settings"
-        ) as mock_settings, patch.object(self.manager.logger, "info") as mock_info:
+        with (
+            patch("d0_gateway.providers.sendgrid.SendGridClient", return_value=mock_sendgrid),
+            patch("d0_gateway.guardrail_alerts.get_settings") as mock_settings,
+            patch.object(self.manager.logger, "info") as mock_info,
+        ):
             mock_settings.return_value.from_email = "noreply@example.com"
             mock_settings.return_value.from_name = "LeadFactory"
 
@@ -893,9 +896,11 @@ class TestAlertManager:
         mock_sendgrid = AsyncMock()
         mock_sendgrid.send_email.return_value = {"success": False, "error": "SendGrid error"}
 
-        with patch("d0_gateway.providers.sendgrid.SendGridClient", return_value=mock_sendgrid), patch(
-            "d0_gateway.guardrail_alerts.get_settings"
-        ) as mock_settings, patch.object(self.manager.logger, "error") as mock_error:
+        with (
+            patch("d0_gateway.providers.sendgrid.SendGridClient", return_value=mock_sendgrid),
+            patch("d0_gateway.guardrail_alerts.get_settings") as mock_settings,
+            patch.object(self.manager.logger, "error") as mock_error,
+        ):
             mock_settings.return_value.from_email = "noreply@example.com"
             mock_settings.return_value.from_name = "LeadFactory"
 
@@ -922,9 +927,10 @@ class TestAlertManager:
             title="Test Alert", message="Test message", severity=AlertSeverity.WARNING, violation=violation
         )
 
-        with patch("d0_gateway.providers.sendgrid.SendGridClient", side_effect=Exception("Import error")), patch.object(
-            self.manager.logger, "error"
-        ) as mock_error:
+        with (
+            patch("d0_gateway.providers.sendgrid.SendGridClient", side_effect=Exception("Import error")),
+            patch.object(self.manager.logger, "error") as mock_error,
+        ):
             await self.manager._send_email_alert(config, message)
 
             mock_error.assert_called()
@@ -1025,9 +1031,10 @@ class TestAlertManager:
             title="Test Alert", message="Test message", severity=AlertSeverity.WARNING, violation=violation
         )
 
-        with patch.object(self.manager, "_send_slack_alert", side_effect=Exception("Slack error")), patch.object(
-            self.manager.logger, "error"
-        ) as mock_error:
+        with (
+            patch.object(self.manager, "_send_slack_alert", side_effect=Exception("Slack error")),
+            patch.object(self.manager.logger, "error") as mock_error,
+        ):
             await self.manager._send_to_channel(config, message)
 
             mock_error.assert_called_once()
@@ -1192,9 +1199,11 @@ class TestAlertsIntegration:
         )
 
         # Mock external dependencies
-        with patch.object(manager, "_send_log_alert") as mock_log, patch.object(
-            manager, "_send_email_alert"
-        ) as mock_email, patch("d0_gateway.guardrail_alerts.get_settings") as mock_settings:
+        with (
+            patch.object(manager, "_send_log_alert") as mock_log,
+            patch.object(manager, "_send_email_alert") as mock_email,
+            patch("d0_gateway.guardrail_alerts.get_settings") as mock_settings,
+        ):
             mock_settings.return_value.from_email = "noreply@example.com"
             mock_settings.return_value.from_name = "LeadFactory"
 

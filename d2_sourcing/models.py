@@ -1,6 +1,7 @@
 """
 Database models for lead sourcing domain
 """
+
 import uuid
 from datetime import datetime
 

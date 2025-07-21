@@ -8,8 +8,6 @@ import asyncio
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
-from typing import Dict, Optional, Tuple
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,7 +18,6 @@ except ImportError:
     sync_redis = None
 
 from github_integration import GitHubIntegration
-from prp_state_manager import PRPStatus
 
 
 class MergeCoordinator:
@@ -33,7 +30,7 @@ class MergeCoordinator:
         self.github = GitHubIntegration()
         self.redis_available = prp_redis is not None
 
-    async def request_merge(self, prp_id: str, branch_name: str = None) -> Tuple[bool, str]:
+    async def request_merge(self, prp_id: str, branch_name: str = None) -> tuple[bool, str]:
         """
         Request permission to merge a PRP
 
@@ -67,7 +64,7 @@ class MergeCoordinator:
         except Exception as e:
             return False, f"Error acquiring merge lock: {e}"
 
-    async def perform_merge(self, prp_id: str, branch_name: str = None) -> Tuple[bool, str]:
+    async def perform_merge(self, prp_id: str, branch_name: str = None) -> tuple[bool, str]:
         """
         Perform the actual merge operation
 
@@ -115,7 +112,7 @@ class MergeCoordinator:
         except Exception as e:
             return False, f"Merge error: {e}"
 
-    async def validate_ci_and_release_lock(self, prp_id: str) -> Tuple[bool, str]:
+    async def validate_ci_and_release_lock(self, prp_id: str) -> tuple[bool, str]:
         """
         Validate CI status and release merge lock
 
@@ -144,16 +141,14 @@ class MergeCoordinator:
                     # CI passed - release lock
                     await prp_redis.release_merge_lock()
                     return True, f"CI validation passed. Merge lock released for {prp_id}."
-                else:
-                    # CI failed - keep lock for debugging
-                    return False, f"CI validation failed: {ci_message}. Merge lock retained for debugging."
-            else:
-                return ci_valid, ci_message
+                # CI failed - keep lock for debugging
+                return False, f"CI validation failed: {ci_message}. Merge lock retained for debugging."
+            return ci_valid, ci_message
 
         except Exception as e:
             return False, f"CI validation error: {e}"
 
-    async def emergency_release_lock(self) -> Tuple[bool, str]:
+    async def emergency_release_lock(self) -> tuple[bool, str]:
         """
         Emergency release of merge lock (admin function)
 
@@ -171,13 +166,12 @@ class MergeCoordinator:
             released = await prp_redis.release_merge_lock()
             if released:
                 return True, f"Emergency release: cleared lock held by {current_owner}"
-            else:
-                return False, "Failed to release merge lock"
+            return False, "Failed to release merge lock"
 
         except Exception as e:
             return False, f"Emergency release error: {e}"
 
-    async def get_merge_status(self) -> Dict:
+    async def get_merge_status(self) -> dict:
         """
         Get current merge coordination status
 

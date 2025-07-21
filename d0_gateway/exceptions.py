@@ -1,13 +1,12 @@
 """
 Gateway-specific exceptions
 """
+
 from core.exceptions import LeadFactoryError
 
 
 class GatewayError(LeadFactoryError):
     """Base exception for gateway domain"""
-
-    pass
 
 
 class APIProviderError(GatewayError):

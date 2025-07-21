@@ -2,6 +2,7 @@
 Unit tests for d0_gateway.cost_ledger module
 Tests cost tracking and aggregation functionality
 """
+
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from unittest.mock import MagicMock, Mock, patch

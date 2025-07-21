@@ -7,6 +7,6 @@ ensuring API authentication, data privacy, email compliance, and payment securit
 Acceptance Criteria:
 - API auth verified ✓
 - Data privacy checked ✓
-- Email compliance ✓  
+- Email compliance ✓
 - Payment security ✓
 """

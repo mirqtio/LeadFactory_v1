@@ -5,10 +5,10 @@ Data compression utilities for lineage storage
 import gzip
 import json
 import sys
-from typing import Any, Dict
+from typing import Any
 
 
-def compress_lineage_data(data: Dict[str, Any], max_size_mb: float = 2.0) -> tuple[bytes, float]:
+def compress_lineage_data(data: dict[str, Any], max_size_mb: float = 2.0) -> tuple[bytes, float]:
     """
     Compress lineage data with size limit
 
@@ -40,7 +40,7 @@ def compress_lineage_data(data: Dict[str, Any], max_size_mb: float = 2.0) -> tup
     return compressed, round(compression_ratio, 2)
 
 
-def decompress_lineage_data(compressed_data: bytes) -> Dict[str, Any]:
+def decompress_lineage_data(compressed_data: bytes) -> dict[str, Any]:
     """
     Decompress lineage data
 
@@ -62,7 +62,7 @@ def decompress_lineage_data(compressed_data: bytes) -> Dict[str, Any]:
         return {}
 
 
-def _truncate_lineage_data(data: Dict[str, Any]) -> Dict[str, Any]:
+def _truncate_lineage_data(data: dict[str, Any]) -> dict[str, Any]:
     """
     Truncate lineage data to reduce size
 
@@ -111,11 +111,14 @@ def _truncate_lineage_data(data: Dict[str, Any]) -> Dict[str, Any]:
             # Keep small values completely
             sample_inputs = {}
             for key, value in raw_inputs.items():
-                if isinstance(value, (str, int, float, bool)) and len(str(value)) < 100:
-                    sample_inputs[key] = value
-                elif isinstance(value, list) and len(value) < 10:
-                    sample_inputs[key] = value
-                elif isinstance(value, dict) and len(str(value)) < 500:
+                if (
+                    isinstance(value, (str, int, float, bool))
+                    and len(str(value)) < 100
+                    or isinstance(value, list)
+                    and len(value) < 10
+                    or isinstance(value, dict)
+                    and len(str(value)) < 500
+                ):
                     sample_inputs[key] = value
                 else:
                     sample_inputs[key] = f"<truncated: {type(value).__name__}>"

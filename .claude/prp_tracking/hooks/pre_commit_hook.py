@@ -8,7 +8,6 @@ import os
 import re
 import subprocess
 import sys
-from typing import List, Optional, Tuple
 
 # Add parent directory to path to import our modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,7 +27,7 @@ class PRPPreCommitHook:
         try:
             # Check if this is an amend commit
             if os.path.exists(".git/COMMIT_EDITMSG"):
-                with open(".git/COMMIT_EDITMSG", "r") as f:
+                with open(".git/COMMIT_EDITMSG") as f:
                     return f.read().strip()
 
             # Fallback to git log
@@ -40,7 +39,7 @@ class PRPPreCommitHook:
         except Exception:
             return ""
 
-    def _get_modified_files(self) -> List[str]:
+    def _get_modified_files(self) -> list[str]:
         """Get list of modified files in this commit"""
         try:
             result = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True)
@@ -50,7 +49,7 @@ class PRPPreCommitHook:
         except Exception:
             return []
 
-    def _extract_prp_from_commit(self) -> Optional[str]:
+    def _extract_prp_from_commit(self) -> str | None:
         """Extract PRP ID from commit message"""
         # Look for patterns like "feat(P1-020):" or "fix(P2-000):"
         patterns = [
@@ -66,7 +65,7 @@ class PRPPreCommitHook:
 
         return None
 
-    def _validate_prp_status_file_changes(self) -> Tuple[bool, str]:
+    def _validate_prp_status_file_changes(self) -> tuple[bool, str]:
         """Validate changes to PRP status file"""
         status_file = ".claude/prp_tracking/prp_status.yaml"
 
@@ -80,12 +79,12 @@ class PRPPreCommitHook:
 
             # Manual changes to status file are not allowed
             return False, (
-                "Manual changes to prp_status.yaml are not allowed. " "Use 'claude-prp' commands to update PRP status."
+                "Manual changes to prp_status.yaml are not allowed. Use 'claude-prp' commands to update PRP status."
             )
 
         return True, "No PRP status file changes"
 
-    def _validate_prp_completion_commit(self, prp_id: str) -> Tuple[bool, str]:
+    def _validate_prp_completion_commit(self, prp_id: str) -> tuple[bool, str]:
         """Validate that a PRP completion commit meets requirements"""
         prp = self.prp_manager.get_prp(prp_id)
         if not prp:
@@ -128,7 +127,7 @@ class PRPPreCommitHook:
         except Exception:
             return False
 
-    def _validate_work_on_in_progress_prp(self, prp_id: str) -> Tuple[bool, str]:
+    def _validate_work_on_in_progress_prp(self, prp_id: str) -> tuple[bool, str]:
         """Validate that work is being done on a PRP that's in progress"""
         prp = self.prp_manager.get_prp(prp_id)
         if not prp:
@@ -144,7 +143,7 @@ class PRPPreCommitHook:
 
         return True, f"Work on PRP {prp_id} is allowed"
 
-    def run_validation(self) -> Tuple[bool, str]:
+    def run_validation(self) -> tuple[bool, str]:
         """Run all pre-commit validations"""
         # 1. Check PRP status file changes
         valid, message = self._validate_prp_status_file_changes()

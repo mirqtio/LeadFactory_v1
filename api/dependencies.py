@@ -2,7 +2,7 @@
 API dependencies
 """
 
-from typing import AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
 
 import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -30,7 +30,7 @@ if not settings.database_url.startswith("sqlite"):
     AsyncSessionLocal = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
 
 # Redis client singleton
-_redis_client: Optional[aioredis.Redis] = None
+_redis_client: aioredis.Redis | None = None
 
 
 def get_db() -> Session:
@@ -64,14 +64,14 @@ async def get_redis() -> aioredis.Redis:
     return _redis_client
 
 
-async def get_current_user_optional() -> Optional[str]:
+async def get_current_user_optional() -> str | None:
     """Get current user if available (optional)"""
     # TODO: Implement actual authentication
     # For now, return None to allow anonymous access
     return None
 
 
-async def get_current_user_dependency() -> Optional[str]:
+async def get_current_user_dependency() -> str | None:
     """Get current user dependency for API endpoints"""
     # TODO: Implement actual authentication
     # For now, return None to allow anonymous access

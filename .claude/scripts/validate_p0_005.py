@@ -3,6 +3,7 @@
 Validation script for P0-005: Environment & Stub Wiring
 Tests all acceptance criteria for the task
 """
+
 import os
 import subprocess
 import sys
@@ -201,9 +202,8 @@ except Exception as e:
     if all_passed:
         print("✅ All P0-005 validation tests PASSED!")
         return 0
-    else:
-        print("❌ Some P0-005 validation tests FAILED")
-        return 1
+    print("❌ Some P0-005 validation tests FAILED")
+    return 1
 
 
 if __name__ == "__main__":

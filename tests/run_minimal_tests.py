@@ -3,6 +3,7 @@
 Run minimal tests without pytest infrastructure.
 This script runs basic smoke tests without requiring stub server or database.
 """
+
 import os
 import sys
 import traceback

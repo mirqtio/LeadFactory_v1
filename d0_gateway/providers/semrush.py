@@ -6,9 +6,10 @@ Endpoint: /domain/overview
 Cost: $0.010 per call
 Daily quota: 1,000
 """
+
 import logging
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any
 
 from core.exceptions import ValidationError
 from d0_gateway.base import BaseAPIClient
@@ -54,7 +55,7 @@ class SEMrushClient(BaseAPIClient):
         """Get the base URL for SEMrush API"""
         return self.base_url
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get rate limit configuration for SEMrush"""
         return {
             "requests_per_minute": 100,  # SEMrush allows burst
@@ -69,13 +70,13 @@ class SEMrushClient(BaseAPIClient):
             return Decimal("0.010")
         return Decimal("0.00")
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get headers for SEMrush API requests"""
         return {
             "Accept": "application/json",
         }
 
-    async def get_domain_overview(self, domain: str, lead_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    async def get_domain_overview(self, domain: str, lead_id: str | None = None) -> dict[str, Any] | None:
         """
         Get domain overview including organic keywords count
 
@@ -146,12 +147,11 @@ class SEMrushClient(BaseAPIClient):
         except Exception as e:
             if "429" in str(e) or "rate" in str(e).lower():
                 raise RateLimitExceededError("semrush", "api_calls")
-            elif "401" in str(e) or "403" in str(e):
+            if "401" in str(e) or "403" in str(e):
                 raise AuthenticationError("semrush", str(e))
-            else:
-                raise APIProviderError("semrush", str(e))
+            raise APIProviderError("semrush", str(e))
 
-    def _parse_semrush_response(self, response: Any) -> Dict[str, Any]:
+    def _parse_semrush_response(self, response: Any) -> dict[str, Any]:
         """
         Parse SEMrush response (usually CSV format)
 
@@ -176,7 +176,7 @@ class SEMrushClient(BaseAPIClient):
             values = lines[1].split(";")
 
             # Map to dict
-            data = dict(zip(headers, values))
+            data = dict(zip(headers, values, strict=False))
 
             # Transform to standard format
             return {
@@ -230,14 +230,13 @@ class SEMrushClient(BaseAPIClient):
                 error_msg = f"HTTP {response.status_code}: {response.text}"
                 if response.status_code == 401:
                     raise AuthenticationError("semrush", error_msg)
-                elif response.status_code == 429:
+                if response.status_code == 429:
                     raise RateLimitExceededError(
                         provider="semrush",
                         limit_type="daily",
                         retry_after=3600,
                     )
-                else:
-                    raise APIProviderError("semrush", error_msg)
+                raise APIProviderError("semrush", error_msg)
 
             # Return text for CSV parsing
             return response.text
@@ -248,6 +247,5 @@ class SEMrushClient(BaseAPIClient):
             # Test mode - use injected client
             response = await self._client.get(endpoint, headers=self._get_headers(), **kwargs)
             return response.text if hasattr(response, "text") else response.json()
-        else:
-            # Production mode - use our custom make_request
-            return await self.make_request("GET", endpoint, **kwargs)
+        # Production mode - use our custom make_request
+        return await self.make_request("GET", endpoint, **kwargs)

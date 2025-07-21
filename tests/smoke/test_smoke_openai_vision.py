@@ -2,6 +2,7 @@
 Smoke test for OpenAI GPT-4o Vision API
 PRD v1.2 - Verify GPT-4o Vision for website analysis
 """
+
 import asyncio
 import json
 import os
@@ -156,7 +157,7 @@ Give short bullet phrases only.  Return JSON ONLY."""
                 timeout=5,
             )
             print("\n✓ GPT-4o Vision timeout handling works")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             print("\n✓ GPT-4o Vision timeout triggered correctly")
 
     @pytest.mark.asyncio

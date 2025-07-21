@@ -399,14 +399,14 @@ def test_partial_results_saved(test_db_session):
                 try:
                     test_db_session.commit()
                     saved_items.append(item_id)
-                    print(f"  ✅ Item {i+1}: Processed and saved")
+                    print(f"  ✅ Item {i + 1}: Processed and saved")
                 except Exception as e:
                     test_db_session.rollback()
-                    print(f"  ❌ Item {i+1}: Save failed - {e}")
+                    print(f"  ❌ Item {i + 1}: Save failed - {e}")
 
             elif i == scenario["failure_point"]:
                 # Simulate failure at this point
-                print(f"  💥 Simulated failure at item {i+1}: {scenario['failure_type']}")
+                print(f"  💥 Simulated failure at item {i + 1}: {scenario['failure_type']}")
 
                 # Attempt to save partial progress before failing
                 try:
@@ -770,7 +770,7 @@ def test_retries_work_properly(test_db_session):
                 "max_retries": 5,
             }
             queued_items.append(item)
-            print(f"  📥 Queued item {i+1}: {item['id']}")
+            print(f"  📥 Queued item {i + 1}: {item['id']}")
 
         # Simulate processing retry queue
         processed_items = 0
@@ -1050,19 +1050,18 @@ async def test_no_data_corruption(test_db_session):
 
                             if "fails" in business_num:
                                 raise Exception(f"Simulated processing failure for {business_num}")
-                            else:
-                                # Create successful processing record
-                                processing_record = AssessmentResult(
-                                    id=f"bulk_assessment_{business_num}_{uuid4().hex[:8]}",
-                                    business_id=business.id,
-                                    assessment_type=AssessmentType.QUICK_SCAN,
-                                    status=AssessmentStatus.COMPLETED,
-                                    url=f"https://business{business_num}.example.com",
-                                    domain=f"business{business_num}.example.com",
-                                    performance_score=80 + int(business_num),
-                                    created_at=datetime.utcnow(),
-                                )
-                                test_db_session.add(processing_record)
+                            # Create successful processing record
+                            processing_record = AssessmentResult(
+                                id=f"bulk_assessment_{business_num}_{uuid4().hex[:8]}",
+                                business_id=business.id,
+                                assessment_type=AssessmentType.QUICK_SCAN,
+                                status=AssessmentStatus.COMPLETED,
+                                url=f"https://business{business_num}.example.com",
+                                domain=f"business{business_num}.example.com",
+                                performance_score=80 + int(business_num),
+                                created_at=datetime.utcnow(),
+                            )
+                            test_db_session.add(processing_record)
 
                         # Operation completed successfully
                         operations_completed.append(operation)

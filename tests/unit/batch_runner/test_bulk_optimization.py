@@ -4,6 +4,7 @@ Test bulk lead validation optimization for P0-022
 Tests that the preview_batch_cost endpoint uses bulk validation
 to reduce database queries from N to 1, achieving <200ms response time.
 """
+
 from unittest.mock import Mock, patch
 
 import pytest

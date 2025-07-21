@@ -1,6 +1,7 @@
 """
 Unit tests for P2-010: Collaborative Bucket Models
 """
+
 import json
 from datetime import datetime, timedelta
 

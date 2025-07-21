@@ -1,9 +1,10 @@
 """
 Geographic Validator for detecting conflicts and validating geographic constraints
 """
+
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from geopy.distance import geodesic
 
@@ -18,9 +19,9 @@ class GeoConflict:
 
     conflict_type: str
     description: str
-    affected_constraints: List[str]
+    affected_constraints: list[str]
     severity: str  # 'warning', 'error', 'critical'
-    suggested_resolution: Optional[str] = None
+    suggested_resolution: str | None = None
 
 
 @dataclass
@@ -30,8 +31,8 @@ class LocationValidationResult:
     location: str
     is_valid: bool
     location_type: str
-    errors: List[str]
-    parsed_components: Dict[str, Any]
+    errors: list[str]
+    parsed_components: dict[str, Any]
 
 
 class GeoValidator:
@@ -103,7 +104,7 @@ class GeoValidator:
             "CA": re.compile(r"^[A-Z]\d[A-Z] \d[A-Z]\d$"),
         }
 
-    def detect_conflicts(self, geography_config: Dict[str, Any]) -> List[GeoConflict]:
+    def detect_conflicts(self, geography_config: dict[str, Any]) -> list[GeoConflict]:
         """
         Detect all types of geographic conflicts in configuration
 
@@ -139,7 +140,7 @@ class GeoValidator:
                 )
             ]
 
-    def validate_hierarchy(self, constraints: List[GeographicConstraint]) -> List[str]:
+    def validate_hierarchy(self, constraints: list[GeographicConstraint]) -> list[str]:
         """
         Validate geographic hierarchy consistency
 
@@ -187,7 +188,7 @@ class GeoValidator:
             self.logger.error(f"Error validating hierarchy: {e}")
             return [f"Hierarchy validation failed: {str(e)}"]
 
-    def resolve_overlaps(self, constraints: List[GeographicConstraint]) -> List[GeographicConstraint]:
+    def resolve_overlaps(self, constraints: list[GeographicConstraint]) -> list[GeographicConstraint]:
         """
         Resolve geographic overlaps by merging or removing redundant constraints
 
@@ -258,7 +259,7 @@ class GeoValidator:
             self.logger.error(f"Error calculating distance: {e}")
             return float("inf")
 
-    def validate_radius_constraint(self, center_lat: float, center_lng: float, radius_miles: float) -> List[str]:
+    def validate_radius_constraint(self, center_lat: float, center_lng: float, radius_miles: float) -> list[str]:
         """
         Validate radius-based geographic constraint
 
@@ -358,19 +359,18 @@ class GeoValidator:
                                 "state_name": self.us_states[state_part.upper()],
                             },
                         )
-                    else:
-                        # Could be international location (e.g., "London, UK")
-                        # For now, treat as valid international city
-                        return LocationValidationResult(
-                            location=location,
-                            is_valid=True,
-                            location_type="international_city",
-                            errors=[],
-                            parsed_components={
-                                "city": city_name,
-                                "country": state_part,
-                            },
-                        )
+                    # Could be international location (e.g., "London, UK")
+                    # For now, treat as valid international city
+                    return LocationValidationResult(
+                        location=location,
+                        is_valid=True,
+                        location_type="international_city",
+                        errors=[],
+                        parsed_components={
+                            "city": city_name,
+                            "country": state_part,
+                        },
+                    )
 
             # Check if it's a state name
             location_lower = location.lower()
@@ -430,7 +430,7 @@ class GeoValidator:
 
     # Private helper methods
 
-    def _parse_constraints(self, geography_config: Dict[str, Any]) -> List[GeographicConstraint]:
+    def _parse_constraints(self, geography_config: dict[str, Any]) -> list[GeographicConstraint]:
         """Parse geography configuration into constraint objects"""
         constraints = []
 
@@ -450,7 +450,7 @@ class GeoValidator:
 
         return constraints
 
-    def _detect_hierarchy_conflicts(self, constraints: List[GeographicConstraint]) -> List[GeoConflict]:
+    def _detect_hierarchy_conflicts(self, constraints: list[GeographicConstraint]) -> list[GeoConflict]:
         """Detect geographic hierarchy conflicts"""
         conflicts = []
 
@@ -478,7 +478,7 @@ class GeoValidator:
 
         return conflicts
 
-    def _detect_overlap_conflicts(self, constraints: List[GeographicConstraint]) -> List[GeoConflict]:
+    def _detect_overlap_conflicts(self, constraints: list[GeographicConstraint]) -> list[GeoConflict]:
         """Detect overlapping geographic constraints"""
         conflicts = []
 
@@ -500,7 +500,7 @@ class GeoValidator:
 
         return conflicts
 
-    def _detect_contradiction_conflicts(self, constraints: List[GeographicConstraint]) -> List[GeoConflict]:
+    def _detect_contradiction_conflicts(self, constraints: list[GeographicConstraint]) -> list[GeoConflict]:
         """Detect contradictory geographic constraints"""
         conflicts = []
 
@@ -527,7 +527,7 @@ class GeoValidator:
 
         return conflicts
 
-    def _detect_format_conflicts(self, constraints: List[GeographicConstraint]) -> List[GeoConflict]:
+    def _detect_format_conflicts(self, constraints: list[GeographicConstraint]) -> list[GeoConflict]:
         """Detect format validation conflicts"""
         conflicts = []
 
@@ -576,7 +576,7 @@ class GeoValidator:
 
         return conflicts
 
-    def _detect_scope_conflicts(self, constraints: List[GeographicConstraint]) -> List[GeoConflict]:
+    def _detect_scope_conflicts(self, constraints: list[GeographicConstraint]) -> list[GeoConflict]:
         """Detect scope-related conflicts (too broad or too narrow)"""
         conflicts = []
 
@@ -620,7 +620,7 @@ class GeoValidator:
         # Check hierarchy overlaps
         if c1.level == GeographyLevel.STATE and c2.level == GeographyLevel.CITY:
             return self._city_in_states(c2.values, c1.values)
-        elif c1.level == GeographyLevel.CITY and c2.level == GeographyLevel.STATE:
+        if c1.level == GeographyLevel.CITY and c2.level == GeographyLevel.STATE:
             return self._city_in_states(c1.values, c2.values)
 
         return False
@@ -628,7 +628,7 @@ class GeoValidator:
     def _merge_constraints(
         self,
         base_constraint: GeographicConstraint,
-        overlapping: List[GeographicConstraint],
+        overlapping: list[GeographicConstraint],
     ) -> GeographicConstraint:
         """Merge overlapping constraints into a single constraint"""
         # Simple implementation: merge values at the same level
@@ -650,9 +650,9 @@ class GeoValidator:
 
     def _validate_state_country_consistency(
         self,
-        country_constraints: List[GeographicConstraint],
-        state_constraints: List[GeographicConstraint],
-    ) -> List[str]:
+        country_constraints: list[GeographicConstraint],
+        state_constraints: list[GeographicConstraint],
+    ) -> list[str]:
         """Validate that states are consistent with countries"""
         errors = []
 
@@ -672,9 +672,9 @@ class GeoValidator:
 
     def _validate_city_state_consistency(
         self,
-        state_constraints: List[GeographicConstraint],
-        city_constraints: List[GeographicConstraint],
-    ) -> List[str]:
+        state_constraints: list[GeographicConstraint],
+        city_constraints: list[GeographicConstraint],
+    ) -> list[str]:
         """Validate that cities are consistent with states"""
         errors = []
 
@@ -699,9 +699,9 @@ class GeoValidator:
 
     def _validate_zip_state_consistency(
         self,
-        state_constraints: List[GeographicConstraint],
-        zip_constraints: List[GeographicConstraint],
-    ) -> List[str]:
+        state_constraints: list[GeographicConstraint],
+        zip_constraints: list[GeographicConstraint],
+    ) -> list[str]:
         """Validate that ZIP codes are consistent with states"""
         errors = []
 
@@ -710,7 +710,7 @@ class GeoValidator:
 
         return errors
 
-    def _city_in_states(self, cities: List[str], states: List[str]) -> bool:
+    def _city_in_states(self, cities: list[str], states: list[str]) -> bool:
         """Check if cities are in the specified states (simplified)"""
         # This is a simplified check - would need comprehensive city-state database
         state_codes = set(s.upper() for s in states)

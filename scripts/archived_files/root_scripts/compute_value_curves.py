@@ -18,6 +18,7 @@ Stage overview
 Run:
     python scripts/compute_value_curves.py --refresh
 """
+
 from __future__ import annotations
 
 import argparse
@@ -48,7 +49,7 @@ EXT_DIR.mkdir(parents=True, exist_ok=True)
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
 # --- Public data sources ----------------------------------------------------
-DATASETS: Dict[str, Dict[str, str | list[str]]] = {
+DATASETS: dict[str, dict[str, str | list[str]]] = {
     "cbp_zip": {
         "url": "https://www2.census.gov/programs-surveys/cbp/datasets/2022/zbp22detail.zip",
         "filename": "zbp22detail.zip",
@@ -134,7 +135,7 @@ def ensure_digital_share_table() -> pd.DataFrame:
 
     rows = []
     for naics2, share in DIGITAL_SHARE_DEFAULTS.items():
-        for suffix in range(0, 1000):
+        for suffix in range(1000):
             naics3 = naics2 * 100 + suffix // 100  # rough spread; we'll refine later
             rows.append({"naics3": naics3, "share": share})
     df = pd.DataFrame(rows).drop_duplicates("naics3")
@@ -145,7 +146,7 @@ def ensure_digital_share_table() -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 
 
-def main(argv: List[str] | None = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Compute value_curves.csv")
     parser.add_argument(
         "--refresh",

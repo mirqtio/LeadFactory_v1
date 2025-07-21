@@ -1,9 +1,10 @@
 """
 Base assessor class for all website assessments
 """
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any
 
 from d3_assessment.models import AssessmentType
 
@@ -14,9 +15,9 @@ class AssessmentResult:
 
     assessment_type: AssessmentType
     status: str  # 'completed', 'failed', 'timeout'
-    data: Dict[str, Any] = field(default_factory=dict)
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    error_message: Optional[str] = None
+    data: dict[str, Any] = field(default_factory=dict)
+    metrics: dict[str, Any] = field(default_factory=dict)
+    error_message: str | None = None
     cost: float = 0.0
 
 
@@ -27,10 +28,9 @@ class BaseAssessor(ABC):
     @abstractmethod
     def assessment_type(self) -> AssessmentType:
         """Get the type of assessment this assessor performs"""
-        pass
 
     @abstractmethod
-    async def assess(self, url: str, business_data: Dict[str, Any]) -> AssessmentResult:
+    async def assess(self, url: str, business_data: dict[str, Any]) -> AssessmentResult:
         """
         Perform the assessment
 
@@ -41,12 +41,10 @@ class BaseAssessor(ABC):
         Returns:
             AssessmentResult with data specific to the assessment type
         """
-        pass
 
     @abstractmethod
     def calculate_cost(self) -> float:
         """Calculate the cost of this assessment in USD"""
-        pass
 
     def is_available(self) -> bool:
         """Check if this assessor is available (has required API keys, etc)"""

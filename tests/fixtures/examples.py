@@ -3,6 +3,7 @@ Examples of using centralized fixtures in tests.
 
 This file demonstrates best practices for using the centralized fixture system.
 """
+
 import pytest
 
 from tests.fixtures import (

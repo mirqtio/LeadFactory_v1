@@ -2,6 +2,7 @@
 Tests for Data Axle enricher (P0-001)
 Ensures Data Axle enrichment works properly
 """
+
 from unittest.mock import AsyncMock
 
 import pytest
@@ -133,7 +134,7 @@ class TestDataAxleEnricher:
             "confidence": 0.85,
             "data": {
                 "email": "partial@testcompany.com",
-                "employee_count": 25
+                "employee_count": 25,
                 # Missing other fields
             },
         }

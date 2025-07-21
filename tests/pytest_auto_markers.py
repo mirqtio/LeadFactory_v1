@@ -4,6 +4,7 @@ Pytest plugin to automatically apply markers based on test location.
 This plugin uses the existing marker infrastructure to ensure consistent
 marker application across all tests.
 """
+
 import pytest
 
 from tests.markers import MarkerValidator, apply_auto_markers, generate_marker_report

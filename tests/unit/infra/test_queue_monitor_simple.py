@@ -3,6 +3,7 @@ Simple working unit tests for infra.queue_monitor to achieve coverage.
 
 Focus on core queue monitoring functionality without asyncio complications.
 """
+
 import time
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -313,9 +314,10 @@ class TestGlobalMonitorFunctions:
         """Test getting global monitor instance"""
         reset_queue_monitor()  # Ensure clean state
 
-        with patch("infra.redis_queue.get_queue_broker") as mock_get_broker, patch(
-            "infra.queue_monitor.get_metrics_collector"
-        ) as mock_get_collector:
+        with (
+            patch("infra.redis_queue.get_queue_broker") as mock_get_broker,
+            patch("infra.queue_monitor.get_metrics_collector") as mock_get_collector,
+        ):
             mock_broker = MagicMock(spec=RedisQueueBroker)
             mock_broker.redis_url = "redis://localhost:6379/0"
             mock_get_broker.return_value = mock_broker
@@ -329,9 +331,10 @@ class TestGlobalMonitorFunctions:
 
     def test_reset_queue_monitor(self):
         """Test resetting global monitor instance"""
-        with patch("infra.redis_queue.get_queue_broker") as mock_get_broker, patch(
-            "infra.queue_monitor.get_metrics_collector"
-        ) as mock_get_collector:
+        with (
+            patch("infra.redis_queue.get_queue_broker") as mock_get_broker,
+            patch("infra.queue_monitor.get_metrics_collector") as mock_get_collector,
+        ):
             mock_broker = MagicMock(spec=RedisQueueBroker)
             mock_broker.redis_url = "redis://localhost:6379/0"
             mock_get_broker.return_value = mock_broker

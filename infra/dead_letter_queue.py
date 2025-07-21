@@ -5,16 +5,14 @@ Handles failed message processing with exponential backoff retry mechanisms,
 message TTL and cleanup, DLQ monitoring, and manual message replay capabilities.
 Integrates with Redis key-expiry notifications for automatic timeout handling.
 """
-import asyncio
-import json
+
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import redis.asyncio as redis
 from pydantic import BaseModel, Field
 
-from core.config import get_settings
 from core.logging import get_logger
 from infra.redis_queue import QueueMessage, RedisQueueBroker
 
@@ -54,7 +52,7 @@ class DeadLetterQueue:
     - Comprehensive monitoring and alerting
     """
 
-    def __init__(self, broker: RedisQueueBroker, retry_policy: Optional[RetryPolicy] = None):
+    def __init__(self, broker: RedisQueueBroker, retry_policy: RetryPolicy | None = None):
         """
         Initialize Dead Letter Queue.
 
@@ -129,7 +127,7 @@ class DeadLetterQueue:
             self.logger.error(f"Failed to add message {message.id} to DLQ: {e}")
             return False
 
-    async def schedule_retry(self, queue_name: str, message: QueueMessage, delay_seconds: Optional[int] = None) -> bool:
+    async def schedule_retry(self, queue_name: str, message: QueueMessage, delay_seconds: int | None = None) -> bool:
         """
         Schedule message for retry with exponential backoff.
 
@@ -280,7 +278,7 @@ class DeadLetterQueue:
             self.logger.error(f"Failed to replay message {message_id}: {e}")
             return False
 
-    async def get_dlq_messages(self, queue_name: str, limit: int = 100) -> List[DLQEntry]:
+    async def get_dlq_messages(self, queue_name: str, limit: int = 100) -> list[DLQEntry]:
         """
         Get messages from DLQ for inspection.
 
@@ -359,7 +357,7 @@ class DeadLetterQueue:
             self.logger.error(f"Error during DLQ cleanup: {e}")
             return 0
 
-    async def get_dlq_stats(self, queue_name: str) -> Dict[str, Any]:
+    async def get_dlq_stats(self, queue_name: str) -> dict[str, Any]:
         """Get DLQ statistics for a queue"""
         dlq_key = self._get_dlq_key(queue_name)
         retry_key = self._get_retry_schedule_key(queue_name)

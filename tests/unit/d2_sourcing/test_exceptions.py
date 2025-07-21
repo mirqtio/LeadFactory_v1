@@ -1,4 +1,5 @@
 """Unit tests for D2 sourcing exceptions."""
+
 import pytest
 
 from d2_sourcing.exceptions import (

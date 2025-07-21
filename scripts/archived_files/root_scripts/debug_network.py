@@ -2,6 +2,7 @@
 """
 Network debugging script for Docker container networking issues
 """
+
 import os
 import socket
 import subprocess
@@ -42,9 +43,8 @@ def check_port_connectivity(hostname, port):
         if result == 0:
             print(f"✅ Port: {hostname}:{port} is reachable")
             return True
-        else:
-            print(f"❌ Port: {hostname}:{port} is not reachable (error {result})")
-            return False
+        print(f"❌ Port: {hostname}:{port} is not reachable (error {result})")
+        return False
     except Exception as e:
         print(f"❌ Port: Error checking {hostname}:{port} - {e}")
         return False
@@ -57,9 +57,8 @@ def check_http_endpoint(url):
         if response.status_code == 200:
             print(f"✅ HTTP: {url} returned {response.status_code}")
             return True, response.json() if "json" in response.headers.get("content-type", "") else response.text[:200]
-        else:
-            print(f"❌ HTTP: {url} returned {response.status_code}")
-            return False, response.text[:200]
+        print(f"❌ HTTP: {url} returned {response.status_code}")
+        return False, response.text[:200]
     except requests.exceptions.ConnectionError as e:
         print(f"❌ HTTP: Connection error to {url} - {e}")
         return False, None

@@ -5,6 +5,7 @@ Push YAML scoring configuration to Google Sheets.
 This script updates a Google Sheet with the current scoring rules
 from the YAML configuration file.
 """
+
 import argparse
 import json
 import os
@@ -34,7 +35,7 @@ class YamlToSheetPusher:
             creds_json_env = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
             if not creds_json_env:
                 raise ValueError(
-                    "No Google Sheets credentials provided. " "Set GOOGLE_SHEETS_CREDENTIALS environment variable."
+                    "No Google Sheets credentials provided. Set GOOGLE_SHEETS_CREDENTIALS environment variable."
                 )
             creds_data = json.loads(creds_json_env)
 
@@ -44,16 +45,16 @@ class YamlToSheetPusher:
 
         return build("sheets", "v4", credentials=credentials)
 
-    def load_yaml_config(self, yaml_path: str) -> Dict[str, Any]:
+    def load_yaml_config(self, yaml_path: str) -> dict[str, Any]:
         """Load and parse YAML configuration."""
         path = Path(yaml_path)
         if not path.exists():
             raise FileNotFoundError(f"YAML file not found: {yaml_path}")
 
-        with open(path, "r") as f:
+        with open(path) as f:
             return self.yaml.load(f)
 
-    def prepare_tier_data(self, config: Dict[str, Any]) -> List[List[Any]]:
+    def prepare_tier_data(self, config: dict[str, Any]) -> list[list[Any]]:
         """Convert tier configuration to sheet rows."""
         rows = [["Tier Name", "Min Score", "Label"]]  # Header
 
@@ -66,7 +67,7 @@ class YamlToSheetPusher:
 
         return rows
 
-    def prepare_component_data(self, config: Dict[str, Any]) -> List[List[Any]]:
+    def prepare_component_data(self, config: dict[str, Any]) -> list[list[Any]]:
         """Convert component configuration to sheet rows."""
         rows = [["Component/Factor", "Weight", "Factor Weight", "Description"]]  # Header
 
@@ -106,7 +107,7 @@ class YamlToSheetPusher:
         except HttpError as e:
             print(f"Warning: Could not clear range {range_notation}: {e}")
 
-    def update_sheet(self, sheet_id: str, tab: str, config: Dict[str, Any]):
+    def update_sheet(self, sheet_id: str, tab: str, config: dict[str, Any]):
         """Update Google Sheet with YAML configuration."""
         try:
             # Prepare data

@@ -3,6 +3,7 @@ Performance tests for health endpoint - P0-007
 
 Validates <100ms response time requirement under various conditions.
 """
+
 import asyncio
 import statistics
 import time
@@ -162,7 +163,6 @@ class TestHealthEndpointPerformance:
         """Benchmark health endpoint performance"""
         # This test requires pytest-benchmark to be configured
         # Can be run manually with: pytest tests/performance/test_health_performance.py --benchmark-only
-        pass
 
 
 class TestHealthEndpointOptimization:
@@ -198,7 +198,6 @@ class TestHealthEndpointOptimization:
         # Our current implementation doesn't have true async timeouts
         # The database check runs synchronously, so we can't interrupt it
         # This would require refactoring to use async database operations
-        pass
 
 
 if __name__ == "__main__":

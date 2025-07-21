@@ -58,7 +58,7 @@ def generate_pytest_cmd():
   tests/integration/test_database.py \\
   tests/smoke/test_health.py \\
   -m "not slow and not flaky and not external" \\
-  {' '.join(ignore_args)} \\
+  {" ".join(ignore_args)} \\
   --cov=. --cov-report=term --cov-report=xml \\
   -n auto --tb=short
 """

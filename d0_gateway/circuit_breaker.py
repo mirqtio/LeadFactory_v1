@@ -1,11 +1,11 @@
 """
 Circuit breaker pattern implementation for graceful degradation
 """
+
 import time
 from dataclasses import dataclass
 from enum import Enum
 from threading import Lock
-from typing import Dict, Optional
 
 from core.logging import get_logger
 
@@ -31,7 +31,7 @@ class CircuitBreakerConfig:
 class CircuitBreaker:
     """Circuit breaker for external API calls"""
 
-    def __init__(self, provider: str, config: Optional[CircuitBreakerConfig] = None):
+    def __init__(self, provider: str, config: CircuitBreakerConfig | None = None):
         self.provider = provider
         self.config = config or CircuitBreakerConfig()
         self.logger = get_logger(f"circuit_breaker.{provider}", domain="d0")
@@ -51,7 +51,7 @@ class CircuitBreaker:
             if self.state == CircuitState.CLOSED:
                 return True
 
-            elif self.state == CircuitState.OPEN:
+            if self.state == CircuitState.OPEN:
                 # Check if we should move to half-open
                 if now - self.last_failure_time >= self.config.recovery_timeout:
                     self.logger.info(f"Circuit breaker half-opening for {self.provider}")
@@ -60,7 +60,7 @@ class CircuitBreaker:
                     return True
                 return False
 
-            elif self.state == CircuitState.HALF_OPEN:
+            if self.state == CircuitState.HALF_OPEN:
                 # Allow limited requests to test recovery
                 return True
 
@@ -93,7 +93,7 @@ class CircuitBreaker:
                 # Open circuit if too many failures
                 if self.failure_count >= self.config.failure_threshold:
                     self.logger.warning(
-                        f"Circuit breaker opening for {self.provider} " f"after {self.failure_count} failures"
+                        f"Circuit breaker opening for {self.provider} after {self.failure_count} failures"
                     )
                     self.state = CircuitState.OPEN
 
@@ -103,7 +103,7 @@ class CircuitBreaker:
                 self.state = CircuitState.OPEN
                 self.success_count = 0
 
-    def get_state_info(self) -> Dict[str, any]:
+    def get_state_info(self) -> dict[str, any]:
         """Get current circuit breaker state information"""
         with self.lock:
             # Calculate can_execute without calling the method to avoid deadlock

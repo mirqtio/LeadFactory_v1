@@ -2,6 +2,7 @@
 Unit tests for d5_scoring vertical_overrides module.
 Coverage target: 90%+ for vertical scoring logic and overrides.
 """
+
 from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, Mock, patch

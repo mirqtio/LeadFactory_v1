@@ -1,6 +1,7 @@
 """
 Unit tests for Template Studio API (P0-024)
 """
+
 import uuid
 from unittest.mock import MagicMock, patch
 

@@ -2,6 +2,7 @@
 Test suite for batch_runner cost calculator
 Focus on achieving ≥80% total coverage for P0-022
 """
+
 from decimal import Decimal
 from unittest.mock import Mock, patch
 

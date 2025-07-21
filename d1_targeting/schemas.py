@@ -3,9 +3,10 @@ Pydantic schemas for D1 Targeting API endpoints
 
 Provides request/response validation and OpenAPI documentation generation.
 """
+
 from datetime import date, datetime, time
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -17,7 +18,7 @@ class BaseResponseSchema(BaseModel):
     """Base response schema with common fields"""
 
     success: bool = True
-    message: Optional[str] = None
+    message: str | None = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -27,7 +28,7 @@ class ErrorResponseSchema(BaseModel):
     success: bool = False
     error_code: str
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -45,8 +46,8 @@ class PaginationSchema(BaseModel):
 class PaginatedResponseSchema(BaseResponseSchema):
     """Paginated response wrapper"""
 
-    pagination: Dict[str, Any]
-    data: List[Any]
+    pagination: dict[str, Any]
+    data: list[Any]
 
 
 # Target Universe schemas
@@ -54,10 +55,10 @@ class GeographicConstraintSchema(BaseModel):
     """Geographic constraint for targeting"""
 
     level: GeographyLevel
-    values: List[str] = Field(..., min_items=1, description="Geographic values (states, cities, etc.)")
-    radius_miles: Optional[float] = Field(None, gt=0, description="Radius in miles for location-based targeting")
-    center_lat: Optional[float] = Field(None, ge=-90, le=90)
-    center_lng: Optional[float] = Field(None, ge=-180, le=180)
+    values: list[str] = Field(..., min_items=1, description="Geographic values (states, cities, etc.)")
+    radius_miles: float | None = Field(None, gt=0, description="Radius in miles for location-based targeting")
+    center_lat: float | None = Field(None, ge=-90, le=90)
+    center_lng: float | None = Field(None, ge=-180, le=180)
 
     @model_validator(mode="after")
     def validate_radius_constraints(self):
@@ -69,32 +70,32 @@ class GeographicConstraintSchema(BaseModel):
 class TargetingCriteriaSchema(BaseModel):
     """Targeting criteria for universe creation"""
 
-    verticals: List[VerticalMarket] = Field(..., min_items=1, description="Target vertical markets")
-    geographic_constraints: List[GeographicConstraintSchema] = Field(..., min_items=1)
-    business_size_min: Optional[int] = Field(None, ge=1, description="Minimum business size (employees)")
-    business_size_max: Optional[int] = Field(None, ge=1, description="Maximum business size (employees)")
+    verticals: list[VerticalMarket] = Field(..., min_items=1, description="Target vertical markets")
+    geographic_constraints: list[GeographicConstraintSchema] = Field(..., min_items=1)
+    business_size_min: int | None = Field(None, ge=1, description="Minimum business size (employees)")
+    business_size_max: int | None = Field(None, ge=1, description="Maximum business size (employees)")
     website_required: bool = Field(default=True, description="Require business to have website")
     phone_required: bool = Field(default=True, description="Require business to have phone")
     email_required: bool = Field(default=False, description="Require business to have email")
-    min_rating: Optional[float] = Field(None, ge=0, le=5, description="Minimum rating requirement")
-    max_age_days: Optional[int] = Field(None, ge=1, description="Maximum age of business data in days")
+    min_rating: float | None = Field(None, ge=0, le=5, description="Minimum rating requirement")
+    max_age_days: int | None = Field(None, ge=1, description="Maximum age of business data in days")
 
 
 class CreateTargetUniverseSchema(BaseModel):
     """Request schema for creating target universe"""
 
     name: str = Field(..., min_length=1, max_length=255, description="Universe name")
-    description: Optional[str] = Field(None, max_length=1000, description="Universe description")
+    description: str | None = Field(None, max_length=1000, description="Universe description")
     targeting_criteria: TargetingCriteriaSchema
-    estimated_size: Optional[int] = Field(None, ge=0, description="Estimated universe size")
+    estimated_size: int | None = Field(None, ge=0, description="Estimated universe size")
 
 
 class UpdateTargetUniverseSchema(BaseModel):
     """Request schema for updating target universe"""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1000)
-    is_active: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = Field(None, max_length=1000)
+    is_active: bool | None = None
 
 
 class TargetUniverseResponseSchema(BaseModel):
@@ -102,16 +103,16 @@ class TargetUniverseResponseSchema(BaseModel):
 
     id: str
     name: str
-    description: Optional[str]
-    verticals: List[str]
-    geography_config: Dict[str, Any]
-    estimated_size: Optional[int]
+    description: str | None
+    verticals: list[str]
+    geography_config: dict[str, Any]
+    estimated_size: int | None
     actual_size: int
     qualified_count: int
-    last_refresh: Optional[datetime]
+    last_refresh: datetime | None
     created_at: datetime
     updated_at: datetime
-    created_by: Optional[str]
+    created_by: str | None
     is_active: bool
 
     class Config:
@@ -126,7 +127,7 @@ class BatchSettingsSchema(BaseModel):
     max_concurrent_batches: int = Field(default=5, ge=1, le=20, description="Maximum concurrent batches")
     delay_between_batches_seconds: int = Field(default=60, ge=0, description="Delay between batches in seconds")
     retry_failed_attempts: int = Field(default=3, ge=0, le=10, description="Retry attempts for failed batches")
-    max_daily_targets: Optional[int] = Field(None, ge=1, description="Maximum targets to process per day")
+    max_daily_targets: int | None = Field(None, ge=1, description="Maximum targets to process per day")
     allowed_hours_start: time = Field(default=time(9, 0), description="Start of allowed processing hours")
     allowed_hours_end: time = Field(default=time(17, 0), description="End of allowed processing hours")
 
@@ -135,12 +136,12 @@ class CreateCampaignSchema(BaseModel):
     """Request schema for creating campaign"""
 
     name: str = Field(..., min_length=1, max_length=255, description="Campaign name")
-    description: Optional[str] = Field(None, max_length=1000, description="Campaign description")
+    description: str | None = Field(None, max_length=1000, description="Campaign description")
     target_universe_id: str = Field(..., description="Target universe ID")
     campaign_type: str = Field(default="lead_generation", description="Campaign type")
-    batch_settings: Optional[BatchSettingsSchema] = None
-    scheduled_start: Optional[datetime] = Field(None, description="Scheduled start time")
-    scheduled_end: Optional[datetime] = Field(None, description="Scheduled end time")
+    batch_settings: BatchSettingsSchema | None = None
+    scheduled_start: datetime | None = Field(None, description="Scheduled start time")
+    scheduled_end: datetime | None = Field(None, description="Scheduled end time")
 
     @model_validator(mode="after")
     def validate_end_after_start(self):
@@ -153,12 +154,12 @@ class CreateCampaignSchema(BaseModel):
 class UpdateCampaignSchema(BaseModel):
     """Request schema for updating campaign"""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = Field(None, max_length=1000)
-    status: Optional[CampaignStatus] = None
-    batch_settings: Optional[BatchSettingsSchema] = None
-    scheduled_start: Optional[datetime] = None
-    scheduled_end: Optional[datetime] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = Field(None, max_length=1000)
+    status: CampaignStatus | None = None
+    batch_settings: BatchSettingsSchema | None = None
+    scheduled_start: datetime | None = None
+    scheduled_end: datetime | None = None
 
 
 class CampaignResponseSchema(BaseModel):
@@ -166,25 +167,25 @@ class CampaignResponseSchema(BaseModel):
 
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     target_universe_id: str
     status: str
     campaign_type: str
-    scheduled_start: Optional[datetime]
-    scheduled_end: Optional[datetime]
-    actual_start: Optional[datetime]
-    actual_end: Optional[datetime]
+    scheduled_start: datetime | None
+    scheduled_end: datetime | None
+    actual_start: datetime | None
+    actual_end: datetime | None
     total_targets: int
     contacted_targets: int
     responded_targets: int
     converted_targets: int
     excluded_targets: int
     total_cost: float
-    cost_per_contact: Optional[float]
-    cost_per_conversion: Optional[float]
+    cost_per_contact: float | None
+    cost_per_conversion: float | None
     created_at: datetime
     updated_at: datetime
-    created_by: Optional[str]
+    created_by: str | None
 
     class Config:
         from_attributes = True
@@ -199,13 +200,13 @@ class BatchResponseSchema(BaseModel):
     batch_number: int
     batch_size: int
     status: str
-    scheduled_at: Optional[datetime]
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
+    scheduled_at: datetime | None
+    started_at: datetime | None
+    completed_at: datetime | None
     targets_processed: int
     targets_contacted: int
     targets_failed: int
-    error_message: Optional[str]
+    error_message: str | None
     retry_count: int
     batch_cost: float
 
@@ -216,8 +217,8 @@ class BatchResponseSchema(BaseModel):
 class CreateBatchesSchema(BaseModel):
     """Request schema for creating batches"""
 
-    campaign_ids: Optional[List[str]] = Field(None, description="Specific campaign IDs (optional)")
-    target_date: Optional[date] = Field(None, description="Date to create batches for (defaults to today)")
+    campaign_ids: list[str] | None = Field(None, description="Specific campaign IDs (optional)")
+    target_date: date | None = Field(None, description="Date to create batches for (defaults to today)")
     force_recreate: bool = Field(default=False, description="Force recreation of existing batches")
 
 
@@ -225,10 +226,10 @@ class BatchStatusUpdateSchema(BaseModel):
     """Request schema for updating batch status"""
 
     status: BatchProcessingStatus
-    targets_processed: Optional[int] = Field(None, ge=0)
-    targets_contacted: Optional[int] = Field(None, ge=0)
-    targets_failed: Optional[int] = Field(None, ge=0)
-    error_message: Optional[str] = Field(None, max_length=1000)
+    targets_processed: int | None = Field(None, ge=0)
+    targets_contacted: int | None = Field(None, ge=0)
+    targets_failed: int | None = Field(None, ge=0)
+    error_message: str | None = Field(None, max_length=1000)
 
 
 # Priority and scheduling schemas
@@ -240,8 +241,8 @@ class UniversePriorityResponseSchema(BaseModel):
     priority_score: float
     freshness_score: float
     total_score: float
-    last_refresh: Optional[datetime]
-    estimated_refresh_time: Optional[datetime]
+    last_refresh: datetime | None
+    estimated_refresh_time: datetime | None
 
 
 class QuotaAllocationResponseSchema(BaseModel):
@@ -250,7 +251,7 @@ class QuotaAllocationResponseSchema(BaseModel):
     total_daily_quota: int
     used_quota: int
     remaining_quota: int
-    campaign_allocations: Dict[str, Dict[str, Any]]
+    campaign_allocations: dict[str, dict[str, Any]]
     utilization_rate: float
 
 
@@ -271,8 +272,8 @@ class TargetingMetricsResponseSchema(BaseModel):
     qualified_targets: int
     qualification_rate: float
     last_updated: datetime
-    geographical_distribution: Dict[str, int]
-    vertical_distribution: Dict[str, int]
+    geographical_distribution: dict[str, int]
+    vertical_distribution: dict[str, int]
     data_quality_score: float
 
 
@@ -289,11 +290,11 @@ class CampaignMetricsResponseSchema(BaseModel):
     response_rate: float
     conversion_rate: float
     total_cost: Decimal
-    cost_per_contact: Optional[Decimal]
-    cost_per_conversion: Optional[Decimal]
+    cost_per_contact: Decimal | None
+    cost_per_conversion: Decimal | None
     days_running: int
     avg_daily_contacts: float
-    projected_completion: Optional[datetime]
+    projected_completion: datetime | None
 
 
 # Geographic boundary schemas
@@ -302,15 +303,15 @@ class CreateGeographicBoundarySchema(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     level: GeographyLevel
-    parent_id: Optional[str] = None
-    code: Optional[str] = Field(None, max_length=20, description="State code, ZIP, etc.")
-    fips_code: Optional[str] = Field(None, max_length=20, description="Federal Information Processing Standard code")
-    center_latitude: Optional[float] = Field(None, ge=-90, le=90)
-    center_longitude: Optional[float] = Field(None, ge=-180, le=180)
+    parent_id: str | None = None
+    code: str | None = Field(None, max_length=20, description="State code, ZIP, etc.")
+    fips_code: str | None = Field(None, max_length=20, description="Federal Information Processing Standard code")
+    center_latitude: float | None = Field(None, ge=-90, le=90)
+    center_longitude: float | None = Field(None, ge=-180, le=180)
     country: str = Field(default="US", max_length=10)
-    state_code: Optional[str] = Field(None, max_length=10)
-    population: Optional[int] = Field(None, ge=0)
-    area_sq_miles: Optional[float] = Field(None, gt=0)
+    state_code: str | None = Field(None, max_length=10)
+    population: int | None = Field(None, ge=0)
+    area_sq_miles: float | None = Field(None, gt=0)
 
 
 class GeographicBoundaryResponseSchema(BaseModel):
@@ -319,17 +320,17 @@ class GeographicBoundaryResponseSchema(BaseModel):
     id: str
     name: str
     level: str
-    parent_id: Optional[str]
-    code: Optional[str]
-    fips_code: Optional[str]
-    center_latitude: Optional[float]
-    center_longitude: Optional[float]
+    parent_id: str | None
+    code: str | None
+    fips_code: str | None
+    center_latitude: float | None
+    center_longitude: float | None
     country: str
-    state_code: Optional[str]
-    county_name: Optional[str]
-    population: Optional[int]
-    area_sq_miles: Optional[float]
-    data_source: Optional[str]
+    state_code: str | None
+    county_name: str | None
+    population: int | None
+    area_sq_miles: float | None
+    data_source: str | None
     last_updated: datetime
 
     class Config:
@@ -346,9 +347,9 @@ class BulkOperationResponseSchema(BaseModel):
     processed_items: int
     successful_items: int
     failed_items: int
-    errors: List[Dict[str, Any]]
+    errors: list[dict[str, Any]]
     started_at: datetime
-    completed_at: Optional[datetime]
+    completed_at: datetime | None
     status: str
 
 
@@ -356,31 +357,31 @@ class BulkOperationResponseSchema(BaseModel):
 class TargetUniverseFilterSchema(BaseModel):
     """Filter schema for target universe search"""
 
-    name_contains: Optional[str] = Field(None, description="Filter by name containing text")
-    verticals: Optional[List[VerticalMarket]] = Field(None, description="Filter by verticals")
-    is_active: Optional[bool] = Field(None, description="Filter by active status")
-    min_size: Optional[int] = Field(None, ge=0, description="Minimum universe size")
-    max_size: Optional[int] = Field(None, ge=0, description="Maximum universe size")
-    created_after: Optional[datetime] = Field(None, description="Created after date")
-    created_before: Optional[datetime] = Field(None, description="Created before date")
+    name_contains: str | None = Field(None, description="Filter by name containing text")
+    verticals: list[VerticalMarket] | None = Field(None, description="Filter by verticals")
+    is_active: bool | None = Field(None, description="Filter by active status")
+    min_size: int | None = Field(None, ge=0, description="Minimum universe size")
+    max_size: int | None = Field(None, ge=0, description="Maximum universe size")
+    created_after: datetime | None = Field(None, description="Created after date")
+    created_before: datetime | None = Field(None, description="Created before date")
 
 
 class CampaignFilterSchema(BaseModel):
     """Filter schema for campaign search"""
 
-    name_contains: Optional[str] = Field(None, description="Filter by name containing text")
-    status: Optional[List[CampaignStatus]] = Field(None, description="Filter by status")
-    campaign_type: Optional[str] = Field(None, description="Filter by campaign type")
-    target_universe_id: Optional[str] = Field(None, description="Filter by target universe")
-    created_after: Optional[datetime] = Field(None, description="Created after date")
-    created_before: Optional[datetime] = Field(None, description="Created before date")
+    name_contains: str | None = Field(None, description="Filter by name containing text")
+    status: list[CampaignStatus] | None = Field(None, description="Filter by status")
+    campaign_type: str | None = Field(None, description="Filter by campaign type")
+    target_universe_id: str | None = Field(None, description="Filter by target universe")
+    created_after: datetime | None = Field(None, description="Created after date")
+    created_before: datetime | None = Field(None, description="Created before date")
 
 
 class BatchFilterSchema(BaseModel):
     """Filter schema for batch search"""
 
-    campaign_id: Optional[str] = Field(None, description="Filter by campaign")
-    status: Optional[List[BatchProcessingStatus]] = Field(None, description="Filter by status")
-    scheduled_after: Optional[datetime] = Field(None, description="Scheduled after date")
-    scheduled_before: Optional[datetime] = Field(None, description="Scheduled before date")
-    has_errors: Optional[bool] = Field(None, description="Filter batches with/without errors")
+    campaign_id: str | None = Field(None, description="Filter by campaign")
+    status: list[BatchProcessingStatus] | None = Field(None, description="Filter by status")
+    scheduled_after: datetime | None = Field(None, description="Scheduled after date")
+    scheduled_before: datetime | None = Field(None, description="Scheduled before date")
+    has_errors: bool | None = Field(None, description="Filter batches with/without errors")

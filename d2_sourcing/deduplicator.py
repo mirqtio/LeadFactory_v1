@@ -10,13 +10,14 @@ Acceptance Criteria:
 - Update timestamps properly
 - Performance optimized
 """
+
 import time
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from difflib import SequenceMatcher
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
@@ -58,8 +59,8 @@ class DuplicateMatch:
     business_2_id: str
     confidence: MatchConfidence
     confidence_score: float
-    match_reasons: List[str]
-    distance_meters: Optional[float] = None
+    match_reasons: list[str]
+    distance_meters: float | None = None
     name_similarity: float = 0.0
     phone_similarity: float = 0.0
     address_similarity: float = 0.0
@@ -75,11 +76,11 @@ class MergeResult:
     """Result of a business merge operation"""
 
     primary_business_id: str
-    merged_business_ids: List[str]
+    merged_business_ids: list[str]
     merge_strategy: MergeStrategy
     merge_timestamp: datetime
-    fields_merged: Dict[str, Any]
-    conflicts_resolved: List[str]
+    fields_merged: dict[str, Any]
+    conflicts_resolved: list[str]
     metadata_preserved: bool = True
 
     def __post_init__(self):
@@ -105,7 +106,7 @@ class BusinessDeduplicator:
     BATCH_SIZE = 1000
     MAX_DISTANCE_METERS = 500  # Only compare businesses within 500m
 
-    def __init__(self, session: Optional[Session] = None):
+    def __init__(self, session: Session | None = None):
         """Initialize the business deduplicator"""
         self.settings = get_settings()
         self.logger = get_logger("business_deduplicator", domain="d2")
@@ -123,10 +124,10 @@ class BusinessDeduplicator:
 
     def find_duplicates(
         self,
-        business_ids: Optional[List[str]] = None,
-        limit: Optional[int] = None,
+        business_ids: list[str] | None = None,
+        limit: int | None = None,
         confidence_threshold: float = MEDIUM_CONFIDENCE_THRESHOLD,
-    ) -> List[DuplicateMatch]:
+    ) -> list[DuplicateMatch]:
         """
         Find potential duplicate businesses
 
@@ -160,7 +161,7 @@ class BusinessDeduplicator:
 
             self.logger.info(
                 f"Duplicate detection completed: {self.duplicates_found} duplicates found "
-                f"in {elapsed:.2f}s ({self.processed_count/elapsed:.1f} businesses/sec)"
+                f"in {elapsed:.2f}s ({self.processed_count / elapsed:.1f} businesses/sec)"
             )
 
             return duplicates
@@ -170,8 +171,8 @@ class BusinessDeduplicator:
             raise DeduplicationException(f"Duplicate detection failed: {e}")
 
     def _get_businesses_for_deduplication(
-        self, business_ids: Optional[List[str]] = None, limit: Optional[int] = None
-    ) -> List[Business]:
+        self, business_ids: list[str] | None = None, limit: int | None = None
+    ) -> list[Business]:
         """Get businesses that need deduplication processing"""
         query = self.session.query(Business)
 
@@ -192,8 +193,8 @@ class BusinessDeduplicator:
         return query.all()
 
     def _find_duplicates_in_batch(
-        self, businesses: List[Business], confidence_threshold: float
-    ) -> List[DuplicateMatch]:
+        self, businesses: list[Business], confidence_threshold: float
+    ) -> list[DuplicateMatch]:
         """Find duplicates within a batch of businesses"""
         duplicates = []
 
@@ -215,7 +216,7 @@ class BusinessDeduplicator:
 
         return duplicates
 
-    def _group_by_approximate_location(self, businesses: List[Business]) -> Dict[str, List[Business]]:
+    def _group_by_approximate_location(self, businesses: list[Business]) -> dict[str, list[Business]]:
         """Group businesses by approximate location for spatial optimization"""
         # Acceptance Criteria: Performance optimized
         groups = defaultdict(list)
@@ -236,9 +237,9 @@ class BusinessDeduplicator:
     def _get_nearby_businesses(
         self,
         target_business: Business,
-        businesses_by_location: Dict[str, List[Business]],
-        remaining_businesses: List[Business],
-    ) -> List[Business]:
+        businesses_by_location: dict[str, list[Business]],
+        remaining_businesses: list[Business],
+    ) -> list[Business]:
         """Get businesses that are geographically nearby for comparison"""
         if not target_business.latitude or not target_business.longitude:
             # No location data, compare with all remaining businesses
@@ -339,7 +340,7 @@ class BusinessDeduplicator:
 
         return match
 
-    def _calculate_name_similarity(self, name1: Optional[str], name2: Optional[str]) -> float:
+    def _calculate_name_similarity(self, name1: str | None, name2: str | None) -> float:
         """Calculate similarity between business names"""
         if not name1 or not name2:
             return 0.0
@@ -376,7 +377,7 @@ class BusinessDeduplicator:
 
         return normalized
 
-    def _calculate_phone_similarity(self, phone1: Optional[str], phone2: Optional[str]) -> float:
+    def _calculate_phone_similarity(self, phone1: str | None, phone2: str | None) -> float:
         """Calculate similarity between phone numbers"""
         if not phone1 or not phone2:
             return 0.0
@@ -397,7 +398,7 @@ class BusinessDeduplicator:
 
         return 0.0
 
-    def _calculate_address_similarity(self, addr1: Optional[str], addr2: Optional[str]) -> float:
+    def _calculate_address_similarity(self, addr1: str | None, addr2: str | None) -> float:
         """Calculate similarity between addresses"""
         if not addr1 or not addr2:
             return 0.0
@@ -444,7 +445,7 @@ class BusinessDeduplicator:
 
         return normalized
 
-    def _calculate_distance(self, business1: Business, business2: Business) -> Optional[float]:
+    def _calculate_distance(self, business1: Business, business2: Business) -> float | None:
         """Calculate distance between two businesses in meters"""
         if not all(
             [
@@ -471,7 +472,7 @@ class BusinessDeduplicator:
         # Earth's radius in meters
         return 6371000 * c
 
-    def _calculate_website_similarity(self, url1: Optional[str], url2: Optional[str]) -> float:
+    def _calculate_website_similarity(self, url1: str | None, url2: str | None) -> float:
         """Calculate similarity between website URLs"""
         if not url1 or not url2:
             return 0.0
@@ -487,7 +488,7 @@ class BusinessDeduplicator:
 
         return SequenceMatcher(None, domain1, domain2).ratio()
 
-    def _calculate_overall_confidence(self, scores: Dict[str, float], distance: Optional[float]) -> float:
+    def _calculate_overall_confidence(self, scores: dict[str, float], distance: float | None) -> float:
         """Calculate overall confidence score from individual similarities"""
         # Weighted scoring based on importance
         weights = {
@@ -522,10 +523,10 @@ class BusinessDeduplicator:
 
     def merge_duplicates(
         self,
-        duplicate_matches: List[DuplicateMatch],
+        duplicate_matches: list[DuplicateMatch],
         strategy: MergeStrategy = MergeStrategy.KEEP_MOST_COMPLETE,
         auto_merge_threshold: float = HIGH_CONFIDENCE_THRESHOLD,
-    ) -> List[MergeResult]:
+    ) -> list[MergeResult]:
         """
         Merge duplicate businesses based on specified strategy
 
@@ -572,7 +573,7 @@ class BusinessDeduplicator:
         self.logger.info(f"Merge process completed: {len(merge_results)} merges performed")
         return merge_results
 
-    def _group_duplicates_into_clusters(self, matches: List[DuplicateMatch]) -> List[Set[str]]:
+    def _group_duplicates_into_clusters(self, matches: list[DuplicateMatch]) -> list[set[str]]:
         """Group duplicate matches into clusters of related businesses"""
         # Build adjacency graph
         graph = defaultdict(set)
@@ -597,7 +598,7 @@ class BusinessDeduplicator:
 
         return clusters
 
-    def _dfs_cluster(self, business_id: str, graph: Dict, visited: Set, cluster: Set):
+    def _dfs_cluster(self, business_id: str, graph: dict, visited: set, cluster: set):
         """Depth-first search to find all businesses in a cluster"""
         visited.add(business_id)
         cluster.add(business_id)
@@ -606,7 +607,7 @@ class BusinessDeduplicator:
             if neighbor not in visited:
                 self._dfs_cluster(neighbor, graph, visited, cluster)
 
-    def _merge_business_cluster(self, cluster: Set[str], strategy: MergeStrategy) -> MergeResult:
+    def _merge_business_cluster(self, cluster: set[str], strategy: MergeStrategy) -> MergeResult:
         """
         Merge a cluster of duplicate businesses
 
@@ -653,19 +654,18 @@ class BusinessDeduplicator:
             conflicts_resolved=conflicts_resolved,
         )
 
-    def _select_primary_business(self, businesses: List[Business], strategy: MergeStrategy) -> Business:
+    def _select_primary_business(self, businesses: list[Business], strategy: MergeStrategy) -> Business:
         """Select which business should be the primary after merge"""
         if strategy == MergeStrategy.KEEP_NEWEST:
             return max(businesses, key=lambda b: b.created_at or datetime.min)
-        elif strategy == MergeStrategy.KEEP_OLDEST:
+        if strategy == MergeStrategy.KEEP_OLDEST:
             return min(businesses, key=lambda b: b.created_at or datetime.max)
-        elif strategy == MergeStrategy.KEEP_HIGHEST_RATED:
+        if strategy == MergeStrategy.KEEP_HIGHEST_RATED:
             return max(businesses, key=lambda b: b.rating or 0)
-        elif strategy == MergeStrategy.KEEP_MOST_COMPLETE:
+        if strategy == MergeStrategy.KEEP_MOST_COMPLETE:
             return max(businesses, key=self._calculate_completeness)
-        else:
-            # Default to most complete
-            return max(businesses, key=self._calculate_completeness)
+        # Default to most complete
+        return max(businesses, key=self._calculate_completeness)
 
     def _calculate_completeness(self, business: Business) -> float:
         """Calculate how complete a business record is"""
@@ -684,7 +684,7 @@ class BusinessDeduplicator:
         filled_fields = sum(1 for field in fields if field is not None)
         return filled_fields / len(fields)
 
-    def _merge_business_data(self, primary: Business, secondaries: List[Business]) -> Dict[str, Any]:
+    def _merge_business_data(self, primary: Business, secondaries: list[Business]) -> dict[str, Any]:
         """Merge data from secondary businesses into primary business"""
         fields_merged = {}
 
@@ -723,7 +723,7 @@ class BusinessDeduplicator:
 
         return fields_merged
 
-    def _check_data_conflicts(self, primary: Business, secondary: Business) -> Optional[str]:
+    def _check_data_conflicts(self, primary: Business, secondary: Business) -> str | None:
         """Check for conflicts between primary and secondary business data"""
         conflicts = []
 
@@ -739,7 +739,7 @@ class BusinessDeduplicator:
 
         return "; ".join(conflicts) if conflicts else None
 
-    def _update_sourced_locations(self, primary_id: str, merged_ids: List[str]):
+    def _update_sourced_locations(self, primary_id: str, merged_ids: list[str]):
         """Update sourced location mappings after merge"""
         # Acceptance Criteria: Update timestamps properly
         update_time = datetime.utcnow()
@@ -751,7 +751,7 @@ class BusinessDeduplicator:
 
     # _update_yelp_metadata method removed per P0-009
 
-    def _mark_for_manual_review(self, cluster: Set[str]):
+    def _mark_for_manual_review(self, cluster: set[str]):
         """Mark a business cluster for manual review"""
         # Update businesses to indicate manual review needed
         self.session.query(Business).filter(Business.id.in_(cluster)).update(
@@ -760,7 +760,7 @@ class BusinessDeduplicator:
 
         self.logger.info(f"Marked cluster {cluster} for manual review")
 
-    def get_deduplication_stats(self) -> Dict[str, Any]:
+    def get_deduplication_stats(self) -> dict[str, Any]:
         """Get statistics about the deduplication process"""
         elapsed = (time.time() - self.start_time) if self.start_time else 0
 
@@ -778,11 +778,11 @@ class BusinessDeduplicator:
 
 
 def find_and_merge_duplicates(
-    business_ids: Optional[List[str]] = None,
+    business_ids: list[str] | None = None,
     confidence_threshold: float = 0.7,
     merge_strategy: MergeStrategy = MergeStrategy.KEEP_MOST_COMPLETE,
     auto_merge_threshold: float = 0.9,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Convenience function to find and merge duplicates in one operation
 
@@ -812,8 +812,8 @@ def find_and_merge_duplicates(
 
 
 def detect_duplicates_only(
-    business_ids: Optional[List[str]] = None, confidence_threshold: float = 0.5
-) -> List[DuplicateMatch]:
+    business_ids: list[str] | None = None, confidence_threshold: float = 0.5
+) -> list[DuplicateMatch]:
     """
     Convenience function to only detect duplicates without merging
 

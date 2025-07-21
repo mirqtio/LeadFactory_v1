@@ -7,9 +7,8 @@ evidence collection and validation.
 
 import json
 import logging
-import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from datetime import UTC, datetime
+from typing import Any
 
 import redis
 from pydantic import BaseModel, Field
@@ -40,18 +39,18 @@ class EvidenceEntry(BaseModel):
 
     key: str = Field(..., description="Evidence key")
     value: str = Field(..., description="Evidence value")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional evidence metadata")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional evidence metadata")
 
 
 class ValidationResult(BaseModel):
     """Result of evidence validation."""
 
     success: bool = Field(..., description="Whether validation succeeded")
-    evidence_collected: List[EvidenceEntry] = Field(default_factory=list)
-    validation_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    error: Optional[str] = Field(None, description="Error message if validation failed")
-    lua_promotion_result: Optional[Dict[str, Any]] = Field(None, description="Result from Lua promotion script")
+    evidence_collected: list[EvidenceEntry] = Field(default_factory=list)
+    validation_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    error: str | None = Field(None, description="Error message if validation failed")
+    lua_promotion_result: dict[str, Any] | None = Field(None, description="Result from Lua promotion script")
 
 
 class EvidenceValidator:
@@ -60,7 +59,7 @@ class EvidenceValidator:
     def __init__(self, config: EvidenceConfig):
         self.config = config
         self.redis_client = self._create_redis_client()
-        self.lua_script_sha: Optional[str] = None
+        self.lua_script_sha: str | None = None
 
     def _create_redis_client(self) -> redis.Redis:
         """Create Redis client with connection pooling."""
@@ -84,7 +83,7 @@ class EvidenceValidator:
             logger.error(f"Failed to connect to Redis: {e}")
             raise
 
-    async def collect_evidence(self, evidence_type: str, value: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    async def collect_evidence(self, evidence_type: str, value: str, metadata: dict[str, Any] | None = None) -> bool:
         """Collect and store evidence in Redis."""
         try:
             entry = EvidenceEntry(key=evidence_type, value=value, metadata=metadata or {})
@@ -111,7 +110,7 @@ class EvidenceValidator:
             logger.error(f"Failed to collect evidence {evidence_type}: {e}")
             return False
 
-    async def validate_acceptance_evidence(self, test_results: Dict[str, Any]) -> bool:
+    async def validate_acceptance_evidence(self, test_results: dict[str, Any]) -> bool:
         """Validate and store acceptance test evidence."""
         logger.info("Validating acceptance test evidence")
 
@@ -143,7 +142,7 @@ class EvidenceValidator:
 
         return success and test_passed
 
-    async def validate_deployment_evidence(self, deploy_results: Dict[str, Any]) -> bool:
+    async def validate_deployment_evidence(self, deploy_results: dict[str, Any]) -> bool:
         """Validate and store deployment evidence."""
         logger.info("Validating deployment evidence")
 
@@ -174,7 +173,7 @@ class EvidenceValidator:
 
         return success and deploy_success
 
-    async def check_evidence_completeness(self) -> Dict[str, Any]:
+    async def check_evidence_completeness(self) -> dict[str, Any]:
         """Check if all required evidence is present."""
         logger.info("Checking evidence completeness")
 
@@ -201,7 +200,7 @@ class EvidenceValidator:
                 "valid": all_valid,
                 "ready_for_promotion": all_present and all_valid,
                 "evidence": evidence_status,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             logger.info(f"Evidence completeness: {result}")
@@ -214,10 +213,10 @@ class EvidenceValidator:
                 "valid": False,
                 "ready_for_promotion": False,
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
-    async def trigger_prp_promotion(self) -> Dict[str, Any]:
+    async def trigger_prp_promotion(self) -> dict[str, Any]:
         """Trigger PRP promotion using Lua script."""
         logger.info(f"Triggering PRP promotion for {self.config.prp_id}")
 
@@ -244,9 +243,9 @@ class EvidenceValidator:
 
         except Exception as e:
             logger.error(f"PRP promotion failed: {e}")
-            return {"success": False, "error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+            return {"success": False, "error": str(e), "timestamp": datetime.now(UTC).isoformat()}
 
-    async def _execute_lua_promotion(self) -> Dict[str, Any]:
+    async def _execute_lua_promotion(self) -> dict[str, Any]:
         """Execute Lua promotion script."""
         try:
             # Load Lua script if not already loaded
@@ -263,16 +262,16 @@ class EvidenceValidator:
                 self.config.prp_id,  # PRP ID argument
             )
 
-            return {"success": True, "lua_result": result, "timestamp": datetime.now(timezone.utc).isoformat()}
+            return {"success": True, "lua_result": result, "timestamp": datetime.now(UTC).isoformat()}
 
         except Exception as e:
             logger.error(f"Lua script execution failed: {e}")
-            return {"success": False, "error": str(e), "timestamp": datetime.now(timezone.utc).isoformat()}
+            return {"success": False, "error": str(e), "timestamp": datetime.now(UTC).isoformat()}
 
     def _load_lua_script(self) -> str:
         """Load Lua promotion script from file."""
         try:
-            with open(self.config.lua_script_path, "r") as f:
+            with open(self.config.lua_script_path) as f:
                 return f.read()
         except FileNotFoundError:
             logger.warning(f"Lua script not found at {self.config.lua_script_path}, using default")
@@ -308,7 +307,7 @@ class EvidenceValidator:
         return {success = true, prp_id = prp_id}
         """
 
-    async def get_evidence_summary(self) -> Dict[str, Any]:
+    async def get_evidence_summary(self) -> dict[str, Any]:
         """Get complete evidence summary for reporting."""
         logger.info("Generating evidence summary")
 
@@ -340,7 +339,7 @@ class EvidenceValidator:
                 "prp_id": self.config.prp_id,
                 "evidence_details": evidence_details,
                 "promotion_status": promotion_status,
-                "summary_timestamp": datetime.now(timezone.utc).isoformat(),
+                "summary_timestamp": datetime.now(UTC).isoformat(),
             }
 
             logger.info("Evidence summary generated successfully")
@@ -351,7 +350,7 @@ class EvidenceValidator:
             return {
                 "prp_id": self.config.prp_id,
                 "error": str(e),
-                "summary_timestamp": datetime.now(timezone.utc).isoformat(),
+                "summary_timestamp": datetime.now(UTC).isoformat(),
             }
 
     async def clear_evidence(self) -> bool:

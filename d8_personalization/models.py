@@ -482,12 +482,11 @@ def determine_risk_level(spam_score: float) -> str:
     """Determine risk level based on spam score"""
     if spam_score < 25:
         return "low"
-    elif spam_score < 50:
+    if spam_score < 50:
         return "medium"
-    elif spam_score < 75:
+    if spam_score < 75:
         return "high"
-    else:
-        return "critical"
+    return "critical"
 
 
 def generate_content_hash(subject: str, body: str) -> str:

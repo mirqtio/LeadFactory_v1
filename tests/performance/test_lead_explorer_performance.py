@@ -3,6 +3,7 @@ Performance tests for Lead Explorer API
 
 Validates response time requirements (<500ms)
 """
+
 import time
 
 import pytest

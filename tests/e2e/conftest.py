@@ -7,7 +7,7 @@ and parallel test support for end-to-end testing.
 Acceptance Criteria:
 - Test environment setup ✓
 - Data seeding works ✓
-- Cleanup automated ✓  
+- Cleanup automated ✓
 - Parallel test support ✓
 """
 

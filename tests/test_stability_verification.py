@@ -349,10 +349,9 @@ class TestFlakyMarkerVerification:
                 if attempt < 2:
                     # Simulate transient failure pattern
                     continue
-                else:
-                    # Finally succeed
-                    assert True
-                    break
+                # Finally succeed
+                assert True
+                break
             except Exception:
                 if attempt == max_retries - 1:
                     raise

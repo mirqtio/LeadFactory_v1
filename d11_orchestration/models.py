@@ -6,14 +6,13 @@ experiment configurations, variant assignments, and comprehensive status managem
 
 Acceptance Criteria:
 - Pipeline run tracking ✓
-- Experiment models ✓  
+- Experiment models ✓
 - Assignment tracking ✓
 - Status management ✓
 """
 
 import enum
 import uuid
-from typing import Dict, Optional
 
 from sqlalchemy import DECIMAL, JSON, Boolean, CheckConstraint, Column, Date, DateTime
 from sqlalchemy import Enum as SQLEnum
@@ -167,7 +166,7 @@ class PipelineRun(Base):
             return 0.0
         return (self.records_processed - (self.records_failed or 0)) / self.records_processed
 
-    def calculate_duration(self) -> Optional[int]:
+    def calculate_duration(self) -> int | None:
         """Calculate execution duration in seconds"""
         if self.started_at and self.completed_at:
             return int((self.completed_at - self.started_at).total_seconds())
@@ -264,7 +263,7 @@ class Experiment(Base):
         """Calculate total traffic percentage including holdout"""
         return self.traffic_allocation_pct + self.holdout_pct
 
-    def get_variant_weights(self) -> Dict[str, float]:
+    def get_variant_weights(self) -> dict[str, float]:
         """Get normalized variant weights"""
         if not self.variants:
             return {}
@@ -381,7 +380,7 @@ class VariantAssignment(Base):
         return f"<VariantAssignment(id={self.assignment_id}, unit={self.assignment_unit}, variant={self.variant_id})>"
 
     @property
-    def exposure_delay_seconds(self) -> Optional[int]:
+    def exposure_delay_seconds(self) -> int | None:
         """Calculate delay between assignment and first exposure"""
         if self.first_exposure_at and self.assigned_at:
             return int((self.first_exposure_at - self.assigned_at).total_seconds())

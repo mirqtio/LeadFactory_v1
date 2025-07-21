@@ -67,7 +67,7 @@ class TestCoverageBadgeGenerator:
         """Test color threshold constants."""
         expected_thresholds = {90: "brightgreen", 80: "green", 70: "yellow", 60: "orange", 0: "red"}
 
-        assert generator.COLOR_THRESHOLDS == expected_thresholds
+        assert expected_thresholds == generator.COLOR_THRESHOLDS
 
     def test_determine_badge_color_excellent(self, generator):
         """Test badge color for excellent coverage (>=90%)."""
@@ -113,7 +113,7 @@ class TestCoverageBadgeGenerator:
         coverage = generator.get_coverage_from_xml(invalid_xml)
         assert coverage is None
 
-    @patch("coverage_badge.subprocess.run")
+    @patch("scripts.coverage_badge.subprocess.run")
     def test_get_coverage_from_pytest_success(self, mock_subprocess, generator):
         """Test successful coverage from pytest execution."""
         mock_result = Mock()
@@ -128,7 +128,7 @@ TOTAL          100     12    88%
         coverage = generator.get_coverage_from_pytest()
         assert coverage == 88.0
 
-    @patch("coverage_badge.subprocess.run")
+    @patch("scripts.coverage_badge.subprocess.run")
     def test_get_coverage_from_pytest_timeout(self, mock_subprocess, generator, sample_coverage_xml):
         """Test pytest timeout fallback to XML."""
         mock_subprocess.side_effect = subprocess.TimeoutExpired("pytest", 120)
@@ -140,7 +140,7 @@ TOTAL          100     12    88%
         assert coverage == 75.0
         mock_xml.assert_called_once()
 
-    @patch("coverage_badge.subprocess.run")
+    @patch("scripts.coverage_badge.subprocess.run")
     def test_get_coverage_from_pytest_no_total_line(self, mock_subprocess, generator):
         """Test pytest output without TOTAL line."""
         mock_result = Mock()
@@ -161,9 +161,9 @@ TOTAL          100     12    88%
         # Check required SVG elements
         assert svg_content.startswith("<svg")
         assert 'xmlns="http://www.w3.org/2000/svg"' in svg_content
-        assert "coverage: 85%" in svg_content  # Rounded percentage
+        assert "coverage: 86%" in svg_content  # 85.5 rounds to 86 (banker's rounding)
         assert "coverage</text>" in svg_content
-        assert "85%</text>" in svg_content
+        assert "86%</text>" in svg_content
         assert 'fill="green"' in svg_content  # 85% should be green
 
     def test_generate_svg_badge_different_colors(self, generator):
@@ -189,7 +189,7 @@ TOTAL          100     12    88%
 
         # Verify content
         content = badge_path.read_text()
-        assert "83%" in content  # Rounded
+        assert "82%" in content  # Rounded down from 82.5
         assert "coverage" in content
 
     def test_save_badge_custom_filename(self, generator):
@@ -204,7 +204,7 @@ TOTAL          100     12    88%
 
     def test_generate_json_report(self, generator):
         """Test JSON report generation."""
-        with patch("coverage_badge.time.time") as mock_time:
+        with patch("time.time") as mock_time:
             mock_time.return_value = 1640995200.0
 
             json_path = generator.generate_json_report(85.5, "test_report.json")
@@ -241,7 +241,7 @@ TOTAL          100     12    88%
         assert badge_path.exists()
 
         content = badge_path.read_text()
-        assert "89%" in content  # Rounded
+        assert "88%" in content  # Rounded down from 88.5
 
     @patch.object(CoverageBadgeGenerator, "get_coverage_from_xml")
     def test_run_with_xml_source(self, mock_xml, generator):

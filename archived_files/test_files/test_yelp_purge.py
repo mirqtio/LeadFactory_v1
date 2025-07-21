@@ -107,7 +107,7 @@ class TestYelpPurge:
         """Test that stub server has no Yelp endpoints"""
         stub_path = "stubs/server.py"
         if os.path.exists(stub_path):
-            with open(stub_path, "r") as f:
+            with open(stub_path) as f:
                 content = f.read()
 
             # Check for Yelp routes
@@ -163,7 +163,7 @@ class TestYelpPurge:
 
         for doc in docs_to_check:
             if os.path.exists(doc):
-                with open(doc, "r") as f:
+                with open(doc) as f:
                     content = f.read()
 
                 if "yelp" in content.lower():

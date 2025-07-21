@@ -2,8 +2,8 @@
 User Preferences API Endpoints
 FastAPI endpoints for user preferences, saved searches, and personalization
 """
+
 from datetime import datetime
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, func
@@ -46,7 +46,7 @@ router = APIRouter(prefix="/api/v1/preferences", tags=["user-preferences"])
 # User Preferences Endpoints
 @router.get("/", response_model=PreferencesListResponse)
 async def list_user_preferences(
-    category: Optional[PreferenceCategory] = Query(None, description="Filter by category"),
+    category: PreferenceCategory | None = Query(None, description="Filter by category"),
     current_user: AccountUser = Depends(get_current_user_dependency),
     db: Session = Depends(get_db),
 ):
@@ -171,7 +171,7 @@ async def delete_user_preference(
 # Saved Searches Endpoints
 @router.get("/searches", response_model=SavedSearchesListResponse)
 async def list_saved_searches(
-    search_type: Optional[SearchType] = Query(None, description="Filter by search type"),
+    search_type: SearchType | None = Query(None, description="Filter by search type"),
     include_public: bool = Query(True, description="Include public searches"),
     current_user: AccountUser = Depends(get_current_user_dependency),
     db: Session = Depends(get_db),
@@ -382,7 +382,7 @@ async def delete_saved_search(
 
 
 # Dashboard Layout Endpoints
-@router.get("/dashboard-layouts", response_model=List[DashboardLayoutResponse])
+@router.get("/dashboard-layouts", response_model=list[DashboardLayoutResponse])
 async def list_dashboard_layouts(
     current_user: AccountUser = Depends(get_current_user_dependency),
     db: Session = Depends(get_db),
@@ -435,7 +435,7 @@ async def create_dashboard_layout(
 
 
 # Notification Preferences Endpoints
-@router.get("/notifications", response_model=List[NotificationPreferenceResponse])
+@router.get("/notifications", response_model=list[NotificationPreferenceResponse])
 async def list_notification_preferences(
     current_user: AccountUser = Depends(get_current_user_dependency),
     db: Session = Depends(get_db),
@@ -509,10 +509,10 @@ async def update_notification_preference(
 
 
 # Recent Activity Endpoint
-@router.get("/recent-activity", response_model=List[RecentActivityResponse])
+@router.get("/recent-activity", response_model=list[RecentActivityResponse])
 async def get_recent_activity(
     limit: int = Query(20, ge=1, le=100, description="Number of recent activities to return"),
-    activity_type: Optional[str] = Query(None, description="Filter by activity type"),
+    activity_type: str | None = Query(None, description="Filter by activity type"),
     current_user: AccountUser = Depends(get_current_user_dependency),
     db: Session = Depends(get_db),
 ):
@@ -532,8 +532,8 @@ async def get_recent_activity(
 async def track_user_activity(
     activity_type: str,
     resource_type: str,
-    resource_id: Optional[str] = None,
-    metadata: Optional[dict] = None,
+    resource_id: str | None = None,
+    metadata: dict | None = None,
     current_user: AccountUser = Depends(get_current_user_dependency),
     db: Session = Depends(get_db),
 ):

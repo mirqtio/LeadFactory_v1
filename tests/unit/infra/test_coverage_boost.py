@@ -3,6 +3,7 @@ Targeted coverage boost tests for PRP-1058 to reach 80% coverage.
 
 Focus on uncovered lines in dead_letter_queue.py and agent_coordinator.py.
 """
+
 import asyncio
 import time
 from datetime import datetime, timedelta
@@ -282,9 +283,10 @@ class TestAgentCoordinatorAdvanced:
     @pytest.fixture
     def coordinator(self, mock_broker):
         """Create AgentCoordinator instance with mocked dependencies"""
-        with patch("infra.agent_coordinator.get_settings") as mock_get_settings, patch(
-            "infra.agent_coordinator.DeadLetterQueue"
-        ) as mock_dlq:
+        with (
+            patch("infra.agent_coordinator.get_settings") as mock_get_settings,
+            patch("infra.agent_coordinator.DeadLetterQueue") as mock_dlq,
+        ):
             mock_settings = Mock()
             mock_settings.redis_url = "redis://localhost:6379/0"
             mock_settings.environment = "test"
@@ -315,8 +317,9 @@ class TestAgentCoordinatorAdvanced:
         coordinator.agents["agent-1"] = AgentStatus(agent_id="agent-1", agent_type=AgentType.PM, status="busy")
         coordinator.agent_assignments["agent-1"] = {"P1-001", "P1-002"}
 
-        with patch.object(coordinator, "_reassign_prp", return_value=True), patch.object(
-            coordinator, "_cleanup_agent_queue", return_value=2
+        with (
+            patch.object(coordinator, "_reassign_prp", return_value=True),
+            patch.object(coordinator, "_cleanup_agent_queue", return_value=2),
         ):
             result = await coordinator.unregister_agent("agent-1")
 
@@ -376,7 +379,10 @@ class TestAgentCoordinatorAdvanced:
     def test_get_required_agent_type_pm_default(self, coordinator):
         """Test agent type determination defaults to PM"""
         transition = PRPTransition(
-            prp_id="P1-001", from_state=PRPState.NEW, to_state=PRPState.NEW, agent_id="agent-1"  # Unknown state
+            prp_id="P1-001",
+            from_state=PRPState.NEW,
+            to_state=PRPState.NEW,
+            agent_id="agent-1",  # Unknown state
         )
 
         agent_type = coordinator._get_required_agent_type(transition)
@@ -766,7 +772,8 @@ class TestCoordinationWorker:
         coordinator.logger = MagicMock()
 
         message = QueueMessage(
-            queue_name="coordination_queue", payload={"message_type": "prp_assignment"}  # Missing required fields
+            queue_name="coordination_queue",
+            payload={"message_type": "prp_assignment"},  # Missing required fields
         )
 
         result = await _process_coordination_message(coordinator, "coordination_queue", message)

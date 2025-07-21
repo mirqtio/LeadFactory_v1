@@ -8,7 +8,6 @@ assignments, and updates the database with geo_bucket and vert_bucket values.
 
 import asyncio
 from datetime import datetime
-from typing import Dict, List
 
 try:
     from prefect import flow, task
@@ -65,7 +64,7 @@ from database.session import SessionLocal
     retries=1,
     retry_delay_seconds=60,
 )
-def load_bucket_features() -> Dict[str, int]:
+def load_bucket_features() -> dict[str, int]:
     """Load bucket feature data from CSV files"""
     logger = get_run_logger()
     logger.info("Loading bucket features from CSV")
@@ -85,7 +84,7 @@ def load_bucket_features() -> Dict[str, int]:
     retries=2,
     retry_delay_seconds=120,
 )
-def get_unenriched_businesses(batch_size: int = 1000) -> List[Dict]:
+def get_unenriched_businesses(batch_size: int = 1000) -> list[dict]:
     """Get businesses that need bucket enrichment"""
     logger = get_run_logger()
 
@@ -119,7 +118,7 @@ def get_unenriched_businesses(batch_size: int = 1000) -> List[Dict]:
     retries=1,
     retry_delay_seconds=60,
 )
-def enrich_business_buckets(businesses: List[Dict]) -> List[Dict]:
+def enrich_business_buckets(businesses: list[dict]) -> list[dict]:
     """Enrich businesses with bucket assignments"""
     logger = get_run_logger()
     loader = get_bucket_loader()
@@ -140,7 +139,7 @@ def enrich_business_buckets(businesses: List[Dict]) -> List[Dict]:
 
         enriched.append(enriched_biz)
 
-    logger.info(f"Enriched {len(enriched)} businesses " f"({missing_geo} missing geo, {missing_vert} missing vertical)")
+    logger.info(f"Enriched {len(enriched)} businesses ({missing_geo} missing geo, {missing_vert} missing vertical)")
 
     return enriched
 
@@ -151,7 +150,7 @@ def enrich_business_buckets(businesses: List[Dict]) -> List[Dict]:
     retries=2,
     retry_delay_seconds=180,
 )
-def update_business_buckets(enriched_businesses: List[Dict]) -> Dict[str, int]:
+def update_business_buckets(enriched_businesses: list[dict]) -> dict[str, int]:
     """Update businesses with bucket values"""
     logger = get_run_logger()
 
@@ -194,7 +193,7 @@ def update_business_buckets(enriched_businesses: List[Dict]) -> Dict[str, int]:
     retries=2,
     retry_delay_seconds=300,
 )
-def bucket_enrichment_flow(batch_size: int = 1000, max_batches: int = 10) -> Dict[str, int]:
+def bucket_enrichment_flow(batch_size: int = 1000, max_batches: int = 10) -> dict[str, int]:
     """
     Main bucket enrichment flow
 
@@ -245,7 +244,7 @@ def bucket_enrichment_flow(batch_size: int = 1000, max_batches: int = 10) -> Dic
     }
 
     logger.info(
-        f"Bucket enrichment complete: {total_updated} updated, " f"{total_errors} errors in {batches_processed} batches"
+        f"Bucket enrichment complete: {total_updated} updated, {total_errors} errors in {batches_processed} batches"
     )
 
     return summary
@@ -271,7 +270,7 @@ def create_nightly_deployment() -> Deployment:
 
 
 # Manual trigger for testing
-async def trigger_bucket_enrichment(batch_size: int = 100, max_batches: int = 1) -> Dict[str, int]:
+async def trigger_bucket_enrichment(batch_size: int = 100, max_batches: int = 1) -> dict[str, int]:
     """Manually trigger bucket enrichment"""
 
     result = bucket_enrichment_flow(batch_size=batch_size, max_batches=max_batches)

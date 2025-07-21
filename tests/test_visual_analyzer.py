@@ -1,6 +1,7 @@
 """
 Tests for the visual analyzer implementation
 """
+
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 

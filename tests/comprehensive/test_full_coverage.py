@@ -5,6 +5,7 @@ Part of PRP-014: Strategic CI Test Re-enablement
 This test file is marked as @pytest.mark.slow and is intended to run
 in the nightly test suite to achieve maximum possible coverage.
 """
+
 import os
 import sys
 from datetime import datetime, timedelta
@@ -637,7 +638,7 @@ class TestD7StorefrontComprehensive:
         ]
 
         for event in events:
-            with patch.object(handler, f'_handle_{event["type"].replace(".", "_")}') as mock_handle:
+            with patch.object(handler, f"_handle_{event['type'].replace('.', '_')}") as mock_handle:
                 mock_handle.return_value = {"status": "processed"}
 
                 result = handler.handle_event(event)

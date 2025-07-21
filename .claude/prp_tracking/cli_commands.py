@@ -9,7 +9,6 @@ import os
 import subprocess
 import sys
 from datetime import datetime
-from typing import List, Optional
 
 # Add current directory to path to import our modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -17,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from github_integration import GitHubIntegration
-from prp_state_manager import PRPEntry, PRPStateManager, PRPStatus
+from prp_state_manager import PRPStateManager, PRPStatus
 from redis_enhanced_state_manager import RedisEnhancedStateManager, get_redis_state_manager
 
 
@@ -57,11 +56,11 @@ class PRPCLICommands:
             if transitions:
                 print(f"   Allowed transitions: {', '.join(transitions)}")
             else:
-                print(f"   No further transitions available")
+                print("   No further transitions available")
         else:
             # Show all PRPs
             stats = self.prp_manager.get_stats()
-            print(f"📊 **PRP Statistics**")
+            print("📊 **PRP Statistics**")
             print(f"   Total: {stats['total_prps']}")
             print(f"   New: {stats['new']}")
             print(f"   Validated: {stats['validated']}")
@@ -178,7 +177,7 @@ class PRPCLICommands:
         if success:
             print(f"🎉 {transition_message}")
             print(f"   Commit: {commit_hash}")
-            print(f"   All requirements validated successfully!")
+            print("   All requirements validated successfully!")
         else:
             print(f"❌ Failed to complete PRP {prp_id}: {transition_message}")
 
@@ -236,7 +235,7 @@ class PRPCLICommands:
 
             return
 
-        print(f"📋 **Next PRP ready for execution:**")
+        print("📋 **Next PRP ready for execution:**")
         print(f"   {next_prp.prp_id}: {next_prp.title}")
         print(f"   Status: {next_prp.status.value}")
         print(f"   Validated: {next_prp.validated_at}")
@@ -275,7 +274,7 @@ class PRPCLICommands:
             print(f"❌ Sync failed: {results['error']}")
             return
 
-        print(f"✅ Sync completed successfully!")
+        print("✅ Sync completed successfully!")
         print(f"   Synced: {results['synced']} PRPs")
         if results["errors"] > 0:
             print(f"   Errors: {results['errors']} PRPs failed to sync")
@@ -292,7 +291,7 @@ class PRPCLICommands:
         print("   ⚠️  Async merge lock status check not implemented in CLI")
         print("   Use Redis CLI: redis-cli get leadfactory:prp:merge:lock")
 
-    def _get_allowed_transitions(self, current_status: PRPStatus) -> List[str]:
+    def _get_allowed_transitions(self, current_status: PRPStatus) -> list[str]:
         """Get allowed transitions from current status"""
         transitions = {
             PRPStatus.NEW: ["validated"],

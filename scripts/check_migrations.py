@@ -3,6 +3,7 @@
 Check if all migrations are current.
 This script verifies that the database schema matches the SQLAlchemy models.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -131,11 +132,10 @@ def main():
         if not diff:
             print("✅ No schema differences found! All migrations are current.")
             return 0
-        else:
-            print("❌ Schema differences detected:")
-            for d in diff:
-                print(f"  - {d}")
-            return 1
+        print("❌ Schema differences detected:")
+        for d in diff:
+            print(f"  - {d}")
+        return 1
 
 
 if __name__ == "__main__":

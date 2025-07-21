@@ -2,6 +2,7 @@
 Performance tests for P2-010 Collaborative Buckets
 Tests O(n) complexity, memory usage, and response time requirements
 """
+
 import asyncio
 import time
 from unittest.mock import AsyncMock, Mock

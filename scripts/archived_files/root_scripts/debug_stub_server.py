@@ -3,6 +3,7 @@
 Debug script to test stub server startup and connectivity
 Useful for troubleshooting CI issues
 """
+
 import os
 import subprocess
 import sys
@@ -84,9 +85,8 @@ def check_port_availability():
         except Exception:
             pass
         return False
-    else:
-        print("✅ Port 5010 is available")
-        return True
+    print("✅ Port 5010 is available")
+    return True
 
 
 def check_dependencies():

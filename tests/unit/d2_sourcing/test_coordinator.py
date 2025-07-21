@@ -4,6 +4,7 @@ Test D2 Sourcing Coordinator module
 Comprehensive unit tests for the business sourcing coordinator
 focusing on batch processing, metrics tracking, and workflow orchestration.
 """
+
 import uuid
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
@@ -127,16 +128,20 @@ class TestSourcingCoordinator:
     @pytest.fixture
     def coordinator(self, mock_session):
         """Create coordinator instance for testing"""
-        with patch("d2_sourcing.coordinator.get_settings"), patch("d2_sourcing.coordinator.get_logger"), patch(
-            "d2_sourcing.coordinator.BusinessDeduplicator"
+        with (
+            patch("d2_sourcing.coordinator.get_settings"),
+            patch("d2_sourcing.coordinator.get_logger"),
+            patch("d2_sourcing.coordinator.BusinessDeduplicator"),
         ):
             return SourcingCoordinator(session=mock_session)
 
     def test_coordinator_initialization(self, mock_session):
         """Test coordinator initialization"""
-        with patch("d2_sourcing.coordinator.get_settings") as mock_settings, patch(
-            "d2_sourcing.coordinator.get_logger"
-        ) as mock_logger, patch("d2_sourcing.coordinator.BusinessDeduplicator") as mock_dedup:
+        with (
+            patch("d2_sourcing.coordinator.get_settings") as mock_settings,
+            patch("d2_sourcing.coordinator.get_logger") as mock_logger,
+            patch("d2_sourcing.coordinator.BusinessDeduplicator") as mock_dedup,
+        ):
             coordinator = SourcingCoordinator(session=mock_session)
 
             assert coordinator.session == mock_session
@@ -292,8 +297,10 @@ class TestErrorHandling:
     @pytest.fixture
     def coordinator(self):
         """Create coordinator for error testing"""
-        with patch("d2_sourcing.coordinator.get_settings"), patch("d2_sourcing.coordinator.get_logger"), patch(
-            "d2_sourcing.coordinator.BusinessDeduplicator"
+        with (
+            patch("d2_sourcing.coordinator.get_settings"),
+            patch("d2_sourcing.coordinator.get_logger"),
+            patch("d2_sourcing.coordinator.BusinessDeduplicator"),
         ):
             return SourcingCoordinator()
 

@@ -13,7 +13,6 @@ Acceptance Criteria:
 
 from datetime import datetime
 from math import ceil
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy import and_, asc, desc
@@ -560,7 +559,7 @@ async def create_experiment_variant(
 
 @router.get(
     "/experiments/{experiment_id}/variants",
-    response_model=List[ExperimentVariantResponse],
+    response_model=list[ExperimentVariantResponse],
 )
 async def get_experiment_variants(
     experiment_id: str = Path(..., description="Experiment ID"),

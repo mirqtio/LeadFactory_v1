@@ -1,6 +1,7 @@
 """
 Assessment assessors for PRD v1.2
 """
+
 from typing import Dict, Type
 
 from d3_assessment.assessors.base import BaseAssessor
@@ -17,7 +18,7 @@ from d3_assessment.assessors.vision_assessor import VisionAssessor
 from d3_assessment.assessors.visual_analyzer import VisualAnalyzer
 
 # Assessor registry
-ASSESSOR_REGISTRY: Dict[str, Type[BaseAssessor]] = {
+ASSESSOR_REGISTRY: dict[str, type[BaseAssessor]] = {
     "pagespeed": PageSpeedAssessor,
     "beautifulsoup": BeautifulSoupAssessor,
     "semrush": SEMrushAssessor,

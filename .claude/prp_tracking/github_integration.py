@@ -4,11 +4,9 @@ GitHub Integration for PRP Tracking
 Verifies CI status and commit information before allowing PRP completion
 """
 
-import json
 import os
 import subprocess
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
 
 import requests
 
@@ -42,7 +40,7 @@ class GitHubIntegration:
         except Exception:
             return None
 
-    def get_commit_info(self, commit_hash: str) -> Optional[Dict]:
+    def get_commit_info(self, commit_hash: str) -> dict | None:
         """Get commit information from GitHub API"""
         if not self.repo or not self.token:
             return None
@@ -57,7 +55,7 @@ class GitHubIntegration:
         except Exception:
             return None
 
-    def get_ci_status(self, commit_hash: str) -> Tuple[bool, List[Dict]]:
+    def get_ci_status(self, commit_hash: str) -> tuple[bool, list[dict]]:
         """Get CI status for a commit"""
         if not self.repo or not self.token:
             return False, []
@@ -98,7 +96,7 @@ class GitHubIntegration:
         except Exception:
             return False, []
 
-    def get_recent_commits(self, limit: int = 10) -> List[Dict]:
+    def get_recent_commits(self, limit: int = 10) -> list[dict]:
         """Get recent commits from main branch"""
         if not self.repo or not self.token:
             return []
@@ -132,7 +130,7 @@ class GitHubIntegration:
         except Exception:
             return False
 
-    def get_workflow_runs(self, workflow_name: str = None, limit: int = 10) -> List[Dict]:
+    def get_workflow_runs(self, workflow_name: str = None, limit: int = 10) -> list[dict]:
         """Get workflow runs for the repository"""
         if not self.repo or not self.token:
             return []
@@ -151,7 +149,7 @@ class GitHubIntegration:
         except Exception:
             return []
 
-    def validate_prp_completion(self, commit_hash: str) -> Tuple[bool, str]:
+    def validate_prp_completion(self, commit_hash: str) -> tuple[bool, str]:
         """Validate that a commit meets PRP completion requirements"""
         if not commit_hash:
             return False, "No commit hash provided"

@@ -2,6 +2,7 @@
 Integration tests for P2-040 Orchestration Budget Stop
 Tests monthly spend circuit breaker functionality
 """
+
 from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -40,9 +41,10 @@ class TestBudgetCircuitBreaker:
 
     def test_check_monthly_budget_limit_under_budget(self):
         """Test budget check when under monthly limit"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             # Mock current spend under limit
             mock_costs.return_value = Decimal("2000.0")
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
@@ -55,9 +57,10 @@ class TestBudgetCircuitBreaker:
 
     def test_check_monthly_budget_limit_over_budget(self):
         """Test budget check when over monthly limit"""
-        with patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs, patch(
-            "d11_orchestration.cost_guardrails.get_settings"
-        ) as mock_settings:
+        with (
+            patch("d11_orchestration.cost_guardrails.get_monthly_costs") as mock_costs,
+            patch("d11_orchestration.cost_guardrails.get_settings") as mock_settings,
+        ):
             # Mock current spend over limit
             mock_costs.return_value = Decimal("3500.0")
             mock_settings.return_value.guardrail_global_monthly_limit = 3000.0
@@ -83,9 +86,10 @@ class TestBudgetCircuitBreaker:
 
     def test_budget_circuit_breaker_blocks_execution_over_budget(self):
         """Test circuit breaker blocks flow execution when over budget"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+        ):
             # Mock over budget
             mock_check.return_value = (True, Decimal("3500.0"), Decimal("3000.0"))
 
@@ -106,9 +110,10 @@ class TestBudgetCircuitBreaker:
 
     def test_budget_circuit_breaker_preserves_state_for_resume(self):
         """Test that budget stop preserves flow state for next month resume"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+        ):
             # Mock over budget
             mock_check.return_value = (True, Decimal("3200.0"), Decimal("3000.0"))
 
@@ -137,9 +142,11 @@ class TestBudgetCircuitBreaker:
 
     def test_budget_circuit_breaker_graceful_alert_failure(self):
         """Test circuit breaker handles alert sending failures gracefully"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert", side_effect=Exception("Alert failed")
-        ), patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert", side_effect=Exception("Alert failed")),
+            patch("d11_orchestration.cost_guardrails.get_run_logger") as mock_logger,
+        ):
             # Mock over budget
             mock_check.return_value = (True, Decimal("3500.0"), Decimal("3000.0"))
             mock_logger_instance = MagicMock()
@@ -180,9 +187,10 @@ class TestBudgetStopIntegration:
 
     def test_email_notifications_sent(self):
         """Test email notifications are sent when budget exceeded"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+        ):
             mock_check.return_value = (True, Decimal("3050.0"), Decimal("3000.0"))
 
             @budget_circuit_breaker
@@ -200,9 +208,10 @@ class TestBudgetStopIntegration:
 
     def test_auto_resume_next_month_marker(self):
         """Test that flows are marked for auto-resume next month"""
-        with patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check, patch(
-            "d11_orchestration.cost_guardrails.send_cost_alert"
-        ) as mock_alert:
+        with (
+            patch("d11_orchestration.cost_guardrails.check_monthly_budget_limit") as mock_check,
+            patch("d11_orchestration.cost_guardrails.send_cost_alert") as mock_alert,
+        ):
             mock_check.return_value = (True, Decimal("3001.0"), Decimal("3000.0"))
 
             @budget_circuit_breaker

@@ -10,7 +10,7 @@ from pathlib import Path
 
 def fix_conftest_file(file_path):
     """Fix a single conftest.py file"""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Pattern to match import lines that need noqa comments

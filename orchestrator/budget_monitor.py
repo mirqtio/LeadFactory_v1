@@ -5,9 +5,9 @@ This module provides the BudgetMonitor and BudgetStatus classes that are
 referenced in performance tests. This is a minimal implementation to support
 testing infrastructure.
 """
+
 from decimal import Decimal
 from enum import Enum
-from typing import Dict, Optional
 
 
 class BudgetStatus(Enum):
@@ -58,12 +58,11 @@ class BudgetMonitor:
 
         if usage_ratio >= self.stop_threshold:
             return BudgetStatus.STOP
-        elif usage_ratio >= self.warning_threshold:
+        if usage_ratio >= self.warning_threshold:
             return BudgetStatus.WARNING
-        else:
-            return BudgetStatus.OK
+        return BudgetStatus.OK
 
-    def get_budget_summary(self) -> Dict[str, float]:
+    def get_budget_summary(self) -> dict[str, float]:
         """
         Get budget summary information
 

@@ -2,10 +2,9 @@
 User Preferences and Saved Searches Database Models
 Extends account management with personalization capabilities for P2-020
 """
+
 import enum
 import uuid
-from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import JSON, TIMESTAMP, Boolean, Column
 from sqlalchemy import Enum as SQLEnum

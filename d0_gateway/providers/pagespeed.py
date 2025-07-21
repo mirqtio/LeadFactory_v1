@@ -1,8 +1,9 @@
 """
 Google PageSpeed Insights API v5 client implementation
 """
+
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..base import BaseAPIClient
 
@@ -10,7 +11,7 @@ from ..base import BaseAPIClient
 class PageSpeedClient(BaseAPIClient):
     """Google PageSpeed Insights API v5 client"""
 
-    def __init__(self, api_key: Optional[str] = None, allow_test_mode: bool = False):
+    def __init__(self, api_key: str | None = None, allow_test_mode: bool = False):
         from core.config import get_settings
 
         settings = get_settings()
@@ -29,11 +30,11 @@ class PageSpeedClient(BaseAPIClient):
         """Get PageSpeed API base URL"""
         return "https://www.googleapis.com"
 
-    def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> dict[str, str]:
         """Get PageSpeed API headers"""
         return {"Content-Type": "application/json"}
 
-    def get_rate_limit(self) -> Dict[str, int]:
+    def get_rate_limit(self) -> dict[str, int]:
         """Get PageSpeed rate limit configuration"""
         return {
             "daily_limit": 25000,
@@ -52,19 +53,18 @@ class PageSpeedClient(BaseAPIClient):
         if operation.startswith("GET:/pagespeedonline/v5/runPagespeed"):
             # Free tier up to 25,000/day
             return Decimal("0.000")
-        else:
-            # Paid tier estimate
-            return Decimal("0.004")
+        # Paid tier estimate
+        return Decimal("0.004")
 
     async def analyze_url(
         self,
         url: str,
         strategy: str = "mobile",
-        categories: Optional[List[str]] = None,
-        locale: Optional[str] = None,
-        utm_campaign: Optional[str] = None,
-        utm_source: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        categories: list[str] | None = None,
+        locale: str | None = None,
+        utm_campaign: str | None = None,
+        utm_source: str | None = None,
+    ) -> dict[str, Any]:
         """
         Analyze a URL with PageSpeed Insights
 
@@ -98,7 +98,7 @@ class PageSpeedClient(BaseAPIClient):
 
         return await self.make_request("GET", "/pagespeedonline/v5/runPagespeed", params=params)
 
-    async def analyze_mobile_and_desktop(self, url: str) -> Dict[str, Any]:
+    async def analyze_mobile_and_desktop(self, url: str) -> dict[str, Any]:
         """
         Analyze URL for both mobile and desktop
 
@@ -118,7 +118,7 @@ class PageSpeedClient(BaseAPIClient):
             "analyzed_at": mobile_result.get("analysisUTCTimestamp"),
         }
 
-    async def get_core_web_vitals(self, url: str, strategy: str = "mobile") -> Dict[str, Any]:
+    async def get_core_web_vitals(self, url: str, strategy: str = "mobile") -> dict[str, Any]:
         """
         Extract Core Web Vitals from PageSpeed analysis
 
@@ -199,10 +199,10 @@ class PageSpeedClient(BaseAPIClient):
 
     async def batch_analyze_urls(
         self,
-        urls: List[str],
+        urls: list[str],
         strategy: str = "mobile",
         include_core_web_vitals: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Analyze multiple URLs efficiently
 
@@ -239,7 +239,7 @@ class PageSpeedClient(BaseAPIClient):
             "strategy": strategy,
         }
 
-    def extract_opportunities(self, pagespeed_result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def extract_opportunities(self, pagespeed_result: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Extract optimization opportunities from PageSpeed result
 
@@ -281,7 +281,6 @@ class PageSpeedClient(BaseAPIClient):
         """Categorize impact level based on potential savings"""
         if savings_ms >= 1000:  # 1+ seconds
             return "high"
-        elif savings_ms >= 500:  # 0.5+ seconds
+        if savings_ms >= 500:  # 0.5+ seconds
             return "medium"
-        else:
-            return "low"
+        return "low"

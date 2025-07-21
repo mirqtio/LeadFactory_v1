@@ -1,6 +1,7 @@
 """
 Test D0 Gateway facade and factory
 """
+
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -142,8 +143,9 @@ class TestGatewayFactory:
         mock_client = Mock()
         mock_client_class.return_value = mock_client
 
-        with patch.dict(factory._providers, {"test": mock_client_class}), patch.object(
-            factory, "_get_provider_config", return_value={}
+        with (
+            patch.dict(factory._providers, {"test": mock_client_class}),
+            patch.object(factory, "_get_provider_config", return_value={}),
         ):
             # First call should create new instance
             client1 = factory.create_client("test", use_cache=True)
@@ -326,7 +328,7 @@ class TestGatewayFacade:
         def create_client_side_effect(provider):
             if provider == "pagespeed":
                 return mock_pagespeed_client
-            elif provider == "openai":
+            if provider == "openai":
                 return mock_openai_client
 
         mock_factory.create_client.side_effect = create_client_side_effect
@@ -999,8 +1001,9 @@ class TestThreadSafety:
         mock_client = Mock()
         mock_client_class.return_value = mock_client
 
-        with patch.dict(factory._providers, {"test": mock_client_class}), patch.object(
-            factory, "_get_provider_config", return_value={}
+        with (
+            patch.dict(factory._providers, {"test": mock_client_class}),
+            patch.object(factory, "_get_provider_config", return_value={}),
         ):
             results = []
 
@@ -1140,7 +1143,7 @@ class TestGatewayFacadeErrorHandling:
         def create_client_side_effect(provider):
             if provider == "pagespeed":
                 return mock_pagespeed_client
-            elif provider == "openai":
+            if provider == "openai":
                 return mock_openai_client
 
         mock_factory.create_client.side_effect = create_client_side_effect
@@ -1615,8 +1618,9 @@ class TestGatewayFacadeMissingCoverage:
     async def test_complete_business_analysis_ai_error(self, facade, mock_factory):
         """Test complete_business_analysis with AI insights error"""
         # Mock website analysis success but AI insights failure
-        with patch.object(facade, "analyze_website", return_value={"data": "test"}), patch.object(
-            facade, "generate_website_insights", side_effect=Exception("AI failed")
+        with (
+            patch.object(facade, "analyze_website", return_value={"data": "test"}),
+            patch.object(facade, "generate_website_insights", side_effect=Exception("AI failed")),
         ):
             result = await facade.complete_business_analysis("test-123", business_url="https://example.com")
 
@@ -1629,9 +1633,11 @@ class TestGatewayFacadeMissingCoverage:
     async def test_complete_business_analysis_email_error(self, facade, mock_factory):
         """Test complete_business_analysis with email generation error"""
         # Mock successful website and AI but email failure
-        with patch.object(facade, "analyze_website", return_value={"data": "test"}), patch.object(
-            facade, "generate_website_insights", return_value={"ai_recommendations": [{"issue": "test"}]}
-        ), patch.object(facade, "generate_personalized_email", side_effect=Exception("Email failed")):
+        with (
+            patch.object(facade, "analyze_website", return_value={"data": "test"}),
+            patch.object(facade, "generate_website_insights", return_value={"ai_recommendations": [{"issue": "test"}]}),
+            patch.object(facade, "generate_personalized_email", side_effect=Exception("Email failed")),
+        ):
             result = await facade.complete_business_analysis(
                 "test-123", business_url="https://example.com", include_email_generation=True
             )
@@ -1659,10 +1665,9 @@ class TestGatewayFacadeMissingCoverage:
         def create_client_side_effect(provider):
             if provider == "provider1":
                 raise Exception("Provider 1 error")
-            else:
-                mock_client = Mock()
-                mock_client.get_rate_limit.return_value = {"limit": 100}
-                return mock_client
+            mock_client = Mock()
+            mock_client.get_rate_limit.return_value = {"limit": 100}
+            return mock_client
 
         mock_factory.create_client.side_effect = create_client_side_effect
 
@@ -1681,8 +1686,7 @@ class TestGatewayFacadeMissingCoverage:
         def create_client_side_effect(provider):
             if provider == "provider1":
                 raise Exception("Provider 1 cost error")
-            else:
-                return Mock()
+            return Mock()
 
         mock_factory.create_client.side_effect = create_client_side_effect
 

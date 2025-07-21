@@ -1,6 +1,7 @@
 """Email builder for audit report teasers."""
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from d3_assessment.audit_schema import AuditFinding, FindingCategory, FindingSeverity
 from d8_personalization.models import EmailTemplate
@@ -11,17 +12,17 @@ class PersonalizationData:
     """Data structure for email personalization"""
 
     business_name: str
-    contact_name: Optional[str] = None
-    contact_first_name: Optional[str] = None
-    business_category: Optional[str] = None
-    business_location: Optional[str] = None
-    issues_found: Optional[List[Dict[str, str]]] = None
-    assessment_score: Optional[float] = None
-    report_url: Optional[str] = None
-    custom_data: Optional[Dict[str, Any]] = None
+    contact_name: str | None = None
+    contact_first_name: str | None = None
+    business_category: str | None = None
+    business_location: str | None = None
+    issues_found: list[dict[str, str]] | None = None
+    assessment_score: float | None = None
+    report_url: str | None = None
+    custom_data: dict[str, Any] | None = None
 
 
-def select_email_findings(findings: List[AuditFinding], has_gbp: bool = True) -> Dict[str, any]:
+def select_email_findings(findings: list[AuditFinding], has_gbp: bool = True) -> dict[str, any]:
     """
     Select findings for email teaser based on strategy.
 
@@ -123,7 +124,7 @@ def _format_complexity(effort: str) -> str:
     return mapping.get(effort.lower(), "Medium")
 
 
-def _calculate_revenue_range(finding: AuditFinding, base_revenue: float = 1_000_000) -> Tuple[int, int]:
+def _calculate_revenue_range(finding: AuditFinding, base_revenue: float = 1_000_000) -> tuple[int, int]:
     """
     Calculate revenue impact range based on finding.
 
@@ -149,10 +150,10 @@ def _calculate_revenue_range(finding: AuditFinding, base_revenue: float = 1_000_
 def prepare_email_context(
     business_name: str,
     overall_score: int,
-    findings: List[AuditFinding],
+    findings: list[AuditFinding],
     revenue_estimate: float = 1_000_000,
-    contact_name: Optional[str] = None,
-) -> Dict[str, any]:
+    contact_name: str | None = None,
+) -> dict[str, any]:
     """
     Prepare complete context for email template.
 
@@ -256,17 +257,17 @@ class EmailBuilder:
         if hasattr(template, "name"):
             self.templates[template.name] = template
 
-    def get_template_names(self) -> List[str]:
+    def get_template_names(self) -> list[str]:
         """Get list of available template names"""
         return list(self.templates.keys())
 
     def build_email(
         self,
         template_name: str = "audit_teaser",
-        personalization: Optional[PersonalizationData] = None,
-        to_email: Optional[str] = None,
-        to_name: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        personalization: PersonalizationData | None = None,
+        to_email: str | None = None,
+        to_name: str | None = None,
+    ) -> dict[str, Any]:
         """Build email from template and personalization data"""
         if template_name not in self.templates:
             raise ValueError(f"Template {template_name} not found")
@@ -293,7 +294,7 @@ def create_personalization_data(business_name: str, **kwargs) -> Personalization
     return PersonalizationData(business_name=business_name, **kwargs)
 
 
-def build_audit_email(business_name: str, findings: List[AuditFinding], contact_email: str, **kwargs) -> Dict[str, Any]:
+def build_audit_email(business_name: str, findings: list[AuditFinding], contact_email: str, **kwargs) -> dict[str, Any]:
     """Build audit email from findings"""
     # Select key findings for email
     select_email_findings(findings)
