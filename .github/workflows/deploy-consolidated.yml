@@ -121,6 +121,7 @@ jobs:
         echo "⏳ Waiting for containers to stabilize..."
         sleep 30
         
+        # Store SSH exit status properly
         ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'HEALTH_CHECK'
           set -e
           echo "🔍 Checking container health status..."
@@ -152,6 +153,15 @@ jobs:
           docker compose -f /srv/leadfactory/docker-compose.prod.yml logs --tail=20
           exit 1
         HEALTH_CHECK
+        
+        # Check SSH command exit status
+        SSH_EXIT_CODE=$?
+        if [ $SSH_EXIT_CODE -eq 0 ]; then
+          echo "✅ Health check completed successfully"
+        else
+          echo "❌ Health check failed with exit code $SSH_EXIT_CODE"
+          exit 1
+        fi
     
     - name: Deployment notification
       if: always()
