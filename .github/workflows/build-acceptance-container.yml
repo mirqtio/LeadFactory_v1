@@ -84,14 +84,14 @@ jobs:
           # Pull the built image
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           
-          # Test basic container functionality with a simple import test
+          # Test basic container functionality - the entrypoint expects python arguments
           docker run --rm \
             -e REDIS_URL="redis://localhost:6379" \
             -e PRP_ID="test-container" \
             -e VPS_SSH_HOST="test.example.com" \
             -e VPS_SSH_USER="test" \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            bash -c 'python -c "import sys; print(\"✅ Container validation: Python interpreter working\"); import containers.acceptance.acceptance_runner; print(\"✅ Container validation: AcceptanceRunner module importable\")"'
+            -c "import sys; print('✅ Container validation: Python interpreter working'); import containers.acceptance.acceptance_runner; print('✅ Container validation: AcceptanceRunner module importable')"
 
   notify-deployment:
     needs: build-and-push
