@@ -18,7 +18,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: leadfactory/acceptance-runner
+  IMAGE_NAME: mirqtio/leadfactory_v1/acceptance-runner
 
 jobs:
   build-and-push:
