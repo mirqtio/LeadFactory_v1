@@ -1,0 +1,6 @@
+# Agent system requirements
+anthropic>=0.18.0
+redis>=5.0.0
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+python-dotenv>=1.0.0
