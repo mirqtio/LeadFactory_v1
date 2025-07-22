@@ -218,6 +218,59 @@ EOF
     success "Context payloads generated"
 }
 
+# Start enterprise shims for Redis-tmux coordination
+start_enterprise_shims() {
+    log "Starting enterprise shims for Redis-tmux coordination..."
+    
+    # Kill any existing shims first
+    pkill -f enterprise_shim 2>/dev/null || true
+    
+    # Agent configurations: type, tmux_window, queue_name
+    local agents=(
+        "orchestrator:orchestrator:orchestrator_queue"
+        "pm:dev-1:dev_queue" 
+        "pm:dev-2:dev_queue"
+        "validator:validator:validation_queue"
+        "integrator:integrator:integration_queue"
+    )
+    
+    # Start each enterprise shim
+    for agent_config in "${agents[@]}"; do
+        IFS=':' read -r agent_type tmux_window queue_name <<< "$agent_config"
+        
+        log "Starting $agent_type shim for $tmux_window (queue: $queue_name)"
+        
+        # Start enterprise shim in background
+        python3 "${SCRIPT_DIR}/bin/enterprise_shim.py" \
+            --agent-type="$agent_type" \
+            --session="$STACK_SESSION" \
+            --window="$tmux_window" \
+            --queue="$queue_name" \
+            --redis-url="$REDIS_URL" \
+            > "/tmp/enterprise_shim_${agent_type}_${tmux_window}.log" 2>&1 &
+        
+        local shim_pid=$!
+        log "Started $agent_type shim (PID: $shim_pid)"
+        
+        # Store PID for cleanup
+        echo "$shim_pid" >> "/tmp/enterprise_shim_pids.txt"
+        
+        # Brief pause between shims
+        sleep 1
+    done
+    
+    # Wait for shims to initialize
+    sleep 3
+    
+    # Verify shim processes
+    local shim_count=$(ps aux | grep -c "enterprise_shim" | grep -v grep || echo 0)
+    if [[ $shim_count -gt 0 ]]; then
+        success "Enterprise shims started ($shim_count processes)"
+    else
+        error "Failed to start enterprise shims"
+    fi
+}
+
 # Create or attach tmux session
 setup_tmux_session() {
     log "Setting up tmux session: ${STACK_SESSION}"
@@ -250,9 +303,9 @@ start_agent() {
     
     log "Starting $persona agent in window: $window"
     
-    # Start claude with persona
+    # Start claude with persona and skip permissions
     tmux send-keys -t "${STACK_SESSION}:${window}" \
-        "claude --model=$model" Enter
+        "claude --model=$model --dangerously-skip-permissions" Enter
     
     # Wait for Claude to start
     sleep 3
@@ -511,6 +564,9 @@ main() {
     
     # Setup monitoring
     setup_monitoring
+    
+    # Start enterprise shims
+    start_enterprise_shims
     
     # Ingest backlog
     ingest_backlog "$no_ingest"

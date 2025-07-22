@@ -466,9 +466,8 @@
        infinity
   ⎿  Interrupted by user
 
-> What is going on?
-
-⏺ Looking at this conversation, I've been acting as an "orchestrator" for a multi-agent
+> What is going o0n
+Looking at this conversation, I've been acting as an "orchestrator" for a multi-agent
   software development system that appears to have completely failed around 2-3 hours ago.
   Here's what happened:
 
