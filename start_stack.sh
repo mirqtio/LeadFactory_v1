@@ -147,13 +147,25 @@ ${claude_summary}
 PROJECT CONTEXT:
 ${project_summary}
 
-You are the orchestrator/architect agent responsible for:
-- PRP workflow coordination
-- Agent task assignment
-- System health monitoring
-- Strategic decision making
+You are the ORCHESTRATOR - the operational brain of the multi-agent system.
 
-Your Redis queues: orchestrator_queue (incoming), dev_queue/validation_queue/integration_queue (outgoing)
+Your responsibilities:
+- Monitor agent health (check tmux panes, detect crashes/timeouts)
+- Route PRPs to appropriate dev agents based on workload/expertise
+- Handle system recovery (restart crashed panes/shims)
+- Schedule activities (30-min heartbeats, progress reports)
+- Route Q&A between agents (qa_questions → qa_answers)
+- Apply policies (pause queues during outages, manage back-pressure)
+- Generate human-readable reports and telemetry
+
+You are NOT a developer - you orchestrate the system. When you receive PRP notifications:
+1. Check which dev agents are available
+2. Assign PRPs based on current workload
+3. Monitor progress and handle timeouts
+4. Coordinate handoffs between agents
+
+IMPORTANT: You will receive notifications via enterprise shim.
+Focus on orchestration, not implementation.
 Session: ${STACK_SESSION} | Environment: ${ENVIRONMENT:-development}
 EOF
 
@@ -172,7 +184,9 @@ You are a development agent responsible for:
 - Technical implementation
 - Feature creation
 
-Your Redis queue: dev_queue
+IMPORTANT: You will receive PRP assignments via enterprise shim messages.
+DO NOT monitor Redis directly - that's handled by the shim.
+Wait for assignment messages and follow the workflow instructions.
 Session: ${STACK_SESSION} | Environment: ${ENVIRONMENT:-development}
 EOF
 
@@ -191,7 +205,9 @@ You are a validation agent responsible for:
 - Testing validation
 - Standards compliance
 
-Your Redis queue: validation_queue
+IMPORTANT: You will receive validation requests via enterprise shim messages.
+DO NOT monitor Redis directly - that's handled by the shim.
+Wait for validation messages and review accordingly.
 Session: ${STACK_SESSION} | Environment: ${ENVIRONMENT:-development}
 EOF
 
@@ -210,12 +226,44 @@ You are an integration agent responsible for:
 - System integration
 - Production deployment
 
-Your Redis queue: integration_queue
+IMPORTANT: You will receive integration requests via enterprise shim messages.
+DO NOT monitor Redis directly - that's handled by the shim.
+Wait for integration messages and deploy accordingly.
 SSH Access: ${VPS_SSH_USER}@${VPS_SSH_HOST}
 Session: ${STACK_SESSION} | Environment: ${ENVIRONMENT:-development}
 EOF
 
     success "Context payloads generated"
+}
+
+# Start orchestrator monitoring loop
+start_orchestrator_loop() {
+    log "Starting orchestrator monitoring loop..."
+    
+    # Kill any existing orchestrator loop
+    pkill -f orchestrator_loop.py 2>/dev/null || true
+    
+    # Start orchestrator loop in background
+    export REDIS_URL="${REDIS_URL}"
+    export TMUX_SESSION="${STACK_SESSION}"
+    
+    python3 "${SCRIPT_DIR}/bin/orchestrator_loop_v2.py" \
+        > "/tmp/orchestrator_loop.log" 2>&1 &
+    
+    local loop_pid=$!
+    echo "$loop_pid" > "/tmp/orchestrator_loop.pid"
+    
+    log "Started orchestrator loop (PID: $loop_pid)"
+    
+    # Wait briefly to ensure it starts
+    sleep 2
+    
+    # Verify it's running
+    if kill -0 "$loop_pid" 2>/dev/null; then
+        success "Orchestrator loop running"
+    else
+        error "Failed to start orchestrator loop"
+    fi
 }
 
 # Start enterprise shims for Redis-tmux coordination
@@ -226,8 +274,9 @@ start_enterprise_shims() {
     pkill -f enterprise_shim 2>/dev/null || true
     
     # Agent configurations: type, tmux_window, queue_name
+    # NOTE: Orchestrator shim removed - it was consuming messages meant for orchestrator loop
     local agents=(
-        "orchestrator:orchestrator:orchestrator_queue"
+        # "orchestrator:orchestrator:orchestrator_queue"  # REMOVED - causes message consumption conflict
         "pm:dev-1:dev_queue" 
         "pm:dev-2:dev_queue"
         "validator:validator:validation_queue"
@@ -240,8 +289,8 @@ start_enterprise_shims() {
         
         log "Starting $agent_type shim for $tmux_window (queue: $queue_name)"
         
-        # Start enterprise shim in background
-        python3 "${SCRIPT_DIR}/bin/enterprise_shim.py" \
+        # Start enterprise shim v2 in background
+        python3 "${SCRIPT_DIR}/bin/enterprise_shim_v2.py" \
             --agent-type="$agent_type" \
             --session="$STACK_SESSION" \
             --window="$tmux_window" \
@@ -316,7 +365,7 @@ start_agent() {
     
     # Send initial status update
     tmux send-keys -t "${STACK_SESSION}:${window}" \
-        "Agent $persona ready. Session: ${STACK_SESSION}. Monitoring Redis queues..." Enter
+        "Agent $persona ready. Session: ${STACK_SESSION}. Waiting for enterprise shim messages..." Enter
 }
 
 # Setup monitoring dashboard
@@ -567,6 +616,9 @@ main() {
     
     # Start enterprise shims
     start_enterprise_shims
+    
+    # Start orchestrator monitoring loop
+    start_orchestrator_loop
     
     # Ingest backlog
     ingest_backlog "$no_ingest"
