@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles using design tokens */
+@layer base {
+  html {
+    font-family: var(--font-family);
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-lightbg text-darktext antialiased;
+    /* Ensure consistent rendering across browsers */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-synthesisblue;
+  }
+
+  /* Remove outline for mouse users */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Typography scale */
+  h1 {
+    @apply text-h1;
+  }
+  
+  h2 {
+    @apply text-h2;
+  }
+  
+  h3 {
+    @apply text-h3;
+  }
+  
+  h4 {
+    @apply text-h4;
+  }
+}
+
+/* Component layer for reusable patterns */
+@layer components {
+  /* Navigation styles */
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium
+           text-neutral hover:bg-border hover:text-darktext
+           transition-colors duration-micro;
+  }
+  
+  .nav-link.active {
+    @apply bg-synthesisblue text-white;
+  }
+
+  /* Button variants */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 
+           bg-synthesisblue hover:bg-blue-600 
+           text-white text-sm font-medium
+           rounded-md border border-transparent
+           transition-colors duration-micro
+           focus:outline-none focus:ring-2 focus:ring-synthesisblue focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2
+           bg-white hover:bg-gray-50
+           text-darktext text-sm font-medium
+           rounded-md border border-border
+           transition-colors duration-micro
+           focus:outline-none focus:ring-2 focus:ring-synthesisblue focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-4 py-2
+           text-neutral hover:text-darktext hover:bg-border
+           text-sm font-medium
+           rounded-md border border-transparent
+           transition-colors duration-micro
+           focus:outline-none focus:ring-2 focus:ring-synthesisblue focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Card component */
+  .card {
+    @apply bg-white rounded-lg border border-border shadow-elevation-1;
+  }
+  
+  .card-header {
+    @apply p-6 border-b border-border;
+  }
+  
+  .card-content {
+    @apply p-6;
+  }
+
+  /* Loading states */
+  .skeleton {
+    @apply bg-border animate-pulse rounded;
+  }
+
+  /* Mobile navigation */
+  .mobile-nav-overlay {
+    @apply fixed inset-0 bg-anthracite bg-opacity-50 z-40 
+           transition-opacity duration-standard;
+  }
+  
+  .mobile-nav-panel {
+    @apply fixed top-0 left-0 h-full w-80 bg-white shadow-elevation-3 z-50
+           transform transition-transform duration-standard ease-in-out;
+  }
+
+  /* Responsive utilities */
+  .container-responsive {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1200px; /* Based on desktop breakpoint */
+  }
+}
+
+/* Utility layer for project-specific utilities */
+@layer utilities {
+  /* Dark mode styles */
+  .dark {
+    @apply bg-anthracite text-white;
+  }
+  
+  .dark .card {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  .dark .btn-secondary {
+    @apply bg-gray-800 hover:bg-gray-700 text-white border-gray-600;
+  }
+  
+  .dark .nav-link {
+    @apply text-gray-300 hover:text-white hover:bg-gray-700;
+  }
+
+  /* Accessibility utilities */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  /* Animation utilities */
+  .fade-in {
+    animation: fadeIn 0.2s ease-in-out;
+  }
+  
+  .slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+  }
+  
+  .slide-out-left {
+    animation: slideOutLeft 0.3s ease-in;
+  }
+}
+
+/* Keyframes for animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    @apply text-black bg-white;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .nav-link {
+    @apply border border-transparent;
+  }
+  
+  .nav-link:hover,
+  .nav-link:focus {
+    @apply border-current;
+  }
+}
