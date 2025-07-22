@@ -58,11 +58,11 @@ class TestOrganizationSchemas:
             "billing_email": "billing@test.com",
             "max_users": 10,
             "max_teams": 5,
-            "max_api_keys": 20
+            "max_api_keys": 20,
         }
-        
+
         org = OrganizationCreate(**data)
-        
+
         assert org.name == "Test Organization"
         assert org.slug == "test-org"
         assert org.billing_email == "billing@test.com"
@@ -72,15 +72,12 @@ class TestOrganizationSchemas:
 
     def test_organization_create_defaults(self):
         """Test organization creation with default values"""
-        data = {
-            "name": "Test Organization",
-            "slug": "test-org"
-        }
-        
+        data = {"name": "Test Organization", "slug": "test-org"}
+
         org = OrganizationCreate(**data)
-        
+
         assert org.max_users == 5  # Default value
-        assert org.max_teams == 3   # Default value
+        assert org.max_teams == 3  # Default value
         assert org.max_api_keys == 10  # Default value
         assert org.billing_email is None
 
@@ -90,44 +87,37 @@ class TestOrganizationSchemas:
             "name": "Test Organization",
             "slug": "Test Org!",  # Invalid characters
         }
-        
+
         with pytest.raises(ValidationError) as exc_info:
             OrganizationCreate(**data)
-        
+
         assert "string does not match regex" in str(exc_info.value)
 
     def test_organization_create_invalid_limits(self):
         """Test organization creation with invalid limits"""
         # Test max_users too low
-        data = {
-            "name": "Test Organization",
-            "slug": "test-org",
-            "max_users": 0  # Too low
-        }
-        
+        data = {"name": "Test Organization", "slug": "test-org", "max_users": 0}  # Too low
+
         with pytest.raises(ValidationError) as exc_info:
             OrganizationCreate(**data)
-        
+
         assert "ensure this value is greater than or equal to 1" in str(exc_info.value)
-        
+
         # Test max_users too high
         data["max_users"] = 1001  # Too high
-        
+
         with pytest.raises(ValidationError) as exc_info:
             OrganizationCreate(**data)
-        
+
         assert "ensure this value is less than or equal to 1000" in str(exc_info.value)
 
     def test_organization_create_empty_name(self):
         """Test organization creation with empty name"""
-        data = {
-            "name": "",  # Empty name
-            "slug": "test-org"
-        }
-        
+        data = {"name": "", "slug": "test-org"}  # Empty name
+
         with pytest.raises(ValidationError) as exc_info:
             OrganizationCreate(**data)
-        
+
         assert "ensure this value has at least 1 characters" in str(exc_info.value)
 
     def test_organization_response_serialization(self):
@@ -144,11 +134,11 @@ class TestOrganizationSchemas:
             "is_active": True,
             "trial_ends_at": datetime(2025, 12, 31),
             "created_at": datetime(2025, 1, 1),
-            "updated_at": datetime(2025, 1, 15)
+            "updated_at": datetime(2025, 1, 15),
         }
-        
+
         org = OrganizationResponse(**data)
-        
+
         assert org.id == "org123"
         assert org.name == "Test Organization"
         assert org.is_active is True
@@ -163,11 +153,11 @@ class TestOrganizationSchemas:
             "total_api_keys": 15,
             "active_api_keys": 12,
             "storage_used_mb": 1024.5,
-            "api_calls_this_month": 5000
+            "api_calls_this_month": 5000,
         }
-        
+
         stats = OrganizationStatsResponse(**data)
-        
+
         assert stats.total_users == 25
         assert stats.active_users == 20
         assert stats.storage_used_mb == 1024.5
@@ -175,16 +165,10 @@ class TestOrganizationSchemas:
 
     def test_organization_stats_response_defaults(self):
         """Test organization stats response with defaults"""
-        data = {
-            "total_users": 5,
-            "active_users": 4,
-            "total_teams": 2,
-            "total_api_keys": 3,
-            "active_api_keys": 2
-        }
-        
+        data = {"total_users": 5, "active_users": 4, "total_teams": 2, "total_api_keys": 3, "active_api_keys": 2}
+
         stats = OrganizationStatsResponse(**data)
-        
+
         assert stats.storage_used_mb == 0  # Default
         assert stats.api_calls_this_month == 0  # Default
 
@@ -202,11 +186,11 @@ class TestUserSchemas:
             "phone": "+1234567890",
             "timezone": "America/New_York",
             "locale": "en_US",
-            "organization_name": "Test Org"
+            "organization_name": "Test Org",
         }
-        
+
         user = UserRegister(**data)
-        
+
         assert user.email == "test@example.com"
         assert user.password.get_secret_value() == "SecurePass123!"
         assert user.username == "testuser"
@@ -215,13 +199,10 @@ class TestUserSchemas:
 
     def test_user_register_defaults(self):
         """Test user registration with default values"""
-        data = {
-            "email": "test@example.com",
-            "password": "SecurePass123!"
-        }
-        
+        data = {"email": "test@example.com", "password": "SecurePass123!"}
+
         user = UserRegister(**data)
-        
+
         assert user.timezone == "UTC"  # Default
         assert user.locale == "en_US"  # Default
         assert user.username is None
@@ -229,28 +210,26 @@ class TestUserSchemas:
 
     def test_user_register_password_validation(self):
         """Test password validation rules"""
-        base_data = {
-            "email": "test@example.com"
-        }
-        
+        base_data = {"email": "test@example.com"}
+
         # Test password without digit
         data = {**base_data, "password": "SecurePassword!"}
         with pytest.raises(ValidationError) as exc_info:
             UserRegister(**data)
         assert "Password must contain at least one digit" in str(exc_info.value)
-        
+
         # Test password without uppercase
         data = {**base_data, "password": "securepass123!"}
         with pytest.raises(ValidationError) as exc_info:
             UserRegister(**data)
         assert "Password must contain at least one uppercase letter" in str(exc_info.value)
-        
+
         # Test password without lowercase
         data = {**base_data, "password": "SECUREPASS123!"}
         with pytest.raises(ValidationError) as exc_info:
             UserRegister(**data)
         assert "Password must contain at least one lowercase letter" in str(exc_info.value)
-        
+
         # Test password too short
         data = {**base_data, "password": "Short1!"}
         with pytest.raises(ValidationError) as exc_info:
@@ -259,60 +238,46 @@ class TestUserSchemas:
 
     def test_user_register_invalid_email(self):
         """Test user registration with invalid email"""
-        data = {
-            "email": "not-an-email",
-            "password": "SecurePass123!"
-        }
-        
+        data = {"email": "not-an-email", "password": "SecurePass123!"}
+
         with pytest.raises(ValidationError) as exc_info:
             UserRegister(**data)
-        
+
         assert "value is not a valid email address" in str(exc_info.value)
 
     def test_user_register_invalid_username(self):
         """Test user registration with invalid username"""
-        data = {
-            "email": "test@example.com",
-            "password": "SecurePass123!",
-            "username": "ab"  # Too short
-        }
-        
+        data = {"email": "test@example.com", "password": "SecurePass123!", "username": "ab"}  # Too short
+
         with pytest.raises(ValidationError) as exc_info:
             UserRegister(**data)
-        
+
         assert "ensure this value has at least 3 characters" in str(exc_info.value)
-        
+
         # Test invalid characters
         data["username"] = "user@name"  # Invalid character
-        
+
         with pytest.raises(ValidationError) as exc_info:
             UserRegister(**data)
-        
+
         assert "string does not match regex" in str(exc_info.value)
 
     def test_user_login_valid(self):
         """Test valid user login"""
-        data = {
-            "email": "test@example.com",
-            "password": "mypassword",
-            "device_id": "device123"
-        }
-        
+        data = {"email": "test@example.com", "password": "mypassword", "device_id": "device123"}
+
         login = UserLogin(**data)
-        
+
         assert login.email == "test@example.com"
         assert login.password.get_secret_value() == "mypassword"
         assert login.device_id == "device123"
 
     def test_user_login_optional_device_id(self):
         """Test user login without device ID"""
-        data = {
-            "email": "test@example.com",
-            "password": "mypassword"
-        }
-        
+        data = {"email": "test@example.com", "password": "mypassword"}
+
         login = UserLogin(**data)
-        
+
         assert login.device_id is None
 
     def test_user_update_valid(self):
@@ -323,23 +288,21 @@ class TestUserSchemas:
             "avatar_url": "https://example.com/avatar.jpg",
             "phone": "+9876543210",
             "timezone": "Europe/London",
-            "locale": "en_GB"
+            "locale": "en_GB",
         }
-        
+
         update = UserUpdate(**data)
-        
+
         assert update.username == "newusername"
         assert update.full_name == "New Name"
         assert update.avatar_url == "https://example.com/avatar.jpg"
 
     def test_user_update_partial(self):
         """Test partial user update"""
-        data = {
-            "full_name": "Updated Name"
-        }
-        
+        data = {"full_name": "Updated Name"}
+
         update = UserUpdate(**data)
-        
+
         assert update.full_name == "Updated Name"
         assert update.username is None
         assert update.phone is None
@@ -361,11 +324,11 @@ class TestUserSchemas:
             "mfa_enabled": False,
             "last_login_at": datetime(2025, 1, 15),
             "created_at": datetime(2025, 1, 1),
-            "updated_at": datetime(2025, 1, 15)
+            "updated_at": datetime(2025, 1, 15),
         }
-        
+
         user = UserResponse(**data)
-        
+
         assert user.id == "user123"
         assert user.status == UserStatus.ACTIVE
         assert user.email_verified is True
@@ -381,9 +344,9 @@ class TestUserSchemas:
             "max_api_keys": 20,
             "is_active": True,
             "created_at": datetime(2025, 1, 1),
-            "updated_at": datetime(2025, 1, 15)
+            "updated_at": datetime(2025, 1, 15),
         }
-        
+
         user_data = {
             "id": "user123",
             "email": "test@example.com",
@@ -397,11 +360,11 @@ class TestUserSchemas:
             "created_at": datetime(2025, 1, 1),
             "updated_at": datetime(2025, 1, 15),
             "organization": OrganizationResponse(**org_data),
-            "teams": []
+            "teams": [],
         }
-        
+
         profile = UserProfileResponse(**user_data)
-        
+
         assert profile.organization is not None
         assert profile.organization.name == "Test Organization"
         assert profile.teams == []
@@ -412,22 +375,17 @@ class TestPasswordSchemas:
 
     def test_password_change_valid(self):
         """Test valid password change"""
-        data = {
-            "current_password": "OldPass123!",
-            "new_password": "NewPass456!"
-        }
-        
+        data = {"current_password": "OldPass123!", "new_password": "NewPass456!"}
+
         change = PasswordChange(**data)
-        
+
         assert change.current_password.get_secret_value() == "OldPass123!"
         assert change.new_password.get_secret_value() == "NewPass456!"
 
     def test_password_change_validation(self):
         """Test password change validation"""
-        base_data = {
-            "current_password": "OldPass123!"
-        }
-        
+        base_data = {"current_password": "OldPass123!"}
+
         # Test new password without digit
         data = {**base_data, "new_password": "NewPassword!"}
         with pytest.raises(ValidationError) as exc_info:
@@ -436,44 +394,35 @@ class TestPasswordSchemas:
 
     def test_password_reset_valid(self):
         """Test valid password reset"""
-        data = {
-            "token": "reset_token_123",
-            "new_password": "NewPass123!"
-        }
-        
+        data = {"token": "reset_token_123", "new_password": "NewPass123!"}
+
         reset = PasswordReset(**data)
-        
+
         assert reset.token == "reset_token_123"
         assert reset.new_password.get_secret_value() == "NewPass123!"
 
     def test_password_reset_request_valid(self):
         """Test valid password reset request"""
-        data = {
-            "email": "test@example.com"
-        }
-        
+        data = {"email": "test@example.com"}
+
         request = PasswordResetRequest(**data)
-        
+
         assert request.email == "test@example.com"
 
     def test_email_verification_request_valid(self):
         """Test valid email verification request"""
-        data = {
-            "token": "verification_token_123"
-        }
-        
+        data = {"token": "verification_token_123"}
+
         request = EmailVerificationRequest(**data)
-        
+
         assert request.token == "verification_token_123"
 
     def test_refresh_token_request_valid(self):
         """Test valid refresh token request"""
-        data = {
-            "refresh_token": "refresh_token_123"
-        }
-        
+        data = {"refresh_token": "refresh_token_123"}
+
         request = RefreshTokenRequest(**data)
-        
+
         assert request.refresh_token == "refresh_token_123"
 
 
@@ -482,86 +431,66 @@ class TestTeamSchemas:
 
     def test_team_create_valid(self):
         """Test valid team creation"""
-        data = {
-            "name": "Development Team",
-            "slug": "dev-team",
-            "description": "Main development team"
-        }
-        
+        data = {"name": "Development Team", "slug": "dev-team", "description": "Main development team"}
+
         team = TeamCreate(**data)
-        
+
         assert team.name == "Development Team"
         assert team.slug == "dev-team"
         assert team.description == "Main development team"
 
     def test_team_create_minimal(self):
         """Test team creation with minimal data"""
-        data = {
-            "name": "Team Alpha",
-            "slug": "alpha"
-        }
-        
+        data = {"name": "Team Alpha", "slug": "alpha"}
+
         team = TeamCreate(**data)
-        
+
         assert team.name == "Team Alpha"
         assert team.slug == "alpha"
         assert team.description is None
 
     def test_team_create_invalid_slug(self):
         """Test team creation with invalid slug"""
-        data = {
-            "name": "Team Alpha",
-            "slug": "Team Alpha!"  # Invalid characters
-        }
-        
+        data = {"name": "Team Alpha", "slug": "Team Alpha!"}  # Invalid characters
+
         with pytest.raises(ValidationError) as exc_info:
             TeamCreate(**data)
-        
+
         assert "string does not match regex" in str(exc_info.value)
 
     def test_team_update_valid(self):
         """Test valid team update"""
-        data = {
-            "name": "Updated Team Name",
-            "description": "Updated description"
-        }
-        
+        data = {"name": "Updated Team Name", "description": "Updated description"}
+
         update = TeamUpdate(**data)
-        
+
         assert update.name == "Updated Team Name"
         assert update.description == "Updated description"
 
     def test_team_update_partial(self):
         """Test partial team update"""
-        data = {
-            "name": "New Name Only"
-        }
-        
+        data = {"name": "New Name Only"}
+
         update = TeamUpdate(**data)
-        
+
         assert update.name == "New Name Only"
         assert update.description is None
 
     def test_team_member_add_valid(self):
         """Test valid team member addition"""
-        data = {
-            "user_id": "user123",
-            "role": TeamRole.ADMIN
-        }
-        
+        data = {"user_id": "user123", "role": TeamRole.ADMIN}
+
         member = TeamMemberAdd(**data)
-        
+
         assert member.user_id == "user123"
         assert member.role == TeamRole.ADMIN
 
     def test_team_member_add_default_role(self):
         """Test team member addition with default role"""
-        data = {
-            "user_id": "user123"
-        }
-        
+        data = {"user_id": "user123"}
+
         member = TeamMemberAdd(**data)
-        
+
         assert member.user_id == "user123"
         assert member.role == TeamRole.MEMBER  # Default
 
@@ -576,11 +505,11 @@ class TestTeamSchemas:
             "is_default": False,
             "created_at": datetime(2025, 1, 1),
             "updated_at": datetime(2025, 1, 15),
-            "member_count": 5
+            "member_count": 5,
         }
-        
+
         team = TeamResponse(**data)
-        
+
         assert team.id == "team123"
         assert team.is_default is False
         assert team.member_count == 5
@@ -592,11 +521,11 @@ class TestTeamSchemas:
             "email": "member@example.com",
             "full_name": "Team Member",
             "role": TeamRole.ADMIN,
-            "joined_at": datetime(2025, 1, 10)
+            "joined_at": datetime(2025, 1, 10),
         }
-        
+
         member = TeamMemberResponse(**data)
-        
+
         assert member.user_id == "user123"
         assert member.role == TeamRole.ADMIN
         assert member.joined_at == datetime(2025, 1, 10)
@@ -608,9 +537,9 @@ class TestTeamSchemas:
             "email": "member@example.com",
             "full_name": "Team Member",
             "role": TeamRole.MEMBER,
-            "joined_at": datetime(2025, 1, 10)
+            "joined_at": datetime(2025, 1, 10),
         }
-        
+
         team_data = {
             "id": "team123",
             "name": "Development Team",
@@ -620,11 +549,11 @@ class TestTeamSchemas:
             "created_at": datetime(2025, 1, 1),
             "updated_at": datetime(2025, 1, 15),
             "member_count": 1,
-            "members": [TeamMemberResponse(**member_data)]
+            "members": [TeamMemberResponse(**member_data)],
         }
-        
+
         detail = TeamDetailResponse(**team_data)
-        
+
         assert len(detail.members) == 1
         assert detail.members[0].user_id == "user123"
 
@@ -634,13 +563,10 @@ class TestPermissionSchemas:
 
     def test_permission_grant_valid(self):
         """Test valid permission grant"""
-        data = {
-            "resource": ResourceType.LEAD,
-            "action": PermissionAction.READ
-        }
-        
+        data = {"resource": ResourceType.LEAD, "action": PermissionAction.READ}
+
         grant = PermissionGrant(**data)
-        
+
         assert grant.resource == ResourceType.LEAD
         assert grant.action == PermissionAction.READ
 
@@ -650,37 +576,31 @@ class TestPermissionSchemas:
             "id": "perm123",
             "resource": ResourceType.REPORT,
             "action": PermissionAction.CREATE,
-            "description": "Create reports"
+            "description": "Create reports",
         }
-        
+
         permission = PermissionResponse(**data)
-        
+
         assert permission.id == "perm123"
         assert permission.resource == ResourceType.REPORT
         assert permission.action == PermissionAction.CREATE
 
     def test_role_create_valid(self):
         """Test valid role creation"""
-        data = {
-            "name": "Manager",
-            "description": "Team manager role",
-            "permissions": ["perm1", "perm2", "perm3"]
-        }
-        
+        data = {"name": "Manager", "description": "Team manager role", "permissions": ["perm1", "perm2", "perm3"]}
+
         role = RoleCreate(**data)
-        
+
         assert role.name == "Manager"
         assert role.description == "Team manager role"
         assert role.permissions == ["perm1", "perm2", "perm3"]
 
     def test_role_create_minimal(self):
         """Test role creation with minimal data"""
-        data = {
-            "name": "Basic User"
-        }
-        
+        data = {"name": "Basic User"}
+
         role = RoleCreate(**data)
-        
+
         assert role.name == "Basic User"
         assert role.description is None
         assert role.permissions == []
@@ -691,9 +611,9 @@ class TestPermissionSchemas:
             "id": "perm123",
             "resource": ResourceType.LEAD,
             "action": PermissionAction.READ,
-            "description": "Read leads"
+            "description": "Read leads",
         }
-        
+
         role_data = {
             "id": "role123",
             "name": "Lead Reader",
@@ -701,11 +621,11 @@ class TestPermissionSchemas:
             "is_system": False,
             "permissions": [PermissionResponse(**perm_data)],
             "created_at": datetime(2025, 1, 1),
-            "updated_at": datetime(2025, 1, 15)
+            "updated_at": datetime(2025, 1, 15),
         }
-        
+
         role = RoleResponse(**role_data)
-        
+
         assert role.id == "role123"
         assert role.is_system is False
         assert len(role.permissions) == 1
@@ -717,48 +637,39 @@ class TestAPIKeySchemas:
 
     def test_api_key_create_valid(self):
         """Test valid API key creation"""
-        data = {
-            "name": "Production API Key",
-            "scopes": ["read", "write"],
-            "expires_in_days": 90
-        }
-        
+        data = {"name": "Production API Key", "scopes": ["read", "write"], "expires_in_days": 90}
+
         key = APIKeyCreate(**data)
-        
+
         assert key.name == "Production API Key"
         assert key.scopes == ["read", "write"]
         assert key.expires_in_days == 90
 
     def test_api_key_create_minimal(self):
         """Test API key creation with minimal data"""
-        data = {
-            "name": "Basic Key"
-        }
-        
+        data = {"name": "Basic Key"}
+
         key = APIKeyCreate(**data)
-        
+
         assert key.name == "Basic Key"
         assert key.scopes == []
         assert key.expires_in_days is None
 
     def test_api_key_create_invalid_expiry(self):
         """Test API key creation with invalid expiry"""
-        data = {
-            "name": "Test Key",
-            "expires_in_days": 0  # Too low
-        }
-        
+        data = {"name": "Test Key", "expires_in_days": 0}  # Too low
+
         with pytest.raises(ValidationError) as exc_info:
             APIKeyCreate(**data)
-        
+
         assert "ensure this value is greater than or equal to 1" in str(exc_info.value)
-        
+
         # Test too high
         data["expires_in_days"] = 366  # Too high
-        
+
         with pytest.raises(ValidationError) as exc_info:
             APIKeyCreate(**data)
-        
+
         assert "ensure this value is less than or equal to 365" in str(exc_info.value)
 
     def test_api_key_response_serialization(self):
@@ -772,11 +683,11 @@ class TestAPIKeySchemas:
             "usage_count": 50,
             "expires_at": datetime(2025, 4, 10),
             "is_active": True,
-            "created_at": datetime(2025, 1, 1)
+            "created_at": datetime(2025, 1, 1),
         }
-        
+
         key = APIKeyResponse(**data)
-        
+
         assert key.id == "key123"
         assert key.key_prefix == "sk_test_"
         assert key.usage_count == 50
@@ -794,11 +705,11 @@ class TestAPIKeySchemas:
             "expires_at": None,
             "is_active": True,
             "created_at": datetime(2025, 1, 1),
-            "key": "sk_test_1234567890abcdef"  # Only in creation response
+            "key": "sk_test_1234567890abcdef",  # Only in creation response
         }
-        
+
         key = APIKeyCreateResponse(**data)
-        
+
         assert key.key == "sk_test_1234567890abcdef"
         assert key.name == "New Key"
 
@@ -819,17 +730,17 @@ class TestAuthSchemas:
             "email_verified": True,
             "mfa_enabled": False,
             "created_at": datetime(2025, 1, 1),
-            "updated_at": datetime(2025, 1, 15)
+            "updated_at": datetime(2025, 1, 15),
         }
-        
+
         token_data = {
             "access_token": "access_token_123",
             "refresh_token": "refresh_token_123",
-            "user": UserResponse(**user_data)
+            "user": UserResponse(**user_data),
         }
-        
+
         response = AuthTokenResponse(**token_data)
-        
+
         assert response.access_token == "access_token_123"
         assert response.refresh_token == "refresh_token_123"
         assert response.token_type == "Bearer"  # Default
@@ -847,19 +758,19 @@ class TestAuthSchemas:
             "email_verified": True,
             "mfa_enabled": False,
             "created_at": datetime(2025, 1, 1),
-            "updated_at": datetime(2025, 1, 15)
+            "updated_at": datetime(2025, 1, 15),
         }
-        
+
         token_data = {
             "access_token": "access_token_123",
             "refresh_token": "refresh_token_123",
             "token_type": "Custom",
             "expires_in": 3600,
-            "user": UserResponse(**user_data)
+            "user": UserResponse(**user_data),
         }
-        
+
         response = AuthTokenResponse(**token_data)
-        
+
         assert response.token_type == "Custom"
         assert response.expires_in == 3600
 
@@ -872,11 +783,11 @@ class TestAuthSchemas:
             "device_id": "device123",
             "created_at": datetime(2025, 1, 1),
             "last_activity_at": datetime(2025, 1, 15),
-            "expires_at": datetime(2025, 2, 1)
+            "expires_at": datetime(2025, 2, 1),
         }
-        
+
         session = SessionResponse(**data)
-        
+
         assert session.id == "session123"
         assert session.ip_address == "192.168.1.100"
         assert session.device_id == "device123"
@@ -896,11 +807,11 @@ class TestAuditAndErrorSchemas:
             "resource_id": "lead123",
             "ip_address": "192.168.1.100",
             "details": {"field": "value"},
-            "created_at": datetime(2025, 1, 15)
+            "created_at": datetime(2025, 1, 15),
         }
-        
+
         audit = AuditLogResponse(**data)
-        
+
         assert audit.id == "audit123"
         assert audit.action == "CREATE"
         assert audit.resource_type == "lead"
@@ -908,15 +819,10 @@ class TestAuditAndErrorSchemas:
 
     def test_audit_log_response_minimal(self):
         """Test audit log response with minimal data"""
-        data = {
-            "id": "audit123",
-            "action": "READ",
-            "resource_type": "report",
-            "created_at": datetime(2025, 1, 15)
-        }
-        
+        data = {"id": "audit123", "action": "READ", "resource_type": "report", "created_at": datetime(2025, 1, 15)}
+
         audit = AuditLogResponse(**data)
-        
+
         assert audit.user_id is None
         assert audit.resource_id is None
         assert audit.details is None
@@ -926,24 +832,21 @@ class TestAuditAndErrorSchemas:
         data = {
             "error": "validation_error",
             "message": "Invalid input data",
-            "details": {"field": "email", "issue": "invalid format"}
+            "details": {"field": "email", "issue": "invalid format"},
         }
-        
+
         error = ErrorResponse(**data)
-        
+
         assert error.error == "validation_error"
         assert error.message == "Invalid input data"
         assert error.details["field"] == "email"
 
     def test_error_response_minimal(self):
         """Test error response with minimal data"""
-        data = {
-            "error": "not_found",
-            "message": "Resource not found"
-        }
-        
+        data = {"error": "not_found", "message": "Resource not found"}
+
         error = ErrorResponse(**data)
-        
+
         assert error.error == "not_found"
         assert error.details is None
 
@@ -952,12 +855,12 @@ class TestAuditAndErrorSchemas:
         data = {
             "errors": [
                 {"field": "email", "message": "Invalid email format"},
-                {"field": "password", "message": "Password too short"}
+                {"field": "password", "message": "Password too short"},
             ]
         }
-        
+
         error = ValidationErrorResponse(**data)
-        
+
         assert error.error == "validation_error"  # Default
         assert error.message == "Validation failed"  # Default
         assert len(error.errors) == 2
@@ -968,11 +871,11 @@ class TestAuditAndErrorSchemas:
         data = {
             "error": "custom_validation_error",
             "message": "Custom validation failed",
-            "errors": [{"custom": "error"}]
+            "errors": [{"custom": "error"}],
         }
-        
+
         error = ValidationErrorResponse(**data)
-        
+
         assert error.error == "custom_validation_error"
         assert error.message == "Custom validation failed"
 
@@ -983,95 +886,66 @@ class TestSchemaEdgeCases:
     def test_extremely_long_strings(self):
         """Test validation with extremely long strings"""
         # Test organization name too long
-        data = {
-            "name": "x" * 256,  # Too long
-            "slug": "test-org"
-        }
-        
+        data = {"name": "x" * 256, "slug": "test-org"}  # Too long
+
         with pytest.raises(ValidationError) as exc_info:
             OrganizationCreate(**data)
-        
+
         assert "ensure this value has at most 255 characters" in str(exc_info.value)
 
     def test_unicode_and_special_characters(self):
         """Test handling of unicode and special characters"""
         # Valid unicode in names
-        data = {
-            "name": "测试组织 🏢",
-            "slug": "test-org"
-        }
-        
+        data = {"name": "测试组织 🏢", "slug": "test-org"}
+
         org = OrganizationCreate(**data)
         assert org.name == "测试组织 🏢"
-        
+
         # User with unicode full name
-        user_data = {
-            "email": "test@example.com",
-            "password": "SecurePass123!",
-            "full_name": "José María González"
-        }
-        
+        user_data = {"email": "test@example.com", "password": "SecurePass123!", "full_name": "José María González"}
+
         user = UserRegister(**user_data)
         assert user.full_name == "José María González"
 
     def test_boundary_values(self):
         """Test boundary values for numeric fields"""
         # Test minimum valid values
-        data = {
-            "name": "Test Org",
-            "slug": "test",
-            "max_users": 1,
-            "max_teams": 1,
-            "max_api_keys": 1
-        }
-        
+        data = {"name": "Test Org", "slug": "test", "max_users": 1, "max_teams": 1, "max_api_keys": 1}
+
         org = OrganizationCreate(**data)
         assert org.max_users == 1
-        
+
         # Test maximum valid values
-        data.update({
-            "max_users": 1000,
-            "max_teams": 100,
-            "max_api_keys": 1000
-        })
-        
+        data.update({"max_users": 1000, "max_teams": 100, "max_api_keys": 1000})
+
         org = OrganizationCreate(**data)
         assert org.max_users == 1000
 
     def test_none_vs_missing_fields(self):
         """Test difference between None and missing fields"""
         # Missing optional fields
-        data = {
-            "name": "Test Org",
-            "slug": "test-org"
-        }
-        
+        data = {"name": "Test Org", "slug": "test-org"}
+
         org = OrganizationCreate(**data)
         assert org.billing_email is None
-        
+
         # Explicitly None optional fields
         data["billing_email"] = None
-        
+
         org = OrganizationCreate(**data)
         assert org.billing_email is None
 
     def test_empty_collections(self):
         """Test handling of empty collections"""
         # Empty scopes list
-        data = {
-            "name": "Test Key",
-            "scopes": []
-        }
-        
+        data = {"name": "Test Key", "scopes": []}
+
         key = APIKeyCreate(**data)
         assert key.scopes == []
-        
+
         # Empty permissions list
-        role_data = {
-            "name": "Basic Role",
-            "permissions": []
-        }
-        
+        role_data = {"name": "Basic Role", "permissions": []}
+
         role = RoleCreate(**role_data)
         assert role.permissions == []
 
@@ -1081,15 +955,15 @@ class TestSchemaEdgeCases:
             "email": "test@example.com",
             "password": "SecurePass123!",
             "username": "testuser",
-            "full_name": "Test User"
+            "full_name": "Test User",
         }
-        
+
         # Create model instance
         user = UserRegister(**original_data)
-        
+
         # Serialize to dict (excluding password for security)
         serialized = user.dict(exclude={"password"})
-        
+
         # Verify serialization
         assert serialized["email"] == "test@example.com"
         assert serialized["username"] == "testuser"
@@ -1097,17 +971,14 @@ class TestSchemaEdgeCases:
 
     def test_password_secret_handling(self):
         """Test that password SecretStr is handled correctly"""
-        data = {
-            "email": "test@example.com",
-            "password": "SecurePass123!"
-        }
-        
+        data = {"email": "test@example.com", "password": "SecurePass123!"}
+
         user = UserRegister(**data)
-        
+
         # Verify password is SecretStr
-        assert hasattr(user.password, 'get_secret_value')
+        assert hasattr(user.password, "get_secret_value")
         assert user.password.get_secret_value() == "SecurePass123!"
-        
+
         # Verify password is not in string representation
         user_str = str(user)
         assert "SecurePass123!" not in user_str
