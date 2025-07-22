@@ -37,14 +37,16 @@ class OrchestratorLoopV2:
         self.running = False
 
     def send_notification(self, window: str, message: str):
-        """Send notification to orchestrator agent via Redis queue"""
+        """Send notification to orchestrator agent via notifier system"""
         notification = {
+            "id": f"notif-{int(time.time() * 1000)}",
             "type": "system_notification",
             "message": message,
             "timestamp": datetime.utcnow().isoformat(),
             "source": "orchestrator_loop",
         }
-        self.redis_client.lpush("orchestrator_queue", json.dumps(notification))
+        # Add to pending notifications for notifier to deliver
+        self.redis_client.lpush("orchestrator:pending_notifications", json.dumps(notification))
 
     def process_orchestrator_queue(self):
         """Process messages in orchestrator queue"""
@@ -260,13 +262,26 @@ class OrchestratorLoopV2:
     def handle_new_prp(self, data: Dict):
         """Handle new PRP notification"""
         prp_id = data.get("prp_id")
-        self.send_notification("orchestrator", f"📥 New PRP queued: {prp_id}")
+        notification = {
+            "id": f"notif-{int(time.time() * 1000)}",
+            "type": "new_prp",
+            "prp_id": prp_id,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        self.redis_client.lpush("orchestrator:pending_notifications", json.dumps(notification))
 
     def handle_bulk_prps(self, data: Dict):
         """Handle bulk PRPs notification"""
         prp_ids = data.get("prp_ids", [])
         queue = data.get("queue")
-        self.send_notification("orchestrator", f"📦 Bulk PRPs queued: {len(prp_ids)} PRPs added to {queue}")
+        notification = {
+            "id": f"notif-{int(time.time() * 1000)}",
+            "type": "bulk_prps_queued",
+            "prp_ids": prp_ids,
+            "queue": queue,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+        self.redis_client.lpush("orchestrator:pending_notifications", json.dumps(notification))
 
     def get_tmux_windows(self) -> List[str]:
         """Get list of tmux windows"""

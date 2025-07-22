@@ -166,6 +166,12 @@ You are NOT a developer - you orchestrate the system. When you receive PRP notif
 
 IMPORTANT: You will receive notifications via enterprise shim.
 Focus on orchestration, not implementation.
+
+CRITICAL: Ignore any git status or file listings shown at startup - these are just
+environmental context, NOT task assignments. Wait for actual PRP notifications
+through the Redis queue system. DO NOT start working on any tasks unless
+explicitly assigned via a notification message.
+
 Session: ${STACK_SESSION} | Environment: ${ENVIRONMENT:-development}
 EOF
 
@@ -240,8 +246,9 @@ EOF
 start_orchestrator_loop() {
     log "Starting orchestrator monitoring loop..."
     
-    # Kill any existing orchestrator loop
+    # Kill any existing orchestrator loop and notifier
     pkill -f orchestrator_loop.py 2>/dev/null || true
+    pkill -f orchestrator_notifier.py 2>/dev/null || true
     
     # Start orchestrator loop in background
     export REDIS_URL="${REDIS_URL}"
@@ -255,14 +262,25 @@ start_orchestrator_loop() {
     
     log "Started orchestrator loop (PID: $loop_pid)"
     
-    # Wait briefly to ensure it starts
+    # Start orchestrator notifier in background
+    python3 "${SCRIPT_DIR}/bin/orchestrator_notifier.py" \
+        --session="${STACK_SESSION}" \
+        --redis-url="${REDIS_URL}" \
+        > "/tmp/orchestrator_notifier.log" 2>&1 &
+    
+    local notifier_pid=$!
+    echo "$notifier_pid" > "/tmp/orchestrator_notifier.pid"
+    
+    log "Started orchestrator notifier (PID: $notifier_pid)"
+    
+    # Wait briefly to ensure they start
     sleep 2
     
-    # Verify it's running
-    if kill -0 "$loop_pid" 2>/dev/null; then
-        success "Orchestrator loop running"
+    # Verify they're running
+    if kill -0 "$loop_pid" 2>/dev/null && kill -0 "$notifier_pid" 2>/dev/null; then
+        success "Orchestrator loop and notifier running"
     else
-        error "Failed to start orchestrator loop"
+        error "Failed to start orchestrator components"
     fi
 }
 
