@@ -1,0 +1,65 @@
+# Evidence Schema for PRP Queue Promotion
+# Defines required evidence fields for each promotion transition
+
+# State transitions: dev → validation → integration → done
+transitions:
+  dev_to_validation:
+    description: "Development to validation queue transition"
+    required_fields:
+      - implementation_complete
+      - tests_written
+      - code_reviewed
+      - documentation_updated
+    optional_fields:
+      - performance_tested
+      - security_reviewed
+    validation_rules:
+      implementation_complete: "boolean"
+      tests_written: "boolean" 
+      code_reviewed: "boolean"
+      documentation_updated: "boolean"
+      performance_tested: "boolean"
+      security_reviewed: "boolean"
+
+  validation_to_integration:
+    description: "Validation to integration queue transition"
+    required_fields:
+      - validation_passed
+      - ci_passing
+      - test_coverage_adequate
+      - deployment_ready
+    optional_fields:
+      - performance_benchmarked
+      - security_audit_complete
+    validation_rules:
+      validation_passed: "boolean"
+      ci_passing: "boolean"
+      test_coverage_adequate: "boolean"
+      deployment_ready: "boolean"
+      performance_benchmarked: "boolean"
+      security_audit_complete: "boolean"
+
+  integration_to_done:
+    description: "Integration to done queue transition"  
+    required_fields:
+      - integration_tested
+      - deployment_successful
+      - monitoring_enabled
+      - rollback_plan_ready
+    optional_fields:
+      - user_acceptance_complete
+      - performance_verified
+    validation_rules:
+      integration_tested: "boolean"
+      deployment_successful: "boolean"
+      monitoring_enabled: "boolean"
+      rollback_plan_ready: "boolean"
+      user_acceptance_complete: "boolean"
+      performance_verified: "boolean"
+
+# Global evidence metadata
+metadata:
+  schema_version: "1.0"
+  last_updated: "2025-01-21T11:00:00Z"
+  validation_mode: "strict"  # strict|permissive
+  evidence_ttl_seconds: 86400  # 24 hours

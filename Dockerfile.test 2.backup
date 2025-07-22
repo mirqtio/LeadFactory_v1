@@ -1,0 +1,46 @@
+# Multi-stage build for test environment
+FROM python:3.11.0-slim AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency files
+COPY requirements.txt requirements-dev.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+
+# Test stage
+FROM base AS test
+
+# Copy application code
+COPY . .
+
+# Set environment variables for testing
+ENV PYTHONPATH=/app
+ENV USE_STUBS=true
+ENV DATABASE_URL=postgresql://postgres:postgres@postgres:5432/leadfactory_test
+ENV ENVIRONMENT=test
+ENV SECRET_KEY=test-secret-key-for-ci
+ENV CI=true
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Create required directories and set permissions
+RUN mkdir -p /app/tmp /app/logs /app/coverage /app/test-results && \
+    chmod -R 777 /app/coverage /app/test-results && \
+    chmod +x scripts/run_migrations.py scripts/wait_for_stub.py scripts/run_docker_tests.sh 2>/dev/null || true
+
+# Verify critical test dependencies are installed
+RUN python -c "import pytest; import coverage; print('✅ Test dependencies verified')"
+
+# Run tests as default command
+CMD ["pytest", "-m", "not slow and not phase_future", "--tb=short", "--cov=.", "--cov-report=term-missing", "--cov-config=.coveragerc"]

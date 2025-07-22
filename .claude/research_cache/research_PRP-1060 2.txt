@@ -1,0 +1,82 @@
+# Research Context for PRP-1060 - Acceptance + Deploy Runner Persona
+
+## Key Findings
+- GHCR (GitHub Container Registry) has matured significantly in 2024 with robust automation capabilities
+- SSH deployment to VPS using GitHub Actions is well-established with proven patterns
+- SuperClaude framework supports specialized personas for acceptance testing and deployment automation
+- Modern CI/CD pipelines emphasize automated testing integration before deployment
+- Watchtower provides automated container updates and monitoring capabilities
+
+## Authoritative Sources
+- GitHub Official Container Registry Documentation: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
+- SuperClaude Framework Repository: https://github.com/NomenAK/SuperClaude
+- Docker GitHub Actions CI/CD Guide: https://runcloud.io/blog/setup-docker-github-actions-ci-cd
+- VPS Docker Deployment Guide: https://dev.to/ikurotime/deploy-docker-containers-in-vps-with-github-actions-2e28
+- SSH Docker Compose Deployment: https://docs.servicestack.net/ssh-docker-compose-deploment
+
+## Current Best Practices
+
+### GitHub Container Registry (GHCR)
+- Use GITHUB_TOKEN for authentication (recommended over PAT)
+- Implement docker/login-action for GHCR authentication
+- Use docker/build-push-action for building and publishing containers
+- 1 GB free storage, $0.25/GB/month for additional storage
+- 1 GB free data transfer, $0.50/GB for additional transfer
+
+### SSH Deployment Automation
+- Use SSH Remote Commands action for VPS deployment
+- Configure SSH private keys in GitHub Secrets
+- Implement proper SSH_USER, SSH_HOST, and WORK_DIR configuration
+- Support for both public and private GHCR image pulling
+
+### Acceptance Testing Integration
+- CI/CD pipeline should include automated testing before deployment
+- Persona testing uses fictional, data-backed user profiles
+- Automation testing scales persona testing without sacrificing depth
+- Parameterized tests with swappable variables for different personas
+
+### SuperClaude Integration
+- Framework includes specialized personas for different domains
+- 16 specialized commands for development tasks
+- MCP server integration for docs, UI components, and browser automation
+- Installation profiles: quick, minimal, developer setups available
+
+## Common Pitfalls
+- Not implementing proper SSH key management and rotation
+- Missing authentication for private GHCR images on deployment targets
+- Inadequate acceptance testing before production deployment
+- Lack of rollback mechanisms in deployment pipelines
+- Not monitoring container resource usage and performance
+
+## Recent Updates (2024)
+- GHCR pricing model simplified with clear storage and transfer costs
+- GitHub Actions improved container registry integration
+- Enhanced SSH deployment patterns with better security practices
+- SuperClaude framework active development with core functionality stable
+- Modern CI/CD emphasis on automated testing integration
+
+## Implementation Recommendations
+
+### Acceptance Testing Persona
+- Implement profiles/acceptance.yaml configuration
+- Use SuperClaude persona system for specialized testing workflows
+- Integrate with existing test frameworks (pytest, playwright)
+- Support for parameterized persona-based testing scenarios
+
+### Deploy Runner Integration
+- Build GHCR container with acceptance testing tools
+- Configure SSH deployment automation to VPS
+- Implement evidence validation and reporting
+- Support for automated rollback on test failures
+
+### Container Configuration
+- Use multi-stage Docker builds for testing and deployment
+- Include acceptance testing tools in container
+- Configure environment-specific test profiles
+- Implement health checks and monitoring endpoints
+
+### Security Considerations
+- Use GitHub Secrets for SSH keys and tokens
+- Implement least-privilege access patterns
+- Regular rotation of SSH keys and access tokens
+- Network security for VPS deployment targets

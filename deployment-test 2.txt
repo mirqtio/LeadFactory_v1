@@ -1,0 +1,4 @@
+Testing deployment workflow script fix with latest GitHub Actions fixes
+Commit: bf20738 (SSH exit code handling with bash -s and proper error control)
+Time: 2025-07-21T13:56:00Z
+Trigger: Force workflow to use updated deployment script with SSH exit code fixes

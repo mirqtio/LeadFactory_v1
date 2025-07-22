@@ -1,0 +1,246 @@
+# Redis Queue Broker Configuration
+# Configurable settings for queue behavior, retry policies, and monitoring
+
+# General queue settings
+queue_config:
+  # Environment-specific queue prefixes
+  development_prefix: "dev_"
+  staging_prefix: "staging_"
+  production_prefix: "prod_"
+  
+  # Default message settings
+  default_timeout_seconds: 300  # 5 minutes
+  default_max_retries: 3
+  default_priority: 0
+  
+  # Queue depth limits
+  max_pending_messages: 10000
+  max_inflight_messages: 1000
+  
+  # Batch processing settings
+  default_batch_size: 10
+  max_batch_size: 100
+
+# Retry policy configuration per stage
+retry_policies:
+  development:
+    max_retries: 5
+    initial_delay_seconds: 1
+    max_delay_seconds: 60
+    backoff_multiplier: 2.0
+    jitter_enabled: true
+    
+  integration:
+    max_retries: 3
+    initial_delay_seconds: 2
+    max_delay_seconds: 120
+    backoff_multiplier: 2.0
+    jitter_enabled: true
+    
+  validation:
+    max_retries: 1
+    initial_delay_seconds: 5
+    max_delay_seconds: 300
+    backoff_multiplier: 1.5
+    jitter_enabled: false
+    
+  production:
+    max_retries: 2
+    initial_delay_seconds: 10
+    max_delay_seconds: 600
+    backoff_multiplier: 2.0
+    jitter_enabled: true
+
+# Dead Letter Queue settings
+dlq_config:
+  # TTL for DLQ messages (hours)
+  default_ttl_hours: 168  # 7 days
+  
+  # Cleanup intervals
+  cleanup_interval_hours: 24
+  
+  # Per-stage TTL overrides
+  ttl_overrides:
+    development: 24    # 1 day
+    integration: 72    # 3 days  
+    validation: 168    # 7 days
+    production: 720    # 30 days
+
+# Queue monitoring thresholds
+monitoring:
+  # Global default thresholds
+  default_thresholds:
+    pending_warning: 100
+    pending_critical: 500
+    processing_rate_warning: 10.0  # messages per minute
+    processing_rate_critical: 1.0
+    error_rate_warning: 5.0        # percentage
+    error_rate_critical: 15.0
+    avg_processing_time_warning: 30.0    # seconds
+    avg_processing_time_critical: 120.0
+    dlq_warning: 10
+    dlq_critical: 50
+    activity_timeout_warning: 10    # minutes
+    activity_timeout_critical: 30
+    
+  # Queue-specific threshold overrides
+  queue_overrides:
+    # High-priority validation queue
+    validation_queue:
+      pending_warning: 50
+      pending_critical: 200
+      processing_rate_warning: 20.0
+      processing_rate_critical: 5.0
+      error_rate_warning: 2.0
+      error_rate_critical: 8.0
+      
+    # Development queue (more lenient)
+    dev_queue:
+      pending_warning: 200
+      pending_critical: 1000
+      processing_rate_warning: 5.0
+      processing_rate_critical: 0.5
+      error_rate_warning: 10.0
+      error_rate_critical: 25.0
+      
+    # Integration queue
+    integration_queue:
+      pending_warning: 75
+      pending_critical: 300
+      processing_rate_warning: 15.0
+      processing_rate_critical: 3.0
+      avg_processing_time_warning: 60.0
+      avg_processing_time_critical: 300.0
+
+# Agent coordination settings
+agent_coordination:
+  # Default agent capacities by type
+  default_capacities:
+    pm: 1.0
+    integrator: 0.8
+    validator: 1.2
+    orchestrator: 2.0
+    security: 0.9
+    
+  # Heartbeat settings
+  heartbeat_interval_seconds: 30
+  heartbeat_timeout_minutes: 5
+  
+  # Assignment settings
+  max_concurrent_prps_per_agent: 3
+  assignment_timeout_seconds: 60
+  
+  # Queue routing
+  queue_routing:
+    prp_validation: "validation_queue"
+    prp_integration: "integration_queue"
+    prp_development: "dev_queue"
+    prp_completion: "completion_queue"
+    pm_tasks: "pm_queue"
+    integrator_tasks: "integrator_queue"
+    validator_tasks: "validator_queue"
+    security_tasks: "security_queue"
+    broadcast: "broadcast_queue"
+    coordination: "coordination_queue"
+
+# Performance tuning
+performance:
+  # Connection pooling
+  max_connections: 20
+  connection_pool_timeout: 30
+  
+  # Operation timeouts
+  blocking_timeout: 10.0
+  operation_timeout: 30.0
+  
+  # Cleanup intervals
+  stats_cleanup_interval_hours: 48
+  metrics_retention_hours: 168  # 7 days
+  
+  # Background processing
+  retry_processor_interval_seconds: 60
+  health_check_interval_seconds: 30
+  
+# Security settings
+security:
+  # Redis AUTH (if enabled)
+  auth_required: false
+  
+  # Network security
+  bind_to_localhost_only: true
+  
+  # Message encryption (future feature)
+  encrypt_messages: false
+  
+  # Access control
+  restrict_admin_operations: true
+
+# Logging and observability
+logging:
+  # Log levels by component
+  redis_queue: "INFO"
+  queue_patterns: "INFO"  
+  dead_letter_queue: "WARNING"
+  agent_coordinator: "INFO"
+  queue_monitor: "INFO"
+  
+  # Metrics integration
+  send_to_core_metrics: true
+  metrics_prefix: "queue_"
+  
+  # Alert integration
+  send_health_alerts: true
+  alert_channels: ["log", "email"]  # Will use existing alert system
+  
+# Feature flags
+features:
+  # Enable/disable specific features
+  enable_priority_queues: true
+  enable_batch_processing: true
+  enable_automatic_retries: true
+  enable_dlq_replay: true
+  enable_key_expiry_notifications: true
+  enable_health_monitoring: true
+  enable_metrics_collection: true
+  
+  # Experimental features
+  enable_message_encryption: false
+  enable_queue_partitioning: false
+  enable_cross_region_replication: false
+
+# Environment-specific overrides
+environments:
+  development:
+    queue_config:
+      default_timeout_seconds: 60
+    monitoring:
+      default_thresholds:
+        pending_warning: 50
+        pending_critical: 200
+    logging:
+      redis_queue: "DEBUG"
+      queue_patterns: "DEBUG"
+      
+  staging:
+    queue_config:
+      default_timeout_seconds: 180
+    performance:
+      blocking_timeout: 5.0
+    security:
+      auth_required: true
+      
+  production:
+    queue_config:
+      default_timeout_seconds: 600
+      max_pending_messages: 50000
+    performance:
+      max_connections: 50
+      blocking_timeout: 15.0
+    security:
+      auth_required: true
+      bind_to_localhost_only: false
+      restrict_admin_operations: true
+    logging:
+      redis_queue: "WARNING"
+      queue_patterns: "WARNING"
+      dead_letter_queue: "ERROR"

@@ -1,0 +1,95 @@
+# Research Context for PRP-1058 - Redis Queue Broker
+
+## Key Findings
+
+**BRPOPLPUSH Deprecation**: As of Redis 6.2.0, BRPOPLPUSH is deprecated and should be replaced with BLMOVE (RIGHT, LEFT) for equivalent functionality.
+
+**Redis Streams Modern Alternative**: Redis Streams provide a more robust, persistent, and feature-rich queue solution compared to traditional list-based queues, offering consumer groups, persistent storage, and better fault tolerance.
+
+**AWS Infrastructure Support**: Amazon ElastiCache provides fully managed Redis/Valkey service with 99.99% availability, and GLIDE for Redis offers an open-source client optimized for AWS environments.
+
+**Reliable Queue Pattern**: The traditional pattern uses BRPOPLPUSH to move messages from main queue to worker-specific backup queues (named by hostname:PID), preventing message loss and duplication.
+
+## Authoritative Sources
+
+- Redis Official Documentation: https://redis.io/docs/latest/commands/brpoplpush/ (deprecated)
+- Redis BLMOVE Command: https://redis.io/docs/latest/commands/blmove/ (replacement)
+- Redis Streams Documentation: https://redis.io/docs/latest/develop/data-types/streams/
+- Redis Queue Patterns: https://redis.io/glossary/redis-queue/
+- AWS ElastiCache for Redis: https://aws.amazon.com/elasticache/redis/
+- redis-py Documentation: https://redis.readthedocs.io/en/stable/
+- Agent-Squad Framework: https://github.com/awslabs/agent-squad
+
+## Current Best Practices
+
+**For List-Based Queues (2024)**:
+- Use BLMOVE instead of deprecated BRPOPLPUSH for reliable queue pattern
+- Implement per-worker backup queues using hostname:PID naming convention
+- Use redis-py blmove() method: `blmove(first_list, second_list, timeout, src='LEFT', dest='RIGHT')`
+
+**For Modern Queue Implementation**:
+- Prefer Redis Streams for new queue implementations requiring advanced features
+- Implement consumer groups for distributed processing
+- Use XADD, XREAD, XREADGROUP for stream operations
+- Leverage persistent storage capabilities of Redis Streams
+
+**AWS Integration**:
+- Use Amazon ElastiCache for managed Redis infrastructure
+- Consider GLIDE for Redis client for better AWS integration
+- Implement proper connection pooling and error handling
+
+## Common Pitfalls
+
+**Traditional BRPOPLPUSH Issues**:
+- Destructive read operation - once popped, message state is lost
+- No visibility into message processing status or consumer identity
+- Risk of message loss if worker crashes before processing completion
+
+**Implementation Challenges**:
+- Worker crash handling requires cleanup of backup queues
+- Need proper timeout handling for BRPOPLPUSH/BLMOVE operations
+- Redis connection management in multi-process environments
+
+**Performance Considerations**:
+- List operations can become slow with very large queues
+- BRPOPLPUSH blocks connection until message available or timeout
+- Memory usage grows with queue size in Redis
+
+## Recent Updates
+
+**Redis 6.2.0+ Changes**:
+- BRPOPLPUSH officially deprecated in favor of BLMOVE
+- Redis Streams matured as preferred queue solution
+- Improved performance and reliability features
+
+**AWS Developments (2024)**:
+- GLIDE for Redis client now in preview for better AWS integration
+- ElastiCache continues with 99.99% availability SLA
+- Cost optimization strategies compared to SQS for high-volume queuing
+
+**Python Ecosystem**:
+- redis-py library supports both BLMOVE and Redis Streams
+- Modern frameworks prefer Streams for complex queue requirements
+- Better async/await support in recent redis-py versions
+
+## Implementation Recommendations
+
+**For Simple Reliable Queues**:
+- Use BLMOVE with per-worker backup queues for reliability
+- Implement cleanup process for abandoned backup queues
+- Use connection pooling for better performance
+
+**For Advanced Queue Features**:
+- Migrate to Redis Streams for new implementations
+- Implement consumer groups for distributed processing
+- Use XADD/XREADGROUP for persistent, fault-tolerant queuing
+
+**Infrastructure**:
+- Deploy on AWS ElastiCache for production reliability
+- Use GLIDE for Redis client for better AWS integration
+- Implement proper monitoring and alerting for queue health
+
+**Migration Strategy**:
+- Replace BRPOPLPUSH with BLMOVE for immediate compatibility
+- Plan migration to Redis Streams for long-term queue strategy
+- Maintain backward compatibility during transition period

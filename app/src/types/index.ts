@@ -7,8 +7,17 @@
 export interface User {
   id: string
   email: string
+  username?: string
+  full_name?: string
+  phone?: string
+  timezone: string
+  locale: string
   organization_id?: string
-  status: 'ACTIVE' | 'INACTIVE'
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED'
+  email_verified: boolean
+  email_verified_at?: string
+  mfa_enabled: boolean
+  last_login_at?: string
   created_at: string
   updated_at: string
 }
@@ -112,6 +121,23 @@ export interface ApiResponse<T = unknown> {
   data: T
   success: boolean
   error?: ApiError
+}
+
+// Auth API specific types
+export interface LoginRequest {
+  email: string
+  password: string
+  device_id?: string
+}
+
+export interface AuthTokenResponse {
+  access_token: string
+  refresh_token: string
+  user: User
+}
+
+export interface RefreshTokenRequest {
+  refresh_token: string
 }
 
 // Component props types

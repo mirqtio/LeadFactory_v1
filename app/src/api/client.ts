@@ -3,7 +3,7 @@
  * Integrates with P0-026 authentication system
  */
 import axios, { AxiosInstance, AxiosError } from 'axios'
-import type { User, ApiResponse } from '@/types'
+import type { User, LoginRequest, AuthTokenResponse, RefreshTokenRequest } from '@/types'
 
 // Create axios instance with base configuration
 const apiClient: AxiosInstance = axios.create({
@@ -51,37 +51,43 @@ apiClient.interceptors.response.use(
   }
 )
 
-// Auth API methods
+// Auth API methods - matching P0-026 endpoints
 export const authApi = {
   /**
    * Verify current authentication status
    */
-  async getCurrentUser(): Promise<ApiResponse<User>> {
-    const response = await apiClient.get('/auth/me')
+  async getCurrentUser(): Promise<User> {
+    const response = await apiClient.get('/account/me')
     return response.data
   },
 
   /**
    * Login with credentials  
    */
-  async login(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
-    const response = await apiClient.post('/auth/login', { email, password })
+  async login(email: string, password: string, deviceId?: string): Promise<AuthTokenResponse> {
+    const loginData: LoginRequest = { email, password }
+    if (deviceId) {
+      loginData.device_id = deviceId
+    }
+    
+    const response = await apiClient.post('/account/login', loginData)
     return response.data
   },
 
   /**
    * Logout current user
    */
-  async logout(): Promise<ApiResponse<void>> {
-    const response = await apiClient.post('/auth/logout')
+  async logout(): Promise<{ message: string }> {
+    const response = await apiClient.post('/account/logout')
     return response.data
   },
 
   /**
    * Refresh authentication token
    */
-  async refreshToken(): Promise<ApiResponse<{ token: string }>> {
-    const response = await apiClient.post('/auth/refresh')
+  async refreshToken(refreshToken: string): Promise<AuthTokenResponse> {
+    const refreshData: RefreshTokenRequest = { refresh_token: refreshToken }
+    const response = await apiClient.post('/account/refresh', refreshData)
     return response.data
   },
 }

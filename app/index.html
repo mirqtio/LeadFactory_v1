@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- SEO Meta Tags -->
+  <title>LeadFactory - Global Navigation Shell</title>
+  <meta name="description" content="Unified React shell application for LeadFactory with consistent navigation and authentication" />
+  <meta name="keywords" content="lead management, sales, marketing, analytics, dashboard" />
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="LeadFactory" />
+  <meta property="og:description" content="Streamline your lead generation process with our comprehensive platform" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://leadfactory.app" />
+  
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="LeadFactory" />
+  <meta name="twitter:description" content="Streamline your lead generation process with our comprehensive platform" />
+  
+  <!-- Theme Color for PWA -->
+  <meta name="theme-color" content="#0066CC" />
+  
+  <!-- Prevent flash of unstyled content -->
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #fafafa;
+      color: #1a1a1a;
+    }
+    
+    body.dark {
+      background-color: #0a0a0a;
+      color: #e5e5e5;
+    }
+    
+    #root {
+      min-height: 100vh;
+    }
+    
+    /* Loading spinner for initial page load */
+    .loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .loading-spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 2px solid #e5e5e5;
+      border-top: 2px solid #0066CC;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: #666;
+      font-size: 0.875rem;
+    }
+    
+    body.dark .loading-spinner {
+      border-color: #333;
+      border-top-color: #0066CC;
+    }
+    
+    body.dark .loading-text {
+      color: #999;
+    }
+    
+    /* Hide loading screen once React has mounted */
+    .app-loaded .loading-container {
+      display: none;
+    }
+  </style>
+  
+  <!-- Initialize theme before React loads to prevent flash -->
+  <script>
+    // Check for saved theme preference or default to light mode
+    const savedTheme = localStorage.getItem('theme-storage');
+    let isDarkMode = false;
+    
+    try {
+      if (savedTheme) {
+        const themeData = JSON.parse(savedTheme);
+        isDarkMode = themeData.state?.isDarkMode || false;
+      }
+    } catch (e) {
+      console.warn('Failed to parse saved theme data');
+    }
+    
+    // Apply theme immediately
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    }
+  </script>
+</head>
+<body>
+  <div id="root">
+    <!-- Loading screen shown while React is initializing -->
+    <div class="loading-container">
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+        <span style="font-size: 2rem;">🏭</span>
+        <span style="font-size: 1.5rem; font-weight: 600; color: #0066CC;">LeadFactory</span>
+      </div>
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading application...</div>
+    </div>
+  </div>
+  
+  <script type="module" src="/src/main.tsx"></script>
+  
+  <!-- Mark app as loaded once React has mounted -->
+  <script>
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        document.body.classList.add('app-loaded');
+      }, 100);
+    });
+  </script>
+</body>
+</html>

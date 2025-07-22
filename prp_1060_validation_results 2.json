@@ -1,0 +1,122 @@
+{
+  "overall_passed": true,
+  "total_score": 101,
+  "max_score": 100,
+  "percentage": 101.0,
+  "duration_seconds": 0.03,
+  "validation_results": {
+    "Profile System": {
+      "passed": true,
+      "score": 15,
+      "max_score": 15,
+      "details": [
+        "\u2705 profiles/ directory found",
+        "\u2705 ProfileLoader class found",
+        "\u2705 acceptance.yaml profile found",
+        "\u2705 Profile field 'name' present",
+        "\u2705 Profile field 'description' present",
+        "\u2705 Profile field 'command' present",
+        "\u2705 Profile field 'workflow' present",
+        "\u2705 Workflow step 'setup' found",
+        "\u2705 Workflow step 'test_execution' found",
+        "\u2705 Workflow step 'evidence_validation' found"
+      ]
+    },
+    "Container System": {
+      "passed": true,
+      "score": 16,
+      "max_score": 15,
+      "details": [
+        "\u2705 containers/acceptance/ directory found",
+        "\u2705 Dockerfile found",
+        "\u2705 Dockerfile uses Python base",
+        "\u2705 Dockerfile uses non-root user",
+        "\u2705 Dockerfile sets workspace",
+        "\u2705 acceptance_runner.py found",
+        "\u2705 AcceptanceRunner class found",
+        "\u2705 Workflow orchestration found",
+        "\u2705 Container requirements.txt found"
+      ]
+    },
+    "Evidence System": {
+      "passed": true,
+      "score": 12,
+      "max_score": 12,
+      "details": [
+        "\u2705 deployment/ directory found",
+        "\u2705 evidence_validator.py found",
+        "\u2705 EvidenceValidator class found",
+        "\u2705 Evidence collection method found",
+        "\u2705 Acceptance evidence validation found",
+        "\u2705 Deployment evidence validation found",
+        "\u2705 PRP promotion integration found"
+      ]
+    },
+    "Deployment System": {
+      "passed": true,
+      "score": 12,
+      "max_score": 12,
+      "details": [
+        "\u2705 ssh_deployer.py found",
+        "\u2705 SSHDeployer class found",
+        "\u2705 SSH client integration found",
+        "\u2705 health_checker.py found",
+        "\u2705 HealthChecker class found",
+        "\u2705 Comprehensive health checking found"
+      ]
+    },
+    "Integration Files": {
+      "passed": true,
+      "score": 15,
+      "max_score": 15,
+      "details": [
+        "\u2705 acceptance_integration.py found",
+        "\u2705 AcceptanceIntegrator class found",
+        "\u2705 Extended validation function found",
+        "\u2705 Integration test suite found",
+        "\u2705 End-to-end tests found",
+        "\u2705 Performance tests found"
+      ]
+    },
+    "GitHub Actions": {
+      "passed": true,
+      "score": 10,
+      "max_score": 10,
+      "details": [
+        "\u2705 GitHub Actions workflow found",
+        "\u2705 GHCR registry configuration found",
+        "\u2705 Container build job found",
+        "\u2705 Security scanning found"
+      ]
+    },
+    "Documentation": {
+      "passed": true,
+      "score": 10,
+      "max_score": 10,
+      "details": [
+        "\u2705 core/acceptance_integration.py has docstrings",
+        "\u2705 deployment/evidence_validator.py has docstrings",
+        "\u2705 deployment/ssh_deployer.py has docstrings",
+        "\u2705 deployment/health_checker.py has docstrings",
+        "\u2705 containers/acceptance/acceptance_runner.py has docstrings"
+      ]
+    },
+    "Requirements": {
+      "passed": true,
+      "score": 11,
+      "max_score": 11,
+      "details": [
+        "\u2705 requirements.txt found",
+        "\u2705 paramiko dependency found",
+        "\u2705 docker dependency found",
+        "\u2705 redis dependency found",
+        "\u2705 pydantic dependency found",
+        "\u2705 httpx dependency found",
+        "\u2705 Container requirements.txt found",
+        "\u2705 Unit tests found"
+      ]
+    }
+  },
+  "prp_id": "PRP-1060",
+  "validation_timestamp": 1753112964.335283
+}

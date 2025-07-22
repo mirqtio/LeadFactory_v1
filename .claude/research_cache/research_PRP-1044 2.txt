@@ -1,0 +1,121 @@
+# Research Context for PRP-1044: Batch Report Runner UI
+
+## Key Findings
+
+**Operational Dashboard Patterns:**
+- Modern operational dashboards emphasize real-time monitoring with frequently updated data (up to 1-minute intervals)
+- Effective batch job UIs require single-screen layouts for at-a-glance views with progressive disclosure for detailed information
+- AI-powered insights and automated pattern detection are becoming standard in 2024 dashboard implementations
+
+**React Batch Processing Best Practices:**
+- State batching in React helps maintain consistent UI state and prevents flickering during multiple updates
+- Dedicated batch servers separate from web servers for processing queue operations
+- Email/notification queues with batch processing every minute for optimal performance
+
+**Job Queue Management Patterns:**
+- Progress tracking with 0-100 scale values and cooldown intervals to prevent database flooding
+- Real-time status monitoring with visual indicators (not color-alone for accessibility)
+- Hover states for secondary detail layers without visual noise
+
+## Authoritative Sources
+
+**FastAPI Background Tasks:**
+- https://fastapi.tiangolo.com/tutorial/background-tasks/ - Official documentation for background task implementation
+- https://testdriven.io/blog/fastapi-and-celery/ - Integration patterns with external queue systems
+- https://www.compilenrun.com/docs/framework/fastapi/fastapi-background-tasks/fastapi-redis-queue/ - Redis queue integration
+
+**Dashboard Design Patterns:**
+- https://www.uxpin.com/studio/blog/dashboard-design-principles/ - 2025 dashboard design principles
+- https://www.pencilandpaper.io/articles/ux-pattern-analysis-data-dashboards - UX patterns for data dashboards
+- https://github.com/romanzipp/Laravel-Queue-Monitor - Laravel Queue Monitor implementation patterns
+
+**React Dashboard Components:**
+- https://mui.com/store/collections/free-react-dashboard/ - MUI dashboard templates
+- https://reactflow.dev/ - Node-based UI patterns for React
+- https://taskforce.sh/ - BullMQ Dashboard for queue monitoring
+
+## Current Best Practices
+
+**Frontend Implementation:**
+- Use MUI or similar component libraries for consistent dashboard UI patterns
+- Implement progressive disclosure with hover states for detailed information
+- Ensure accessibility compliance (WCAG 2.1) with pattern/icon combinations, not color-only indicators
+- Real-time updates through WebSocket connections or polling (1-minute intervals for operational data)
+
+**Backend API Patterns:**
+- FastAPI BackgroundTasks for simple async operations after response sent
+- Redis Queue (RQ) for complex, distributed task processing with multiple workers
+- Progress tracking with 0-100 scale and strategic update intervals to prevent database flooding
+- Connection pooling and resource management for database operations
+
+**Queue Management Features:**
+- Admin UI controls: pause/resume queues, retry/discard jobs selectively
+- Filtering by job class and queue name
+- Start/finish timestamps, remaining time estimates, execution data retrieval
+- Job state monitoring: pending, in_progress, completed, failed, retrying
+
+## Common Pitfalls
+
+**Performance Issues:**
+- Overwhelming database with frequent progress updates - implement cooldown intervals
+- Not using connection pooling for background database operations
+- Missing task limits leading to system resource exhaustion
+- Synchronous operations blocking the request-response cycle
+
+**UI/UX Problems:**
+- Color-only status indicators excluding color-blind users
+- Information overload without progressive disclosure patterns
+- Missing real-time updates causing stale job status displays
+- Poor visual hierarchy in dashboard layouts
+
+**Architecture Concerns:**
+- Running heavy background tasks in the same process as web server
+- Missing error handling and monitoring for background tasks
+- No retry mechanisms for failed jobs
+- Inadequate queue management and job lifecycle handling
+
+## Recent Updates
+
+**FastAPI 2024 Enhancements:**
+- Improved dependency injection for BackgroundTasks across multiple levels
+- Better integration with external queue systems (Celery, RQ)
+- Enhanced structured concurrency with AnyIO for task lifecycle management
+- WebSocket support for real-time bidirectional communication
+
+**Dashboard Design Trends:**
+- AI-powered automated insights and anomaly detection
+- Enhanced accessibility standards with WCAG 2.1 compliance
+- Mobile-first responsive design for operational monitoring
+- Progressive disclosure patterns to reduce cognitive load
+
+**React Ecosystem Updates:**
+- Improved state batching for better UI consistency
+- Enhanced component libraries with built-in accessibility features
+- Better performance monitoring and optimization tools
+- Advanced charting libraries for real-time data visualization
+
+## Implementation Recommendations
+
+**Architecture Approach:**
+- Use FastAPI BackgroundTasks for simple async operations (email notifications, logging)
+- Implement Redis Queue for complex batch processing with multiple workers
+- Separate batch processing server from main web application for scalability
+- WebSocket connections for real-time job status updates
+
+**UI Design Strategy:**
+- Single-screen dashboard layout with key metrics prominently displayed
+- Progressive disclosure for detailed job information via hover/click interactions
+- Accessible status indicators using icons + color + text patterns
+- Real-time progress bars and status badges for immediate feedback
+
+**Technology Stack:**
+- React with MUI component library for consistent dashboard UI
+- WebSocket or Server-Sent Events for real-time updates
+- Chart libraries (Recharts, Victory) for progress visualization
+- State management (Redux/Zustand) for job status synchronization
+
+**Monitoring and Operations:**
+- Comprehensive logging for all background task operations
+- Health check endpoints for queue status monitoring
+- Admin controls for queue management (pause, resume, retry, discard)
+- Performance metrics tracking and alerting for queue bottlenecks

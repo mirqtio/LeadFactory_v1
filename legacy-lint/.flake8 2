@@ -1,0 +1,23 @@
+[flake8]
+max-line-length = 100
+ignore = E203,W503,E501,E402,F401,W293,W292,E122,E128,E127,E129,E301,E302,E303,E306,E704,E712,E722,E226,E251,F402,F541,F811,F821,F841,W391,W504,D100,D101,D102,D103,D104,D105,D106,D107,D200,D202,D204,D205,D400,D401,D402,D403,D209,D210,D211,D300,D301,C901,W291,F403,F405
+exclude = 
+    venv,
+    .venv,
+    .venv_ci,
+    env,
+    .git,
+    __pycache__,
+    .pytest_cache,
+    node_modules,
+    build,
+    dist,
+    .tox,
+    alembic,
+    leadfactory.egg-info
+per-file-ignores =
+    tests/*:F401,E402,F811,F821,F841,E712,E722,E306
+    */conftest.py:F401
+    */test_*.py:F401,E402,F811,F821,F841,E712,E722,E306
+    alembic/*:E402,F401,E122,E128
+    */migrations/*:E402,F401,E122,E128

@@ -17,13 +17,13 @@ interface NavigationProps {
 /**
  * Default navigation items with role-based access control
  */
-const defaultNavItems: NavigationItem[] = [
+const defaultNavItems: (NavigationItem & { order: number })[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
     href: '/dashboard',
     icon: '📊',
-    requiredRoles: ['VIEWER', 'SALES_REP', 'MARKETING_USER', 'ANALYST', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
+    roles: ['VIEWER', 'SALES_REP', 'MARKETING_USER', 'ANALYST', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
     order: 1
   },
   {
@@ -31,7 +31,7 @@ const defaultNavItems: NavigationItem[] = [
     label: 'Lead Management',
     href: '/leads',
     icon: '🎯',
-    requiredRoles: ['SALES_REP', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
+    roles: ['SALES_REP', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
     order: 2
   },
   {
@@ -39,7 +39,7 @@ const defaultNavItems: NavigationItem[] = [
     label: 'Marketing Campaigns',
     href: '/campaigns',
     icon: '📢',
-    requiredRoles: ['MARKETING_USER', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
+    roles: ['MARKETING_USER', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
     order: 3
   },
   {
@@ -47,7 +47,7 @@ const defaultNavItems: NavigationItem[] = [
     label: 'Analytics',
     href: '/analytics',
     icon: '📈',
-    requiredRoles: ['ANALYST', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
+    roles: ['ANALYST', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
     order: 4
   },
   {
@@ -55,7 +55,7 @@ const defaultNavItems: NavigationItem[] = [
     label: 'Reports',
     href: '/reports',
     icon: '📋',
-    requiredRoles: ['TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
+    roles: ['TEAM_LEAD', 'MANAGER', 'ADMIN', 'SUPER_ADMIN'],
     order: 5
   },
   {
@@ -63,7 +63,7 @@ const defaultNavItems: NavigationItem[] = [
     label: 'Administration',
     href: '/admin',
     icon: '⚙️',
-    requiredRoles: ['ADMIN', 'SUPER_ADMIN'],
+    roles: ['ADMIN', 'SUPER_ADMIN'],
     order: 6
   }
 ]
@@ -89,8 +89,8 @@ export default function Navigation({ onMobileMenuToggle, isMobileMenuOpen }: Nav
 
     const filteredItems = defaultNavItems
       .filter(item => 
-        !item.requiredRoles || 
-        item.requiredRoles.some(role => hasRole(userRole, role as Role))
+        !item.roles || 
+        item.roles.some(role => hasRole(userRole, role as Role))
       )
       .sort((a, b) => a.order - b.order)
 
