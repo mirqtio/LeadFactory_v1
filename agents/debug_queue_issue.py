@@ -14,7 +14,7 @@ for queue in ["pm_queue", "validation_queue", "integration_queue"]:
     print(f"\n{queue}:")
     items = r.lrange(queue, 0, -1)
     print(f"  Items: {[i.decode() if isinstance(i, bytes) else i for i in items]}")
-    
+
     inflight = r.lrange(f"{queue}:inflight", 0, -1)
     print(f"  Inflight: {[i.decode() if isinstance(i, bytes) else i for i in inflight]}")
 

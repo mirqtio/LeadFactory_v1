@@ -2,10 +2,11 @@
 """
 Clean test of queue operations
 """
-import redis
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+import redis
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger()
 
 r = redis.from_url("redis://localhost:6379/0")

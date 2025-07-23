@@ -10,26 +10,29 @@ from unittest.mock import MagicMock
 
 class MockClaudeResponse:
     """Mock response from Claude API"""
+
     def __init__(self, text: str):
         self.content = [MagicMock(text=text)]
 
 
 class MockClaudeClient:
     """Mock Anthropic client for testing"""
-    
+
     def __init__(self, behavior: str = "normal"):
         self.behavior = behavior
         self.call_count = 0
         self.messages = MagicMock()
         self.messages.create = self.create_message
-        
-    def create_message(self, model: str, messages: List[Dict], max_tokens: int, temperature: float = 0.7) -> MockClaudeResponse:
+
+    def create_message(
+        self, model: str, messages: List[Dict], max_tokens: int, temperature: float = 0.7
+    ) -> MockClaudeResponse:
         """Mock message creation"""
         self.call_count += 1
-        
+
         # Extract the last user message
         last_message = messages[-1]["content"] if messages else ""
-        
+
         # Determine response based on behavior and content
         if self.behavior == "normal":
             return self._normal_response(last_message, messages)
@@ -39,40 +42,41 @@ class MockClaudeClient:
             raise Exception("Claude API error")
         elif self.behavior == "slow":
             import time
+
             time.sleep(2)
             return self._normal_response(last_message, messages)
         else:
             return MockClaudeResponse("Unknown behavior")
-    
+
     def _normal_response(self, prompt: str, messages: List[Dict]) -> MockClaudeResponse:
         """Generate normal responses based on agent role"""
         # Detect agent role from system message
         system_msg = messages[0]["content"] if messages else ""
-        
+
         if "senior software developer" in system_msg:
             # PM Agent response
             if "implement PRP" in prompt:
                 return MockClaudeResponse(self._pm_implementation_response())
             elif "ANSWER:" in prompt:
                 return MockClaudeResponse(self._pm_continuation_response())
-        
+
         elif "senior QA engineer" in system_msg:
             # Validator response
             if "validate the implementation" in prompt:
                 return MockClaudeResponse(self._validator_response())
-        
+
         elif "senior DevOps engineer" in system_msg:
             # Integration response
             if "handle the integration" in prompt:
                 return MockClaudeResponse(self._integration_response())
-        
+
         elif "senior architect" in system_msg:
             # Q&A Orchestrator response
             return MockClaudeResponse(self._qa_answer_response(prompt))
-        
+
         # Default response
         return MockClaudeResponse("I'll help you with that task.")
-    
+
     def _pm_implementation_response(self) -> str:
         """Mock PM implementation response"""
         return """I'll implement this PRP step by step.
@@ -122,7 +126,7 @@ All tests pass! Coverage is at 85%.
 {"key": "files_modified", "value": "feature.py,test_feature.py"}
 ```
 """
-    
+
     def _pm_continuation_response(self) -> str:
         """Mock PM response after Q&A"""
         return """Thank you for the clarification! Based on your answer, I'll adjust the implementation.
@@ -156,7 +160,7 @@ The tests have been updated and all validations pass.
 {"key": "files_modified", "value": "feature.py,test_feature.py,validator.py"}
 ```
 """
-    
+
     def _validator_response(self) -> str:
         """Mock validator response"""
         return """I'll thoroughly review the PM's implementation.
@@ -179,7 +183,7 @@ All validation criteria are met.
 {"key": "performance_review", "value": "passed"}
 ```
 """
-    
+
     def _integration_response(self) -> str:
         """Mock integration response"""
         return """I'll handle the deployment of these changes.
@@ -218,21 +222,23 @@ CI pipeline passed successfully! All checks are green.
 {"key": "pr_number", "value": "123"}
 ```
 """
-    
+
     def _qa_response(self, prompt: str) -> MockClaudeResponse:
         """Generate response that needs Q&A"""
         if self.call_count == 1:
-            return MockClaudeResponse("""I'm implementing the PRP requirements.
+            return MockClaudeResponse(
+                """I'm implementing the PRP requirements.
 
 Looking at the code, I need some clarification about the architecture.
 
 QUESTION: Should I follow the existing singleton pattern in the codebase or implement this as a regular class with dependency injection?
 
-I want to ensure the implementation aligns with the project's architectural decisions.""")
+I want to ensure the implementation aligns with the project's architectural decisions."""
+            )
         else:
             # After Q&A, continue normally
             return self._normal_response(prompt, [])
-    
+
     def _qa_answer_response(self, prompt: str) -> str:
         """Mock Q&A orchestrator response"""
         if "singleton pattern" in prompt:
@@ -257,32 +263,32 @@ class NewFeature:
 ```
 
 This maintains consistency with the current architectural direction while providing the same benefits as a singleton through the DI container's scope management."""
-        
+
         return "I can help with that. Based on the codebase analysis, here's my recommendation..."
 
 
 class MockRedisClient:
     """Mock Redis client for testing"""
-    
+
     def __init__(self):
         self.data = {}
         self.lists = {}
         self.sets = {}
-        
+
     def hgetall(self, key: str) -> Dict[bytes, bytes]:
         """Mock hgetall"""
         return self.data.get(key, {})
-    
+
     def hget(self, key: str, field: str) -> Optional[bytes]:
         """Mock hget"""
         return self.data.get(key, {}).get(field)
-    
+
     def hset(self, key: str, mapping: Dict) -> None:
         """Mock hset"""
         if key not in self.data:
             self.data[key] = {}
         self.data[key].update({k: v.encode() if isinstance(v, str) else v for k, v in mapping.items()})
-    
+
     def hincrby(self, key: str, field: str, amount: int) -> int:
         """Mock hincrby"""
         if key not in self.data:
@@ -291,14 +297,14 @@ class MockRedisClient:
         new_value = current + amount
         self.data[key][field] = str(new_value).encode()
         return new_value
-    
+
     def lrange(self, key: str, start: int, end: int) -> List[bytes]:
         """Mock lrange"""
         lst = self.lists.get(key, [])
         if end == -1:
             return lst[start:]
-        return lst[start:end+1]
-    
+        return lst[start : end + 1]
+
     def lpush(self, key: str, *values) -> int:
         """Mock lpush"""
         if key not in self.lists:
@@ -306,14 +312,14 @@ class MockRedisClient:
         for value in reversed(values):
             self.lists[key].insert(0, value.encode() if isinstance(value, str) else value)
         return len(self.lists[key])
-    
+
     def rpush(self, key: str, value: str) -> int:
         """Mock rpush"""
         if key not in self.lists:
             self.lists[key] = []
         self.lists[key].append(value.encode() if isinstance(value, str) else value)
         return len(self.lists[key])
-    
+
     def lrem(self, key: str, count: int, value: str) -> int:
         """Mock lrem"""
         if key not in self.lists:
@@ -324,11 +330,11 @@ class MockRedisClient:
             # Remove all occurrences
             self.lists[key] = [v for v in self.lists[key] if v != value_bytes]
         return removed
-    
+
     def llen(self, key: str) -> int:
         """Mock llen"""
         return len(self.lists.get(key, []))
-    
+
     def blmove(self, source: str, destination: str, timeout: float) -> Optional[bytes]:
         """Mock blmove"""
         if source in self.lists and self.lists[source]:
@@ -338,26 +344,26 @@ class MockRedisClient:
             self.lists[destination].append(value)
             return value
         return None
-    
+
     def brpop(self, key: str, timeout: float) -> Optional[tuple]:
         """Mock brpop"""
         if key in self.lists and self.lists[key]:
             value = self.lists[key].pop()
             return (key.encode(), value)
         return None
-    
+
     def get(self, key: str) -> Optional[bytes]:
         """Mock get"""
         return self.data.get(key)
-    
+
     def set(self, key: str, value: str) -> None:
         """Mock set"""
         self.data[key] = value.encode() if isinstance(value, str) else value
-    
+
     def setex(self, key: str, ttl: int, value: str) -> None:
         """Mock setex"""
         self.set(key, value)
-    
+
     def delete(self, key: str) -> int:
         """Mock delete"""
         deleted = 0
@@ -368,16 +374,17 @@ class MockRedisClient:
             del self.lists[key]
             deleted += 1
         return deleted
-    
+
     def keys(self, pattern: str) -> List[bytes]:
         """Mock keys"""
         import fnmatch
+
         matching_keys = []
         for key in list(self.data.keys()) + list(self.lists.keys()):
             if fnmatch.fnmatch(key, pattern):
                 matching_keys.append(key.encode() if isinstance(key, str) else key)
         return matching_keys
-    
+
     def from_url(self, url: str):
         """Mock from_url - returns self"""
         return self
