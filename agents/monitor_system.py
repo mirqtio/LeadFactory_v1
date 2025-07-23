@@ -2,20 +2,22 @@
 """
 Multi-Agent System Monitor
 """
-import redis
 import json
 import time
 from datetime import datetime
 
+import redis
+
+
 def monitor_system():
     r = redis.from_url("redis://localhost:6379/0")
-    
+
     print("=" * 60)
     print("🤖 MULTI-AGENT SYSTEM STATUS")
     print("=" * 60)
     print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
-    
+
     # Queue Status
     print("📋 QUEUE STATUS:")
     queues = ["new_queue", "dev_queue", "validation_queue", "integration_queue"]
@@ -23,7 +25,7 @@ def monitor_system():
         length = r.llen(queue)
         print(f"  {queue:20} : {length:3d} items")
     print()
-    
+
     # Active PRPs
     print("📄 ACTIVE PRPS:")
     prp_keys = r.keys("prp:*")
@@ -32,14 +34,14 @@ def monitor_system():
             prp_data = r.hgetall(key)
             if prp_data:
                 prp_id = key.decode().split(":")[-1]
-                state = prp_data.get(b'state', b'unknown').decode()
-                owner = prp_data.get(b'owner', b'unassigned').decode()
+                state = prp_data.get(b"state", b"unknown").decode()
+                owner = prp_data.get(b"owner", b"unassigned").decode()
                 print(f"  {prp_id:15} : {state:12} | {owner}")
     else:
         print("  No active PRPs")
     print()
-    
-    # Agent Status  
+
+    # Agent Status
     print("🤖 AGENT STATUS:")
     agent_keys = r.keys("agent:*")
     if agent_keys:
@@ -47,14 +49,14 @@ def monitor_system():
             agent_data = r.hgetall(key)
             if agent_data:
                 agent_id = key.decode().split(":")[-1]
-                status = agent_data.get(b'status', b'unknown').decode()
-                current_prp = agent_data.get(b'current_prp', b'none').decode()
-                last_update = agent_data.get(b'last_update', b'never').decode()
+                status = agent_data.get(b"status", b"unknown").decode()
+                current_prp = agent_data.get(b"current_prp", b"none").decode()
+                last_update = agent_data.get(b"last_update", b"never").decode()
                 print(f"  {agent_id:15} : {status:12} | PRP: {current_prp:10} | {last_update}")
     else:
         print("  No agent status found")
     print()
-    
+
     # Recent Activity (if we have activity logs)
     activity_keys = r.keys("activity:*")
     if activity_keys:
@@ -65,11 +67,12 @@ def monitor_system():
             activity = r.get(key)
             if activity:
                 activities.append(activity.decode())
-        
+
         for activity in sorted(activities)[-5:]:
             print(f"  {activity}")
-    
+
     print("=" * 60)
+
 
 if __name__ == "__main__":
     try:
