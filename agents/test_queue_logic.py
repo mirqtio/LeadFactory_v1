@@ -2,12 +2,13 @@
 """
 Test just the queue logic without API calls
 """
-import redis
 import logging
 from datetime import datetime
 
+import redis
+
 # Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("test_queue_logic")
 
 # Connect to Redis
@@ -30,10 +31,7 @@ logger.info("\nSimulating handle_completion:")
 
 # Update PRP state
 completion_time = datetime.utcnow().isoformat()
-r.hset(f"prp:{prp_id}", mapping={
-    f"{role}_completed_at": completion_time,
-    f"{role}_completed_by": agent_id
-})
+r.hset(f"prp:{prp_id}", mapping={f"{role}_completed_at": completion_time, f"{role}_completed_by": agent_id})
 logger.info(f"1. Updated PRP metadata")
 
 # Move to next queue

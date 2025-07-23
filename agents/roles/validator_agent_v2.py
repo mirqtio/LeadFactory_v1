@@ -3,17 +3,17 @@
 Enhanced Validator Agent with SuperClaude persona integration
 """
 import json
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from ..core.persona_worker import PersonaWorker
 
 
 class ValidatorAgentV2(PersonaWorker):
     """Enhanced Validator Agent with QA persona and quality focus"""
-    
+
     def __init__(self, agent_id: str):
         super().__init__("validator", agent_id, model="claude-3-5-sonnet-20241022")
-        
+
     def build_context(self, prp_id: str, prp_data: Dict[str, str]) -> Dict[str, Any]:
         """Build validator-specific context with QA persona"""
         pm_evidence = {
@@ -21,9 +21,9 @@ class ValidatorAgentV2(PersonaWorker):
             "coverage_pct": prp_data.get("coverage_pct", "0"),
             "lint_passed": prp_data.get("lint_passed", "unknown"),
             "implementation_complete": prp_data.get("implementation_complete", "unknown"),
-            "files_modified": json.loads(prp_data.get("files_modified", "[]"))
+            "files_modified": json.loads(prp_data.get("files_modified", "[]")),
         }
-        
+
         system_prompt = f"""You are a Senior QA Engineer (Validator role) reviewing PRP {prp_id}.
 
 Your primary persona is QA with these priorities:
@@ -84,7 +84,7 @@ If validation fails, output:
 {{"key": "recommended_fixes", "value": ["fix1", "fix2"]}}
 ```
 """
-        
+
         user_prompt = f"""Please perform a comprehensive validation of PRP {prp_id}.
 
 Start by reviewing the modified files and understanding what was implemented.
@@ -94,44 +94,41 @@ Modified files to review:
 {chr(10).join(pm_evidence['files_modified'])}
 
 Begin with examining the implementation."""
-        
-        return {
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-        }
-    
+
+        return {"messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]}
+
     def check_completion_criteria(self, prp_id: str, evidence: Dict[str, str]) -> bool:
         """Check if validation is complete"""
         # Must have validation result
         if "validation_passed" not in evidence:
             return False
-            
+
         # If passed, need quality metrics
         if evidence.get("validation_passed") == "true":
             return "quality_score" in evidence
-            
+
         # If failed, need issues and recommendations
         if evidence.get("validation_passed") == "false":
             return "validation_issues" in evidence
-            
+
         return False
-    
+
     def process_response(self, prp_id: str, response: str) -> Dict[str, Any]:
         """Process validator-specific response patterns"""
         result = super().process_response(prp_id, response)
-        
+
         # QA persona specific monitoring
         if "edge case" in response.lower() or "corner case" in response.lower():
             self.logger.info("Validator examining edge cases")
-            
+
         if "security" in response.lower() and any(vuln in response.lower() for vuln in ["injection", "xss", "csrf"]):
             self.logger.info("Validator performing security analysis")
-            
-        if "performance" in response.lower() and any(term in response.lower() for term in ["bottleneck", "optimization", "latency"]):
+
+        if "performance" in response.lower() and any(
+            term in response.lower() for term in ["bottleneck", "optimization", "latency"]
+        ):
             self.logger.info("Validator analyzing performance")
-            
+
         # Auto-detect validation failure patterns
         failure_indicators = [
             "does not meet",
@@ -139,16 +136,16 @@ Begin with examining the implementation."""
             "missing requirement",
             "incomplete implementation",
             "security vulnerability",
-            "performance regression"
+            "performance regression",
         ]
-        
+
         if any(indicator in response.lower() for indicator in failure_indicators):
             if "validation_passed" not in result.get("evidence", {}):
                 result["evidence"]["validation_passed"] = "false"
                 self.logger.warning("Auto-detected validation failure indicators")
-                
+
         return result
-    
+
     def handle_completion(self, prp_id: str, evidence: Dict[str, str]):
         """Handle validation completion with QA standards"""
         # Apply QA persona standards
@@ -162,11 +159,11 @@ Begin with examining the implementation."""
                     evidence["validation_notes"] = f"Quality score {score} below minimum 80"
             except ValueError:
                 pass
-                
+
         # Log validation decision
         if evidence.get("validation_passed") == "true":
             self.logger.info(f"✅ Validation PASSED for {prp_id}")
         else:
             self.logger.warning(f"❌ Validation FAILED for {prp_id}")
-            
+
         super().handle_completion(prp_id, evidence)

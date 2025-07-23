@@ -3,22 +3,22 @@
 Enhanced PM Agent with SuperClaude persona integration
 """
 import json
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from ..core.persona_worker import PersonaWorker
 
 
 class PMAgentV2(PersonaWorker):
     """Enhanced PM Agent with backend persona and reliability focus"""
-    
+
     def __init__(self, agent_id: str):
         super().__init__("pm", agent_id, model="claude-3-5-sonnet-20241022")
-        
+
     def build_context(self, prp_id: str, prp_data: Dict[str, str]) -> Dict[str, Any]:
         """Build PM-specific context with enhanced persona"""
         requirements = prp_data.get("requirements", "No requirements found")
         success_criteria = prp_data.get("success_criteria", "No criteria found")
-        
+
         system_prompt = f"""You are a Senior Backend Engineer (PM role) implementing PRP {prp_id}.
 
 Your primary persona is Backend Engineer with these priorities:
@@ -68,7 +68,7 @@ When implementation is complete, output evidence:
 {{"key": "files_modified", "value": ["file1.py", "file2.py"]}}
 ```
 """
-        
+
         user_prompt = f"""Please implement PRP {prp_id}: {prp_data.get('title', 'No title')}
 
 Start by understanding the current codebase structure and the specific requirements.
@@ -76,22 +76,17 @@ Use the analyzer persona to investigate the existing implementation before makin
 Apply architect persona thinking for any design decisions.
 
 Begin with exploring the codebase to understand the context."""
-        
-        return {
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-        }
-    
+
+        return {"messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]}
+
     def check_completion_criteria(self, prp_id: str, evidence: Dict[str, str]) -> bool:
         """Check if PM task is complete with backend standards"""
         required = ["tests_passed", "coverage_pct", "lint_passed", "implementation_complete"]
-        
+
         # Check all required evidence exists
         if not all(key in evidence for key in required):
             return False
-            
+
         # Backend persona requires high quality standards
         try:
             coverage = int(evidence.get("coverage_pct", "0"))
@@ -100,48 +95,50 @@ Begin with exploring the codebase to understand the context."""
                 return False
         except ValueError:
             return False
-            
+
         # All evidence must be positive
-        return (evidence.get("tests_passed") == "true" and
-                evidence.get("lint_passed") == "true" and
-                evidence.get("implementation_complete") == "true")
-    
+        return (
+            evidence.get("tests_passed") == "true"
+            and evidence.get("lint_passed") == "true"
+            and evidence.get("implementation_complete") == "true"
+        )
+
     def process_response(self, prp_id: str, response: str) -> Dict[str, Any]:
         """Process PM-specific response patterns"""
         result = super().process_response(prp_id, response)
-        
+
         # Extract modified files from response
         if "files_modified" not in result.get("evidence", {}):
             files = self.extract_modified_files(response)
             if files:
                 result["evidence"]["files_modified"] = json.dumps(files)
-                
+
         # Monitor for backend-specific activities
         if any(phrase in response.lower() for phrase in ["error handling", "fault tolerance", "rollback"]):
             self.logger.info("PM applying reliability patterns")
-            
+
         if any(phrase in response.lower() for phrase in ["security", "authentication", "authorization"]):
             self.logger.info("PM applying security patterns")
-            
+
         return result
-    
+
     def extract_modified_files(self, response: str) -> list:
         """Extract list of modified files from response"""
         files = []
-        
+
         # Look for file paths in various formats
         import re
-        
+
         # Match file paths like path/to/file.py
         file_patterns = [
-            r'(?:modified|created|updated|wrote to|editing)\s+([a-zA-Z0-9_/.-]+\.py)',
-            r'```python\n#\s*([a-zA-Z0-9_/.-]+\.py)',
-            r'File:\s*([a-zA-Z0-9_/.-]+\.py)'
+            r"(?:modified|created|updated|wrote to|editing)\s+([a-zA-Z0-9_/.-]+\.py)",
+            r"```python\n#\s*([a-zA-Z0-9_/.-]+\.py)",
+            r"File:\s*([a-zA-Z0-9_/.-]+\.py)",
         ]
-        
+
         for pattern in file_patterns:
             matches = re.findall(pattern, response, re.IGNORECASE)
             files.extend(matches)
-            
+
         # Deduplicate
         return list(set(files))
